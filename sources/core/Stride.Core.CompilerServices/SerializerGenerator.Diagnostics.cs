@@ -53,8 +53,16 @@ namespace Stride.Core.CompilerServices
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        private static DiagnosticDescriptor DataSerializerGlobalNoTypeInformation = new DiagnosticDescriptor(
+        private static DiagnosticDescriptor DataSerializerNoTypeInformation = new DiagnosticDescriptor(
             string.Format(DataContractDiagnosticIdFormat, 10),
+            "No type has been specified for DataSerializer attribute",
+            "Type provided to [DataSerializer] may not be null.",
+            DataContractDiagnosticCategory,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        private static DiagnosticDescriptor DataSerializerGlobalNoTypeInformation = new DiagnosticDescriptor(
+            string.Format(DataContractDiagnosticIdFormat, 11),
             "No type has been specified for DataSerializerGlobal attribute",
             "Both types provided to [DataSerializerGlobal] may not be null.",
             DataContractDiagnosticCategory,
@@ -62,7 +70,7 @@ namespace Stride.Core.CompilerServices
             isEnabledByDefault: true);
 
         private static DiagnosticDescriptor DataSerializerDoesNotExtendDataSerializerBaseClass = new DiagnosticDescriptor(
-            string.Format(DataContractDiagnosticIdFormat, 11),
+            string.Format(DataContractDiagnosticIdFormat, 12),
             "Custom serializer doesn't extend Stride.Core.DataSerializer",
             "Custom serializer {0} doesn't extend Stride.Core.DataSerializer.",
             DataContractDiagnosticCategory,
@@ -70,7 +78,7 @@ namespace Stride.Core.CompilerServices
             isEnabledByDefault: true);
 
         private static DiagnosticDescriptor DataSerializerGlobalDuplicateDeclarations = new DiagnosticDescriptor(
-            string.Format(DataContractDiagnosticIdFormat, 12),
+            string.Format(DataContractDiagnosticIdFormat, 13),
             "Multiple DataSerializerGlobal attribute declarations for the same data type and profile",
             "Multiple [DataSerializerGlobal] declarations for the same data type {0} and profile '{1}'.",
             DataContractDiagnosticCategory,

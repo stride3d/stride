@@ -280,7 +280,24 @@ endDataContractCheck:;
                     var dataType = symbol as ITypeSymbol;
                     var serializerType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
                     var genericMode = attribute.NamedArguments.Length > 0 ? (DataSerializerGenericMode)(int)attribute.NamedArguments[0].Value.Value : DataSerializerGenericMode.None;
-                    
+
+                    if (serializerType == null)
+                    {
+                        // the compiler should have complained as attribute has a [NotNull] on the serializer type
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            DataSerializerNoTypeInformation,
+                            Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span)));
+
+                        continue;
+                    }
+
+                    // if basetype is null we need to access the original definition, but this makes us loose generic arguments
+                    // so we're reapplying them here to have a full type.
+                    if (serializerType.BaseType == null)
+                    {
+                        serializerType = GetFullTypeInfoFrom(serializerType);
+                    }
+
                     spec = new GlobalSerializerRegistration
                     {
                         DataType = dataType,
@@ -295,11 +312,15 @@ endDataContractCheck:;
                     var genericMode = (DataSerializerGenericMode)(int)attribute.ConstructorArguments[2].Value;
                     var profile = attribute.NamedArguments.Length > 0 ? (string)attribute.NamedArguments[0].Value.Value : null;
                     
+                    // if basetype is null we need to access the original definition, but this makes us loose generic arguments
+                    // so we're reapplying them here to have a full type.
+                    if (serializerType != null && serializerType.BaseType == null)
+                    {
+                        serializerType = GetFullTypeInfoFrom(serializerType);
+                    }
+
                     if (dataType == null && serializerType != null)
                     {
-                        // TODO: I moved .OriginalDefinition for the later base type check, but do we need it here?
-                        //       if base type is null then yes, but if type is generic then we will loose bound type arguments
-                        //       ~> maybe serializerType.OriginalDefinition.Construct(serializerType.TypeArguments)
                         // we need to figure out the type from generic argument of DataSerializer`1 that serializerType extends
                         var baseType = serializerType.BaseType;
                         while (baseType != null)
@@ -344,7 +365,7 @@ endDataContractCheck:;
                     // get the OriginalDefinition for this symbol to access base type info
                     // and validate it extends Stride.Core.Serialization.DataSerializer
                     if (spec.SerializerType != null &&
-                        !HasBaseTypesMatchingPredicate(spec.SerializerType.OriginalDefinition, baseType => baseType.ToDisplayString() == DataSerializerName))
+                        !HasBaseTypesMatchingPredicate(spec.SerializerType, baseType => baseType.ToDisplayString() == DataSerializerName))
                     {
                         context.ReportDiagnostic(Diagnostic.Create(
                             DataSerializerDoesNotExtendDataSerializerBaseClass,
@@ -379,6 +400,16 @@ endDataContractCheck:;
                     }
                 }
             }
+        }
+
+        private static INamedTypeSymbol GetFullTypeInfoFrom(INamedTypeSymbol serializerType)
+        {
+            var original = serializerType.OriginalDefinition;
+            if (serializerType.IsGenericType && !serializerType.IsUnboundGenericType && serializerType.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter))
+            {
+                return original.ConstructedFrom.Construct(serializerType.TypeArguments, serializerType.TypeArgumentNullableAnnotations);
+            }
+            return original;
         }
 
         private static bool CheckForDataContract(INamedTypeSymbol typeSymbol)

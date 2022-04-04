@@ -47,7 +47,18 @@ namespace Stride.Core.CompilerServices
                     });
                 }
 
-                // TODO: iterate over registrations with serializerType == null && Generated == false and try to instatiate their serializers if dataType is closed generic
+                // try to instatiate serializers if null and dataType is closed generic
+                foreach (var registrationKvp in serializerSpec.GlobalSerializerRegistrationsToEmit)
+                {
+                    var registration = registrationKvp.Value;
+                    if (registration.SerializerType == null && registration.Generated == false)
+                    {
+                        if (!CheckTypeReference(serializerSpec, registration.DataType))
+                        {
+                            // TODO: complain - no serializer could be found for data type
+                        }
+                    }
+                }
 
                 foreach (var typeSpec in serializerSpec.DataContractTypes)
                 {
@@ -181,7 +192,6 @@ namespace Stride.Core.CompilerServices
 
                 return true;
             }
-
             
             private bool? ValidateTypeInChain(
                 SerializerSpec serializerSpec,
@@ -194,9 +204,16 @@ namespace Stride.Core.CompilerServices
                 }
                 else
                 {
-                    // If parent type is a closed generic type we need to add a registration for it
-                    // TODO: see how AssemblyProcessor regards type arguments - IMO we shouldn't validate them to avoid unnecessary preventing stuff
-                    //       however, when type is known to expect a serializer of the argument and it isn't serializable we should return false
+                    // TODO: if base has a serializer with generic mode Type or TypeAndArguments
+                    //       we need to copy it's serializer and instantiate it with this class.
+
+                    // If type is a closed generic type we need to add a registration for it
+
+                    // TODO: support for EnumerateGenericInstantiations method detection...
+                    //       so the way AssemblyProcessor detects if it needs to process generic type arguments
+                    //       is by reading an EnumerateGenericInstantiations method and finding ldtoken opcodes
+                    //       to resolve the types added to the `genericInstantiations` list and validate them
+                    //       Honestly, I don't know if inspecting methods is possible from roslyn, so we may need to change this with some hacks
                     if (type.TypeParameters.Length > 0)
                     {
                         var baseTypeDefinition = type.ConstructUnboundGenericType();
@@ -205,7 +222,7 @@ namespace Stride.Core.CompilerServices
                             if (type.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter) &&
                                 !serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((type, DefaultProfile)))
                             {
-                                // TODO: check the GenericMode as you may need to construct type with a different scheme
+                                // TODO: check the GenericMode as you may need to construct type with a different scheme (for Type/TypeAndArgs set Inherited=true)
                                 serializerSpec.GlobalSerializerRegistrationsToEmit.Add((type, DefaultProfile), new GlobalSerializerRegistration
                                 {
                                     DataType = type,
