@@ -6,8 +6,8 @@ ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
-        - ref!! 412f6e91-d8aa-4ae8-8266-d807857e687b
         - ref!! 29cd9768-f880-4282-a34e-d6d7b0a1b86f
+        - ref!! 412f6e91-d8aa-4ae8-8266-d807857e687b
         - ref!! 78486b16-2385-4d80-a441-905364e25b3b
         - ref!! 0c825b2a-e119-4492-8138-7b7f15912125
     Parts:
@@ -402,9 +402,9 @@ Hierarchy:
                         Page: 2fa9f139-59c7-49b4-8ec2-d7cb1733c44e:Scenes/01_UI-basics/UI-basics-page
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.28, Y: 0.72, Z: 1.0}
-                        RenderGroup: Group31
                     11eb6e24c94e95b309b51603c321f009: !CSharpIntermediate.Code.UIByEditor,CSharpIntermediate.Game
                         Id: 80dce1d7-f923-4ddf-9499-9e6f96b31ef5
+                        Priority: 1
                         Font: null
         -   Folder: null
             Entity:
@@ -553,7 +553,7 @@ Hierarchy:
                 Components:
                     bd77aec31db5bedbf6e4703cba7620a0: !TransformComponent
                         Id: 72298f25-c603-4af2-8069-35eb4c424c57
-                        Position: {X: 0.34085572, Y: 1.1914668, Z: 4.9607964}
+                        Position: {X: 0.34085572, Y: 1.1914668, Z: -4.9723096}
                         Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -654,7 +654,7 @@ Hierarchy:
                 InstanceId: bd3950e6-ee7b-4aea-9a87-b4cc8b436798
         -   Entity:
                 Id: 412f6e91-d8aa-4ae8-8266-d807857e687b
-                Name: DefaultScenery
+                Name: TutorialMenu
                 Components:
                     9e5b74810c9fa2c29da826a979964f98: !TransformComponent
                         Id: d8b38805-6362-486c-be1a-2afcd6943a4b
@@ -1163,6 +1163,7 @@ Hierarchy:
                         Children: {}
                     00dd7347d14e1eb1ebb64f349da95209: !CSharpIntermediate.Code.UIByCode,CSharpIntermediate.Game
                         Id: 9c0e96ae-0edb-4644-8db9-4c67799ad3ee
+                        Priority: 5
         -   Entity:
                 Id: 802db375-40fd-440b-aa49-a6e529acc426
                 Name: BoxF
@@ -1249,8 +1250,10 @@ Hierarchy:
                         Page: 5175f272-13da-45dd-9f7b-540e7121dd56:UI/LoadTutorialUI
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                        RenderGroup*: Group0
                     76335c0dab5254e13c23c7182873cb9c: !CSharpIntermediate.Code.TutorialUI,CSharpIntermediate.Game
                         Id: c0e3266a-3cca-4ba7-93b2-3824232e7436
+                        Priority*: 1
                         ShowMenuOnSceneLoad: false
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery

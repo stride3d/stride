@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
@@ -22,14 +22,15 @@ namespace CSharpIntermediate.Code
 
             //We get or create a UI component and create a page with various elements
             var uiComponent = Entity.GetOrCreate<UIComponent>();
+
             uiComponent.Page = new UIPage
             {
                 RootElement = new StackPanel
                 {
-                    DrawLayerNumber = 100,
-                    DefaultHeight = 400,
+                    DefaultHeight = 200,
                     DefaultWidth = 600,
-                    Margin = new Thickness(600.0f, 100, 0, 0),
+                    Margin = new Thickness(600.0f, 600, 0, 0),
+
                     BackgroundColor = new Color(0, 1, 0, 0.1f),
                     Children =
                     {

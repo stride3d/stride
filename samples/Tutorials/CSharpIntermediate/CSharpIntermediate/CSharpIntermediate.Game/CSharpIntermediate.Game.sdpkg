@@ -38,7 +38,6 @@ RootAssets:
     - b273e7cb-1838-4a96-8f13-7a6a69b79c4d:Scenes/05_Async/Start-AsyncScript
     - bc1eb91c-bd3e-4f75-b30a-b74729cba531:Materials/Red
     - c2da4379-f33e-40b3-aae2-1404bf5e6cb6:UI/Ebrima
-    - c36567d1-1e06-4c23-9fd5-0a080e8652ac:Scenes/08_Audio/Start-Audio
     - d5a14911-dddc-42d0-b9f1-7c57fca5d0cb:Scenes/05_Async/Completed-AsyncScript
     - ef1a3175-b0ff-4b01-a926-45af16407d24:Scenes/04_ProjectUnproject/Start-ProjectUnproject
     - f01b7404-0b11-40c9-8729-8dcc544ef23c:Scenes/02_CollisionTriggers/Completed-CollisionTriggers

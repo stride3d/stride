@@ -674,6 +674,7 @@ Hierarchy:
                         Page: 5175f272-13da-45dd-9f7b-540e7121dd56:UI/LoadTutorialUI
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                        RenderGroup: Group4
                     76335c0dab5254e13c23c7182873cb9c: !CSharpIntermediate.Code.TutorialUI,CSharpIntermediate.Game
                         Id: de99f325-4dc1-46bf-92ea-67fa4c811e57
                         ShowMenuOnSceneLoad: false
@@ -703,7 +704,7 @@ Hierarchy:
                 Components:
                     bd77aec31db5bedbf6e4703cba7620a0: !TransformComponent
                         Id: 2b3cd803-7c38-426a-b4ff-7f4ba79713d0
-                        Position: {X: 0.34085572, Y: 1.1914668, Z: 4.9607964}
+                        Position: {X: 0.34085572, Y: 1.1914668, Z: -4.9723096}
                         Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -783,8 +784,6 @@ Hierarchy:
                         Id: c54349a0-654f-494f-9400-f600ec97fe8c
                         Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
                         Materials: {}
-                    ee5a4494a6b776d65205a5d37429da0d: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
-                        Id: b78be6b9-bbc3-4c3b-bca6-c8c0c7e10446
                     dabe8c39fdedad8b32f182aac0cec1e0: !AudioEmitterComponent
                         Id: 6bac4eae-69c5-4dd0-8c3b-a231d56d81f2
                         Sounds:
@@ -794,7 +793,13 @@ Hierarchy:
                         Environment: Small
                     9b5c17fd501f9839aed554a74bc4575e: !CSharpIntermediate.Code.AudioDemo,CSharpIntermediate.Game
                         Id: bb4b827c-f0e2-4a11-943e-2603cb6c83eb
-                        UkeleleSound: null
+                        UkeleleSound: 3885913c-4b28-49c8-b06f-5dbf54e7c5bb:Audio/Ukelele
+                    6f2d27198339238056f47fbe7f621748: !CSharpIntermediate.Code.OmniDirectionMovement,CSharpIntermediate.Game
+                        Id: e2bace7e-5a0c-404f-a436-c5edb10957df
+                        MoveSpeed: 3.0
+                        Vertical: true
+                        Horizontal: true
+                        Forward: false
         -   Entity:
                 Id: b969f2f6-cfe0-44f8-b2e4-1b37f4fae5d4
                 Name: MusidStream

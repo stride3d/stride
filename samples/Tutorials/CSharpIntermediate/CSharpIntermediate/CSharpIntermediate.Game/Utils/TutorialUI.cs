@@ -56,33 +56,37 @@ namespace CSharpIntermediate.Code
             completedButton.Visibility = Visibility.Hidden;
 
             // Start tutorials
-            var tutorialScenes = new Dictionary<string, string>();
-            tutorialScenes.Add("UI interaction", "01-UI-basics/Start-UI-basics");
-            tutorialScenes.Add("Collision trigger", "02_CollisionTriggers/Start-CollisionTriggers");
-            tutorialScenes.Add("Raycasting", "03_Raycasting/Start-Raycasting");
-            tutorialScenes.Add("Project & Unproject", "04_ProjectUnproject/Start-ProjectUnproject");
-            tutorialScenes.Add("Async Scripts", "05_Async/Start-AsyncScript");
-            tutorialScenes.Add("Scene loading", "06_SceneLoading/Start-SceneA");
-            tutorialScenes.Add("Animation basics", "07_Animation-basics/Start-Animations");
-            tutorialScenes.Add("Audio", "08_Audio/Start-Audio");
-            tutorialScenes.Add("First person camera", "09_FirstPersonCamera/Start-FirstPersonCamera");
-            tutorialScenes.Add("Third person camera", "10_ThirdPersonCamera/Start-ThirdPersonCamera");
-            tutorialScenes.Add("Navigation", "11_Navigation/Start-Navigation");
+            var tutorialScenes = new Dictionary<string, string>
+            {
+                { "UI interaction", "01_UI-basics/Start-UI-basics" },
+                { "Collision trigger", "02_CollisionTriggers/Start-CollisionTriggers" },
+                { "Raycasting", "03_Raycasting/Start-Raycasting" },
+                { "Project & Unproject", "04_ProjectUnproject/Start-ProjectUnproject" },
+                { "Async Scripts", "05_Async/Start-AsyncScript" },
+                { "Scene loading", "06_SceneLoading/Start-SceneA" },
+                { "Animation basics", "07_Animation-basics/Start-Animations" },
+                { "Audio", "08_Audio/Start-Audio" },
+                { "First person camera", "09_FirstPersonCamera/Start-FirstPersonCamera" },
+                { "Third person camera", "10_ThirdPersonCamera/Start-ThirdPersonCamera" },
+                { "Navigation", "11_Navigation/Start-Navigation" }
+            };
             CreateButton(startButton, startText, tutorialScenes, buttonsStartUI);
 
             //Completed tutorials
-            tutorialScenes = new Dictionary<string, string>();
-            tutorialScenes.Add("UI interaction", "01-UI-basics/Completed-UI-basics");
-            tutorialScenes.Add("Collision trigger", "02_CollisionTriggers/Completed-CollisionTriggers");
-            tutorialScenes.Add("Raycasting", "03_Raycasting/Completed-Raycasting");
-            tutorialScenes.Add("Project & Unproject", "04_ProjectUnproject/Completed-ProjectUnproject");
-            tutorialScenes.Add("Async Scripts", "05_Async/Completed-AsyncScript");
-            tutorialScenes.Add("Scene loading", "06_SceneLoading/Completed-SceneA");
-            tutorialScenes.Add("Animation basics", "07_Animation-basics/Completed-Animations");
-            tutorialScenes.Add("Audio", "08_Audio/Completed-Audio");
-            tutorialScenes.Add("First person camera", "09_FirstPersonCamera/Completed-FirstPersonCamera");
-            tutorialScenes.Add("Third person camera", "10_ThirdPersonCamera/Completed-ThirdPersonCamera");
-            tutorialScenes.Add("Navigation", "11_Navigation/Completed-Navigation");
+            tutorialScenes = new Dictionary<string, string>
+            {
+                { "UI interaction", "01_UI-basics/Completed-UI-basics" },
+                { "Collision trigger", "02_CollisionTriggers/Completed-CollisionTriggers" },
+                { "Raycasting", "03_Raycasting/Completed-Raycasting" },
+                { "Project & Unproject", "04_ProjectUnproject/Completed-ProjectUnproject" },
+                { "Async Scripts", "05_Async/Completed-AsyncScript" },
+                { "Scene loading", "06_SceneLoading/Completed-SceneA" },
+                { "Animation basics", "07_Animation-basics/Completed-Animations" },
+                { "Audio", "08_Audio/Completed-Audio" },
+                { "First person camera", "09_FirstPersonCamera/Completed-FirstPersonCamera" },
+                { "Third person camera", "10_ThirdPersonCamera/Completed-ThirdPersonCamera" },
+                { "Navigation", "11_Navigation/Completed-Navigation" }
+            };
 
             CreateButton(completedButton, complextedText, tutorialScenes, buttonsCompletedUI);
 

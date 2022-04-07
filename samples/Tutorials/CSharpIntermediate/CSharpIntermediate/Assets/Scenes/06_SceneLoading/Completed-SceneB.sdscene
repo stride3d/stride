@@ -139,17 +139,6 @@ Hierarchy:
                         Id: 77f9f633-a0ad-4f9c-b4c5-bf77a370075e
                         Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:Models/Gate2x3x1
                         Materials: {}
-                    544c4875bc2bbfa3809b2b2dc25198d4: !StaticColliderComponent
-                        Id: fafad728-9ae3-4d75-8489-1eaf226e4a61
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        AlwaysUpdateNaviMeshCache: false
-                        ColliderShapes: {}
         -   Entity:
                 Id: e74d11f4-4f02-4d54-bab2-e1e742b7ede2
                 Name: Camera

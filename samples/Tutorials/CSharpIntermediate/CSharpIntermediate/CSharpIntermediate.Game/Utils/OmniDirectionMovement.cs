@@ -1,4 +1,4 @@
-﻿using Stride.Core;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
@@ -28,11 +28,11 @@ namespace CSharpIntermediate.Code
             var movement = new Vector3(0);
             if (Input.IsKeyDown(Keys.Q) && Vertical)
             {
-                movement.Y += 1;
+                movement.Y -= 1;
             }
             if (Input.IsKeyDown(Keys.E) && Vertical)
             {
-                movement.Y -= 1;
+                movement.Y += 1;
             }
 
             if (Input.IsKeyDown(Keys.W) && Forward)

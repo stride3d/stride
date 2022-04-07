@@ -28,17 +28,6 @@ Hierarchy:
                         Id: 371fecb8-90d8-4fa3-abfa-1d9399d12a82
                         Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:Models/Gate2x3x1
                         Materials: {}
-                    544c4875bc2bbfa3809b2b2dc25198d4: !StaticColliderComponent
-                        Id: 12d65830-fe90-4d17-8738-2026e2f7c168
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        AlwaysUpdateNaviMeshCache: false
-                        ColliderShapes: {}
         -   Entity:
                 Id: 4b8c26bd-6703-4d3c-9e18-7b31aac0757e
                 Name: StrideBall

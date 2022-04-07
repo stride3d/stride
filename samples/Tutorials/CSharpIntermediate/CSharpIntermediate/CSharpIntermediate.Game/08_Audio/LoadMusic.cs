@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -54,11 +54,11 @@ namespace CSharpIntermediate.Code
                 DebugText.Print($"Left/Right to change panning: {musicInstance.Pan:0.0}", new Int2(800, 80));
                 if (Input.IsKeyPressed(Keys.Left))
                 {
-                    musicInstance.Pan = Math.Clamp(musicInstance.Pan + 0.1f, -1, 1);
+                    musicInstance.Pan = Math.Clamp(musicInstance.Pan - 0.1f, -1, 1);
                 }
                 if (Input.IsKeyPressed(Keys.Right))
                 {
-                    musicInstance.Pan = Math.Clamp(musicInstance.Pan - 0.1f, -1, 1);
+                    musicInstance.Pan = Math.Clamp(musicInstance.Pan + 0.1f, -1, 1);
                 }
 
                 // Wait for next frame

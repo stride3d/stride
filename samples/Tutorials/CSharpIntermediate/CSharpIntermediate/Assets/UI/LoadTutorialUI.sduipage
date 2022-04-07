@@ -103,7 +103,7 @@ Hierarchy:
                 Id: 464d8733-9b88-486e-a93c-32a386a7a4db
                 DependencyProperties: {}
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
-                DrawLayerNumber: 10
+                DrawLayerNumber: 30
                 Margin: {}
                 MaximumWidth: 3.4028235E+38
                 MaximumHeight: 3.4028235E+38

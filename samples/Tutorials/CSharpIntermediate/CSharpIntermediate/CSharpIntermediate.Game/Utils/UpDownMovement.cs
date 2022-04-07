@@ -1,4 +1,4 @@
-﻿using Stride.Core.Mathematics;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
@@ -17,11 +17,11 @@ namespace CSharpIntermediate.Code
             var movement = new Vector3(0);
             if (Input.IsKeyDown(Keys.Q))
             {
-                movement.Y += 1;
+                movement.Y -= 1;
             }
             if (Input.IsKeyDown(Keys.E))
             {
-                movement.Y -= 1;
+                movement.Y += 1;
             }
 
             var delta = (float)Game.UpdateTime.Elapsed.TotalSeconds;

@@ -12,6 +12,7 @@ Hierarchy:
                 Id: 0271b2c9-936c-4ece-b80b-57233f8ab3ed
                 DependencyProperties: {}
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 20
                 Width: 685.0
                 Height: 720.0
                 Margin: {Right: 595.0}
@@ -25,7 +26,9 @@ Hierarchy:
                     f4b29e529da46ae0372cd44ec61028db: !TextBlock ref!! 7d6ac981-ff1e-4ce9-b959-f51383f2426a
                 RowDefinitions: {}
                 ColumnDefinitions: {}
-                LayerDefinitions: {}
+                LayerDefinitions:
+                    857d930aeb13d611b97349beb5110de7:
+                        MaximumSize: 3.4028235E+38
         -   UIElement: !TextBlock
                 Id: 2a6df721-04eb-4a4e-8ede-582882b7bd38
                 DependencyProperties: {}

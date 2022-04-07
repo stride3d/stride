@@ -177,7 +177,7 @@ Hierarchy:
                 Components:
                     bd77aec31db5bedbf6e4703cba7620a0: !TransformComponent
                         Id: 73314ab7-aa32-4d4c-be1f-522140a002e9
-                        Position: {X: 0.34085572, Y: 1.1914668, Z: 4.9607964}
+                        Position: {X: 0.34085572, Y: 1.1914668, Z: -4.9723096}
                         Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -1228,6 +1228,7 @@ Hierarchy:
                         Page: 5175f272-13da-45dd-9f7b-540e7121dd56:UI/LoadTutorialUI
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                        RenderGroup: Group4
                     76335c0dab5254e13c23c7182873cb9c: !CSharpIntermediate.Code.TutorialUI,CSharpIntermediate.Game
                         Id: ef803bb6-743e-46c2-8ff0-03dd0631ca35
                         ShowMenuOnSceneLoad: false

@@ -1,9 +1,10 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Stride.Engine;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Stride.Core.Mathematics;
 
 namespace CSharpIntermediate.Code
 {
@@ -14,6 +15,7 @@ namespace CSharpIntermediate.Code
 
             while (Game.IsRunning)
             {
+                DebugText.Print($"Press G to load Api data and Log it", new Int2(500, 200));
                 if (Input.IsKeyPressed(Stride.Input.Keys.G)){
                     await RetrieveStrideRepos();
                 }
