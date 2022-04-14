@@ -10,7 +10,7 @@ namespace CSharpIntermediate.Code
 {
     public class AudioDemo : SyncScript
     {
-        public Sound UkeleleSound;
+        public Sound UkuleleSound;
 
         private SoundInstance ukuleleInstance;
         private AudioEmitterComponent audioEmitterComponent;
@@ -19,7 +19,7 @@ namespace CSharpIntermediate.Code
         public override void Start()
         {
             // We need to create an instance of Sound object in order to play them
-            ukuleleInstance = UkeleleSound.CreateInstance();
+            ukuleleInstance = UkuleleSound.CreateInstance();
 
             audioEmitterComponent = Entity.Get<AudioEmitterComponent>();
             gunSoundEmitter = audioEmitterComponent["Gun"];
