@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Physics;
@@ -11,7 +11,7 @@ namespace CSharpIntermediate.Code
         public bool CollideWithTriggers = false;
 
         private Entity laser;
-        private float maxDistance = 4.0f;
+        private const float maxDistance = 4.0f;
         private Simulation simulation;
 
         public override void Start()

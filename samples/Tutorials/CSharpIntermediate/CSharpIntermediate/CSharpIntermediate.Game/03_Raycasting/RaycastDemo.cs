@@ -1,4 +1,4 @@
-﻿using Stride.Core.Mathematics;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Physics;
 
@@ -10,7 +10,7 @@ namespace CSharpIntermediate.Code
         public bool CollideWithTriggers = false;
         public Entity HitPoint;
 
-        private float maxDistance = 4.0f;
+        private const float maxDistance = 4.0f;
         private Entity laser;
         private Simulation simulation;
       
@@ -47,7 +47,7 @@ namespace CSharpIntermediate.Code
             }
             else
             {
-                // If we don't anything, scale the laster to the length of the distance
+                // If we didn't hit anything, scale the laser to match the distance between start and end
                 HitPoint.Transform.Position = raycastEnd;
                 laser.Transform.Scale.Z = Vector3.Distance(raycastStart, raycastEnd);
                 DebugText.Print("No collider hit", new Int2(drawX, drawY));

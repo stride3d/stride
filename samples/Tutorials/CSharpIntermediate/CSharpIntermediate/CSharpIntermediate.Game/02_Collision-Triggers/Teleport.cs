@@ -1,4 +1,4 @@
-﻿using Stride.Core.Mathematics;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 using Stride.Physics;
@@ -7,7 +7,7 @@ namespace CSharpIntermediate.Code
 {
     public class Teleport : SyncScript
     {
-        public Entity Ball = null;
+        public Entity Ball;
 
         public override void Start() { }
 
@@ -24,8 +24,8 @@ namespace CSharpIntermediate.Code
 
                 var physicsComponent = Ball.Get<RigidbodyComponent>();
                 physicsComponent.Enabled = true;
-                physicsComponent.LinearVelocity = new Vector3(0);
-                physicsComponent.AngularVelocity = new Vector3(0);
+                physicsComponent.LinearVelocity = new Vector3();
+                physicsComponent.AngularVelocity = new Vector3();
                 physicsComponent.UpdatePhysicsTransformation();
             }
         }

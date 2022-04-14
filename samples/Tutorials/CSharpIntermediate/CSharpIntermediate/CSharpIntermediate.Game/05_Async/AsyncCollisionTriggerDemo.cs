@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Stride.Engine;
 using Stride.Rendering;
 
@@ -6,7 +6,7 @@ namespace CSharpIntermediate.Code
 {
     public class AsyncCollisionTriggerDemo : AsyncScript
     {
-        PhysicsComponent triggerCollider;
+        private PhysicsComponent triggerCollider;
         private Material yellowMaterial;
         private Material redMaterial;
 

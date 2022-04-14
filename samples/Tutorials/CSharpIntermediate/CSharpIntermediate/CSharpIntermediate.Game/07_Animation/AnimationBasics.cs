@@ -40,7 +40,7 @@ namespace CSharpIntermediate.Code
                 latestAnimation.TimeFactor = AnimationSpeed;
             }
 
-            // We can crossfade to a punch animation, but onyl if it is not already playing
+            // We can crossfade to a punch animation, but only if it is not already playing
             DebugText.Print("P to crossfade to Punch and play it once", new Int2(320, 480));
             if (Input.IsKeyPressed(Keys.P) && !animation.IsPlaying("Punch"))
             {
@@ -49,7 +49,7 @@ namespace CSharpIntermediate.Code
                 latestAnimation.TimeFactor = AnimationSpeed;
             }
 
-            // When de punch animation is the latest animation, but it is no longer playing, we set a new animation
+            // When the punch animation is the latest animation, but it is no longer playing, we set a new animation
             if (latestAnimation.Name == "Punch" && !animation.IsPlaying("Punch"))
             {
                 latestAnimation = animation.Play("Idle");

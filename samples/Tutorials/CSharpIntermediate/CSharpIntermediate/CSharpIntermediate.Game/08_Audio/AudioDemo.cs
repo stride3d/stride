@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using Stride.Audio;
 using Stride.Core.Mathematics;
@@ -12,14 +12,14 @@ namespace CSharpIntermediate.Code
     {
         public Sound UkeleleSound;
 
-        private SoundInstance ukeleleInstance;
+        private SoundInstance ukuleleInstance;
         private AudioEmitterComponent audioEmitterComponent;
         private AudioEmitterSoundController gunSoundEmitter;
 
         public override void Start()
         {
-            // we neeed to create an instance of Sound object in order to play them
-            ukeleleInstance = UkeleleSound.CreateInstance();
+            // We need to create an instance of Sound object in order to play them
+            ukuleleInstance = UkeleleSound.CreateInstance();
 
             audioEmitterComponent = Entity.Get<AudioEmitterComponent>();
             gunSoundEmitter = audioEmitterComponent["Gun"];
@@ -31,8 +31,8 @@ namespace CSharpIntermediate.Code
             DebugText.Print($"U to play the Ukelele once", new Int2(200, 40));
             if (Input.IsKeyPressed(Keys.U))
             {
-                ukeleleInstance.Stop();
-                ukeleleInstance.Play();
+                ukuleleInstance.Stop();
+                ukuleleInstance.Play();
             }
 
             // Press left mouse button fire gun

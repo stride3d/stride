@@ -1,10 +1,10 @@
-using System.Net.Http;
-using System.Threading.Tasks;
-using Stride.Engine;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Stride.Core.Mathematics;
+using Stride.Engine;
 
 namespace CSharpIntermediate.Code
 {
@@ -41,11 +41,11 @@ namespace CSharpIntermediate.Code
                 string responseContent = await response.Content.ReadAsStringAsync();
 
                 // We serialze the string in to an object
-                var githubRepos = JsonConvert.DeserializeObject<List<OpenCollectiveEvent>>(responseContent);
+                var openCollectiveEvents = JsonConvert.DeserializeObject<List<OpenCollectiveEvent>>(responseContent);
 
-                foreach (var repo in githubRepos)
+                foreach (var @event in openCollectiveEvents)
                 {
-                    Log.Info($"{repo.Name} took place at {repo.StartsAt}");
+                    Log.Info($"{@event.Name} took place at {@event.StartsAt}");
                 }
             }
         }
