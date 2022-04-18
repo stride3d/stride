@@ -229,7 +229,7 @@
             </UIElement.Clip>
           </DockPanel>
           <Button Content="{Binding Status}" Command="{Binding ExecuteActionCommand}" ToolTipService.IsEnabled="False"
-                  ToolTip="{Binding Status, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipVisualStudioPlugin}}"
+                  ToolTip="{Binding Status, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipVisualStudioExtension}}"
                   Visibility="{Binding IsProcessing, Converter={sskk:VisibleOrCollapsed}, ConverterParameter={sskk:False}}">
             <i:Interaction.Behaviors>
               <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
@@ -506,14 +506,14 @@
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
                 <UniformGrid Columns="2">
-                  <ContentControl Grid.Column="0" Margin="0,0,2,0" Content="{Binding VsixPackage}"/>
-                  <ContentControl Grid.Column="1" Margin="2,0,0,0" Content="{Binding VsixPackageXenko}"/>
+                  <ContentControl Grid.Column="0" Margin="0,0,2,0" Content="{Binding VsixPackage2019}"/>
+                  <ContentControl Grid.Column="1" Margin="2,0,0,0" Content="{Binding VsixPackage2022}"/>
                 </UniformGrid>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
                 <DockPanel Height="32" Margin="10,0">
                   <Image Source="{StaticResource ImageVisualStudio}" Width="26" Height="26" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
-                  <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioPlugin}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
+                  <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioExtension}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                 </DockPanel>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}"

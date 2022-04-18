@@ -1,14 +1,14 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) 
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
 using Stride.Core.Extensions;
-using Stride.LauncherApp.Resources;
 using Stride.Core.Packages;
-using Stride.LauncherApp.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
+using Stride.LauncherApp.Resources;
+using Stride.LauncherApp.Services;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -317,7 +317,7 @@ namespace Stride.LauncherApp.ViewModels
 
         private void UpdateStatusInternal()
         {
-            CanBeDownloaded = LocalPackage == null || (LocalPackage != null && ServerPackage != null && LocalPackage.Version < ServerPackage.Version);
+            CanBeDownloaded = (LocalPackage == null && ServerPackage != null) || (LocalPackage != null && ServerPackage != null && LocalPackage.Version < ServerPackage.Version);
             CanDelete = LocalPackage != null;
             DownloadCommand.IsEnabled = CanBeDownloaded;
         }

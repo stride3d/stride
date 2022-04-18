@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) 
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -249,36 +249,6 @@ namespace Stride.Assets
                         ideInfo => ideInfo.PackageVersions.ContainsKey(pair.Value)
                     );
                 }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Check if a particular component set for this IDE version
-        /// </summary>
-        /// <param name="ideInfo">The IDE info to search for the components</param>
-        /// <param name="vsVersionToComponent">A dictionary of Visual Studio versions to their respective paths for a given component</param>
-        /// <returns>true if the IDE has any of the component versions available, false otherwise</returns>
-        internal static bool IsVSComponentAvailableForIDE(IDEInfo ideInfo, IDictionary<Version, string> vsVersionToComponent)
-        {
-            if (ideInfo == null) { throw new ArgumentNullException("ideInfo"); }
-            if (vsVersionToComponent == null) { throw new ArgumentNullException("vsVersionToComponent"); }
-
-            string path = null;
-            if (vsVersionToComponent.TryGetValue(ideInfo.Version, out path))
-            {
-                if (ideInfo.Version == VS2015Version)
-                {
-                    return IsFileInProgramFilesx86Exist(path);
-                }
-                else
-                {
-                    return ideInfo.PackageVersions.ContainsKey(path);
-                }
-            }
-            else if (vsVersionToComponent.TryGetValue(VSAnyVersion, out path))
-            {
-                return ideInfo.PackageVersions.ContainsKey(path);
             }
             return false;
         }

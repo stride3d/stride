@@ -1,18 +1,14 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) 
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Stride.Core.Extensions;
-using Stride.Core.VisualStudio;
-using Stride.LauncherApp.Resources;
-using Stride.LauncherApp.Services;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
+using Stride.LauncherApp.Resources;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -21,17 +17,19 @@ namespace Stride.LauncherApp.ViewModels
         private readonly string packageId;
         private bool isLatestVersionInstalled;
         private string status;
+        private readonly NugetStore.VsixSupportedVsVersion vsixSupportedVsVersion;
 
-        internal VsixVersionViewModel(LauncherViewModel launcher, NugetStore store, string packageId)
+        internal VsixVersionViewModel(LauncherViewModel launcher, NugetStore store, string packageId, NugetStore.VsixSupportedVsVersion vsixSupportedVsVersion)
             : base(launcher, store, null)
         {
             this.packageId = packageId;
+            this.vsixSupportedVsVersion = vsixSupportedVsVersion;
             status = FormatStatus(Strings.ReportChecking);
             ExecuteActionCommand = new AnonymousTaskCommand(ServiceProvider, ExecuteAction) { IsEnabled = false };
         }
 
         /// <inheritdoc/>
-        public override string Name => Strings.VisualStudioPlugin;
+        public override string Name => Strings.VisualStudioExtension;
 
         /// <inheritdoc/>
         public override string FullName => Name;
@@ -75,13 +73,25 @@ namespace Stride.LauncherApp.ViewModels
                 newStatus = LocalPackage == null ? Strings.VSIXVerbInstall : Strings.VSIXVerbUpdate;
                 IsLatestVersionInstalled = false;
             }
-            ExecuteActionCommand.IsEnabled = true;
+
+            // Enable the control only if there is an eligible package for the VS extension.
+            ExecuteActionCommand.IsEnabled = (LocalPackage != null || ServerPackage != null);
             Status = FormatStatus(newStatus);
         }
 
         private string FormatStatus(string status)
         {
-            return $"{packageId.Split('.')[0]}: {status}";
+            string vsixTarget = "Visual Studio ";
+            switch (vsixSupportedVsVersion)
+            {
+                case NugetStore.VsixSupportedVsVersion.VS2019:
+                    vsixTarget += "2019";
+                    break;
+                case NugetStore.VsixSupportedVsVersion.VS2022:
+                    vsixTarget += "2022";
+                    break;
+            }
+            return $"{vsixTarget}: {status}";
         }
 
         /// <inheritdoc/>
@@ -104,8 +114,12 @@ namespace Stride.LauncherApp.ViewModels
         /// <inheritdoc/>
         protected override async Task UpdateVersionsFromStore()
         {
-            LocalPackage = await Launcher.RunLockTask(() => Store.GetLocalPackages(packageId).OrderByDescending(p => p.Version).FirstOrDefault());
-            ServerPackage = await Launcher.RunLockTask(() => Store.FindSourcePackagesById(packageId, CancellationToken.None).Result.OrderByDescending(p => p.Version).FirstOrDefault());
+            var versionRange = Store.VsixVersionToStrideRelease[this.vsixSupportedVsVersion];
+            var minVersion = versionRange.Item1;
+            var maxVersion = versionRange.Item2;
+
+            LocalPackage = await Launcher.RunLockTask(() => Store.GetLocalPackages(packageId).Where(package => package.Version >= minVersion && package.Version < maxVersion).OrderByDescending(p => p.Version).FirstOrDefault());
+            ServerPackage = await Launcher.RunLockTask(() => Store.FindSourcePackagesById(packageId, CancellationToken.None).Result.Where(package => package.Version >= minVersion && package.Version < maxVersion).OrderByDescending(p => p.Version).FirstOrDefault());
         }
 
         public async Task ExecuteAction()

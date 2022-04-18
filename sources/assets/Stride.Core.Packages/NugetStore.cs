@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) 
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -10,25 +10,25 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Commands;
 using NuGet.Common;
 using NuGet.Configuration;
+using NuGet.Frameworks;
+using NuGet.LibraryModel;
 using NuGet.PackageManagement;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.ProjectManagement;
+using NuGet.ProjectModel;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.Resolver;
+using NuGet.Versioning;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
 using ISettings = NuGet.Configuration.ISettings;
 using PackageSource = NuGet.Configuration.PackageSource;
 using PackageSourceProvider = NuGet.Configuration.PackageSourceProvider;
-using NuGet.Resolver;
-using NuGet.Frameworks;
-using NuGet.Packaging.Core;
-using NuGet.Versioning;
-using NuGet.ProjectModel;
-using NuGet.LibraryModel;
-using NuGet.Commands;
 
 namespace Stride.Core.Packages
 {
@@ -155,7 +155,29 @@ namespace Stride.Core.Packages
         /// <summary>
         /// Package Id of the Visual Studio Integration plugin.
         /// </summary>
-        public string VsixPluginId { get; } = "Stride.VisualStudio.Package";
+        public string VsixPluginPackageId { get; } = "Stride.VisualStudio.Package";
+
+        /// <summary>
+        /// The different supported versions of Visual Studio
+        /// </summary>
+        public enum VsixSupportedVsVersion
+        {
+            VS2019,
+            VS2022
+        }
+
+        /// <summary>
+        /// A mapping of the supported versions of VS to a Stride release version range.  
+        /// For each supported VS release, the first Version represents the included earliest Stride version eligible for the VSIX and the second Version is the excluded upper bound.
+        /// </summary>
+        public IReadOnlyDictionary<VsixSupportedVsVersion, (PackageVersion, PackageVersion)> VsixVersionToStrideRelease { get; } = new Dictionary<VsixSupportedVsVersion, (PackageVersion, PackageVersion)>
+        {
+            // The VSIX for VS2019 is avaliable in Stride packages of version 4.0.x
+            {VsixSupportedVsVersion.VS2019, (new PackageVersion("4.0"), new PackageVersion("4.1")) },
+
+            // The VSIX for VS2022 is available in Stride packages of version 4.1.x and later.
+            {VsixSupportedVsVersion.VS2022, (new PackageVersion("4.1"), new PackageVersion(int.MaxValue,0,0,0)) },
+        };
 
         /// <summary>
         /// Logger for all operations of the package manager.

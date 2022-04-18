@@ -122,7 +122,7 @@
     <comment>Displayed when there is no installed version of Stride</comment>
   </data>
   <data name="AskInstallVSIX" xml:space="preserve">
-    <value>Would you like to install the latest version of the Visual Studio integration? This is highly recommended for programmers!</value>
+    <value>Would you like to install the latest version of the Visual Studio {0} integration? This is highly recommended for programmers!</value>
     <comment>Displayed after the AskInstallVersion message if VSIX is not installed</comment>
   </data>
   <data name="ButtonAnswers" xml:space="preserve">
@@ -293,8 +293,8 @@
     <value>Start Stride Game Studio {0}</value>
     <comment>{0}: long version name</comment>
   </data>
-  <data name="ToolTipVisualStudioPlugin" xml:space="preserve">
-    <value>{0} Visual Studio plugin</value>
+  <data name="ToolTipVisualStudioExtension" xml:space="preserve">
+    <value>{0} Visual Studio extension</value>
     <comment>The tooltip of the Visual Studio Plugin button. {0}: A verb describing the action to do (Install, Reinstall, Update...)</comment>
   </data>
   <data name="UnknownVersion" xml:space="preserve">
@@ -317,8 +317,8 @@
     <value>(local update available)</value>
     <comment>Additional message stating that a local update is available for the version. It is displayed right after the VersionButton text (with a space)</comment>
   </data>
-  <data name="VisualStudioPlugin" xml:space="preserve">
-    <value>Visual Studio plugin</value>
+  <data name="VisualStudioExtension" xml:space="preserve">
+    <value>Visual Studio extension</value>
     <comment>Title of this category</comment>
   </data>
   <data name="VSIXInstallSucessful" xml:space="preserve">
