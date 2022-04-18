@@ -55,8 +55,8 @@ namespace Stride.LauncherApp.ViewModels
 
             DisplayReleaseAnnouncement();
 
-            VsixPackage2019 = new VsixVersionViewModel(this, store, store.VsixPluginPackageId, NugetStore.VsixSupportedVsVersion.VS2019);
-            VsixPackage2022 = new VsixVersionViewModel(this, store, store.VsixPluginPackageId, NugetStore.VsixSupportedVsVersion.VS2022);
+            VsixPackage2019 = new VsixVersionViewModel(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2019);
+            VsixPackage2022 = new VsixVersionViewModel(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2022);
             // Commands
             InstallLatestVersionCommand = new AnonymousTaskCommand(ServiceProvider, InstallLatestVersion) { IsEnabled = false };
             OpenUrlCommand = new AnonymousTaskCommand<string>(ServiceProvider, OpenUrl);

@@ -24,8 +24,8 @@ namespace Stride.VisualStudio.PackageInstall
                 // Locate a VS installation with VSIXInstaller.exe.
                 // Select the latest version of VS possible, in case there is some bugfixes or incompatible changes.
                 var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller);
-                var visualStudioVersion = visualStudioVersionByVsixVersion.OrderByDescending(x => x.InstallationVersion).FirstOrDefault(x => File.Exists(x.VsixInstallerPath));
-                if (visualStudioVersion == null)
+                var ideInfo = visualStudioVersionByVsixVersion.OrderByDescending(x => x.InstallationVersion).FirstOrDefault(x => File.Exists(x.VsixInstallerPath));
+                if (ideInfo == null)
                 {
                     throw new InvalidOperationException($"Could not find a proper installation of Visual Studio 2019 or later");
                 }
@@ -36,15 +36,32 @@ namespace Stride.VisualStudio.PackageInstall
                     case "/repair":
                     {
                         // Install VSIX
-                        var exitCode = RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "\"" + vsixFile + "\"");
+                        var exitCode = RunVsixInstaller(ideInfo.VsixInstallerPath, "\"" + vsixFile + "\"");
                         if (exitCode != 0)
                             throw new InvalidOperationException($"VSIX Installer didn't run properly: exit code {exitCode}");
                         break;
                     }
+
                     case "/uninstall":
                     {
-                        // Note: we allow uninstall to fail (i.e. VSIX was not installed for that specific VIsual Studio version)
-                        RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package.2022");
+                        // Check that the VSIX is intalled
+                        bool vsixFound = false;
+                        if(Directory.Exists(ideInfo.VsixInstallationPath))
+                        {
+                            // Since a VSIX installation is put in a random folder, iterate through all of them.
+                            foreach(var directory in Directory.GetDirectories(ideInfo.VsixInstallationPath))
+                            {
+                                if (File.Exists(directory + "\\Stride.VisualStudio.Package.dll"))
+                                {
+                                    vsixFound = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Note: we allow uninstall to fail (i.e. VSIX install was not complete)
+                        if (vsixFound) 
+                            RunVsixInstaller(ideInfo.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package.2022");
                         break;
                     }
                 }

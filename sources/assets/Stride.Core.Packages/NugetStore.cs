@@ -155,7 +155,7 @@ namespace Stride.Core.Packages
         /// <summary>
         /// Package Id of the Visual Studio Integration plugin.
         /// </summary>
-        public string VsixPluginPackageId { get; } = "Stride.VisualStudio.Package";
+        public string VsixPackageId { get; } = "Stride.VisualStudio.Package";
 
         /// <summary>
         /// The different supported versions of Visual Studio
