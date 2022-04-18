@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using CSharpIntermediate.Code.Extensions;
 using Stride.Core.Mathematics;
@@ -10,13 +10,12 @@ namespace CSharpIntermediate.Code
 {
     public class FirstPersonCamera : SyncScript
     {
-        public float MouseSpeed = 1.5f;
+        public float MouseSpeed = 0.6f;
         public float MaxLookUpAngle = -50;
         public float MaxLookDownAngle = 50;
         public bool InvertMouseY = false;
 
         private Entity firstPersonCameraPivot;
-        private Vector2 mouseDif;
         private Vector3 camRotation;
         private bool isActive = false;
         private Vector2 maxCameraAnglesRadians;
@@ -45,18 +44,13 @@ namespace CSharpIntermediate.Code
             {
                 isActive = !isActive;
                 Game.IsMouseVisible = !isActive;
+                Input.UnlockMousePosition();
             }
 
             if (isActive)
             {
-                var mouseMovement = new Vector2(0, 0);
-                var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-                var mousePos = Input.MousePosition;
-                mouseDif = new Vector2(0.5f - mousePos.X, 0.5f - mousePos.Y);
-
-                // Adjust and set the camera rotation
-                mouseMovement.X += mouseDif.X * MouseSpeed * deltaTime;
-                mouseMovement.Y += mouseDif.Y * MouseSpeed * deltaTime;
+                Input.LockMousePosition();
+                var mouseMovement = -Input.MouseDelta * MouseSpeed;
 
                 // Update camera rotation values
                 camRotation.Y += mouseMovement.X;
@@ -68,9 +62,6 @@ namespace CSharpIntermediate.Code
 
                 // Apply X rptatopmnew camera rotation to the existing camera rotations
                 firstPersonCameraPivot.Transform.Rotation = Quaternion.RotationX(camRotation.X);
-                
-
-                Input.MousePosition = new Vector2(0.5f);
             }
         }
     }

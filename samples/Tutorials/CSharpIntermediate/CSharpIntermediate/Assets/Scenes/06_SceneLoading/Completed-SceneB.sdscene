@@ -94,7 +94,7 @@ Hierarchy:
                         SceneToLoad: f6f2a96e-6b05-4119-bba1-87c1fa5c8fdf:Scenes/06_SceneLoading/Completed-SceneA
                         DrawY: 60
                         Info: 'To go back to scene A, press '
-                        KeyTopress: Escape
+                        KeyToPress: None
         -   Entity:
                 Id: 8d16a77c-de44-444c-9a80-48691f614e88
                 Name: Gate1x2x1
@@ -124,7 +124,7 @@ Hierarchy:
                         SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/06_SceneLoading/Completed-SceneB
                         DrawY: 20
                         Info: 'To reload scene, press '
-                        KeyTopress: R
+                        KeyToPress: None
         -   Entity:
                 Id: dbd15918-28c5-4576-8ee1-54c044e62e35
                 Name: Gate2x3x1

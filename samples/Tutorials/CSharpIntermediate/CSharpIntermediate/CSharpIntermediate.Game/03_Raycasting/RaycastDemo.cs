@@ -25,7 +25,7 @@ namespace CSharpIntermediate.Code
         {
             int drawX = 40;
             int drawY = 80;
-            DebugText.Print("Raycast demo", new Int2(drawX, drawY));
+            DebugText.Print("Press Q and E to raise/lower weapons", new Int2(drawX, drawY));
 
             var raycastStart = Entity.Transform.Position;
             var raycastEnd = Entity.Transform.Position + new Vector3(0, 0, maxDistance);

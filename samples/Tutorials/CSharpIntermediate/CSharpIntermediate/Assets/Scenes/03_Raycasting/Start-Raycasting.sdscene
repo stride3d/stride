@@ -199,8 +199,12 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             9a7f8a5f2a4dee8e21a358916c686069: ref!! 3ef393f1-f2cc-40fe-ace4-e6bf24c410b8
-                    da3861780e7eb8a780a44e18b8099f8d: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
-                        Id: f47261c8-abf0-40d0-97d5-3a936514c655
+                    2f3424c000c19a38e120662b6b3786c0: !CSharpIntermediate.Code.OmniDirectionMovement,CSharpIntermediate.Game
+                        Id: d6df9b3f-fd9c-4045-a665-915b314eb40e
+                        MoveSpeed: 3.0
+                        Vertical: true
+                        Horizontal: false
+                        Forward: false
         -   Folder: RightBoxes
             Entity:
                 Id: 1cc59ad6-2d3d-455c-b599-be5f9b953b7b
@@ -938,8 +942,12 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             9a7f8a5f2a4dee8e21a358916c686069: ref!! 295d8875-a842-4adc-b480-e3e94fda4308
-                    69804f8b2a31a5c5db2db32b5e0d2f92: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
-                        Id: b6c0578f-5b68-4806-b8fc-188e52d6cbbc
+                    2577f5fabebe67d1926e2c76405ef174: !CSharpIntermediate.Code.OmniDirectionMovement,CSharpIntermediate.Game
+                        Id: 0ae23711-8077-47c8-94fb-d3501a028878
+                        MoveSpeed: 3.0
+                        Vertical: true
+                        Horizontal: false
+                        Forward: false
         -   Folder: Ground
             Entity:
                 Id: a234258f-4f9e-4c69-b6c8-68f16e700265

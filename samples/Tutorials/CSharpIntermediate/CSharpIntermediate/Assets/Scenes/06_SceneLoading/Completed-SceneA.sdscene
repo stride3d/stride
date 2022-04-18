@@ -128,7 +128,7 @@ Hierarchy:
                         SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/06_SceneLoading/Completed-SceneB
                         DrawY: 20
                         Info: To load Scene B, press
-                        KeyTopress: L
+                        KeyToPress: None
         -   Folder: Ground
             Entity:
                 Id: 147a295b-1b60-4e9c-81a7-c8ecee8ce3d6

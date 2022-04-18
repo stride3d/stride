@@ -200,12 +200,16 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             9a7f8a5f2a4dee8e21a358916c686069: ref!! ad45eb14-a372-4b8e-ab78-640cd773ff67
-                    69804f8b2a31a5c5db2db32b5e0d2f92: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
-                        Id: 6243dd3e-cb8c-409a-9ac3-a85cb1570f58
                     d5fc5b9d4033b3675a0b46ddc44d0280: !CSharpIntermediate.Code.RaycastPenetratingDemo,CSharpIntermediate.Game
                         Id: b15a1386-b2d5-4098-a34e-c53b31617f34
                         CollideWithGroup: CustomFilter1
                         CollideWithTriggers: true
+                    79f1213321ddbd79da50fb28d0798030: !CSharpIntermediate.Code.OmniDirectionMovement,CSharpIntermediate.Game
+                        Id: 070c4dd1-8316-46d6-acc9-65d662867913
+                        MoveSpeed: 3.0
+                        Vertical: true
+                        Horizontal: false
+                        Forward: false
         -   Entity:
                 Id: 0e32c010-ad04-4e51-bf99-bbfae14f5d16
                 Name: BoxE
@@ -1037,13 +1041,17 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             9a7f8a5f2a4dee8e21a358916c686069: ref!! 52013e63-7393-4e47-8f4e-d520388fe655
-                    da3861780e7eb8a780a44e18b8099f8d: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
-                        Id: 8b4a8d9b-8f10-49a6-b841-d46811e07994
                     32929acf90e29d43a8c45e06234b5e79: !CSharpIntermediate.Code.RaycastDemo,CSharpIntermediate.Game
                         Id: 2f5080d3-eae1-4a54-be5a-120badee5658
                         CollideWithGroup: AllFilter
                         CollideWithTriggers: false
                         HitPoint: ref!! 292209c5-179a-4f99-a15c-b874b89c583a
+                    6818e379b0a5501c56c6472a75988dd6: !CSharpIntermediate.Code.OmniDirectionMovement,CSharpIntermediate.Game
+                        Id: 19c58450-6488-4f27-8516-25be92b2f5b4
+                        MoveSpeed: 3.0
+                        Vertical: true
+                        Horizontal: false
+                        Forward: false
         -   Folder: null
             Entity:
                 Id: a990612a-4a29-448b-a720-918fc2ee65e6

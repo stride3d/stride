@@ -1,4 +1,4 @@
-﻿using System.Collections.Specialized;
+using System.Collections.Specialized;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -43,11 +43,12 @@ namespace CSharpIntermediate.Code
 
         public override void Update()
         {
-            // The trigger collider can have 0, 1 or multiple collision going on in a single frame
+            // The trigger collider can have 0, 1, or multiple collision going on in a single frame
+            var drawY = 280;
             foreach (var collision in triggerCollider.Collisions)
             {
-                DebugText.Print("ColliderA: " + collision.ColliderA.Entity.Name, new Int2(500, 300));
-                DebugText.Print("ColliderB: " + collision.ColliderB.Entity.Name, new Int2(500, 320));
+                DebugText.Print("ColliderA: " + collision.ColliderA.Entity.Name, new Int2(500, drawY += 20));
+                DebugText.Print("ColliderB: " + collision.ColliderB.Entity.Name, new Int2(500, drawY += 20));
             }
 
             DebugText.Print(collisionStatus, new Int2(500, 400));

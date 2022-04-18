@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using CSharpIntermediate.Code.Extensions;
 using Stride.Core.Mathematics;
@@ -11,7 +11,7 @@ namespace CSharpIntermediate.Code
     public class ThirdPersonCamera : SyncScript
     {
         public bool InvertMouseY = false;
-        public Vector2 MouseSpeed = new Vector2(20, 14);
+        public Vector2 MouseSpeed = new Vector2(0.6f, 0.5f);
         public float MaxLookUpAngle = -40;
         public float MaxLookDownAngle = 40;
         public float MinimumCameraDistance = 1.5f;
@@ -46,18 +46,13 @@ namespace CSharpIntermediate.Code
             {
                 isActive = !isActive;
                 Game.IsMouseVisible = !isActive;
+                Input.UnlockMousePosition();
             }
 
             if (isActive)
             {
-                var mouseMovement = new Vector2(0, 0);
-                var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-                var mousePos = Input.MousePosition;
-                var mouseDifference = new Vector2(0.5f - mousePos.X, 0.5f - mousePos.Y);
-
-                // Adjust and set the camera rotation
-                mouseMovement.X += mouseDifference.X * MouseSpeed.X * deltaTime;
-                mouseMovement.Y += mouseDifference.Y * MouseSpeed.Y * deltaTime;
+                Input.LockMousePosition();
+                var mouseMovement = -Input.MouseDelta * MouseSpeed;
 
                 // Update rotation values with the mouse movement
                 camRotation.Y += mouseMovement.X;
@@ -75,8 +70,10 @@ namespace CSharpIntermediate.Code
                 thirdPersonPivot.Transform.Rotation = firstPersonPivot.Transform.Rotation;
                 thirdPersonPivot.Transform.Position += Vector3.Transform(CameraOffset, firstPersonPivot.Transform.Rotation);
 
-                // Raycast from first person pivot to third person pivot
+                // Make sure that the WorldMatrix of the thirdperson pivot is up to date
                 thirdPersonPivot.Transform.UpdateWorldMatrix();
+
+                // Raycast from first person pivot to third person pivot
                 var raycastStart = firstPersonPivot.Transform.WorldMatrix.TranslationVector;
                 var raycastEnd = thirdPersonPivot.Transform.WorldMatrix.TranslationVector;
 

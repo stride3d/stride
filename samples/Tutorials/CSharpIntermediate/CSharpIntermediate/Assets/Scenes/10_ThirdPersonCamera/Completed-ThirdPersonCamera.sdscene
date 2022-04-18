@@ -1321,7 +1321,7 @@ Hierarchy:
                     b999cb5fab28535b1b322a2817654656: !CSharpIntermediate.Code.ThirdPersonCamera,CSharpIntermediate.Game
                         Id: d0db4ffb-8684-465a-9810-1bc16dbf7f80
                         InvertMouseY: false
-                        MouseSpeed: {X: 20.0, Y: 14.0}
+                        MouseSpeed: {X: 0.6, Y: 0.5}
                         MaxLookUpAngle: -40.0
                         MaxLookDownAngle: 40.0
                         MinimumCameraDistance: 1.5
