@@ -13,19 +13,16 @@ namespace CSharpIntermediate.Code
 
         public override void Update()
         {
-
             DebugText.Print("Press Space to teleport ball back in the air", new Int2(500, 180));
 
             if (Input.IsKeyPressed(Keys.Space))
             {
-                Entity.Transform.GetWorldTransformation(out Vector3 worldPos, out Quaternion rot, out Vector3 scale);
-                Ball.Transform.Position = worldPos;
+                Ball.Transform.Position = Entity.Transform.WorldMatrix.TranslationVector;
                 Ball.Transform.UpdateWorldMatrix();
-
+                
+                // We have to update the physics transform since we manually positioned the ball's position 
                 var physicsComponent = Ball.Get<RigidbodyComponent>();
-                physicsComponent.Enabled = true;
                 physicsComponent.LinearVelocity = new Vector3();
-                physicsComponent.AngularVelocity = new Vector3();
                 physicsComponent.UpdatePhysicsTransformation();
             }
         }
