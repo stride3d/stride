@@ -502,25 +502,25 @@ namespace Stride.LauncherApp.ViewModels
                     {
                         var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded);
                         await versionToInstall.Download(true);
-                    }
 
-                    // if VS2022 is installed (version 17.x)
-                    if (!VsixPackage2022.IsLatestVersionInstalled && VsixPackage2022.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 17))
-                    {
-                        result = await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Strings.AskInstallVSIX, "2022"), MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        if (result == MessageBoxResult.Yes)
+                        // if VS2022 is installed (version 17.x)
+                        if (!VsixPackage2022.IsLatestVersionInstalled && VsixPackage2022.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 17))
                         {
-                            await VsixPackage2022.ExecuteAction();
+                            result = await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Strings.AskInstallVSIX, "2022"), MessageBoxButton.YesNo, MessageBoxImage.Question);
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                await VsixPackage2022.ExecuteAction();
+                            }
                         }
-                    }
 
-                    // if VS2019 is installed (version 16.x)
-                    if (!VsixPackage2019.IsLatestVersionInstalled && VsixPackage2019.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 16))
-                    {
-                        result = await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Strings.AskInstallVSIX, "2019"), MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        if (result == MessageBoxResult.Yes)
+                        // if VS2019 is installed (version 16.x)
+                        if (!VsixPackage2019.IsLatestVersionInstalled && VsixPackage2019.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 16))
                         {
-                            await VsixPackage2019.ExecuteAction();
+                            result = await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Strings.AskInstallVSIX, "2019"), MessageBoxButton.YesNo, MessageBoxImage.Question);
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                await VsixPackage2019.ExecuteAction();
+                            }
                         }
                     }
                 }
