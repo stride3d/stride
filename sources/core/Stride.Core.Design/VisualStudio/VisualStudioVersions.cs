@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.VisualStudio.Setup.Configuration;
 
 namespace Stride.Core.VisualStudio
@@ -41,8 +40,6 @@ namespace Stride.Core.VisualStudio
             {
                 VsixInstallerPath = null;
             }
-
-            VsixInstallationPath = ComputeVsixInstallationPath();
         }
 
         /// <summary>Gets a value indicating whether the instance is complete.</summary>
@@ -93,29 +90,6 @@ namespace Stride.Core.VisualStudio
         /// <c>true</c> if this IDE has a VSIX installer; otherwise, <c>false</c>.
         /// </summary>
         public bool HasVsixInstaller => !string.IsNullOrEmpty(VsixInstallerPath);
-
-        /// <summary>
-        /// Thd path to the current user's Visual Studio extension installation directory.
-        /// </summary>
-        public string VsixInstallationPath { get; }
-
-        /// <summary>
-        /// Computes the installation path for Visual Studio Extensions for the current instance. 
-        /// This will always be the per-user location.
-        /// </summary>
-        /// <returns>The full path to the VSIX installation folder for this instance.</returns>
-        private string ComputeVsixInstallationPath()
-        {
-            // For example: C:\Users\LoggedInUserName\AppData\Local\Microsoft\VisualStudio\17.0_88b6650b\Extensions
-            var vsixInstallationPath = new StringBuilder(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 90);
-            vsixInstallationPath.Append(@"\Microsoft\VisualStudio\");
-            vsixInstallationPath.Append(InstallationVersion.Major.ToString());
-            vsixInstallationPath.Append(".0_");
-            vsixInstallationPath.Append(InstanceId);
-            vsixInstallationPath.Append(@"\Extensions\");
-
-            return vsixInstallationPath.ToString();
-        }
 
         /// <inheritdoc />
         public override string ToString() => DisplayName;
