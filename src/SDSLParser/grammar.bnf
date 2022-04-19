@@ -1,0 +1,16 @@
+(* := is an extension to define a literal with no whitespace between repeats and sequences *)
+ws := {? Terminals.WhiteSpace ?};
+
+letter or digit := ? Terminals.LetterOrDigit ?;
+
+simple value := letter or digit, {letter or digit};
+
+bracket value = simple value, {simple value};
+
+optional bracket = '(', bracket value, ')' | simple value;
+
+first = optional bracket;
+
+second = optional bracket;
+
+grammar = ws, first, second, ws;
