@@ -405,14 +405,7 @@ namespace Stride.Physics
             Data.PhysicsComponent.Simulation.SimulationProfiler.Mark();
             Data.PhysicsComponent.Simulation.UpdatedRigidbodies++;
 
-            if (BoneIndex == -1)
-            {
-                DerivePhysicsTransformation(out physicsTransform);
-            }
-            else
-            {
-                DeriveBonePhysicsTransformation(out physicsTransform);
-            }
+            DerivePhysicsTransformation(out physicsTransform, false);
         }
 
         /// <summary>
