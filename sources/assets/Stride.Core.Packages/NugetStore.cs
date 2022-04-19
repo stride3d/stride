@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) 
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -170,7 +170,7 @@ namespace Stride.Core.Packages
         /// A mapping of the supported versions of VS to a Stride release version range.  
         /// For each supported VS release, the first Version represents the included earliest Stride version eligible for the VSIX and the second Version is the excluded upper bound.
         /// </summary>
-        public IReadOnlyDictionary<VsixSupportedVsVersion, (PackageVersion, PackageVersion)> VsixVersionToStrideRelease { get; } = new Dictionary<VsixSupportedVsVersion, (PackageVersion, PackageVersion)>
+        public IReadOnlyDictionary<VsixSupportedVsVersion, (PackageVersion MinVersion, PackageVersion MaxVersion)> VsixVersionToStrideRelease { get; } = new Dictionary<VsixSupportedVsVersion, (PackageVersion, PackageVersion)>
         {
             // The VSIX for VS2019 is avaliable in Stride packages of version 4.0.x
             {VsixSupportedVsVersion.VS2019, (new PackageVersion("4.0"), new PackageVersion("4.1")) },

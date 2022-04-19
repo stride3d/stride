@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) 
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
@@ -115,8 +115,8 @@ namespace Stride.LauncherApp.ViewModels
         protected override async Task UpdateVersionsFromStore()
         {
             var versionRange = Store.VsixVersionToStrideRelease[this.vsixSupportedVsVersion];
-            var minVersion = versionRange.Item1;
-            var maxVersion = versionRange.Item2;
+            var minVersion = versionRange.MinVersion;
+            var maxVersion = versionRange.MaxVersion;
 
             LocalPackage = await Launcher.RunLockTask(() => Store.GetLocalPackages(packageId).Where(package => package.Version >= minVersion && package.Version < maxVersion).OrderByDescending(p => p.Version).FirstOrDefault());
             ServerPackage = await Launcher.RunLockTask(() => Store.FindSourcePackagesById(packageId, CancellationToken.None).Result.Where(package => package.Version >= minVersion && package.Version < maxVersion).OrderByDescending(p => p.Version).FirstOrDefault());

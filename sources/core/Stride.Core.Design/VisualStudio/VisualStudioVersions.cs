@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) 
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -30,8 +30,18 @@ namespace Stride.Core.VisualStudio
             IsComplete = isComplete;
 
             var idePath = Path.Combine(InstallationPath, "Common7", "IDE");
-            DevenvPath = ComputeDevenvPath(idePath);
-            VsixInstallerPath = ComputeVsixInstallerPath(idePath);
+            DevenvPath = Path.Combine(idePath, "devenv.exe");
+            if (!File.Exists(DevenvPath))
+            {
+                DevenvPath = null;
+            }
+
+            VsixInstallerPath = Path.Combine(idePath, "VSIXInstaller.exe");
+            if (!File.Exists(VsixInstallerPath))
+            {
+                VsixInstallerPath = null;
+            }
+
             VsixInstallationPath = ComputeVsixInstallationPath();
         }
 
@@ -88,32 +98,6 @@ namespace Stride.Core.VisualStudio
         /// Thd path to the current user's Visual Studio extension installation directory.
         /// </summary>
         public string VsixInstallationPath { get; }
-
-        /// <summary>
-        /// Computes and verifies the location of devenv.exe relative to the given path or null if not found. 
-        /// </summary>
-        /// <param name="idePath">The path of this VS instance</param>
-        /// <returns>The full path to devenv.exe or null.</returns>
-        private string ComputeDevenvPath(string idePath)
-        {
-            var devenvPath = Path.Combine(idePath, "devenv.exe");
-            if (!File.Exists(devenvPath))
-                devenvPath = null;
-            return devenvPath;
-        }
-
-        /// <summary>
-        /// Computes and verifies the location of the VSIX installer exe relative to the given path or null if not found.
-        /// </summary>
-        /// <param name="idePath">The path of this VS instance</param>
-        /// <returns>The path of the VSIX installed for this instance or null.</returns>
-        private string ComputeVsixInstallerPath(string idePath)
-        {
-            var vsixInstallerPath = Path.Combine(idePath, "VSIXInstaller.exe");
-            if (!File.Exists(vsixInstallerPath))
-                vsixInstallerPath = null;
-            return vsixInstallerPath;
-        }
 
         /// <summary>
         /// Computes the installation path for Visual Studio Extensions for the current instance. 
