@@ -11,7 +11,7 @@ namespace SDSLParser
 			CaseSensitive = true;
 
             var shaderDeclaration = Terminals.Set("shader");
-            var name = Terminals.Repeat(new RepeatCharItem(Char.IsLetter, 1, 1), new RepeatCharItem(Char.IsLetterOrDigit, 0));
+            var name = Terminals.Repeat(new RepeatCharItem(Char.IsLetter), new RepeatCharItem(Char.IsLetterOrDigit, 0));
             var lbracket = Terminals.Set("{");
             var rbracket = Terminals.Set("}");
 
@@ -24,11 +24,7 @@ namespace SDSLParser
 			// var commaDelimiter = new RepeatCharTerminal(new RepeatCharItem(char.IsWhiteSpace), ',', new RepeatCharItem(char.IsWhiteSpace));
 
             Inner = 
-                ws
-                .Then(shaderDeclaration)
-                .Then(name)
-                .Then(lbracket)
-                .Then(rbracket);
+                ws & shaderDeclaration & ws & name & lbracket & rbracket;
 
         }
     }

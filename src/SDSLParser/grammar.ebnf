@@ -1,0 +1,16 @@
+(* := is an extension to define a literal with no whitespace between repeats and sequences *)
+ws := {? Terminals.WhiteSpace ?};
+
+letter_or_digit := ? Terminals.LetterOrDigit ?;
+
+simple_value := letter_or_digit, {letter_or_digit};
+
+bracket_value = simple value, {simple value};
+
+expr = "{", "}";
+
+first = optional_bracket;
+
+second = optional_bracket;
+
+grammar = ws, "shader", simple_value, expr;
