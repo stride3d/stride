@@ -2,16 +2,19 @@
 ws := {? Terminals.WhiteSpace ?};
 eol := ? Terminals.Eol ?, {? Terminals.Eol ?};
 
-unary_operator ::= 
-    &
-    | *
-    | +
-    | -
-    | ~
-    | !;
+unary_operator := 
+    "&"
+    | "*"
+    | "+"
+    | "-"
+    | "~"
+    | "!";
 
+integer_cst := ? Terminals.Digit ?, {? Terminals.Digit ?};
+float_cst := integer_cst, "f" | integer_cst, ".", integer_cst;
+bool_cst := "true" | "false";
 
-
+constants := integer_cst | float_cst | bool_cst;
 
 letter = ? Terminals.Letter ?, {? Terminals.Letter ?};
 letter_or_digit = ? Terminals.LetterOrDigit ?, {? Terminals.LetterOrDigit ?};
@@ -20,7 +23,7 @@ identifier := letter, {"_", letter_or_digit};
 
 bracket_value = simple value, {simple value};
 
-expr := [eol], [ws], [eol];
+expr := [eol], [ws | constants], [eol];
 
 block := "{", expr, "}";
 

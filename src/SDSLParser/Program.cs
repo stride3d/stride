@@ -19,5 +19,7 @@ var grammar = new EbnfGrammar(EbnfStyle.Iso14977).Build(File.ReadAllText("./gram
 var s = new Stopwatch();
 s.Start();
 var match = grammar.Match(shaderf);
+// var match = grammar.Match("1");
+
 s.Stop();
 Console.WriteLine($"parsing time : {s.Elapsed}");
