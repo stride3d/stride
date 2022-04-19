@@ -2,10 +2,21 @@
 ws := {? Terminals.WhiteSpace ?};
 eol := ? Terminals.Eol ?, {? Terminals.Eol ?};
 
+unary_operator ::= 
+    &
+    | *
+    | +
+    | -
+    | ~
+    | !;
 
-letter_or_digit := ? Terminals.LetterOrDigit ?;
 
-simple_value := letter_or_digit, {letter_or_digit};
+
+
+letter = ? Terminals.Letter ?, {? Terminals.Letter ?};
+letter_or_digit = ? Terminals.LetterOrDigit ?, {? Terminals.LetterOrDigit ?};
+
+identifier := letter, {"_", letter_or_digit};
 
 bracket_value = simple value, {simple value};
 
@@ -13,8 +24,4 @@ expr := [eol], [ws], [eol];
 
 block := "{", expr, "}";
 
-first = optional_bracket;
-
-second = optional_bracket;
-
-grammar = ws, "shader", simple_value, block;
+grammar = ws, "shader", identifier, block;
