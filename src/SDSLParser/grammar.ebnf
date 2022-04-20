@@ -1,6 +1,12 @@
 (* := is an extension to define a literal with no whitespace between repeats and sequences *)
 ws := {? Terminals.WhiteSpace ?};
 eol := ? Terminals.Eol ?, {? Terminals.Eol ?};
+eof := ? Terminals.End ?;
+
+letter = ? Terminals.Letter ?, {? Terminals.Letter ?};
+letter_or_digit = ? Terminals.LetterOrDigit ?, {? Terminals.LetterOrDigit ?};
+
+identifier := letter, {"_", letter_or_digit};
 
 unary_operator := 
     "&"
@@ -10,21 +16,100 @@ unary_operator :=
     | "~"
     | "!";
 
+assignment_operator :=
+    "="
+    | "*="
+    | "/="
+    | "%="
+    | "+="
+    | "-="
+    | "<<="
+    | ">>="
+    | "&="
+    | "^="
+    | "|=";
+
 integer_cst := ? Terminals.Digit ?, {? Terminals.Digit ?};
 float_cst := integer_cst, "f" | integer_cst, ".", integer_cst;
 bool_cst := "true" | "false";
 
 constants := integer_cst | float_cst | bool_cst;
 
-letter = ? Terminals.Letter ?, {? Terminals.Letter ?};
-letter_or_digit = ? Terminals.LetterOrDigit ?, {? Terminals.LetterOrDigit ?};
+conditional_expression :=
+    logical_or_expression
+    | logical_or_expression, '?', expression, ':', conditional_expression;
 
-identifier := letter, {"_", letter_or_digit};
+logical_or_expression := logical_and_expression
+                        | logical_or_expression, "||", logical_and_expression;
+
+logical_and_expression := inclusive_or_expression
+                           | logical_and_expression, "&&", inclusive_or_expression;
+
+inclusive_or_expression := exclusive_or_expression
+                            | inclusive_or_expression, "|", exclusive_or_expression;
+
+exclusive_or_expression := and_expression
+                            | exclusive_or_expression, "^", and_expression;
+
+and_expression := equality_expression
+                   | and_expression, "&", equality_expression;
+
+equality_expression := relational_expression
+                        | equality_expression, "==", relational_expression
+                        | equality_expression, "!=", relational_expression;
+
+relational_expression := shift_expression
+                          | relational_expression, "<", shift_expression
+                          | relational_expression, ">", shift_expression
+                          | relational_expression, "<=", shift_expression
+                          | relational_expression, ">=", shift_expression;
+
+shift_expression := additive_expression
+                     | shift_expression, "<<", additive_expression
+                     | shift_expression, ">>", additive_expression;
+
+additive_expression := multiplicative_expression
+                        | additive_expression, "+", multiplicative_expression
+                        | additive_expression, "-", multiplicative_expression;
+
+multiplicative_expression := cast_expression
+                              | multiplicative_expression, "*", cast_expression
+                              | multiplicative_expression, "/", cast_expression
+                              | multiplicative_expression, "%", cast_expression;
+
+cast_expression := unary_expression
+                    | "(", type_name, ")", cast_expression;
+
+
+unary_expression := 
+    postfix_expression
+    | '++', unary_expression
+    | '--', unary_expression
+    | unary_operator, cast_expression
+    | 'sizeof', unary_expression
+    | 'sizeof', type_name;
+
+assignment_expression :=
+    conditional_expression
+    | unary_expression, assignment_operator, assignment_expression;
+
+expression := 
+    assignment_expression
+    | expression, assignment_expression;
+
+
+
+primary_expr := identifier | constants;
+
+postfix_expr := 
+    primary_expr
+    | postfix_expr, '[',ex;
 
 bracket_value = simple value, {simple value};
 
-expr := [eol], [ws | constants], [eol];
+expr := [eol], [ws] , [constants], [eol];
 
 block := "{", expr, "}";
 
 grammar = ws, "shader", identifier, block;
+(* grammar := integer_cst, [eof]; *)

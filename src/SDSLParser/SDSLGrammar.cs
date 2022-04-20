@@ -9,6 +9,8 @@ namespace SDSLParser
         {
             EnableMatchEvents = false;
 			CaseSensitive = true;
+
+            var d = Terminals.End;
             
             var shaderDeclaration = Terminals.Set("shader");
             var name = Terminals.Repeat(new RepeatCharItem(Char.IsLetter), new RepeatCharItem(Char.IsLetterOrDigit, 0));
