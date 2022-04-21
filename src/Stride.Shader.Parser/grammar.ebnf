@@ -29,11 +29,18 @@ assignment_operator :=
     | "^="
     | "|=";
 
-integer_cst := ? Terminals.Digit ?, {? Terminals.Digit ?};
-float_cst := integer_cst, "f" | integer_cst, ".", integer_cst;
-bool_cst := "true" | "false";
+integer_cst = ? Terminals.Digit ?, {? Terminals.Digit ?};
+float_cst = 
+    integer_cst, "f" 
+    | integer_cst, ".", integer_cst
+    | integer_cst, ".", integer_cst, "f";
 
-constants := integer_cst | float_cst | bool_cst;
+bool_cst = "true" | "false";
+
+constants = 
+    integer_cst 
+    | float_cst 
+    | bool_cst;
 
 conditional_expression :=
     logical_or_expression
@@ -99,17 +106,48 @@ expression :=
 
 
 
-primary_expr := identifier | constants;
+primary_expression := identifier | constants;
 
-postfix_expr := 
-    primary_expr
-    | postfix_expr, '[',ex;
+postfix_expression := 
+    primary_expression
+    | postfix_expression, "[", expression, "]"
+    | postfix_expression, "(", {assignment_expression}, ")"
+    | postfix_expression, ".", identifier
+    | postfix_expression, "->", identifier
+    | postfix_expression, "++"
+    | postfix_expression, "--";
 
-bracket_value = simple value, {simple value};
+expression_statement := {expression}, ";";
 
-expr := [eol], [ws] , [constants], [eol];
+labeled_statement := identifier, ":", statement
+                    | "case", constant-expression, ":", statement
+                    | "default", ":", statement;
 
-block := "{", expr, "}";
+compound_statement := "{", {[declaration | statement]}, "}";
 
-grammar = ws, "shader", identifier, block;
-(* grammar := integer_cst, [eof]; *)
+selection_statement := "if", "(", expression, ")", statement
+                        | "if", "(", expression, ")", statement, "else", statement
+                        | "switch", "(", expression,")", statement;
+
+iteration_statement := "while", "(", expression, ")", statement
+                        | "do", statement, "while", "(", expression, ")" 
+                        | "for", "(", {expression}, ";", {expression}, ";", {expression}, ")", statement;
+
+jump_statement := "goto", identifier, ";"
+                   | "continue", ";"
+                   | "break", ";"
+                   | "return", {expression} ;
+
+statement := labeled_statement
+            | expression_statement
+            | compound_statement
+            | selection_statement
+            | iteration_statement
+            | jump_statement;
+
+statements := {statement};
+
+block := "{", [eol], [ws], statements, [eol], [ws], "}";
+
+(* grammar = ws, "shader", identifier, block; *)
+grammar := constants;

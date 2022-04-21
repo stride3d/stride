@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5F88D871-B76
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDSLParser", "src\SDSLParser\SDSLParser.csproj", "{04B29CCB-301A-4B1B-8EE2-3866DDAA86CD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shader.Parser", "src\Stride.Shader.Parser\Stride.Shader.Parser.csproj", "{3A20C614-0B73-4592-B0A3-152FBA7C112C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shader.Parser.Test", "src\Stride.Shader.Parser.Test\Stride.Shader.Parser.Test.csproj", "{6D885FCB-C043-4065-BA7E-E4937667B219}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +24,18 @@ Global
 		{04B29CCB-301A-4B1B-8EE2-3866DDAA86CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04B29CCB-301A-4B1B-8EE2-3866DDAA86CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04B29CCB-301A-4B1B-8EE2-3866DDAA86CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A20C614-0B73-4592-B0A3-152FBA7C112C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A20C614-0B73-4592-B0A3-152FBA7C112C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A20C614-0B73-4592-B0A3-152FBA7C112C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A20C614-0B73-4592-B0A3-152FBA7C112C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D885FCB-C043-4065-BA7E-E4937667B219}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D885FCB-C043-4065-BA7E-E4937667B219}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D885FCB-C043-4065-BA7E-E4937667B219}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D885FCB-C043-4065-BA7E-E4937667B219}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{04B29CCB-301A-4B1B-8EE2-3866DDAA86CD} = {5F88D871-B760-4857-BD74-296B07778B15}
+		{3A20C614-0B73-4592-B0A3-152FBA7C112C} = {5F88D871-B760-4857-BD74-296B07778B15}
+		{6D885FCB-C043-4065-BA7E-E4937667B219} = {5F88D871-B760-4857-BD74-296B07778B15}
 	EndGlobalSection
 EndGlobal

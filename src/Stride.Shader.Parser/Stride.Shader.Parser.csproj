@@ -2,16 +2,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Eto.Parse\Eto.Parse\Eto.Parse.csproj" />
-    <ProjectReference Include="..\Stride.Shader.Parser\Stride.Shader.Parser.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  
 
 </Project>
