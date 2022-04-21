@@ -10,7 +10,7 @@ var parser = new SDSLGrammar();
 
 var s = new Stopwatch();
 s.Start();
-var match = parser.Match("(((5)))");
+var match = parser.Match("(a)*(5) + (2 - 3)");
 s.Stop();
 
 Console.WriteLine(match.ErrorMessage);
