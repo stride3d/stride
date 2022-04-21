@@ -1,0 +1,3 @@
+[submodule ".\\src\\Eto.Parse"]
+	path = .\\src\\Eto.Parse
+	url = https://github.com/ykafia/Eto.Parse
