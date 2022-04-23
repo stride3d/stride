@@ -12,6 +12,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="../Stride.Shader.Parser/*.ebnf" />
+  </ItemGroup>
+
   
 
 </Project>
