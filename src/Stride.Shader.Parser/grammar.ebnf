@@ -102,7 +102,7 @@ statement ::=
 
 shader_class ::= 
     "shader" one_space id any_space
-        "{" any_space statement any_space "}"
+        "{" any_space (declaration ";" any_space)* any_space "}"
 
 
-shader ::= expr
+shader ::= shader_class

@@ -11,7 +11,7 @@ var parser = StrideGrammar.New();
 // var tmp = new Grammar("something", Terminals.Set("a").Not());
 var s = new Stopwatch();
 s.Start();
-var match = parser.Match("My_Var value=(5f+3)*2f;");
+var match = parser.Match(shaderf);
 // var res = SDSLPParser.Parse("My_Var");
 s.Stop();
 

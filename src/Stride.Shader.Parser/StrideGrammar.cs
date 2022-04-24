@@ -7,6 +7,6 @@ public static class StrideGrammar
 {
     public static Grammar New()
     {
-        return new EbnfGrammar(EbnfStyle.W3c).Build(Encoding.UTF8.GetString(GrammarResource.grammar),"statement");
+        return new EbnfGrammar(EbnfStyle.W3c).Build(Encoding.UTF8.GetString(GrammarResource.grammar),"shader");
     }
 }   
