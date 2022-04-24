@@ -24,9 +24,5 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Pidgin" Version="3.1.0" />
-  </ItemGroup>
-
 
 </Project>

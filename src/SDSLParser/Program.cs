@@ -8,10 +8,11 @@ var shaderf = File.ReadAllText("./shader.sdsl");
 
 // var parser = new SDSLGrammar();
 var parser = StrideGrammar.New();
+var tokens = StrideGrammar.Token();
 // var tmp = new Grammar("something", Terminals.Set("a").Not());
 var s = new Stopwatch();
 s.Start();
-var match = parser.Match(shaderf);
+var match = tokens.Match("float4");
 // var res = SDSLPParser.Parse("My_Var");
 s.Stop();
 

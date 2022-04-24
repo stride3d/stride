@@ -3,3 +3,4 @@ obj/
 .vscode/
 .fake
 .vs/
+.antlr/
