@@ -1,3 +1,7 @@
 shader BasicShader {
-    float a=0;
+    stream float a =  0;
+
+    c_buffer PerMaterial{
+        stage float b = 0;
+    }
 }

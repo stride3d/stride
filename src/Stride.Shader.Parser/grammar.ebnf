@@ -66,10 +66,10 @@ accessor ::= (id | paren_expr) "." id
 cast ::= "(" id ")" expr
 
 assign ::= 
-    id assign_op expr
-    | accessor assign_op expr
-    | cast assign_op expr
-    | idx_accessor assign_op expr
+    id any_space assign_op any_space expr
+    | accessor any_space assign_op any_space expr
+    | cast any_space assign_op any_space expr
+    | idx_accessor any_space assign_op any_space expr
 
 
 expr ::= 
@@ -84,7 +84,15 @@ paren_expr ::=  '(' expr ')'
 
 
 typename ::= id
-declaration ::= typename one_space id (assign_op expr)?
+
+stage ::= "stage"
+stream ::= "stream"
+
+declaration ::= 
+    ((stage | stream) one_space)?  typename one_space id any_space (assign_op any_space expr)?
+
+stage_declaration ::= 
+    stage one_space typename one_space id any_space (assign_op any_space expr)?
 
 expression ::= 
     expr - declaration
@@ -95,14 +103,23 @@ statement ::=
     | 'if' paren_expr statement 'else' statement
     | 'while' paren_expr statement
     | 'do' statement 'while' paren_expr ';'
-    | '{' statement* '}'
-    | expression ';'
+    | '{' any_space statement* any_space '}'
+    | expression any_space ';'
     | ';'
-    
+
+c_buffer ::= 
+    "c_buffer" one_space id any_space any_space "{" any_space (stage_declaration any_space";")* any_space "}"
 
 shader_class ::= 
     "shader" one_space id any_space
-        "{" any_space (declaration ";" any_space)* any_space "}"
+        "{" 
+        any_space 
+        (
+            (declaration ";" any_space)* - c_buffer 
+            | (c_buffer)
+        )*
+        any_space 
+        "}"
 
 
 shader ::= shader_class
