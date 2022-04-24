@@ -1,6 +1,7 @@
 
+EndOfFileToken ::= EOF
 
-compilationUnit::=   Declarations+=topLevelDeclaration* EndOfFileToken=EOF
+compilationUnit::=   topLevelDeclaration* EndOfFileToken
 
 
 topLevelDeclaration::=  classDefinition
@@ -11,19 +12,12 @@ topLevelDeclaration::=  classDefinition
 	|   functionDefinition
 	|   functionDeclaration
 
-
-OpenBraceToken ::= LeftBrace
-CloseBraceToken ::= RightBrace
-Name ::= Identifier
-BaseListOpt ::= baselist?
-SemicolonToken ::= Semi
-
 classDefinition::=  ClassKeyword Name BaseListOpt? 
 	    OpenBraceToken classMemberDeclaration* CloseBraceToken
 		SemicolonToken
 
-
-baseList::=  ColonToken=Colon BaseType=Identifier
+BaseType ::= Identifier
+baseList::=  ColonToken BaseType
 
 
 classMemberDeclaration::=  variableDeclarationStatement
@@ -31,22 +25,25 @@ classMemberDeclaration::=  variableDeclarationStatement
 	|   functionDeclaration
 
 
-constantBuffer::=  CBufferKeyword=CBuffer Name=Identifier registerAllocation?
-	    OpenBraceToken=LeftBrace (Fields+=variableDeclarationStatement)+ CloseBraceToken=RightBrace
-		SemicolonToken=Semi?
+constantBuffer::=  CBufferKeyword Name registerAllocation?
+	    OpenBraceToken (variableDeclarationStatement)+ CloseBraceToken
+		SemicolonToken?
 
 
-variableDeclarationStatement::=  variableDeclaration SemicolonToken=Semi
+
+variableDeclarationStatement ::=  variableDeclaration SemicolonToken
 
 
-functionDefinition::=  attribute* functionType (ClassName=Identifier ColonColonToken=ColonColon)? Name=Identifier
-	    OpenParenToken=LeftParen functionParams? CloseParenToken=RightParen
-		SemanticOpt=semantic? block SemicolonTokenOpt=Semi?
 
 
-functionDeclaration::=  attribute* functionType Name=Identifier
-	    OpenParenToken=LeftParen functionParams? CloseParenToken=RightParen
-		SemanticOpt=semantic? SemicolonToken=Semi
+functionDefinition::=  attribute* functionType (ClassName ColonColonToken)? Name
+	    OpenParenToken functionParams? CloseParenToken
+		SemanticOpt block SemicolonTokenOpt?
+
+
+functionDeclaration::=  attribute* functionType Name
+	    OpenParenToken functionParams? CloseParenToken
+		SemanticOpt SemicolonToken
 
 
 functionType::=  type
@@ -58,42 +55,40 @@ functionParams::=  functionParam (Comma functionParam)*
 
 functionParam::=  storageFlags type variableDeclarator
 
+InterfaceKeyword ::= Interface
 
-interfaceDefinition::=  InterfaceKeyword=Interface Name=Identifier
-	    OpenBraceToken=LeftBrace functionDeclaration* CloseBraceToken=RightBrace
-		SemicolonToken=Semi
+interfaceDefinition::=  InterfaceKeyword Name
+	    OpenBraceToken functionDeclaration* CloseBraceToken
+		SemicolonToken
+
+StructKeyword ::= Struct
+
+structDefinition::=  StructKeyword Name
+	    OpenBraceToken (variableDeclarationStatement)+ CloseBraceToken
+		SemicolonToken
 
 
-structDefinition::=  StructKeyword=Struct Name=Identifier
-	    OpenBraceToken=LeftBrace (Fields+=variableDeclarationStatement)+ CloseBraceToken=RightBrace
-		SemicolonToken=Semi
+semantic::=  ColonToken Name
 
 
-semantic::=  ColonToken=Colon Name=Identifier
-
-
-// --------------------------------------
-// ATTRIBUTES
-// --------------------------------------
 
 attributeArguments::=  literalExpr (Comma literalExpr)*
 
 
-attributeArgumentList::=  OpenParenToken=LeftParen attributeArguments CloseParenToken=RightParen
+attributeArgumentList::=  OpenParenToken attributeArguments CloseParenToken
+
+OpenBracketToken ::= LeftBracket
+CloseBracketToken ::= RightBracket
+attribute::=  OpenBracketToken Name attributeArgumentList? CloseBracketToken
 
 
-attribute::=  OpenBracketToken=LeftBracket Name=Identifier attributeArgumentList? CloseBracketToken=RightBracket
 
+block::=  LeftBrace statement* RightBrace
 
-// --------------------------------------
-// STATEMENTS
-// --------------------------------------
-
-block::=  OpenBrace=LeftBrace Stmts+=statement* CloseBrace=RightBrace
-
-
-indentedEmbeddedStatement::=  embeddedStatement // not a block statement
-	|   LeftBrace Stmt=block
+Stmt ::= block
+indentedEmbeddedStatement::=  
+    embeddedStatement 
+	|   LeftBrace Stmt
 
 
 statement::=  localDeclarationStatement
@@ -103,63 +98,61 @@ statement::=  localDeclarationStatement
 	|   structDefinition
 
 
-localDeclarationStatement::=  variableDeclaration SemicolonToken=Semi
+localDeclarationStatement::=  variableDeclaration SemicolonToken
 
 
-forInitializer::=  variableDeclaration            # ForStatementDeclaration
-	|   expression (Comma expression)* # ForStatementInitializers
+forInitializer::=  
+    variableDeclaration 
+	|   expression (Comma expression)* 
 
 
 forIncrementors::=  expression (Comma expression)*
 
 
-switchLabel::=  CaseKeyword=Case Expr=expression ColonToken=Colon # CaseSwitchLabel
-	|   DefaultKeyword=Default ColonToken=Colon           # DefaultSwitchLabel
+
+switchLabel::=  CaseKeyword Expr ColonToken 
+	|   DefaultKeyword ColonToken           
 
 
 switchSection::=  switchLabel+ statement+
 
 
-embeddedStatement::=  SemicolonToken=Semi # EmptyStatement
-	|   block # BlockStatement
-	|   Expr=expression SemicolonToken=Semi # ExpressionStatement
+IfKeyword ::= If
+embeddedStatement::=  SemicolonToken
+	|   block
+	|   Expr SemicolonToken
 
-	// Selection statement
-	|   attribute* IfKeyword=If OpenParenToken=LeftParen Condition=expression CloseParenToken=RightParen Stmt=indentedEmbeddedStatement elseClause? # IfStatement
-	|   attribute* SwitchKeyword=Switch OpenParenToken=LeftParen Expr=expression CloseParenToken=RightParen OpenBraceToken=LeftBrace switchSection* CloseBraceToken=RightBrace     # SwitchStatement
+
+	|   attribute* IfKeyword OpenParenToken expression CloseParenToken indentedEmbeddedStatement elseClause?
+	|   attribute* SwitchKeyword OpenParenToken Expr CloseParenToken OpenBraceToken switchSection* CloseBraceToken    
 	
-	// Iteration statement
-	|   attribute* WhileKeyword=While OpenParenToken=LeftParen condition=expression CloseParenToken=RightParen indentedEmbeddedStatement # WhileStatement
-	|   attribute* DoKeyword=Do indentedEmbeddedStatement WhileKeyword=While OpenParenToken=LeftParen Condition=expression CloseParenToken=RightParen SemicolonToken=Semi # DoStatement
-	|   attribute* ForKeyword=For OpenParenToken=LeftParen forInitializer? FirstSemicolonToken=Semi Condition=expression? SecondSemicolonToken=Semi iterator=forIncrementors? CloseParenToken=RightParen indentedEmbeddedStatement # ForStatement
+	|   attribute* While OpenParenToken expression CloseParenToken indentedEmbeddedStatement
+	|   attribute* Do indentedEmbeddedStatement While OpenParenToken expression CloseParenToken SemicolonToken
+	|   attribute* For OpenParenToken forInitializer? FirstSemicolonToken expression? SecondSemicolonToken forIncrementors? CloseParenToken indentedEmbeddedStatement 
 
-	// Jump statement
-	|   BreakKeyword=Break SemicolonToken=Semi # BreakStatement
-	|   ContinueKeyword=Continue SemicolonToken=Semi # ContinueStatement
-	|   DiscardKeyword=Discard SemicolonToken=Semi # DiscardStatement
-	|   ReturnKeyword=Return Expr=expression? SemicolonToken=Semi # ReturnStatement
+	|   Break SemicolonToken 
+	|   Continue SemicolonToken 
+	|   Discard SemicolonToken 
+	|   Return Expr? SemicolonToken 
 
 
-elseClause::=  ElseKeyword=Else Stmt=indentedEmbeddedStatement
+elseClause::=  ElseKeyword indentedEmbeddedStatement
 
 
-// --------------------------------------
-// EXPRESSIONS
-// --------------------------------------
 
-expression::=  literalExpr                                                                              # LiteralExpression
-	|   Identifier                                                                               # IdentifierExpression
-    |   OpenParenToken=LeftParen expression CloseParenToken=RightParen                           # ParenthesizedExpression
-    |   OpenParenToken=LeftParen type (ArrayRankSpecifiers+=arrayRankSpecifier)* CloseParenToken=RightParen Expr=expression # CastExpression
-    |   Expr=expression DotToken=Dot Member=Identifier                                           # MemberAccessExpression
-	|   scalarOrVectorOrMatrixType argumentList                                                  # NumericConstructorExpression
-    |   Expr=expression argumentList                                                             # FunctionCallExpression
-    |   Expr=expression OpenBracket=LeftBracket Index=expression CloseBracket=RightBracket       # ArrayAccessExpression
-    |   Expr=expression Operator=postfixUnaryOperator                                            # PostfixUnaryExpression
-    |   Operator=prefixUnaryOperator Expr=expression                                             # PrefixUnaryExpression
-    |   Left=expression Operator=binaryOperator Right=expression                                 # BinaryExpression
-	|   Condition=expression QuestionToken=Question TrueExpr=expression ColonToken=Colon FalseExpr=expression # ConditionalExpression
-    |   <assoc=right> Left=expression Operator=assignmentOperator Right=expression               # AssignmentExpression
+expression::=  literalExpr                                                                              
+	|   Identifier                                                                               
+    |   OpenParenToken expression CloseParenToken                           
+    |   OpenParenToken type (arrayRankSpecifier)* CloseParenToken Expr 
+    |   Expr DotToken Identifier                                           
+	|   scalarOrVectorOrMatrixType argumentList                                                  
+    |   Expr argumentList                                                             
+    |   Expr LeftBracket expression RightBracket       
+    |   Expr postfixUnaryOperator                                            
+    |   prefixUnaryOperator Expr                                             
+    |   expression binaryOperator expression                                 
+	|   expression Question TrueExpr ColonToken FalseExpr 
+    |   right expression assignmentOperator expression               
 
 
 literalExpr::=  literal
@@ -210,17 +203,12 @@ assignmentOperator::=  Assign
 	|   OrAssign
 
 
-argumentList::=  OpenParenToken=LeftParen arguments? CloseParenToken=RightParen
+argumentList::=  OpenParenToken arguments? CloseParenToken
 
 
 arguments::=  expression (Comma expression)*
 
 
-
-
-// --------------------------------------
-// TYPES
-// --------------------------------------
 
 variableDeclaration::=  storageFlags type variableDeclarators
 
@@ -228,30 +216,33 @@ variableDeclaration::=  storageFlags type variableDeclarators
 variableDeclarators::=  variableDeclarator (Comma variableDeclarator)*
 
 
-variableDeclarator::=  Name=Identifier
-        (ArrayRankSpecifiers+=arrayRankSpecifier)*
-        packOffsetNode?
-        RegisterAllocation=registerAllocation?
-        SemanticOpt=semantic?
-        variableInitializer?
+
+variableDeclarator::=  
+    Name
+    | (ArrayRankSpecifiers)*
+    | packOffsetNode?
+    | RegisterAllocation
+    | SemanticOpt
+    | variableInitializer?
 
 
-arrayRankSpecifier::=  OpenBracketToken=LeftBracket Dimension=expression? CloseBracketToken=RightBracket
+arrayRankSpecifier::=  OpenBracketToken expression? CloseBracketToken
 
 
-packOffsetNode::=  ColonToken=Colon PackoffsetKeyword=Packoffset OpenParenToken=LeftParen
-	    PackOffsetRegister=Identifier (DotToken=Dot PackOffsetComponent=Identifier)?
-		CloseParenToken=RightParen
+
+packOffsetNode::=  ColonToken Packoffset OpenParenToken
+	    PackOffsetRegister (DotToken PackOffsetComponent)?
+		CloseParenToken
 
 
 storageFlags::=  storageFlag*
 
 
 storageFlag
-	// Type modifiers::=  Const
+
 	|   RowMajor
 	|   ColumnMajor
-	// Storage classes
+
 	|   Extern
 	|   Precise
 	|   Shared
@@ -259,17 +250,14 @@ storageFlag
 	|   Static
 	|   Uniform
 	|   Volatile
-	// Interpolation modifiers
 	|   Linear
 	|   Centroid
 	|   Nointerpolation
 	|   Noperspective
 	|   Sample
-	// Parameter modifiers (only valid on function params)
 	|   In
 	|   Out
 	|   Inout
-	// Geometry shader primitive type
 	|   Point
 	|   Line_
 	|   Triangle
@@ -298,7 +286,7 @@ predefinedType::=  bufferPredefinedType
 	|   genericVectorType
 
 
-bufferPredefinedType::=  bufferType LessThanToken=Less scalarOrVectorType GreaterThanToken=Greater
+bufferPredefinedType::=  bufferType Less scalarOrVectorType Greater
 
 
 bufferType::=  Buffer
@@ -312,14 +300,14 @@ byteAddressBufferType::=  ByteAddressBuffer
 	|   RWByteAddressBuffer
 
 
-inlineStructPredefinedType::=  StructKeyword=Struct OpenBraceToken=LeftBrace
+inlineStructPredefinedType::=  Struct OpenBraceToken
 	    (variableDeclarationStatement)+
-		CloseBraceToken=RightBrace
+		CloseBraceToken
 
 
-patchPredefinedType::=  Keyword=patchType LessThanToken=Less
-	    Name=userDefinedType CommaToken=Comma ControlPoints=IntegerLiteral
-		GreaterThanToken=Greater
+patchPredefinedType::=  patchType Less
+	    userDefinedType Comma IntegerLiteral
+		Greater
 
 
 patchType::=  InputPatch
@@ -341,7 +329,7 @@ scalarType::=  Bool
 	|   Double
 
 
-streamOutputPredefinedType::=  Keyword=streamOutputObjectType LessThanToken=Less type GreaterThanToken=Greater
+streamOutputPredefinedType::=  streamOutputObjectType Less type Greater
 
 
 streamOutputObjectType::=  PointStream
@@ -349,7 +337,7 @@ streamOutputObjectType::=  PointStream
 	|   TriangleStream
 
 
-structuredBufferPredefinedType::=  Keyword=structuredBufferName LessThanToken=Less scalarOrVectorOrUserDefinedType GreaterThanToken=Greater
+structuredBufferPredefinedType::=  structuredBufferName Less scalarOrVectorOrUserDefinedType Greater
 
 
 structuredBufferName::=  AppendStructuredBuffer
@@ -370,14 +358,14 @@ textureType::=  Texture1D
 texturePredefinedType::=  textureType
 
 
-genericTexturePredefinedType::=  textureType LessThanToken=Less scalarOrVectorType GreaterThanToken=Greater
+genericTexturePredefinedType::=  textureType Less scalarOrVectorType Greater
 
 
 textureTypeMS::=  Texture2DMS
 	|   Texture2DMSArray
 
 
-msTexturePredefinedType::=  textureTypeMS LessThanToken=Less scalarOrVectorType CommaToken=Comma Samples=IntegerLiteral GreaterThanToken=Greater
+msTexturePredefinedType::=  textureTypeMS Less scalarOrVectorType Comma IntegerLiteral Greater
 
 
 vectorType::=  Vector
@@ -407,8 +395,8 @@ vectorType::=  Vector
 	|   Double4
 
 
-genericVectorType::=  VectorKeyword=Vector LessThanToken=Less scalarType CommaToken=Comma
-	    Size_=IntegerLiteral GreaterThanToken=Greater
+genericVectorType::=  
+    Vector Less scalarType Comma IntegerLiteral Greater
 
 
 scalarOrVectorType::=  scalarType
@@ -524,43 +512,41 @@ matrixType::=  Matrix
 	|   Double4x4
 
 
-genericMatrixPredefinedType::=  MatrixKeyword=Matrix LessThanToken=Less scalarType FirstCommaToken=Comma
-	    Rows_=IntegerLiteral SecondCommaToken=Comma Cols_=IntegerLiteral
-		GreaterThanToken=Greater
+genericMatrixPredefinedType::=  Matrix Less scalarType Comma
+	    IntegerLiteral Comma IntegerLiteral
+		Greater
 
 
-userDefinedType::=  Name=Identifier
+userDefinedType::=  Name
 
 
-registerAllocation::=  RegisterColon=Colon RegisterKeyword=Register OpenParenToken=LeftParen Address=Identifier CloseParenToken=RightParen
+registerAllocation::=  Colon Register OpenParenToken Identifier CloseParenToken
 
 
-variableInitializer::=  EqualsToken=Assign standardVariableInitializer         # StandardVariableInitializer_
-	|   OpenBraceToken=LeftBrace samplerStateProperty* CloseBraceToken=RightBrace # SamplerStateInitializer
+variableInitializer::=  
+    Assign standardVariableInitializer
+	|   OpenBraceToken samplerStateProperty* CloseBraceToken 
 
 
-standardVariableInitializer::=  OpenBrace=LeftBrace arrayElementInitializers CloseBrace=RightBrace # ArrayVariableInitializer
-	|   Expr=expression # ExpressionVariableInitializer
+standardVariableInitializer::=  
+    LeftBrace arrayElementInitializers RightBrace 
+	|   Expr
 
 
 arrayElementInitializers::=  standardVariableInitializer (Comma standardVariableInitializer)* Comma?
 
 
-samplerStateProperty::=  Name=Identifier EqualsToken=Assign Expr=expression SemicolonToken=Semi
+samplerStateProperty::=  Name Assign Expr SemicolonToken
 
 
-literal::=  True
+literal::=  
+    True
 	|   False
     |   FloatLiteral
     |   IntegerLiteral
     |   StringLiteral
 
 
-
-
-// --------------------------------------
-// PREPROCESSOR DIRECTIVES
-// --------------------------------------
 
 directive::=  ifDirective
 	|   ifDefDirective
@@ -573,43 +559,47 @@ directive::=  ifDirective
 	|   lineDirective
 
 
-ifDirective::=  HashToken=Hash IfKeyword=If Condition=directiveExpression EndOfDirectiveToken=EndOfDirective
+ifDirective::=  HashToken IfKeyword directiveExpression EndOfDirectiveToken
 
 
-ifDefDirective::=  HashToken=Hash IfDefKeyword=IfDef Name=Identifier EndOfDirectiveToken=EndOfDirective
+ifDefDirective::=  HashToken IfDef Name EndOfDirectiveToken
 
 
-ifNDefDirective::=  HashToken=Hash IfNDefKeyword=IfNDef Name=Identifier EndOfDirectiveToken=EndOfDirective
+ifNDefDirective::=  HashToken IfNDef Name EndOfDirectiveToken
 
 
-elseDirective::=  HashToken=Hash ElseKeyword=Else EndOfDirectiveToken=EndOfDirective
+elseDirective::=  HashToken ElseKeyword EndOfDirectiveToken
 
 
-elifDirective::=  HashToken=Hash ElifKeyword=Elif Condition=directiveExpression EndOfDirectiveToken=EndOfDirective
+elifDirective::=  HashToken Elif directiveExpression EndOfDirectiveToken
 
 
-endIfDirective::=  HashToken=Hash EndIfKeyword=EndIf EndOfDirectiveToken=EndOfDirective
+endIfDirective::=  HashToken EndIf EndOfDirectiveToken
 
 
-objectLikeDefineDirective::=  HashToken=Hash DefineKeyword=Define Name=identifierOrKeyword Values+=~(EndOfDirective)* EndOfDirectiveToken=EndOfDirective
+objectLikeDefineDirective::=  HashToken Define NameOrKeyword (EndOfDirective)* EndOfDirectiveToken
 
 
-includeDirective::=  HashToken=Hash IncludeKeyword=Include Filename=StringLiteral EndOfDirectiveToken=EndOfDirective
+includeDirective::=  HashToken Include StringLiteral EndOfDirectiveToken
 
 
-lineDirective::=  HashToken=Hash LineKeyword=Line_ LineNumber=IntegerLiteral Filename=StringLiteral EndOfDirectiveToken=EndOfDirective
+lineDirective::=  HashToken Line_ IntegerLiteral StringLiteral EndOfDirectiveToken
+
+Function ::= Defined
+
+directiveExpression::=  literal                                                                     
+	|   identifierOrKeyword
+    |   OpenParenToken directiveExpression CloseParenToken
+    |   Function OpenParenToken Identifier CloseParenToken
+    |   directiveExpression postfixUnaryOperator                      
+    |   prefixUnaryOperator directiveExpression                       
+    |   directiveExpression binaryOperator directiveExpression  
 
 
-directiveExpression::=  literal                                                                     # LiteralDirectiveExpression
-	|   identifierOrKeyword                                                         # IdentifierDirectiveExpression
-    |   OpenParenToken=LeftParen directiveExpression CloseParenToken=RightParen     # ParenthesizedDirectiveExpression
-    |   Function=Defined OpenParenToken=LeftParen Name=. CloseParenToken=RightParen # FunctionCallDirectiveExpression
-    |   Expr=directiveExpression Operator=postfixUnaryOperator                      # PostfixUnaryDirectiveExpression
-    |   Operator=prefixUnaryOperator Expr=directiveExpression                       # PrefixUnaryDirectiveExpression
-    |   Left=directiveExpression Operator=binaryOperator Right=directiveExpression  # BinaryDirectiveExpression
+FloatVector ::= Float1 | Float2 | Float3 | Float4
 
-
-identifierOrKeyword::=  AppendStructuredBuffer
+identifierOrKeyword ::=  
+    AppendStructuredBuffer
 	|   Bool
 	|   Bool1
 	|   Bool2
@@ -668,7 +658,7 @@ identifierOrKeyword::=  AppendStructuredBuffer
 	|   Double4x4
 	|   Else
 	|   Extern
-	|   Float
+	|   Float - FloatVector
 	|   Float1
 	|   Float2
 	|   Float3
@@ -805,3 +795,39 @@ identifierOrKeyword::=  AppendStructuredBuffer
 	|   Void
 	|   While
 	|   Identifier
+
+CloseBraceToken ::= RightBrace
+Name ::= Identifier
+BaseListOpt ::= baselist?
+
+CBufferKeyword ::= CBuffer
+SemanticOpt ::= semantic
+
+ArrayRankSpecifiers ::= arrayRankSpecifier
+Condition ::= expression
+CBufferKeyword ::= CBuffer
+
+CloseParenToken ::= RightParen
+ColonColonToken ::= ColonColon
+CaseKeyword ::= Case
+ColonToken ::= Colon 
+DotToken ::= Dot
+DefaultKeyword ::= Default
+EqualsToken ::= Assign
+Expr ::= expression
+ElseKeyword ::= Else
+EndOfDirectiveToken ::= EndOfDirective
+HashToken ::= Hash
+IfKeyword ::= If
+OpenBraceToken ::= LeftBrace
+OpenParenToken ::= LeftParen
+OpenParenToken ::= LeftParen
+PackOffsetRegister ::= Identifier
+PackOffsetComponent ::= Identifier
+RegisterAllocation ::= registerAllocation?
+SemanticOpt ::= semantic?
+SemicolonTokenOpt ::= Semi
+SemicolonToken ::= Semi
+SwitchKeyword ::= Switch
+
+
