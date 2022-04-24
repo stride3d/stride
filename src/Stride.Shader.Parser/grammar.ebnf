@@ -1,16 +1,13 @@
-id := ? Terminals.Letter ?, {[? Terminals.LetterOrDigit ? | "_"]};
-eol = ? Terminals.Eol ?;
+id ::= ?Terminals.Letter? (?Terminals.LetterOrDigit? | "_")*
+eol ::= ? Terminals.Eol ?
 
-eols = [eol] | {eol};
+eols ::= eol*
 
-eof = ? Terminals.End ?;
+eof ::= ?Terminals.End ?
 
-any_space = {wso | eols};
+any_space ::= (wso | eols)*
 
-
-(* STRING = ? Terminals.LetterOrDigit ?,{? Terminals.LetterOrDigit ?}; *)
-
-assign_op =
+assign_op ::=
     "="
     | "+="
     | "-="
@@ -19,82 +16,83 @@ assign_op =
     | "&="
     | "|="
     | "~="
-;
 
 
-zero = "0";
+integer ::= "0" | ([0-9] [1-9]*)
+float ::= 
+    (integer "." [0-9] [0-9]*)
+    | (integer "f"?)
 
-digit1 = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+ws ::= (? Terminals.WhiteSpace ?)*
 
-digit = zero | digit1;
+wso ::= ws*
 
-INT = zero | (digit1, {digit});
-
-ws = ? Terminals.WhiteSpace ?, {? Terminals.WhiteSpace ?};
-
-wso = [ws];
-
-integer = zero | (digit1, {digit});
-
-term := 
+term ::= 
     id
     | integer
     | paren_expr
-    ;
 
-mul = 
+mul ::= 
     term
-    | mul, '*', term
-    | mul, '/', term
-    | mul, '%', term
-;
+    | mul '*' term
+    | mul '/' term
+    | mul '%' term
 
-sum = 
+
+sum ::= 
     mul
-    | sum, '++'
-    | sum, '+', mul
-    | sum, '-', mul
-;
+    | sum '++'
+    | sum '+' mul
+    | sum '-' mul
 
-primary_value = id | sum;
+primary_value ::= id | sum
 
-test
-   = sum
-   | sum, '<', sum
-   | sum, '>', sum
-   | sum, '<=', sum
-   | sum, '>=', sum
-   ;
+test ::= 
+    sum
+    | sum '<' sum
+    | sum '>' sum
+    | sum '<=' sum
+    | sum '>=' sum
+   
 
-inc_op = "++" | "--";
-pfix_inc = primary_value, inc_op;
-ifix_inc = inc_op, primary_value;
+inc_op ::= "++" | "--"
+pfix_inc ::= primary_value inc_op
+ifix_inc ::= inc_op primary_value
+
+idx_accessor ::= id "[" expr "]"
+accessor ::= (id | paren_expr) "." id
+cast ::= "(" id ")" expr
+
+assign ::= 
+    id assign_op expr
+    | accessor assign_op expr
+    | cast assign_op expr
+    | idx_accessor assign_op expr
 
 
-expr := 
-    test 
-    | id, assign_op, expr
-    | "(",id,")", expr
-    | id, "[", expr, "]"
-    | (id | paren_expr), ".", id
-    | (id | paren_expr), "++"
-    ;
+expr ::= 
+    (test - assign) 
+    | (accessor - assign)
+    | (idx_accessor - assign)
+    | assign
+    | (paren_expr - cast)
+    | paren_expr
 
-paren_expr := '(', expr, ')';
+paren_expr ::=  '(' expr ')'
 
-statement :=
-    'if', paren_expr, statement
-    | 'if', paren_expr, statement, 'else', statement
-    | 'while', paren_expr, statement
-    | 'do', statement, 'while', paren_expr, ';'
-    | '{', {statement}, '}'
-    | expr, ';'
+statement ::=
+    'if' paren_expr statement
+    | 'if' paren_expr statement 'else' statement
+    | 'while' paren_expr statement
+    | 'do' statement 'while' paren_expr ';'
+    | '{' statement* '}'
+    | expr ';'
     | ';'
-    ;
+    
 
-shader_class = 
-    "shader", any_space, id, any_space,
-        "{", any_space, {statement}, any_space, "}";
+shader_class ::= 
+    "shader" any_space id any_space
+        "{" any_space statement any_space "}"
 
 
-shader := expr;
+shader ::= expr

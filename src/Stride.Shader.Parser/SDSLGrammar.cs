@@ -148,7 +148,7 @@ public class SDSLGrammar : Grammar
 
         
         var a = 0;
-        var b = (3+a++)*1;
+        var b = ++a+3*1;
         
         
         
