@@ -3,9 +3,10 @@ eol ::= ? Terminals.Eol ?
 
 eols ::= eol*
 
-eof ::= ?Terminals.End ?
+eof ::= ? Terminals.End ?
 
 any_space ::= (wso | eols)*
+one_space ::= (wso | eols)+
 
 assign_op ::=
     "="
@@ -29,7 +30,8 @@ wso ::= ws*
 
 term ::= 
     id
-    | integer
+    | (integer - float)
+    | float
     | paren_expr
 
 mul ::= 
@@ -76,9 +78,17 @@ expr ::=
     | (idx_accessor - assign)
     | assign
     | (paren_expr - cast)
-    | paren_expr
+    | cast
 
 paren_expr ::=  '(' expr ')'
+
+
+typename ::= id
+declaration ::= typename one_space id (assign_op expr)?
+
+expression ::= 
+    expr - declaration
+    | declaration
 
 statement ::=
     'if' paren_expr statement
@@ -86,12 +96,12 @@ statement ::=
     | 'while' paren_expr statement
     | 'do' statement 'while' paren_expr ';'
     | '{' statement* '}'
-    | expr ';'
+    | expression ';'
     | ';'
     
 
 shader_class ::= 
-    "shader" any_space id any_space
+    "shader" one_space id any_space
         "{" any_space statement any_space "}"
 
 
