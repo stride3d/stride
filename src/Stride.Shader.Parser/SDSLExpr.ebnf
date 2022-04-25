@@ -596,8 +596,6 @@ directiveExpression::=  literal
     |   directiveExpression binaryOperator directiveExpression  
 
 
-FloatVector ::= Float1 | Float2 | Float3 | Float4
-
 identifierOrKeyword ::=  
     AppendStructuredBuffer
 	|   Buffer

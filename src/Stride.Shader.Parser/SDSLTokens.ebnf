@@ -90,13 +90,9 @@ RightBracket ::= ']'
 LeftBrace ::= '{'
 RightBrace ::= '}'
 
-Less ::= '<'
-LessEqual ::= '<='
-Greater ::= '>'
-GreaterEqual ::= '>='
+
 LeftShift ::= '<<'
 RightShift ::= '>>'
-
 Plus ::= '+'
 PlusPlus ::= '++'
 Minus ::= '-'
@@ -105,6 +101,20 @@ Star ::= '*'
 Div ::= '/'
 Mod ::= '%'
 
+
+IncOperators ::=
+    PlusPlus
+    | MinusMinus
+
+Operators ::=
+    Plus
+    | Minus
+    | Star
+    | Div
+    | Mod
+    | LeftShift
+    | RightShift
+
 And ::= '&'
 Or ::= '|'
 AndAnd ::= '&&'
@@ -112,6 +122,14 @@ OrOr ::= '||'
 Caret ::= '^'
 Not ::= '!'
 Tilde ::= '~'
+
+Equal ::= '=='
+NotEqual ::= '!='
+
+Less ::= '<'
+LessEqual ::= '<='
+Greater ::= '>'
+GreaterEqual ::= '>='
 
 Question ::= '?'
 Colon ::= ':'
@@ -131,8 +149,20 @@ AndAssign ::= '&='
 XorAssign ::= '^='
 OrAssign ::= '|='
 
-Equal ::= '=='
-NotEqual ::= '!='
+AssignOperators ::=
+    Assign
+    | StarAssign
+    | DivAssign
+    | ModAssign
+    | PlusAssign
+    | MinusAssign
+    | LeftShiftAssign
+    | RightShiftAssign
+    | AndAssign
+    | XorAssign
+    | OrAssign
+
+
 
 Dot ::= '.'
 
