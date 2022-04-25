@@ -67,7 +67,7 @@ Struct ::= 'struct'
 StructuredBuffer ::= 'StructuredBuffer'
 Switch ::= 'switch'
 TextureTypes ::= 
-    ('Texture' ([1-3] 'D') ('Array'?))
+    (('Texture' - 'Texture2DMS') ([1-3] 'D') ('Array'?))
     | ('Texture2DMS' 'Array'?)
     | ('TextureCube' 'Array'?)
 
