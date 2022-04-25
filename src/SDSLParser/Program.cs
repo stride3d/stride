@@ -12,7 +12,7 @@ var tokens = StrideGrammar.HlslGrammar();
 // var tmp = new Grammar("something", Terminals.Set("a").Not());
 var s = new Stopwatch();
 s.Start();
-var match = tokens.Match("float4");
+var match = tokens.Match("float4x3");
 // var res = SDSLPParser.Parse("My_Var");
 s.Stop();
 

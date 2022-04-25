@@ -600,27 +600,6 @@ FloatVector ::= Float1 | Float2 | Float3 | Float4
 
 identifierOrKeyword ::=  
     AppendStructuredBuffer
-	|   Bool
-	|   Bool1
-	|   Bool2
-	|   Bool3
-	|   Bool4
-	|   Bool1x1
-	|   Bool1x2
-	|   Bool1x3
-	|   Bool1x4
-	|   Bool2x1
-	|   Bool2x2
-	|   Bool2x3
-	|   Bool2x4
-	|   Bool3x1
-	|   Bool3x2
-	|   Bool3x3
-	|   Bool3x4
-	|   Bool4x1
-	|   Bool4x2
-	|   Bool4x3
-	|   Bool4x4
 	|   Buffer
 	|   ByteAddressBuffer
 	|   Break
@@ -635,98 +614,14 @@ identifierOrKeyword ::=
 	|   Default
 	|   Discard
 	|   Do
-	|   Double
-	|   Double1
-	|   Double2
-	|   Double3
-	|   Double4
-	|   Double1x1
-	|   Double1x2
-	|   Double1x3
-	|   Double1x4
-	|   Double2x1
-	|   Double2x2
-	|   Double2x3
-	|   Double2x4
-	|   Double3x1
-	|   Double3x2
-	|   Double3x3
-	|   Double3x4
-	|   Double4x1
-	|   Double4x2
-	|   Double4x3
-	|   Double4x4
 	|   Else
 	|   Extern
-	|   Float - FloatVector
-	|   Float1
-	|   Float2
-	|   Float3
-	|   Float4
-	|   Float1x1
-	|   Float1x2
-	|   Float1x3
-	|   Float1x4
-	|   Float2x1
-	|   Float2x2
-	|   Float2x3
-	|   Float2x4
-	|   Float3x1
-	|   Float3x2
-	|   Float3x3
-	|   Float3x4
-	|   Float4x1
-	|   Float4x2
-	|   Float4x3
-	|   Float4x4
 	|   For
 	|   Groupshared
-	|   Half
-	|   Half1
-	|   Half2
-	|   Half3
-	|   Half4
-	|   Half1x1
-	|   Half1x2
-	|   Half1x3
-	|   Half1x4
-	|   Half2x1
-	|   Half2x2
-	|   Half2x3
-	|   Half2x4
-	|   Half3x1
-	|   Half3x2
-	|   Half3x3
-	|   Half3x4
-	|   Half4x1
-	|   Half4x2
-	|   Half4x3
-	|   Half4x4
 	|   If
 	|   In
 	|   Inout
 	|   InputPatch
-	|   Int
-	|   Int1
-	|   Int2
-	|   Int3
-	|   Int4
-	|   Int1x1
-	|   Int1x2
-	|   Int1x3
-	|   Int1x4
-	|   Int2x1
-	|   Int2x2
-	|   Int2x3
-	|   Int2x4
-	|   Int3x1
-	|   Int3x2
-	|   Int3x3
-	|   Int3x4
-	|   Int4x1
-	|   Int4x2
-	|   Int4x3
-	|   Int4x4
 	|   Interface
 	|   Line_
 	|   LineAdj
@@ -756,40 +651,12 @@ identifierOrKeyword ::=
 	|   Struct
 	|   StructuredBuffer
 	|   Switch
-	|   Texture1D
-	|   Texture1DArray
-	|   Texture2D
-	|   Texture2DArray
-	|   Texture2DMS
-	|   Texture2DMSArray
-	|   Texture3D
-	|   TextureCube
-	|   TextureCubeArray
+	|   TextureTypes
 	|   Triangle
 	|   TriangleAdj
 	|   TriangleStream
 	|   Uniform
-	|   Uint
-	|   Uint1
-	|   Uint2
-	|   Uint3
-	|   Uint4
-	|   Uint1x1
-	|   Uint1x2
-	|   Uint1x3
-	|   Uint1x4
-	|   Uint2x1
-	|   Uint2x2
-	|   Uint2x3
-	|   Uint2x4
-	|   Uint3x1
-	|   Uint3x2
-	|   Uint3x3
-	|   Uint3x4
-	|   Uint4x1
-	|   Uint4x2
-	|   Uint4x3
-	|   Uint4x4
+    |   ValueTypes
 	|   Vector
 	|   Volatile
 	|   Void
