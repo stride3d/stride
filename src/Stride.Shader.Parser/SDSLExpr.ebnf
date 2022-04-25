@@ -1,10 +1,8 @@
-
-EndOfFileToken ::= EOF
-
-compilationUnit::=   topLevelDeclaration* EndOfFileToken
+compilationUnit ::=    topLevelDeclaration* EOF
 
 
-topLevelDeclaration::=  classDefinition
+topLevelDeclaration ::=
+   classDefinition
 	|   interfaceDefinition
 	|   variableDeclarationStatement
 	|   structDefinition
@@ -12,185 +10,192 @@ topLevelDeclaration::=  classDefinition
 	|   functionDefinition
 	|   functionDeclaration
 
-classDefinition::=  ClassKeyword Name BaseListOpt? 
-	    OpenBraceToken classMemberDeclaration* CloseBraceToken
-		SemicolonToken
 
-BaseType ::= Identifier
-baseList::=  ColonToken BaseType
+classDefinition ::=   Class Identifier baseList? 
+	    LeftBrace classMemberDeclaration* RightBrace
+		Semi
 
 
-classMemberDeclaration::=  variableDeclarationStatement
+baseList ::=   Colon Identifier
+
+
+classMemberDeclaration ::=
+   variableDeclarationStatement
 	|   functionDefinition
 	|   functionDeclaration
 
 
-constantBuffer::=  CBufferKeyword Name registerAllocation?
-	    OpenBraceToken (variableDeclarationStatement)+ CloseBraceToken
-		SemicolonToken?
+constantBuffer ::=   CBuffer Identifier registerAllocation?
+	    LeftBrace (variableDeclarationStatement)+ RightBrace
+		Semi?
 
 
-
-variableDeclarationStatement ::=  variableDeclaration SemicolonToken
-
+variableDeclarationStatement ::=   variableDeclaration Semi
 
 
-
-functionDefinition::=  attribute* functionType (ClassName ColonColonToken)? Name
-	    OpenParenToken functionParams? CloseParenToken
-		SemanticOpt block SemicolonTokenOpt?
-
-
-functionDeclaration::=  attribute* functionType Name
-	    OpenParenToken functionParams? CloseParenToken
-		SemanticOpt SemicolonToken
+functionDefinition ::=   attribute* functionType (Identifier ColonColon)? Identifier
+	    LeftParen functionParams? RightParen
+		semantic? block Semi?
 
 
-functionType::=  type
+functionDeclaration ::=   attribute* functionType Identifier
+	    LeftParen functionParams? RightParen
+		semantic? Semi
+
+
+functionType ::=
+   type
 	|   Void
 
 
-functionParams::=  functionParam (Comma functionParam)*
+functionParams ::=   functionParam (Comma functionParam)*
 
 
-functionParam::=  storageFlags type variableDeclarator
-
-InterfaceKeyword ::= Interface
-
-interfaceDefinition::=  InterfaceKeyword Name
-	    OpenBraceToken functionDeclaration* CloseBraceToken
-		SemicolonToken
-
-StructKeyword ::= Struct
-
-structDefinition::=  StructKeyword Name
-	    OpenBraceToken (variableDeclarationStatement)+ CloseBraceToken
-		SemicolonToken
+functionParam ::=   storageFlags type variableDeclarator
 
 
-semantic::=  ColonToken Name
+interfaceDefinition ::=   Interface Identifier
+	    LeftBrace functionDeclaration* RightBrace
+		Semi
 
 
+structDefinition ::=   Struct Identifier
+	    LeftBrace (variableDeclarationStatement)+ RightBrace
+		Semi
 
-attributeArguments::=  literalExpr (Comma literalExpr)*
 
-
-attributeArgumentList::=  OpenParenToken attributeArguments CloseParenToken
-
-OpenBracketToken ::= LeftBracket
-CloseBracketToken ::= RightBracket
-attribute::=  OpenBracketToken Name attributeArgumentList? CloseBracketToken
+semantic ::=   Colon Identifier
 
 
 
-block::=  LeftBrace statement* RightBrace
-
-Stmt ::= block
-indentedEmbeddedStatement::=  
-    embeddedStatement 
-	|   LeftBrace Stmt
+attributeArguments ::=   literalExpr (Comma literalExpr)*
 
 
-statement::=  localDeclarationStatement
+attributeArgumentList ::=   LeftParen attributeArguments RightParen
+
+
+attribute ::=   LeftBracket Identifier attributeArgumentList? RightBracket
+
+
+
+block ::=   LeftBrace statement* RightBrace
+
+
+indentedEmbeddedStatement ::=   embeddedStatement 	|   LeftBrace block
+
+
+statement ::=
+   localDeclarationStatement
 	|   embeddedStatement
 	|   classDefinition
 	|   interfaceDefinition
 	|   structDefinition
 
 
-localDeclarationStatement::=  variableDeclaration SemicolonToken
+localDeclarationStatement ::=   variableDeclaration Semi
 
 
-forInitializer::=  
-    variableDeclaration 
+forInitializer ::=   variableDeclaration            
 	|   expression (Comma expression)* 
 
 
-forIncrementors::=  expression (Comma expression)*
+forIncrementors ::=   expression (Comma expression)*
 
 
-
-switchLabel::=  CaseKeyword Expr ColonToken 
-	|   DefaultKeyword ColonToken           
-
-
-switchSection::=  switchLabel+ statement+
+switchLabel ::=   Case expression Colon 
+	|   Default Colon           
 
 
-IfKeyword ::= If
-embeddedStatement::=  SemicolonToken
-	|   block
-	|   Expr SemicolonToken
+switchSection ::=   switchLabel+ statement+
 
 
-	|   attribute* IfKeyword OpenParenToken expression CloseParenToken indentedEmbeddedStatement elseClause?
-	|   attribute* SwitchKeyword OpenParenToken Expr CloseParenToken OpenBraceToken switchSection* CloseBraceToken    
+embeddedStatement ::=   Semi 
+	|   block 
+	|   expression Semi 
+
+    |   attribute* If LeftParen expression RightParen indentedEmbeddedStatement elseClause? 
+	|   attribute* Switch LeftParen expression RightParen LeftBrace switchSection* RightBrace     
 	
-	|   attribute* While OpenParenToken expression CloseParenToken indentedEmbeddedStatement
-	|   attribute* Do indentedEmbeddedStatement While OpenParenToken expression CloseParenToken SemicolonToken
-	|   attribute* For OpenParenToken forInitializer? FirstSemicolonToken expression? SecondSemicolonToken forIncrementors? CloseParenToken indentedEmbeddedStatement 
+    |   attribute* While LeftParen expression RightParen indentedEmbeddedStatement 
+	|   attribute* Do indentedEmbeddedStatement While LeftParen expression RightParen Semi 
+	|   attribute* For LeftParen forInitializer? Semi expression? Semi forIncrementors? RightParen indentedEmbeddedStatement 
 
-	|   Break SemicolonToken 
-	|   Continue SemicolonToken 
-	|   Discard SemicolonToken 
-	|   Return Expr? SemicolonToken 
-
-
-elseClause::=  ElseKeyword indentedEmbeddedStatement
+    |   Break Semi 
+	|   Continue Semi 
+	|   Discard Semi 
+	|   Return expression? Semi 
 
 
+elseClause ::=   Else indentedEmbeddedStatement
 
-expression::=  literalExpr                                                                              
+
+
+expression ::=   
+    literalExpr                                                                              
 	|   Identifier                                                                               
-    |   OpenParenToken expression CloseParenToken                           
-    |   OpenParenToken type (arrayRankSpecifier)* CloseParenToken Expr 
-    |   Expr DotToken Identifier                                           
+    |   LeftParen expression RightParen                           
+    |   LeftParen type (arrayRankSpecifier)* RightParen expression 
+    |   expression Dot Identifier                                           
 	|   scalarOrVectorOrMatrixType argumentList                                                  
-    |   Expr argumentList                                                             
-    |   Expr LeftBracket expression RightBracket       
-    |   Expr postfixUnaryOperator                                            
-    |   prefixUnaryOperator Expr                                             
+    |   expression argumentList                                                             
+    |   expression LeftBracket expression RightBracket       
+    |   expression postfixUnaryOperator                                            
+    |   prefixUnaryOperator expression                                             
     |   expression binaryOperator expression                                 
-	|   expression Question TrueExpr ColonToken FalseExpr 
+	|   expression Question expression Colon expression 
     |   right expression assignmentOperator expression               
 
 
-literalExpr::=  literal
+literalExpr ::=
+   
+    literal
 
 
-postfixUnaryOperator::=  PlusPlus
+postfixUnaryOperator ::=
+    PlusPlus
 	|   MinusMinus
 
 
-prefixUnaryOperator::=  Plus
-	|   Minus
+prefixUnaryOperator ::=
+    Plus - PlusPlus
+	|   Minus - MinusMinus
 	|   Not
 	|   Tilde
 	|   PlusPlus
 	|   MinusMinus
 
 
-binaryOperator::=  Star
-	|   Div
-	|   Mod
-	|   Plus
-	|   Minus
-	|   LeftShift
-	|   RightShift
-	|   Less
-	|   Greater
-	|   LessEqual
-	|   GreaterEqual
-	|   Equal
-	|   NotEqual
-	|   And
-	|   Caret
-	|   Or
-	|   AndAnd
-	|   OrOr
+binaryOperator ::=
+    calcOperators
+    | testOperators
+
+testOperators ::=
+    Less - LessEqual
+	| Greater - GreaterEqual
+	| LessEqual
+	| GreaterEqual
+    | Equal
+	| NotEqual
+    | And - AndAnd
+	| Caret
+	| Or - OrOr
+	| AndAnd
+	| OrOr
+
+calcOperators ::=
+    Star
+	| Div
+	| Mod
+	| Plus
+	| Minus
+    | LeftShift
+	| RightShift
+	
+	
 
 
-assignmentOperator::=  Assign
+assignmentOperator ::=
+    Assign
 	|   StarAssign
 	|   DivAssign
 	|   ModAssign
@@ -203,73 +208,78 @@ assignmentOperator::=  Assign
 	|   OrAssign
 
 
-argumentList::=  OpenParenToken arguments? CloseParenToken
+argumentList ::=   LeftParen arguments? RightParen
 
 
-arguments::=  expression (Comma expression)*
-
-
-
-variableDeclaration::=  storageFlags type variableDeclarators
-
-
-variableDeclarators::=  variableDeclarator (Comma variableDeclarator)*
+arguments ::=   expression (Comma expression)*
 
 
 
-variableDeclarator::=  
-    Name
-    | (ArrayRankSpecifiers)*
-    | packOffsetNode?
-    | RegisterAllocation
-    | SemanticOpt
-    | variableInitializer?
 
 
-arrayRankSpecifier::=  OpenBracketToken expression? CloseBracketToken
+variableDeclaration ::=   storageFlags type variableDeclarators
 
 
-
-packOffsetNode::=  ColonToken Packoffset OpenParenToken
-	    PackOffsetRegister (DotToken PackOffsetComponent)?
-		CloseParenToken
+variableDeclarators ::=   variableDeclarator (Comma variableDeclarator)*
 
 
-storageFlags::=  storageFlag*
+variableDeclarator ::=
+   
+    Identifier
+        (arrayRankSpecifier)*
+        packOffsetNode?
+        registerAllocation?
+        semantic?
+        variableInitializer?
 
 
-storageFlag
+arrayRankSpecifier ::=   LeftBracket expression? RightBracket
 
-	|   RowMajor
+
+packOffsetNode ::=   Colon Packoffset LeftParen
+	    Identifier (Dot Identifier)?
+		RightParen
+
+
+storageFlags ::=   
+    storageFlag*
+
+
+storageFlag ::=
+
+    Constant
+    |   RowMajor
 	|   ColumnMajor
-
-	|   Extern
+    |   Extern
 	|   Precise
 	|   Shared
 	|   Groupshared
 	|   Static
 	|   Uniform
 	|   Volatile
-	|   Linear
+    |   Linear
 	|   Centroid
 	|   Nointerpolation
 	|   Noperspective
 	|   Sample
-	|   In
+    |   In
 	|   Out
 	|   Inout
-	|   Point
+    |   Point
 	|   Line_
 	|   Triangle
 	|   LineAdj
 	|   TriangleAdj
 
 
-type::=  predefinedType
+type ::=
+    predefinedType
 	|   userDefinedType
 
 
-predefinedType::=  bufferPredefinedType
+predefinedType ::=
+   
+    bufferPredefinedType
 	|   byteAddressBufferPredefinedType
 	|   inlineStructPredefinedType
 	|   patchPredefinedType
@@ -286,40 +296,54 @@ predefinedType::=  bufferPredefinedType
 	|   genericVectorType
 
 
-bufferPredefinedType::=  bufferType Less scalarOrVectorType Greater
+bufferPredefinedType ::=   bufferType Less scalarOrVectorType Greater
 
 
-bufferType::=  Buffer
+bufferType ::=
+   
+    Buffer
 	|   RWBuffer
 
 
-byteAddressBufferPredefinedType::=  byteAddressBufferType
+byteAddressBufferPredefinedType ::=
+   
+    byteAddressBufferType
 
 
-byteAddressBufferType::=  ByteAddressBuffer
+byteAddressBufferType ::=
+   
+    ByteAddressBuffer
 	|   RWByteAddressBuffer
 
 
-inlineStructPredefinedType::=  Struct OpenBraceToken
+inlineStructPredefinedType ::=   
+    Struct LeftBrace
 	    (variableDeclarationStatement)+
-		CloseBraceToken
+    RightBrace
 
 
-patchPredefinedType::=  patchType Less
+patchPredefinedType ::=   
+    patchType Less
 	    userDefinedType Comma IntegerLiteral
 		Greater
 
 
-patchType::=  InputPatch
+patchType ::=
+   
+    InputPatch
 	|   OutputPatch
 
 
-samplerStatePredefinedType::=  Sampler
+samplerStatePredefinedType ::=
+   
+    Sampler
 	|   SamplerState
 	|   SamplerComparisonState
 
 
-scalarType::=  Bool
+scalarType ::=
+   
+    Bool
 	|   Int
 	|   Unsigned Int
 	|   Dword
@@ -329,218 +353,116 @@ scalarType::=  Bool
 	|   Double
 
 
-streamOutputPredefinedType::=  streamOutputObjectType Less type Greater
+streamOutputPredefinedType ::=   
+    streamOutputObjectType Less type Greater
 
 
-streamOutputObjectType::=  PointStream
+streamOutputObjectType ::=
+    PointStream
 	|   LineStream
 	|   TriangleStream
 
 
-structuredBufferPredefinedType::=  structuredBufferName Less scalarOrVectorOrUserDefinedType Greater
+structuredBufferPredefinedType ::=   
+    structuredBufferName Less scalarOrVectorOrUserDefinedType Greater
 
 
-structuredBufferName::=  AppendStructuredBuffer
+structuredBufferName ::=
+   
+    AppendStructuredBuffer
 	|   ConsumeStructuredBuffer
 	|   RWStructuredBuffer
 	|   StructuredBuffer
 
 
-textureType::=  Texture1D
-	|   Texture1DArray
-	|   Texture2D
-	|   Texture2DArray
-	|   Texture3D
-	|   TextureCube
-	|   TextureCubeArray
+textureType ::=   
+    TextureTypes
 
 
-texturePredefinedType::=  textureType
+texturePredefinedType ::=
+   textureType
 
 
-genericTexturePredefinedType::=  textureType Less scalarOrVectorType Greater
+genericTexturePredefinedType ::=   textureType Less scalarOrVectorType Greater
 
 
-textureTypeMS::=  Texture2DMS
+textureTypeMS ::=   Texture2DMS
 	|   Texture2DMSArray
 
 
-msTexturePredefinedType::=  textureTypeMS Less scalarOrVectorType Comma IntegerLiteral Greater
+msTexturePredefinedType ::=   textureTypeMS Less scalarOrVectorType Comma IntegerLiteral Greater
 
 
-vectorType::=  Vector
-	|   Bool1
-	|   Bool2
-	|   Bool3
-	|   Bool4
-	|   Int1
-	|   Int2
-	|   Int3
-	|   Int4
-	|   Uint1
-	|   Uint2
-	|   Uint3
-	|   Uint4
-	|   Half1
-	|   Half2
-	|   Half3
-	|   Half4
-	|   Float1
-	|   Float2
-	|   Float3
-	|   Float4
-	|   Double1
-	|   Double2
-	|   Double3
-	|   Double4
+vectorType ::=
+    Vector
+	| UintVec
+    | IntVec
+    | HalfVec
+    | FloatVec
+    | DoubleVec
+    | BoolVec
 
 
-genericVectorType::=  
-    Vector Less scalarType Comma IntegerLiteral Greater
+genericVectorType ::=   
+    Vector Less scalarType Comma
+	    IntegerLiteral Greater
 
 
-scalarOrVectorType::=  scalarType
+scalarOrVectorType ::=
+   scalarType
 	|   vectorType
 
 
-scalarOrVectorOrUserDefinedType::=  scalarType
+scalarOrVectorOrUserDefinedType ::=
+   scalarType
 	|   vectorType
 	|   userDefinedType
 
 
-scalarOrVectorOrMatrixType::=  scalarType
+scalarOrVectorOrMatrixType ::=
+   scalarType
 	|   vectorType
 	|   matrixType
 
 
-matrixType::=  Matrix
-	|   Bool1x1
-	|   Bool1x2
-	|   Bool1x3
-	|   Bool1x4
-	|   Bool2x1
-	|   Bool2x2
-	|   Bool2x3
-	|   Bool2x4
-	|   Bool3x1
-	|   Bool3x2
-	|   Bool3x3
-	|   Bool3x4
-	|   Bool4x1
-	|   Bool4x2
-	|   Bool4x3
-	|   Bool4x4
-	|   Int1x1
-	|   Int1x2
-	|   Int1x3
-	|   Int1x4
-	|   Int2x1
-	|   Int2x2
-	|   Int2x3
-	|   Int2x4
-	|   Int3x1
-	|   Int3x2
-	|   Int3x3
-	|   Int3x4
-	|   Int4x1
-	|   Int4x2
-	|   Int4x3
-	|   Int4x4
-	|   Uint1x1
-	|   Uint1x2
-	|   Uint1x3
-	|   Uint1x4
-	|   Uint2x1
-	|   Uint2x2
-	|   Uint2x3
-	|   Uint2x4
-	|   Uint3x1
-	|   Uint3x2
-	|   Uint3x3
-	|   Uint3x4
-	|   Uint4x1
-	|   Uint4x2
-	|   Uint4x3
-	|   Uint4x4
-	|   Half1x1
-	|   Half1x2
-	|   Half1x3
-	|   Half1x4
-	|   Half2x1
-	|   Half2x2
-	|   Half2x3
-	|   Half2x4
-	|   Half3x1
-	|   Half3x2
-	|   Half3x3
-	|   Half3x4
-	|   Half4x1
-	|   Half4x2
-	|   Half4x3
-	|   Half4x4
-	|   Float1x1
-	|   Float1x2
-	|   Float1x3
-	|   Float1x4
-	|   Float2x1
-	|   Float2x2
-	|   Float2x3
-	|   Float2x4
-	|   Float3x1
-	|   Float3x2
-	|   Float3x3
-	|   Float3x4
-	|   Float4x1
-	|   Float4x2
-	|   Float4x3
-	|   Float4x4
-	|   Double1x1
-	|   Double1x2
-	|   Double1x3
-	|   Double1x4
-	|   Double2x1
-	|   Double2x2
-	|   Double2x3
-	|   Double2x4
-	|   Double3x1
-	|   Double3x2
-	|   Double3x3
-	|   Double3x4
-	|   Double4x1
-	|   Double4x2
-	|   Double4x3
-	|   Double4x4
+matrixType ::=
+    Matrix
+    | BoolMat
+    | UintMat
+    | IntMat
+    | HalfMat
+    | FloatMat
+    | DoubleMat
 
 
-genericMatrixPredefinedType::=  Matrix Less scalarType Comma
+genericMatrixPredefinedType ::=   Matrix Less scalarType Comma
 	    IntegerLiteral Comma IntegerLiteral
 		Greater
 
 
-userDefinedType::=  Name
+userDefinedType ::=
+   Identifier
 
 
-registerAllocation::=  Colon Register OpenParenToken Identifier CloseParenToken
+registerAllocation ::=   Colon Register LeftParen Identifier RightParen
 
 
-variableInitializer::=  
-    Assign standardVariableInitializer
-	|   OpenBraceToken samplerStateProperty* CloseBraceToken 
+variableInitializer ::=   Assign standardVariableInitializer
+	|   LeftBrace samplerStateProperty* RightBrace 
 
 
-standardVariableInitializer::=  
-    LeftBrace arrayElementInitializers RightBrace 
-	|   Expr
+standardVariableInitializer ::=   LeftBrace arrayElementInitializers RightBrace 
+	|   expression 
 
 
-arrayElementInitializers::=  standardVariableInitializer (Comma standardVariableInitializer)* Comma?
+arrayElementInitializers ::=   standardVariableInitializer (Comma standardVariableInitializer)* Comma?
 
 
-samplerStateProperty::=  Name Assign Expr SemicolonToken
+samplerStateProperty ::=   Identifier Assign expression Semi
 
 
-literal::=  
-    True
+literal ::=
+   True
 	|   False
     |   FloatLiteral
     |   IntegerLiteral
@@ -548,7 +470,10 @@ literal::=
 
 
 
-directive::=  ifDirective
+
+
+directive ::=
+   ifDirective
 	|   ifDefDirective
 	|   ifNDefDirective
 	|   elseDirective
@@ -559,57 +484,96 @@ directive::=  ifDirective
 	|   lineDirective
 
 
-ifDirective::=  HashToken IfKeyword directiveExpression EndOfDirectiveToken
+ifDirective ::=   Hash If directiveExpression EndOfDirective
 
 
-ifDefDirective::=  HashToken IfDef Name EndOfDirectiveToken
+ifDefDirective ::=   Hash IfDef Identifier EndOfDirective
 
 
-ifNDefDirective::=  HashToken IfNDef Name EndOfDirectiveToken
+ifNDefDirective ::=   Hash IfNDef Identifier EndOfDirective
 
 
-elseDirective::=  HashToken ElseKeyword EndOfDirectiveToken
+elseDirective ::=   Hash Else EndOfDirective
 
 
-elifDirective::=  HashToken Elif directiveExpression EndOfDirectiveToken
+elifDirective ::=   Hash Elif directiveExpression EndOfDirective
 
 
-endIfDirective::=  HashToken EndIf EndOfDirectiveToken
+endIfDirective ::=   Hash EndIf EndOfDirective
 
 
-objectLikeDefineDirective::=  HashToken Define NameOrKeyword (EndOfDirective)* EndOfDirectiveToken
+objectLikeDefineDirective ::=   Hash Define identifierOrKeyword (EndOfDirective)* EndOfDirective
 
 
-includeDirective::=  HashToken Include StringLiteral EndOfDirectiveToken
+includeDirective ::=   Hash Include StringLiteral EndOfDirective
 
 
-lineDirective::=  HashToken Line_ IntegerLiteral StringLiteral EndOfDirectiveToken
-
-Function ::= Defined
-
-directiveExpression::=  literal                                                                     
-	|   identifierOrKeyword
-    |   OpenParenToken directiveExpression CloseParenToken
-    |   Function OpenParenToken Identifier CloseParenToken
-    |   directiveExpression postfixUnaryOperator                      
-    |   prefixUnaryOperator directiveExpression                       
-    |   directiveExpression binaryOperator directiveExpression  
+lineDirective ::=   Hash Line_ IntegerLiteral StringLiteral EndOfDirective
 
 
-identifierOrKeyword ::=  
+IncrementExpr ::=
+    literal postfixUnaryOperator
+    | Identifier postfixUnaryOperator
+    | ParenExpression postfixUnaryOperator 
+    | prefixUnaryOperator Identifier - postfixUnaryOperator
+    | prefixUnaryOperator ParenExpression - postfixUnaryOperator
+
+OperationExpression ::= directiveExpression binaryOperator directiveExpression
+
+Term ::=
+    literal
+    | Identifier - Keywords
+    | ParenExpression
+
+Mul ::= 
+    Term
+    | Mul Star Term
+    | Mul Div Term
+    | Mul Mod Term
+
+
+Sum ::= 
+    Mul
+    | Sum PlusPlus
+    | Sum Plus Mul
+    | Sum Plus Mul
+
+Test ::= 
+    Sum
+    | sum Less sum
+    | sum Greater sum
+    | sum LessEqual sum
+    | sum GreaterEqual sum
+   
+
+directiveExpression ::=
+    literal - (postfixUnaryOperator | binaryOperator)
+    | identifierOrKeyword - (postfixUnaryOperator | binaryOperator)
+    | IncrementExpr
+    | Test
+/*    | Identifier LeftParen RightParen*/
+
+ParenExpression ::=
+    LeftParen directiveExpression RightParen
+
+identifierOrKeyword ::=
+	Identifier - Keywords
+    | Keywords
+
+Keywords ::=
     AppendStructuredBuffer
-	|   Buffer
-	|   ByteAddressBuffer
+	|   Buffer - ByteAddressBuffer
+	|   ByteAddressBuffer - Break
 	|   Break
-	|   Case
-	|   CBuffer
-	|   Centroid
-	|   Class
-	|   ColumnMajor
-	|   Const
-	|   ConsumeStructuredBuffer
+	|   Case - CBuffer
+	|   CBuffer - Centroid
+	|   Centroid - Class
+	|   Class - ColumnMajor
+	|   ColumnMajor - Const
+	|   Const - ConsumeStructuredBuffer
+	|   ConsumeStructuredBuffer - Continue
 	|   Continue
-	|   Default
+	|   Default - Discard
 	|   Discard
 	|   Do
 	|   Else
@@ -640,7 +604,7 @@ identifierOrKeyword ::=
 	|   RWBuffer
 	|   RWByteAddressBuffer
 	|   RWStructuredBuffer
-	|   Sample
+	|   Sample - Sampler
 	|   Sampler
 	|   SamplerComparisonState
 	|   SamplerState
@@ -649,7 +613,7 @@ identifierOrKeyword ::=
 	|   Struct
 	|   StructuredBuffer
 	|   Switch
-	|   TextureTypes
+    |   TextureTypes
 	|   Triangle
 	|   TriangleAdj
 	|   TriangleStream
@@ -659,40 +623,3 @@ identifierOrKeyword ::=
 	|   Volatile
 	|   Void
 	|   While
-	|   Identifier
-
-CloseBraceToken ::= RightBrace
-Name ::= Identifier
-BaseListOpt ::= baselist?
-
-CBufferKeyword ::= CBuffer
-SemanticOpt ::= semantic
-
-ArrayRankSpecifiers ::= arrayRankSpecifier
-Condition ::= expression
-CBufferKeyword ::= CBuffer
-
-CloseParenToken ::= RightParen
-ColonColonToken ::= ColonColon
-CaseKeyword ::= Case
-ColonToken ::= Colon 
-DotToken ::= Dot
-DefaultKeyword ::= Default
-EqualsToken ::= Assign
-Expr ::= expression
-ElseKeyword ::= Else
-EndOfDirectiveToken ::= EndOfDirective
-HashToken ::= Hash
-IfKeyword ::= If
-OpenBraceToken ::= LeftBrace
-OpenParenToken ::= LeftParen
-OpenParenToken ::= LeftParen
-PackOffsetRegister ::= Identifier
-PackOffsetComponent ::= Identifier
-RegisterAllocation ::= registerAllocation?
-SemanticOpt ::= semantic?
-SemicolonTokenOpt ::= Semi
-SemicolonToken ::= Semi
-SwitchKeyword ::= Switch
-
-

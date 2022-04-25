@@ -170,7 +170,7 @@ True ::= 'true'
 False ::= 'false'
 
 Identifier ::=  
-     Nondigit (Nondigit | Digit)*
+    [a-zA-Z_] ([a-zA-Z_] | [0-1])*
 
 Nondigit ::= [a-zA-Z_]
 
@@ -194,12 +194,10 @@ IntegerSuffix ::= [uUlL]
 
 FloatLiteral ::=   
     FractionalConstant ExponentPart? FloatingSuffix?
-    |   DigitSequence ExponentPart FloatingSuffix?
+    | DigitSequence ExponentPart FloatingSuffix?
 
 FractionalConstant ::=
     DigitSequence? '.' DigitSequence
-    |   DigitSequence '.'
-
 
 ExponentPart ::=   
     'e' Sign? DigitSequence
@@ -208,7 +206,7 @@ ExponentPart ::=
 Sign ::=   '+' | '-'
    
 
-DigitSequence ::=   Digit+
+DigitSequence ::= Digit+
    
 
 HexadecimalDigitSequence ::=   HexadecimalDigit+

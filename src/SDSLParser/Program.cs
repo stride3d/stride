@@ -8,12 +8,10 @@ var shaderf = File.ReadAllText("./shader.sdsl");
 
 // var parser = new SDSLGrammar();
 var parser = StrideGrammar.New();
-var tokens = StrideGrammar.HlslGrammar();
-// var tmp = new Grammar("something", Terminals.Set("a").Not());
+var tokens = StrideGrammar.HlslGrammar("directiveExpression");
 var s = new Stopwatch();
 s.Start();
-var match = tokens.Match("Texture2DMS");
-// var res = SDSLPParser.Parse("My_Var");
+var match = tokens.Match("(++(value))+b");
 s.Stop();
 
 Console.WriteLine(match.ErrorMessage);
