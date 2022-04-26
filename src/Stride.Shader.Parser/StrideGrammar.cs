@@ -9,6 +9,10 @@ public static class StrideGrammar
     {
         return new EbnfGrammar(EbnfStyle.W3c).Build(Encoding.UTF8.GetString(GrammarResource.grammar),"shader");
     }
+    public static Grammar New(string parser)
+    {
+        return new EbnfGrammar(EbnfStyle.W3c).Build(Encoding.UTF8.GetString(GrammarResource.grammar),parser);
+    }
     public static Grammar Token()
     {
         return new EbnfGrammar(EbnfStyle.W3c).Build(Encoding.UTF8.GetString(GrammarResource.SDSLTokens),"BaseTypes");

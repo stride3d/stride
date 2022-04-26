@@ -93,7 +93,7 @@ RightBrace ::= '}'
 
 LeftShift ::= '<<'
 RightShift ::= '>>'
-Plus ::= '+'
+Plus ::= [+]
 PlusPlus ::= '++'
 Minus ::= '-'
 MinusMinus ::= '--'
@@ -174,46 +174,40 @@ Identifier ::=
 
 Nondigit ::= [a-zA-Z_]
 
-Digit ::= [0-9]
-
-NonzeroDigit ::=   '0' | Digit
-
-IntegerLiteral ::=   
-    DecimalIntegerLiteral IntegerSuffix?
-    | HexadecimalIntegerLiteral IntegerSuffix?
-
-
-DecimalIntegerLiteral ::= Digit+
-
-HexadecimalIntegerLiteral::= ('0x' | '0X') HexadecimalDigit+
-
-
-HexadecimalDigit ::=   [0-9a-fA-F]
+Digit1 ::= [1-9]
+Digit ::=   '0' | Digit1
 
 IntegerSuffix ::= [uUlL]
 
-FloatLiteral ::=   
-    FractionalConstant ExponentPart? FloatingSuffix?
-    | DigitSequence ExponentPart FloatingSuffix?
+HexadecimalDigitSequence ::=   HexadecimalDigit+
+
+
+DecimalIntegerLiteral ::= "0" | Digit1 Digit*
+
+HexadecimalDigit ::= [0-9a-fA-F]
+HexadecimalIntegerLiteral::= ('0x' | '0X') HexadecimalDigit+
+
+IntegerLiteral ::=   
+    (DecimalIntegerLiteral - HexadecimalIntegerLiteral) IntegerSuffix?
+    | HexadecimalIntegerLiteral IntegerSuffix?
+
+FloatingSuffix ::= "f"
 
 FractionalConstant ::=
-    DigitSequence? '.' DigitSequence
+    DecimalIntegerLiteral? '.' Digit*
 
 ExponentPart ::=   
-    'e' Sign? DigitSequence
-    | 'E' Sign? DigitSequence
+    'e' Sign? DecimalIntegerLiteral
+    | 'E' Sign? DecimalIntegerLiteral
+
+FloatLiteral ::=   
+    (DecimalIntegerLiteral - FractionalConstant) ExponentPart? FloatingSuffix?
+    | FractionalConstant ExponentPart? FloatingSuffix?
+     
+
+
 
 Sign ::=   '+' | '-'
-   
-
-DigitSequence ::= Digit+
-   
-
-HexadecimalDigitSequence ::=   HexadecimalDigit+
-   
-
-FloatingSuffix ::= [flFL]
-   
 
 EscapeSequence ::= SimpleEscapeSequence
    

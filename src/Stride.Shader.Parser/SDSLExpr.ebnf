@@ -146,9 +146,7 @@ expression ::=
     |   right expression assignmentOperator expression               
 
 
-literalExpr ::=
-   
-    literal
+literalExpr ::= literal
 
 
 postfixUnaryOperator ::=
@@ -212,9 +210,6 @@ argumentList ::=   LeftParen arguments? RightParen
 
 
 arguments ::=   expression (Comma expression)*
-
-
-
 
 
 variableDeclaration ::=   storageFlags type variableDeclarators
@@ -461,14 +456,6 @@ arrayElementInitializers ::=   standardVariableInitializer (Comma standardVariab
 samplerStateProperty ::=   Identifier Assign expression Semi
 
 
-literal ::=
-   True
-	|   False
-    |   FloatLiteral
-    |   IntegerLiteral
-    |   StringLiteral
-
-
 
 
 
@@ -520,37 +507,39 @@ IncrementExpr ::=
 
 OperationExpression ::= directiveExpression binaryOperator directiveExpression
 
-Term ::=
-    literal
-    | Identifier - Keywords
-    | ParenExpression
+Term ::= Identifier | ParenExpression
+    /*literal
+    | (Identifier - Keywords)
+    | ParenExpression*/
+
 
 Mul ::= 
-    Term
-    | Mul Star Term
+    Term - (Term [*/%])
+    | Term Star Mul
+    | Term Div Mul
+    | Term Mod Mul
+    
+    /*| Mul Star Term
     | Mul Div Term
-    | Mul Mod Term
+    | Mul Mod Term*/
 
+Sum ::=
+    Mul - (Mul [+-])
+    | Mul Plus Sum
+    | Mul Minus Sum
 
-Sum ::= 
-    Mul
-    | Sum PlusPlus
-    | Sum Plus Mul
-    | Sum Plus Mul
-
-Test ::= 
-    Sum
-    | sum Less sum
-    | sum Greater sum
-    | sum LessEqual sum
-    | sum GreaterEqual sum
+TestExpression ::= 
+    Sum - (Sum ("<" | ">" | "<=" | ">="))
+    | Sum Less TestExpression
+    | Sum Greater TestExpression
+    | Sum LessEqual TestExpression
+    | Sum GreaterEqual TestExpression
    
 
 directiveExpression ::=
-    literal - (postfixUnaryOperator | binaryOperator)
-    | identifierOrKeyword - (postfixUnaryOperator | binaryOperator)
-    | IncrementExpr
-    | Test
+    TestExpression
+/*    | identifierOrKeyword - (postfixUnaryOperator)
+/*    | IncrementExpr*/
 /*    | Identifier LeftParen RightParen*/
 
 ParenExpression ::=

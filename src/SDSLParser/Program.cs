@@ -7,11 +7,11 @@ using System.Diagnostics;
 var shaderf = File.ReadAllText("./shader.sdsl");
 
 // var parser = new SDSLGrammar();
-var parser = StrideGrammar.New();
+var parser = StrideGrammar.New("sum");
 var tokens = StrideGrammar.HlslGrammar("directiveExpression");
 var s = new Stopwatch();
 s.Start();
-var match = tokens.Match("(++(value))+b");
+var match = tokens.Match("a*b");
 s.Stop();
 
 Console.WriteLine(match.ErrorMessage);

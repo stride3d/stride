@@ -74,11 +74,11 @@ assign ::=
 
 expr ::= 
     (test - assign) 
-    | (accessor - assign)
+/*    | (accessor - assign)
     | (idx_accessor - assign)
     | assign
     | (paren_expr - cast)
-    | cast
+    | cast*/
 
 paren_expr ::=  '(' expr ')'
 
