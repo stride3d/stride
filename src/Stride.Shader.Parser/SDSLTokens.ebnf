@@ -190,7 +190,7 @@ IntegerSuffix ::= [uUlL]
 HexadecimalDigitSequence ::=   HexadecimalDigit+
 
 
-DecimalIntegerLiteral ::= "0" | Digit1 Digit*
+DecimalIntegerLiteral ::= "0" | [1-9] [0-9]*
 
 HexadecimalDigit ::= [0-9a-fA-F]
 HexadecimalIntegerLiteral::= ('0x' | '0X') HexadecimalDigit+
@@ -201,6 +201,8 @@ IntegerLiteral ::=
 		(DecimalIntegerLiteral - HexadecimalIntegerLiteral) IntegerSuffix?
 		| HexadecimalIntegerLiteral IntegerSuffix?
 	)
+IntegerLiteral2 ::=
+	DecimalIntegerLiteral
 
 FloatingSuffix ::= "f"
 
@@ -238,9 +240,9 @@ SChar ::=
 
 
 literal ::=
-	IntegerLiteral - FloatLiteral
-	| FloatLiteral
-	| StringLiteral
+	IntegerLiteral2
+	/*| FloatLiteral
+	| StringLiteral*/
 
    
 PreprocessorDirective ::=   '#' Whitespace? PreprocessorDirectiveName

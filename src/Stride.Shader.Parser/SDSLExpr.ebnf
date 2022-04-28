@@ -133,47 +133,55 @@ MethodCall ::= userDefinedNames argumentList
 
 TermExpression ::=
     literal
-    | Sign? userDefinedNames - (AccessorChain | MethodCall)
+    /*| Sign? userDefinedNames - (AccessorChain | MethodCall)
 	| Sign? (AccessorChain - MethodCall)
 	| Sign? MethodCall
 	| Sign? scalarOrVectorOrMatrixType argumentList
-    | ParenExpression
+    | ParenExpression*/
+
+Multiply ::= TermExpression ([ \t#xA])* "*" ([ \t#xA])* MulExpression
+Divide ::= TermExpression ([ \t#xA])* "/" ([ \t#xA])* MulExpression
+Modulo ::= TermExpression ([ \t#xA])* "%" ([ \t#xA])* MulExpression
 
 
 MulExpression ::= 
-    TermExpression - (TermExpression Spaces [*/%])
-    | TermExpression Spaces Star Spaces MulExpression
-    | TermExpression Spaces Div Spaces MulExpression
-    | TermExpression Spaces Mod Spaces MulExpression
-    
-    
+	TermExpression - (Multiply | Divide | Modulo)
+    | Multiply
+	| Divide
+	| Modulo
 
-PIncExpression ::=
-    (Identifier - Keywords) IncOperators
-
+Add ::= MulExpression ([ \t#xA])* "+" ([ \t#xA])* SumExpression
+Subtract ::= MulExpression ([ \t#xA])* "-" ([ \t#xA])* SumExpression
 
 SumExpression ::=
-    MulExpression - (MulExpression Spaces [+-])
-    | MulExpression Spaces Plus Spaces SumExpression
-    | MulExpression Spaces Minus Spaces SumExpression
-    
+    MulExpression - (Add | Subtract)
+    | Add
+    | Subtract
+
+LessThan ::= SumExpression ([ \t#xA])* "<" ([ \t#xA])* TestExpression
+GreaterThan ::= SumExpression ([ \t#xA])* ">" ([ \t#xA])* TestExpression
+LessEqualThan ::= SumExpression ([ \t#xA])* "<=" ([ \t#xA])* TestExpression
+GreaterEqualThan ::= SumExpression ([ \t#xA])* ">=" ([ \t#xA])* TestExpression
+Equals ::= SumExpression ([ \t#xA])* "==" ([ \t#xA])* TestExpression
+Different ::= SumExpression ([ \t#xA])* "!=" ([ \t#xA])* TestExpression
+
 
 TestExpression ::= 
-    SumExpression - (SumExpression Spaces [<>=!(])
-    | SumExpression Spaces Less Spaces TestExpression
-    | SumExpression Spaces Greater Spaces TestExpression
-    | SumExpression Spaces LessEqual Spaces TestExpression
-    | SumExpression Spaces GreaterEqual Spaces TestExpression
-    | SumExpression Spaces Equal Spaces TestExpression
-    | SumExpression Spaces NotEqual Spaces TestExpression
+    SumExpression - (SumExpression ([ \t#xA])* [<>=!(])
+    | LessThan
+	| GreaterThan
+	| LessEqualThan
+	| GreaterEqualThan
+	| Equals
+	| Different
 
 expression ::=   
-    TestExpression                                                                              
-    |   LeftParen expression RightParen                           
+    SumExpression                                                                              
+/*    |   LeftParen expression RightParen                           
     |   LeftParen type (arrayRankSpecifier)* RightParen expression 
-    |   (Identifier | ParenExpression) Dot Identifier  
+    |   (Identifier | ParenExpression) Dot Identifier  */
 
-ParenExpression ::= LeftParen Spaces expression Spaces RightParen
+ParenExpression ::= LeftParen ([ \t#xA])* expression ([ \t#xA])* RightParen
 /*expression ::=   
     literalExpr                                                                              
 	|   Identifier                                                                               
@@ -251,10 +259,10 @@ assignmentOperator ::=
 	|   OrAssign
 
 
-argumentList ::= LeftParen Spaces arguments? Spaces RightParen
+argumentList ::= LeftParen ([ \t#xA])* arguments? ([ \t#xA])* RightParen
 
 
-arguments ::=   expression ( Spaces Comma Spaces expression)*
+arguments ::=   expression ( ([ \t#xA])* Comma ([ \t#xA])* expression)*
 
 
 variableDeclaration ::=   storageFlags [ \n]+ type [ \n]+ variableDeclarators
@@ -264,8 +272,8 @@ variableDeclarators ::=   variableDeclarator /*(Comma variableDeclarator)**/
 
 
 variableDeclarator ::=
-	(Identifier) - (Identifier Spaces [:])
-	| Identifier Spaces variableDeclaratorSupplement
+	(Identifier) - (Identifier ([ \t#xA])* [:])
+	| Identifier ([ \t#xA])* variableDeclaratorSupplement
 
 variableDeclaratorSupplement ::=
 	(arrayRankSpecifier)+
