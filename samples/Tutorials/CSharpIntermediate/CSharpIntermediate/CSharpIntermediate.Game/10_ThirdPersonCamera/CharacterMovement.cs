@@ -9,7 +9,7 @@ namespace CSharpIntermediate.Code
 {
     public class CharacterMovement : SyncScript
     {
-        public Vector3 MovementMultiplier = new Vector3(2, 0, 3);
+        public Vector3 MovementMultiplier = new Vector3(3, 0, 4);
         private CharacterComponent character;
 
         public override void Start()
@@ -38,10 +38,9 @@ namespace CSharpIntermediate.Code
                 velocity.X--;
             }
 
-            velocity *= MovementMultiplier;
             velocity.Normalize();
+            velocity *= MovementMultiplier;
             velocity = Vector3.Transform(velocity, Entity.Transform.Rotation);
-
             character.SetVelocity(velocity);
         }
     }

@@ -1,8 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using CSharpIntermediate.Code.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
@@ -26,6 +23,7 @@ namespace CSharpIntermediate.Code
         private Vector3 camRotation;
         private bool isActive = false;
         private Simulation simulation;
+        private CharacterComponent character;
 
         public override void Start()
         {
@@ -39,7 +37,7 @@ namespace CSharpIntermediate.Code
             camRotation = Entity.Transform.RotationEulerXYZ;
             Input.MousePosition = new Vector2(0.5f, 0.5f);
             simulation = this.GetSimulation();
-            
+            character = Entity.Get<CharacterComponent>();
         }
 
         public override void Update()
@@ -62,7 +60,7 @@ namespace CSharpIntermediate.Code
                 camRotation.X = MathUtil.Clamp(camRotation.X, maxCameraAnglesRadians.X, maxCameraAnglesRadians.Y);
 
                 // Apply Y rotation to character entity
-                Entity.Transform.Rotation = Quaternion.RotationY(camRotation.Y);
+                character.Orientation = Quaternion.RotationY(camRotation.Y);
 
                 // Apply X rotation the existing first person pivot
                 firstPersonPivot.Transform.Rotation = Quaternion.RotationX(camRotation.X);
