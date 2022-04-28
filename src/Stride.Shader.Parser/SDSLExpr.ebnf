@@ -64,7 +64,7 @@ structDefinition ::=   Struct Identifier
 		Semi
 
 
-semantic ::=   Colon Identifier
+semantic ::= Colon Identifier
 
 
 
@@ -129,8 +129,35 @@ embeddedStatement ::=   Semi
 elseClause ::=   Else indentedEmbeddedStatement
 
 
+TermExpression ::=
+    literal
+    | (Identifier - Keywords)
+    | ParenExpression
+
+
+MulExpression ::= 
+    TermExpression - (TermExpression [*/%])
+    | TermExpression Star MulExpression
+    | TermExpression Div MulExpression
+    | TermExpression Mod MulExpression
+
+PIncExpression ::=
+    (Identifier - Keywords) IncOperators
+
+
+SumExpression ::=
+    MulExpression - (MulExpression [+-])
+    | MulExpression Plus SumExpression
+    | MulExpression Minus SumExpression
 
 expression ::=   
+    TestExpression                                                                              
+    |   LeftParen expression RightParen                           
+    |   LeftParen type (arrayRankSpecifier)* RightParen expression 
+    |   expression Dot Identifier     
+
+ParenExpression ::= LeftParen expression RightParen
+/*expression ::=   
     literalExpr                                                                              
 	|   Identifier                                                                               
     |   LeftParen expression RightParen                           
@@ -145,7 +172,7 @@ expression ::=
 	|   expression Question expression Colon expression 
     |   right expression assignmentOperator expression               
 
-
+*/
 literalExpr ::= literal
 
 
@@ -212,26 +239,30 @@ argumentList ::=   LeftParen arguments? RightParen
 arguments ::=   expression (Comma expression)*
 
 
-variableDeclaration ::=   storageFlags type variableDeclarators
+variableDeclaration ::=   storageFlags [ \n]+ type [ \n]+ variableDeclarators
 
 
-variableDeclarators ::=   variableDeclarator (Comma variableDeclarator)*
+variableDeclarators ::=   variableDeclarator /*(Comma variableDeclarator)**/
 
 
 variableDeclarator ::=
-   
-    Identifier
-        (arrayRankSpecifier)*
-        packOffsetNode?
-        registerAllocation?
-        semantic?
-        variableInitializer?
+	(Identifier) - (Identifier [ \n]* [:])
+	| Identifier [ \n]* variableDeclaratorSupplement
+
+variableDeclaratorSupplement ::=
+	(arrayRankSpecifier)+
+	| packOffsetNode
+	| registerAllocation
+	| semantic
+	| variableInitializer
 
 
-arrayRankSpecifier ::=   LeftBracket expression? RightBracket
+arrayRankSpecifier ::= 
+	LeftBracket expression? RightBracket
 
-
-packOffsetNode ::=   Colon Packoffset LeftParen
+/* ": packoffset(my_var.value) " */
+packOffsetNode ::=   
+		Colon Packoffset LeftParen
 	    Identifier (Dot Identifier)?
 		RightParen
 
@@ -363,7 +394,6 @@ structuredBufferPredefinedType ::=
 
 
 structuredBufferName ::=
-   
     AppendStructuredBuffer
 	|   ConsumeStructuredBuffer
 	|   RWStructuredBuffer
@@ -378,10 +408,12 @@ texturePredefinedType ::=
    textureType
 
 
-genericTexturePredefinedType ::=   textureType Less scalarOrVectorType Greater
+genericTexturePredefinedType ::=   
+	textureType Less scalarOrVectorType Greater
 
 
-textureTypeMS ::=   Texture2DMS
+textureTypeMS ::=   
+	Texture2DMS
 	|   Texture2DMSArray
 
 
@@ -419,7 +451,6 @@ scalarOrVectorOrMatrixType ::=
 	|   vectorType
 	|   matrixType
 
-
 matrixType ::=
     Matrix
     | BoolMat
@@ -428,7 +459,6 @@ matrixType ::=
     | HalfMat
     | FloatMat
     | DoubleMat
-
 
 genericMatrixPredefinedType ::=   Matrix Less scalarType Comma
 	    IntegerLiteral Comma IntegerLiteral
@@ -442,11 +472,13 @@ userDefinedType ::=
 registerAllocation ::=   Colon Register LeftParen Identifier RightParen
 
 
-variableInitializer ::=   Assign standardVariableInitializer
+variableInitializer ::=   
+	Assign standardVariableInitializer
 	|   LeftBrace samplerStateProperty* RightBrace 
 
 
-standardVariableInitializer ::=   LeftBrace arrayElementInitializers RightBrace 
+standardVariableInitializer ::=   
+	LeftBrace arrayElementInitializers RightBrace 
 	|   expression 
 
 
@@ -455,160 +487,6 @@ arrayElementInitializers ::=   standardVariableInitializer (Comma standardVariab
 
 samplerStateProperty ::=   Identifier Assign expression Semi
 
-
-
-
-
-directive ::=
-   ifDirective
-	|   ifDefDirective
-	|   ifNDefDirective
-	|   elseDirective
-	|   elifDirective
-	|   endIfDirective
-	|   objectLikeDefineDirective
-	|   includeDirective
-	|   lineDirective
-
-
-ifDirective ::=   Hash If directiveExpression EndOfDirective
-
-
-ifDefDirective ::=   Hash IfDef Identifier EndOfDirective
-
-
-ifNDefDirective ::=   Hash IfNDef Identifier EndOfDirective
-
-
-elseDirective ::=   Hash Else EndOfDirective
-
-
-elifDirective ::=   Hash Elif directiveExpression EndOfDirective
-
-
-endIfDirective ::=   Hash EndIf EndOfDirective
-
-
-objectLikeDefineDirective ::=   Hash Define identifierOrKeyword (EndOfDirective)* EndOfDirective
-
-
-includeDirective ::=   Hash Include StringLiteral EndOfDirective
-
-
-lineDirective ::=   Hash Line_ IntegerLiteral StringLiteral EndOfDirective
-
-
-IncrementExpr ::=
-    literal postfixUnaryOperator
-    | Identifier postfixUnaryOperator
-    | ParenExpression postfixUnaryOperator 
-    | prefixUnaryOperator Identifier - postfixUnaryOperator
-    | prefixUnaryOperator ParenExpression - postfixUnaryOperator
-
-OperationExpression ::= directiveExpression binaryOperator directiveExpression
-
-Term ::= Identifier | ParenExpression
-    /*literal
-    | (Identifier - Keywords)
-    | ParenExpression*/
-
-
-Mul ::= 
-    Term - (Term [*/%])
-    | Term Star Mul
-    | Term Div Mul
-    | Term Mod Mul
-    
-    /*| Mul Star Term
-    | Mul Div Term
-    | Mul Mod Term*/
-
-Sum ::=
-    Mul - (Mul [+-])
-    | Mul Plus Sum
-    | Mul Minus Sum
-
-TestExpression ::= 
-    Sum - (Sum ("<" | ">" | "<=" | ">="))
-    | Sum Less TestExpression
-    | Sum Greater TestExpression
-    | Sum LessEqual TestExpression
-    | Sum GreaterEqual TestExpression
-   
-
-directiveExpression ::=
-    TestExpression
-/*    | identifierOrKeyword - (postfixUnaryOperator)
-/*    | IncrementExpr*/
-/*    | Identifier LeftParen RightParen*/
-
-ParenExpression ::=
-    LeftParen directiveExpression RightParen
-
 identifierOrKeyword ::=
 	Identifier - Keywords
     | Keywords
-
-Keywords ::=
-    AppendStructuredBuffer
-	|   Buffer - ByteAddressBuffer
-	|   ByteAddressBuffer - Break
-	|   Break
-	|   Case - CBuffer
-	|   CBuffer - Centroid
-	|   Centroid - Class
-	|   Class - ColumnMajor
-	|   ColumnMajor - Const
-	|   Const - ConsumeStructuredBuffer
-	|   ConsumeStructuredBuffer - Continue
-	|   Continue
-	|   Default - Discard
-	|   Discard
-	|   Do
-	|   Else
-	|   Extern
-	|   For
-	|   Groupshared
-	|   If
-	|   In
-	|   Inout
-	|   InputPatch
-	|   Interface
-	|   Line_
-	|   LineAdj
-	|   Linear
-	|   LineStream
-	|   Matrix
-	|   Nointerpolation
-	|   Noperspective
-	|   Out
-	|   OutputPatch
-	|   Packoffset
-	|   Point
-	|   PointStream
-	|   Precise
-	|   Register
-	|   Return
-	|   RowMajor
-	|   RWBuffer
-	|   RWByteAddressBuffer
-	|   RWStructuredBuffer
-	|   Sample - Sampler
-	|   Sampler
-	|   SamplerComparisonState
-	|   SamplerState
-	|   Shared
-	|   Static
-	|   Struct
-	|   StructuredBuffer
-	|   Switch
-    |   TextureTypes
-	|   Triangle
-	|   TriangleAdj
-	|   TriangleStream
-	|   Uniform
-    |   ValueTypes
-	|   Vector
-	|   Volatile
-	|   Void
-	|   While

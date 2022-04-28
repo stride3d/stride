@@ -1,0 +1,89 @@
+
+IncrementDirectiveExpr ::=
+    literal postfixUnaryOperator
+    | Identifier postfixUnaryOperator
+    | ParenDirectiveExpression postfixUnaryOperator 
+    | prefixUnaryOperator Identifier - postfixUnaryOperator
+    | prefixUnaryOperator ParenDirectiveExpression - postfixUnaryOperator
+
+
+TermDirective ::=
+    literal
+    | (Identifier - Keywords)
+    | ParenDirectiveExpression
+
+
+MulDirective ::= 
+    TermDirective - (TermDirective [ \n]* [*/%])
+    | TermDirective [ \n]* Star [ \n]* MulDirective
+    | TermDirective [ \n]* Div [ \n]* MulDirective
+    | TermDirective [ \n]* Mod [ \n]* MulDirective
+    
+    
+
+PIncExpression ::=
+    (Identifier - Keywords) IncOperators
+
+
+SumDirective ::=
+    MulDirective - (MulDirective [ \n]* [+-])
+    | MulDirective [ \n]* Plus [ \n]* SumDirective
+    | MulDirective [ \n]* Minus [ \n]* SumDirective
+    
+
+TestDirective ::= 
+    SumDirective - (SumDirective [ \n]* [<>=!(])
+    | SumDirective [ \n]* Less [ \n]* TestDirective 
+    | SumDirective [ \n]* Greater [ \n]* TestDirective
+    | SumDirective [ \n]* LessEqual [ \n]* TestDirective
+    | SumDirective [ \n]* GreaterEqual [ \n]* TestDirective
+    | SumDirective [ \n]* Equal [ \n]* TestDirective
+    | SumDirective [ \n]* NotEqual [ \n]* TestDirective
+
+MethodCallDirective ::= 
+    Identifier LeftParen RightParen
+
+directiveExpression ::=
+    TestDirective
+    | IncrementExpr - (MethodCallDirective)
+    | MethodCallDirective
+
+ParenDirectiveExpression ::=
+    LeftParen [ \n]* directiveExpression [ \n]* RightParen
+
+Hash ::= "#"
+HashIf ::= Hash (If - [nd])
+HashIfDef ::= Hash (IfDef - [n])
+HashIfNDef ::= Hash IfNDef
+HashElse ::= Hash Else
+HashElif ::= Hash Elif
+HashEndIf ::= Hash EndIf
+
+EndOfDirective ::= [ ]* Eol
+
+directive ::=
+    ifDirective 
+    | ifDefDirective
+    | ifNDefDirective
+    | elseDirective
+    | elifDirective
+    
+ifDirective ::= HashIf [ ]+ directiveExpression [ ]* Eol
+
+
+ifDefDirective ::= HashIfDef [ ]+ Identifier EndOfDirective
+
+
+ifNDefDirective ::= HashIfNDef [ ]+ Identifier EndOfDirective
+
+
+elseDirective ::= HashElse EndOfDirective
+
+
+elifDirective ::= HashElif [ ]+ directiveExpression EndOfDirective
+
+
+endIfDirective ::= HashEndIf [ ]* Eol
+
+
+/*objectLikeDefineDirective ::=   Hash Define identifierOrKeyword (EndOfDirective)* EndOfDirective*/

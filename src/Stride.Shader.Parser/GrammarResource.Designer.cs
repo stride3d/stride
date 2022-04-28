@@ -73,6 +73,16 @@ namespace Stride.Shader.Parser {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] SDSLDirective {
+            get {
+                object obj = ResourceManager.GetObject("SDSLDirective", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] SDSLExpr {
             get {
                 object obj = ResourceManager.GetObject("SDSLExpr", resourceCulture);

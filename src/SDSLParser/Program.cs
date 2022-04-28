@@ -4,14 +4,14 @@ using Stride.Shader.Parser;
 using System.Diagnostics;
 
 
-var shaderf = File.ReadAllText("./shader.sdsl");
+var shaderf = File.ReadAllText("./SDSL/Directive.sdsl");
 
 // var parser = new SDSLGrammar();
 var parser = StrideGrammar.New("sum");
-var tokens = StrideGrammar.HlslGrammar("directiveExpression");
+var tokens = StrideGrammar.HlslGrammar("directives");
 var s = new Stopwatch();
 s.Start();
-var match = tokens.Match("a*b");
+var match = tokens.Match(shaderf);
 s.Stop();
 
 Console.WriteLine(match.ErrorMessage);

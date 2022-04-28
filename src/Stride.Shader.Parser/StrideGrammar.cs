@@ -30,8 +30,9 @@ public static class StrideGrammar
     {
         var s = new StringBuilder();
         s
-            .Append(Encoding.UTF8.GetString(GrammarResource.SDSLTokens))
-            .Append(Encoding.UTF8.GetString(GrammarResource.SDSLExpr));
+            .AppendLine(Encoding.UTF8.GetString(GrammarResource.SDSLTokens))
+            .AppendLine(Encoding.UTF8.GetString(GrammarResource.SDSLDirective))
+            .AppendLine(Encoding.UTF8.GetString(GrammarResource.SDSLExpr));
         
         return new EbnfGrammar(EbnfStyle.W3c).Build(s.ToString(),startParser);
     }
