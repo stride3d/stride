@@ -240,9 +240,9 @@ SChar ::=
 
 
 literal ::=
-	IntegerLiteral2
-	/*| FloatLiteral
-	| StringLiteral*/
+	IntegerLiteral
+	| FloatLiteral
+	| StringLiteral
 
    
 PreprocessorDirective ::=   '#' Whitespace? PreprocessorDirectiveName
