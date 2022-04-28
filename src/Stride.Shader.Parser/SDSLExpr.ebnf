@@ -128,11 +128,15 @@ embeddedStatement ::=   Semi
 
 elseClause ::=   Else indentedEmbeddedStatement
 
+AccessorChain ::= userDefinedNames (Dot userDefinedNames)*
+MethodCall ::= userDefinedNames argumentList
 
 TermExpression ::=
     literal
-    | Sign? (userDefinedNames - (userDefinedNames Dot))
-	| Sign? userDefinedNames (Dot userDefinedNames)*
+    | Sign? userDefinedNames - (AccessorChain | MethodCall)
+	| Sign? (AccessorChain - MethodCall)
+	| Sign? MethodCall
+	| Sign? scalarOrVectorOrMatrixType argumentList
     | ParenExpression
 
 
@@ -167,7 +171,7 @@ expression ::=
     TestExpression                                                                              
     |   LeftParen expression RightParen                           
     |   LeftParen type (arrayRankSpecifier)* RightParen expression 
-    |   (Identifier | ParenExpression) Dot Identifier     
+    |   (Identifier | ParenExpression) Dot Identifier  
 
 ParenExpression ::= LeftParen Spaces expression Spaces RightParen
 /*expression ::=   
@@ -186,6 +190,7 @@ ParenExpression ::= LeftParen Spaces expression Spaces RightParen
     |   right expression assignmentOperator expression               
 
 */
+
 literalExpr ::= literal
 
 
@@ -246,10 +251,10 @@ assignmentOperator ::=
 	|   OrAssign
 
 
-argumentList ::=   LeftParen arguments? RightParen
+argumentList ::= LeftParen Spaces arguments? Spaces RightParen
 
 
-arguments ::=   expression (Comma expression)*
+arguments ::=   expression ( Spaces Comma Spaces expression)*
 
 
 variableDeclaration ::=   storageFlags [ \n]+ type [ \n]+ variableDeclarators
