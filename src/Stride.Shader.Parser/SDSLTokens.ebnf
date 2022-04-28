@@ -1,7 +1,8 @@
-Eol ::= ?Terminals.Eol?
-Eof ::= ?Terminals.End?
-WS ::= ?Terminals.WhiteSpace?
-Space ::= WS | Eol
+WS ::= ? Terminals.Whitespace ?
+Eol ::= ? Terminals.Eol ?
+Eof ::= ? Terminals.End ?
+Space ::= WS | Eol | Eof
+Spaces ::= Space*
 SpacesWithLineBreak ::= WS* Eol
 
 
@@ -194,9 +195,12 @@ DecimalIntegerLiteral ::= "0" | Digit1 Digit*
 HexadecimalDigit ::= [0-9a-fA-F]
 HexadecimalIntegerLiteral::= ('0x' | '0X') HexadecimalDigit+
 
-IntegerLiteral ::=   
-    (DecimalIntegerLiteral - HexadecimalIntegerLiteral) IntegerSuffix?
-    | HexadecimalIntegerLiteral IntegerSuffix?
+IntegerLiteral ::=
+	Sign?
+	(
+		(DecimalIntegerLiteral - HexadecimalIntegerLiteral) IntegerSuffix?
+		| HexadecimalIntegerLiteral IntegerSuffix?
+	)
 
 FloatingSuffix ::= "f"
 
@@ -208,10 +212,11 @@ ExponentPart ::=
     | 'E' Sign? DecimalIntegerLiteral
 
 FloatLiteral ::=   
-    (DecimalIntegerLiteral - FractionalConstant) ExponentPart? FloatingSuffix?
-    | FractionalConstant ExponentPart? FloatingSuffix?
-     
-
+	Sign?
+	(
+		(DecimalIntegerLiteral - FractionalConstant) ExponentPart? FloatingSuffix?
+		| FractionalConstant ExponentPart? FloatingSuffix?
+	)
 
 
 Sign ::=   '+' | '-'
@@ -230,10 +235,13 @@ SCharSequence ::=   SChar+
 SChar ::= 
     (SCharSequence - ["\\\r\n])
     |   EscapeSequence
-   
-Whitespace ::= [ \t]+
-   
-Newline ::= ('\r' '\n'? | '\n')
+
+
+literal ::=
+	IntegerLiteral - FloatLiteral
+	| FloatLiteral
+	| StringLiteral
+
    
 PreprocessorDirective ::=   '#' Whitespace? PreprocessorDirectiveName
 

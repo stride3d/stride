@@ -131,32 +131,45 @@ elseClause ::=   Else indentedEmbeddedStatement
 
 TermExpression ::=
     literal
-    | (Identifier - Keywords)
+    | Sign? (userDefinedNames - (userDefinedNames Dot))
+	| Sign? userDefinedNames (Dot userDefinedNames)*
     | ParenExpression
 
 
 MulExpression ::= 
-    TermExpression - (TermExpression [*/%])
-    | TermExpression Star MulExpression
-    | TermExpression Div MulExpression
-    | TermExpression Mod MulExpression
+    TermExpression - (TermExpression Spaces [*/%])
+    | TermExpression Spaces Star Spaces MulExpression
+    | TermExpression Spaces Div Spaces MulExpression
+    | TermExpression Spaces Mod Spaces MulExpression
+    
+    
 
 PIncExpression ::=
     (Identifier - Keywords) IncOperators
 
 
 SumExpression ::=
-    MulExpression - (MulExpression [+-])
-    | MulExpression Plus SumExpression
-    | MulExpression Minus SumExpression
+    MulExpression - (MulExpression Spaces [+-])
+    | MulExpression Spaces Plus Spaces SumExpression
+    | MulExpression Spaces Minus Spaces SumExpression
+    
+
+TestExpression ::= 
+    SumExpression - (SumExpression Spaces [<>=!(])
+    | SumExpression Spaces Less Spaces TestExpression
+    | SumExpression Spaces Greater Spaces TestExpression
+    | SumExpression Spaces LessEqual Spaces TestExpression
+    | SumExpression Spaces GreaterEqual Spaces TestExpression
+    | SumExpression Spaces Equal Spaces TestExpression
+    | SumExpression Spaces NotEqual Spaces TestExpression
 
 expression ::=   
     TestExpression                                                                              
     |   LeftParen expression RightParen                           
     |   LeftParen type (arrayRankSpecifier)* RightParen expression 
-    |   expression Dot Identifier     
+    |   (Identifier | ParenExpression) Dot Identifier     
 
-ParenExpression ::= LeftParen expression RightParen
+ParenExpression ::= LeftParen Spaces expression Spaces RightParen
 /*expression ::=   
     literalExpr                                                                              
 	|   Identifier                                                                               
@@ -246,8 +259,8 @@ variableDeclarators ::=   variableDeclarator /*(Comma variableDeclarator)**/
 
 
 variableDeclarator ::=
-	(Identifier) - (Identifier [ \n]* [:])
-	| Identifier [ \n]* variableDeclaratorSupplement
+	(Identifier) - (Identifier Spaces [:])
+	| Identifier Spaces variableDeclaratorSupplement
 
 variableDeclaratorSupplement ::=
 	(arrayRankSpecifier)+
@@ -468,6 +481,8 @@ genericMatrixPredefinedType ::=   Matrix Less scalarType Comma
 userDefinedType ::=
    Identifier
 
+userDefinedNames ::=
+	Identifier - Keywords
 
 registerAllocation ::=   Colon Register LeftParen Identifier RightParen
 

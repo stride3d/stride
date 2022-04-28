@@ -14,10 +14,10 @@ TermDirective ::=
 
 
 MulDirective ::= 
-    TermDirective - (TermDirective [ \n]* [*/%])
-    | TermDirective [ \n]* Star [ \n]* MulDirective
-    | TermDirective [ \n]* Div [ \n]* MulDirective
-    | TermDirective [ \n]* Mod [ \n]* MulDirective
+    TermDirective - (TermDirective Spaces [*/%])
+    | TermDirective Spaces Star Spaces MulDirective
+    | TermDirective Spaces Div Spaces MulDirective
+    | TermDirective Spaces Mod Spaces MulDirective
     
     
 
@@ -26,19 +26,19 @@ PIncExpression ::=
 
 
 SumDirective ::=
-    MulDirective - (MulDirective [ \n]* [+-])
-    | MulDirective [ \n]* Plus [ \n]* SumDirective
-    | MulDirective [ \n]* Minus [ \n]* SumDirective
+    MulDirective - (MulDirective Spaces [+-])
+    | MulDirective Spaces Plus Spaces SumDirective
+    | MulDirective Spaces Minus Spaces SumDirective
     
 
 TestDirective ::= 
-    SumDirective - (SumDirective [ \n]* [<>=!(])
-    | SumDirective [ \n]* Less [ \n]* TestDirective 
-    | SumDirective [ \n]* Greater [ \n]* TestDirective
-    | SumDirective [ \n]* LessEqual [ \n]* TestDirective
-    | SumDirective [ \n]* GreaterEqual [ \n]* TestDirective
-    | SumDirective [ \n]* Equal [ \n]* TestDirective
-    | SumDirective [ \n]* NotEqual [ \n]* TestDirective
+    SumDirective - (SumDirective Spaces [<>=!(])
+    | SumDirective Spaces Less Spaces TestDirective 
+    | SumDirective Spaces Greater Spaces TestDirective
+    | SumDirective Spaces LessEqual Spaces TestDirective
+    | SumDirective Spaces GreaterEqual Spaces TestDirective
+    | SumDirective Spaces Equal Spaces TestDirective
+    | SumDirective Spaces NotEqual Spaces TestDirective
 
 MethodCallDirective ::= 
     Identifier LeftParen RightParen
@@ -49,7 +49,7 @@ directiveExpression ::=
     | MethodCallDirective
 
 ParenDirectiveExpression ::=
-    LeftParen [ \n]* directiveExpression [ \n]* RightParen
+    LeftParen Spaces directiveExpression Spaces RightParen
 
 Hash ::= "#"
 HashIf ::= Hash (If - [nd])
@@ -59,31 +59,33 @@ HashElse ::= Hash Else
 HashElif ::= Hash Elif
 HashEndIf ::= Hash EndIf
 
-EndOfDirective ::= [ ]* Eol
+EndOfDirective ::= WS* (Eol | Eof)
 
 directive ::=
-    ifDirective 
-    | ifDefDirective
-    | ifNDefDirective
-    | elseDirective
-    | elifDirective
+    (
+        ifDirective 
+        | ifDefDirective
+        | ifNDefDirective
+        | elseDirective
+        | elifDirective
+    ) EndOfDirective
     
-ifDirective ::= HashIf [ ]+ directiveExpression [ ]* Eol
+ifDirective ::= HashIf WS+ directiveExpression
 
 
-ifDefDirective ::= HashIfDef [ ]+ Identifier EndOfDirective
+ifDefDirective ::= HashIfDef WS+ Identifier
 
 
-ifNDefDirective ::= HashIfNDef [ ]+ Identifier EndOfDirective
+ifNDefDirective ::= HashIfNDef WS+ Identifier
 
 
-elseDirective ::= HashElse EndOfDirective
+elseDirective ::= HashElse
 
 
-elifDirective ::= HashElif [ ]+ directiveExpression EndOfDirective
+elifDirective ::= HashElif WS+ directiveExpression
 
 
-endIfDirective ::= HashEndIf [ ]* Eol
+endIfDirective ::= HashEndIf
 
 
 /*objectLikeDefineDirective ::=   Hash Define identifierOrKeyword (EndOfDirective)* EndOfDirective*/
