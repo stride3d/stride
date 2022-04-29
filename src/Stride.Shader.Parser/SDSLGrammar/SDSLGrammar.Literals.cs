@@ -13,8 +13,8 @@ public partial class SDSLGrammar : Grammar
     
 	public StringParser StringLiteral = new();
 	public SequenceParser Identifier = new();
-    public SequenceParser IntegerLiteral = new();
-	public SequenceParser FloatLiteral = new();
+    public NumberParser IntegerLiteral = new();
+	public NumberParser FloatLiteral = new();
 	public HexDigitTerminal HexDigits = new();
     public SequenceParser HexaDecimalLiteral = new();
     
@@ -34,16 +34,22 @@ public partial class SDSLGrammar : Grammar
 		
 		StringLiteral = new StringParser().WithName("StringLiteral");
 		Identifier = Letter.Or("_").Then(LetterOrDigit.Or("_").Repeat(0)).WithName("Identifier");
-		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "value"}.NotFollowedBy(FloatSuffix).Then(IntegerSuffix.Optional()).WithName("IntegerLiteral");
-		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "value"}.NotFollowedBy(IntegerSuffix).Then(FloatSuffix.Optional()).WithName("FloatLiteral");
+		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "value"}.WithName("IntegerLiteral");
+		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "value"}.WithName("FloatLiteral");
 		HexDigits = new();
 		HexaDecimalLiteral = Set("0x").Or("0X").Then(HexDigit.Repeat(1)).WithName("HexaLiteral");
 		
-		Literals =
-			IntegerLiteral
+		Literals.Add(
+			IntegerLiteral.NotFollowedBy(IntegerSuffix) - FloatLiteral
+			| IntegerLiteral.Then(IntegerSuffix) - FloatLiteral
 			| FloatLiteral
-			| HexaDecimalLiteral
-			| StringLiteral;
+		);
+			// .NotFollowedBy(IntegerSuffix) - FloatLiteral
+			// | IntegerLiteral.Then(IntegerSuffix) - FloatLiteral 
+			// // | FloatLiteral.NotFollowedBy(FloatSuffix)
+			// // | FloatLiteral.Then(FloatSuffix)
+			// // | HexaDecimalLiteral
+			// | StringLiteral;
 		
 	}
 }

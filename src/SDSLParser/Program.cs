@@ -13,7 +13,7 @@ var sdslParser = new SDSLGrammar().UsingDirectiveExpression();
 var s = new Stopwatch();
 // var match = tokens.Match("(8)");
 s.Start();
-var match = sdslParser.Match("a*b*c");
+var match = sdslParser.Match("5>a/b*c+5+2");
 s.Stop();
 
 Console.WriteLine(match.ErrorMessage[..Math.Min(1000,match.ErrorMessage.Length)]);
