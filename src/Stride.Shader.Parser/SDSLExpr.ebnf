@@ -139,9 +139,9 @@ TermExpression ::=
 	| Sign? scalarOrVectorOrMatrixType argumentList
     | ParenExpression*/
 
-Multiply ::= TermExpression ([ \t#xA])* "*" ([ \t#xA])* MulExpression
-Divide ::= TermExpression ([ \t#xA])* "/" ([ \t#xA])* MulExpression
-Modulo ::= TermExpression ([ \t#xA])* "%" ([ \t#xA])* MulExpression
+Multiply ::= TermExpression [ \t#xA]* "*" [ \t#xA]* MulExpression
+Divide ::= TermExpression [ \t#xA]* "/" [ \t#xA]* MulExpression
+Modulo ::= TermExpression [ \t#xA]* "%" [ \t#xA]* MulExpression
 
 
 MulExpression ::= 
@@ -150,24 +150,24 @@ MulExpression ::=
 	| Divide
 	| Modulo
 
-Add ::= MulExpression ([ \t#xA])* "+" ([ \t#xA])* SumExpression
-Subtract ::= MulExpression ([ \t#xA])* "-" ([ \t#xA])* SumExpression
+Add ::= MulExpression [ \t#xA]* "+" [ \t#xA]* SumExpression
+Subtract ::= MulExpression [ \t#xA]* "-" [ \t#xA]* SumExpression
 
 SumExpression ::=
     MulExpression - (Add | Subtract)
     | Add
     | Subtract
 
-LessThan ::= SumExpression ([ \t#xA])* "<" ([ \t#xA])* TestExpression
-GreaterThan ::= SumExpression ([ \t#xA])* ">" ([ \t#xA])* TestExpression
-LessEqualThan ::= SumExpression ([ \t#xA])* "<=" ([ \t#xA])* TestExpression
-GreaterEqualThan ::= SumExpression ([ \t#xA])* ">=" ([ \t#xA])* TestExpression
-Equals ::= SumExpression ([ \t#xA])* "==" ([ \t#xA])* TestExpression
-Different ::= SumExpression ([ \t#xA])* "!=" ([ \t#xA])* TestExpression
+LessThan ::= SumExpression [ \t#xA]* "<" [ \t#xA]* TestExpression
+GreaterThan ::= SumExpression [ \t#xA]* ">" [ \t#xA]* TestExpression
+LessEqualThan ::= SumExpression [ \t#xA]* "<=" [ \t#xA]* TestExpression
+GreaterEqualThan ::= SumExpression [ \t#xA]* ">=" [ \t#xA]* TestExpression
+Equals ::= SumExpression [ \t#xA]* "==" [ \t#xA]* TestExpression
+Different ::= SumExpression [ \t#xA]* "!=" [ \t#xA]* TestExpression
 
 
 TestExpression ::= 
-    SumExpression - (SumExpression ([ \t#xA])* [<>=!(])
+    SumExpression - (SumExpression [ \t#xA]* [<>=!(])
     | LessThan
 	| GreaterThan
 	| LessEqualThan
@@ -181,7 +181,7 @@ expression ::=
     |   LeftParen type (arrayRankSpecifier)* RightParen expression 
     |   (Identifier | ParenExpression) Dot Identifier  */
 
-ParenExpression ::= LeftParen ([ \t#xA])* expression ([ \t#xA])* RightParen
+ParenExpression ::= LeftParen [ \t#xA]* expression [ \t#xA]* RightParen
 /*expression ::=   
     literalExpr                                                                              
 	|   Identifier                                                                               
@@ -259,10 +259,10 @@ assignmentOperator ::=
 	|   OrAssign
 
 
-argumentList ::= LeftParen ([ \t#xA])* arguments? ([ \t#xA])* RightParen
+argumentList ::= LeftParen [ \t#xA]* arguments? [ \t#xA]* RightParen
 
 
-arguments ::=   expression ( ([ \t#xA])* Comma ([ \t#xA])* expression)*
+arguments ::=   expression ( [ \t#xA]* Comma [ \t#xA]* expression)*
 
 
 variableDeclaration ::=   storageFlags [ \n]+ type [ \n]+ variableDeclarators
@@ -272,8 +272,8 @@ variableDeclarators ::=   variableDeclarator /*(Comma variableDeclarator)**/
 
 
 variableDeclarator ::=
-	(Identifier) - (Identifier ([ \t#xA])* [:])
-	| Identifier ([ \t#xA])* variableDeclaratorSupplement
+	(Identifier) - (Identifier [ \t#xA]* [:])
+	| Identifier [ \t#xA]* variableDeclaratorSupplement
 
 variableDeclaratorSupplement ::=
 	(arrayRankSpecifier)+
@@ -298,7 +298,6 @@ storageFlags ::=
 
 
 storageFlag ::=
-
     Constant
     |   RowMajor
 	|   ColumnMajor

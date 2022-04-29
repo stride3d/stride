@@ -185,7 +185,7 @@ Nondigit ::= [a-zA-Z_]
 Digit1 ::= [1-9]
 Digit ::=   '0' | Digit1
 
-IntegerSuffix ::= [uUlL]
+IntegerSuffix ::= [ulUL]?
 
 HexadecimalDigitSequence ::=   HexadecimalDigit+
 
@@ -195,14 +195,17 @@ DecimalIntegerLiteral ::= "0" | [1-9] [0-9]*
 HexadecimalDigit ::= [0-9a-fA-F]
 HexadecimalIntegerLiteral::= ('0x' | '0X') HexadecimalDigit+
 
-IntegerLiteral ::=
+/*IntegerLiteral ::=
 	Sign?
 	(
 		(DecimalIntegerLiteral - HexadecimalIntegerLiteral) IntegerSuffix?
 		| HexadecimalIntegerLiteral IntegerSuffix?
-	)
-IntegerLiteral2 ::=
-	DecimalIntegerLiteral
+	)*/
+IntegerLiteral ::=
+	(Sign DecimalIntegerLiteral - HexadecimalIntegerLiteral
+	| Sign HexadecimalIntegerLiteral
+	| DecimalIntegerLiteral - HexadecimalIntegerLiteral
+	| HexadecimalIntegerLiteral) IntegerSuffix
 
 FloatingSuffix ::= "f"
 
