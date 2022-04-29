@@ -1,0 +1,18 @@
+!PrefabAsset
+Id: 97e60aaf-3e3b-4745-aa6a-cb1aa2cfe851
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! ff5050c1-2f2a-4c96-a3a7-93a69f6dfc0e
+    Parts:
+        -   Entity:
+                Id: ff5050c1-2f2a-4c96-a3a7-93a69f6dfc0e
+                Name: TutorialUIPage
+                Components:
+                    0214936d9857a784c1aa2987b58960dd: !TransformComponent
+                        Id: e1cebdcb-cf72-45bc-8606-0ad64456264b
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
