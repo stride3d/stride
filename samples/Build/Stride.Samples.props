@@ -1,0 +1,6 @@
+<!-- Build file to be included by all Stride Samples projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <StrideSamplesBasePackageVersion>4.1.0.1</StrideSamplesBasePackageVersion>
+  </PropertyGroup>
+</Project>

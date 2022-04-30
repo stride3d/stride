@@ -1,14 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\Build\Stride.Samples.props" />
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <RootNamespace>GravitySensor</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Core" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
-    <PackageReference Include="Stride.Engine" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Particles" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Physics" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.UI" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core" Version="$(StrideSamplesBasePackageVersion)" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="$(StrideSamplesBasePackageVersion)" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Stride.Engine" Version="$(StrideSamplesBasePackageVersion)" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Particles" Version="$(StrideSamplesBasePackageVersion)" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Physics" Version="$(StrideSamplesBasePackageVersion)" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.UI" Version="$(StrideSamplesBasePackageVersion)" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 </Project>

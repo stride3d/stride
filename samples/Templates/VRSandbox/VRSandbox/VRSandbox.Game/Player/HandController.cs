@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
@@ -114,8 +114,8 @@ namespace VRSandbox.Player
             while (enumerator.MoveNext())
             {
                 var collision = enumerator.Current;
-                var entityA = collision?.ColliderA?.Entity;
-                var entityB = collision?.ColliderB?.Entity;
+                var entityA = collision.ColliderA?.Entity;
+                var entityB = collision.ColliderB?.Entity;
 
                 var otherEntity = (entityA == Entity) ? entityB : entityA;
 
