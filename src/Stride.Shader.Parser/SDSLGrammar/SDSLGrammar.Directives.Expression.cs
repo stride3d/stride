@@ -10,20 +10,42 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser DirectiveSum = new();
     public AlternativeParser DirectiveTest = new();
 
-
+    public AlternativeParser DirectiveExpr = new();
+    public AlternativeParser DirectiveIncrementExpr = new();
+    public AlternativeParser ParenDirectiveExpr = new();
 
     public SDSLGrammar UsingDirectiveExpression()
     {
-        Inner = DirectiveTest;
+        Inner = Literals;
         return this;
     }
 
     public void CreateDirectiveExpressions()
     {
-        DirectiveTerm =
+        var parenMul = 
+            LeftParen.Then(DirectiveMul).Then(RightParen);
+        var parenSum = 
+            LeftParen.Then(DirectiveSum).Then(RightParen);
+        var parenTest = 
+            LeftParen.Then(DirectiveTest).Then(RightParen);
+        
+        DirectiveIncrementExpr.Add(
+            Identifier.Then(PlusPlus).Named("IdPostIncrement")
+            // | Identifier.Then(MinusMinus).Named("IdPostDecrement")
+            // | LeftParen.Then(Identifier).Then(RightParen).NotFollowedBy(MinusMinus).Then(PlusPlus).Named("ParenPostIncrement")
+            // | LeftParen.Then(Identifier).Then(RightParen).Then(MinusMinus).Named("ParenPostDecrement")
+        );
+        var userDefinedTypes = Identifier.Except(Keywords);
+        var increment = userDefinedTypes & "++";
+
+        DirectiveTerm.Add(
             Literals
-            | Identifier
-            | StringLiteral;
+            | userDefinedTypes.Then("++")
+            // | parenMul 
+            // | parenSum 
+            // | parenTest 
+        );
+            // | ParenDirectiveExpr;
         
         var mulOp = Star | Div | Mod;
 
@@ -31,6 +53,7 @@ public partial class SDSLGrammar : Grammar
         var divide = DirectiveTerm.Then(Div).Then(DirectiveMul).Named("DirectiveDivide");
         var moderand = DirectiveTerm.Then(Mod).Then(DirectiveMul).Named("DirectiveModerand");
 
+        
 
         
         DirectiveMul.Add(
@@ -40,12 +63,11 @@ public partial class SDSLGrammar : Grammar
             | moderand
         );
         
-        
-        // DirectiveMul.Add(multiply);
-        
+                
         var add = DirectiveMul.Then(Plus).Then(DirectiveSum).Named("DirectiveAdd");
         var subtract = DirectiveMul.Then(Minus).Then(DirectiveSum).Named("DirectiveSubtract");
         
+
         DirectiveSum.Add(
             DirectiveMul - (add | subtract)
             | add - subtract
@@ -65,8 +87,35 @@ public partial class SDSLGrammar : Grammar
             | lessEqual
         );
 
-            //(DirectiveTerm.Except(multiply)).Or(multiply);
-            // | divide
-            // | mod;
+        
+        ParenDirectiveExpr.Add(
+            LeftParen.Then(DirectiveExpr).Then(RightParen)
+        );
+
+        
+
+        var methodCall = Identifier.Then(LeftParen).Then(RightParen).Named("DirectiveMethodCall");
+
+        DirectiveExpr.Add(
+            DirectiveTest
+            | ParenDirectiveExpr
+            // | DirectiveIncrementExpr - methodCall
+            // | methodCall
+        );
+
+        
+
+
+        // IncrementDirectiveExpr ::=
+        // literal postfixUnaryOperator
+        // | Identifier postfixUnaryOperator
+        // | ParenDirectiveExpression postfixUnaryOperator 
+        // | prefixUnaryOperator Identifier - postfixUnaryOperator
+        // | prefixUnaryOperator ParenDirectiveExpression - postfixUnaryOperator
+
+        // directiveExpression ::=
+        // TestDirective
+        // | IncrementExpr - (MethodCallDirective)
+        // | MethodCallDirective
     }
 }

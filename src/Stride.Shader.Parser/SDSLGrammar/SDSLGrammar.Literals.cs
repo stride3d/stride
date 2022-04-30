@@ -26,23 +26,26 @@ public partial class SDSLGrammar : Grammar
 	}
 	public void CreateLiterals()
 	{
-		IntegerSuffix = (Set("u") | "l" | "U" | "L").WithName("suffix");
-		FloatSuffix = (Set("f") | "l" | "F" | "L").WithName("suffix");
+		IntegerSuffix = (Set("u") | "l" | "U" | "L").WithName("int_suffix");
+		FloatSuffix = (Set("f") | "d" | "F" | "D").WithName("float_suffix");
 		
 		SingleLineComment = Set("//").Then(AnyChar.Repeat(0).Until(Eol)).WithName("LineComment"); 
 		BlockComment = Set("/*").Then(AnyChar.Repeat(0).Until("*/",false,true)).WithName("BlockComment"); 
 		
 		StringLiteral = new StringParser().WithName("StringLiteral");
 		Identifier = Letter.Or("_").Then(LetterOrDigit.Or("_").Repeat(0)).WithName("Identifier");
-		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "value"}.WithName("IntegerLiteral");
-		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "value"}.WithName("FloatLiteral");
+		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "float_value"}.WithName("IntegerLiteral");
+		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "int_value"}.WithName("FloatLiteral");
 		HexDigits = new();
 		HexaDecimalLiteral = Set("0x").Or("0X").Then(HexDigit.Repeat(1)).WithName("HexaLiteral");
 		
+		var floats = FloatLiteral.Then(FloatSuffix - IntegerSuffix).Named("FloatLiteral");
+		var ints = IntegerLiteral.Then(IntegerSuffix - FloatSuffix).Named("IntegerLiteral");
+		
 		Literals.Add(
-			IntegerLiteral.NotFollowedBy(IntegerSuffix) - FloatLiteral
-			| IntegerLiteral.Then(IntegerSuffix) - FloatLiteral
-			| FloatLiteral
+			ints
+			| floats
+			| StringLiteral
 		);
 			// .NotFollowedBy(IntegerSuffix) - FloatLiteral
 			// | IntegerLiteral.Then(IntegerSuffix) - FloatLiteral 
