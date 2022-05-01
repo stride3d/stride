@@ -61,8 +61,6 @@ public partial class SDSLGrammar : Grammar
             | moderand.Named("DirectiveMod")
             | ParenDirectiveExpr
         );
-        // DirectiveMul.SeparateChildrenBy(SingleLineWhiteSpace);
-
         
                 
         var add = DirectiveMul.Then(Plus).Then(DirectiveSum).SeparatedBy(ls);
@@ -91,13 +89,13 @@ public partial class SDSLGrammar : Grammar
             | lessEqual.SeparatedBy(ls).Named("DirectiveGreaterEqual")
         );
         var dEquals = 
-        (BooleanTerm | DirectiveTerm)
-        .Then(Literal("=="))
-        .Then(
-            BooleanTerm 
-            | DirectiveEquals
-        )
-        .SeparatedBy(ls).Named("Equals");
+            (BooleanTerm | DirectiveTerm)
+            .Then(Literal("==") | "!=")
+            .Then(
+                BooleanTerm 
+                | DirectiveEquals
+            )
+            .SeparatedBy(ls).Named("Equals");
         
         
         DirectiveEquals.Add(
