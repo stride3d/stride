@@ -22,39 +22,37 @@ public partial class SDSLGrammar : Grammar
 
     public void CreateDirectiveExpressions()
     {
-        var parenMul = 
-            LeftParen.Then(DirectiveMul).Then(RightParen);
-        var parenSum = 
-            LeftParen.Then(DirectiveSum).Then(RightParen);
-        var parenTest = 
-            LeftParen.Then(DirectiveTest).Then(RightParen);
-        
-        
+        var wsOrTabs = WhiteSpace.Or("\t").Repeat(0);
+        wsOrTabs.SkipUntil = true;
         var userDefinedTypes = Identifier.Except(Keywords);
         
-        var incrementOp = PlusPlus | MinusMinus;
+        var incrementOp = 
+            PlusPlus 
+            | MinusMinus;
         
+        // Identifier.Then(WhiteSpace.Repeat(0).Until("++",false,true)).Named("Something");
+
         var postfixIncrement = 
-            (Identifier & "++").Named("Increment")
-            | (Identifier & "--").Named("Decrement");
+            (Identifier & incrementOp.Named("IncrementOp")).Named("PostIncrement");
+       
         var prefixIncrement = 
-            ("++" & Identifier).Named("Increment")
-            | ("--" & Identifier).Named("Decrement");
-        
+            (incrementOp.Named("IncrementOp") & Identifier).Named("PostIncrement");
+
         DirectiveIncrementExpr.Add(
             prefixIncrement
             | postfixIncrement
         );
+        DirectiveIncrementExpr.SeparateChildrenBy(WhiteSpace.Repeat(0));
+
+
 
         DirectiveTerm.Add(
             Literals
             | DirectiveIncrementExpr
-            // | DirectiveIncrementExpr
-            // | parenMul 
-            // | parenSum 
-            // | parenTest 
+            | ParenDirectiveExpr.Named("ParenthesisExpr")
         );
-            // | ParenDirectiveExpr;
+        // DirectiveTerm.SeparateChildrenBy(WhiteSpace.Repeat(0));
+        
         
         var mulOp = Star | Div | Mod;
 
@@ -63,14 +61,15 @@ public partial class SDSLGrammar : Grammar
         var moderand = DirectiveTerm.Then(Mod).Then(DirectiveMul).Named("DirectiveModerand");
 
         
-
-        
         DirectiveMul.Add(
-            DirectiveTerm - (multiply | divide | moderand)
+            ParenDirectiveExpr
+            | DirectiveTerm - (multiply | divide | moderand)
             | multiply - (divide | moderand)
             | divide - moderand
             | moderand
         );
+        DirectiveMul.SeparateChildrenBy(WhiteSpace.Repeat(0));
+
         
                 
         var add = DirectiveMul.Then(Plus).Then(DirectiveSum).Named("DirectiveAdd");
@@ -79,10 +78,14 @@ public partial class SDSLGrammar : Grammar
         
 
         DirectiveSum.Add(
-            DirectiveMul.FollowedBy(incrementOp.Optional()) - ( add | subtract)
+            ParenDirectiveExpr
+            | postfixIncrement
+            | DirectiveMul.NotFollowedBy(Plus | Minus) //- (add | subtract)
             | add - subtract
-            | subtract
+            // | subtract
         );
+        DirectiveSum.SeparateChildrenBy(WhiteSpace.Repeat(0));
+
         
         var greater = DirectiveSum.Then(Greater).Then(DirectiveTest).Named("DirectiveGreater");
         var less = DirectiveSum.Then(Less).Then(DirectiveTest).Named("DirectiveLess");
@@ -90,42 +93,31 @@ public partial class SDSLGrammar : Grammar
         var lessEqual = DirectiveSum.Then(LessEqual).Then(DirectiveTest).Named("DirectiveLessEqual");
         
         DirectiveTest.Add(
-            DirectiveSum - (greater | less | greaterEqual | lessEqual)
-            | greater - (less | greaterEqual | lessEqual)
-            | less - (greaterEqual | lessEqual)
-            | greaterEqual - lessEqual
+            ParenDirectiveExpr
+            | DirectiveSum.NotFollowedBy(Greater | Less | GreaterEqual | LessEqual)
+            | greater.NotFollowedBy(Less | GreaterEqual | LessEqual)
+            | less.NotFollowedBy(GreaterEqual | LessEqual)
+            | greaterEqual.NotFollowedBy(LessEqual)
             | lessEqual
         );
+        DirectiveTest.SeparateChildrenBy(WhiteSpace.Repeat(0));
+
 
         
         ParenDirectiveExpr.Add(
             LeftParen.Then(DirectiveExpr).Then(RightParen)
         );
+        ParenDirectiveExpr.SeparateChildrenBy(WhiteSpace.Repeat(0));
 
         
 
         var methodCall = Identifier.Then(LeftParen).Then(RightParen).Named("DirectiveMethodCall");
 
         DirectiveExpr.Add(
-            DirectiveTest
-            | ParenDirectiveExpr.Named("ParenthesisExpr")
-            
-            // | methodCall
+            ParenDirectiveExpr
+            | DirectiveTest - methodCall      
+            | methodCall
         );
-
-        
-
-
-        // IncrementDirectiveExpr ::=
-        // literal postfixUnaryOperator
-        // | Identifier postfixUnaryOperator
-        // | ParenDirectiveExpression postfixUnaryOperator 
-        // | prefixUnaryOperator Identifier - postfixUnaryOperator
-        // | prefixUnaryOperator ParenDirectiveExpression - postfixUnaryOperator
-
-        // directiveExpression ::=
-        // TestDirective
-        // | IncrementExpr - (MethodCallDirective)
-        // | MethodCallDirective
+        DirectiveExpr.SeparateChildrenBy(WhiteSpace.Repeat(0));
     }
 }

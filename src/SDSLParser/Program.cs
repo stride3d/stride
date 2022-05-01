@@ -13,7 +13,7 @@ var sdslParser = new SDSLGrammar().UsingDirectiveExpression();
 var s = new Stopwatch();
 var match = sdslParser.Match("(8)");
 s.Start();
-match = sdslParser.Match("(my_var--+5)");
+match = sdslParser.Match(shaderf);
 s.Stop();
 
 Console.WriteLine(match.ErrorMessage[..Math.Min(1000,match.ErrorMessage.Length)]);
