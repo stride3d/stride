@@ -9,11 +9,11 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser MulExpression = new();
     public AlternativeParser SumExpression = new();
     public AlternativeParser TestExpression = new();
-    public AlternativeParser IncrementExpression = new();
+
+    public AlternativeParser IncrementExprExpression = new();
     public AlternativeParser ParenExpression = new();
     public AlternativeParser EqualsExpression = new();
     public AlternativeParser PrimaryExpression = new();
-    
 
     public SDSLGrammar UsingPrimaryExpression()
     {
@@ -23,54 +23,55 @@ public partial class SDSLGrammar : Grammar
 
     public void CreateExpressions()
     {
-        var ls = WhiteSpace.Repeat(0);
-        var ls1 = WhiteSpace.Repeat(1);
+        var ls = SingleLineWhiteSpace.Repeat(0);
+        var ls1 = SingleLineWhiteSpace.Repeat(1);
 
         var incrementOp = 
             PlusPlus 
             | MinusMinus;
         
-        // Identifier.Then(SingleLineWhiteSpace.Until("++",false,true)).Named("Something");
-
         var postfixIncrement = 
             Identifier.Then(incrementOp.Named("IncrementOp"));
        
         var prefixIncrement = 
             incrementOp.Named("IncrementOp").Then(Identifier);
 
-        IncrementExpression.Add(
-            prefixIncrement.SeparatedBy(ls).Named("PreIncrement")
-            | postfixIncrement.SeparatedBy(ls).Named("PostIncrement")
+        IncrementExprExpression.Add(
+            prefixIncrement.SeparatedBy(ls)
+            | postfixIncrement.SeparatedBy(ls)
         );
+        
 
         TermExpression.Add(
             Literals
             | Identifier
-            | IncrementExpression - (Literals | Identifier).FollowedBy(Literal("==") | "!=")
+            | IncrementExprExpression //- (Literals | Identifier).FollowedBy(Literal("==") | "!=")
             | ParenExpression.Named("ParenthesisExpr")
         );
 
         var multiply = TermExpression.Then(Star).Then(MulExpression).SeparatedBy(ls);
         var divide = TermExpression.Then(Div).Then(MulExpression).SeparatedBy(ls);
         var moderand = TermExpression.Then(Mod).Then(MulExpression).SeparatedBy(ls);
+
         
         MulExpression.Add(
             TermExpression - (multiply | divide | moderand)
             | (multiply - (divide | moderand)).Named("MultExpression")
             | (divide - moderand).Named("DivExpression")
             | moderand.Named("ModExpression")
+            | ParenExpression
         );
         
                 
         var add = MulExpression.Then(Plus).Then(SumExpression).SeparatedBy(ls);
         var subtract = MulExpression.Then(Minus).Then(SumExpression).SeparatedBy(ls);
-        var incrementSum = IncrementExpression.Then(Plus | Minus).Then(SumExpression).SeparatedBy(ls);
-        // var postfixAdd = postfixIncrement.Then()
+        
+        
+
         SumExpression.Add(
-            ParenExpression
-            | incrementSum 
+            postfixIncrement.SeparatedBy(ls)
             | MulExpression.NotFollowedBy(Plus | Minus) //- (add | subtract)
-            | (add - (subtract | postfixIncrement)).Named("AddExpression")
+            | (add - subtract).Named("AddExpression")
             | subtract.Named("SubtractExpression")
         );
         
@@ -81,45 +82,40 @@ public partial class SDSLGrammar : Grammar
         var lessEqual = SumExpression.Then(LessEqual).Then(TestExpression);
         
         TestExpression.Add(
-            ParenExpression
-            | SumExpression.NotFollowedBy(Greater | Less | GreaterEqual | LessEqual)
+            SumExpression.NotFollowedBy(Greater | Less | GreaterEqual | LessEqual)
             | greater.NotFollowedBy(Less | GreaterEqual | LessEqual).SeparatedBy(ls).Named("LessExpression")
             | less.NotFollowedBy(GreaterEqual | LessEqual).SeparatedBy(ls).Named("GreaterExpression")
             | greaterEqual.NotFollowedBy(LessEqual).SeparatedBy(ls).Named("LessEqualExpression")
             | lessEqual.SeparatedBy(ls).Named("GreaterEqualExpression")
         );
-
-        var equalsExp = TestExpression.Then(Literal("==").Named("Operator")).Then(BooleanTerm).SeparatedBy(ls);
-        var notEqualExp = TestExpression.Then(Literal("!=").Named("Operator")).Then(BooleanTerm).SeparatedBy(ls);
+        var equals = 
+            (BooleanTerm | TermExpression)
+            .Then(Literal("==") | "!=")
+            .Then(
+                BooleanTerm 
+                | EqualsExpression
+            )
+            .SeparatedBy(ls).Named("Equals");
+        
         
         EqualsExpression.Add(
-            // ParenExpression
-            equalsExp.Named("EqualsExpression")
-            // | notEqualExp.Named("NotEqualsExpression")
-            // | TestExpression.NotFollowedBy(Literal("==") | "!=")
-
+            TestExpression - equals
+            | equals
         );
-
-
         
         ParenExpression.Add(
-            LeftParen.Then(PrimaryExpression).Then(RightParen)//.SeparatedBy(ls)
+            LeftParen.Then(ParenExpression).Then(RightParen).SeparatedBy(ls)
+            | LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ls)
         );
 
         
 
-        // var methodCall = Identifier.Then(LeftParen).Then(RightParen).SeparatedBy(ls).Named("MethodCallExpression");
+        var methodCall = Identifier.Then(LeftParen).Then(RightParen).SeparatedBy(ls).Named("MethodCallExpression");
 
         PrimaryExpression.Add(
-            ParenExpression
-            | EqualsExpression      
+            EqualsExpression
+            //     - methodCall      
             // | methodCall
         );
-
-        var assignExpression = 
-            Identifier.Then(Equal).Then(PrimaryExpression);
-
-        
-        // ExprExpression.SeparateChildrenBy(SingleLineWhiteSpace);
     }
 }

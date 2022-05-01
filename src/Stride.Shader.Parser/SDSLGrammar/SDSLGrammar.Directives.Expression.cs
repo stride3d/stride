@@ -117,6 +117,5 @@ public partial class SDSLGrammar : Grammar
             //     - methodCall      
             // | methodCall
         );
-        // DirectiveExpr.SeparateChildrenBy(SingleLineWhiteSpace);
     }
 }
