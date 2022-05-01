@@ -19,5 +19,6 @@ public partial class SDSLGrammar : Grammar
         CreateLiterals();
         CreateDirectives();
         CreateDirectiveExpressions();
+        CreateExpressions();
     }
 }

@@ -5,40 +5,39 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parser;
 public partial class SDSLGrammar : Grammar
 {
-    private CharTerminal Hash = Set("#");
-
-    private SequenceParser HashIf = new();
-    private SequenceParser HashIfDef = new();
-    private SequenceParser HashIfNDef = new();
-    
-    private SequenceParser HashElse = new();
-    private SequenceParser HashElif = new();
-    private SequenceParser HashEndIf = new();
-
-
-    //TODO: Identifier Parser doesn't work here ?
     public SequenceParser IfDefDirective = new();
     public SequenceParser IfNDefDirective = new();
 
+    public AlternativeParser Directives = new();
+
     public SDSLGrammar UsingIfDefDirective()
     {
-        Inner = IfDefDirective;
+        Inner = Directives;
         return this;
     }
     public void CreateDirectives()
     {
+        var ls = SingleLineWhiteSpace.Repeat(0);
+        var ls1 = SingleLineWhiteSpace.Repeat(1);
+        var hash = Literal("#");
+        var hashIfNDef = Literal("ifndef").Named("hashifndef");
+        var hashIfDef = Literal("ifdef").Named("hashifdef");
+        var hashIf = Literal("if").Named("hashif");
+        var hashEndIf = Literal("endif").Named("HashEndIf");
+        var hashElse = Literal("else").Named("HashElse");
+        var hashElif = Literal("elif").Named("HashElif");
+        var hashDefine = Literal("define").Named("HashElif");
 
-        HashIf = Hash.Then("if").WithName("HashIf");
-        HashIfDef = Hash.Then("ifdef").WithName("HashIfDef");
-        HashIfNDef = Hash.Then("ifndef").WithName("HashIfNDef");
-        
-        HashElse = Hash.Then("else").WithName("HashElse");
-        HashElif = Hash.Then("elif").WithName("HashElif");
-        HashEndIf = Hash.Then("endif").WithName("HashEndIf");
-
-        IfDefDirective = HashIfDef.WithName("directive").Then(SingleLineWhiteSpace).Then(Identifier).WithName("IfDef");
-        IfNDefDirective = HashIfNDef.WithName("directive").Then(SingleLineWhiteSpace).Then(Identifier).WithName("IfNDef");
-
+        // TODO : add if and elif
+        Directives.Add(
+            hash
+            .Then(
+                hashElse.Then(ls).Then(LetterOrDigit.Or(Punctuation).Not()).Named("DirectiveElse")
+                | hashEndIf.Then(ls).Then(LetterOrDigit.Or(Punctuation).Not()).Named("DirectiveEnd")
+                | (hashIfDef - (hashIfNDef | hashIf | hashEndIf)).Then(Identifier).SeparatedBy(ls1).Named("DirectiveIfDef")
+                | (hashIfNDef - (hashIf | hashEndIf)).Then(Identifier).SeparatedBy(ls1).Named("DirectiveIfNDef")
+                | hashDefine.Then(Identifier).Then(Literals).SeparatedBy(ls1).Named("DirectiveDefine")
+            )
+        );
     }
-    
 }

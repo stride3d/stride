@@ -22,27 +22,26 @@ public partial class SDSLGrammar : Grammar
 
     public void CreateDirectiveExpressions()
     {
-        var wsOrTabs = WhiteSpace.Or("\t").Repeat(0);
-        wsOrTabs.SkipUntil = true;
-        var userDefinedTypes = Identifier.Except(Keywords);
-        
+        var ls = SingleLineWhiteSpace.Repeat(0);
+        var ls1 = SingleLineWhiteSpace.Repeat(1);
+
         var incrementOp = 
             PlusPlus 
             | MinusMinus;
         
-        // Identifier.Then(WhiteSpace.Repeat(0).Until("++",false,true)).Named("Something");
+        // Identifier.Then(SingleLineWhiteSpace.Until("++",false,true)).Named("Something");
 
         var postfixIncrement = 
-            (Identifier & incrementOp.Named("IncrementOp")).Named("PostIncrement");
+            Identifier.Then(incrementOp.Named("IncrementOp"));
        
         var prefixIncrement = 
-            (incrementOp.Named("IncrementOp") & Identifier).Named("PostIncrement");
+            incrementOp.Named("IncrementOp").Then(Identifier);
 
         DirectiveIncrementExpr.Add(
-            prefixIncrement
-            | postfixIncrement
+            prefixIncrement.SeparatedBy(ls)
+            | postfixIncrement.SeparatedBy(ls)
         );
-        DirectiveIncrementExpr.SeparateChildrenBy(WhiteSpace.Repeat(0));
+        // DirectiveIncrementExpr.SeparateChildrenBy(SingleLineWhiteSpace);
 
 
 
@@ -51,73 +50,68 @@ public partial class SDSLGrammar : Grammar
             | DirectiveIncrementExpr
             | ParenDirectiveExpr.Named("ParenthesisExpr")
         );
-        // DirectiveTerm.SeparateChildrenBy(WhiteSpace.Repeat(0));
-        
-        
-        var mulOp = Star | Div | Mod;
 
-        var multiply = DirectiveTerm.Then(Star).Then(DirectiveMul).Named("DirectiveMultiply");
-        var divide = DirectiveTerm.Then(Div).Then(DirectiveMul).Named("DirectiveDivide");
-        var moderand = DirectiveTerm.Then(Mod).Then(DirectiveMul).Named("DirectiveModerand");
+        var multiply = DirectiveTerm.Then(Star).Then(DirectiveMul).SeparatedBy(ls);
+        var divide = DirectiveTerm.Then(Div).Then(DirectiveMul).SeparatedBy(ls);
+        var moderand = DirectiveTerm.Then(Mod).Then(DirectiveMul).SeparatedBy(ls);
 
         
         DirectiveMul.Add(
             ParenDirectiveExpr
             | DirectiveTerm - (multiply | divide | moderand)
-            | multiply - (divide | moderand)
-            | divide - moderand
-            | moderand
+            | (multiply - (divide | moderand)).Named("DirectiveMult")
+            | (divide - moderand).Named("DirectiveDiv")
+            | moderand.Named("DirectiveMod")
         );
-        DirectiveMul.SeparateChildrenBy(WhiteSpace.Repeat(0));
+        // DirectiveMul.SeparateChildrenBy(SingleLineWhiteSpace);
 
         
                 
-        var add = DirectiveMul.Then(Plus).Then(DirectiveSum).Named("DirectiveAdd");
-        var subtract = DirectiveMul.Then(Minus).Then(DirectiveSum).Named("DirectiveSubtract");
+        var add = DirectiveMul.Then(Plus).Then(DirectiveSum).SeparatedBy(ls);
+        var subtract = DirectiveMul.Then(Minus).Then(DirectiveSum).SeparatedBy(ls);
         
         
 
         DirectiveSum.Add(
             ParenDirectiveExpr
-            | postfixIncrement
+            | postfixIncrement.SeparatedBy(ls)
             | DirectiveMul.NotFollowedBy(Plus | Minus) //- (add | subtract)
-            | add - subtract
-            // | subtract
+            | (add - subtract).Named("DirectiveAdd")
+            | subtract.Named("DirectiveSubtract")
         );
-        DirectiveSum.SeparateChildrenBy(WhiteSpace.Repeat(0));
+        // DirectiveSum.SeparateChildrenBy(SingleLineWhiteSpace);
 
         
-        var greater = DirectiveSum.Then(Greater).Then(DirectiveTest).Named("DirectiveGreater");
-        var less = DirectiveSum.Then(Less).Then(DirectiveTest).Named("DirectiveLess");
-        var greaterEqual = DirectiveSum.Then(GreaterEqual).Then(DirectiveTest).Named("DirectiveGreaterEqual");
-        var lessEqual = DirectiveSum.Then(LessEqual).Then(DirectiveTest).Named("DirectiveLessEqual");
+        var greater = DirectiveSum.Then(Greater).Then(DirectiveTest);
+        var less = DirectiveSum.Then(Less).Then(DirectiveTest);
+        var greaterEqual = DirectiveSum.Then(GreaterEqual).Then(DirectiveTest);
+        var lessEqual = DirectiveSum.Then(LessEqual).Then(DirectiveTest);
         
         DirectiveTest.Add(
             ParenDirectiveExpr
             | DirectiveSum.NotFollowedBy(Greater | Less | GreaterEqual | LessEqual)
-            | greater.NotFollowedBy(Less | GreaterEqual | LessEqual)
-            | less.NotFollowedBy(GreaterEqual | LessEqual)
-            | greaterEqual.NotFollowedBy(LessEqual)
-            | lessEqual
+            | greater.NotFollowedBy(Less | GreaterEqual | LessEqual).SeparatedBy(ls).Named("DirectiveLess")
+            | less.NotFollowedBy(GreaterEqual | LessEqual).SeparatedBy(ls).Named("DirectiveGreater")
+            | greaterEqual.NotFollowedBy(LessEqual).SeparatedBy(ls).Named("DirectiveLessEqual")
+            | lessEqual.SeparatedBy(ls).Named("DirectiveGreaterEqual")
         );
-        DirectiveTest.SeparateChildrenBy(WhiteSpace.Repeat(0));
+        // DirectiveTest.SeparateChildrenBy(SingleLineWhiteSpace);
 
 
         
         ParenDirectiveExpr.Add(
-            LeftParen.Then(DirectiveExpr).Then(RightParen)
+            LeftParen.Then(DirectiveExpr).Then(RightParen).SeparatedBy(ls)
         );
-        ParenDirectiveExpr.SeparateChildrenBy(WhiteSpace.Repeat(0));
 
         
 
-        var methodCall = Identifier.Then(LeftParen).Then(RightParen).Named("DirectiveMethodCall");
+        var methodCall = Identifier.Then(LeftParen).Then(RightParen).SeparatedBy(ls).Named("DirectiveMethodCall");
 
         DirectiveExpr.Add(
             ParenDirectiveExpr
             | DirectiveTest - methodCall      
             | methodCall
         );
-        DirectiveExpr.SeparateChildrenBy(WhiteSpace.Repeat(0));
+        // DirectiveExpr.SeparateChildrenBy(SingleLineWhiteSpace);
     }
 }
