@@ -4,12 +4,12 @@ using Stride.Shader.Parser;
 using System.Diagnostics;
 
 
-var shaderf = File.ReadAllText("./SDSL/Expressions.sdsl");
+var shaderf = File.ReadAllText("./SDSL/Directive.sdsl");
 
 // var parser = new SDSLGrammar();
 var parser = StrideGrammar.New("expr");
 var tokens = StrideGrammar.HlslGrammar("expression");
-var sdslParser = new SDSLGrammar().UsingPrimaryExpression();
+var sdslParser = new SDSLGrammar().UsingDirectives();
 var s = new Stopwatch();
 var match = sdslParser.Match("(8)");
 s.Start();
