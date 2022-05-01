@@ -16,7 +16,7 @@ public partial class SDSLGrammar : Grammar
 
     public SDSLGrammar UsingDirectiveExpression()
     {
-        Inner = Literals;
+        Inner = DirectiveExpr;
         return this;
     }
 
@@ -29,18 +29,27 @@ public partial class SDSLGrammar : Grammar
         var parenTest = 
             LeftParen.Then(DirectiveTest).Then(RightParen);
         
-        DirectiveIncrementExpr.Add(
-            Identifier.Then(PlusPlus).Named("IdPostIncrement")
-            // | Identifier.Then(MinusMinus).Named("IdPostDecrement")
-            // | LeftParen.Then(Identifier).Then(RightParen).NotFollowedBy(MinusMinus).Then(PlusPlus).Named("ParenPostIncrement")
-            // | LeftParen.Then(Identifier).Then(RightParen).Then(MinusMinus).Named("ParenPostDecrement")
-        );
+        
         var userDefinedTypes = Identifier.Except(Keywords);
-        var increment = userDefinedTypes & "++";
+        
+        var incrementOp = PlusPlus | MinusMinus;
+        
+        var postfixIncrement = 
+            (Identifier & "++").Named("Increment")
+            | (Identifier & "--").Named("Decrement");
+        var prefixIncrement = 
+            ("++" & Identifier).Named("Increment")
+            | ("--" & Identifier).Named("Decrement");
+        
+        DirectiveIncrementExpr.Add(
+            prefixIncrement
+            | postfixIncrement
+        );
 
         DirectiveTerm.Add(
             Literals
-            | userDefinedTypes.Then("++")
+            | DirectiveIncrementExpr
+            // | DirectiveIncrementExpr
             // | parenMul 
             // | parenSum 
             // | parenTest 
@@ -67,9 +76,10 @@ public partial class SDSLGrammar : Grammar
         var add = DirectiveMul.Then(Plus).Then(DirectiveSum).Named("DirectiveAdd");
         var subtract = DirectiveMul.Then(Minus).Then(DirectiveSum).Named("DirectiveSubtract");
         
+        
 
         DirectiveSum.Add(
-            DirectiveMul - (add | subtract)
+            DirectiveMul.FollowedBy(incrementOp.Optional()) - ( add | subtract)
             | add - subtract
             | subtract
         );
@@ -98,8 +108,8 @@ public partial class SDSLGrammar : Grammar
 
         DirectiveExpr.Add(
             DirectiveTest
-            | ParenDirectiveExpr
-            // | DirectiveIncrementExpr - methodCall
+            | ParenDirectiveExpr.Named("ParenthesisExpr")
+            
             // | methodCall
         );
 

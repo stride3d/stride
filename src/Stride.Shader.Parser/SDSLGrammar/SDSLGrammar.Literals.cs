@@ -5,8 +5,8 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parser;
 public partial class SDSLGrammar : Grammar
 {
-	AlternativeParser IntegerSuffix = new();
-	AlternativeParser FloatSuffix = new();
+	AlternativeParser IntegerSuffix;
+	AlternativeParser FloatSuffix;
 	
 	public SequenceParser SingleLineComment = new(); 
 	public SequenceParser BlockComment = new(); 
@@ -26,25 +26,38 @@ public partial class SDSLGrammar : Grammar
 	}
 	public void CreateLiterals()
 	{
-		IntegerSuffix = (Set("u") | "l" | "U" | "L").WithName("int_suffix");
-		FloatSuffix = (Set("f") | "d" | "F" | "D").WithName("float_suffix");
+		IntegerSuffix = 
+			Literal("u")
+			| Literal("l")
+			| Literal("U")
+			| Literal("L");
 		
-		SingleLineComment = Set("//").Then(AnyChar.Repeat(0).Until(Eol)).WithName("LineComment"); 
-		BlockComment = Set("/*").Then(AnyChar.Repeat(0).Until("*/",false,true)).WithName("BlockComment"); 
+		FloatSuffix = 
+			Literal("f")
+			| Literal("d")
+			| Literal("F")
+			| Literal("D");
+		
+		SingleLineComment = Literal("//").Then(AnyChar.Repeat(0).Until(Eol)).WithName("LineComment"); 
+		BlockComment = Literal("/*").Then(AnyChar.Repeat(0).Until("*/",false,true)).WithName("BlockComment"); 
 		
 		StringLiteral = new StringParser().WithName("StringLiteral");
 		Identifier = Letter.Or("_").Then(LetterOrDigit.Or("_").Repeat(0)).WithName("Identifier");
-		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "float_value"}.WithName("IntegerLiteral");
-		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "int_value"}.WithName("FloatLiteral");
+		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "float_value"}.WithName("IntegerValue");
+		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "int_value"}.WithName("FloatValue");
 		HexDigits = new();
-		HexaDecimalLiteral = Set("0x").Or("0X").Then(HexDigit.Repeat(1)).WithName("HexaLiteral");
+		HexaDecimalLiteral = Literal("0x").Or(Literal("0X")).Then(HexDigit.Repeat(1)).WithName("HexaLiteral");
 		
-		var floats = FloatLiteral.Then(FloatSuffix - IntegerSuffix).Named("FloatLiteral");
-		var ints = IntegerLiteral.Then(IntegerSuffix - FloatSuffix).Named("IntegerLiteral");
-		
+		var ints = 
+			HexaDecimalLiteral
+			| IntegerLiteral.Then(IntegerSuffix.Optional().Named("suffix")).Named("IntegerLiteral");
+		var floats = 
+			FloatLiteral.Then(FloatSuffix.Optional().Named("suffix")).Named("FloatLiteral");
+			// | IntegerLiteral.Then(IntegerSuffix);
+
 		Literals.Add(
-			ints
-			| floats
+			floats - ints
+			| ints
 			| StringLiteral
 		);
 			// .NotFollowedBy(IntegerSuffix) - FloatLiteral
