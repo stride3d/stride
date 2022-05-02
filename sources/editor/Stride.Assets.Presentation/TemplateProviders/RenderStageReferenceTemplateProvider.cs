@@ -3,6 +3,7 @@
 
 using Stride.Core.Presentation.Quantum.View;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.TemplateProviders
 {
@@ -13,7 +14,7 @@ namespace Stride.Assets.Presentation.TemplateProviders
         public override bool MatchNode(NodeViewModel node)
         {
             // Everything that is not in GraphicsCompositorAsset.RenderStages should become a reference
-            return false;
+            return node.Type == typeof(RenderStage);
         }
     }
 }

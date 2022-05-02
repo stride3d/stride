@@ -119,7 +119,11 @@ namespace Stride.Shaders.Compiler.Internals
 
             protected override void Dispose(bool disposing)
             {
-                socketMessageLayer.Send(new UploadFilePacket { Url = url, Data = memoryStream.ToArray() }).Wait();
+                if(disposing)
+                {
+                    socketMessageLayer.Send(new UploadFilePacket { Url = url, Data = memoryStream.ToArray() }).Wait();
+                }
+
                 base.Dispose(disposing);
             }
         }

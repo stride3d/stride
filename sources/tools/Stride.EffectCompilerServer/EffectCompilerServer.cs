@@ -91,7 +91,7 @@ namespace Stride.EffectCompilerServer
                 });
             }
 
-            await Task.Run(() => socketMessageLayer.MessageLoop());
+            _ = Task.Run(() => socketMessageLayer.MessageLoop());
         }
 
         private static async Task ShaderCompilerRequestHandler(SocketMessageLayer socketMessageLayer, EffectCompiler effectCompiler, RemoteEffectCompilerEffectRequest remoteEffectCompilerEffectRequest)
