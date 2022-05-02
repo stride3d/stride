@@ -434,7 +434,7 @@ namespace Stride.SamplesTestServer
                 await tester.TesterSocket.Send(new ScreenshotStored());
             });
 
-            await Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 try
                 {
