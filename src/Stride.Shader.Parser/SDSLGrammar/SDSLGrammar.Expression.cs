@@ -8,114 +8,119 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser TermExpression = new();
     public AlternativeParser MulExpression = new();
     public AlternativeParser SumExpression = new();
+    public AlternativeParser ShiftExpression = new();
+
     public AlternativeParser TestExpression = new();
 
-    public AlternativeParser IncrementExprExpression = new();
+    public AlternativeParser IncrementExpression = new();
     public AlternativeParser ParenExpression = new();
     public AlternativeParser EqualsExpression = new();
     public AlternativeParser PrimaryExpression = new();
 
     public SDSLGrammar UsingPrimaryExpression()
     {
-        Inner = PrimaryExpression;
+        Inner = PrimaryExpression.Then(";");
         return this;
     }
 
     public void CreateExpressions()
     {
-        var ls = SingleLineWhiteSpace.Repeat(0);
-        var ls1 = SingleLineWhiteSpace.Repeat(1);
+        var ls = WhiteSpace.Repeat(0);
+        var ls1 = WhiteSpace.Repeat(1);
+
 
         var incrementOp = 
-            PlusPlus 
-            | MinusMinus;
+            Literal("++").Named("PlusPlus")
+            | Literal("--").Named("MinusMinus");
         
         var postfixIncrement = 
-            Identifier.Then(incrementOp.Named("IncrementOp"));
-       
+            Identifier.Then(incrementOp.Repeat(0,1)).SeparatedBy(ls);
         var prefixIncrement = 
-            incrementOp.Named("IncrementOp").Then(Identifier);
+            incrementOp.Named("IncrementOp").Then(Identifier).SeparatedBy(ls);
 
-        IncrementExprExpression.Add(
-            prefixIncrement.SeparatedBy(ls)
-            | postfixIncrement.SeparatedBy(ls)
+
+
+        IncrementExpression.Add(
+            prefixIncrement.Named("PreIncrement")
+            | postfixIncrement
         );
         
 
         TermExpression.Add(
             Literals
-            | Identifier
-            | IncrementExprExpression //- (Literals | Identifier).FollowedBy(Literal("==") | "!=")
+            | IncrementExpression
             | ParenExpression.Named("ParenthesisExpr")
         );
 
-        var multiply = TermExpression.Then(Star).Then(MulExpression).SeparatedBy(ls);
-        var divide = TermExpression.Then(Div).Then(MulExpression).SeparatedBy(ls);
-        var moderand = TermExpression.Then(Mod).Then(MulExpression).SeparatedBy(ls);
-
-        
+        var multiply = TermExpression.Then(Star | Div | Mod).Then(MulExpression).SeparatedBy(ls);
         MulExpression.Add(
-            TermExpression - (multiply | divide | moderand)
-            | (multiply - (divide | moderand)).Named("MultExpression")
-            | (divide - moderand).Named("DivExpression")
-            | moderand.Named("ModExpression")
-            | ParenExpression
+            multiply.Named("Multiplication")
+            | TermExpression
         );
-        
-                
-        var add = MulExpression.Then(Plus).Then(SumExpression).SeparatedBy(ls);
-        var subtract = MulExpression.Then(Minus).Then(SumExpression).SeparatedBy(ls);
-        
-        
+        var parenMulExpr = 
+            LeftParen.Then(MulExpression).Then(RightParen).SeparatedBy(ls);
 
+        
+        var sumOp = (Plus - PlusPlus) | (Minus - MinusMinus);
+        var add = (parenMulExpr | MulExpression).Then(sumOp).Then(SumExpression).SeparatedBy(ls);
         SumExpression.Add(
-            postfixIncrement.SeparatedBy(ls)
-            | MulExpression.NotFollowedBy(Plus | Minus) //- (add | subtract)
-            | (add - subtract).Named("AddExpression")
-            | subtract.Named("SubtractExpression")
+            add.Named("Addition")
+            | MulExpression
+        );
+
+        var parenSumExpr = 
+            LeftParen.Then(SumExpression).Then(RightParen).SeparatedBy(ls);
+
+        var shiftOp = LeftShift | RightShift;
+        var shift = 
+            (parenSumExpr | SumExpression).Then(shiftOp.Named("Operator")).Then(ShiftExpression).SeparatedBy(ls);
+
+        ShiftExpression.Add(
+            shift.Named("ShiftExpression")
+            | SumExpression 
         );
         
         
-        var greater = SumExpression.Then(Greater).Then(TestExpression);
-        var less = SumExpression.Then(Less).Then(TestExpression);
-        var greaterEqual = SumExpression.Then(GreaterEqual).Then(TestExpression);
-        var lessEqual = SumExpression.Then(LessEqual).Then(TestExpression);
+        var testOp = Less | LessEqual | Greater | GreaterEqual;
+        var test = ShiftExpression.Then(testOp).Then(TestExpression).SeparatedBy(ls);
         
         TestExpression.Add(
-            SumExpression.NotFollowedBy(Greater | Less | GreaterEqual | LessEqual)
-            | greater.NotFollowedBy(Less | GreaterEqual | LessEqual).SeparatedBy(ls).Named("LessExpression")
-            | less.NotFollowedBy(GreaterEqual | LessEqual).SeparatedBy(ls).Named("GreaterExpression")
-            | greaterEqual.NotFollowedBy(LessEqual).SeparatedBy(ls).Named("LessEqualExpression")
-            | lessEqual.SeparatedBy(ls).Named("GreaterEqualExpression")
+            test.Named("TestExpression")
+            | ShiftExpression
         );
+
+        var parenTestExpr = LeftParen.Then(TestExpression).Then(RightParen).SeparatedBy(ls);
+        
+        var eqOp = 
+            Literal("==").Named("Equals")
+            | Literal("!=").Named("NotEquals");
+        
         var equals = 
-            (BooleanTerm | TermExpression)
-            .Then(Literal("==") | "!=")
+            (BooleanTerm | parenTestExpr | TestExpression)
+            .Then(eqOp)
             .Then(
-                BooleanTerm 
-                | EqualsExpression
+                BooleanTerm | EqualsExpression
             )
             .SeparatedBy(ls).Named("Equals");
         
         
         EqualsExpression.Add(
-            TestExpression - equals
-            | equals
+            equals
+            | TestExpression
         );
         
         ParenExpression.Add(
-            LeftParen.Then(ParenExpression).Then(RightParen).SeparatedBy(ls)
-            | LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ls)
+            LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ls)
         );
 
         
+        var parameters = EqualsExpression.Then(Comma.Then(PrimaryExpression).SeparatedBy(ls).Repeat(0)).SeparatedBy(ls);
+        var methodCall = Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ls).Named("MethodCallExpression");
 
-        var methodCall = Identifier.Then(LeftParen).Then(RightParen).SeparatedBy(ls).Named("MethodCallExpression");
 
         PrimaryExpression.Add(
-            EqualsExpression
-            //     - methodCall      
-            // | methodCall
+            methodCall
+            | EqualsExpression
         );
     }
 }

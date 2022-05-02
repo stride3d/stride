@@ -1,1 +1,6 @@
-a == true
+My_Method(
+    1,
+    true,
+    a++,
+    5>4
+);

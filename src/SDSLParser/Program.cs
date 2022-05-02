@@ -11,10 +11,11 @@ var parser = StrideGrammar.New("expr");
 var tokens = StrideGrammar.HlslGrammar("expression");
 var sdslParser = new SDSLGrammar().UsingPrimaryExpression();
 var s = new Stopwatch();
-var match = sdslParser.Match("(8)");
+var match2 = sdslParser.Match(shaderf);
 s.Start();
-match = sdslParser.Match(shaderf);
+var match = sdslParser.Match(shaderf);
 s.Stop();
+
 
 Console.WriteLine(match.ErrorMessage[..Math.Min(1000,match.ErrorMessage.Length)]);
 match.Matches.ForEach(x => Console.WriteLine(x.Name + " : " + x.Value));

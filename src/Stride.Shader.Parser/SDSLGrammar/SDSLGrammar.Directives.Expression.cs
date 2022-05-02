@@ -8,6 +8,8 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser DirectiveTerm = new();
     public AlternativeParser DirectiveMul = new();
     public AlternativeParser DirectiveSum = new();
+    public AlternativeParser DirectiveShift = new();
+    
     public AlternativeParser DirectiveTest = new();
 
     public AlternativeParser DirectiveIncrementExpr = new();
@@ -26,86 +28,80 @@ public partial class SDSLGrammar : Grammar
         var ls = SingleLineWhiteSpace.Repeat(0);
         var ls1 = SingleLineWhiteSpace.Repeat(1);
 
+
         var incrementOp = 
-            PlusPlus 
-            | MinusMinus;
+            Literal("++").Named("PlusPlus")
+            | Literal("--").Named("MinusMinus");
         
         var postfixIncrement = 
-            Identifier.Then(incrementOp.Named("IncrementOp"));
-       
+            Identifier.Then(incrementOp.Repeat(0,1)).SeparatedBy(ls);
         var prefixIncrement = 
-            incrementOp.Named("IncrementOp").Then(Identifier);
+            incrementOp.Named("IncrementOp").Then(Identifier).SeparatedBy(ls);
+
+
 
         DirectiveIncrementExpr.Add(
-            prefixIncrement.SeparatedBy(ls)
-            | postfixIncrement.SeparatedBy(ls)
+            prefixIncrement.Named("PreIncrement")
+            | postfixIncrement
         );
         
 
         DirectiveTerm.Add(
             Literals
-            | Identifier
-            | DirectiveIncrementExpr //- (Literals | Identifier).FollowedBy(Literal("==") | "!=")
-            | ParenDirectiveExpr.Named("ParenthesisExpr")
+            | IncrementExpression
+            | ParenExpression.Named("ParenthesisExpr")
         );
 
-        var multiply = DirectiveTerm.Then(Star).Then(DirectiveMul).SeparatedBy(ls);
-        var divide = DirectiveTerm.Then(Div).Then(DirectiveMul).SeparatedBy(ls);
-        var moderand = DirectiveTerm.Then(Mod).Then(DirectiveMul).SeparatedBy(ls);
-
-        
+        var multiply = TermExpression.Then(Star | Div | Mod).Then(MulExpression).SeparatedBy(ls);
         DirectiveMul.Add(
-            DirectiveTerm - (multiply | divide | moderand)
-            | (multiply - (divide | moderand)).Named("DirectiveMult")
-            | (divide - moderand).Named("DirectiveDiv")
-            | moderand.Named("DirectiveMod")
-            | ParenDirectiveExpr
+            multiply.Named("Multiplication")
+            | TermExpression
         );
         
-                
-        var add = DirectiveMul.Then(Plus).Then(DirectiveSum).SeparatedBy(ls);
-        var subtract = DirectiveMul.Then(Minus).Then(DirectiveSum).SeparatedBy(ls);
-        
-        
-
+        var sumOp = (Plus - PlusPlus) | (Minus - MinusMinus);
+        var add = MulExpression.Then(sumOp).Then(SumExpression).SeparatedBy(ls);
         DirectiveSum.Add(
-            postfixIncrement.SeparatedBy(ls)
-            | DirectiveMul.NotFollowedBy(Plus | Minus) //- (add | subtract)
-            | (add - subtract).Named("DirectiveAdd")
-            | subtract.Named("DirectiveSubtract")
+            add.Named("Addition")
+            | MulExpression
+        );
+
+        var shiftOp = LeftShift | RightShift;
+        var shift = 
+            SumExpression.Then(shiftOp.Named("Operator")).Then(ShiftExpression).SeparatedBy(ls);
+
+        DirectiveShift.Add(
+            SumExpression
+            | shift.Named("ShiftExpression")
         );
         
         
-        var greater = DirectiveSum.Then(Greater).Then(DirectiveTest);
-        var less = DirectiveSum.Then(Less).Then(DirectiveTest);
-        var greaterEqual = DirectiveSum.Then(GreaterEqual).Then(DirectiveTest);
-        var lessEqual = DirectiveSum.Then(LessEqual).Then(DirectiveTest);
+        var testOp = (Less - LeftShift) | LessEqual | (Greater - RightShift) | GreaterEqual;
+        var test = ShiftExpression.Then(testOp).Then(TestExpression).SeparatedBy(ls);
         
         DirectiveTest.Add(
-            DirectiveSum.NotFollowedBy(Greater | Less | GreaterEqual | LessEqual)
-            | greater.NotFollowedBy(Less | GreaterEqual | LessEqual).SeparatedBy(ls).Named("DirectiveLess")
-            | less.NotFollowedBy(GreaterEqual | LessEqual).SeparatedBy(ls).Named("DirectiveGreater")
-            | greaterEqual.NotFollowedBy(LessEqual).SeparatedBy(ls).Named("DirectiveLessEqual")
-            | lessEqual.SeparatedBy(ls).Named("DirectiveGreaterEqual")
+            test.Named("TestExpression")
+            | ShiftExpression
         );
-        var dEquals = 
-            (BooleanTerm | DirectiveTerm)
-            .Then(Literal("==") | "!=")
+        var equality = 
+            Literal("==").Named("Equals")
+            | Literal("!=").Named("NotEquals");
+        var equals = 
+            (BooleanTerm | TermExpression)
+            .Then(equality)
             .Then(
                 BooleanTerm 
-                | DirectiveEquals
+                | EqualsExpression
             )
             .SeparatedBy(ls).Named("Equals");
         
         
         DirectiveEquals.Add(
-            DirectiveTest - dEquals
-            | dEquals
+            TestExpression
+            | equals
         );
         
         ParenDirectiveExpr.Add(
-            LeftParen.Then(ParenDirectiveExpr).Then(RightParen).SeparatedBy(ls)
-            | LeftParen.Then(DirectiveExpr).Then(RightParen).SeparatedBy(ls)
+            LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ls)
         );
 
         
