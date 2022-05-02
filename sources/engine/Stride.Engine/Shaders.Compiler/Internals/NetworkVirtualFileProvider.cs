@@ -59,7 +59,7 @@ namespace Stride.Shaders.Compiler.Internals
                     var data = new byte[stream.Length];
                     await stream.ReadAsync(data, 0, data.Length);
                     stream.Dispose();
-                    socketMessageLayer.Send(new DownloadFileAnswer { StreamId = packet.StreamId, Data = data });
+                    await socketMessageLayer.Send(new DownloadFileAnswer { StreamId = packet.StreamId, Data = data });
                 });
 
             socketMessageLayer.AddPacketHandler<UploadFilePacket>(
@@ -74,7 +74,7 @@ namespace Stride.Shaders.Compiler.Internals
                 async (packet) =>
                     {
                         var fileExists = await VirtualFileSystem.FileExistsAsync(packet.Url);
-                        socketMessageLayer.Send(new FileExistsAnswer { StreamId = packet.StreamId, FileExists = fileExists });
+                        await socketMessageLayer.Send(new FileExistsAnswer { StreamId = packet.StreamId, FileExists = fileExists });
                     });
         }
 
@@ -119,7 +119,7 @@ namespace Stride.Shaders.Compiler.Internals
 
             protected override void Dispose(bool disposing)
             {
-                socketMessageLayer.Send(new UploadFilePacket { Url = url, Data = memoryStream.ToArray() });
+                socketMessageLayer.Send(new UploadFilePacket { Url = url, Data = memoryStream.ToArray() }).Wait();
                 base.Dispose(disposing);
             }
         }

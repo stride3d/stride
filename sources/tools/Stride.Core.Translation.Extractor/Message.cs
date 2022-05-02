@@ -7,7 +7,6 @@ namespace Stride.Core.Translation.Extractor
 {
     internal class Message
     {
-        public string Comment;
         public string Context;
         public string PluralText;
         public string Text;

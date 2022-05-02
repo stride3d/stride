@@ -3,22 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
-using Stride.Core.Reflection;
-using Stride.Core.TypeConverters;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
+using Stride.Core.Reflection;
+using Stride.Core.TypeConverters;
 using Expression = System.Linq.Expressions.Expression;
 
 namespace Stride.Core.Presentation.Quantum.ViewModels
@@ -163,13 +161,6 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         /// Gets the level of depth of this node, starting from 0 for the root node.
         /// </summary>
         public int Level => Parent?.Level + 1 ?? 0;
-
-        /// <summary>
-        /// Gets the member info (if any).
-        /// </summary>
-        [CanBeNull]
-        [Obsolete]
-        public MemberInfo MemberInfo => null;
 
         /// <summary>
         /// Gets whether this node contains a list.
@@ -681,14 +672,6 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
             // Order has the best priority for comparison, if set.
             if ((a.Order ?? 0) != (b.Order ?? 0))
                 return (a.Order ?? 0).CompareTo(b.Order ?? 0);
-
-            // Then, try to use metadata token (if members)
-            if (a.MemberInfo != null || b.MemberInfo != null)
-            {
-                var comparison = a.MemberInfo.CompareMetadataTokenWith(b.MemberInfo);
-                if (comparison != 0)
-                    return comparison;
-            }
 
             // Then we use name, only if both orders are unset.
             if (a.Order == null && b.Order == null)

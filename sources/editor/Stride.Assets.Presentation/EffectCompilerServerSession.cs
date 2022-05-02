@@ -8,19 +8,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Serialization;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.ConnectionRouter;
-using Stride.Engine.Network;
-using Stride.Shaders.Compiler;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Extensions;
+using Stride.Core.Serialization;
+using Stride.Engine.Network;
+using Stride.Shaders.Compiler;
 
 namespace Stride.Assets.Presentation
 {
@@ -104,7 +103,7 @@ namespace Stride.Assets.Presentation
                 effectCompilerMessageLayer.AddPacketHandler<RemoteEffectCompilerEffectRequested>(packet => HandleEffectCompilerRequestedPacket(packet, package));
 
                 // Run main socket loop
-                Task.Run(() => effectCompilerMessageLayer.MessageLoop());
+                await Task.Run(() => effectCompilerMessageLayer.MessageLoop());
             }
             catch
             {

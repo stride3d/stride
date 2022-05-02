@@ -37,7 +37,9 @@ namespace Stride.Particles.Rendering
         public int VertexBufferStride;
         public int VertexBufferSize;
         public int IndexCount;
+#pragma warning disable CS0649 // Field 'RenderAttributesPerNode.IndexBufferOffset' is never assigned to, and will always have its default value 0
         public int IndexBufferOffset;
+#pragma warning restore CS0649
     }
 
     /// <summary>

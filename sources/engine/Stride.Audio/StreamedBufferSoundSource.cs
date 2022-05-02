@@ -57,7 +57,7 @@ namespace Stride.Audio
             public byte[] Data = new byte[MaxBufferSizeBytes];
 
             public int CountDataBytes = 0;
-            public TimeSpan PresentationTime;
+            public TimeSpan PresentationTime = TimeSpan.Zero;
         }
 
         public int Channels { get; private set; }

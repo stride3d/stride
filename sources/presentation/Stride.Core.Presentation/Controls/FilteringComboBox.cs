@@ -41,10 +41,6 @@ namespace Stride.Core.Presentation.Controls
         /// </summary>
         private bool listBoxClicking;
         /// <summary>
-        /// Indicates that the selection is being internally updated and that the text should not be cleared.
-        /// </summary>
-        private bool updatingSelection;
-        /// <summary>
         /// Indicates that the text box is being validated and that the update of the text should not impact the selected item.
         /// </summary>
         private bool validating;
@@ -83,11 +79,6 @@ namespace Stride.Core.Presentation.Controls
         /// Identifies the <see cref="IsFiltering"/> dependency property.
         /// </summary>
         public static readonly DependencyProperty IsFilteringProperty = DependencyProperty.Register("IsFiltering", typeof(bool), typeof(FilteringComboBox), new FrameworkPropertyMetadata(true, OnIsFilteringChanged));
-
-        /// <summary>
-        /// Identifies the <see cref="ItemsToExclude"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty ItemsToExcludeProperty = DependencyProperty.Register("ItemsToExclude", typeof(IEnumerable), typeof(FilteringComboBox));
 
         /// <summary>
         /// Identifies the <see cref="Sort"/> dependency property.
@@ -170,9 +161,6 @@ namespace Stride.Core.Presentation.Controls
         /// Gets or sets the content to display when the TextBox is empty.
         /// </summary>
         public bool IsFiltering { get { return (bool)GetValue(IsFilteringProperty); } set { SetValue(IsFilteringProperty, value); } }
-
-        [Obsolete]
-        public IEnumerable ItemsToExclude { get { return (IEnumerable)GetValue(ItemsToExcludeProperty); } set { SetValue(ItemsToExcludeProperty, value); } }
 
         /// <summary>
         /// Gets or sets the comparer used to sort items.
@@ -362,9 +350,7 @@ namespace Stride.Core.Presentation.Controls
             clearing = true;
             if (!RequireSelectedItemToValidate)
             {
-                updatingSelection = true;
                 SelectedItem = null;
-                updatingSelection = false;
             }
             if (ValidateOnLostFocus)
             {
@@ -380,7 +366,6 @@ namespace Stride.Core.Presentation.Controls
             if (ItemsSource == null)
                 return;
 
-            updatingSelection = true;
             if (!IsDropDownOpen && !clearing && IsKeyboardFocusWithin)
             {
                 // Setting IsDropDownOpen to true will select all the text. We don't want this behavior, so let's save and restore the caret index.
@@ -405,7 +390,6 @@ namespace Stride.Core.Presentation.Controls
                     listBox.SelectedIndex = 0;
                 }
             }
-            updatingSelection = false;
         }
 
         private void UpdateCollectionView()
@@ -421,8 +405,6 @@ namespace Stride.Core.Presentation.Controls
 
         private void EditableTextBoxPreviewKeyDown(object sender, KeyEventArgs e)
         {
-            updatingSelection = true;
-
             if (e.Key == Key.Escape)
             {
                 if (IsDropDownOpen)
@@ -439,7 +421,6 @@ namespace Stride.Core.Presentation.Controls
 
             if (listBox.Items.Count <= 0)
             {
-                updatingSelection = false;
                 return;
             }
 
@@ -505,7 +486,6 @@ namespace Stride.Core.Presentation.Controls
                     BringSelectedItemIntoView();
                     break;
             }
-            updatingSelection = false;
         }
 
         private void ListBoxMouseUp(object sender, [NotNull] MouseButtonEventArgs e)
@@ -535,9 +515,6 @@ namespace Stride.Core.Presentation.Controls
                 return true;
 
             if (obj == null)
-                return false;
-
-            if (ItemsToExclude != null && ItemsToExclude.Cast<object>().Contains(obj))
                 return false;
 
             var value = ResolveSortMemberValue(obj);

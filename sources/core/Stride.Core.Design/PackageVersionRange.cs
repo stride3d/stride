@@ -36,7 +36,9 @@ namespace Stride.Core
     /// </code>
     /// </remarks>
     [DataContract("PackageVersionDependency")]
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     public sealed class PackageVersionRange : IEquatable<PackageVersionRange>
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageVersionRange"/> class.

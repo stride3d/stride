@@ -149,7 +149,7 @@ namespace Stride.Engine
             }
         }
 
-        private int priority;
+        private long priority;
 
         /// <summary>
         /// The priority this script will be scheduled with (compared to other scripts).
@@ -157,7 +157,7 @@ namespace Stride.Engine
         /// <userdoc>The execution priority for this script. It applies to async, sync and startup scripts. Lower values mean earlier execution.</userdoc>
         [DefaultValue(0)]
         [DataMember(10000)]
-        public int Priority
+        public long Priority
         {
             get { return priority; }
             set { priority = value; PriorityUpdated(); }

@@ -8,7 +8,6 @@ using System.Windows;
 
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Extensions;
 using Stride.Core.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.View
@@ -42,7 +41,7 @@ namespace Stride.Core.Assets.Editor.View
 
         public override async Task<DialogResult> ShowModal()
         {
-            foreach (var package in await session.SuggestPackagesToAdd())
+            foreach (var package in session.SuggestPackagesToAdd())
             {
                 if (Filter == null || Filter(package))
                     Packages.Add(package);

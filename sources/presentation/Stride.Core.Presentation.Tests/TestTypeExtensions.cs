@@ -2,9 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Stride.Core.Presentation.Extensions;
 using Xunit;
 
@@ -41,7 +38,9 @@ namespace Stride.Core.Presentation.Tests
 
         private struct GenericStruct<T>
         {
+#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
             public T Field;
+#pragma warning restore CS0649
         }
     }
 }

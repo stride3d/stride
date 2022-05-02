@@ -70,8 +70,8 @@ namespace Stride.Core.VisualStudio
             IEnumerable<PropertyItem> versionControlLines,
             IEnumerable<PropertyItem> projectConfigurationPlatformsLines)
         {
-            if (guid == null) throw new ArgumentNullException(nameof(guid));
-            if (typeGuid == null) throw new ArgumentNullException(nameof(typeGuid));
+            if (guid == Guid.Empty) throw new ArgumentNullException(nameof(guid));
+            if (typeGuid == Guid.Empty) throw new ArgumentNullException(nameof(typeGuid));
             if (name == null) throw new ArgumentNullException(nameof(name));
 
             this.guid = guid;

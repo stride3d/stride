@@ -46,9 +46,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
             private Matrix prevWorldMatrix;
 
             private HighlightAdorner highlightAdorner;
-#if DEBUG
-            private bool isVisible;
-#endif
 
             public AdornerLayer(UIElement gameSideElement)
             {
@@ -123,9 +120,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 
             public void Hide()
             {
-#if DEBUG
-                isVisible = false;
-#endif
                 foreach (var adorner in adorners)
                 {
                     adorner.Hide();
@@ -162,9 +156,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 
             public void Show()
             {
-#if DEBUG
-                isVisible = true;
-#endif
                 foreach (var adorner in adorners)
                 {
                     adorner.Show();

@@ -94,11 +94,6 @@ namespace Stride.Core.Translation.Extractor
             {
                 entry.Context = message.Context;
             }
-            // Auto comments
-            if (!string.IsNullOrEmpty(message.Comment))
-            {
-                entry.AddAutoComment(message.Comment, true);
-            }
             // Preserve previous comments
             if (newEntry && Options.PreserveComments)
             {

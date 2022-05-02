@@ -39,9 +39,13 @@ namespace Stride.VisualStudio.Classifiers
         private IVsFontAndColorUtilities fontAndColorUtilities;
 
         [Import]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "This is a MEF component part. See IClassificationFormatMapService")]
         private IClassificationFormatMapService classificationFormatMapService = null;
 
         [Import]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0044:Add readonly modifier")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "This is a MEF component part. See IClassificationTypeRegistryService")]
         private IClassificationTypeRegistryService classificationTypeRegistry = null;
 
         protected ClassificationColorManager(IServiceProvider serviceProvider)
