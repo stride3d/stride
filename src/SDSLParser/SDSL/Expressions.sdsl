@@ -1,1 +1,1 @@
-5*(float)8;
+true ? (5+0) : (float)5;

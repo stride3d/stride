@@ -28,7 +28,7 @@ public partial class SDSLGrammar : Grammar
 
     public SDSLGrammar UsingPrimaryExpression()
     {
-        Inner = MulExpression.Then(";");
+        Inner = PrimaryExpression.Then(";");
         return this;
     }
 
@@ -109,11 +109,13 @@ public partial class SDSLGrammar : Grammar
             shift.Named("ShiftExpression")
             | SumExpression 
         );
+        var parenShift =
+            LeftParen.Then(ShiftExpression).Then(RightParen).SeparatedBy(ls);
 
 
         
         var testOp = Less | LessEqual | Greater | GreaterEqual;
-        var test = ShiftExpression.Then(testOp).Then(TestExpression).SeparatedBy(ls);
+        var test = (parenShift | ShiftExpression).Then(testOp).Then(TestExpression).SeparatedBy(ls);
         
         TestExpression.Add(
             test.Named("TestExpression")
@@ -168,9 +170,9 @@ public partial class SDSLGrammar : Grammar
             LogicalOrExpression.NotFollowedBy(ls & "?")
             | LogicalOrExpression
                 .Then("?")
-                    .Then(PrimaryExpression)
+                    .Then(CastExpression | ParenExpression | LogicalOrExpression)
                     .Then(":")
-                    .Then(PrimaryExpression)
+                    .Then(CastExpression | ParenExpression | LogicalOrExpression)
                     .SeparatedBy(ls)
                     .Named("Ternary")
                 
