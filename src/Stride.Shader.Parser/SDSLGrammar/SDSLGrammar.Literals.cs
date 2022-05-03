@@ -66,13 +66,6 @@ public partial class SDSLGrammar : Grammar
 			floats - ints
 			| ints
 			| StringLiteral
-		);
-			// .NotFollowedBy(IntegerSuffix) - FloatLiteral
-			// | IntegerLiteral.Then(IntegerSuffix) - FloatLiteral 
-			// // | FloatLiteral.NotFollowedBy(FloatSuffix)
-			// // | FloatLiteral.Then(FloatSuffix)
-			// // | HexaDecimalLiteral
-			// | StringLiteral;
-		
+		);		
 	}
 }
