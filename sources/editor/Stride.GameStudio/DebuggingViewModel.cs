@@ -36,7 +36,6 @@ namespace Stride.GameStudio
     public class DebuggingViewModel : DispatcherViewModel, IDisposable
     {
 
-        private readonly IDebugService debugService;
         private readonly GameStudioViewModel editor;
         private readonly Dictionary<PackageLoadedAssembly, ModifiedAssembly> modifiedAssemblies;
         private readonly ScriptSourceCodeResolver scriptsSorter;
@@ -49,11 +48,10 @@ namespace Stride.GameStudio
         private bool buildInProgress;
         private ICancellableAsyncBuild currentBuild;
 
-        public DebuggingViewModel(GameStudioViewModel editor, IDebugService debugService)
+        public DebuggingViewModel(GameStudioViewModel editor)
             : base(editor.SafeArgument(nameof(editor)).ServiceProvider)
         {
             this.editor = editor;
-            this.debugService = debugService;
 
             outputTitle = outputTitleBase;
 
@@ -63,7 +61,6 @@ namespace Stride.GameStudio
             BuildProjectCommand = new AnonymousTaskCommand(ServiceProvider, () => BuildProject(false));
             StartProjectCommand = new AnonymousTaskCommand(ServiceProvider, () => BuildProject(true));
             CancelBuildCommand = new AnonymousCommand(ServiceProvider, () => { currentBuild?.Cancel(); });
-            LivePlayProjectCommand = new AnonymousTaskCommand(ServiceProvider, LivePlayProject);
             ReloadAssembliesCommand = new AnonymousTaskCommand(ServiceProvider, ReloadAssemblies) { IsEnabled = false };
             ResetOutputTitleCommand = new AnonymousCommand(ServiceProvider, () => OutputTitle = outputTitleBase);
             modifiedAssemblies = new Dictionary<PackageLoadedAssembly, ModifiedAssembly>();
@@ -125,9 +122,6 @@ namespace Stride.GameStudio
         public ICommandBase CancelBuildCommand { get; }
 
         [NotNull]
-        public ICommandBase LivePlayProjectCommand { get; }
-
-        [NotNull]
         public ICommandBase ReloadAssembliesCommand { get; }
 
         [NotNull]
@@ -150,7 +144,6 @@ namespace Stride.GameStudio
         private void Cleanup()
         {
             BuildLog.Destroy();
-            debugService?.Dispose();
 
             trackAssemblyChanges = false;
             assemblyTrackingCancellation.Cancel();
@@ -213,7 +206,6 @@ namespace Stride.GameStudio
             BuildProjectCommand.IsEnabled = !BuildInProgress;
             StartProjectCommand.IsEnabled = hasCurrentProject && !BuildInProgress;
             CancelBuildCommand.IsEnabled = BuildInProgress;
-            LivePlayProjectCommand.IsEnabled = hasCurrentProject && !BuildInProgress;
             ReloadAssembliesCommand.IsEnabled = assemblyChangesPending && !BuildInProgress;
         }
 
@@ -302,46 +294,6 @@ namespace Stride.GameStudio
                 }
                 // Make sure we refresh the property grid so we don't reference any old type
                 Session.AssetViewProperties.RefreshSelectedPropertiesAsync().Forget();
-            }
-        }
-
-        private async Task<bool> LivePlayProject()
-        {
-            LiveScriptingLog.ClearMessages();
-
-            if (!await PrepareBuild())
-                return false;
-
-            // Make sure it is Windows platform (only supported for now)
-            if (Session.CurrentProject.Platform != PlatformType.Windows)
-            {
-                await ServiceProvider.Get<IDialogService>()
-                    .MessageBox(
-                        string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform),
-                        MessageBoxButton.OK, MessageBoxImage.Information);
-                return false;
-            }
-
-            BuildInProgress = true;
-            var jobToken = editor.Status.NotifyBackgroundJobStarted("Build in progress…", JobPriority.Compile);
-
-            var result = false;
-            try
-            {
-                // Build projects+assets (note: assets only would be enough)
-                if (!await BuildProjectCore(false))
-                {
-                    return false;
-                }
-
-                // Start live debugging
-                return result = await debugService.StartDebug(editor, Session.CurrentProject, assemblyReloadLogger);
-            }
-            finally
-            {
-                editor.Status.NotifyBackgroundJobFinished(jobToken);
-                editor.Status.PushDiscardableStatus(result ? "Build successful" : "Build failed");
-                BuildInProgress = false;
             }
         }
 

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Stride
 {
-    class ProcessOutputs
+    public class ProcessOutputs
     {
         public int ExitCode { get; set; }
 

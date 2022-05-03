@@ -78,6 +78,5 @@
     <None Include="AudioAssets\wave2.sdsnd" />
     <None Include="Stride.Audio.Tests.sdpkg" />
   </ItemGroup>
-  <Import Project="..\Stride.Shared\Refactor\Stride.Refactor.projitems" Label="Shared" />
   <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

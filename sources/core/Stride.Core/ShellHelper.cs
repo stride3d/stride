@@ -10,7 +10,7 @@ using Stride.Core.Diagnostics;
 
 namespace Stride
 {
-    class ShellHelper
+    public class ShellHelper
     {
         /// <summary>
         /// Run the process and get the output without deadlocks.
