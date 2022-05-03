@@ -212,11 +212,9 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqComponent">
     <ROW PrereqKey="A6D7F21EAEB4C4A901F0979CF110936" DisplayName=".NET Framework 4.7.2" SetupFileUrl="https://download.microsoft.com/download/6/E/4/6E48E8AB-DC00-419E-9704-06DD46E5F81D/NDP472-KB4054530-x86-x64-AllOS-ENU.exe" Location="1" ExactSize="83943272" WinNTVersions="Windows Vista RTM x86, Windows Server 2008 x86, Windows 7 RTM x86, Windows 10 version 1507 x86, Windows 10 version 1511 x86, Windows 10 version 1803 x86, Windows 10 version 1809 x86" WinNT64Versions="Windows Vista RTM x64, Windows Server 2008 x64, Windows 7 RTM x64, Windows Server 2008 R2 RTM x64, Windows 10 version 1507 x64, Windows 10 version 1511 x64, Windows 10 version 1803 x64, Windows 10 version 1809 x64" Operator="1" NoUiComLine="/q /norestart" Options="xy" MD5="87450cfa175585b23a76bbd7052ee66b" TargetName=".NET Framework 4.7.2"/>
-    <ROW PrereqKey="FAC9C433D3044829E6669A2C6FF54E6" DisplayName=".NET Desktop Runtime 6.0.2 x64" VersionMin="6.0" SetupFileUrl="https://download.visualstudio.microsoft.com/download/pr/efa32b7a-6eec-4d97-9cdc-c7336a29a749/3df4296170397cf60884dae1be3d103b/windowsdesktop-runtime-6.0.2-win-x64.exe" Location="1" ExactSize="57296456" WinNTVersions="Windows 9x/ME/NT/2000/XP/Vista/Windows 7/Windows 8 x86/Windows 8.1 x86/Windows 10 x86" WinNT64Versions="Windows Vista x64, Windows Server 2008 x64, Windows 7 RTM x64, Windows Server 2008 R2 x64, Windows 8 x64, Windows Server 2012 x64, Windows 10 version 1507 x64, Windows 10 version 1511 x64" Operator="1" NoUiComLine="/q /norestart" Options="xy" MD5="ce032ed3b098ceb4054eaf9c9158e2f5" TargetName=".NET 6.0"/>
-    <ATTRIBUTE name="PrereqsOrder" value="A6D7F21EAEB4C4A901F0979CF110936 FAC9C433D3044829E6669A2C6FF54E6"/>
+    <ATTRIBUTE name="PrereqsOrder" value="A6D7F21EAEB4C4A901F0979CF110936"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqSearchComponent">
     <ROW SearchKey="A6D7F21EAEB4C4A901F0979CF110936Rele" Prereq="A6D7F21EAEB4C4A901F0979CF110936" SearchType="9" SearchString="HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Release" RefContent="G461813" Order="1" Property="PreReqSearch_A6D7F21EAEB4C4A901F097"/>
-    <ROW SearchKey="FAC9C433D3044829E6669A2C6FF54E6Micr" Prereq="FAC9C433D3044829E6669A2C6FF54E6" SearchType="14" SearchString="[ProgramFiles64Folder]dotnet\shared\Microsoft.WindowsDesktop.App" VerMin="6.0.2" Order="1" Property="PreReqSearch_FAC9C433D3044829E6669A"/>
   </COMPONENT>
 </DOCUMENT>
