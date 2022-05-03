@@ -21,5 +21,6 @@ public partial class SDSLGrammar : Grammar
         CreateDirectiveExpressions();
         CreateExpressions();
         CreateStatements();
+        CreateShader();
     }
 }

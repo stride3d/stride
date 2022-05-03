@@ -1,1 +1,7 @@
-true ? (5+0) : (float)5;
+shader BaseShader<float a>
+{
+    float4 PSMain()
+    {
+        return float4(1);
+    }
+}

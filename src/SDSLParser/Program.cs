@@ -9,7 +9,7 @@ var shaderf = File.ReadAllText("./SDSL/Expressions.sdsl");
 // var parser = new SDSLGrammar();
 var parser = StrideGrammar.New("expr");
 var tokens = StrideGrammar.HlslGrammar("expression");
-var sdslParser = new SDSLGrammar().UsingPrimaryExpression();
+var sdslParser = new SDSLGrammar().UsingShader();
 var s = new Stopwatch();
 var match2 = sdslParser.Match(shaderf);
 s.Start();
