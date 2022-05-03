@@ -95,7 +95,6 @@ public partial class SDSLGrammar : Grammar
         var parameterList = 
             LeftParen
             .Then(Comma.Optional().Then(parameter).SeparatedBy(ws).Repeat(0).SeparatedBy(ws))
-            // .Then(parameter.Then(Literal(",").Repeat(0)))
             .Then(RightParen).SeparatedBy(ws);
 
         MethodDeclaration.Add(
