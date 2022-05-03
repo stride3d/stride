@@ -17,15 +17,19 @@ public partial class SDSLGrammar : Grammar
         var ls = WhiteSpace.Repeat(0);
         var ls1 = WhiteSpace.Repeat(1);  
 
-        var assign =
-            Identifier.Optional().Named("Type")
-            .Then(Identifier.Named("Variable"))
+        var assignValue =
+            Identifier.Named("Variable").NotFollowedBy(Identifier)
             .Then(AssignOperators.Named("AssignOp"))
             .Then(PrimaryExpression.Named("Value"))
             .SeparatedBy(ls);
+        
+        var assignVar =
+            Identifier.Named("Type")
+            .Then(assignValue).SeparatedBy(ls);
 
         Statement.Add(
-            assign.Named("Assign")
+            assignValue.Named("Assign")
+            | assignVar
         );
     }
 }

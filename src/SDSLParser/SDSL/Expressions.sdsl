@@ -1,6 +1,1 @@
-My_Method(
-    1,
-    true,
-    a++,
-    5>4
-);
+5*(float)8;

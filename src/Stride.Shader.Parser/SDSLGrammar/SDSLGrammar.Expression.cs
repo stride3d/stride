@@ -6,10 +6,19 @@ namespace Stride.Shader.Parser;
 public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser TermExpression = new();
+    public AlternativeParser PostFixExpression = new();
+    public AlternativeParser UnaryExpression = new();
+    public AlternativeParser CastExpression = new();
     public AlternativeParser MulExpression = new();
     public AlternativeParser SumExpression = new();
     public AlternativeParser ShiftExpression = new();
 
+    public AlternativeParser ConditionalExpression = new();
+    public AlternativeParser LogicalOrExpression = new();
+    public AlternativeParser LogicalAndExpression = new();
+    public AlternativeParser OrExpression = new();
+    public AlternativeParser XorExpression = new();
+    public AlternativeParser AndExpression = new();
     public AlternativeParser TestExpression = new();
 
     public AlternativeParser IncrementExpression = new();
@@ -19,7 +28,7 @@ public partial class SDSLGrammar : Grammar
 
     public SDSLGrammar UsingPrimaryExpression()
     {
-        Inner = PrimaryExpression.Then(";");
+        Inner = MulExpression.Then(";");
         return this;
     }
 
@@ -48,14 +57,35 @@ public partial class SDSLGrammar : Grammar
 
         TermExpression.Add(
             Literals
-            | IncrementExpression
+            | Identifier
             | ParenExpression.Named("ParenthesisExpr")
         );
 
-        var multiply = TermExpression.Then(Star | Div | Mod).Then(MulExpression).SeparatedBy(ls);
+        PostFixExpression.Add(
+            Identifier.Then(incrementOp).SeparatedBy(ls).Named("PostfixIncrement")
+            | Identifier.NotFollowedBy(ls & LeftBracket).Then(Dot.Then(Identifier).Repeat(0)).Named("AccessorChain")
+            | ParenExpression.Or(Identifier).Then(LeftBracket).Then(PrimaryExpression).Then(RightBracket).SeparatedBy(ls).Named("ArrayAccessor")
+            | TermExpression
+        );
+
+        UnaryExpression.Add(
+            Literal("sizeof").Then(LeftParen).Then(Identifier).Then(RightParen).Named("SizeOf")
+            | Literal("sizeof").Then(LeftParen).Then(UnaryExpression).Then(RightParen).Named("SizeOf")
+            | prefixIncrement.Named("PrefixIncrement")
+            | PostFixExpression
+        );
+
+        CastExpression.Add(
+            LeftParen.Then(Identifier).Then(RightParen).Then(UnaryExpression).SeparatedBy(ls).Named("CastExpression")
+            | UnaryExpression
+        );
+
+        
+
+        var multiply = CastExpression.Then(Star | Div | Mod).Then(MulExpression).SeparatedBy(ls);
         MulExpression.Add(
             multiply.Named("Multiplication")
-            | TermExpression
+            | CastExpression
         );
         var parenMulExpr = 
             LeftParen.Then(MulExpression).Then(RightParen).SeparatedBy(ls);
@@ -79,7 +109,8 @@ public partial class SDSLGrammar : Grammar
             shift.Named("ShiftExpression")
             | SumExpression 
         );
-        
+
+
         
         var testOp = Less | LessEqual | Greater | GreaterEqual;
         var test = ShiftExpression.Then(testOp).Then(TestExpression).SeparatedBy(ls);
@@ -108,6 +139,42 @@ public partial class SDSLGrammar : Grammar
             equals
             | TestExpression
         );
+
+        AndExpression.Add(
+            EqualsExpression.Then("&").Then(AndExpression).SeparatedBy(ls).Named("BitwiseAnd")
+            | EqualsExpression
+        );
+
+        XorExpression.Add(
+            AndExpression.Then("^").Then(XorExpression).SeparatedBy(ls).Named("BitwiseXor")
+            | AndExpression
+        );
+
+        OrExpression.Add(
+            XorExpression.Then("|").Then(OrExpression).SeparatedBy(ls).Named("BitwiseOr")
+            | XorExpression
+        );
+
+        LogicalAndExpression.Add(
+            OrExpression.Then("&&").Then(LogicalAndExpression).SeparatedBy(ls).Named("LogicalAnd")
+            | OrExpression
+        );
+        LogicalOrExpression.Add(
+            LogicalAndExpression.Then("||").Then(LogicalOrExpression).SeparatedBy(ls).Named("LogicalOr")
+            | LogicalAndExpression
+        );
+
+        ConditionalExpression.Add( 
+            LogicalOrExpression.NotFollowedBy(ls & "?")
+            | LogicalOrExpression
+                .Then("?")
+                    .Then(PrimaryExpression)
+                    .Then(":")
+                    .Then(PrimaryExpression)
+                    .SeparatedBy(ls)
+                    .Named("Ternary")
+                
+        );
         
         ParenExpression.Add(
             LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ls)
@@ -120,7 +187,7 @@ public partial class SDSLGrammar : Grammar
 
         PrimaryExpression.Add(
             methodCall
-            | EqualsExpression
+            | ConditionalExpression
         );
     }
 }
