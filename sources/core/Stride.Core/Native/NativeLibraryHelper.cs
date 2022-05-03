@@ -12,7 +12,7 @@ namespace Stride.Core
     public static class NativeLibraryHelper
     {
         private const string UNIX_LIB_PREFIX = "lib";
-        private static readonly Dictionary<string, IntPtr> LoadedLibraries = new Dictionary<string, IntPtr>();
+        private static readonly Dictionary<string, IntPtr> LoadedLibraries = new Dictionary<string, IntPtr>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Try to preload the library.
@@ -90,13 +90,13 @@ namespace Stride.Core
                     // e.g. /lib/x86_64-linux-gnu, /lib, /usr/lib, etc. 
                     if (NativeLibrary.TryLoad(libraryNameWithExtension, out var result))
                     {
-                        LoadedLibraries.Add(libraryName.ToLowerInvariant(), result);
+                        LoadedLibraries.Add(libraryName, result);
                         return;
                     }
                     else if (!libraryName.StartsWith(UNIX_LIB_PREFIX)
                         && NativeLibrary.TryLoad(UNIX_LIB_PREFIX + libraryNameWithExtension, out result))
                     {
-                        LoadedLibraries.Add(libraryName.ToLowerInvariant(), result);
+                        LoadedLibraries.Add(libraryName, result);
                         return;
                     }
                 }
@@ -117,7 +117,7 @@ namespace Stride.Core
                         var libraryFilename = Path.Combine(libraryPath, libraryNameWithExtension);
                         if (NativeLibrary.TryLoad(libraryFilename, out var result))
                         {
-                            LoadedLibraries.Add(libraryName.ToLowerInvariant(), result);
+                            LoadedLibraries.Add(libraryName, result);
                             return;
                         }
                     }
@@ -129,7 +129,7 @@ namespace Stride.Core
                     var libraryFilename = Path.Combine(p, libraryNameWithExtension);
                     if (NativeLibrary.TryLoad(libraryFilename, out var result))
                     {
-                        LoadedLibraries.Add(libraryName.ToLowerInvariant(), result);
+                        LoadedLibraries.Add(libraryName, result);
                         return;
                     }
                 }
