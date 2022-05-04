@@ -7,8 +7,8 @@ using EtoParser = Eto.Parse.Parser;
 namespace Stride.Shader.Parser;
 public partial class SDSLGrammar : Grammar
 {
-	AlternativeParser IntegerSuffix;
-	AlternativeParser FloatSuffix;
+	AlternativeParser IntegerSuffix = new();
+	AlternativeParser FloatSuffix = new();
 	
 	public SequenceParser SingleLineComment = new(); 
 	public SequenceParser BlockComment = new(); 

@@ -10,12 +10,13 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser Statement = new();
     public AlternativeParser ControlFlow = new();
     public AlternativeParser MethodDeclaration = new();
+    public AlternativeParser ConstantBuffer = new();
     public AlternativeParser Block = new();
     
 
     public SDSLGrammar UsingStatements()
     {
-        Inner = ControlFlow;
+        Inner = Statement;
         return this;
     }
     public void CreateStatements()
@@ -25,6 +26,7 @@ public partial class SDSLGrammar : Grammar
 
         var declare = 
             Identifier.Then(Identifier).SeparatedBy(ws1).Then(";").SeparatedBy(ws);
+        
         var assignVar =
             Identifier.Named("Variable").NotFollowedBy(Identifier)
             .Then(AssignOperators.Named("AssignOp"))
@@ -38,6 +40,24 @@ public partial class SDSLGrammar : Grammar
             Identifier.Named("Type")
             .Then(assignVar)
             .SeparatedBy(ws1);
+
+        var declaratorSupplement = 
+            Colon.Then(
+                    Packoffset.Then(LeftParen).Then(Identifier.Then(Dot.Then(Identifier).Repeat(0))).Then(RightParen).SeparatedBy(ws).Named("PackOffset")
+                    | Register.Then(LeftParen).Then(Identifier).Then(RightParen).SeparatedBy(ws).Named("RegisterAllocation")
+                    | Identifier.Named("Semantic")
+                ).SeparatedBy(ws).Optional();
+        var arrayRank = 
+            LeftBracket.Then(PrimaryExpression).Then(RightBracket).SeparatedBy(ws).Named("ArrayRankSpecifier").Optional();
+
+
+        var genericDeclaration =
+            Literal("stage").Named("Stage").Optional().Then(Literal("stream").Named("Stream").Optional())
+            .Then((ValueTypes | Identifier).Named("Type"))
+            .Then(Identifier.Named("Name").Then(arrayRank)).SeparatedBy(ws1)
+            .Then((AssignOperators & PrimaryExpression).SeparatedBy(ws).Optional())
+            .Then(declaratorSupplement)
+            .Then(";").SeparatedBy(ws);
 
         var returnStatement = 
             Return.Then(PrimaryExpression).SeparatedBy(ws1)
@@ -61,12 +81,11 @@ public partial class SDSLGrammar : Grammar
         );
 
         Statement.Add(
-            Attribute.Named("Attribute")
-            | Block.Named("BlockExpression")
-            | returnStatement
-            | assignVar.Named("AssignExpression")
-            | declareAssign.Named("DeclareAssign")
-            | PrimaryExpression.Then(";").SeparatedBy(ws).Named("EmptyStatement")
+            // Attribute.Named("Attribute")
+            // | Block.Named("BlockExpression")
+            // | returnStatement
+            genericDeclaration
+            // | PrimaryExpression.Then(";").SeparatedBy(ws).Named("EmptyStatement")
         );
 
         Block.Add(
@@ -101,6 +120,12 @@ public partial class SDSLGrammar : Grammar
             Identifier.Then(Identifier).SeparatedBy(ws1)
                 .Then(parameterList)
                 .Then(LeftBrace).Then(Statement.Repeat(0)).Then(RightBrace).SeparatedBy(ws).Named("MethodDeclaration")
+        );
+        
+        ConstantBuffer.Add(
+            Literal("cbuffer").Then(Identifier).SeparatedBy(ws1)
+            .Then(LeftBrace)
+            .Then()
         );
     }
 }

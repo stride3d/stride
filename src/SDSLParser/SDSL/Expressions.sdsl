@@ -1,7 +1,1 @@
-shader BaseShader<float a>
-{
-    float4 PSMain()
-    {
-        return float4(1);
-    }
-}
+stream float a[4] : packoffset(a);
