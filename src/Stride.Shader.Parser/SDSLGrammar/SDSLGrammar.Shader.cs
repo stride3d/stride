@@ -29,15 +29,20 @@ public partial class SDSLGrammar : Grammar
         var mixins = 
             Comma.Optional().Then(Identifier).Then(generics).SeparatedBy(ws).Repeat(0).SeparatedBy(ws);
 
-        var shaderContentTypes = 
-            MethodDeclaration;
+        var comments = 
+            SingleLineComment
+            | BlockComment;
+        var shaderContentTypes =
+            comments
+            | GenericDeclaration
+            | MethodDeclaration;
 
         var shaderBody = 
             LeftBrace.Then(shaderContentTypes.Repeat(0).SeparatedBy(ws)).Then(RightBrace).SeparatedBy(ws);
 
         Shader.Add(
             Literal("shader")
-            .Then(Identifier.Then(generics).SeparatedBy(ws)).SeparatedBy(ws1)
+            .Then(Identifier.Then(generics.Optional()).SeparatedBy(ws)).SeparatedBy(ws1)
             //.Then(Literal(":").Then(mixins).SeparatedBy(ws).Optional())
             .Then(shaderBody).Named("ShaderProgram")
         );

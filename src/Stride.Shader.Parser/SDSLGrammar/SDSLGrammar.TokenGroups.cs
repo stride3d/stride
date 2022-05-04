@@ -55,33 +55,33 @@ public partial class SDSLGrammar : Grammar
             | OrAssign;
 
         BoolTypes =
-            Bool - BoolVec
-            | BoolVec - BoolMat
+            Bool.NotFollowedBy(Set("1234"))
+            | BoolVec.NotFollowedBy("x")
             | BoolMat;
 
         HalfTypes =
-            Half - HalfVec
-            | HalfVec - HalfMat
+            Half.NotFollowedBy(Set("1234"))
+            | HalfVec.NotFollowedBy("x")
             | HalfMat;
 
         FloatTypes =
-            Float - FloatVec
-            | FloatVec - FloatMat
+            Float.NotFollowedBy(Set("1234"))
+            | FloatVec.NotFollowedBy("x")
             | FloatMat;
 
         DoubleTypes =
-            Double - DoubleVec
-            | DoubleVec - DoubleMat
+            Double.NotFollowedBy(Set("1234"))
+            | DoubleVec.NotFollowedBy("x")
             | DoubleMat;
 
         IntTypes =
-            Int - IntVec
-            | IntVec - IntMat
+            Int.NotFollowedBy(Set("1234"))
+            | IntVec.NotFollowedBy("x")
             | IntMat;
 
         UintTypes =
-            Uint - UintVec
-            | UintVec - UintMat
+            Uint.NotFollowedBy(Set("1234"))
+            | UintVec.NotFollowedBy("x")
             | UintMat;
 
         ValueTypes =

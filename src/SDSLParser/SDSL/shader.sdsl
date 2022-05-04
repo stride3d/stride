@@ -1,7 +1,13 @@
-shader BasicShader {
-    stream float a =  0;
+shader BasicMixin<float a>
+{
+    float myFloat = 0.2f;
+    stage float3 myPosition : register(b);
+    stage stream float2 screenPosition : register(vs, b);
+    
+    abstract void myFunc();
 
-    c_buffer PerMaterial{
-        stage float b = 0;
+    float4 ComputeColor()
+    {
+        return float4(1.0);
     }
-}
+};
