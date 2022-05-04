@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Eto.Parse\Eto.Parse\Eto.Parse.csproj" />
-    <ProjectReference Include="..\Stride.Shader.Parser\Stride.Shader.Parser.csproj" />
+    <ProjectReference Include="..\Stride.Shader.Parsing\Stride.Shader.Parsing.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="../Stride.Shader.Parser/*.ebnf" />
+    <EmbeddedResource Include="../Stride.Shader.Parsing/*.ebnf" />
   </ItemGroup>
 
   

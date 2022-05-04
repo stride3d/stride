@@ -2,7 +2,7 @@ using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
 
-namespace Stride.Shader.Parser;
+namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser IncOperators = new();

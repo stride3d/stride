@@ -1,14 +1,12 @@
 ﻿using Eto.Parse;
 using Eto.Parse.Grammars;
-using Stride.Shader.Parser;
+using Stride.Shader.Parsing;
 using System.Diagnostics;
 
 
 var shaderf = File.ReadAllText("./SDSL/shader.sdsl");
 
-// var parser = new SDSLGrammar();
-var parser = StrideGrammar.New("expr");
-var tokens = StrideGrammar.HlslGrammar("expression");
+var parser = new SDSLParser();
 var sdslParser = new SDSLGrammar().UsingShader();
 var s = new Stopwatch();
 var match2 = sdslParser.Match(shaderf);

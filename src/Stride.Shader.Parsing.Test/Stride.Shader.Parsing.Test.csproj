@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Shader.Parser\Stride.Shader.Parser.csproj" />
+    <ProjectReference Include="..\Stride.Shader.Parsing\Stride.Shader.Parsing.csproj" />
     <ProjectReference Include="..\Eto.Parse\Eto.Parse\Eto.Parse.csproj" />
   </ItemGroup>
 

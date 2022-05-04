@@ -2,7 +2,7 @@ using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
 
-namespace Stride.Shader.Parser;
+namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser Declarations = new();
@@ -30,12 +30,12 @@ public partial class SDSLGrammar : Grammar
             Comma.Optional().Then(Identifier).Then(generics).SeparatedBy(ws).Repeat(0).SeparatedBy(ws);
 
         var comments = 
-            SingleLineComment
-            | BlockComment;
+            (SingleLineComment
+            | BlockComment).Repeat(0);
         var shaderContentTypes =
-            comments
-            | GenericDeclaration
-            | MethodDeclaration;
+            GenericDeclaration
+            | MethodDeclaration
+            | comments;
 
         var shaderBody = 
             LeftBrace.Then(shaderContentTypes.Repeat(0).SeparatedBy(ws)).Then(RightBrace).SeparatedBy(ws);
@@ -45,6 +45,7 @@ public partial class SDSLGrammar : Grammar
             .Then(Identifier.Then(generics.Optional()).SeparatedBy(ws)).SeparatedBy(ws1)
             //.Then(Literal(":").Then(mixins).SeparatedBy(ws).Optional())
             .Then(shaderBody).Named("ShaderProgram")
+            .Then(";").SeparatedBy(ws)
         );
     }
 }

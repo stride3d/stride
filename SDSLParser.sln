@@ -5,11 +5,11 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5F88D871-B760-4857-BD74-296B07778B15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDSLParser", "src\SDSLParser\SDSLParser.csproj", "{04B29CCB-301A-4B1B-8EE2-3866DDAA86CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDSLParserExample", "src\SDSLParserExample\SDSLParserExample.csproj", "{04B29CCB-301A-4B1B-8EE2-3866DDAA86CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shader.Parser", "src\Stride.Shader.Parser\Stride.Shader.Parser.csproj", "{3A20C614-0B73-4592-B0A3-152FBA7C112C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shader.Parsing", "src\Stride.Shader.Parsing\Stride.Shader.Parsing.csproj", "{3A20C614-0B73-4592-B0A3-152FBA7C112C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shader.Parser.Test", "src\Stride.Shader.Parser.Test\Stride.Shader.Parser.Test.csproj", "{6D885FCB-C043-4065-BA7E-E4937667B219}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shader.Parsing.Test", "src\Stride.Shader.Parsing.Test\Stride.Shader.Parsing.Test.csproj", "{6D885FCB-C043-4065-BA7E-E4937667B219}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

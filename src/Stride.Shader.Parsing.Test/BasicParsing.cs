@@ -1,11 +1,11 @@
 using Xunit;
 using System.Linq;
-using Stride.Shader.Parser;
+using Stride.Shader.Parsing;
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using System.Collections.Generic;
 
-namespace Stride.Shader.Parser.Test;
+namespace Stride.Shader.Parsing.Test;
 
 public class BasicParsing
 {

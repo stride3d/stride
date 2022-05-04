@@ -2,7 +2,7 @@ shader BasicMixin<float a>
 {
     float myFloat = 0.2f;
     stage float3 myPosition : register(b);
-    stage stream float2 screenPosition : register(vs, b);
+    //stage stream float2 screenPosition : register(vs, b);
     
     abstract void myFunc();
 
