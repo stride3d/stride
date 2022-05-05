@@ -11,14 +11,15 @@ namespace Stride.Shader.Parsing
         
         public CommentGrammar() : base("comments-sdsl")
         {
-            var singleLineComment = Literal("//").Then(AnyChar.Repeat(0).Until(Eol)).WithName("LineComment"); 
+            var commentStart = 
+                Literal("//")
+                | Literal("/*");
+            var singleLineComment = Literal("//").Then(AnyChar.Repeat(0).Until(Eol,false,true)).WithName("LineComment"); 
 		    var blockComment = Literal("/*").Then(AnyChar.Repeat(0).Until("*/",false,true)).WithName("BlockComment"); 
-
+            var anyComments = singleLineComment | blockComment;
             Comments.Add(
-                AnyChar.Repeat(0).Until(
-                    (singleLineComment| blockComment).Repeat(0),
-                    false,
-                    false)
+                anyComments.Repeat(0).SeparatedBy(WhiteSpace.Repeat(0)).Named("Comments")
+                .Then(AnyChar.Repeat(0).Until(commentStart).Named("ActualCode"))
                 .Repeat(0)
             );
             Inner = Comments;

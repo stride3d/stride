@@ -9,9 +9,9 @@ var shaderf = File.ReadAllText("./SDSL/shader.sdsl");
 var parser = new SDSLParser();
 var sdslParser = new SDSLGrammar().UsingShader();
 var s = new Stopwatch();
-var match2 = sdslParser.Match(shaderf);
+var match2 = parser.Parse(shaderf);
 s.Start();
-var match = sdslParser.Match(shaderf);
+var match = parser.Parse(shaderf);
 s.Stop();
 
 

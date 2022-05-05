@@ -10,6 +10,7 @@ public partial class SDSLGrammar : Grammar
     public SDSLGrammar() : base("sdsl")
     {
         CreateAll();
+        Inner = Shader;
     }
 
     public void CreateAll()

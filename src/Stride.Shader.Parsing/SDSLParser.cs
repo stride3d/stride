@@ -16,7 +16,17 @@ public class SDSLParser
 
     public GrammarMatch Parse(string shader)
     {
-        return Comments.Match(shader);
+        var comments = Comments.Match(shader);
+        var actualCode = new StringBuilder();
+        foreach(var m in comments.Matches)
+        {
+            if(m.Name == "ActualCode")
+            {
+                actualCode.Append(m.StringValue);
+            }
+        }
+        var match = SdslGrammar.Match(actualCode.ToString());
+        return match;
     }
 
 }   

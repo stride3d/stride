@@ -1,0 +1,6 @@
+// my first line
+// Hello second line
+float a;
+/* this is a block comment
+    And i can say a bit more on this line
+*/
