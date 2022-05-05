@@ -6,7 +6,7 @@
 
 [SDSL](https://doc.stride3d.net/latest/en/manual/graphics/effects-and-shaders/shading-language/index.html) is a shader language created for the [Stride game engine](https://www.stride3d.net/).
 
-a superset of the HLSL Shading language, bringing advanced and higher level language constructions, with:
+SDSL is a superset of the HLSL Shading language, bringing advanced and higher level language constructions, with:
 
 * **extensibility** to allow shaders to be extended easily using object-oriented programming concepts such as classes, inheritance, and composition
 
