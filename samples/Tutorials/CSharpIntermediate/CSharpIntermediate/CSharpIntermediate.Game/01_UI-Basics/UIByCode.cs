@@ -18,7 +18,7 @@ namespace CSharpIntermediate.Code
 
         public override void Start()
         {
-            font = Content.Load<SpriteFont>("UI/Ebrima");
+            font = Content.Load<SpriteFont>("UI/OpenSans-font");
             button = CreateButton("Show me the time!");
             textBlock = CreateTextBlock("...");
 
@@ -29,10 +29,11 @@ namespace CSharpIntermediate.Code
             {
                 RootElement = new StackPanel
                 {
-                    DefaultHeight = 200,
-                    DefaultWidth = 600,
-                    Margin = new Thickness(600.0f, 600, 0, 0),
-
+                    Height = 200,
+                    Width = 400,
+                    Margin = new Thickness(0, 0, 10, 10),
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    HorizontalAlignment = HorizontalAlignment.Right,
                     BackgroundColor = new Color(0, 1, 0, 0.1f),
                     Children =
                     {
