@@ -6,6 +6,7 @@ namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser StructDefinition = new();
+    public AlternativeParser ParameterList = new();
     public AlternativeParser Attribute = new();
     public AlternativeParser Statement = new();
     public AlternativeParser ControlFlow = new();
@@ -26,7 +27,7 @@ public partial class SDSLGrammar : Grammar
         var ws1 = WhiteSpace.Repeat(1);  
 
         var declare = 
-            Identifier.Then(Identifier).SeparatedBy(ws1).Then(";").SeparatedBy(ws);
+            Identifier.Then(Identifier).SeparatedBy(ws1).Then(Semi).SeparatedBy(ws);
         
         var assignVar =
             Identifier.Named("Variable").NotFollowedBy(Identifier)
@@ -34,7 +35,13 @@ public partial class SDSLGrammar : Grammar
             .Then(PrimaryExpression.Named("Value"))
             .Then(Semi)
             .SeparatedBy(ws);
-        
+
+        var assignChain = 
+            Identifier.Then(Dot.Then(Identifier).Repeat(0))
+            .Then(AssignOperators)
+            .Then(PrimaryExpression)
+            .Then(Semi)
+            .SeparatedBy(ws);
         
 
         var declareAssign =
@@ -83,9 +90,9 @@ public partial class SDSLGrammar : Grammar
         );
 
         Statement.Add(
-            Attribute.Named("Attribute")
-            | Block.Named("BlockExpression")
+            Block.Named("BlockExpression")
             | returnStatement.Named("Return")
+            | assignChain
             | declareAssign.Named("DeclareAssign")
             | assignVar.Named("Assign")
             | PrimaryExpression.Then(";").SeparatedBy(ws).Named("EmptyStatement")
@@ -114,16 +121,21 @@ public partial class SDSLGrammar : Grammar
         );
 
         var parameter = Identifier.Then(Identifier).SeparatedBy(ws1);
-        var parameterList = 
+        ParameterList.Add(
             LeftParen
             .Then(Comma.Optional().Then(parameter).SeparatedBy(ws).Repeat(0).SeparatedBy(ws))
-            .Then(RightParen).SeparatedBy(ws);
+            .Then(RightParen).SeparatedBy(ws)
+        );
 
         MethodDeclaration.Add(
-            Literal("abstract").Then(Literal("stage").Optional()).Then(Identifier).Then(Identifier).SeparatedBy(ws1).Then(parameterList).Then(Semi).SeparatedBy(ws).Named("AbstractMethod")
-            | Literal("stage").Optional().Then(Identifier).Then(Identifier).SeparatedBy(ws1)
-                .Then(parameterList)
-                .Then(LeftBrace).Then(Statement.Repeat(0)).Then(RightBrace).SeparatedBy(ws).Named("MethodDeclaration")
+            Literal("abstract").Then(Literal("stage").Optional()).Then(Identifier).Then(Identifier).SeparatedBy(ws1)
+                .Then(ParameterList).Then(Semi).SeparatedBy(ws).Named("AbstractMethod")
+            | Literal("override").Optional().Then(Literal("stage").Optional())
+                .Then(Identifier).Then(Identifier).SeparatedBy(ws1)
+                    .Then(ParameterList)
+                .Then(LeftBrace)
+                    .Then(Statement.Repeat(0))
+                .Then(RightBrace).SeparatedBy(ws).Named("MethodDeclaration")
         );
         
         ConstantBuffer.Add(

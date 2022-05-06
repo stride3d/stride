@@ -1,13 +1,18 @@
-shader BasicMixin<float a>
-{
+// Some comments
+shader BasicMixin<float a, int b, TypeName T> : BasicShader<float p, float>, Parent2<int freq>, Parent3 {
     float myFloat = 0.2f;
     stage float3 myPosition : register(b);
-    //stage stream float2 screenPosition : register(vs, b);
+    stage stream float2 screenPosition : register(vs, b);
     
     abstract void myFunc();
 
     float4 ComputeColor()
     {
         return float4(1.0);
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(0,0,0,1);
     }
 };

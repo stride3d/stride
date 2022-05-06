@@ -17,35 +17,39 @@ public partial class SDSLGrammar : Grammar
     public void CreateShader()
     {
         var ws = WhiteSpace.Repeat(0);
-        var ws1 = WhiteSpace.Repeat(1);  
+        var ws1 = WhiteSpace.Repeat(1);
 
         var genericValue = 
             Literal("TypeName").Then(Identifier).SeparatedBy(ws1).Named("GenericType")
-            | ValueTypes.Then(Identifier).SeparatedBy(ws1).Named("GenericValue");       
+            | ValueTypes.Then(Identifier).SeparatedBy(ws1).Named("GenericValue")
+            | ValueTypes;       
 
         var generics = 
-            Literal("<").Then(Comma.Optional().Then(genericValue).Repeat(1)).Then(">").SeparatedBy(ws);
+            Literal("<")
+            .Then(genericValue)
+            .Then(
+                Comma.Then(genericValue).SeparatedBy(ws).Repeat(0)
+            )
+            .Then(">").SeparatedBy(ws);
 
-        var mixins = 
-            Comma.Optional().Then(Identifier).Then(generics).SeparatedBy(ws).Repeat(0).SeparatedBy(ws);
-
-        var comments = 
-            (SingleLineComment
-            | BlockComment).Repeat(0);
         var shaderContentTypes =
             GenericDeclaration
-            | MethodDeclaration
-            | comments;
+            | Entries
+            | MethodDeclaration;
 
         var shaderBody = 
             LeftBrace.Then(shaderContentTypes.Repeat(0).SeparatedBy(ws)).Then(RightBrace).SeparatedBy(ws);
 
+        var inheritances = Colon.Then(Identifier.Then(generics.Optional()).Then(Comma.Then(Identifier.Then(generics.Optional())).SeparatedBy(ws).Repeat(0))).SeparatedBy(ws).Optional();
+        
+        
         Shader.Add(
-            Literal("shader")
-            .Then(Identifier.Then(generics.Optional()).SeparatedBy(ws)).SeparatedBy(ws1)
-            //.Then(Literal(":").Then(mixins).SeparatedBy(ws).Optional())
+            ws.Then(Literal("shader"))
+            .Then(Identifier.Then(generics.Optional())).SeparatedBy(ws1).Then(inheritances.Named("Inherit"))
+            //.Then(Literal(":").Then(Identifier.Then(Comma.Then(Identifier).Repeat(0))).SeparatedBy(ws).Optional())
             .Then(shaderBody).Named("ShaderProgram")
             .Then(";").SeparatedBy(ws)
+            .Then(ws)
         );
     }
 }

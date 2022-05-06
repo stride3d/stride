@@ -9,12 +9,11 @@ public partial class SDSLGrammar : Grammar
 {
 	AlternativeParser IntegerSuffix = new();
 	AlternativeParser FloatSuffix = new();
-	
-	public SequenceParser SingleLineComment = new(); 
-	public SequenceParser BlockComment = new(); 
     
 	public StringParser StringLiteral = new();
-	public EtoParser Identifier;
+	public SequenceParser Identifier = new();
+    public AlternativeParser UserDefinedId = new();
+
     public NumberParser IntegerLiteral = new();
 	public NumberParser FloatLiteral = new();
 	public HexDigitTerminal HexDigits = new();
@@ -31,7 +30,14 @@ public partial class SDSLGrammar : Grammar
 	}
 	public void CreateLiterals()
 	{
-		Identifier = Letter.Or("_").Then(LetterOrDigit.Or("_").Repeat(0)).WithName("Identifier");
+		Identifier.Add(
+			Letter.Or("_").Then(LetterOrDigit.Or("_").Repeat(0)).WithName("Identifier")
+		);
+
+		UserDefinedId.Add(
+            Identifier.Except(Keywords)
+        );
+
 		IntegerSuffix = 
 			Literal("u")
 			| Literal("l")
@@ -44,8 +50,7 @@ public partial class SDSLGrammar : Grammar
 			| Literal("F")
 			| Literal("D");
 		
-		SingleLineComment = Literal("//").Then(AnyChar.Repeat(0).Until(Eol)).WithName("LineComment"); 
-		BlockComment = Literal("/*").Then(AnyChar.Repeat(0).Until("*/",false,true)).WithName("BlockComment"); 
+		
 		
 		StringLiteral = new StringParser().WithName("StringLiteral");
 		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "float_value"}.WithName("IntegerValue");
