@@ -46,7 +46,6 @@ public partial class SDSLGrammar : Grammar
         Shader.Add(
             ws.Then(Literal("shader"))
             .Then(Identifier.Then(generics.Optional())).SeparatedBy(ws1).Then(inheritances.Named("Inherit"))
-            //.Then(Literal(":").Then(Identifier.Then(Comma.Then(Identifier).Repeat(0))).SeparatedBy(ws).Optional())
             .Then(shaderBody).Named("ShaderProgram")
             .Then(";").SeparatedBy(ws)
             .Then(ws)
