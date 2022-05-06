@@ -15,4 +15,10 @@ shader BasicMixin<float a, int b, TypeName T> : BasicShader<float p, float>, Par
     {
         streams.ColorTarget = float4(0,0,0,1);
     }
+    
+    [maxvertexcount(GeometryShaderMaxVertexCount)]
+    void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+    {
+        Storage.GenerateTriangles(input, triangleStream);
+    }
 };
