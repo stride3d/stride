@@ -24,105 +24,110 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser IncrementExpression = new();
     public AlternativeParser ParenExpression = new();
     public AlternativeParser EqualsExpression = new();
+    public AlternativeParser MethodCall = new();
     public AlternativeParser PrimaryExpression = new();
 
     public SDSLGrammar UsingPrimaryExpression()
     {
-        Inner = PrimaryExpression.Then(";");
+        Inner = PostFixExpression;
         return this;
     }
 
     public void CreateExpressions()
     {
-        var ls = WhiteSpace.Repeat(0);
+        var ws = WhiteSpace.Repeat(0);
         var ls1 = WhiteSpace.Repeat(1);
 
 
         var incrementOp = 
-            Literal("++").Named("PlusPlus")
-            | Literal("--").Named("MinusMinus");
-        
-        var postfixIncrement = 
-            Identifier.Then(incrementOp.Repeat(0,1)).SeparatedBy(ls);
-        var prefixIncrement = 
-            incrementOp.Named("IncrementOp").Then(Identifier).SeparatedBy(ls);
-
-
-
-        IncrementExpression.Add(
-            prefixIncrement.Named("PreIncrement")
-            | postfixIncrement
-        );
+            PlusPlus
+            | MinusMinus;
         
 
         TermExpression.Add(
-            Literals
-            | Identifier
-            | ParenExpression.Named("ParenthesisExpr")
+            Literals,
+            Identifier,
+            ParenExpression.Named("ParenthesisExpr")
+        );
+        
+        var arrayAccess = new SequenceParser();
+        var chain = new SequenceParser();
+        var postfixInc = new SequenceParser();
+
+
+        arrayAccess.Add(Identifier, LeftBracket, PrimaryExpression, RightBracket);
+        chain.Add(
+            arrayAccess.Named("ArrayAccessor") | Identifier,
+            (Dot & (arrayAccess.Named("ArrayAccessor") | Identifier)).Repeat(1)
+        );        
+        postfixInc.Add(
+            chain.Named("AccessorChain") | arrayAccess.Named("ArrayAccessor") | Identifier, 
+            incrementOp.Named("Operator")
         );
 
         PostFixExpression.Add(
-            Identifier.Then(incrementOp).SeparatedBy(ls).Named("PostfixIncrement")
-            | Identifier.NotFollowedBy(ls & LeftBracket).Then(Dot.Then(Identifier).Repeat(0)).Named("AccessorChain")
-            | ParenExpression.Or(Identifier).Then(LeftBracket).Then(PrimaryExpression).Then(RightBracket).SeparatedBy(ls).Named("ArrayAccessor")
-            | TermExpression
+            arrayAccess.SeparateChildrenBy(ws).Named("ArrayAccessor").NotFollowedBy(Dot | (ws & incrementOp)),
+            chain.Named("ChainAccessor").NotFollowedBy(ws & incrementOp),
+            postfixInc.Named("PostFixIncrement"),
+            TermExpression
         );
 
         UnaryExpression.Add(
-            Literal("sizeof").Then(LeftParen).Then(Identifier).Then(RightParen).Named("SizeOf")
-            | Literal("sizeof").Then(LeftParen).Then(UnaryExpression).Then(RightParen).Named("SizeOf")
-            | prefixIncrement.Named("PrefixIncrement")
-            | PostFixExpression
+            (incrementOp & ws & Identifier).Named("PrefixIncrement"),
+            Literal("sizeof").Then(LeftParen).Then(Identifier | UnaryExpression).Then(RightParen).Named("SizeOf"),
+            // Literal("sizeof").Then(LeftParen).Then(UnaryExpression).Then(RightParen).Named("SizeOf"),
+            PostFixExpression
         );
 
         CastExpression.Add(
-            LeftParen.Then(Identifier).Then(RightParen).Then(UnaryExpression).SeparatedBy(ls).Named("CastExpression")
+            LeftParen.Then(Identifier).Then(RightParen).Then(UnaryExpression).SeparatedBy(ws).Named("CastExpression")
             | UnaryExpression
         );
 
         
 
-        var multiply = CastExpression.Then(Star | Div | Mod).Then(MulExpression).SeparatedBy(ls);
+        var multiply = CastExpression.Then(Star | Div | Mod).Then(MulExpression).SeparatedBy(ws);
         MulExpression.Add(
             multiply.Named("Multiplication")
-            | CastExpression
+            | TermExpression
         );
         var parenMulExpr = 
-            LeftParen.Then(MulExpression).Then(RightParen).SeparatedBy(ls);
+            LeftParen.Then(MulExpression).Then(RightParen).SeparatedBy(ws);
 
         
         var sumOp = (Plus - PlusPlus) | (Minus - MinusMinus);
-        var add = (parenMulExpr | MulExpression).Then(sumOp).Then(SumExpression).SeparatedBy(ls);
+        var add = (parenMulExpr | MulExpression).Then(sumOp).Then(SumExpression).SeparatedBy(ws);
         SumExpression.Add(
             add.Named("Addition")
             | MulExpression
         );
 
         var parenSumExpr = 
-            LeftParen.Then(SumExpression).Then(RightParen).SeparatedBy(ls);
+            LeftParen.Then(SumExpression).Then(RightParen).SeparatedBy(ws);
 
         var shiftOp = LeftShift | RightShift;
         var shift = 
-            (parenSumExpr | SumExpression).Then(shiftOp.Named("Operator")).Then(ShiftExpression).SeparatedBy(ls);
+            (parenSumExpr | SumExpression).Then(shiftOp.Named("Operator")).Then(ShiftExpression).SeparatedBy(ws);
 
         ShiftExpression.Add(
-            shift.Named("ShiftExpression")
-            | SumExpression 
+            TermExpression.NotFollowedBy(ws & shiftOp)
+            | shift.Named("ShiftExpression")
+            // TermExpression.Then(RightShift).Then(TermExpression).SeparatedBy(ws)
         );
         var parenShift =
-            LeftParen.Then(ShiftExpression).Then(RightParen).SeparatedBy(ls);
+            LeftParen.Then(ShiftExpression).Then(RightParen).SeparatedBy(ws);
 
 
         
         var testOp = Less | LessEqual | Greater | GreaterEqual;
-        var test = (parenShift | ShiftExpression).Then(testOp).Then(TestExpression).SeparatedBy(ls);
+        var test = (parenShift | ShiftExpression).Then(testOp).Then(TestExpression).SeparatedBy(ws);
         
         TestExpression.Add(
             test.Named("TestExpression")
             | ShiftExpression
         );
 
-        var parenTestExpr = LeftParen.Then(TestExpression).Then(RightParen).SeparatedBy(ls);
+        var parenTestExpr = LeftParen.Then(TestExpression).Then(RightParen).SeparatedBy(ws);
         
         var eqOp = 
             Literal("==").Named("Equals")
@@ -134,7 +139,7 @@ public partial class SDSLGrammar : Grammar
             .Then(
                 BooleanTerm | EqualsExpression
             )
-            .SeparatedBy(ls).Named("Equals");
+            .SeparatedBy(ws).Named("Equals");
         
         
         EqualsExpression.Add(
@@ -143,52 +148,54 @@ public partial class SDSLGrammar : Grammar
         );
 
         AndExpression.Add(
-            EqualsExpression.Then("&").Then(AndExpression).SeparatedBy(ls).Named("BitwiseAnd")
+            EqualsExpression.Then("&").Then(AndExpression).SeparatedBy(ws).Named("BitwiseAnd")
             | EqualsExpression
         );
 
         XorExpression.Add(
-            AndExpression.Then("^").Then(XorExpression).SeparatedBy(ls).Named("BitwiseXor")
+            AndExpression.Then("^").Then(XorExpression).SeparatedBy(ws).Named("BitwiseXor")
             | AndExpression
         );
 
         OrExpression.Add(
-            XorExpression.Then("|").Then(OrExpression).SeparatedBy(ls).Named("BitwiseOr")
+            XorExpression.Then("|").Then(OrExpression).SeparatedBy(ws).Named("BitwiseOr")
             | XorExpression
         );
 
         LogicalAndExpression.Add(
-            OrExpression.Then("&&").Then(LogicalAndExpression).SeparatedBy(ls).Named("LogicalAnd")
+            OrExpression.Then("&&").Then(LogicalAndExpression).SeparatedBy(ws).Named("LogicalAnd")
             | OrExpression
         );
         LogicalOrExpression.Add(
-            LogicalAndExpression.Then("||").Then(LogicalOrExpression).SeparatedBy(ls).Named("LogicalOr")
+            LogicalAndExpression.Then("||").Then(LogicalOrExpression).SeparatedBy(ws).Named("LogicalOr")
             | LogicalAndExpression
         );
 
         ConditionalExpression.Add( 
-            LogicalOrExpression.NotFollowedBy(ls & "?")
+            LogicalOrExpression.NotFollowedBy(ws & "?")
             | LogicalOrExpression
                 .Then("?")
                     .Then(CastExpression | ParenExpression | LogicalOrExpression)
                     .Then(":")
                     .Then(CastExpression | ParenExpression | LogicalOrExpression)
-                    .SeparatedBy(ls)
+                    .SeparatedBy(ws)
                     .Named("Ternary")
                 
         );
         
         ParenExpression.Add(
-            LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ls)
+            LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ws)
         );
 
         
-        var parameters = EqualsExpression.Then(Comma.Then(PrimaryExpression).SeparatedBy(ls).Repeat(0)).SeparatedBy(ls);
-        var methodCall = Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ls).Named("MethodCallExpression");
+        var parameters = EqualsExpression.Then(Comma.Then(PrimaryExpression).SeparatedBy(ws).Repeat(0)).SeparatedBy(ws);
+        MethodCall.Add(
+            Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("MethodCallExpression")
+        );
 
 
         PrimaryExpression.Add(
-            methodCall
+            MethodCall
             | ConditionalExpression
         );
     }

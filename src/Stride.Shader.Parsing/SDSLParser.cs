@@ -6,17 +6,27 @@ using System.Text;
 public class SDSLParser
 {
     public CommentGrammar Comments {get;set;}
-    public SDSLGrammar SdslGrammar {get;set;}  
+    public SDSLGrammar Grammar {get;set;}  
 
     public SDSLParser()
     {
         Comments = new();
-        SdslGrammar = new();
+        Grammar = new();
+    }
+
+    public SDSLParser With(Parser p)
+    {
+        Grammar.Inner = p;
+        return this;
     }
 
     public GrammarMatch Parse(string shader)
     {
         var comments = Comments.Match(shader);
+        if(!comments.Matches.Any(x => x.Name == "Comment"))
+        {
+            return Grammar.Match(shader);
+        }
         var actualCode = new StringBuilder();
         foreach(var m in comments.Matches)
         {
@@ -25,8 +35,7 @@ public class SDSLParser
                 actualCode.Append(m.StringValue);
             }
         }
-        var match = SdslGrammar.Match(actualCode.ToString());
-        return match;
+        return Grammar.Match(actualCode.ToString());
     }
 
 }   

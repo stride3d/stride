@@ -1,1 +1,1 @@
-stream float a[4] : packoffset(a);
+float a[5];

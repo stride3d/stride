@@ -144,6 +144,10 @@ public partial class SDSLGrammar : Grammar
     private LiteralTerminal False = new();
     private AlternativeParser PreprocessorDirectiveName =  new();
 
+    private LiteralTerminal Stream = new();
+    private LiteralTerminal Stage = new();
+    
+
     public void CreateTokens()
     {
         WS = WhiteSpace;
@@ -298,6 +302,9 @@ public partial class SDSLGrammar : Grammar
             |   Literal("line")
             |   Literal("pragma")
             |   Literal("undef");
+        
+        Stage = Literal("stage");
+        Stream = Literal("stream");
         
     }
 }

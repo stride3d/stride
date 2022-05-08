@@ -1,4 +1,5 @@
 // Some comments
+
 shader BasicMixin<float a, int b, TypeName T> : BasicShader<float p, float>, Parent2<int freq>, Parent3 {
     float myFloat = 0.2f;
     stage float3 myPosition : register(b);
@@ -13,12 +14,13 @@ shader BasicMixin<float a, int b, TypeName T> : BasicShader<float p, float>, Par
 
     void PSMain()
     {
+        // float a = MyShader.Composition1.Composition2.MyFunction(1,0,true);
         streams.ColorTarget = float4(0,0,0,1);
     }
     
-    [maxvertexcount(GeometryShaderMaxVertexCount)]
-    void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
-    {
-        Storage.GenerateTriangles(input, triangleStream);
-    }
+    // [maxvertexcount(GeometryShaderMaxVertexCount)]
+    // void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+    // {
+    //     Storage.GenerateTriangles(input, triangleStream);
+    // }
 };

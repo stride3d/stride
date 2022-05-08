@@ -1,0 +1,8 @@
+
+
+
+
+void foo(in MyStruct<float, MyOtherStruct<float2>> a : SV_POSITION, out float b)
+{
+    
+}

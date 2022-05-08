@@ -13,6 +13,12 @@ public partial class SDSLGrammar : Grammar
         Inner = Shader;
     }
 
+    public SDSLGrammar Using(EtoParser p)
+    {
+        Inner = p;
+        return this;
+    }
+
     public void CreateAll()
     {
         CreateTokens();
@@ -21,6 +27,8 @@ public partial class SDSLGrammar : Grammar
         CreateDirectives();
         CreateDirectiveExpressions();
         CreateExpressions();
+        CreateMethodDeclaration();
+        CreateDeclarators();
         CreateStatements();
         CreateEntryPoints();
         CreateShader();

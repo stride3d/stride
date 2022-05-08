@@ -23,6 +23,7 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser UintTypes = new();
 
     public AlternativeParser ValueTypes = new();
+    public AlternativeParser StorageFlag = new();
 
     public AlternativeParser Keywords = new();
     
@@ -141,6 +142,8 @@ public partial class SDSLGrammar : Grammar
             |   SamplerComparisonState
             |   SamplerState
             |   Shared
+            |   Stage
+            |   Stream
             |   Static
             |   Struct
             |   StructuredBuffer
@@ -155,6 +158,32 @@ public partial class SDSLGrammar : Grammar
             |   Volatile
             |   Void
             |   While;
+
+        StorageFlag.Add(
+            Literal("constant")
+            | RowMajor
+            | ColumnMajor
+            | Extern
+            | Precise
+            | Shared
+            | Groupshared
+            | Static
+            | Uniform
+            | Volatile
+            | Linear
+            | Centroid
+            | Nointerpolation
+            | Noperspective
+            | Sample
+            | In
+            | Out
+            | Inout
+            | Point
+            | Line_
+            | Triangle
+            | LineAdj
+            | TriangleAdj
+        );
         
     }
 }

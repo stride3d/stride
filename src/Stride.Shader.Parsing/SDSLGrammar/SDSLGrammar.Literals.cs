@@ -68,9 +68,9 @@ public partial class SDSLGrammar : Grammar
 		BooleanTerm = new BooleanTerminal{CaseSensitive = true, TrueValues = new string[]{"true"},FalseValues = new string[]{"false"}, Name = "Boolean"};
 
 		Literals.Add(
-			HexaDecimalLiteral
-			| IntegerLiteral.NotFollowedBy(Dot | FloatSuffix).Then(IntegerSuffix.Optional()).Named("IntegerLiteral")
-			| FloatLiteral.Then(FloatSuffix.Optional()).Named("FloatLiteral")
+			IntegerLiteral.NotFollowedBy(Dot | FloatSuffix | Set("xX")).Then(IntegerSuffix.Optional()).Named("IntegerLiteral")
+			| FloatLiteral.NotFollowedBy(Set("xX")).Then(FloatSuffix.Optional()).Named("FloatLiteral")
+			| HexaDecimalLiteral
 			| StringLiteral 
 		);		
 	}
