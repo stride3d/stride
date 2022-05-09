@@ -6,6 +6,22 @@
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 =======
 
+
+[![Financial sponsors](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
+
+[![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
+
+
+
+
+
+<img alt="open collective badge" src="https://opencollective.com/stride3d/tiers/copper-strider/badge.svg&color=brightgreen" />
+
+https://opencollective.com/stride3d/tiers/badge.svg
+
+<object type="image/svg+xml" data="https://opencollective.com/stride3d/tiers/copper-strider.svg?avatarHeight=36&width=600"></object>
+=======
+
 Welcome to the Stride source code repository!
 
 Stride is an open-source C# game engine for realistic rendering and VR. 
