@@ -266,12 +266,6 @@ namespace Stride.Streaming
         {
             width = Math.Max(1, TotalWidth >> mipIndex);
             height = Math.Max(1, TotalHeight >> mipIndex);
-
-            if (isBlockCompressed && ((width % 4) != 0 || (height % 4) != 0))
-            {
-                width = unchecked((int)(((uint)(width + 3)) & ~3U));
-                height = unchecked((int)(((uint)(height + 3)) & ~3U));
-            }
         }
 
         private void StreamingTask(int residency)
