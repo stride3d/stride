@@ -163,19 +163,20 @@ public partial class SDSLGrammar : Grammar
         var parenShift =
             LeftParen.Then(ShiftExpression).Then(RightParen).SeparatedBy(ws);
 
-
         
         var testOp = Less | LessEqual | Greater | GreaterEqual;
         var test = new SequenceParser();
         test.Add(
-            parenShift | ShiftExpression,
+            parenShift.NotFollowedBy(UnaryExpression) | ShiftExpression,
+            ws,
             testOp.Named("Operator"),
+            ws,
             TestExpression
         );
         
         TestExpression.Add(
-            test.Named("TestExpression"),
-            ShiftExpression
+            ShiftExpression.NotFollowedBy(ws & testOp),
+            test.Named("TestExpression")
         );
 
         var parenTestExpr = LeftParen.Then(TestExpression).Then(RightParen).SeparatedBy(ws);
@@ -186,7 +187,7 @@ public partial class SDSLGrammar : Grammar
         
         var equals = new SequenceParser();
         equals.Add(
-            BooleanTerm | TestExpression,
+            BooleanTerm | parenTestExpr.NotFollowedBy(UnaryExpression) | TestExpression,
             ws,
             eqOp.Named("Operator"),
             ws,
@@ -194,32 +195,34 @@ public partial class SDSLGrammar : Grammar
         );
         
         EqualsExpression.Add(
-            equals.Named("EqualExpression"),
-            TestExpression
+            TestExpression.NotFollowedBy(ws & eqOp),
+            equals.Named("EqualExpression")
         );
 
+        //TODO: add parenthesis shortcut expressions
+
         AndExpression.Add(
+            EqualsExpression.NotFollowedBy(ws & "&"),
             EqualsExpression.Then("&").Then(AndExpression).SeparatedBy(ws).Named("BitwiseAnd")
-            | EqualsExpression
         );
 
         XorExpression.Add(
+            AndExpression.NotFollowedBy(ws & "^"),
             AndExpression.Then("^").Then(XorExpression).SeparatedBy(ws).Named("BitwiseXor")
-            | AndExpression
         );
 
         OrExpression.Add(
+            XorExpression.NotFollowedBy(ws & "|"),
             XorExpression.Then("|").Then(OrExpression).SeparatedBy(ws).Named("BitwiseOr")
-            | XorExpression
         );
 
         LogicalAndExpression.Add(
+            OrExpression.NotFollowedBy(ws & "&&"),
             OrExpression.Then("&&").Then(LogicalAndExpression).SeparatedBy(ws).Named("LogicalAnd")
-            | OrExpression
         );
         LogicalOrExpression.Add(
+            LogicalAndExpression.NotFollowedBy(ws & "||"),
             LogicalAndExpression.Then("||").Then(LogicalOrExpression).SeparatedBy(ws).Named("LogicalOr")
-            | LogicalAndExpression
         );
 
         ConditionalExpression.Add( 
@@ -238,7 +241,7 @@ public partial class SDSLGrammar : Grammar
             LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ws)
         );
 
-        
+        // TODO : Check if method call covers all possibilities.
         var parameters = EqualsExpression.Then(Comma.Then(PrimaryExpression).SeparatedBy(ws).Repeat(0)).SeparatedBy(ws);
         MethodCall.Add(
             Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("MethodCallExpression")

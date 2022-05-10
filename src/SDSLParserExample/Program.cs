@@ -11,7 +11,7 @@ parser.Grammar.Using(parser.Grammar.ShiftExpression.Then(";"));
 var s = new Stopwatch();
 var match2 = parser.Parse(shaderf);
 s.Start();
-var match = parser.Parse("(MyStruct)++my_var.a[0].c+6+4*5 >>2;");
+var match = parser.Parse("(MyStruct)++my_var.a[0].c+6+4*5 >>2 < 5;");
 s.Stop();
 
 

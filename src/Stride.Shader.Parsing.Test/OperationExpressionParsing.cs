@@ -85,6 +85,30 @@ public class OperationExpressionParsing
     }
 
     [Fact]
+    public void TestTestExpr()
+    {
+        parser.Grammar.Using(parser.Grammar.TestExpression.Then(";"));
+        List<GrammarMatch> matches = new()
+        {
+            parser.Parse("5 < 5+3;"),
+            parser.Parse("a > b++ * 3 < 4;"),
+            parser.Parse("5 < 3 > 4;"),
+            parser.Parse("3 + 5 * (float)++my_var;"),
+            parser.Parse("3 + 5 > (float)++my_var.a*2;"),
+            parser.Parse("a >> (float4)my_var[0]++ * 2 + 4;"),
+            parser.Parse("my_otherVar <a.b<< (float4x4)++my_var[a]* 2 - 2;"),
+            parser.Parse("(float)1 + (MyStruct)++my_var.a[0] < 2;"),
+            parser.Parse("2 * 3 < (MyStruct)my_var.a[b]++;"),
+            parser.Parse("(MyStruct)++my_var.a[0].c + 6 + 4 * 5 >> 2;"),
+            parser.Parse("(float)my_value + (MyStruct)my_var.a[b].c++ >(float)my_value2;"),
+            parser.Parse("2 + (float)my_value < (MyStruct)++my_var.a[b].c[5].b.e[7][5] > ++b;"),
+        };
+
+        Assert.True(matches.TrueForAll(x => !x.Errors.Any()));
+
+    }
+
+    [Fact]
     public void TestUnary()
     {
         parser.Grammar.Using(parser.Grammar.UnaryExpression.Then(";"));
