@@ -29,7 +29,7 @@ public partial class SDSLGrammar : Grammar
 
     public SDSLGrammar UsingPrimaryExpression()
     {
-        Inner = PostFixExpression;
+        Inner = SumExpression.Then(";");
         return this;
     }
 
@@ -39,15 +39,17 @@ public partial class SDSLGrammar : Grammar
         var ls1 = WhiteSpace.Repeat(1);
 
 
-        var incrementOp = 
-            PlusPlus
-            | MinusMinus;
+        var incrementOp = new AlternativeParser();
+        incrementOp.Add(
+            PlusPlus,
+            MinusMinus
+        );
         
 
         TermExpression.Add(
             Literals,
-            Identifier,
-            ParenExpression.Named("ParenthesisExpr")
+            Identifier.Except(Keywords | ValueTypes)
+            // ,ParenExpression
         );
         
         var arrayAccess = new SequenceParser();
@@ -55,64 +57,108 @@ public partial class SDSLGrammar : Grammar
         var postfixInc = new SequenceParser();
 
 
-        arrayAccess.Add(Identifier, LeftBracket, PrimaryExpression, RightBracket);
+        arrayAccess.Add(
+            Identifier,
+            ws,
+            (LeftBracket & ws & PrimaryExpression & ws & RightBracket).Repeat(1).SeparatedBy(ws)
+        );
         chain.Add(
             arrayAccess.Named("ArrayAccessor") | Identifier,
-            (Dot & (arrayAccess.Named("ArrayAccessor") | Identifier)).Repeat(1)
+            ws,
+            (Dot & ws & (arrayAccess.Named("ArrayAccessor") | Identifier)).Repeat(1)
         );        
         postfixInc.Add(
             chain.Named("AccessorChain") | arrayAccess.Named("ArrayAccessor") | Identifier, 
+            ws,
             incrementOp.Named("Operator")
         );
 
         PostFixExpression.Add(
-            arrayAccess.SeparateChildrenBy(ws).Named("ArrayAccessor").NotFollowedBy(Dot | (ws & incrementOp)),
-            chain.Named("ChainAccessor").NotFollowedBy(ws & incrementOp),
-            postfixInc.Named("PostFixIncrement"),
-            TermExpression
+            TermExpression.NotFollowedBy(ws & (Dot | LeftBracket | incrementOp)),
+            postfixInc.Named("PostfixIncrement"),
+            chain.Named("AccessorChain"),
+            arrayAccess.Named("ArrayAccesor")
+        );
+
+        var prefixInc = new SequenceParser();
+        prefixInc.Add(
+            incrementOp,
+            ws,
+            TermExpression.NotFollowedBy(ws & (Dot | "["))
+            | chain
+            | arrayAccess
         );
 
         UnaryExpression.Add(
-            (incrementOp & ws & Identifier).Named("PrefixIncrement"),
-            Literal("sizeof").Then(LeftParen).Then(Identifier | UnaryExpression).Then(RightParen).Named("SizeOf"),
-            // Literal("sizeof").Then(LeftParen).Then(UnaryExpression).Then(RightParen).Named("SizeOf"),
-            PostFixExpression
+            PostFixExpression,
+            prefixInc.Named("PrefixIncrement"),
+            Literal("sizeof").Then(LeftParen).Then(Identifier | UnaryExpression).Then(RightParen).Named("SizeOf")
+        );
+
+        var cast = new SequenceParser();
+        cast.Add(
+            LeftParen,
+            ValueTypes | Identifier,
+            RightParen,
+            UnaryExpression
         );
 
         CastExpression.Add(
-            LeftParen.Then(Identifier).Then(RightParen).Then(UnaryExpression).SeparatedBy(ws).Named("CastExpression")
-            | UnaryExpression
+            UnaryExpression,
+            cast.SeparatedBy(ws).Named("CastExpression")
         );
 
         
-
-        var multiply = CastExpression.Then(Star | Div | Mod).Then(MulExpression).SeparatedBy(ws);
+        var mulOp = Star | Div | Mod;
+        var multiply = new SequenceParser();
+        multiply.Add(
+            CastExpression,
+            mulOp.Named("Operator"),
+            MulExpression
+        );
+        
         MulExpression.Add(
-            multiply.Named("Multiplication")
-            | TermExpression
+            CastExpression.NotFollowedBy(ws & mulOp),
+            multiply.SeparatedBy(ws).Named("Multiplication")
         );
         var parenMulExpr = 
             LeftParen.Then(MulExpression).Then(RightParen).SeparatedBy(ws);
 
         
-        var sumOp = (Plus - PlusPlus) | (Minus - MinusMinus);
-        var add = (parenMulExpr | MulExpression).Then(sumOp).Then(SumExpression).SeparatedBy(ws);
-        SumExpression.Add(
+        var sumOp = new AlternativeParser();
+        sumOp.Add(Plus, Minus);
+        
+        var add = new SequenceParser();
+        add.Add(
+            parenMulExpr.NotFollowedBy(UnaryExpression) | MulExpression,
+            ws,
+            sumOp.Except(incrementOp),
+            ws,
+            SumExpression
+        );
+        
+        
+        SumExpression.Add( 
+            MulExpression.NotFollowedBy(ws & sumOp.Except(incrementOp)),
             add.Named("Addition")
-            | MulExpression
         );
 
         var parenSumExpr = 
             LeftParen.Then(SumExpression).Then(RightParen).SeparatedBy(ws);
 
-        var shiftOp = LeftShift | RightShift;
-        var shift = 
-            (parenSumExpr | SumExpression).Then(shiftOp.Named("Operator")).Then(ShiftExpression).SeparatedBy(ws);
+        var shiftOp = (LeftShift | RightShift);
+        var shift = new SequenceParser();
+        shift.Add(
+            parenSumExpr.NotFollowedBy(UnaryExpression) | SumExpression,
+            ws,
+            shiftOp.Named("Operator"),
+            ws,
+            ShiftExpression
+        );
 
         ShiftExpression.Add(
-            TermExpression.NotFollowedBy(ws & shiftOp)
-            | shift.Named("ShiftExpression")
-            // TermExpression.Then(RightShift).Then(TermExpression).SeparatedBy(ws)
+            SumExpression.NotFollowedBy(ws & shiftOp),
+            shift.Named("ShiftExpression")
         );
         var parenShift =
             LeftParen.Then(ShiftExpression).Then(RightParen).SeparatedBy(ws);
@@ -120,11 +166,16 @@ public partial class SDSLGrammar : Grammar
 
         
         var testOp = Less | LessEqual | Greater | GreaterEqual;
-        var test = (parenShift | ShiftExpression).Then(testOp).Then(TestExpression).SeparatedBy(ws);
+        var test = new SequenceParser();
+        test.Add(
+            parenShift | ShiftExpression,
+            testOp.Named("Operator"),
+            TestExpression
+        );
         
         TestExpression.Add(
-            test.Named("TestExpression")
-            | ShiftExpression
+            test.Named("TestExpression"),
+            ShiftExpression
         );
 
         var parenTestExpr = LeftParen.Then(TestExpression).Then(RightParen).SeparatedBy(ws);
@@ -133,18 +184,18 @@ public partial class SDSLGrammar : Grammar
             Literal("==").Named("Equals")
             | Literal("!=").Named("NotEquals");
         
-        var equals = 
-            (BooleanTerm | parenTestExpr | TestExpression)
-            .Then(eqOp)
-            .Then(
-                BooleanTerm | EqualsExpression
-            )
-            .SeparatedBy(ws).Named("Equals");
-        
+        var equals = new SequenceParser();
+        equals.Add(
+            BooleanTerm | TestExpression,
+            ws,
+            eqOp.Named("Operator"),
+            ws,
+            BooleanTerm | EqualsExpression
+        );
         
         EqualsExpression.Add(
-            equals
-            | TestExpression
+            equals.Named("EqualExpression"),
+            TestExpression
         );
 
         AndExpression.Add(

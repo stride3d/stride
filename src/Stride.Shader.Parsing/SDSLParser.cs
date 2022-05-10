@@ -35,7 +35,12 @@ public class SDSLParser
                 actualCode.Append(m.StringValue);
             }
         }
-        return Grammar.Match(actualCode.ToString());
+        var matches = Grammar.Match(actualCode.ToString());
+        if (matches.Errors.Any())
+        {
+            throw new Exception("Parsing Exception : " + matches.ErrorMessage);
+        }
+        return matches;
     }
 
 }   

@@ -38,17 +38,19 @@ public partial class SDSLGrammar : Grammar
             Identifier.Except(Keywords)
         );
 
-		IntegerSuffix = 
-			Literal("u")
-			| Literal("l")
-			| Literal("U")
-			| Literal("L");
+		IntegerSuffix.Add(
+			"u",
+			"l",
+			"U",
+			"L"
+		);
 		
-		FloatSuffix = 
-			Literal("f")
-			| Literal("d")
-			| Literal("F")
-			| Literal("D");
+		FloatSuffix.Add(
+			"f",
+			"d",
+			"F",
+			"D"
+		);
 		
 		
 		
@@ -57,21 +59,14 @@ public partial class SDSLGrammar : Grammar
 		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "int_value"}.WithName("FloatValue");
 		HexDigits = new();
 		HexaDecimalLiteral = Literal("0x").Or(Literal("0X")).Then(HexDigit.Repeat(1)).WithName("HexaLiteral");
-		
-		var ints = 
-			HexaDecimalLiteral
-			| IntegerLiteral.Then(IntegerSuffix.Optional().Named("suffix")).Named("IntegerLiteral");
-		var floats = 
-			FloatLiteral.Then(FloatSuffix.Optional().Named("suffix")).Named("FloatLiteral");
-			// | IntegerLiteral.Then(IntegerSuffix);
 
 		BooleanTerm = new BooleanTerminal{CaseSensitive = true, TrueValues = new string[]{"true"},FalseValues = new string[]{"false"}, Name = "Boolean"};
 
 		Literals.Add(
-			IntegerLiteral.NotFollowedBy(Dot | FloatSuffix | Set("xX")).Then(IntegerSuffix.Optional()).Named("IntegerLiteral")
-			| FloatLiteral.NotFollowedBy(Set("xX")).Then(FloatSuffix.Optional()).Named("FloatLiteral")
-			| HexaDecimalLiteral
-			| StringLiteral 
+			IntegerLiteral.NotFollowedBy(Dot | FloatSuffix | Set("xX")).Named("IntegerLiteral"),
+			FloatLiteral.NotFollowedBy(Set("xX")).Then(FloatSuffix.Optional()).Named("FloatLiteral"),
+			HexaDecimalLiteral,
+			StringLiteral
 		);		
 	}
 }

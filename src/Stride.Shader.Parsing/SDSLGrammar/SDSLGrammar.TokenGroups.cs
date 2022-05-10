@@ -29,160 +29,171 @@ public partial class SDSLGrammar : Grammar
     
     public void CreateTokenGroups()
     {
-        IncOperators =
-            PlusPlus
-            | MinusMinus;
+        IncOperators.Add(
+            PlusPlus,
+            MinusMinus
+        );
 
-        Operators =
-            Plus
-            | Minus
-            | Star
-            | Div
-            | Mod
-            | LeftShift
-            | RightShift;
+        Operators.Add(
+            Plus,
+            Minus,
+            Star,
+            Div,
+            Mod,
+            LeftShift,
+            RightShift
+        );
         
-        AssignOperators =
-            Assign
-            | StarAssign
-            | DivAssign
-            | ModAssign
-            | PlusAssign
-            | MinusAssign
-            | LeftShiftAssign
-            | RightShiftAssign
-            | AndAssign
-            | XorAssign
-            | OrAssign;
+        AssignOperators.Add(
+            Assign,
+            StarAssign,
+            DivAssign,
+            ModAssign,
+            PlusAssign,
+            MinusAssign,
+            LeftShiftAssign,
+            RightShiftAssign,
+            AndAssign,
+            XorAssign,
+            OrAssign
+        );
 
-        BoolTypes =
-            Bool.NotFollowedBy(Set("1234"))
-            | BoolVec.NotFollowedBy("x")
-            | BoolMat;
+        BoolTypes.Add(
+            Bool.NotFollowedBy(Set("1234")),
+            BoolVec.NotFollowedBy("x"),
+            BoolMat
+        );
 
-        HalfTypes =
-            Half.NotFollowedBy(Set("1234"))
-            | HalfVec.NotFollowedBy("x")
-            | HalfMat;
+        HalfTypes.Add(
+            Half.NotFollowedBy(Set("1234")),
+            HalfVec.NotFollowedBy("x"),
+            HalfMat
+        );
 
-        FloatTypes =
-            Float.NotFollowedBy(Set("1234"))
-            | FloatVec.NotFollowedBy("x")
-            | FloatMat;
+        FloatTypes.Add(
+            Float.NotFollowedBy(Set("1234")),
+            FloatVec.NotFollowedBy("x"),
+            FloatMat
+        );
 
-        DoubleTypes =
-            Double.NotFollowedBy(Set("1234"))
-            | DoubleVec.NotFollowedBy("x")
-            | DoubleMat;
+        DoubleTypes.Add(
+            Double.NotFollowedBy(Set("1234")),
+            DoubleVec.NotFollowedBy("x"),
+            DoubleMat
+        );
 
-        IntTypes =
-            Int.NotFollowedBy(Set("1234"))
-            | IntVec.NotFollowedBy("x")
-            | IntMat;
+        IntTypes.Add(
+            Int.NotFollowedBy(Set("1234")),
+            IntVec.NotFollowedBy("x"),
+            IntMat
+        );
 
-        UintTypes =
-            Uint.NotFollowedBy(Set("1234"))
-            | UintVec.NotFollowedBy("x")
-            | UintMat;
+        UintTypes.Add(
+            Uint.NotFollowedBy(Set("1234")),
+            UintVec.NotFollowedBy("x"),
+            UintMat
+        );
 
-        ValueTypes =
-            BoolTypes
-            | HalfTypes
-            | FloatTypes
-            | DoubleTypes
-            | IntTypes
-            | UintTypes;
+        ValueTypes.Add(
+            BoolTypes,
+            HalfTypes,
+            FloatTypes,
+            DoubleTypes,
+            IntTypes,
+            UintTypes
+        );
 
-        Keywords =
-            AppendStructuredBuffer
-            |   Buffer - ByteAddressBuffer
-            |   ByteAddressBuffer - Break
-            |   Break
-            |   Case - CBuffer
-            |   CBuffer - Centroid
-            |   Centroid - Class
-            |   Class - ColumnMajor
-            |   ColumnMajor - Const
-            |   Const - ConsumeStructuredBuffer
-            |   ConsumeStructuredBuffer - Continue
-            |   Continue
-            |   Default - Discard
-            |   Discard
-            |   Do
-            |   Else
-            |   Extern
-            |   For
-            |   Groupshared
-            |   If
-            |   In
-            |   Inout
-            |   InputPatch
-            |   Interface
-            |   Line_
-            |   LineAdj
-            |   Linear
-            |   LineStream
-            |   Matrix
-            |   Nointerpolation
-            |   Noperspective
-            |   Out
-            |   OutputPatch
-            |   Packoffset
-            |   Point
-            |   PointStream
-            |   Precise
-            |   Register
-            |   Return
-            |   RowMajor
-            |   RWBuffer
-            |   RWByteAddressBuffer
-            |   RWStructuredBuffer
-            |   Sample - Sampler
-            |   Sampler
-            |   SamplerComparisonState
-            |   SamplerState
-            |   Shared
-            |   Stage
-            |   Stream
-            |   Static
-            |   Struct
-            |   StructuredBuffer
-            |   Switch
-            |   TextureTypes
-            |   Triangle
-            |   TriangleAdj
-            |   TriangleStream
-            |   Uniform
-            |   ValueTypes
-            |   Vector
-            |   Volatile
-            |   Void
-            |   While;
+        Keywords.Add(
+            AppendStructuredBuffer,
+            Buffer,
+            ByteAddressBuffer,
+            Break,
+            Case,
+            CBuffer,
+            Centroid,
+            Class,
+            ColumnMajor, 
+            Const, 
+            ConsumeStructuredBuffer, 
+            Continue,
+            Default, 
+            Discard,
+            Do,
+            Else,
+            Extern,
+            For,
+            Groupshared,
+            If,
+            In,
+            Inout,
+            InputPatch,
+            Interface,
+            Line_,
+            LineAdj,
+            Linear,
+            LineStream,
+            Matrix,
+            Nointerpolation,
+            Noperspective,
+            Out,
+            OutputPatch,
+            Packoffset,
+            Point,
+            PointStream,
+            Precise,
+            Register,
+            Return,
+            RowMajor,
+            RWBuffer,
+            RWByteAddressBuffer,
+            RWStructuredBuffer,
+            Sample,
+            Sampler,
+            SamplerComparisonState,
+            SamplerState,
+            Shared,
+            Stage,
+            Stream,
+            Static,
+            Struct,
+            StructuredBuffer,
+            Switch,
+            TextureTypes,
+            Triangle,
+            TriangleAdj,
+            TriangleStream,
+            Uniform,
+            ValueTypes,
+            Vector,
+            Volatile,
+            Void,
+            While
+        );
 
         StorageFlag.Add(
-            Literal("constant")
-            | RowMajor
-            | ColumnMajor
-            | Extern
-            | Precise
-            | Shared
-            | Groupshared
-            | Static
-            | Uniform
-            | Volatile
-            | Linear
-            | Centroid
-            | Nointerpolation
-            | Noperspective
-            | Sample
-            | In
-            | Out
-            | Inout
-            | Point
-            | Line_
-            | Triangle
-            | LineAdj
-            | TriangleAdj
+            Literal("constant"),
+            RowMajor,
+            ColumnMajor,
+            Extern,
+            Precise,
+            Shared,
+            Groupshared,
+            Static,
+            Uniform,
+            Volatile,
+            Linear,
+            Centroid,
+            Nointerpolation,
+            Noperspective,
+            Sample,
+            In,
+            Out,
+            Inout,
+            Point,
+            Line_,
+            Triangle,
+            LineAdj,
+            TriangleAdj
         );
         
     }

@@ -4,14 +4,14 @@ using Stride.Shader.Parsing;
 using System.Diagnostics;
 
 
-var shaderf = File.ReadAllText("./SDSL/Expressions.sdsl");
+var shaderf = File.ReadAllText("../../../SDSL/Expressions.sdsl");
 
 var parser = new SDSLParser();
-parser.Grammar.UsingPrimaryExpression();
+parser.Grammar.Using(parser.Grammar.ShiftExpression.Then(";"));
 var s = new Stopwatch();
 var match2 = parser.Parse(shaderf);
 s.Start();
-var match = parser.Parse("a[0].b[7].a++");
+var match = parser.Parse("(MyStruct)++my_var.a[0].c+6+4*5 >>2;");
 s.Stop();
 
 

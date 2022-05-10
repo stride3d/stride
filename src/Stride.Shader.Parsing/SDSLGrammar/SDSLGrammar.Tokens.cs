@@ -84,7 +84,7 @@ public partial class SDSLGrammar : Grammar
     private LiteralTerminal Struct = new();
     private LiteralTerminal StructuredBuffer = new();
     private LiteralTerminal Switch = new();
-    private AlternativeParser TextureTypes;
+    private AlternativeParser TextureTypes = new();
     private LiteralTerminal Triangle = new();
     private LiteralTerminal TriangleAdj = new();
     private LiteralTerminal TriangleStream = new();
@@ -158,24 +158,24 @@ public partial class SDSLGrammar : Grammar
         ComponentNumber = Literal("1") | "2" | "3" | "4";
     
         Bool = Literal("bool");
-        BoolVec = Bool.Then(ComponentNumber);
-        BoolMat = BoolVec.Then("x").Then(ComponentNumber);
-        Uint = Literal("uint") | "unsigned int" | "dword";
-        UintVec = Uint.Then(ComponentNumber);
-        UintMat = UintVec.Then("x").Then(ComponentNumber);
+        BoolVec.Add(Bool,ComponentNumber);
+        BoolMat.Add(BoolVec,Literal("x"),ComponentNumber);
+        Uint.Add("uint","unsigned int", "dword");
+        UintVec.Add(Uint,ComponentNumber);
+        UintMat.Add(UintVec,"x",ComponentNumber);
         Int = Literal("int");
-        IntVec = Int.Then(ComponentNumber);
-        IntMat = IntVec.Then("x").Then(ComponentNumber);
+        IntVec.Add(Int,ComponentNumber);
+        IntMat.Add(IntVec,"x",ComponentNumber);
     
         Half = Literal("half");
-        HalfVec = Half.Then(ComponentNumber);
-        HalfMat = HalfVec.Then("x").Then(ComponentNumber);
+        HalfVec.Add(Half, ComponentNumber);
+        HalfMat.Add(HalfVec, "x", ComponentNumber);
         Float = Literal("float");
-        FloatVec = Float.Then(ComponentNumber);
-        FloatMat = FloatVec.Then("x").Then(ComponentNumber);
+        FloatVec.Add(Float,ComponentNumber);
+        FloatMat.Add(FloatVec,"x",ComponentNumber);
         Double = Literal("double");
-        DoubleVec = Double.Then(ComponentNumber);
-        DoubleMat = DoubleVec.Then("x").Then(ComponentNumber);
+        DoubleVec.Add(Double,ComponentNumber);
+        DoubleMat.Add(DoubleVec,"x",ComponentNumber);
         Buffer = Literal("Buffer");
         ByteAddressBuffer = Literal("ByteAddressBuffer");
         Break = Literal("break");
@@ -228,10 +228,11 @@ public partial class SDSLGrammar : Grammar
         Struct = Literal("struct");
         StructuredBuffer = Literal("StructuredBuffer");
         Switch = Literal("switch");
-        TextureTypes =  
-            (Literal("Texture").NotFollowedBy("2DMS").Then(Literal("1") | "2" | "3").Then("D").Then(Literal("Array").Optional()))
-            | (Literal("Texture2DMS").Then(Literal("Array").Optional()))
-            | (Literal("TextureCube").Then(Literal("Array").Optional()));
+        TextureTypes.Add(
+            Literal("Texture").NotFollowedBy("2DMS").Then(Literal("1") | "2" | "3").Then("D").Then(Literal("Array").Optional()),
+            Literal("Texture2DMS").Then(Literal("Array").Optional()),
+            Literal("TextureCube").Then(Literal("Array").Optional())
+        );
         Triangle = Literal("triangle");
         TriangleAdj = Literal("triangleadj");
         TriangleStream = Literal("TriangleStream");
@@ -289,19 +290,20 @@ public partial class SDSLGrammar : Grammar
         Dot = Literal(".");
         True = Literal("true");
         False = Literal("false");
-        PreprocessorDirectiveName =   
-            Literal("define")
-            |   Literal("elif")
-            |   Literal("else")
-            |   Literal("endif")
-            |   Literal("error")
-            |   Literal("if")
-            |   Literal("ifdef")
-            |   Literal("ifndef")
-            |   Literal("include")
-            |   Literal("line")
-            |   Literal("pragma")
-            |   Literal("undef");
+        PreprocessorDirectiveName.Add(  
+            Literal("define"),
+            Literal("elif"),
+            Literal("else"),
+            Literal("endif"),
+            Literal("error"),
+            Literal("if"),
+            Literal("ifdef"),
+            Literal("ifndef"),
+            Literal("include"),
+            Literal("line"),
+            Literal("pragma"),
+            Literal("undef")
+        );
         
         Stage = Literal("stage");
         Stream = Literal("stream");
