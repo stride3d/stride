@@ -144,8 +144,8 @@ public partial class SDSLGrammar : Grammar
     private LiteralTerminal False = new();
     private AlternativeParser PreprocessorDirectiveName =  new();
 
-    private LiteralTerminal Stream = new();
-    private LiteralTerminal Stage = new();
+    private LiteralTerminal Stream = new(){Name = "Stream"};
+    private LiteralTerminal Stage = new(){Name = "Stage"};
     
 
     public void CreateTokens()

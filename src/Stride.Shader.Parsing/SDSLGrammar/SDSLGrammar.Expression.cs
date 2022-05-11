@@ -5,27 +5,27 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
-    public AlternativeParser TermExpression = new();
-    public AlternativeParser PostFixExpression = new();
-    public AlternativeParser UnaryExpression = new();
-    public AlternativeParser CastExpression = new();
-    public AlternativeParser MulExpression = new();
-    public AlternativeParser SumExpression = new();
-    public AlternativeParser ShiftExpression = new();
+    public AlternativeParser TermExpression = new(){Name = "TermExpression"};
+    public AlternativeParser PostFixExpression = new(){Name = "PostFixExpression"};
+    public AlternativeParser UnaryExpression = new(){Name = "UnaryExpression"};
+    public AlternativeParser CastExpression = new(){Name = "CastExpression"};
+    public AlternativeParser MulExpression = new(){Name = "MulExpression"};
+    public AlternativeParser SumExpression = new(){Name = "SumExpression"};
+    public AlternativeParser ShiftExpression = new(){Name = "ShiftExpression"};
 
-    public AlternativeParser ConditionalExpression = new();
-    public AlternativeParser LogicalOrExpression = new();
-    public AlternativeParser LogicalAndExpression = new();
-    public AlternativeParser OrExpression = new();
-    public AlternativeParser XorExpression = new();
-    public AlternativeParser AndExpression = new();
-    public AlternativeParser TestExpression = new();
+    public AlternativeParser ConditionalExpression = new() { Name = "ConditionalExpression" };
+    public AlternativeParser LogicalOrExpression = new(){Name = "LogicalOrExpression"};
+    public AlternativeParser LogicalAndExpression = new(){Name = "LogicalAndExpression"};
+    public AlternativeParser OrExpression = new(){Name = "OrExpression"};
+    public AlternativeParser XorExpression = new(){Name = "XorExpression"};
+    public AlternativeParser AndExpression = new(){Name = "AndExpression"};
+    public AlternativeParser TestExpression = new(){Name = "TestExpression"};
 
-    public AlternativeParser IncrementExpression = new();
-    public AlternativeParser ParenExpression = new();
-    public AlternativeParser EqualsExpression = new();
-    public SequenceParser MethodCall = new();
-    public AlternativeParser PrimaryExpression = new();
+    public AlternativeParser IncrementExpression = new() { Name = "IncrementExpression" };
+    public AlternativeParser ParenExpression = new(){Name = "ParenExpression"};
+    public AlternativeParser EqualsExpression = new(){Name = "EqualsExpression"};
+    public SequenceParser MethodCall = new(){Name = "MethodCall"};
+    public AlternativeParser PrimaryExpression = new(){Name = "PrimaryExpression"};
 
     public SDSLGrammar UsingPrimaryExpression()
     {

@@ -19,20 +19,17 @@ public partial class SDSLGrammar : Grammar
         var ws = WhiteSpace.Repeat(0);
         var ws1 = WhiteSpace.Repeat(1);
 
-        var shaderGenericValue = new AlternativeParser();
-        shaderGenericValue.Add(
-            Literal("TypeName").Then(Identifier).SeparatedBy(ws1).Named("GenericType"),
+        var shaderGenericValue = new AlternativeParser(
+            Literal("TypeName").Named("TypeName").Then(Identifier).SeparatedBy(ws1).Named("GenericType"),
             ValueTypes.Then(Identifier).SeparatedBy(ws1).Named("GenericValue"),
             ValueTypes
-        );
+        ){ Name = "ShaderGeneric" }; 
 
-        var shaderGenerics = new SequenceParser();
-        shaderGenerics.Add(
+        var shaderGenerics = new SequenceParser(
             "<",
             shaderGenericValue.Repeat(1).SeparatedBy(ws & Comma & ws),
             ">"
-        );
-        shaderGenerics.Separator = ws;
+        ){ Name = "ShaderGenerics", Separator = ws };
 
         var inheritGenericsValues = new AlternativeParser(
             ValueTypes,
@@ -40,13 +37,11 @@ public partial class SDSLGrammar : Grammar
             Literals
         );
 
-        var inheritGenerics = new SequenceParser();
-        inheritGenerics.Add(
+        var inheritGenerics = new SequenceParser(
             "<",
             inheritGenericsValues.Repeat(1).SeparatedBy(ws & Comma & ws),
             ">"
-        );
-        inheritGenerics.Separator = ws;
+        ){ Separator = ws, Name = "InheritanceGenerics"};
 
         var shaderContentTypes = new AlternativeParser();
         shaderContentTypes.Add(
@@ -57,13 +52,11 @@ public partial class SDSLGrammar : Grammar
             // | Attribute
         );
 
-        var shaderBody = new SequenceParser();
-        shaderBody.Add(
+        var shaderBody = new SequenceParser(
             LeftBrace,
             shaderContentTypes.Repeat(0).SeparatedBy(ws),
             RightBrace
-        );
-        shaderBody.Separator = ws;
+        ){Separator = ws};
 
         var inheritances = 
             Colon
@@ -80,7 +73,7 @@ public partial class SDSLGrammar : Grammar
             shaderGenerics.Optional(),
             inheritances.Optional(),
             shaderBody.Named("Body"),
-            ";",
+            Semi,
             ws
         );
         ShaderExpression.Separator = ws;

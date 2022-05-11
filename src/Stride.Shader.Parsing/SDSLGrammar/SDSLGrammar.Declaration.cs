@@ -5,9 +5,9 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
-    public SequenceParser ShaderValueDeclaration = new();
-    public SequenceParser ConstantBufferValueDeclaration = new();
-    public SequenceParser StructDefinition = new();
+    public SequenceParser ShaderValueDeclaration = new() { Name = "ShaderValueDeclaration" };
+    public SequenceParser ConstantBufferValueDeclaration = new(){Name = "ConstantBufferValueDeclaration"};
+    public SequenceParser StructDefinition = new(){Name = "StructDefinition"};
 
     public SDSLGrammar UsingDeclarators()
     {
