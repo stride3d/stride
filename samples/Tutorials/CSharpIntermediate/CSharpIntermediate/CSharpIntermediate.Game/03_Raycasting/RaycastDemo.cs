@@ -25,7 +25,7 @@ namespace CSharpIntermediate.Code
 
         public override void Update()
         {
-            int drawX = 40;
+            int drawX = 400;
             int drawY = 80;
             DebugText.Print("Press Q and E to raise/lower weapons", new Int2(drawX, drawY));
 
