@@ -121,115 +121,71 @@ public partial class SDSLGrammar : Grammar
         );
 
         
-        var mulOp = Star | Div | Mod;
-        var multiply = new SequenceParser();
-        multiply.Add(
-            CastExpression,
-            mulOp.Named("Operator"),
-            MulExpression
-        );
-        
+        var mulOp = Star | Div | Mod;        
         MulExpression.Add(
-            CastExpression.NotFollowedBy(ws & mulOp),
-            multiply.SeparatedBy(ws).Named("Multiplication")
+            CastExpression.Repeat(0).SeparatedBy(ws & mulOp.Named("Operator") & ws)
         );
         
-        var sumOp = new AlternativeParser();
-        sumOp.Add(Plus, Minus);
-        
-        var add = new SequenceParser();
-        add.Add(
-            Parenthesis(MulExpression) | MulExpression,
-            ws,
-            sumOp.Except(incrementOp),
-            ws,
-            SumExpression
-        );
-        
+        var sumOp = Plus | Minus;        
         
         SumExpression.Add( 
-            MulExpression.NotFollowedBy(ws & sumOp.Except(incrementOp)),
-            add.Named("Addition")
+            (Parenthesis(MulExpression) | MulExpression)
+                .Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws)
         );
 
        
-        var shiftOp = (LeftShift | RightShift);
-        var shift = new SequenceParser();
-        shift.Add(
-            Parenthesis(SumExpression) | SumExpression,
-            ws,
-            shiftOp.Named("Operator"),
-            ws,
-            ShiftExpression
-        );
+        var shiftOp = LeftShift | RightShift;
 
         ShiftExpression.Add(
-            SumExpression.NotFollowedBy(ws & shiftOp),
-            shift.Named("ShiftExpression")
+            (Parenthesis(SumExpression) | SumExpression)
+                .Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws)
         );
         
 
         AndExpression.Add(
-            ShiftExpression.NotFollowedBy(ws & And.Except(AndAnd)),
-            (Parenthesis(ShiftExpression) | ShiftExpression).Then(And).Then(AndExpression).SeparatedBy(ws).Named("BitwiseAnd")
+            (Parenthesis(ShiftExpression) | ShiftExpression)
+                .Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws)
         );
 
         XorExpression.Add(
-            AndExpression.NotFollowedBy(ws & "^"),
-            (Parenthesis(AndExpression) | AndExpression).Then("^").Then(XorExpression).SeparatedBy(ws).Named("BitwiseXor")
+            (Parenthesis(AndExpression) | AndExpression)
+                .Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws)
         );
 
 
         OrExpression.Add(
-            XorExpression.NotFollowedBy(ws & Or.Except(OrOr)),
-            (Parenthesis(XorExpression) | XorExpression).Then(Or).Then(OrExpression).SeparatedBy(ws).Named("BitwiseOr")
+            (Parenthesis(XorExpression) | XorExpression)
+                .Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws)
         );
 
         var testOp = Less | LessEqual | Greater | GreaterEqual;
-        var test = new SequenceParser();
-        test.Add(
-            Parenthesis(OrExpression) | OrExpression,
-            ws,
-            testOp.Named("Operator"),
-            ws,
-            TestExpression
-        );
 
         TestExpression.Add(
-            OrExpression.NotFollowedBy(ws & testOp),
-            test.Named("TestExpression")
+            (Parenthesis(OrExpression) | OrExpression)
+                .Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws)
         );
 
         var eqOp =
             Literal("==")
             | Literal("!=");
 
-        var equals = new SequenceParser();
-        equals.Add(
-            Parenthesis(TestExpression) | TestExpression | BooleanTerm,
-            ws,
-            eqOp.Named("Operator"),
-            ws,
-            EqualsExpression | BooleanTerm
-        );
-
         EqualsExpression.Add(
-            TestExpression.NotFollowedBy(ws & eqOp),
-            equals.Named("EqualExpression")
+            (Parenthesis(TestExpression) | TestExpression)
+                .Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws)
         );
 
         LogicalAndExpression.Add(
-            EqualsExpression.NotFollowedBy(ws & AndAnd),
-            (Parenthesis(EqualsExpression) | EqualsExpression).Then(AndAnd).Then(LogicalAndExpression).SeparatedBy(ws).Named("LogicalAnd")
+            (Parenthesis(EqualsExpression) | EqualsExpression)
+                .Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws)
         );
         LogicalOrExpression.Add(
-            LogicalAndExpression.NotFollowedBy(ws & OrOr),
-            (Parenthesis(LogicalAndExpression) | LogicalAndExpression).Then(OrOr).Then(LogicalOrExpression).SeparatedBy(ws).Named("LogicalOr")
+            (Parenthesis(LogicalAndExpression) | LogicalAndExpression)
+                .Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws)
         );
 
         ConditionalExpression.Add( 
-            LogicalOrExpression.NotFollowedBy(ws & "?")
-            | (Parenthesis(LogicalOrExpression) | LogicalOrExpression)
+            LogicalOrExpression.NotFollowedBy(ws & "?"),
+            (Parenthesis(LogicalOrExpression) | LogicalOrExpression)
                 .Then("?")
                     .Then(CastExpression | ParenExpression | LogicalOrExpression)
                     .Then(":")
