@@ -7,11 +7,11 @@ using System.Diagnostics;
 var shaderf = File.ReadAllText("../../../SDSL/Expressions.sdsl");
 
 var parser = new SDSLParser();
-parser.Grammar.Using(parser.Grammar.ShiftExpression.Then(";"));
+parser.Grammar.Using(parser.Grammar.OrExpression.Then(";"));
 var s = new Stopwatch();
 var match2 = parser.Parse(shaderf);
 s.Start();
-var match = parser.Parse("(MyStruct)++my_var.a[0].c+6+4*5 >>2 < 5;");
+var match = parser.Parse("a >> b++ | 3 < 4;");
 s.Stop();
 
 

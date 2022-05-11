@@ -33,6 +33,14 @@ public partial class SDSLGrammar : Grammar
         return this;
     }
 
+    public Parser Parenthesis(Parser p, bool notFollowedByUnary = true)
+    {
+        if (notFollowedByUnary)
+            return LeftParen.Then(p).Then(RightParen).SeparatedBy(WhiteSpace.Repeat(0)).NotFollowedBy(UnaryExpression);
+        else
+            return LeftParen.Then(p).Then(RightParen).SeparatedBy(WhiteSpace.Repeat(0));
+    }
+
     public void CreateExpressions()
     {
         var ws = WhiteSpace.Repeat(0);
@@ -84,7 +92,7 @@ public partial class SDSLGrammar : Grammar
         prefixInc.Add(
             incrementOp,
             ws,
-            TermExpression.NotFollowedBy(ws & (Dot | "["))
+            Identifier.NotFollowedBy(ws & (Dot | "["))
             | chain
             | arrayAccess
         );
@@ -121,16 +129,13 @@ public partial class SDSLGrammar : Grammar
             CastExpression.NotFollowedBy(ws & mulOp),
             multiply.SeparatedBy(ws).Named("Multiplication")
         );
-        var parenMulExpr = 
-            LeftParen.Then(MulExpression).Then(RightParen).SeparatedBy(ws);
-
         
         var sumOp = new AlternativeParser();
         sumOp.Add(Plus, Minus);
         
         var add = new SequenceParser();
         add.Add(
-            parenMulExpr.NotFollowedBy(UnaryExpression) | MulExpression,
+            Parenthesis(MulExpression) | MulExpression,
             ws,
             sumOp.Except(incrementOp),
             ws,
@@ -143,13 +148,11 @@ public partial class SDSLGrammar : Grammar
             add.Named("Addition")
         );
 
-        var parenSumExpr = 
-            LeftParen.Then(SumExpression).Then(RightParen).SeparatedBy(ws);
-
+       
         var shiftOp = (LeftShift | RightShift);
         var shift = new SequenceParser();
         shift.Add(
-            parenSumExpr.NotFollowedBy(UnaryExpression) | SumExpression,
+            Parenthesis(SumExpression) | SumExpression,
             ws,
             shiftOp.Named("Operator"),
             ws,
@@ -160,74 +163,69 @@ public partial class SDSLGrammar : Grammar
             SumExpression.NotFollowedBy(ws & shiftOp),
             shift.Named("ShiftExpression")
         );
-        var parenShift =
-            LeftParen.Then(ShiftExpression).Then(RightParen).SeparatedBy(ws);
-
         
+
+        AndExpression.Add(
+            ShiftExpression.NotFollowedBy(ws & And.Except(AndAnd)),
+            (Parenthesis(ShiftExpression) | ShiftExpression).Then(And).Then(AndExpression).SeparatedBy(ws).Named("BitwiseAnd")
+        );
+
+        XorExpression.Add(
+            AndExpression.NotFollowedBy(ws & "^"),
+            (Parenthesis(AndExpression) | AndExpression).Then("^").Then(XorExpression).SeparatedBy(ws).Named("BitwiseXor")
+        );
+
+
+        OrExpression.Add(
+            XorExpression.NotFollowedBy(ws & Or.Except(OrOr)),
+            (Parenthesis(XorExpression) | XorExpression).Then(Or).Then(OrExpression).SeparatedBy(ws).Named("BitwiseOr")
+        );
+
         var testOp = Less | LessEqual | Greater | GreaterEqual;
         var test = new SequenceParser();
         test.Add(
-            parenShift.NotFollowedBy(UnaryExpression) | ShiftExpression,
+            Parenthesis(OrExpression) | OrExpression,
             ws,
             testOp.Named("Operator"),
             ws,
             TestExpression
         );
-        
+
         TestExpression.Add(
-            ShiftExpression.NotFollowedBy(ws & testOp),
+            OrExpression.NotFollowedBy(ws & testOp),
             test.Named("TestExpression")
         );
 
-        var parenTestExpr = LeftParen.Then(TestExpression).Then(RightParen).SeparatedBy(ws);
-        
-        var eqOp = 
-            Literal("==").Named("Equals")
-            | Literal("!=").Named("NotEquals");
-        
+        var eqOp =
+            Literal("==")
+            | Literal("!=");
+
         var equals = new SequenceParser();
         equals.Add(
-            BooleanTerm | parenTestExpr.NotFollowedBy(UnaryExpression) | TestExpression,
+            Parenthesis(TestExpression) | TestExpression | BooleanTerm,
             ws,
             eqOp.Named("Operator"),
             ws,
-            BooleanTerm | EqualsExpression
+            EqualsExpression | BooleanTerm
         );
-        
+
         EqualsExpression.Add(
             TestExpression.NotFollowedBy(ws & eqOp),
             equals.Named("EqualExpression")
         );
 
-        //TODO: add parenthesis shortcut expressions
-
-        AndExpression.Add(
-            EqualsExpression.NotFollowedBy(ws & "&"),
-            EqualsExpression.Then("&").Then(AndExpression).SeparatedBy(ws).Named("BitwiseAnd")
-        );
-
-        XorExpression.Add(
-            AndExpression.NotFollowedBy(ws & "^"),
-            AndExpression.Then("^").Then(XorExpression).SeparatedBy(ws).Named("BitwiseXor")
-        );
-
-        OrExpression.Add(
-            XorExpression.NotFollowedBy(ws & "|"),
-            XorExpression.Then("|").Then(OrExpression).SeparatedBy(ws).Named("BitwiseOr")
-        );
-
         LogicalAndExpression.Add(
-            OrExpression.NotFollowedBy(ws & "&&"),
-            OrExpression.Then("&&").Then(LogicalAndExpression).SeparatedBy(ws).Named("LogicalAnd")
+            EqualsExpression.NotFollowedBy(ws & AndAnd),
+            (Parenthesis(EqualsExpression) | EqualsExpression).Then(AndAnd).Then(LogicalAndExpression).SeparatedBy(ws).Named("LogicalAnd")
         );
         LogicalOrExpression.Add(
-            LogicalAndExpression.NotFollowedBy(ws & "||"),
-            LogicalAndExpression.Then("||").Then(LogicalOrExpression).SeparatedBy(ws).Named("LogicalOr")
+            LogicalAndExpression.NotFollowedBy(ws & OrOr),
+            (Parenthesis(LogicalAndExpression) | LogicalAndExpression).Then(OrOr).Then(LogicalOrExpression).SeparatedBy(ws).Named("LogicalOr")
         );
 
         ConditionalExpression.Add( 
             LogicalOrExpression.NotFollowedBy(ws & "?")
-            | LogicalOrExpression
+            | (Parenthesis(LogicalOrExpression) | LogicalOrExpression)
                 .Then("?")
                     .Then(CastExpression | ParenExpression | LogicalOrExpression)
                     .Then(":")

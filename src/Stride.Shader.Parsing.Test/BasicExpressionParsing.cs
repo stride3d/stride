@@ -60,7 +60,7 @@ public class BasicExpressionParsing
         parser.Grammar.Using(parser.Grammar.UnaryExpression.Then(";"));
         List<GrammarMatch> matches = new()
         {
-            parser.Parse("++my_var;"),
+            parser.Parse("++b;"),
             parser.Parse("++my_var.a;"),
             parser.Parse("++my_var[0];"),
             parser.Parse("++my_var[a];"),
