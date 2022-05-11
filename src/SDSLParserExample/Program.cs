@@ -9,7 +9,7 @@ var shaderf = File.ReadAllText("../../../SDSL/shader2.sdsl");
 var parser = new SDSLParser();
 //parser.Grammar.Using(parser.Grammar.OrExpression.Then(";"));
 var s = new Stopwatch();
-var match2 = parser.Parse(shaderf);
+var match2 = parser.Parse("shader MyShader<float a> : Something {}");
 s.Start();
 var match = parser.Parse(shaderf);
 s.Stop();

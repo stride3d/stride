@@ -35,12 +35,12 @@ public partial class SDSLGrammar : Grammar
         var hashElif = Literal("elif").Named("HashElif");
         var hashDefine = Literal("define").Named("HashElif");
 
-        IfDirective = hashIf.Then(DirectiveExpr).SeparatedBy(ls1).WithName("DirectiveDefine");
+        IfDirective = hashIf.Then(DirectiveExpression).SeparatedBy(ls1).WithName("DirectiveDefine");
         ElseDirective = hashElse.Then(ls).Then(LetterOrDigit.Or(Punctuation).Not()).WithName("DirectiveElse");
         EndIfDirective = hashEndIf.Then(ls).Then(LetterOrDigit.Or(Punctuation).Not()).WithName("DirectiveEnd");
         IfDefDirective = (hashIfDef - (hashIfNDef | hashIf | hashEndIf)).Then(Identifier).SeparatedBy(ls1).WithName("DirectiveIfDef");
         IfNDefDirective = (hashIfNDef - (hashIf | hashEndIf)).Then(Identifier).SeparatedBy(ls1).WithName("DirectiveIfNDef");
-        DefineDirective = hashDefine.Then(Identifier).Then(DirectiveExpr).SeparatedBy(ls1).WithName("DirectiveDefine");
+        DefineDirective = hashDefine.Then(Identifier).Then(DirectiveExpression).SeparatedBy(ls1).WithName("DirectiveDefine");
         
     }
 }
