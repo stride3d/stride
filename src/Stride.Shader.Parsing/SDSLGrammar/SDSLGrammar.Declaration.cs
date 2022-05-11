@@ -5,8 +5,10 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
-    public AlternativeParser ShaderValueDeclaration = new();
-    public AlternativeParser ConstantBufferValueDeclaration = new();
+    public SequenceParser ShaderValueDeclaration = new();
+    public SequenceParser ConstantBufferValueDeclaration = new();
+    public SequenceParser StructDefinition = new();
+
     public SDSLGrammar UsingDeclarators()
     {
         var ws  = WhiteSpace.Repeat(0);
@@ -22,44 +24,74 @@ public partial class SDSLGrammar : Grammar
         var declare =
             Identifier.Then(Identifier).SeparatedBy(ws1).Then(Semi).SeparatedBy(ws);
 
-        var declaratorSupplement =
-            Colon.Then(
-                    Packoffset.Then(LeftParen).Then(Identifier.Then(Dot.Then(Identifier).Repeat(0))).Then(RightParen).SeparatedBy(ws).Named("PackOffset")
-                    | Register.Then(LeftParen).Then(Identifier.Then(Comma.Then(Identifier).SeparatedBy(ws).Repeat(0).SeparatedBy(ws))).Then(RightParen).SeparatedBy(ws).Named("RegisterAllocation")
-                    | Identifier.Named("Semantic")
-                ).SeparatedBy(ws).Optional();
+        var packoffset = new SequenceParser();
+        packoffset.Add(
+            Packoffset,
+            LeftParen,
+            Identifier,
+            (Dot & Identifier).Repeat(0),
+            RightParen
+        );
+        packoffset.Separator = ws;
 
-        var supplement =
-            (
-                Colon &
-                (
-                    (Packoffset & LeftParen & Identifier & ((Dot & Identifier).Repeat(0)) & RightParen)
-                        .SeparatedBy(ws).Named("PackOffset")
-                    | (Register & LeftParen & (Identifier & (Comma & Identifier).SeparatedBy(ws)).Repeat(0).SeparateChildrenBy(ws) & RightParen)
-                        .SeparatedBy(ws).Named("Register")
-                    | Identifier.Named("Semantic")
-                )
-            ).SeparatedBy(ws);
+        var register = new SequenceParser();
+        register.Add(
+            Register,
+            LeftParen,
+            (Identifier & ~Comma).SeparatedBy(ws).Repeat(0).SeparatedBy(ws),
+            RightParen
+        );
+        register.Separator = ws;
 
-        var valueDeclaration =
-            (~Stage & ~Stream & ValueTypes & Identifier).SeparatedBy(ws1)
-            & (~(LeftBracket & Literals & RightBracket).SeparatedBy(ws));
-        
+        var supplement = new SequenceParser();
+        supplement.Add(
+            Colon,
+            ws,
+            packoffset.Named("PackOffset")
+            | register
+            | Identifier.Named("Semantic")
+        );
 
+        var staging =
+            Stage
+            | Stage & ws1 & Stream
+            | Stream;
+
+        var valueDeclaration = new SequenceParser();
+        valueDeclaration.Add(
+            staging.Then(ws1).Optional(),
+            ValueTypes | Identifier,
+            ws1,
+            Identifier
+        );
+
+        var assignOrSupplement =
+            (AssignOperators & PrimaryExpression & supplement).SeparatedBy(ws)
+            | (AssignOperators & PrimaryExpression).SeparatedBy(ws)
+            | supplement;
 
         ShaderValueDeclaration.Add(
-            (valueDeclaration & ~(AssignOperators & PrimaryExpression))
-            .SeparatedBy(ws)
+            valueDeclaration,
+            assignOrSupplement.Optional(),
+            Semi
         );
+        ShaderValueDeclaration.Separator = ws;
+
         ConstantBufferValueDeclaration.Add(
-            (valueDeclaration & ~(AssignOperators & PrimaryExpression) & ~supplement)
-            .SeparatedBy(ws)
+            valueDeclaration,
+            assignOrSupplement.Optional(),
+            Semi
         );
+
+        ConstantBufferValueDeclaration.Separator = ws;
+
         StructDefinition.Add(
-            Struct.Then(Identifier).SeparatedBy(ws1)
-            .Then(LeftBrace)
-                .Then(declare.Repeat(0).SeparatedBy(ws))
-            .Then(RightBrace).Then(Semi).SeparatedBy(ws)
+            Struct & ws1 & Identifier,
+            LeftBrace,
+            (declare & Semi).SeparatedBy(ws).Repeat(0).SeparatedBy(ws),
+            RightBrace,
+            Semi
         );
+        StructDefinition.Separator = ws;
     }
 }

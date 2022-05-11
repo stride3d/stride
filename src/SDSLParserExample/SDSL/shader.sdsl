@@ -1,7 +1,7 @@
 // Some comments
 
 shader BasicMixin<float a, int b, TypeName T> : BasicShader<float p, float>, Parent2<int freq>, Parent3 {
-    float myFloat = 0.2f;
+    float myFloat=0.2f;
     stage float3 myPosition : register(b);
     stage stream float2 screenPosition : register(vs, b);
     

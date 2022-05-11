@@ -5,13 +5,12 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
-    public AlternativeParser StructDefinition = new();
-    public AlternativeParser Attribute = new();
+    public SequenceParser Attribute = new();
     public AlternativeParser Statement = new();
-    public AlternativeParser ControlFlow = new();
-    public AlternativeParser ConstantBuffer = new();
+    public SequenceParser ControlFlow = new();
+    public SequenceParser ConstantBuffer = new();
     public AlternativeParser ShaderMethodCall = new();
-    public AlternativeParser Block = new();
+    public SequenceParser Block = new();
 
 
     public SDSLGrammar UsingStatements()
@@ -44,13 +43,17 @@ public partial class SDSLGrammar : Grammar
             .Then(Semi).SeparatedBy(ws);
 
         Attribute.Add(
-            LeftBracket
-                .Then(Identifier)
-                    .Then(LeftParen)
-                        .Then((Identifier | Literals).Then(Comma.Optional()).Repeat(0).SeparateChildrenBy(ws))
-                    .Then(RightParen)
-            .Then(RightBracket)
-            .SeparatedBy(ws)
+            LeftBracket,
+            ws,
+            Identifier,
+            ws,
+            LeftParen,
+            ws,
+            (Identifier | Literals).Then(Comma.Optional()).Repeat(0).SeparateChildrenBy(ws),
+            ws,
+            RightParen,
+            ws,
+            RightBracket
         );
 
         var assignVar =
@@ -76,17 +79,21 @@ public partial class SDSLGrammar : Grammar
         
 
         Statement.Add(
-            Block.Named("BlockExpression")
-            | returnStatement.Named("Return")
-            | assignChain
-            | ShaderMethodCall
-            | declareAssign.Named("DeclareAssign")
-            | assignVar.Named("Assign")
-            | PrimaryExpression.Then(";").SeparatedBy(ws).Named("EmptyStatement")
+            Block.Named("BlockExpression"),
+            returnStatement.Named("Return"),
+            assignChain,
+            ShaderMethodCall,
+            declareAssign.Named("DeclareAssign"),
+            assignVar.Named("Assign"),
+            PrimaryExpression.Then(";").SeparatedBy(ws).Named("EmptyStatement")
         );
 
         Block.Add(
-            LeftBrace.Then(Statement.Repeat(0).SeparatedBy(ws)).Then(RightBrace).SeparatedBy(ws)
+            LeftBrace,
+            ws,
+            Statement.Repeat(0).SeparatedBy(ws),
+            ws,
+            RightBrace
         );
         var flowStatement = Statement;
 
@@ -100,21 +107,22 @@ public partial class SDSLGrammar : Grammar
             Else.Then(flowStatement).SeparatedBy(ws1);
 
         ControlFlow.Add(
-            Attribute.Repeat(0).Named("Attributes").Then(
-                ifStatement.Named("IfStatement")
-                | elseStatement.Named("ElseStatement")
-                | elseIfStatement.Named("ElseIfStatement")
-            ).SeparatedBy(ws)
+            Attribute.Repeat(0).Named("Attributes"),
+            ws,
+            ifStatement.Named("IfStatement")
+            | elseStatement.Named("ElseStatement")
+            | elseIfStatement.Named("ElseIfStatement")
         );
 
-        
-
-        
 
         ConstantBuffer.Add(
-            Literal("cbuffer").Then(Identifier).SeparatedBy(ws1)
-            .Then(LeftBrace)
-            .Then()
+            "cbuffer",
+            ws1,
+            Identifier,
+            ws,
+            LeftBrace,
+            ws,
+            RightBrace
         );
     }
 }

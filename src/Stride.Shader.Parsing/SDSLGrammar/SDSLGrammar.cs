@@ -10,7 +10,7 @@ public partial class SDSLGrammar : Grammar
     public SDSLGrammar() : base("sdsl")
     {
         CreateAll();
-        Inner = Shader;
+        Inner = ShaderExpression;
     }
 
     public SDSLGrammar Using(EtoParser p)

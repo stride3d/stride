@@ -52,11 +52,17 @@ public partial class SDSLGrammar : Grammar
             PlusPlus,
             MinusMinus
         );
-        
+
+        // TODO : write tests for method calls
+        var parameters = PrimaryExpression.Then(Comma.Optional()).SeparatedBy(ws).Repeat(0).SeparatedBy(ws);
+        MethodCall.Add(
+            Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("MethodCallExpression")
+        );
 
         TermExpression.Add(
             Literals,
-            Identifier.Except(Keywords | ValueTypes)
+            Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen),
+            MethodCall
             // ,ParenExpression
         );
         
@@ -237,12 +243,6 @@ public partial class SDSLGrammar : Grammar
         
         ParenExpression.Add(
             LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ws)
-        );
-
-        // TODO : Check if method call covers all possibilities.
-        var parameters = EqualsExpression.Then(Comma.Then(PrimaryExpression).SeparatedBy(ws).Repeat(0)).SeparatedBy(ws);
-        MethodCall.Add(
-            Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("MethodCallExpression")
         );
 
 

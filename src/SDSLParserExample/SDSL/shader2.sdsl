@@ -1,0 +1,5 @@
+shader BasicMixin{
+
+	float4 a : packoffset(a.c);
+	stream float4 aqsdj;
+};

@@ -4,14 +4,14 @@ using Stride.Shader.Parsing;
 using System.Diagnostics;
 
 
-var shaderf = File.ReadAllText("../../../SDSL/Expressions.sdsl");
+var shaderf = File.ReadAllText("../../../SDSL/shader2.sdsl");
 
 var parser = new SDSLParser();
-parser.Grammar.Using(parser.Grammar.OrExpression.Then(";"));
+//parser.Grammar.Using(parser.Grammar.OrExpression.Then(";"));
 var s = new Stopwatch();
 var match2 = parser.Parse(shaderf);
 s.Start();
-var match = parser.Parse("a >> b++ | 3 < 4;");
+var match = parser.Parse(shaderf);
 s.Stop();
 
 
