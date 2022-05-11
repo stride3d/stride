@@ -44,17 +44,13 @@ public partial class SDSLGrammar : Grammar
 
         Attribute.Add(
             LeftBracket,
-            ws,
             Identifier,
-            ws,
             LeftParen,
-            ws,
-            (Identifier | Literals).Then(Comma.Optional()).Repeat(0).SeparateChildrenBy(ws),
-            ws,
+            (Identifier | Literals).Repeat(0).SeparatedBy(ws & Comma & ws),
             RightParen,
-            ws,
             RightBracket
         );
+        Attribute.Separator = ws;
 
         var assignVar =
             Identifier.Named("Variable").NotFollowedBy(Identifier)

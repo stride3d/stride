@@ -5,8 +5,8 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
-    public AlternativeParser ParameterList = new();
-    public AlternativeParser ValueOrGeneric = new();
+    public SequenceParser ParameterList = new();
+    public SequenceParser ValueOrGeneric = new();
 
     public AlternativeParser MethodDeclaration = new();
 
@@ -21,11 +21,18 @@ public partial class SDSLGrammar : Grammar
         var ws = WhiteSpace.Repeat(0);
         var ws1 = WhiteSpace.Repeat(1);
 
+        var genericsList = new SequenceParser();
+        genericsList.Add(
+            "<",
+            (Identifier & genericsList.Optional())
+                .Repeat(0).SeparatedBy(ws & Comma & ws),
+            ">"
+        );
+        genericsList.Separator = ws;
 
         ValueOrGeneric.Add(
-            ValueTypes
-            | Identifier.Then("<").Then(ValueOrGeneric.Then(Comma.Optional()).Repeat(1).SeparateChildrenBy(ws)).Then(">").SeparatedBy(ws)
-            | Identifier
+            ValueTypes | Identifier,
+            genericsList.Optional()
         );
 
         var declarePost =
@@ -42,19 +49,23 @@ public partial class SDSLGrammar : Grammar
         
         
         ParameterList.Add(
-            LeftParen
-            .Then(Comma.Optional().Then(parameter).SeparatedBy(ws).Repeat(0).SeparatedBy(ws))
-            .Then(RightParen).SeparatedBy(ws)
+            LeftParen,
+            parameter.Repeat(0).SeparatedBy(ws & Comma & ws),
+            RightParen
         );
+        ParameterList.Separator = ws;
 
         MethodDeclaration.Add(
+            // Abstract method
             Literal("abstract").Then(Literal("stage").Optional()).Then(Identifier).Then(Identifier).SeparatedBy(ws1)
-                .Then(ParameterList).Then(Semi).SeparatedBy(ws).Named("AbstractMethod")
-            | Literal("override").Optional().Then(Literal("stage").Optional())
+                .Then(ParameterList).Then(Semi).SeparatedBy(ws).Named("AbstractMethod"),
+            // Override or normal method
+            Literal("override").Optional()
+            .Then(Literal("stage").Optional())
                 .Then(Identifier).Then(Identifier).SeparatedBy(ws1)
                     .Then(ParameterList)
                 .Then(LeftBrace)
-                    .Then(Statement.Repeat(0))
+                    .Then(Statement.Repeat(0).SeparatedBy(ws))
                 .Then(RightBrace).SeparatedBy(ws).Named("MethodDeclaration")
         );
     }

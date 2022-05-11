@@ -35,13 +35,25 @@ public partial class SDSLGrammar : Grammar
         );
 
         Operators.Add(
+            PlusPlus,
             Plus,
+            MinusMinus,
             Minus,
             Star,
             Div,
             Mod,
             LeftShift,
-            RightShift
+            RightShift,
+            AndAnd,
+            And,
+            OrOr,
+            Or,
+            "^",
+            Equal,
+            "==",
+            NotEqual,
+            Question
+
         );
         
         AssignOperators.Add(

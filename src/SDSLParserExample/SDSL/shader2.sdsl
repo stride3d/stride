@@ -1,5 +1,19 @@
-shader BasicMixin{
+shader BasicMixin<float a, int b, TypeName T> : ParentShader, ParentShader2<float>, ParentShader3<5,3> {
+	struct MyStruct {
+		float a;
+	};
 
-	float4 a : packoffset(a.c);
-	stream float4 aqsdj;
+	float b;
+	stage float4 a = 3*2+5;
+	stage stream float4 color : SV_COLOR;
+	stage stream float4 color2 = float4(1,float2(5,6),3+5*7,4*2) : SV_COLOR;
+
+
+	abstract void foo();
+
+	void MyFunctions(float a, Input<float> b)
+	{
+		
+	}
+
 };

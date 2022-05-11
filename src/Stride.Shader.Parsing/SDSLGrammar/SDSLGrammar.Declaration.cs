@@ -21,8 +21,14 @@ public partial class SDSLGrammar : Grammar
         var ws = WhiteSpace.Repeat(0);
         var ws1 = WhiteSpace.Repeat(1);
 
-        var declare =
-            Identifier.Then(Identifier).SeparatedBy(ws1).Then(Semi).SeparatedBy(ws);
+        var declare = new SequenceParser();
+        declare.Add(
+            ValueTypes | Identifier,
+            ws1,
+            Identifier,
+            ws,
+            Semi
+        );
 
         var packoffset = new SequenceParser();
         packoffset.Add(
@@ -38,7 +44,7 @@ public partial class SDSLGrammar : Grammar
         register.Add(
             Register,
             LeftParen,
-            (Identifier & ~Comma).SeparatedBy(ws).Repeat(0).SeparatedBy(ws),
+            Identifier.Repeat(0).SeparatedBy(ws & Comma & ws),
             RightParen
         );
         register.Separator = ws;
@@ -53,7 +59,7 @@ public partial class SDSLGrammar : Grammar
         );
 
         var staging =
-            Stage
+            Stage.NotFollowedBy(ws1 & Stream)
             | Stage & ws1 & Stream
             | Stream;
 
@@ -65,10 +71,12 @@ public partial class SDSLGrammar : Grammar
             Identifier
         );
 
-        var assignOrSupplement =
+        var assignOrSupplement = new AlternativeParser();
+        assignOrSupplement.Add(
+            supplement,
+            (AssignOperators & PrimaryExpression).SeparatedBy(ws).NotFollowedBy(ws & supplement),
             (AssignOperators & PrimaryExpression & supplement).SeparatedBy(ws)
-            | (AssignOperators & PrimaryExpression).SeparatedBy(ws)
-            | supplement;
+        );
 
         ShaderValueDeclaration.Add(
             valueDeclaration,
@@ -88,7 +96,7 @@ public partial class SDSLGrammar : Grammar
         StructDefinition.Add(
             Struct & ws1 & Identifier,
             LeftBrace,
-            (declare & Semi).SeparatedBy(ws).Repeat(0).SeparatedBy(ws),
+            declare.Repeat(0).SeparatedBy(ws),
             RightBrace,
             Semi
         );

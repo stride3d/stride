@@ -24,7 +24,7 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser IncrementExpression = new();
     public AlternativeParser ParenExpression = new();
     public AlternativeParser EqualsExpression = new();
-    public AlternativeParser MethodCall = new();
+    public SequenceParser MethodCall = new();
     public AlternativeParser PrimaryExpression = new();
 
     public SDSLGrammar UsingPrimaryExpression()
@@ -54,10 +54,8 @@ public partial class SDSLGrammar : Grammar
         );
 
         // TODO : write tests for method calls
-        var parameters = PrimaryExpression.Then(Comma.Optional()).SeparatedBy(ws).Repeat(0).SeparatedBy(ws);
-        MethodCall.Add(
-            Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("MethodCallExpression")
-        );
+        // TODO : Optimize method call
+        
 
         TermExpression.Add(
             Literals,
@@ -244,11 +242,18 @@ public partial class SDSLGrammar : Grammar
         ParenExpression.Add(
             LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ws)
         );
+        
+        var parameters =
+            PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws);
+
+        MethodCall.Add(
+            Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("MethodCallExpression")
+        );
 
 
         PrimaryExpression.Add(
-            MethodCall
-            | ConditionalExpression
+            MethodCall,
+            ConditionalExpression            
         );
     }
 }
