@@ -92,7 +92,7 @@
   </ItemGroup-->
   <ItemGroup>
     <StrideNativeLib Include="..\..\..\deps\VHACD\**\VHACD.dll">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
     <Content Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

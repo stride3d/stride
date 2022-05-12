@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -145,13 +147,26 @@ namespace Stride.Core.Assets
 
                             // Only allow this specific version
                             var versionRange = new VersionRange(new NuGetVersion(packageVersion), true, new NuGetVersion(packageVersion), true);
-                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", packageName, versionRange);
+                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, RuntimeInformation.RuntimeIdentifier, packageName, versionRange);
                             if (!result.Success)
                             {
                                 throw new InvalidOperationException($"Could not restore NuGet packages");
                             }
 
                             assemblies = RestoreHelper.ListAssemblies(result.LockFile);
+
+                            // Register the native libraries
+                            var strideCoreAssembly = Assembly.LoadFrom(assemblies.FirstOrDefault(a => Path.GetFileNameWithoutExtension(a) == "Stride.Core"));
+                            if (strideCoreAssembly is null)
+                                throw new InvalidOperationException($"Couldn't find assembly 'Stride.Core' in restored packages");
+                            var nativeLibraryHelperType = strideCoreAssembly.GetType("Stride.Core.NativeLibraryHelper");
+                            if (nativeLibraryHelperType is null)
+                                throw new InvalidOperationException($"Couldn't find type 'Stride.Core.NativeLibraryHelper' in {strideCoreAssembly}");
+                            var registerDependencyMethod = nativeLibraryHelperType.GetMethod("RegisterDependency");
+                            if (registerDependencyMethod is null)
+                                throw new InvalidOperationException($"Couldn't find method 'RegisterDependency' in {nativeLibraryHelperType}");
+                            foreach (var lib in RestoreHelper.ListNativeLibs(result.LockFile))
+                                registerDependencyMethod.Invoke(null, new[] { lib });
                         }
                         catch (Exception e)
                         {
