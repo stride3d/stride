@@ -152,7 +152,7 @@
   </Target>
   <Target Name="_StrideRegisterPackageFiles" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_StrideGenerateDependenciesCore">
     <ItemGroup Condition="'@(_StrideDependencyToCopy)' != ''">
-      <!-- Native dependencies usually go to the runtimes/RID/native folder -->
+      <!-- Native dependencies go to the runtimes/RID/native folder -->
       <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)" 
                               Condition=" '%(_StrideDependencyToCopy.Type)' == 'NativeLib' "
                               PackagePath="%(_StrideDependencyToCopy.TargetPath)" />

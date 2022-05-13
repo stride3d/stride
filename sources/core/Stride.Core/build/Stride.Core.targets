@@ -160,15 +160,9 @@
         <Type>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(1).ToString())</Type>
         <SourcePath>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(2).ToString())</SourcePath>
         <Link>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(3).ToString())</Link>
-        <HandledByPackage>false</HandledByPackage>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </_StrideDependencyLocal>
       <_StrideDependencyNativeLib Include="@(_StrideDependencyLocal->'$(_StrideSourceDir)%(SourcePath)')" Condition="'%(_StrideDependencyLocal.Type)' == 'NativeLib'"/>
-      <!-- Mark runtimes/ as handled (NuGet will take care of copying it to output folder) -->
-      <!-- We can get rid of this once all native dependencies are handled through runtimes/ feature (mobile targets haven't been updated yet) -->
-      <_StrideDependencyNativeLib Update="@(_StrideDependencyNativeLib)" Condition="$([System.String]::new('%(_StrideDependencyNativeLib.Link)').StartsWith('runtimes\'))" >
-        <HandledByPackage>true</HandledByPackage>
-      </_StrideDependencyNativeLib>
     </ItemGroup>
 
     <!-- Message -->
@@ -180,23 +174,7 @@
       <_StrideDependencyLocal Remove="@(_StrideDependencyLocal)"/>
     </ItemGroup>
   </Target>
-
-  <!-- Copy native libraries to output -->
-  <Target Name="_StrideSetupNativeLibrariesWindows" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="('$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS' Or '$(StridePlatform)' == 'Linux') And '$(CopyLocalLockFileAssemblies)' != 'false'">
-    <ItemGroup>
-      <None Include="@(_StrideDependencyNativeLib)" Condition=" '%(_StrideDependencyNativeLib.HandledByPackage)' == 'false' ">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-  </Target>
-  <!-- When publishing, copy native libraries (only needed if CopyLocalLockFileAssemblies is set to false since _StrideSetupNativeLibrariesWindows won't run) -->
-  <Target Name="_StrideSetupNativeLibrariesDotNetPublish" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ComputeFilesToPublish" Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(CopyLocalLockFileAssemblies)' == 'false'">
-    <ItemGroup>
-      <ResolvedFileToPublish Include="@(_StrideDependencyNativeLib)" Condition=" '%(_StrideDependencyNativeLib.HandledByPackage)' == 'false' ">
-        <RelativePath>%(_StrideDependencyNativeLib.Link)</RelativePath>
-      </ResolvedFileToPublish>
-    </ItemGroup>
-  </Target>
+  
   <Target Name="_StrideSetupNativeLibrariesUWP" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StridePlatform)' == 'UWP'">
     <PropertyGroup>
       <StrideCPU Condition="'$(Platform)' == 'x86'">x86</StrideCPU>
