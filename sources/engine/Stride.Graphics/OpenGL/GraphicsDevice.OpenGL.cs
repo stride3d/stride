@@ -831,7 +831,7 @@ namespace Stride.Graphics
             WindowProvidedRenderTexture = Texture.New2D(this, width, height, 1,
                 // TODO: As a workaround, because OpenTK(+OpenGLES) doesn't support to create SRgb backbuffer, we fake it by creating a non-SRgb here and CopyScaler2D is responsible to transform it to non SRgb
                 isFramebufferSRGB ? presentationParameters.BackBufferFormat : presentationParameters.BackBufferFormat.ToNonSRgb(), TextureFlags.RenderTarget | Texture.TextureFlagsCustomResourceId);
-            WindowProvidedRenderTexture.Reload = graphicsResource => { };
+            WindowProvidedRenderTexture.Reload = (graphicsResource, services) => { };
 
             // Extract FBO render target
             if (WindowProvidedFrameBuffer != 0)

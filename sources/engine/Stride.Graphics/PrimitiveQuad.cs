@@ -150,7 +150,7 @@ namespace Stride.Graphics
                 var vertexBuffer = Buffer.Vertex.New(device, QuadsVertices).DisposeBy(this);
                 
                 // Register reload
-                vertexBuffer.Reload = (graphicsResource) => ((Buffer)graphicsResource).Recreate(QuadsVertices);
+                vertexBuffer.Reload = (graphicsResource, services) => ((Buffer)graphicsResource).Recreate(QuadsVertices);
 
                 VertexBuffer = new VertexBufferBinding(vertexBuffer, VertexDeclaration, QuadsVertices.Length, VertexPositionNormalTexture.Size);
             }

@@ -1,10 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-
-  <PropertyGroup>
-    <!-- Include proper language targets for temporary WPF projects. See https://github.com/dotnet/project-system/issues/1467 -->
-    <LanguageTargets Condition="'$(MSBuildProjectExtension)' == '.tmp_proj'">$(MSBuildToolsPath)\Microsoft.CSharp.targets</LanguageTargets>
-  </PropertyGroup>
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows7.0</TargetFramework>
@@ -47,20 +41,6 @@
   <ItemGroup>
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
     <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
-    <Reference Include="System.Diagnostics.Debug" />
-    <Reference Include="System.Management" />
-    <Reference Include="System.Net.Http.Formatting">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\deps\Metrics\System.Net.Http.Formatting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Security" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs">
@@ -114,23 +94,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4.7.2 %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.IO\Stride.Core.IO.csproj" />
@@ -146,22 +109,19 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Announcements\" />
-  </ItemGroup>
-  <ItemGroup>
     <TrimmerRootAssembly Include="System.Runtime" />
     <TrimmerRootAssembly Include="System.Diagnostics.Debug" />
     <TrimmerRootAssembly Include="System.Runtime.Extensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <Import Project="..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
   <Import Project="..\..\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems" Label="Shared" />
   <Import Project="..\..\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
-  <!--   <Target Name="AfterResolveReferences">
-    <ItemGroup>
-      <EmbeddedResource Update="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'">
-        <LogicalName>%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)</LogicalName>
-      </EmbeddedResource>
-    </ItemGroup>
-  </Target> -->
 </Project>

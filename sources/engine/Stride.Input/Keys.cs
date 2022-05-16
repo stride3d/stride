@@ -9,7 +9,7 @@ namespace Stride.Input
     public enum Keys
     {
         /// <summary>
-        /// The 'none' key.
+        /// Invalid key.
         /// </summary>
         None = 0,
 
@@ -19,9 +19,14 @@ namespace Stride.Input
         Cancel = 1,
 
         /// <summary>
-        /// The 'back' key.
+        /// The 'back'/'backspace' key.
         /// </summary>
         Back = 2,
+
+        /// <summary>
+        /// The 'back'/'backspace' key.
+        /// </summary>
+        BackSpace = Back,
 
         /// <summary>
         /// The 'tab' key.
@@ -39,14 +44,14 @@ namespace Stride.Input
         Clear = 5,
 
         /// <summary>
-        /// The 'enter' key.
+        /// The 'enter'/'return' key.
         /// </summary>
         Enter = 6,
 
         /// <summary>
-        /// The 'return' key.
+        /// The 'enter'/'return' key.
         /// </summary>
-        Return = 6,
+        Return = Enter,
 
         /// <summary>
         /// The 'pause' key.
@@ -54,12 +59,12 @@ namespace Stride.Input
         Pause = 7,
 
         /// <summary>
-        /// The 'capital' key.
+        /// The 'capslock'/'capital' key.
         /// </summary>
-        Capital = 8,
+        Capital = CapsLock,
 
         /// <summary>
-        /// The 'capslock' key.
+        /// The 'capslock'/'capital' key.
         /// </summary>
         CapsLock = 8,
 
@@ -124,22 +129,22 @@ namespace Stride.Input
         Space = 18,
 
         /// <summary>
-        /// The 'pageup' key.
+        /// The 'pageup'/'prior' key.
         /// </summary>
         PageUp = 19,
 
         /// <summary>
-        /// The 'prior' key.
+        /// The 'pageup'/'prior' key.
         /// </summary>
-        Prior = 19,
+        Prior = PageUp,
 
         /// <summary>
-        /// The 'next' key.
+        /// The 'pagedown'/'next' key.
         /// </summary>
-        Next = 20,
+        Next = PageDown,
 
         /// <summary>
-        /// The 'pagedown' key.
+        /// The 'pagedown'/'next' key.
         /// </summary>
         PageDown = 20,
 
@@ -179,7 +184,7 @@ namespace Stride.Input
         Select = 27,
 
         /// <summary>
-        /// The 'print' key.
+        /// The 'print' key, not to be confused with <see cref="PrintScreen"/>.
         /// </summary>
         Print = 28,
 
@@ -189,14 +194,14 @@ namespace Stride.Input
         Execute = 29,
 
         /// <summary>
-        /// The 'printscreen' key.
+        /// The 'snapshot'/'printscreen' key.
         /// </summary>
         PrintScreen = 30,
 
         /// <summary>
-        /// The 'snapshot' key.
+        /// The 'snapshot'/'printscreen' key
         /// </summary>
-        Snapshot = 30,
+        Snapshot = PrintScreen,
 
         /// <summary>
         /// The 'insert' key.
@@ -214,52 +219,52 @@ namespace Stride.Input
         Help = 33,
 
         /// <summary>
-        /// The 'd0' key.
+        /// The number row '0' key.
         /// </summary>
         D0 = 34,
 
         /// <summary>
-        /// The 'd1' key.
+        /// The number row '1' key.
         /// </summary>
         D1 = 35,
 
         /// <summary>
-        /// The 'd2' key.
+        /// The number row '2' key.
         /// </summary>
         D2 = 36,
 
         /// <summary>
-        /// The 'd3' key.
+        /// The number row '3' key.
         /// </summary>
         D3 = 37,
 
         /// <summary>
-        /// The 'd4' key.
+        /// The number row '4' key.
         /// </summary>
         D4 = 38,
 
         /// <summary>
-        /// The 'd5' key.
+        /// The number row '5' key.
         /// </summary>
         D5 = 39,
 
         /// <summary>
-        /// The 'd6' key.
+        /// The number row '6' key.
         /// </summary>
         D6 = 40,
 
         /// <summary>
-        /// The 'd7' key.
+        /// The number row '7' key.
         /// </summary>
         D7 = 41,
 
         /// <summary>
-        /// The 'd8' key.
+        /// The number row '8' key.
         /// </summary>
         D8 = 42,
 
         /// <summary>
-        /// The 'd9' key.
+        /// The number row '9' key.
         /// </summary>
         D9 = 43,
 
@@ -394,17 +399,17 @@ namespace Stride.Input
         Z = 69,
 
         /// <summary>
-        /// The 'leftwin' key.
+        /// The left 'windows'/'command'/'meta' key.
         /// </summary>
         LeftWin = 70,
 
         /// <summary>
-        /// The 'rightwin' key.
+        /// The right 'windows'/'command'/'meta' key.
         /// </summary>
         RightWin = 71,
 
         /// <summary>
-        /// The 'apps' key.
+        /// The 'apps'/'Menu'/'FN2' key, between the windows and right ctrl key on a 104 keys keyboard.
         /// </summary>
         Apps = 72,
 
@@ -414,62 +419,62 @@ namespace Stride.Input
         Sleep = 73,
 
         /// <summary>
-        /// The 'numpad0' key.
+        /// The numeric keypad '0' key.
         /// </summary>
         NumPad0 = 74,
 
         /// <summary>
-        /// The 'numpad1' key.
+        /// The numeric keypad '1' key.
         /// </summary>
         NumPad1 = 75,
 
         /// <summary>
-        /// The 'numpad2' key.
+        /// The numeric keypad '2' key.
         /// </summary>
         NumPad2 = 76,
 
         /// <summary>
-        /// The 'numpad3' key.
+        /// The numeric keypad '3' key.
         /// </summary>
         NumPad3 = 77,
 
         /// <summary>
-        /// The 'numpad4' key.
+        /// The numeric keypad '4' key.
         /// </summary>
         NumPad4 = 78,
 
         /// <summary>
-        /// The 'numpad5' key.
+        /// The numeric keypad '5' key.
         /// </summary>
         NumPad5 = 79,
 
         /// <summary>
-        /// The 'numpad6' key.
+        /// The numeric keypad '6' key.
         /// </summary>
         NumPad6 = 80,
 
         /// <summary>
-        /// The 'numpad7' key.
+        /// The numeric keypad '7' key.
         /// </summary>
         NumPad7 = 81,
 
         /// <summary>
-        /// The 'numpad8' key.
+        /// The numeric keypad '8' key.
         /// </summary>
         NumPad8 = 82,
 
         /// <summary>
-        /// The 'numpad9' key.
+        /// The numeric keypad '9' key.
         /// </summary>
         NumPad9 = 83,
 
         /// <summary>
-        /// The 'multiply' key.
+        /// The numeric keypad 'multiply' key.
         /// </summary>
         Multiply = 84,
 
         /// <summary>
-        /// The 'add' key.
+        /// The numeric keypad 'add' key.
         /// </summary>
         Add = 85,
 
@@ -479,137 +484,137 @@ namespace Stride.Input
         Separator = 86,
 
         /// <summary>
-        /// The 'subtract' key.
+        /// The numeric keypad 'subtract' key.
         /// </summary>
         Subtract = 87,
 
         /// <summary>
-        /// The 'decimal' key.
+        /// The numeric keypad 'decimal' and 'decimal separator' key.
         /// </summary>
         Decimal = 88,
 
         /// <summary>
-        /// The 'divide' key.
+        /// The numeric keypad 'divide' key.
         /// </summary>
         Divide = 89,
 
         /// <summary>
-        /// The 'f1' key.
+        /// The function key 'f1'.
         /// </summary>
         F1 = 90,
 
         /// <summary>
-        /// The 'f2' key.
+        /// The function key 'f2'.
         /// </summary>
         F2 = 91,
 
         /// <summary>
-        /// The 'f3' key.
+        /// The function key 'f3'.
         /// </summary>
         F3 = 92,
 
         /// <summary>
-        /// The 'f4' key.
+        /// The function key 'f4'.
         /// </summary>
         F4 = 93,
 
         /// <summary>
-        /// The 'f5' key.
+        /// The function key 'f5'.
         /// </summary>
         F5 = 94,
 
         /// <summary>
-        /// The 'f6' key.
+        /// The function key 'f6'.
         /// </summary>
         F6 = 95,
 
         /// <summary>
-        /// The 'f7' key.
+        /// The function key 'f7'.
         /// </summary>
         F7 = 96,
 
         /// <summary>
-        /// The 'f8' key.
+        /// The function key 'f8'.
         /// </summary>
         F8 = 97,
 
         /// <summary>
-        /// The 'f9' key.
+        /// The function key 'f9'.
         /// </summary>
         F9 = 98,
 
         /// <summary>
-        /// The 'f10' key.
+        /// The function key 'f10'.
         /// </summary>
         F10 = 99,
 
         /// <summary>
-        /// The 'f11' key.
+        /// The function key 'f11'.
         /// </summary>
         F11 = 100,
 
         /// <summary>
-        /// The 'f12' key.
+        /// The function key 'f12'.
         /// </summary>
         F12 = 101,
 
         /// <summary>
-        /// The 'f13' key.
+        /// The function key 'f13'.
         /// </summary>
         F13 = 102,
 
         /// <summary>
-        /// The 'f14' key.
+        /// The function key 'f14'.
         /// </summary>
         F14 = 103,
 
         /// <summary>
-        /// The 'f15' key.
+        /// The function key 'f15'.
         /// </summary>
         F15 = 104,
 
         /// <summary>
-        /// The 'f16' key.
+        /// The function key 'f16'.
         /// </summary>
         F16 = 105,
 
         /// <summary>
-        /// The 'f17' key.
+        /// The function key 'f17'.
         /// </summary>
         F17 = 106,
 
         /// <summary>
-        /// The 'f18' key.
+        /// The function key 'f18'.
         /// </summary>
         F18 = 107,
 
         /// <summary>
-        /// The 'f19' key.
+        /// The function key 'f19'.
         /// </summary>
         F19 = 108,
 
         /// <summary>
-        /// The 'f20' key.
+        /// The function key 'f20'.
         /// </summary>
         F20 = 109,
 
         /// <summary>
-        /// The 'f21' key.
+        /// The function key 'f21'.
         /// </summary>
         F21 = 110,
 
         /// <summary>
-        /// The 'f22' key.
+        /// The function key 'f22'.
         /// </summary>
         F22 = 111,
 
         /// <summary>
-        /// The 'f23' key.
+        /// The function key 'f23'.
         /// </summary>
         F23 = 112,
 
         /// <summary>
-        /// The 'f24' key.
+        /// The function key 'f24'.
         /// </summary>
         F24 = 113,
 
@@ -619,37 +624,37 @@ namespace Stride.Input
         NumLock = 114,
 
         /// <summary>
-        /// The 'scroll' key.
+        /// The 'scroll'/'scroll lock' key.
         /// </summary>
         Scroll = 115,
 
         /// <summary>
-        /// The 'leftshift' key.
+        /// The left 'shift' key.
         /// </summary>
         LeftShift = 116,
 
         /// <summary>
-        /// The 'rightshift' key.
+        /// The right 'shift' key.
         /// </summary>
         RightShift = 117,
 
         /// <summary>
-        /// The 'leftctrl' key.
+        /// The left 'ctrl' key.
         /// </summary>
         LeftCtrl = 118,
 
         /// <summary>
-        /// The 'rightctrl' key.
+        /// The right 'ctrl' key.
         /// </summary>
         RightCtrl = 119,
 
         /// <summary>
-        /// The 'leftalt' key.
+        /// The left 'alt' key.
         /// </summary>
         LeftAlt = 120,
 
         /// <summary>
-        /// The 'rightalt' key.
+        /// The right 'alt' key.
         /// </summary>
         RightAlt = 121,
 
@@ -744,107 +749,107 @@ namespace Stride.Input
         LaunchApplication2 = 139,
 
         /// <summary>
-        /// The 'oem1' key.
+        /// The 'oem1'/'semicolon' key, to the right of the 'L' key on a standard US layout.
         /// </summary>
-        Oem1 = 140,
+        Oem1 = OemSemicolon,
 
         /// <summary>
-        /// The 'oemsemicolon' key.
+        /// The 'oem1'/'semicolon' key, to the right of the 'L' key on a standard US layout.
         /// </summary>
         OemSemicolon = 140,
 
         /// <summary>
-        /// The 'oemplus' key.
+        /// The 'oemplus'/'Equals' key, to the left of the backspace key on a standard US layout.
         /// </summary>
         OemPlus = 141,
 
         /// <summary>
-        /// The 'oemcomma' key.
+        /// The 'oemcomma' key, to the right of the 'M' key on a standard US layout.
         /// </summary>
         OemComma = 142,
 
         /// <summary>
-        /// The 'oemminus' key.
+        /// The 'oemminus' key, to the right of the number row '0' key on a standard US layout.
         /// </summary>
         OemMinus = 143,
 
         /// <summary>
-        /// The 'oemperiod' key.
+        /// The 'oemperiod' key, right between 'M' and the right shift key on a standard US layout.
         /// </summary>
         OemPeriod = 144,
 
         /// <summary>
-        /// The 'oem2' key.
+        /// The 'oemquestion'/'oem2' key, next to 'right shift' on a standard US layout.
         /// </summary>
-        Oem2 = 145,
+        Oem2 = OemQuestion,
 
         /// <summary>
-        /// The 'oemquestion' key.
+        /// The 'oemquestion'/'oem2' key, next to 'right shift' on a standard US layout.
         /// </summary>
         OemQuestion = 145,
 
         /// <summary>
-        /// The 'oem3' key.
+        /// The 'oemtilde'/'oem3' key, above 'tab' on a standard US layout.
         /// </summary>
-        Oem3 = 146,
+        Oem3 = OemTilde,
 
         /// <summary>
-        /// The 'oemtilde' key.
+        /// The 'oemtilde'/'oem3' key, above 'tab' on a standard US layout.
         /// </summary>
         OemTilde = 146,
 
         /// <summary>
-        /// The 'oem4' key.
+        /// The 'OemOpenBrackets'/'oem4' key, to the right of 'P' on a standard US layout.
         /// </summary>
-        Oem4 = 149,
+        Oem4 = OemOpenBrackets,
 
         /// <summary>
-        /// The 'oemopenbrackets' key.
+        /// The 'OemOpenBrackets'/'oem4' key, to the right of 'P' on a standard US layout.
         /// </summary>
         OemOpenBrackets = 149,
 
         /// <summary>
-        /// The 'oem5' key.
+        /// The 'OemPipe'/'oem5' key, either at the lower left of the 'return' key for ISO or between 'return' and 'backspace' for ANSI on a standard US layout.
         /// </summary>
-        Oem5 = 150,
+        Oem5 = OemPipe,
 
         /// <summary>
-        /// The 'oempipe' key.
+        /// The 'OemPipe'/'oem5' key, either at the lower left of the 'return' key for ISO or between 'return' and 'backspace' for ANSI on a standard US layout.
         /// </summary>
         OemPipe = 150,
 
         /// <summary>
-        /// The 'oem6' key.
+        /// The 'OemCloseBrackets'/'oem6' key, second key to the right of 'P' on a standard US layout.
         /// </summary>
-        Oem6 = 151,
+        Oem6 = OemCloseBrackets,
 
         /// <summary>
-        /// The 'oemclosebrackets' key.
+        /// The 'OemCloseBrackets'/'oem6' key, second key to the right of 'P' on a standard US layout.
         /// </summary>
         OemCloseBrackets = 151,
 
         /// <summary>
-        /// The 'oem7' key.
+        /// The 'OemQuotes'/'oem7' key, second key to the right of 'L' on a standard US layout.
         /// </summary>
-        Oem7 = 152,
+        Oem7 = OemQuotes,
 
         /// <summary>
-        /// The 'oemquotes' key.
+        /// The 'OemQuotes'/'oem7' key, second key to the right of 'L' on a standard US layout.
         /// </summary>
         OemQuotes = 152,
 
         /// <summary>
-        /// The 'oem8' key.
+        /// The 'oem8' key, on a UK layout the left most key on the number row, same position as <see cref="OemTilde"/> on US layout.
         /// </summary>
         Oem8 = 153,
 
         /// <summary>
-        /// The 'oem102' key.
+        /// The 'OemBackSlash'/'oem102' key, on US ISO keyboards this key sits between left shift and 'Z'.
         /// </summary>
-        Oem102 = 154,
+        Oem102 = OemBackslash,
 
         /// <summary>
-        /// The 'oembackslash' key.
+        /// The 'OemBackSlash'/'oem102' key, on US ISO keyboards this key sits between left shift and 'Z'.
         /// </summary>
         OemBackslash = 154,
 
@@ -879,12 +884,12 @@ namespace Stride.Input
         Zoom = 168,
 
         /// <summary>
-        /// The 'noname' key.
+        /// A windows-reserved key.
         /// </summary>
         NoName = 169,
 
         /// <summary>
-        /// The 'pa1' key.
+        /// The 'PA1' or 'Program Action'/'Program Attention' 1 key on a 3270 IBM keyboard.
         /// </summary>
         Pa1 = 170,
 
@@ -894,13 +899,13 @@ namespace Stride.Input
         OemClear = 171,
 
         /// <summary>
-        /// The 'numpad enter' key.
+        /// The numeric keypad 'enter' key in SDL and RawInput, Winforms forwards it to <see cref="Return"/> instead.
         /// </summary>
         NumPadEnter = 180,
 
         /// <summary>
-        /// The 'numpad decimal' key.
+        /// The numeric keypad 'decimal' key.
         /// </summary>
-        NumPadDecimal = 181,
+        [System.Obsolete($"Use {nameof(Decimal)} instead")] NumPadDecimal = 181,
     }
 }

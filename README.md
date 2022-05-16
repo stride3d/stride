@@ -2,10 +2,10 @@
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![Github Contributors](https://img.shields.io/badge/all_contributors-26-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-26-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
-
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
+
 
 Welcome to the Stride source code repository!
 
@@ -18,29 +18,26 @@ Stride comes with an editor that allows you to create and manage the content of 
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ## License and governance
-
 ### .NET Foundation
-
 This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
 
 ### License
-
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
-
 You can find the list of third party projects [here](THIRD%20PARTY.md).
-
 Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
 
 ### Code of conduct
-
 Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
-
 For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct). 
+
+### Earn money by contributing
+If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on OpenCollective and can pay for work on certain projects. [More info about this here](https://github.com/stride3d/stride/wiki/Bounty).
 
 ## Documentation
 
 Find explanations and information about Stride:
 * [Stride Manual](https://doc.stride3d.net/latest/manual/index.html)
+* [Tutorials](https://doc.stride3d.net/latest/en/tutorials/)
 * [API Reference](https://doc.stride3d.net/latest/api/index.html)
 * [Release Notes](https://doc.stride3d.net/latest/ReleaseNotes/index.html)
 
@@ -50,8 +47,8 @@ Ask for help or report issues:
 * [Chat with the community on Discord](https://discord.gg/f6aerfE)
 * [Discuss topics on Github discussions](https://github.com/stride3d/stride/discussions)
 * [Report engine issues](https://github.com/stride3d/stride/issues)
-* [Donate to support the project](https://opencollective.com/stride3d/)
-* [List of Projects made by users](https://github.com/stride3d/stride-community-projects)
+* [Donate to support the project](https://opencollective.com/stride3d/) [![Open collective backers](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
+* [List of Projects made by users](https://github.com/stride3d/stride/wiki/StrideCommunityProjects)
 * [Localization](docs/localization.md)
 
 ## Building from source
@@ -156,6 +153,12 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://schnellebuntebilder.de/"><img src="https://avatars.githubusercontent.com/u/646501?v=4?s=100" width="100px;" alt=""/><br /><sub><b>sebl</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=sebllll" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Artromskiy"><img src="https://avatars.githubusercontent.com/u/47901401?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Artromskiy</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Artromskiy" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/TheKeyblader"><img src="https://avatars.githubusercontent.com/u/30444673?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jean-François Pustay</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=TheKeyblader" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Earthmark"><img src="https://avatars.githubusercontent.com/u/1251609?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Daniel Miller</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Earthmark" title="Code">💻</a></td>
+    <td align="center"><a href="http://joreg.ath.cx"><img src="https://avatars.githubusercontent.com/u/1067952?v=4?s=100" width="100px;" alt=""/><br /><sub><b>joreg</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=joreg" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/jrinker03"><img src="https://avatars.githubusercontent.com/u/49572939?v=4?s=100" width="100px;" alt=""/><br /><sub><b>James Rinker</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=jrinker03" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/tristanmcpherson"><img src="https://avatars.githubusercontent.com/u/979937?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tristan McPherson</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=tristanmcpherson" title="Code">💻</a></td>
   </tr>
 </table>
 

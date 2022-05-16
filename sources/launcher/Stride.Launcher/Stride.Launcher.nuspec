@@ -5,7 +5,7 @@
     <version>5.0.6</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
-    <licenseUrl>https://stride3d.net/license.txt</licenseUrl>
+    <license type="expression">MIT</license>
     <projectUrl>https://stride3d.net/</projectUrl>
     <copyright>&#169; Stride contributors and Silicon Studio Corp.</copyright>
     <description>Stride Launcher

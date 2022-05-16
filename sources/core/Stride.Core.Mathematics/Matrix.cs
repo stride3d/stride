@@ -31,7 +31,9 @@
 #pragma warning disable SA1313 // Parameter names must begin with lower-case letter
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using MatrixDotnet = System.Numerics.Matrix4x4;
 
 namespace Stride.Core.Mathematics
 {
@@ -43,6 +45,12 @@ namespace Stride.Core.Mathematics
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Matrix : IEquatable<Matrix>, IFormattable
     {
+        /// <summary> Are matrix row or column major </summary>
+        /// <remarks>
+        /// Dotnet's <see cref="System.Numerics.Matrix4x4"/> are row major.
+        /// </remarks>
+        public const bool LayoutIsRowMajor = false;
+        
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Matrix"/> type, in bytes.
         /// </summary>
@@ -958,6 +966,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <param name="result">The product of the two matrices.</param>
+        [Obsolete($"Use {nameof(Multiply)} instead, this signature will be removed")]
         public static void MultiplyTo(ref Matrix left, ref Matrix right, out Matrix result)
         {
             result.M11 = (left.M11 * right.M11) + (left.M12 * right.M21) + (left.M13 * right.M31) + (left.M14 * right.M41);
@@ -988,22 +997,10 @@ namespace Stride.Core.Mathematics
         /// <param name="result">The product of the two matrices.</param>
         public static void Multiply(ref Matrix left, ref Matrix right, out Matrix result)
         {
-            result.M11 = (left.M11 * right.M11) + (left.M12 * right.M21) + (left.M13 * right.M31) + (left.M14 * right.M41);
-            result.M21 = (left.M21 * right.M11) + (left.M22 * right.M21) + (left.M23 * right.M31) + (left.M24 * right.M41);
-            result.M31 = (left.M31 * right.M11) + (left.M32 * right.M21) + (left.M33 * right.M31) + (left.M34 * right.M41);
-            result.M41 = (left.M41 * right.M11) + (left.M42 * right.M21) + (left.M43 * right.M31) + (left.M44 * right.M41);
-            result.M12 = (left.M11 * right.M12) + (left.M12 * right.M22) + (left.M13 * right.M32) + (left.M14 * right.M42);
-            result.M22 = (left.M21 * right.M12) + (left.M22 * right.M22) + (left.M23 * right.M32) + (left.M24 * right.M42);
-            result.M32 = (left.M31 * right.M12) + (left.M32 * right.M22) + (left.M33 * right.M32) + (left.M34 * right.M42);
-            result.M42 = (left.M41 * right.M12) + (left.M42 * right.M22) + (left.M43 * right.M32) + (left.M44 * right.M42);
-            result.M13 = (left.M11 * right.M13) + (left.M12 * right.M23) + (left.M13 * right.M33) + (left.M14 * right.M43);
-            result.M23 = (left.M21 * right.M13) + (left.M22 * right.M23) + (left.M23 * right.M33) + (left.M24 * right.M43);
-            result.M33 = (left.M31 * right.M13) + (left.M32 * right.M23) + (left.M33 * right.M33) + (left.M34 * right.M43);
-            result.M43 = (left.M41 * right.M13) + (left.M42 * right.M23) + (left.M43 * right.M33) + (left.M44 * right.M43);
-            result.M14 = (left.M11 * right.M14) + (left.M12 * right.M24) + (left.M13 * right.M34) + (left.M14 * right.M44);
-            result.M24 = (left.M21 * right.M14) + (left.M22 * right.M24) + (left.M23 * right.M34) + (left.M24 * right.M44);
-            result.M34 = (left.M31 * right.M14) + (left.M32 * right.M24) + (left.M33 * right.M34) + (left.M34 * right.M44);
-            result.M44 = (left.M41 * right.M14) + (left.M42 * right.M24) + (left.M43 * right.M34) + (left.M44 * right.M44);
+            ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
+            ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
+            Unsafe.SkipInit(out result);
+            UnsafeRefAsDotNet(in result) = LayoutIsRowMajor ? l * r : r * l;
         }
 
         /// <summary>
@@ -1014,38 +1011,35 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <param name="result">The product of the two matrices.</param>
-        public static void MultiplyRef(ref Matrix left, ref Matrix right, ref Matrix result)
+        public static void MultiplyIn(in Matrix left, in Matrix right, out Matrix result)
         {
-            result.M11 = (left.M11 * right.M11) + (left.M12 * right.M21) + (left.M13 * right.M31) + (left.M14 * right.M41);
-            result.M21 = (left.M21 * right.M11) + (left.M22 * right.M21) + (left.M23 * right.M31) + (left.M24 * right.M41);
-            result.M31 = (left.M31 * right.M11) + (left.M32 * right.M21) + (left.M33 * right.M31) + (left.M34 * right.M41);
-            result.M41 = (left.M41 * right.M11) + (left.M42 * right.M21) + (left.M43 * right.M31) + (left.M44 * right.M41);
-            result.M12 = (left.M11 * right.M12) + (left.M12 * right.M22) + (left.M13 * right.M32) + (left.M14 * right.M42);
-            result.M22 = (left.M21 * right.M12) + (left.M22 * right.M22) + (left.M23 * right.M32) + (left.M24 * right.M42);
-            result.M32 = (left.M31 * right.M12) + (left.M32 * right.M22) + (left.M33 * right.M32) + (left.M34 * right.M42);
-            result.M42 = (left.M41 * right.M12) + (left.M42 * right.M22) + (left.M43 * right.M32) + (left.M44 * right.M42);
-            result.M13 = (left.M11 * right.M13) + (left.M12 * right.M23) + (left.M13 * right.M33) + (left.M14 * right.M43);
-            result.M23 = (left.M21 * right.M13) + (left.M22 * right.M23) + (left.M23 * right.M33) + (left.M24 * right.M43);
-            result.M33 = (left.M31 * right.M13) + (left.M32 * right.M23) + (left.M33 * right.M33) + (left.M34 * right.M43);
-            result.M43 = (left.M41 * right.M13) + (left.M42 * right.M23) + (left.M43 * right.M33) + (left.M44 * right.M43);
-            result.M14 = (left.M11 * right.M14) + (left.M12 * right.M24) + (left.M13 * right.M34) + (left.M14 * right.M44);
-            result.M24 = (left.M21 * right.M14) + (left.M22 * right.M24) + (left.M23 * right.M34) + (left.M24 * right.M44);
-            result.M34 = (left.M31 * right.M14) + (left.M32 * right.M24) + (left.M33 * right.M34) + (left.M34 * right.M44);
-            result.M44 = (left.M41 * right.M14) + (left.M42 * right.M24) + (left.M43 * right.M34) + (left.M44 * right.M44);
+            ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
+            ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
+            Unsafe.SkipInit(out result);
+            UnsafeRefAsDotNet(in result) = LayoutIsRowMajor ? l * r : r * l;
         }
 
         /// <summary>
         /// Determines the product of two matrices.
+        /// Variables passed as <paramref name="left"/> or <paramref name="right"/> must not be used as the out parameter
+        /// <paramref name="result"/>, because <paramref name="result"/> is calculated in-place.
+        /// </summary>
+        /// <param name="left">The first matrix to multiply.</param>
+        /// <param name="right">The second matrix to multiply.</param>
+        /// <param name="result">The product of the two matrices.</param>
+        [Obsolete($"Use {nameof(Multiply)} instead")]
+        public static void MultiplyRef(ref Matrix left, ref Matrix right, ref Matrix result)
+        {
+            Multiply(ref left, ref right, out result);
+        }
+
+        /// <summary>
+        /// Determines the product of two matrices, equivalent to the '*' operator.
         /// </summary>
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <returns>The product of the two matrices.</returns>
-        public static Matrix Multiply(Matrix left, Matrix right)
-        {
-            Matrix result;
-            Multiply(ref left, ref right, out result);
-            return result;
-        }
+        public static Matrix Multiply(in Matrix left, in Matrix right) => left * right;
 
         /// <summary>
         /// Scales a matrix by the given value.
@@ -1363,53 +1357,9 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the inverse of the specified matrix.</param>
         public static void Invert(ref Matrix value, out Matrix result)
         {
-            float b0 = (value.M31 * value.M42) - (value.M32 * value.M41);
-            float b1 = (value.M31 * value.M43) - (value.M33 * value.M41);
-            float b2 = (value.M34 * value.M41) - (value.M31 * value.M44);
-            float b3 = (value.M32 * value.M43) - (value.M33 * value.M42);
-            float b4 = (value.M34 * value.M42) - (value.M32 * value.M44);
-            float b5 = (value.M33 * value.M44) - (value.M34 * value.M43);
-
-            float d11 = value.M22 * b5 + value.M23 * b4 + value.M24 * b3;
-            float d12 = value.M21 * b5 + value.M23 * b2 + value.M24 * b1;
-            float d13 = value.M21 * -b4 + value.M22 * b2 + value.M24 * b0;
-            float d14 = value.M21 * b3 + value.M22 * -b1 + value.M23 * b0;
-
-            float det = value.M11 * d11 - value.M12 * d12 + value.M13 * d13 - value.M14 * d14;
-            if (MathF.Abs(det) == 0.0f)
-            {
-                result = Matrix.Zero;
-                return;
-            }
-
-            det = 1f / det;
-
-            float a0 = (value.M11 * value.M22) - (value.M12 * value.M21);
-            float a1 = (value.M11 * value.M23) - (value.M13 * value.M21);
-            float a2 = (value.M14 * value.M21) - (value.M11 * value.M24);
-            float a3 = (value.M12 * value.M23) - (value.M13 * value.M22);
-            float a4 = (value.M14 * value.M22) - (value.M12 * value.M24);
-            float a5 = (value.M13 * value.M24) - (value.M14 * value.M23);
-
-            float d21 = value.M12 * b5 + value.M13 * b4 + value.M14 * b3;
-            float d22 = value.M11 * b5 + value.M13 * b2 + value.M14 * b1;
-            float d23 = value.M11 * -b4 + value.M12 * b2 + value.M14 * b0;
-            float d24 = value.M11 * b3 + value.M12 * -b1 + value.M13 * b0;
-
-            float d31 = value.M42 * a5 + value.M43 * a4 + value.M44 * a3;
-            float d32 = value.M41 * a5 + value.M43 * a2 + value.M44 * a1;
-            float d33 = value.M41 * -a4 + value.M42 * a2 + value.M44 * a0;
-            float d34 = value.M41 * a3 + value.M42 * -a1 + value.M43 * a0;
-
-            float d41 = value.M32 * a5 + value.M33 * a4 + value.M34 * a3;
-            float d42 = value.M31 * a5 + value.M33 * a2 + value.M34 * a1;
-            float d43 = value.M31 * -a4 + value.M32 * a2 + value.M34 * a0;
-            float d44 = value.M31 * a3 + value.M32 * -a1 + value.M33 * a0;
-
-            result.M11 = +d11 * det; result.M12 = -d21 * det; result.M13 = +d31 * det; result.M14 = -d41 * det;
-            result.M21 = -d12 * det; result.M22 = +d22 * det; result.M23 = -d32 * det; result.M24 = +d42 * det;
-            result.M31 = +d13 * det; result.M32 = -d23 * det; result.M33 = +d33 * det; result.M34 = -d43 * det;
-            result.M41 = -d14 * det; result.M42 = +d24 * det; result.M43 = -d34 * det; result.M44 = +d44 * det;
+            // Invert works the same in row and column major, no need to transpose
+            Unsafe.SkipInit(out result);
+            MatrixDotnet.Invert(UnsafeRefAsDotNet(value), out UnsafeRefAsDotNet(result));
         }
 
         /// <summary>
@@ -3130,6 +3080,9 @@ namespace Stride.Core.Mathematics
                 }
             }
         }
+        
+        static ref MatrixDotnet UnsafeRefAsDotNet(in Matrix m) => ref Unsafe.As<Matrix, MatrixDotnet>(ref Unsafe.AsRef(in m));
+        static ref Matrix UnsafeRefFromDotNet(in MatrixDotnet m) => ref Unsafe.As<MatrixDotnet, Matrix>(ref Unsafe.AsRef(in m));
 
         /// <summary>
         /// Adds two matrices.
@@ -3149,7 +3102,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The matrix to assert (unchange).</param>
         /// <returns>The asserted (unchanged) matrix.</returns>
-        public static Matrix operator +(Matrix value)
+        public static Matrix operator +(in Matrix value)
         {
             return value;
         }
@@ -3211,11 +3164,11 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <returns>The product of the two matrices.</returns>
-        public static Matrix operator *(Matrix left, Matrix right)
+        public static Matrix operator *(in Matrix left, in Matrix right)
         {
-            Matrix result;
-            Multiply(ref left, ref right, out result);
-            return result;
+            ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
+            ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
+            return UnsafeRefFromDotNet(LayoutIsRowMajor ? l * r : r * l);
         }
 
         /// <summary>

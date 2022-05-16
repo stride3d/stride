@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">17.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -66,19 +66,6 @@
     <Compile Include="..\..\core\Stride.Core\ScalarStyle.cs" Link="Yaml\ScalarStyle.cs" />
     <Compile Include="..\..\core\Stride.Core\DataStyle.cs" Link="Yaml\DataStyle.cs" />
     <Compile Include="..\..\core\Stride.Core.Yaml\*.cs" Link="Yaml\%(Filename)%(Extension).cs" />
-    <!--<Compile Include="..\..\core\Stride.Core.Yaml\ILookAheadBuffer.cs" Link="Yaml\ILookAheadBuffer.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\LookAheadBuffer.cs" Link="Yaml\LookAheadBuffer.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\Mark.cs" Link="Yaml\Mark.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\Emitter.cs" Link="Yaml\Emitter.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\EmitterState.cs" Link="Yaml\EmitterState.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\IEmitter.cs" Link="Yaml\IEmitter.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\CharacterAnalyzer.cs" Link="Yaml\CharacterAnalyzer.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\SimpleKey.cs" Link="Yaml\SimpleKey.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\YamlException.cs" Link="Yaml\YamlException.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\SyntaxErrorException.cs" Link="Yaml\SyntaxErrorException.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\InsertionQueue.cs" Link="Yaml\InsertionQueue.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\TagDirectiveCollection.cs" Link="Yaml\TagDirectiveCollection.cs" />
-    <Compile Include="..\..\core\Stride.Core.Yaml\Version.cs" Link="Yaml\Version.cs" />-->
     <Compile Include="..\..\core\Stride.Core.Yaml\Schemas\*.cs" Link="Yaml\Schemas\%(Filename)%(Extension)" />
     <Compile Include="..\..\core\Stride.Core.Yaml\Tokens\*.cs" Link="Yaml\Tokens\%(Filename)%(Extension)" />
     <Compile Include="..\..\core\Stride.Core.Yaml\Events\*.cs" Link="Yaml\Events\%(Filename)%(Extension)" />

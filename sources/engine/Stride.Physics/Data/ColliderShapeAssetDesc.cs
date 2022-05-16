@@ -40,7 +40,7 @@ namespace Stride.Physics
             return other.Shape == Shape;
         }
 
-        public ColliderShape CreateShape()
+        public ColliderShape CreateShape(IServiceRegistry services)
         {
             if (Shape == null)
             {
@@ -49,7 +49,9 @@ namespace Stride.Physics
 
             if (Shape.Shape == null)
             {
-                Shape.Shape = PhysicsColliderShape.Compose(Shape.Descriptions);
+                Shape.Shape = PhysicsColliderShape.Compose(Shape.Descriptions, services);
+                if(Shape.Shape != null)
+                    Shape.Shape.Description = this;
             }
 
             return this.Shape.Shape;
