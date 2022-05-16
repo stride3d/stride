@@ -21,6 +21,16 @@ public partial class SDSLGrammar : Grammar
         var ws1 = WhiteSpace.Repeat(1);
 
 
+        var typeDefinition = new SequenceParser(
+            Literal("typedef") & " ",
+            Identifier & " ",
+            ~("<" & (Identifier | PrimaryExpression).Repeat(1).SeparatedBy(ws & "," & ws).Until(">") & ">").Named("TypedefGenerics"),
+            Identifier,
+            Semi
+        )
+        { Name = "TypeDef", Separator = ws};
+
+
         ConstantBuffer.Add(
             "cbuffer",
             ws1,
@@ -69,6 +79,7 @@ public partial class SDSLGrammar : Grammar
 
 
         var shaderContentTypes = new AlternativeParser(
+            typeDefinition,
             StructDefinition,
             compositionDeclaration,
             MethodDeclaration,
