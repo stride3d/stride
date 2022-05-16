@@ -1,117 +1,52 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 /// <summary>
-/// Various math functions.
+/// Various helper functions.
 /// </summary>
-shader Math
+shader Utilities
 {
     // -------------------------------------
-    // constant value
+    // type definition
     // -------------------------------------
-    static const float PI = 3.14159265358979323846;
-
-    // -------------------------------------
-    // methods
-    // -------------------------------------
-    // Tests intersection between a ray and a plane
-    static bool RayIntersectsPlane(float3 rayPosition,
-                                float3 rayDirection,
-                                float3 planeNormal,
-                                float  planeDirection, out float3 position)
+    typedef uint Half2;
+    typedef uint2 Half4;
+    
+    // Converts a Half2 to a float2
+    float2 Half2ToFloat2(Half2 value) 
     {
-        float distance = (planeDirection - dot(planeNormal, rayPosition)) / dot(rayDirection, planeNormal);
-        position = rayPosition + rayDirection * distance;
-        return distance >= 0;
+        return float2(f16tof32(value), f16tof32(value >> 16));
     }
 
-    // Tests intersection between a ray and a sphere
-    static bool RayIntersectsSphere(float3 rayPosition, float3 rayDirection, float3 spherePosition, float sphereRadius, out float distance)
+    // Converts a float2 to a Half2
+    Half2 Float2ToHalf2(float2 value) 
     {
-        //Source: Real-Time Collision Detection by Christer Ericson
-        //Reference: Page 177
-
-        float3 m =  rayPosition - spherePosition;
-
-        float b = dot(m, rayDirection);
-        float c = dot(m, m) - (sphereRadius * sphereRadius);
-
-        if (c > 0 && b > 0)
-        {
-            distance = 0;
-            return false;
-        }
-
-        float discriminant = b * b - c;
-
-        if (discriminant < 0)
-        {
-            distance = 0;
-            return false;
-        }
-
-        distance = -b - sqrt(discriminant);
-
-        if (distance < 0)
-            distance = 0;
-
-        return true;
+        return f32tof16(value.x) | (f32tof16(value.y) << 16);
     }
 
-    // Computes the luminance of a color
-    float Luminance(float3 color) {
-        return dot(color, float3(0.2126, 0.7152, 0.0722));
+    // Converts a Half4 to a float4
+    float4 Half4ToFloat4(Half4 value) {
+        return float4(f16tof32(value.x), f16tof32(value.x>>16), f16tof32(value.y), f16tof32(value.y>>16));
     }
 
-    // -------------------------------------
-    // Hermine interpolation
-    // -------------------------------------
-    float Hermine(float x) {
-        return x * x * (3.0 - 2.0 * x);
-    }
-    float2 Hermine(float2 x) {
-        return x * x * (3.0 - 2.0 * x);
-    }
-    float3 Hermine(float3 x) {
-        return x * x * (3.0 - 2.0 * x);
-    }
-    float4 Hermine(float4 x) {
-        return x * x * (3.0 - 2.0 * x);
+    // Converts a float4 to a Half4
+    Half4 Float4ToHalf4(float4 value) {
+        return uint2(f32tof16(value.x) | (f32tof16(value.y) << 16), f32tof16(value.z) | (f32tof16(value.w) << 16));
     }
 
-    // -------------------------------------
-    // Quintic interpolation
-    // -------------------------------------
-    float Quintic1(float x) {
-        return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
-    }
-    float2 Quintic(float2 x) {
-        return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
-    }
-    float3 Quintic(float3 x) {
-        return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
-    }
-    float4 Quintic(float4 x) {
-        return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
-    }
-
-    // Return a random number in the range [0,1] from Game Programming book (Chapter 5.4)
-    float FastRandom(uint n)
+    // Commpute Schlick's approximation of Fresnel
+    float3 FresnelSchlick(float3 specularColor, float3 eye, float3 h, float factor)
     {
-        n = (n << 13) ^ n;
-        return float( (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 2147483648.0; 
+        return specularColor + (1.0f - specularColor) * pow(1.0f - saturate(dot(eye, h)), 5.0f) * factor;
     }
 
-    // Return a random number in the range [0,1] from Game Programming book (Chapter 5.4)
-    float FastRandom(float2 x)
+    // Commpute Schlick's approximation of Fresnel
+    float3 FresnelSchlickWithGloss(float3 specularColor, float3 eye, float3 h, float factor, float gloss)
     {
-        return FastRandom(uint(x.x * 37 + x.y * 6007));
+        return specularColor + (max(specularColor, gloss) - specularColor) * pow(1.0f - saturate(dot(eye, h)), 5.0f) * factor;
     }
 
-    // Transforms "vec" by "mat" and does a W-divide.
-    float4 Project(float4 vec, float4x4 mat)
-    {
-        float4 vecProjected = mul(vec, mat);
-        vecProjected.xyz /= vecProjected.w;
-        return vecProjected;
+    // flip the texture coordinate if on an opengl device.
+    static float2 ConvertTexCoord(float2 texcoord) {
+
     }
 };

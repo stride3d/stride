@@ -65,15 +65,14 @@ public partial class SDSLGrammar : Grammar
 
         var valueDeclaration = new SequenceParser();
         valueDeclaration.Add(
-            staging.Then(ws1).Optional(),
-            StorageFlag.Then(ws1).Optional(),
+            ~(staging & ws1),
+            ~(StorageFlag & ws1),
             ValueTypes | Identifier,
             ws1,
             Identifier
         );
 
-        var assignOrSupplement = new AlternativeParser();
-        assignOrSupplement.Add(
+        var assignOrSupplement = new AlternativeParser(
             supplement,
             (AssignOperators & PrimaryExpression).SeparatedBy(ws).NotFollowedBy(ws & supplement),
             (AssignOperators & PrimaryExpression & supplement).SeparatedBy(ws)
@@ -81,7 +80,7 @@ public partial class SDSLGrammar : Grammar
 
         ShaderValueDeclaration.Add(
             valueDeclaration,
-            assignOrSupplement.Optional(),
+            ~assignOrSupplement,
             Semi
         );
         ShaderValueDeclaration.Separator = ws;

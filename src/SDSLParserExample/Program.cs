@@ -7,7 +7,7 @@ using System.Diagnostics;
 var shaderf = File.ReadAllText("../../../SDSL/shader2.sdsl");
 
 var parser = new SDSLParser();
-//parser.Grammar.Using(parser.Grammar.PrimaryExpression.Then(";"));
+//parser.Grammar.Using(parser.Grammar.ShaderValueDeclaration);
 var s = new Stopwatch();
 var match2 = parser.Parse("shader MyShader<float a> : Something {}");
 s.Start();
