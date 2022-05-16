@@ -7,7 +7,8 @@ public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser Declarations = new();
     public SequenceParser ShaderExpression = new();
-    
+    public SequenceParser ConstantBuffer = new() { Name = "ConstantBuffer" };
+
 
     public SDSLGrammar UsingShader()
     {
@@ -18,6 +19,18 @@ public partial class SDSLGrammar : Grammar
     {
         var ws = WhiteSpace.Repeat(0);
         var ws1 = WhiteSpace.Repeat(1);
+
+
+        ConstantBuffer.Add(
+            "cbuffer",
+            ws1,
+            Identifier,
+            ws,
+            LeftBrace,
+            ws,
+            RightBrace
+        );
+
 
         var shaderGenericValue = new AlternativeParser(
             Literal("TypeName").Named("TypeName").Then(Identifier).SeparatedBy(ws1).Named("GenericType"),

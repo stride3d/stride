@@ -34,6 +34,7 @@ public class SDSLParser
             {
                 actualCode.Append(m.StringValue);
             }
+
         }
         var matches = Grammar.Match(actualCode.ToString());
         //if (matches.Errors.Any())

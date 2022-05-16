@@ -80,6 +80,7 @@ public partial class SDSLGrammar : Grammar
     private LiteralTerminal SamplerComparisonState = new();
     private LiteralTerminal SamplerState = new();
     private LiteralTerminal Shared = new();
+    private LiteralTerminal StaticConst = new();
     private LiteralTerminal Static = new();
     private LiteralTerminal Struct = new();
     private LiteralTerminal StructuredBuffer = new();
@@ -225,6 +226,7 @@ public partial class SDSLGrammar : Grammar
         SamplerState = Literal("SamplerState");
         Shared = Literal("shared");
         Static = Literal("static");
+        StaticConst = Literal("static const");
         Struct = Literal("struct");
         StructuredBuffer = Literal("StructuredBuffer");
         Switch = Literal("switch");

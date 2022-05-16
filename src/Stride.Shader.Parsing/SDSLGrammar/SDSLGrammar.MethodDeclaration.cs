@@ -68,19 +68,43 @@ public partial class SDSLGrammar : Grammar
         );
         ParameterList.Separator = ws;
 
+        var abstractMethod = new SequenceParser(
+            Literal("abstract"),
+            ws1,
+            ~Literal("stage"),
+            ws1,
+            Identifier,
+            ws1,
+            Identifier,
+            ws,
+            ParameterList,
+            ws,
+            Semi
+        )
+        { Name = "AbstractMethod"};
+
+        var method = new SequenceParser(
+            Attribute.Repeat(0).SeparatedBy(ws),
+            ~(Literal("stage") & ws1),
+            ~(Literal("override") & ws1),
+            ~(Literal("static") & ws1),
+            Identifier,
+            ws1,
+            Identifier,
+            ws,
+            ParameterList,
+            ws,
+            LeftBrace,
+            ws,
+            Statement.Repeat(0).SeparatedBy(ws),
+            ws,
+            RightBrace
+        )
+        { Name = "Method"};
+
         MethodDeclaration.Add(
-            // Abstract method
-            Literal("abstract").Then(Literal("stage").Optional()).Then(Identifier).Then(Identifier).SeparatedBy(ws1)
-                .Then(ParameterList).Then(Semi).SeparatedBy(ws).Named("AbstractMethod"),
-            // Override or normal method
-            Attribute.Repeat(0).SeparatedBy(ws)
-            .Then(Literal("override").Optional())
-            .Then(Literal("stage").Optional())
-                .Then(Identifier).Then(Identifier).SeparatedBy(ws1)
-                    .Then(ParameterList)
-                .Then(LeftBrace)
-                    .Then(Statement.Repeat(0).SeparatedBy(ws))
-                .Then(RightBrace).SeparatedBy(ws).Named("MethodDeclaration")
+            abstractMethod,
+            method           
         );
     }
 }

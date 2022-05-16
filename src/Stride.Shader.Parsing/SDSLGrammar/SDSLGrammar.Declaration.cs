@@ -66,6 +66,7 @@ public partial class SDSLGrammar : Grammar
         var valueDeclaration = new SequenceParser();
         valueDeclaration.Add(
             staging.Then(ws1).Optional(),
+            StorageFlag.Then(ws1).Optional(),
             ValueTypes | Identifier,
             ws1,
             Identifier

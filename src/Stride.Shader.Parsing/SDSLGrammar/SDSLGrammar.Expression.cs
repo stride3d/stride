@@ -40,6 +40,14 @@ public partial class SDSLGrammar : Grammar
         else
             return LeftParen.Then(p).Then(RightParen).SeparatedBy(WhiteSpace.Repeat(0));
     }
+    public Parser Parenthesis(Parser p, Parser f, bool notFollowedByUnary = true)
+    {
+        var ws = WhiteSpace.Repeat(0);
+        if (notFollowedByUnary)
+            return LeftParen.Then(p).Then(RightParen).SeparatedBy(WhiteSpace.Repeat(0)).NotFollowedBy(UnaryExpression).FollowedBy(ws & f);
+        else
+            return LeftParen.Then(p).Then(RightParen).SeparatedBy(WhiteSpace.Repeat(0)).FollowedBy(ws & f);
+    }
 
     public void CreateExpressions()
     {
@@ -59,9 +67,9 @@ public partial class SDSLGrammar : Grammar
 
         TermExpression.Add(
             Literals,
-            Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen),
-            MethodCall
-            // ,ParenExpression
+            ~(Plus | Minus & ws) & Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen),
+            MethodCall,
+            Parenthesis(PrimaryExpression)
         );
         
         var arrayAccess = new SequenceParser();
@@ -122,48 +130,48 @@ public partial class SDSLGrammar : Grammar
         );
 
         
-        var mulOp = Star | Div | Mod;        
+        var mulOp = Star | Div | Mod;  
         MulExpression.Add(
-            CastExpression.Repeat(0).SeparatedBy(ws & mulOp.Named("Operator") & ws)
+            (Parenthesis(PrimaryExpression) | CastExpression).Repeat(0).SeparatedBy(ws & mulOp.Named("Operator") & ws)
         );
         
         var sumOp = Plus | Minus;        
         
-        SumExpression.Add( 
-            (Parenthesis(MulExpression) | MulExpression)
-                .Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws)
+        SumExpression.Add(
+            MulExpression.Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws)
         );
 
        
         var shiftOp = LeftShift | RightShift;
 
         ShiftExpression.Add(
-            (Parenthesis(SumExpression) | SumExpression)
-                .Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws)
+            SumExpression.Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws)
         );
         
 
         AndExpression.Add(
-            (Parenthesis(ShiftExpression) | ShiftExpression)
-                .Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws)
+            ShiftExpression.Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws)
         );
 
         XorExpression.Add(
-            (Parenthesis(AndExpression) | AndExpression)
-                .Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws)
+            AndExpression.Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws)
         );
 
 
         OrExpression.Add(
-            (Parenthesis(XorExpression) | XorExpression)
-                .Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws)
+            XorExpression.Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws)
         );
 
-        var testOp = Less | LessEqual | Greater | GreaterEqual;
+        var testOp = LessEqual | Less | GreaterEqual | Greater ;
 
         TestExpression.Add(
-            (Parenthesis(OrExpression) | OrExpression)
-                .Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws)
+            OrExpression.Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws)
         );
 
         var eqOp =
@@ -171,22 +179,22 @@ public partial class SDSLGrammar : Grammar
             | Literal("!=");
 
         EqualsExpression.Add(
-            (Parenthesis(TestExpression) | TestExpression)
-                .Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws)
+            TestExpression.Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws)
         );
 
         LogicalAndExpression.Add(
-            (Parenthesis(EqualsExpression) | EqualsExpression)
-                .Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws)
+            EqualsExpression.Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws)
         );
         LogicalOrExpression.Add(
-            (Parenthesis(LogicalAndExpression) | LogicalAndExpression)
-                .Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws)
+            LogicalAndExpression.Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws)
         );
 
         ConditionalExpression.Add( 
             LogicalOrExpression.NotFollowedBy(ws & "?"),
-            (Parenthesis(LogicalOrExpression) | LogicalOrExpression)
+            (Parenthesis(LogicalOrExpression).NotFollowedBy(ws & OrOr) | LogicalOrExpression)
                 .Then("?")
                     .Then(CastExpression | ParenExpression | LogicalOrExpression)
                     .Then(":")
@@ -207,9 +215,13 @@ public partial class SDSLGrammar : Grammar
             Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("MethodCallExpression")
         );
 
+        var arrayDeclaration =
+            (LeftBrace & PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws) & RightBrace)
+            .SeparatedBy(ws);
 
         PrimaryExpression.Add(
-            MethodCall,
+            arrayDeclaration,
+            //MethodCall,
             ConditionalExpression            
         );
     }

@@ -29,6 +29,8 @@ public partial class SDSLGrammar : Grammar
         CreateExpressions();
         CreateMethodDeclaration();
         CreateDeclarators();
+        CreateConditionalFlowStatements();
+        CreateLoopFlowStatements();
         CreateStatements();
         CreateShader();
     }
