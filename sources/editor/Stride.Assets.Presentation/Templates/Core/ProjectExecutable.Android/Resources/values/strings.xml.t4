@@ -1,4 +1,5 @@
-<#@ template="" inherits="ProjectTemplateTransformation" language="C#" #>
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <resources>
     <string name="app_name"><#= Properties.PackageGameDisplayName #></string>
+    <string name="app_text">Hello</string>
 </resources>
