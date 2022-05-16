@@ -793,7 +793,7 @@ Hierarchy:
                         Environment: Small
                     9b5c17fd501f9839aed554a74bc4575e: !CSharpIntermediate.Code.AudioDemo,CSharpIntermediate.Game
                         Id: bb4b827c-f0e2-4a11-943e-2603cb6c83eb
-                        UkuleleSound: null
+                        UkuleleSound: 3885913c-4b28-49c8-b06f-5dbf54e7c5bb:Audio/Ukelele
                     6f2d27198339238056f47fbe7f621748: !CSharpIntermediate.Code.OmniDirectionMovement,CSharpIntermediate.Game
                         Id: e2bace7e-5a0c-404f-a436-c5edb10957df
                         MoveSpeed: 3.0

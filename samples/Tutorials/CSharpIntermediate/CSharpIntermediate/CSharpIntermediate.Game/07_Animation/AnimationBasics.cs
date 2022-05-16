@@ -24,18 +24,20 @@ namespace CSharpIntermediate.Code
 
         public override void Update()
         {
-            StopOrResumeAnimations();
+            int drawX = 800, drawY = 600;
 
-            AdjustAnimationSpeed();
+            StopOrResumeAnimations(drawX, drawY += 20);
 
-            DebugText.Print("I to start playing Idle", new Int2(320, 440));
+            AdjustAnimationSpeed(drawX, drawY += 20);
+
+            DebugText.Print("I to start playing Idle", new Int2(drawX, drawY += 20));
             if (Input.IsKeyPressed(Keys.I))
             {
                 latestAnimation = animation.Play("Idle");
                 latestAnimation.TimeFactor = AnimationSpeed;
             }
 
-            DebugText.Print("R to crossfade to Run", new Int2(320, 460));
+            DebugText.Print("R to crossfade to Run", new Int2(drawX, drawY += 20));
             if (Input.IsKeyPressed(Keys.R))
             {
                 latestAnimation = animation.Crossfade("Run", TimeSpan.FromSeconds(0.5));
@@ -43,7 +45,7 @@ namespace CSharpIntermediate.Code
             }
 
             // We can crossfade to a punch animation, but only if it is not already playing
-            DebugText.Print("P to crossfade to Punch and play it once", new Int2(320, 480));
+            DebugText.Print("P to crossfade to Punch and play it once", new Int2(drawX, drawY += 20));
             if (Input.IsKeyPressed(Keys.P) && !animation.IsPlaying("Punch"))
             {
                 latestAnimation = animation.Crossfade("Punch", TimeSpan.FromSeconds(0.1));
@@ -60,9 +62,9 @@ namespace CSharpIntermediate.Code
             }
         }
 
-        private void StopOrResumeAnimations()
+        private void StopOrResumeAnimations(int drawX, int drawY)
         {
-            DebugText.Print($"S to pause or resume animations", new Int2(320, 420));
+            DebugText.Print($"S to pause or resume animations", new Int2(drawX, drawY));
             if (Input.IsKeyPressed(Keys.S))
             {
                 foreach (var playingAnimation in animation.PlayingAnimations)
@@ -72,9 +74,9 @@ namespace CSharpIntermediate.Code
             }
         }
 
-        private void AdjustAnimationSpeed()
+        private void AdjustAnimationSpeed(int drawX, int drawY)
         {
-            DebugText.Print($"Q and E for speed {AnimationSpeed:0.0}", new Int2(320, 400));
+            DebugText.Print($"Q and E for speed {AnimationSpeed:0.0}", new Int2(drawX, drawY));
             if (Input.IsKeyPressed(Keys.E))
             {
                 AnimationSpeed += 0.1f;

@@ -81,7 +81,7 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
         -   Entity:
                 Id: 86ea71e1-6822-4267-b0c5-3ca59ff226d2
-                Name: ReloadSceneA
+                Name: LoadSceneA
                 Components:
                     eb5035f857a0e6f5d775a26b64b3bf3f: !TransformComponent
                         Id: 6802fa61-110f-4b11-ad35-e8616143f6b9
@@ -93,8 +93,8 @@ Hierarchy:
                         Id: 890a1f70-25a0-4412-b94a-27ba469f1ac0
                         SceneToLoad: f6f2a96e-6b05-4119-bba1-87c1fa5c8fdf:Scenes/06_SceneLoading/Completed-SceneA
                         DrawY: 60
-                        Info: 'To go back to scene A, press '
-                        KeyToPress: None
+                        Info: Load scene-A, press
+                        KeyToPress: A
         -   Entity:
                 Id: 8d16a77c-de44-444c-9a80-48691f614e88
                 Name: Gate1x2x1
@@ -123,8 +123,8 @@ Hierarchy:
                         Id: c971497d-f0b0-4c4e-a922-4fdbac7ca9b5
                         SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/06_SceneLoading/Completed-SceneB
                         DrawY: 20
-                        Info: 'To reload scene, press '
-                        KeyToPress: None
+                        Info: Reload scene, press
+                        KeyToPress: B
         -   Entity:
                 Id: dbd15918-28c5-4576-8ee1-54c044e62e35
                 Name: Gate2x3x1
