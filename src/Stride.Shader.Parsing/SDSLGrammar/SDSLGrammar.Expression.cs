@@ -220,7 +220,7 @@ public partial class SDSLGrammar : Grammar
             .SeparatedBy(ws);
 
         PrimaryExpression.Add(
-            arrayDeclaration
+            arrayDeclaration,
             ConditionalExpression            
         );
     }

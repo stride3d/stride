@@ -7,6 +7,7 @@ public class SDSLParser
 {
     public CommentGrammar Comments {get;set;}
     public SDSLGrammar Grammar {get;set;}  
+    public DirectiveGrammar Directive { get;set;}
 
     public SDSLParser()
     {

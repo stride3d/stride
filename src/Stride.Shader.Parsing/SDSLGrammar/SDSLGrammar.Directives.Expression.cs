@@ -25,17 +25,16 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser DirectiveParenExpression = new() { Name = "DirectiveParenExpression" };
     public AlternativeParser DirectiveEqualsExpression = new() { Name = "DirectiveEqualsExpression" };
     public AlternativeParser DirectiveExpression = new() { Name = "DirectiveExpression" };
-
-    public SDSLGrammar UsingDirectiveExpression()
+    public SDSLGrammar DirectiveUsingDirectiveExpression()
     {
         Inner = DirectiveExpression;
         return this;
     }
-
     public void CreateDirectiveExpressions()
     {
         var ws = SingleLineWhiteSpace.Repeat(0);
         var ls1 = SingleLineWhiteSpace.Repeat(1);
+
 
 
         var incrementOp = new AlternativeParser();
@@ -50,9 +49,9 @@ public partial class SDSLGrammar : Grammar
 
         DirectiveTermExpression.Add(
             Literals,
-            Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen),
-            MethodCall
-        // ,DirectiveParenExpression
+            ~(Plus | Minus & ws) & Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen),
+            MethodCall,
+            Parenthesis(DirectiveExpression)
         );
 
         var arrayAccess = new SequenceParser();
@@ -63,12 +62,13 @@ public partial class SDSLGrammar : Grammar
         arrayAccess.Add(
             Identifier,
             ws,
-            (LeftBracket & ws & DirectiveExpression & ws & RightBracket).Repeat(1).SeparatedBy(ws)
+            (LeftBracket & DirectiveExpression & RightBracket)
+                .SeparatedBy(ws)
+                .Repeat(1)
+                .SeparatedBy(ws)
         );
         chain.Add(
-            arrayAccess.Named("ArrayAccessor") | Identifier,
-            ws,
-            (Dot & ws & (arrayAccess.Named("ArrayAccessor") | Identifier)).Repeat(1)
+            (arrayAccess | MethodCall | Identifier).Repeat(1).SeparatedBy(ws & Dot & ws)
         );
         postfixInc.Add(
             chain.Named("AccessorChain") | arrayAccess.Named("ArrayAccessor") | Identifier,
@@ -114,46 +114,46 @@ public partial class SDSLGrammar : Grammar
 
         var mulOp = Star | Div | Mod;
         DirectiveMulExpression.Add(
-            DirectiveCastExpression.Repeat(0).SeparatedBy(ws & mulOp.Named("Operator") & ws)
+            (Parenthesis(DirectiveExpression) | DirectiveCastExpression).Repeat(0).SeparatedBy(ws & mulOp.Named("Operator") & ws)
         );
 
         var sumOp = Plus | Minus;
 
         DirectiveSumExpression.Add(
-            (Parenthesis(DirectiveMulExpression) | DirectiveMulExpression)
-                .Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws)
+            DirectiveMulExpression.Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws)
         );
 
 
         var shiftOp = LeftShift | RightShift;
 
         DirectiveShiftExpression.Add(
-            (Parenthesis(DirectiveSumExpression) | DirectiveSumExpression)
-                .Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws)
+            DirectiveSumExpression.Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws)
         );
 
 
         DirectiveAndExpression.Add(
-            (Parenthesis(DirectiveShiftExpression) | DirectiveShiftExpression)
-                .Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws)
+            DirectiveShiftExpression.Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws)
         );
 
         DirectiveXorExpression.Add(
-            (Parenthesis(DirectiveAndExpression) | DirectiveAndExpression)
-                .Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws)
+            DirectiveAndExpression.Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws)
         );
 
 
         DirectiveOrExpression.Add(
-            (Parenthesis(DirectiveXorExpression) | DirectiveXorExpression)
-                .Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws)
+            DirectiveXorExpression.Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws)
         );
 
-        var testOp = Less | LessEqual | Greater | GreaterEqual;
+        var testOp = LessEqual | Less | GreaterEqual | Greater;
 
         DirectiveTestExpression.Add(
-            (Parenthesis(DirectiveOrExpression) | DirectiveOrExpression)
-                .Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws)
+            DirectiveOrExpression.Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws)
         );
 
         var eqOp =
@@ -161,22 +161,22 @@ public partial class SDSLGrammar : Grammar
             | Literal("!=");
 
         DirectiveEqualsExpression.Add(
-            (Parenthesis(DirectiveTestExpression) | DirectiveTestExpression)
-                .Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws)
+            DirectiveTestExpression.Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws)
         );
 
         DirectiveLogicalAndExpression.Add(
-            (Parenthesis(DirectiveEqualsExpression) | DirectiveEqualsExpression)
-                .Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws)
+            DirectiveEqualsExpression.Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws)
         );
         DirectiveLogicalOrExpression.Add(
-            (Parenthesis(DirectiveLogicalAndExpression) | DirectiveLogicalAndExpression)
-                .Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws)
+            DirectiveLogicalAndExpression.Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws)
         );
 
         DirectiveConditionalExpression.Add(
             DirectiveLogicalOrExpression.NotFollowedBy(ws & "?"),
-            (Parenthesis(DirectiveLogicalOrExpression) | DirectiveLogicalOrExpression)
+            (Parenthesis(DirectiveLogicalOrExpression).NotFollowedBy(ws & OrOr) | DirectiveLogicalOrExpression)
                 .Then("?")
                     .Then(DirectiveCastExpression | DirectiveParenExpression | DirectiveLogicalOrExpression)
                     .Then(":")
@@ -193,9 +193,16 @@ public partial class SDSLGrammar : Grammar
         var parameters =
             DirectiveExpression.Repeat(0).SeparatedBy(ws & Comma & ws);
 
+        MethodCall.Add(
+            Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("DirectiveMethodCallExpression")
+        );
+
+        var arrayDeclaration =
+            (LeftBrace & DirectiveExpression.Repeat(0).SeparatedBy(ws & Comma & ws) & RightBrace)
+            .SeparatedBy(ws);
 
         DirectiveExpression.Add(
-            MethodCall,
+            arrayDeclaration,
             DirectiveConditionalExpression
         );
     }
