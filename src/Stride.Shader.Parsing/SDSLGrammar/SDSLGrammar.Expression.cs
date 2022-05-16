@@ -72,13 +72,14 @@ public partial class SDSLGrammar : Grammar
         arrayAccess.Add(
             Identifier,
             ws,
-            (LeftBracket & ws & PrimaryExpression & ws & RightBracket).Repeat(1).SeparatedBy(ws)
+            (LeftBracket & PrimaryExpression & RightBracket)
+                .SeparatedBy(ws)
+                .Repeat(1)
+                .SeparatedBy(ws)
         );
         chain.Add(
-            arrayAccess.Named("ArrayAccessor") | Identifier,
-            ws,
-            (Dot & ws & (arrayAccess.Named("ArrayAccessor") | Identifier)).Repeat(1)
-        );        
+            (arrayAccess | MethodCall | Identifier).Repeat(1).SeparatedBy(ws & Dot & ws)
+        );
         postfixInc.Add(
             chain.Named("AccessorChain") | arrayAccess.Named("ArrayAccessor") | Identifier, 
             ws,

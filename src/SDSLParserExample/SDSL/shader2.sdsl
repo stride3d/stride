@@ -1,19 +1,36 @@
-shader BasicMixin<float a, int b, TypeName T> : ParentShader, ParentShader2<float>, ParentShader3<5,3> {
-	struct MyStruct {
-		float a;
-	};
+// Let's add a generic for the index of refraction so it can be modified in the editor.
+    // A lot of these mixins actually give important data for the computation of the refraction!
+shader RefractiveMaterial<float IOR> : ShaderBaseStream, ComputeColor, NormalStream, Texturing, PositionStream4, Transformation, Camera
+{
+    // The shader needs to have access to the background texture and maybe a little tint
+    compose ComputeColor BackgroundTexture;
+    compose ComputeColor DiffuseTexture;
 
-	float b;
-	stage float4 a = 3*2+5;
-	stage stream float4 color : SV_COLOR;
-	stage stream float4 color2 = float4(1,float2(5,6),3+5*7,4*2) : SV_COLOR;
+    override float4 Compute()
+    {
+        float4 normals = float4(streams.normalWS,0);
+        // This value gives us the position on the screen in pixel size we will later divide it by the screen size to get values between 0 and 1
+        float2 pos = streams.ShadingPosition;
+            
+        // Eye (from the Camera mixin) gives us the camera's view direction
+        // This variable will give us a sort of direction to where we will bend the UVs
+        float4 refracted = refract(Eye,normals, IOR);
+            
+        // Here we add the screen position to the screen space projection of the refraction direction
+        float2 bend = pos.xy + mul(refracted, WorldViewProjection).xy;
+
+        // We compute the diffuse texture (before bending the UVs) just so we can add a little color to our material
+        float4 diffuse = DiffuseTexture.Compute();
+            
+        // We bend the UVs
+        streams.TexCoord = float2(
+            bend.x/ViewSize.x,
+            bend.y/ViewSize.y
+        );
 
 
-	abstract void foo();
-
-	void MyFunctions(float a, Input<float> b)
-	{
-		
-	}
-
+        // And finally multiply the diffuse color with the background color to get our result
+        // I added a scalar because the actual result gives us a darker image.
+        return  6*BackgroundTexture.Compute() * diffuse ;
+    }
 };

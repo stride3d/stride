@@ -5,10 +5,10 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
-    public SequenceParser ParameterList = new();
-    public SequenceParser ValueOrGeneric = new();
+    public SequenceParser ParameterList = new() {Name = "ParameterList"};
+    public SequenceParser ValueOrGeneric = new() {Name = "ValueOrGeneric"};
 
-    public AlternativeParser MethodDeclaration = new();
+    public AlternativeParser MethodDeclaration = new() { Name = "MethodDeclaration" };
 
 
     public SDSLGrammar UsingMethodDeclare()
@@ -21,14 +21,19 @@ public partial class SDSLGrammar : Grammar
         var ws = WhiteSpace.Repeat(0);
         var ws1 = WhiteSpace.Repeat(1);
 
-        var genericsList = new SequenceParser();
+        var genericsList = new SequenceParser { Name = "ShaderGenerics", Separator = ws };
+
+        var parameterGenericsValues = new AlternativeParser(
+            ValueTypes,
+            Identifier.Then(genericsList.Optional()).SeparatedBy(ws)
+        )
+        { Name = "ParameterGenericValue" };
+
         genericsList.Add(
             "<",
-            (Identifier & genericsList.Optional())
-                .Repeat(0).SeparatedBy(ws & Comma & ws),
+            parameterGenericsValues.Repeat(1).SeparatedBy(ws & Comma & ws),
             ">"
         );
-        genericsList.Separator = ws;
 
         ValueOrGeneric.Add(
             ValueTypes | Identifier,
@@ -39,18 +44,26 @@ public partial class SDSLGrammar : Grammar
             LeftBracket.Then(PrimaryExpression).Then(RightBracket).SeparatedBy(ws)
             | Colon.Then(Identifier).SeparatedBy(ws);
 
-        var parameter = 
-            StorageFlag.Optional()
-            .Then(ValueOrGeneric)
-            .Then(Identifier.Then())
-            .SeparatedBy(ws1)
-            .Then(declarePost.Optional())
+        var arraySpecifier =
+            (LeftBracket & Literals & RightBracket)
             .SeparatedBy(ws);
-        
-        
+
+        var parameter = new SequenceParser(
+            ValueOrGeneric,
+            ws1,
+            Identifier,
+            arraySpecifier.Optional(),
+            (Equal & PrimaryExpression).SeparatedBy(ws).Optional()
+        );
+        var parameterWithStorage = new AlternativeParser(
+            StorageFlag & ws1 & parameter,
+            parameter
+        );
+
+
         ParameterList.Add(
             LeftParen,
-            parameter.Repeat(0).SeparatedBy(ws & Comma & ws),
+            parameterWithStorage.Repeat(0).SeparatedBy(ws & Comma & ws),
             RightParen
         );
         ParameterList.Separator = ws;
@@ -60,7 +73,8 @@ public partial class SDSLGrammar : Grammar
             Literal("abstract").Then(Literal("stage").Optional()).Then(Identifier).Then(Identifier).SeparatedBy(ws1)
                 .Then(ParameterList).Then(Semi).SeparatedBy(ws).Named("AbstractMethod"),
             // Override or normal method
-            Literal("override").Optional()
+            Attribute.Repeat(0).SeparatedBy(ws)
+            .Then(Literal("override").Optional())
             .Then(Literal("stage").Optional())
                 .Then(Identifier).Then(Identifier).SeparatedBy(ws1)
                     .Then(ParameterList)

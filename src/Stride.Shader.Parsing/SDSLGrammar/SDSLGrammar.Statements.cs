@@ -5,12 +5,12 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parsing;
 public partial class SDSLGrammar : Grammar
 {
-    public SequenceParser Attribute = new();
-    public AlternativeParser Statement = new();
-    public SequenceParser ControlFlow = new();
-    public SequenceParser ConstantBuffer = new();
-    public AlternativeParser ShaderMethodCall = new();
-    public SequenceParser Block = new();
+    public SequenceParser Attribute = new() { Name = "Attribute" };
+    public AlternativeParser Statement = new() { Name = "Statement"};
+    public SequenceParser ControlFlow = new() { Name = "ControlFlow"};
+    public SequenceParser ConstantBuffer = new() { Name = "ConstantBuffer"};
+    public SequenceParser ShaderMethodCall = new() { Name = "ShaderMethodCall" };
+    public SequenceParser Block = new() { Name = "Block" };
 
 
     public SDSLGrammar UsingStatements()
@@ -24,19 +24,12 @@ public partial class SDSLGrammar : Grammar
         var ws1 = WhiteSpace.Repeat(1);
 
         ShaderMethodCall.Add(
-            (
-                Identifier
-                .Then(
-                    (
-                        Dot.NotFollowedBy(MethodCall).Then(Identifier)
-                        | Dot.Then(MethodCall)
-                    )
-                    .Repeat(0)
-                )   
-                .Then(";")
-            )
-            .SeparatedBy(ws)
+            Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("AccessorChain"),
+            LeftParen,
+            (Identifier | PrimaryExpression).Repeat(0).SeparatedBy(ws & Comma & ws).Named("Parameters"),
+            RightParen
         );
+        ShaderMethodCall.Separator = ws;
 
         var returnStatement =
             Return.Then(PrimaryExpression).SeparatedBy(ws1)
@@ -75,10 +68,10 @@ public partial class SDSLGrammar : Grammar
         
 
         Statement.Add(
-            Block.Named("BlockExpression"),
+            Block,
             returnStatement.Named("Return"),
-            assignChain,
             ShaderMethodCall,
+            assignChain.Named("AssignChain"),
             declareAssign.Named("DeclareAssign"),
             assignVar.Named("Assign"),
             PrimaryExpression.Then(";").SeparatedBy(ws).Named("EmptyStatement")
@@ -86,21 +79,20 @@ public partial class SDSLGrammar : Grammar
 
         Block.Add(
             LeftBrace,
-            ws,
             Statement.Repeat(0).SeparatedBy(ws),
-            ws,
             RightBrace
         );
-        var flowStatement = Statement;
+        Block.Separator = ws;
+
 
         var ifStatement =
-            If.Then(LeftParen).Then(PrimaryExpression).Then(RightParen).Then(flowStatement).SeparatedBy(ws);
+            If.Then(LeftParen).Then(PrimaryExpression).Then(RightParen).Then(Statement).SeparatedBy(ws);
 
         var elseIfStatement =
             Else.Then(ifStatement).SeparatedBy(ws1);
 
         var elseStatement =
-            Else.Then(flowStatement).SeparatedBy(ws1);
+            Else.Then(Statement).SeparatedBy(ws1);
 
         ControlFlow.Add(
             Attribute.Repeat(0).Named("Attributes"),

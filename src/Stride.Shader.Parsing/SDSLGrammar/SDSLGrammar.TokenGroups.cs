@@ -198,7 +198,7 @@ public partial class SDSLGrammar : Grammar
             Nointerpolation,
             Noperspective,
             Sample,
-            In,
+            In.NotFollowedBy(WhiteSpace.Repeat(0) & Out),
             Out,
             Inout,
             Point,

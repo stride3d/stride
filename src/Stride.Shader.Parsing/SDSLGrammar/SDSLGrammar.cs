@@ -30,7 +30,6 @@ public partial class SDSLGrammar : Grammar
         CreateMethodDeclaration();
         CreateDeclarators();
         CreateStatements();
-        CreateEntryPoints();
         CreateShader();
     }
 }

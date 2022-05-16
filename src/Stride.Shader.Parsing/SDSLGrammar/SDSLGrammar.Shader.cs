@@ -43,13 +43,23 @@ public partial class SDSLGrammar : Grammar
             ">"
         ){ Separator = ws, Name = "InheritanceGenerics"};
 
+        var compositionDeclaration = new SequenceParser(
+            Literal("compose"),
+            ws1,
+            Identifier.Named("MixinName"),
+            ws1,
+            Identifier.Named("Name"),
+            ws,
+            Semi
+        ){ Name = "CompositionDeclaration"};
+
+
         var shaderContentTypes = new AlternativeParser();
         shaderContentTypes.Add(
             StructDefinition,
+            compositionDeclaration,
             MethodDeclaration,
             ShaderValueDeclaration
-
-            // | Attribute
         );
 
         var shaderBody = new SequenceParser(
@@ -65,11 +75,14 @@ public partial class SDSLGrammar : Grammar
                 .Repeat(1).SeparatedBy(ws & Comma & ws)
             )
             .SeparatedBy(ws);
-        
-        
+
+        var shaderToken = Literal("shader").Named("ShaderToken");
+
+
+
         ShaderExpression.Add(
             ws,
-            "shader" & ws1 & Identifier.Named("ShaderName"),
+            shaderToken & ws1 & Identifier.Named("ShaderName"),
             shaderGenerics.Optional(),
             inheritances.Optional(),
             shaderBody.Named("Body"),
