@@ -156,17 +156,8 @@ namespace Stride.Core.Assets
                             assemblies = RestoreHelper.ListAssemblies(result.LockFile);
 
                             // Register the native libraries
-                            var strideCoreAssembly = Assembly.LoadFrom(assemblies.FirstOrDefault(a => Path.GetFileNameWithoutExtension(a) == "Stride.Core"));
-                            if (strideCoreAssembly is null)
-                                throw new InvalidOperationException($"Couldn't find assembly 'Stride.Core' in restored packages");
-                            var nativeLibraryHelperType = strideCoreAssembly.GetType("Stride.Core.NativeLibraryHelper");
-                            if (nativeLibraryHelperType is null)
-                                throw new InvalidOperationException($"Couldn't find type 'Stride.Core.NativeLibraryHelper' in {strideCoreAssembly}");
-                            var registerDependencyMethod = nativeLibraryHelperType.GetMethod("RegisterDependency");
-                            if (registerDependencyMethod is null)
-                                throw new InvalidOperationException($"Couldn't find method 'RegisterDependency' in {nativeLibraryHelperType}");
-                            foreach (var lib in RestoreHelper.ListNativeLibs(result.LockFile))
-                                registerDependencyMethod.Invoke(null, new[] { lib });
+                            var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
+                            RegisterNativeDependencies(assemblies, nativeLibs);
                         }
                         catch (Exception e)
                         {
@@ -235,6 +226,27 @@ namespace Stride.Core.Assets
         private static void CheckPackageSource(ISettings settings, string name, string url)
         {
             settings.AddOrUpdate("packageSources", new SourceItem(name, url));
+        }
+
+        /// <summary>
+        /// Registers the listed native libs in Stride.Core.NativeLibraryHelper using reflection to avoid a compile time dependency on Stride.Core
+        /// </summary>
+        private static void RegisterNativeDependencies(List<string> assemblies, List<string> nativeLibs)
+        {
+            var strideCoreAssembly = Assembly.LoadFrom(assemblies.FirstOrDefault(a => Path.GetFileNameWithoutExtension(a) == "Stride.Core"));
+            if (strideCoreAssembly is null)
+                throw new InvalidOperationException($"Couldn't find assembly 'Stride.Core' in restored packages");
+
+            var nativeLibraryHelperType = strideCoreAssembly.GetType("Stride.Core.NativeLibraryHelper");
+            if (nativeLibraryHelperType is null)
+                throw new InvalidOperationException($"Couldn't find type 'Stride.Core.NativeLibraryHelper' in {strideCoreAssembly}");
+
+            var registerDependencyMethod = nativeLibraryHelperType.GetMethod("RegisterDependency");
+            if (registerDependencyMethod is null)
+                throw new InvalidOperationException($"Couldn't find method 'RegisterDependency' in {nativeLibraryHelperType}");
+
+            foreach (var lib in nativeLibs)
+                registerDependencyMethod.Invoke(null, new[] { lib });
         }
 
         public class Logger : ILogger
