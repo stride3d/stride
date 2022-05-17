@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using CSharpIntermediate.Code.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Physics;
@@ -25,7 +26,7 @@ namespace CSharpIntermediate.Code
 
         public override void Update()
         {
-            int drawX = 40;
+            int drawX = 340;
             int drawY = 80;
             DebugText.Print("Press Q and E to raise/lower weapons", new Int2(drawX, drawY));
 
@@ -44,7 +45,7 @@ namespace CSharpIntermediate.Code
 
                 DebugText.Print("Hit a collider", new Int2(drawX, drawY));
                 DebugText.Print($"Raycast hit distance: {distance}", new Int2(drawX, drawY + 20));
-                DebugText.Print($"Raycast hit point: {hitResult.Point}", new Int2(drawX, drawY + 40));
+                DebugText.Print($"Raycast hit point: {hitResult.Point.Print()}", new Int2(drawX, drawY + 40));
                 DebugText.Print($"Raycast hit entity: {hitResult.Collider.Entity.Name}", new Int2(drawX, drawY + 60));
             }
             else

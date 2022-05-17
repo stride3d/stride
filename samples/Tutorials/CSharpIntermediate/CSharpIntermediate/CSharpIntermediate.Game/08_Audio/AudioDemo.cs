@@ -28,16 +28,16 @@ namespace CSharpIntermediate.Code
         public override void Update()
         {
             // Play a sound
-            DebugText.Print($"U to play the Ukelele once", new Int2(200, 40));
+            DebugText.Print($"U to play the Ukelele once", new Int2(200, 580));
             if (Input.IsKeyPressed(Keys.U))
             {
                 ukuleleInstance.Stop();
                 ukuleleInstance.Play();
             }
 
-            // Press left mouse button fire gun
-            DebugText.Print($"Press left mouse button fire gun", new Int2(200, 60));
-            if (Input.IsMouseButtonPressed(MouseButton.Left))
+            // Press right mouse button for gun fire sound
+            DebugText.Print($"Press right mouse button fire gun", new Int2(200, 640));
+            if (Input.IsMouseButtonPressed(MouseButton.Right))
             {
                 gunSoundEmitter.Play();
             }

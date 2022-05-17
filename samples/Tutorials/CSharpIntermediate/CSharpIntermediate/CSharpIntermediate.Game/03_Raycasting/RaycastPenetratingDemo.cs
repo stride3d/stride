@@ -13,7 +13,7 @@ namespace CSharpIntermediate.Code
         public bool CollideWithTriggers = false;
 
         private Entity laser;
-        private const float maxDistance = 4.0f;
+        private const float maxDistance = 3.0f;
         private Simulation simulation;
 
         public override void Start()

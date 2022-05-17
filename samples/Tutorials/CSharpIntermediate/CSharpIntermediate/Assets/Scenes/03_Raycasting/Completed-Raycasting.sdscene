@@ -202,7 +202,7 @@ Hierarchy:
                             9a7f8a5f2a4dee8e21a358916c686069: ref!! ad45eb14-a372-4b8e-ab78-640cd773ff67
                     d5fc5b9d4033b3675a0b46ddc44d0280: !CSharpIntermediate.Code.RaycastPenetratingDemo,CSharpIntermediate.Game
                         Id: b15a1386-b2d5-4098-a34e-c53b31617f34
-                        CollideWithGroup: CustomFilter1
+                        CollideWithGroup: DefaultFilter, StaticFilter, KinematicFilter, DebrisFilter, SensorTrigger, CharacterFilter, CustomFilter2, CustomFilter3, CustomFilter4, CustomFilter5, CustomFilter6, CustomFilter7, CustomFilter8, CustomFilter9, CustomFilter10
                         CollideWithTriggers: true
                     79f1213321ddbd79da50fb28d0798030: !CSharpIntermediate.Code.OmniDirectionMovement,CSharpIntermediate.Game
                         Id: 070c4dd1-8316-46d6-acc9-65d662867913
@@ -604,7 +604,7 @@ Hierarchy:
                 Components:
                     21639b2f688316c585e191db6981e6ea: !TransformComponent
                         Id: b05306f0-b949-4817-b06a-9665935f9425
-                        Position: {X: 0.0, Y: 0.060330506, Z: -4.5027337}
+                        Position: {X: 0.0, Y: 0.060330506, Z: -4.2770786}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 0.66130906, Y: 0.66130906, Z: 0.66130906}
                         Children: {}
@@ -1197,7 +1197,7 @@ Hierarchy:
                 Components:
                     21639b2f688316c585e191db6981e6ea: !TransformComponent
                         Id: 57fe2e7e-cfa6-48c9-a43c-5cc743e96aae
-                        Position: {X: 0.0, Y: 2.0603304, Z: -4.5001907}
+                        Position: {X: 0.0, Y: 2.0603304, Z: -4.2745357}
                         Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
                         Scale: {X: 0.66130906, Y: 0.66130906, Z: 0.66130906}
                         Children: {}
@@ -1513,7 +1513,7 @@ Hierarchy:
                 Components:
                     21639b2f688316c585e191db6981e6ea: !TransformComponent
                         Id: 26c2be03-ca3b-42b3-8471-14db962f7bde
-                        Position: {X: 0.0, Y: 1.0603305, Z: -4.5001907}
+                        Position: {X: 0.0, Y: 1.0603305, Z: -4.2745357}
                         Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
                         Scale: {X: 0.66130906, Y: 0.66130906, Z: 0.66130906}
                         Children: {}
@@ -1622,7 +1622,6 @@ Hierarchy:
                             5df289f2597cd279d9dcc05bc9e895fd~0: c5f8292f-4ef2-4417-b296-ca46f08b2411:Materials/Transparent
                     a611784bb47a2fd81a5464c73697642e: !StaticColliderComponent
                         Id: 32e82212-0b4f-4a47-b77e-22c51d71b3e1
-                        CollisionGroup: CustomFilter1
                         CanSleep: false
                         Restitution: 0.0
                         Friction: 0.5

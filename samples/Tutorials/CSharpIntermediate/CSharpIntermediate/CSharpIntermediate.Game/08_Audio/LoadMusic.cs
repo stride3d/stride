@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+ // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -27,7 +27,7 @@ namespace CSharpIntermediate.Code
             while (Game.IsRunning)
             {
                 // Play or pause
-                DebugText.Print($"Space to play/pause. Currently: {musicInstance.PlayState}", new Int2(800, 40));
+                DebugText.Print($"Space to play/pause. Currently: {musicInstance.PlayState}", new Int2(800, 580));
                 if (Input.IsKeyPressed(Keys.Space))
                 {
                     if (musicInstance.PlayState == PlayState.Playing)
@@ -41,7 +41,7 @@ namespace CSharpIntermediate.Code
                 }
 
                 // Volume 
-                DebugText.Print($"Up/Down to change volume: {musicInstance.Volume:0.0}", new Int2(800, 60));
+                DebugText.Print($"Up/Down to change volume: {musicInstance.Volume:0.0}", new Int2(800, 600));
                 if (Input.IsKeyPressed(Keys.Up))
                 {
                     musicInstance.Volume = Math.Clamp(musicInstance.Volume + 0.1f, 0, 2);
@@ -52,7 +52,7 @@ namespace CSharpIntermediate.Code
                 }
 
                 // Panning
-                DebugText.Print($"Left/Right to change panning: {musicInstance.Pan:0.0}", new Int2(800, 80));
+                DebugText.Print($"Left/Right to change panning: {musicInstance.Pan:0.0}", new Int2(800, 620));
                 if (Input.IsKeyPressed(Keys.Left))
                 {
                     musicInstance.Pan = Math.Clamp(musicInstance.Pan - 0.1f, -1, 1);

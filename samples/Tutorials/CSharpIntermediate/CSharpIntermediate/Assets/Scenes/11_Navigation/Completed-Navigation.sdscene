@@ -786,7 +786,7 @@ Hierarchy:
                         Id: 3b988948-2838-42f5-9191-0a1ffd6ddee3
                         RegularCharacter: ref!! 8443a87b-1f25-4437-9f81-8898234cb94b
                         PathSphere: ref!! ffc6dedb-c9b2-4f25-9332-265551b04467
-                        MovementSpeed: 2.5
+                        MovementSpeed: 1.8
         -   Folder: Walls
             Entity:
                 Id: 9a2aed26-aa9f-4a79-80b7-907e529418cd
@@ -1342,7 +1342,7 @@ Hierarchy:
                 Components:
                     5df3ae39ecbb00c7c2c349e3b004fc40: !TransformComponent
                         Id: ae8da9e8-e1aa-43a3-916e-2d4475a3d37f
-                        Position: {X: 0.0, Y: -0.053181265, Z: 0.0}
+                        Position: {X: 1.3935742, Y: -0.053181265, Z: -3.4938378}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 0.2, Y: 0.2, Z: 0.2}
                         Children: {}
