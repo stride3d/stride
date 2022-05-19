@@ -33,13 +33,13 @@ public partial class DirectiveGrammar : Grammar
         var hashElif = Literal("#elif").Named("HashElif");
         var hashDefine = Literal("#define").Named("HashElif");
 
-        IfDirective.Add(ls, hashIf, ls1, DirectiveExpression);
-        ElseDirective.Add(ls, hashElse, ls.Until(Eol | End));
-        ElifDirective.Add(ls, hashElif, ls1, DirectiveExpression, ls.Until(Eol | End));
-        EndIfDirective.Add(ls, hashEndIf, ls.Until(Eol | End));
-        IfDefDirective.Add(ls, hashIfDef, ls1, Identifier, ls.Until(Eol | End));
-        IfNDefDirective.Add(ls, hashIfNDef, ls1, Identifier, ls.Until(Eol | End));
-        DefineDirective.Add(ls, hashDefine, ls1, Identifier, ls1, DirectiveExpression, ls.Until(Eol | End));
+        IfDirective.Add(hashIf, ls1, DirectiveExpression, ls.Until(Eol | End, true));
+        ElseDirective.Add(hashElse, ls.Until(Eol | End, true));
+        ElifDirective.Add(hashElif, ls1, DirectiveExpression, ls.Until(Eol | End, true));
+        EndIfDirective.Add(hashEndIf, ls.Until(Eol | End, true));
+        IfDefDirective.Add(hashIfDef, ls1, Identifier, ls.Until(Eol | End, true));
+        IfNDefDirective.Add(hashIfNDef, ls1, Identifier, ls.Until(Eol | End, true));
+        DefineDirective.Add(hashDefine, ls1, Identifier, ls1, DirectiveExpression, ls.Until(Eol | End, true));
 
         var anyChars = AnyChar.Repeat(0);
 
@@ -63,20 +63,19 @@ public partial class DirectiveGrammar : Grammar
 
         var ifDefCode = (IfDefDirective | IfNDefDirective) & AnyChar.Repeat(0).Until(hashDefine | hashIf | hashElse | hashEndIf).Named("IfDefCode");
         var elseCode = ElseDirective & AnyChar.Repeat(0).Until(hashEndIf).Named("ElseCode");
-        var ifCode = IfDirective & AnyChar.Repeat(0).Until(hashElif | hashElse).Named("IfCode");
+        var ifCode = IfDirective & AnyChar.Repeat(0).Until(hashElif | hashElse | hashEndIf).Named("IfCode");
         var elifCode = ElifDirective & AnyChar.Repeat(0).Until(hashElif | hashElse).Named("ElifCode");
 
-        var conditional = ifCode & elifCode.Repeat(0) & ~elseCode & EndIfDirective;
+        var conditional = ifCode & elifCode.Repeat(0).Until(hashElse | hashEndIf) & ~elseCode & EndIfDirective;
         var definition =
             ifDefCode &
-            conditional & //(conditional | DefineDirective | AnyChar.Repeat(0).Until(hashElse | hashEndIf).Named("IfDefCode")) &
-            ~elseCode &
+            (conditional.Named("Conditional") | AnyChar.Repeat(0).Until(hashEndIf | hashIf).Named("IfDefCode")).Repeat(0).Until(hashEndIf) &
             EndIfDirective;
 
 
         Directives.Add(
             AnyChar.Repeat(0).Until(End | hashIf | hashIfDef | hashIfNDef | hashDefine).Named("UnchangedCode"),
-            ~(definition | DefineDirective | conditional | AnyChar.Repeat(0).Until(End | hashIf | hashIfDef | hashIfNDef | hashDefine).Named("UnchangedCode")).Repeat(0).Until(End)
+            definition
         );
     }
 }
