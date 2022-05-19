@@ -65,7 +65,7 @@ namespace Stride.Graphics
             {
                 return renderTargetView;
             }
-            set
+            private set
             {
                 renderTargetView = value;
                 if (IsDebugMode && renderTargetView != null)
