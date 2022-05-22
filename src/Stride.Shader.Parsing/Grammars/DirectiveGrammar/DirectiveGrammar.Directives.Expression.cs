@@ -126,46 +126,47 @@ public partial class DirectiveGrammar : Grammar
 
         var mulOp = Star | Div | Mod;
         DirectiveMulExpression.Add(
-            (Parenthesis(DirectiveExpression) | DirectiveCastExpression).Repeat(0).SeparatedBy(ws & mulOp.Named("Operator") & ws)
+            DirectiveCastExpression.Repeat(0).SeparatedBy(ws & mulOp.Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & mulOp.Named("Operator") & ws).Until(ws & (Eol | End))
         );
 
         var sumOp = Plus | Minus;
 
         DirectiveSumExpression.Add(
-            DirectiveMulExpression.Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws),
-            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws)
+            DirectiveMulExpression.Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws).Until(ws & (Eol | End))
         );
 
 
         var shiftOp = LeftShift | RightShift;
 
         DirectiveShiftExpression.Add(
-            DirectiveSumExpression.Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws),
-            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws)
+            DirectiveSumExpression.Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws).Until(ws & (Operators | Eol | End))
         );
 
 
         DirectiveAndExpression.Add(
-            DirectiveShiftExpression.Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws),
-            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws)
+            DirectiveShiftExpression.Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws).Until(ws & (Eol | End))
         );
 
         DirectiveXorExpression.Add(
-            DirectiveAndExpression.Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws),
-            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws)
+            DirectiveAndExpression.Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws).Until(ws & (Eol | End))
         );
 
 
         DirectiveOrExpression.Add(
-            DirectiveXorExpression.Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws),
-            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws)
+            DirectiveXorExpression.Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws).Until(ws & (Eol | End))
         );
 
         var testOp = LessEqual | Less | GreaterEqual | Greater;
 
         DirectiveTestExpression.Add(
-            DirectiveOrExpression.Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws),
-            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws)
+            DirectiveOrExpression.Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws).Until(ws & (Eol | End))
         );
 
         var eqOp =
@@ -173,17 +174,17 @@ public partial class DirectiveGrammar : Grammar
             | Literal("!=");
 
         DirectiveEqualsExpression.Add(
-            DirectiveTestExpression.Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws),
-            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws)
+            DirectiveTestExpression.Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws).Until(ws & (Eol | End))
         );
 
         DirectiveLogicalAndExpression.Add(
-            DirectiveEqualsExpression.Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws),
-            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws)
+            DirectiveEqualsExpression.Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws).Until(ws & (Eol | End))
         );
         DirectiveLogicalOrExpression.Add(
-            DirectiveLogicalAndExpression.Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws),
-            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws)
+            DirectiveLogicalAndExpression.Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws).Until(ws & (Eol | End)),
+            Parenthesis(DirectiveExpression).Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws).Until(ws & (Eol | End))
         );
 
         DirectiveConditionalExpression.Add(
@@ -208,7 +209,7 @@ public partial class DirectiveGrammar : Grammar
             .SeparatedBy(ws);
 
         DirectiveExpression.Add(
-            arrayDeclaration,
+            BooleanTerm,
             DirectiveConditionalExpression
         );
     }

@@ -6,5 +6,7 @@ using System.Threading.Tasks;
 
 namespace Stride.Shader.Parsing.AST.Directives
 {
-    public abstract class TokensNode {}
+    public class ExpressionNode
+    {
+    }
 }

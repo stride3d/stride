@@ -12,6 +12,7 @@ public class SDSLParser
     public CommentGrammar Comments {get;set;}
     public SDSLGrammar Grammar {get;set;}  
     public DirectiveGrammar Directive { get;set;}
+    public StringBuilder UncommentedCode { get; set; } = new();
     //public IEnumerable<string> Defined { get; set; }
 
     public SDSLParser()
@@ -30,24 +31,22 @@ public class SDSLParser
     public GrammarMatch Parse(string shader)
     {
         var comments = Comments.Match(shader);
-        var preprocessed = new StringBuilder(); 
+        //var preprocessed = new StringBuilder(); 
         if (!comments.Matches.Any(x => x.Name == "Comment"))
         {
             return Directive.Match(shader);
         }
         else
         {
-            var actualCode = new StringBuilder();
             foreach (var m in comments.Matches)
             {
                 if (m.Name == "ActualCode")
                 {
-                    actualCode.AppendLine(m.StringValue);
+                    UncommentedCode.AppendLine(m.StringValue);
                 }
-
             }
             //preprocessed.Add(this.PreProcessor())
-            return PreProcessor(actualCode.ToString());
+            return PreProcessor(UncommentedCode.ToString());
         }
     }
 

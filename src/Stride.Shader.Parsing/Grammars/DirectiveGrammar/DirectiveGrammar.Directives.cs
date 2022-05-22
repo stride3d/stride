@@ -15,8 +15,15 @@ public partial class DirectiveGrammar : Grammar
     public SequenceParser IfDefDirective = new() { Name = "IfDefDirective" };
     public SequenceParser IfNDefDirective = new(){Name = "IfNDefDirective"};
 
+    public SequenceParser IfDefCode = new() { Name = "IfDefCode" };
+    public SequenceParser ElseCode = new() { Name = "ElseCode" };
+    public SequenceParser IfCode = new() { Name = "IfCode" };
+    public SequenceParser ElifCode = new() { Name = "ElifCode" };
+
+
     public SequenceParser ConditionalDirectives = new(){Name = "ConditionalDirectives"};
-    public SequenceParser DefineDirectives = new(){Name = "DefineDirectives"};
+    public SequenceParser DefinitionDirectives = new(){Name = "DefineDirectives"};
+    public AlternativeParser AnyDirectives = new AlternativeParser();
 
     public SequenceParser Directives = new();
 
@@ -24,14 +31,28 @@ public partial class DirectiveGrammar : Grammar
     {
         var ls = SingleLineWhiteSpace.Repeat(0);
         var ls1 = SingleLineWhiteSpace.Repeat(1);
+        var ws = WhiteSpace.Repeat(0);
+
         var hash = Literal("#");
-        var hashIfNDef = Literal("#ifndef").Named("hashifndef");
-        var hashIfDef = Literal("#ifdef").Named("hashifdef");
-        var hashIf = Literal("#if").Named("hashif");
-        var hashEndIf = Literal("#endif").Named("HashEndIf");
-        var hashElse = Literal("#else").Named("HashElse");
-        var hashElif = Literal("#elif").Named("HashElif");
-        var hashDefine = Literal("#define").Named("HashElif");
+        var hashIfNDef = Literal("#ifndef");
+        var hashIfDef = Literal("#ifdef");
+        var hashIf = Literal("#if");
+        var hashEndIf = Literal("#endif");
+        var hashElse = Literal("#else");
+        var hashElif = Literal("#elif");
+        var hashDefine = Literal("#define");
+
+        var startHash =
+            hashIfNDef
+            | hashIfDef
+            | hashIf
+            | hashDefine;
+
+        var anyHash =
+            startHash
+            | hashElif
+            | hashElse
+            | hashEndIf;
 
         IfDirective.Add(hashIf, ls1, DirectiveExpression, ls.Until(Eol | End, true));
         ElseDirective.Add(hashElse, ls.Until(Eol | End, true));
@@ -39,46 +60,51 @@ public partial class DirectiveGrammar : Grammar
         EndIfDirective.Add(hashEndIf, ls.Until(Eol | End, true));
         IfDefDirective.Add(hashIfDef, ls1, Identifier, ls.Until(Eol | End, true));
         IfNDefDirective.Add(hashIfNDef, ls1, Identifier, ls.Until(Eol | End, true));
-        DefineDirective.Add(hashDefine, ls1, Identifier, ls1, DirectiveExpression, ls.Until(Eol | End, true));
+        DefineDirective.Add(hashDefine, ls1, Identifier, ~(ls1 & DirectiveExpression), ls.Until(Eol | End));
 
-        var anyChars = AnyChar.Repeat(0);
+        
 
-        var elseList = new AlternativeParser(
-            (ElifDirective & anyChars.Until(hashElif | hashElse | hashEndIf).Named("ElifCode")).Repeat(),
-            ElseDirective & anyChars.Until(hashEndIf).Named("ElseCode")
-        );
+        var CodeOrDirective =
+            AnyDirectives
+            .Or(AnyChar.Repeat(0).Until(startHash | End).Named("CodeSnippet"))
+            .Repeat(1).Until(End);
 
-        ConditionalDirectives.Add(
-            IfDirective,
-            anyChars.Until(hashElif | hashElse | hashEndIf).Named("IfCode"),
-            ~elseList,
-            EndIfDirective
-        );
-        DefineDirectives.Add(
+        IfDefCode.Add(
             IfDefDirective | IfNDefDirective,
-            ConditionalDirectives | DefineDirective | anyChars.Repeat(0).Until(hashElse | hashEndIf),
-            ~(ElseDirective & anyChars.Repeat().Until(EndIfDirective)),
-            EndIfDirective
+            AnyDirectives.Or(AnyChar.Repeat(0).Until(startHash).Named("CodeSnippet"))
+            .Repeat(0).Until(hashElse | hashEndIf).Named("Children"),
+            EndIfDirective | ElseCode & EndIfDirective
         );
 
-        var ifDefCode = (IfDefDirective | IfNDefDirective) & AnyChar.Repeat(0).Until(hashDefine | hashIf | hashElse | hashEndIf).Named("IfDefCode");
-        var elseCode = ElseDirective & AnyChar.Repeat(0).Until(hashEndIf).Named("ElseCode");
-        var ifCode = IfDirective & AnyChar.Repeat(0).Until(hashElif | hashElse | hashEndIf).Named("IfCode");
-        var elifCode = ElifDirective & AnyChar.Repeat(0).Until(hashElif | hashElse).Named("ElifCode");
-
-        var conditional = ifCode & elifCode.Repeat(0).Until(hashEndIf | hashElse) & ~elseCode & EndIfDirective;
-        var definition = new SequenceParser(
-            ifDefCode,
-            (conditional.Named("Conditional") | AnyChar.Repeat(0).Until(hashEndIf | hashIf).Named("IfDefCode")).Repeat(0).Until(hashElse | hashEndIf),
-            ~elseCode.Named("ElseIfDef"),
-            EndIfDirective
+        ElseCode.Add(
+            ElseDirective,
+            AnyDirectives
+                .Or(AnyChar.Repeat(0).Until(startHash))
+                .Repeat(0).Until(hashEndIf)
         );
 
+        IfCode.Add(
+            IfDirective,
+            AnyDirectives.Or(AnyChar.Repeat(0).Until(anyHash).Named("CodeSnippet"))
+            .Repeat(0).Until(hashElif | hashElse | hashEndIf).Named("Children"),
+            ElifCode.Repeat(0),
+            EndIfDirective | ElseCode & EndIfDirective
+        );
+
+        ElifCode.Add(
+            ElifDirective,
+            AnyDirectives.Or(AnyChar.Repeat(0).Until(startHash).Named("CodeSnippet"))
+            .Repeat(0).Until(hashElse | hashEndIf).Named("Children")
+        );
+
+        AnyDirectives.Add(
+            DefineDirective,
+            IfDefCode,
+            IfCode
+        );
 
         Directives.Add(
-            AnyChar.Repeat(0).Until(End | hashIf | hashIfDef | hashIfNDef | hashDefine).Named("UnchangedCode"),
-            (definition.Named("IfDefinition") | conditional.Named("Conditional") | DefineDirective | AnyChar.Repeat(0).Until(End | hashIf | hashIfDef | hashIfNDef | hashDefine).Named("UnchangedCode"))
-                .Repeat(0).Until(End)
+            CodeOrDirective.Until(End)
         );
     }
 }
