@@ -2,8 +2,9 @@ using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
 
-namespace Stride.Shader.Parsing;
-public partial class DirectiveGrammar : Grammar
+namespace Stride.Shader.Parsing.Grammars.SDSL;
+
+public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser IncOperators = new();
 
@@ -140,6 +141,7 @@ public partial class DirectiveGrammar : Grammar
             Inout,
             InputPatch,
             Interface,
+            Line_,
             LineAdj,
             Linear,
             LineStream,
@@ -203,6 +205,7 @@ public partial class DirectiveGrammar : Grammar
             Out,
             Inout,
             Point,
+            Line_,
             Triangle,
             LineAdj,
             TriangleAdj

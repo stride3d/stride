@@ -1,12 +1,19 @@
-#ifdef something
-SomeCode
-#if 5==5
-5 equals 5
+#define Something 5
+#ifdef STRIDE_MULTISAMPLE_COUNT 
+  #if STRIDE_MULTISAMPLE_COUNT > 1
+            stage Texture2DMS<uint, STRIDE_MULTISAMPLE_COUNT> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
+  #else
+            stage Texture2D<uint> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
+  #endif
 #else
-5 not equals 5
+            stage Texture2DMS<uint> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
 #endif
-something to do?
-#if 6==6
-6 equals 6
+#ifndef MY_VALUE
+#define MY_VALUE true
 #endif
+#if STRIDE_MULTISAMPLE_COUNT == 1
+            uint tetrahedronIndex = LightProbeTetrahedronIds.Load(shadingPosition);
+#else
+            // TODO: Use SV_SampleIndex
+            uint tetrahedronIndex = LightProbeTetrahedronIds.Load(shadingPosition, 0);
 #endif

@@ -4,7 +4,7 @@ using static Eto.Parse.Terminals;
 
 using EtoParser = Eto.Parse.Parser;
 
-namespace Stride.Shader.Parsing;
+namespace Stride.Shader.Parsing.Grammars.Directive;
 public partial class DirectiveGrammar : Grammar
 {
 	AlternativeParser IntegerSuffix = new();
@@ -12,7 +12,6 @@ public partial class DirectiveGrammar : Grammar
     
 	public StringParser StringLiteral = new();
 	public SequenceParser Identifier = new();
-    public AlternativeParser UserDefinedId = new();
 
     public NumberParser IntegerLiteral = new();
 	public NumberParser FloatLiteral = new();
@@ -28,10 +27,6 @@ public partial class DirectiveGrammar : Grammar
 		Identifier.Add(
 			Letter.Or("_").Then(LetterOrDigit.Or("_").Repeat(0)).WithName("Identifier")
 		);
-
-		UserDefinedId.Add(
-            Identifier.Except(Keywords)
-        );
 
 		IntegerSuffix.Add(
 			"u",

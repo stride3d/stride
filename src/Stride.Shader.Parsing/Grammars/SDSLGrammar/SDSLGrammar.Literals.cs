@@ -4,7 +4,7 @@ using static Eto.Parse.Terminals;
 
 using EtoParser = Eto.Parse.Parser;
 
-namespace Stride.Shader.Parsing;
+namespace Stride.Shader.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
 {
 	AlternativeParser IntegerSuffix = new();

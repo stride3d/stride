@@ -1,9 +1,12 @@
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
-namespace Stride.Shader.Parsing;
-public partial class DirectiveGrammar : Grammar
+
+namespace Stride.Shader.Parsing.Grammars.SDSL;
+
+public partial class SDSLGrammar : Grammar
 {
+    private CharTerminal WS;
     private AlternativeParser Space =  new();
     private RepeatParser Spaces = new();
     private SequenceParser SpacesWithLineBreak =  new();
@@ -53,6 +56,7 @@ public partial class DirectiveGrammar : Grammar
     private LiteralTerminal InputPatch = new();
     private LiteralTerminal Interface = new();
 
+    public LiteralTerminal Line_ { get; private set; }
 
     private LiteralTerminal LineAdj = new();
     private LiteralTerminal Linear = new();
@@ -149,6 +153,7 @@ public partial class DirectiveGrammar : Grammar
 
     public void CreateTokens()
     {
+        WS = WhiteSpace;
         Space = WhiteSpace | Eol;
         Spaces = Space.Optional().Repeat();
         SpacesWithLineBreak = WhiteSpace.Optional().Repeat().Then(Eol);
@@ -197,6 +202,7 @@ public partial class DirectiveGrammar : Grammar
         Inout = Literal("inout") | "in out";
         InputPatch = Literal("InputPatch");
         Interface = Literal("interface");
+        Line_ = Literal("line");
         LineAdj = Literal("lineadj");
         Linear = Literal("linear");
         LineStream = Literal("LineStream");

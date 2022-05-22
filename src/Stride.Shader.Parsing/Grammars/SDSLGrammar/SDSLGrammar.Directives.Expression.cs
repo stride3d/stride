@@ -2,8 +2,8 @@ using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
 
-namespace Stride.Shader.Parsing;
-public partial class DirectiveGrammar : Grammar
+namespace Stride.Shader.Parsing.Grammars.SDSL;
+public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser DirectiveTermExpression = new() { Name = "DirectiveTermExpression" };
     public AlternativeParser DirectivePostFixExpression = new() { Name = "DirectivePostFixExpression" };
@@ -25,18 +25,10 @@ public partial class DirectiveGrammar : Grammar
     public AlternativeParser DirectiveParenExpression = new() { Name = "DirectiveParenExpression" };
     public AlternativeParser DirectiveEqualsExpression = new() { Name = "DirectiveEqualsExpression" };
     public AlternativeParser DirectiveExpression = new() { Name = "DirectiveExpression" };
-    public DirectiveGrammar DirectiveUsingDirectiveExpression()
+    public SDSLGrammar DirectiveUsingDirectiveExpression()
     {
         Inner = DirectiveExpression;
         return this;
-    }
-
-    public Parser Parenthesis(Parser p, bool notFollowedByUnary = true)
-    {
-        if (notFollowedByUnary)
-            return LeftParen.Then(p).Then(RightParen).SeparatedBy(SingleLineWhiteSpace.Repeat(0)).NotFollowedBy(DirectiveUnaryExpression);
-        else
-            return LeftParen.Then(p).Then(RightParen).SeparatedBy(SingleLineWhiteSpace.Repeat(0));
     }
     public void CreateDirectiveExpressions()
     {
@@ -51,12 +43,8 @@ public partial class DirectiveGrammar : Grammar
             MinusMinus
         );
 
-        var parameters =
-            DirectiveExpression.Repeat(0).SeparatedBy(ws & Comma & ws);
-
-        var MethodCall = new AlternativeParser(
-            Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("DirectiveMethodCallExpression")
-        );
+        // TODO : write tests for method calls
+        // TODO : Optimize method call
 
 
         DirectiveTermExpression.Add(
@@ -202,7 +190,13 @@ public partial class DirectiveGrammar : Grammar
             LeftParen.Then(DirectiveExpression).Then(RightParen).SeparatedBy(ws)
         );
 
-        
+        var parameters =
+            DirectiveExpression.Repeat(0).SeparatedBy(ws & Comma & ws);
+
+        MethodCall.Add(
+            Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("DirectiveMethodCallExpression")
+        );
+
         var arrayDeclaration =
             (LeftBrace & DirectiveExpression.Repeat(0).SeparatedBy(ws & Comma & ws) & RightBrace)
             .SeparatedBy(ws);

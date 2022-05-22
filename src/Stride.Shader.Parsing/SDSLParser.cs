@@ -2,13 +2,17 @@ namespace Stride.Shader.Parsing;
 
 using Eto.Parse;
 using Eto.Parse.Grammars;
+using Stride.Shader.Parsing.Grammars;
+using Stride.Shader.Parsing.Grammars.Comments;
+using Stride.Shader.Parsing.Grammars.Directive;
+using Stride.Shader.Parsing.Grammars.SDSL;
 using System.Text;
 public class SDSLParser
 {
     public CommentGrammar Comments {get;set;}
     public SDSLGrammar Grammar {get;set;}  
     public DirectiveGrammar Directive { get;set;}
-    public IEnumerable<string> Defined { get; set; }
+    //public IEnumerable<string> Defined { get; set; }
 
     public SDSLParser()
     {

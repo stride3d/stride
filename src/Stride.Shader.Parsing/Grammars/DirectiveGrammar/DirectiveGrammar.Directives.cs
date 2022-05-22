@@ -2,7 +2,7 @@ using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
 
-namespace Stride.Shader.Parsing;
+namespace Stride.Shader.Parsing.Grammars.Directive;
 public partial class DirectiveGrammar : Grammar
 {
     public SequenceParser IfDirective = new(){Name = "IfDirective"};
@@ -66,16 +66,19 @@ public partial class DirectiveGrammar : Grammar
         var ifCode = IfDirective & AnyChar.Repeat(0).Until(hashElif | hashElse | hashEndIf).Named("IfCode");
         var elifCode = ElifDirective & AnyChar.Repeat(0).Until(hashElif | hashElse).Named("ElifCode");
 
-        var conditional = ifCode & elifCode.Repeat(0).Until(hashElse | hashEndIf) & ~elseCode & EndIfDirective;
-        var definition =
-            ifDefCode &
-            (conditional.Named("Conditional") | AnyChar.Repeat(0).Until(hashEndIf | hashIf).Named("IfDefCode")).Repeat(0).Until(hashEndIf) &
-            EndIfDirective;
+        var conditional = ifCode & elifCode.Repeat(0).Until(hashEndIf | hashElse) & ~elseCode & EndIfDirective;
+        var definition = new SequenceParser(
+            ifDefCode,
+            (conditional.Named("Conditional") | AnyChar.Repeat(0).Until(hashEndIf | hashIf).Named("IfDefCode")).Repeat(0).Until(hashElse | hashEndIf),
+            ~elseCode.Named("ElseIfDef"),
+            EndIfDirective
+        );
 
 
         Directives.Add(
             AnyChar.Repeat(0).Until(End | hashIf | hashIfDef | hashIfNDef | hashDefine).Named("UnchangedCode"),
-            definition
+            (definition.Named("IfDefinition") | conditional.Named("Conditional") | DefineDirective | AnyChar.Repeat(0).Until(End | hashIf | hashIfDef | hashIfNDef | hashDefine).Named("UnchangedCode"))
+                .Repeat(0).Until(End)
         );
     }
 }
