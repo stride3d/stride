@@ -104,12 +104,12 @@ public class MulExpression : ExpressionToken
         var first = new Operation
         {
             Op = m.Matches[1].StringValue,
-            Left = OrExpression.GetSubToken(m.Matches[0]),
-            Right = OrExpression.GetSubToken(m.Matches[2])
+            Left = CastExpression.GetSubToken(m.Matches[0]),
+            Right = CastExpression.GetSubToken(m.Matches[2])
         };
 
         Operation tmp = first;
-        for (int i = 3; i < m.Length - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 2; i += 2)
         {
             tmp = new Operation
             {
@@ -145,7 +145,7 @@ public class SumExpression : ExpressionToken
         };
 
         Operation tmp = first;
-        for (int i = 3; i < m.Length - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 2; i += 2)
         {
             tmp = new Operation
             {
@@ -181,13 +181,13 @@ public class ShiftExpression : ExpressionToken
         };
 
         Operation tmp = first;
-        for (int i = 3; i < m.Length - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 2; i += 2)
         {
             tmp = new Operation
             {
                 Op = m.Matches[i].StringValue,
                 Left = tmp,
-                Right = ShiftExpression.GetSubToken(m.Matches[i + 1])
+                Right = SumExpression.GetSubToken(m.Matches[i + 1])
             };
         }
         Operations = tmp;
@@ -272,7 +272,7 @@ public class TestExpression : ExpressionToken
         };
 
         Operation tmp = first;
-        for (int i = 3; i < m.Length - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 2; i += 2)
         {
             tmp = new Operation
             {
@@ -309,7 +309,7 @@ public class EqualsExpression : ExpressionToken
         };
         
         Operation tmp = first;
-        for (int i = 3; i < m.Length - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 2; i += 2)
         {
             tmp = new Operation
             {
