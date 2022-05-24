@@ -11,11 +11,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="../Stride.Shader.Parsing/*.ebnf" />
-  </ItemGroup>
-
-  
-
 </Project>
