@@ -5,29 +5,6 @@ using Stride.Shader.Parsing.Grammars.Expression;
 using System.Diagnostics;
 using System.Linq;
 
-static void PrettyPrintMatches(Match match, int depth = 0)
-{
-    Console.ForegroundColor = ConsoleColor.Blue;
-    Console.Write(new string(' ', depth*4) + match.Name);
-    Console.ForegroundColor = ConsoleColor.White;
-    Console.WriteLine(" : " + match.StringValue);
-    //Console.WriteLine(" : " + System.Text.RegularExpressions.Regex.Escape(match.StringValue)[..Math.Min(32,match.StringValue.Length)]);
-    foreach (var m in match.Matches)
-    {
-        if(m.Matches.Count == 1 && m.Name.Contains("Expression"))
-        {
-            var tmp = m.Matches[0];
-            while(tmp.Matches.Count == 1)
-            {
-                tmp = tmp.Matches[0];
-            }
-            PrettyPrintMatches(tmp, depth + 1);
-        }
-        else
-            PrettyPrintMatches(m, depth + 1);
-    }
-}
-
 
 
 var shaderf = File.ReadAllText("../../../SDSL/shader2.sdsl");
@@ -35,11 +12,14 @@ var shaderf = File.ReadAllText("../../../SDSL/shader2.sdsl");
 var sdsl = new SDSLParser();
 sdsl.Grammar.Using(sdsl.Grammar.CastExpression);
 var s = new Stopwatch();
-var match2 = sdsl.Parse("(abab) my_var");
 var parser = new ExpressionParser();
+var match2 = parser.Parse("(abab) my_var");
+
 s.Start();
 var match = parser.Parse("(abab) my_var");
 s.Stop();
+Console.WriteLine($"parsing time : {s.Elapsed}");
+
 Console.WriteLine(match);
 //if (match.Errors.Any())
 //{
@@ -54,7 +34,6 @@ Console.WriteLine(match);
 //else
 //{
 //    match.Matches.ForEach(x => PrettyPrintMatches(x));
-//    Console.WriteLine($"parsing time : {s.Elapsed}");
 //    Console.Write("");
 //}
 

@@ -28,6 +28,11 @@ public class SDSLParser
         return this;
     }
 
+    public void PrintParserTree(string shader)
+    {
+        PrettyPrintMatches(Parse(shader).Matches[0]);
+    }
+
     public GrammarMatch Parse(string shader)
     {
         var comments = Comments.Match(shader);
@@ -53,6 +58,29 @@ public class SDSLParser
     public GrammarMatch PreProcessor(string code)
     {
         return Directive.Match(code);
+    }
+
+    private static void PrettyPrintMatches(Match match, int depth = 0)
+    {
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.Write(new string(' ', depth * 4) + match.Name);
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(" : " + match.StringValue);
+        //Console.WriteLine(" : " + System.Text.RegularExpressions.Regex.Escape(match.StringValue)[..Math.Min(32,match.StringValue.Length)]);
+        foreach (var m in match.Matches)
+        {
+            if (m.Matches.Count == 1 && m.Name.Contains("Expression"))
+            {
+                var tmp = m.Matches[0];
+                while (tmp.Matches.Count == 1)
+                {
+                    tmp = tmp.Matches[0];
+                }
+                PrettyPrintMatches(tmp, depth + 1);
+            }
+            else
+                PrettyPrintMatches(m, depth + 1);
+        }
     }
 
 }   
