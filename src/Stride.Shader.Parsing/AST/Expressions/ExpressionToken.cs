@@ -46,7 +46,8 @@ public abstract class ExpressionToken
 			"CastExpression" => new CastExpression(tmp),
 			"PrefixIncrement" => throw new NotImplementedException("prefix implement not implemented"),
 			"IntegerValue" or "FloatValue" => new NumberLiteral(tmp),
-
+			"VariableTerm" => new VariableNameLiteral(tmp),
+			"ValueTypes" or "TypeName" => new TypeNameLiteral(tmp),
 			_ => throw new NotImplementedException()
 		};
 	}

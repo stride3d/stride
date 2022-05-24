@@ -32,12 +32,13 @@ static void PrettyPrintMatches(Match match, int depth = 0)
 
 var shaderf = File.ReadAllText("../../../SDSL/shader2.sdsl");
 
-var parser = new ExpressionParser(); //new SDSLParser();
-//parser.Grammar.Using(parser.Grammar.ShaderValueDeclaration);
+var sdsl = new SDSLParser();
+sdsl.Grammar.Using(sdsl.Grammar.CastExpression);
 var s = new Stopwatch();
-//var match2 = parser.Parse("shader MyShader<float a> : Something {}");
+var match2 = sdsl.Parse("(abab) my_var");
+var parser = new ExpressionParser();
 s.Start();
-var match = parser.Parse("5 && 6 && 7;");
+var match = parser.Parse("(abab) my_var");
 s.Stop();
 Console.WriteLine(match);
 //if (match.Errors.Any())

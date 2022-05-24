@@ -8,10 +8,8 @@ namespace Stride.Shader.Parsing.Grammars.Expression;
 
 public class ExpressionGrammar : SDSLGrammar
 {
-    public ExpressionGrammar()
+    public ExpressionGrammar() : base()
     {
-        Name = "expression";
-        CreateAll();
-        Inner = PrimaryExpression.Then(";");
+        Using(PrimaryExpression);
     }
 }

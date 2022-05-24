@@ -23,7 +23,7 @@ public partial class SDSLGrammar : Grammar
 
     public AlternativeParser UintTypes = new();
 
-    public AlternativeParser ValueTypes = new();
+    public AlternativeParser ValueTypes = new() { Name = "ValueTypes"};
     public AlternativeParser StorageFlag = new();
 
     public AlternativeParser Keywords = new();

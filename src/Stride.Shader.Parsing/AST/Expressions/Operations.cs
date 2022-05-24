@@ -15,22 +15,6 @@ public class Operation : ExpressionToken
     public ExpressionToken Right { get; set; }
 }
 
-public class TermExpression
-{
-    public static ExpressionToken GetSubToken(Match m)
-    {
-        return m switch
-        {
-            { Name: "Literals" } => Literals.GetSubToken(m.Matches[0]),
-            { Name: "IntegerLiteral" } => new NumberLiteral(m),
-
-            //{ Name: "VariableTerm" } => new VariableTerm(m.Matches[0]),
-            _ => throw new NotImplementedException()
-        };
-    }
-}
-
-
 public class PrefixIncrement : ExpressionToken
 {
     public string Operator { get; set; }
@@ -45,9 +29,12 @@ public class PrefixIncrement : ExpressionToken
 
 public class CastExpression : ExpressionToken
 {
+    public TypeNameLiteral Target { get; set; }
+    public ExpressionToken From { get; set; }
     public CastExpression(Match m)
     {
-        // TODO implement cast
+        Target = new TypeNameLiteral(m.Matches[0]);
+        From = GetToken(m.Matches[1]);
     }
 }
 
@@ -333,17 +320,3 @@ public class ConditionalExpression : ExpressionToken
         FalseOutput = GetToken(m.Matches[2]);
     }
 }
-
-
-public class PrimaryExpression : ExpressionToken
-{
-    public static ExpressionToken GetSubToken(Match m)
-    {
-        return m.Matches[0].Name switch
-        {
-            "ConditionalExpression" => GetToken(m.Matches[0]), //ConditionalExpression.GetSubToken(m.Matches[0]),
-            _ => throw new NotImplementedException()
-        };
-    }
-}
-

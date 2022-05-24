@@ -77,15 +77,22 @@ public class BoolLiteral : ExpressionToken
 }
 
 
-public class Literals
+public class TypeNameLiteral : ExpressionToken
 {
-	public static ExpressionToken GetSubToken(Match m)
-    {
-		return m.Name switch
-		{
-			"IntegerLiteral" or "FloatLiteral" => new NumberLiteral(m),
-			"StringLiteral" => new StringLiteral(m),
-			_ => throw new NotImplementedException()
-        };
-    }
+	public string Name { get; set; }
+
+	public TypeNameLiteral(Match m) 
+	{
+		Name = m.StringValue;
+	}
+}
+
+public class VariableNameLiteral : ExpressionToken
+{
+	public string Name { get; set; }
+
+	public VariableNameLiteral(Match m)
+	{
+		Name = m.StringValue;
+	}
 }

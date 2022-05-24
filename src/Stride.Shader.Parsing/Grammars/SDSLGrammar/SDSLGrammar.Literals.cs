@@ -2,8 +2,6 @@ using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
 
-using EtoParser = Eto.Parse.Parser;
-
 namespace Stride.Shader.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
 {
@@ -11,7 +9,7 @@ public partial class SDSLGrammar : Grammar
 	AlternativeParser FloatSuffix = new() { Name = "Suffix"};
     
 	public StringParser StringLiteral = new();
-	public SequenceParser Identifier = new();
+	public SequenceParser Identifier = new() { Name = "Identifier"};
     public AlternativeParser UserDefinedId = new();
 
     public NumberParser IntegerLiteral = new();
@@ -31,12 +29,13 @@ public partial class SDSLGrammar : Grammar
 	public void CreateLiterals()
 	{
 		Identifier.Add(
-			Letter.Or("_").Then(LetterOrDigit.Or("_").Repeat(0)).WithName("Identifier")
+			Letter | "_",
+			(LetterOrDigit | "_").Repeat(0).Until(AnyChar.Except(LetterOrDigit | "_"))
 		);
 
-		UserDefinedId.Add(
-            Identifier.Except(Keywords)
-        );
+		//UserDefinedId.Add(
+  //          Identifier.Except(Keywords)
+  //      );
 
 		IntegerSuffix.Add(
 			"u",

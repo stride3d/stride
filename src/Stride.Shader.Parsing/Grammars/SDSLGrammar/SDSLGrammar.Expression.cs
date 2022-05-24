@@ -60,14 +60,11 @@ public partial class SDSLGrammar : Grammar
             PlusPlus,
             MinusMinus
         );
-
-        // TODO : write tests for method calls
-        // TODO : Optimize method call
-        
+                
 
         TermExpression.Add(
             Literals,
-            Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
+            Identifier.WithName("VariableTerm").Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
             MethodCall,
             Parenthesis(PrimaryExpression)
         );
@@ -116,17 +113,17 @@ public partial class SDSLGrammar : Grammar
             Literal("sizeof").Then(LeftParen).Then(Identifier | UnaryExpression).Then(RightParen).Named("SizeOf")
         );
 
-        var cast = new SequenceParser();
-        cast.Add(
+        var cast = new SequenceParser(
             LeftParen,
-            ValueTypes | Identifier,
+            ValueTypes | Identifier.Named("TypeName"),
             RightParen,
             UnaryExpression
-        );
+        )
+        { Name = "CastExpression", Separator = ws};
 
         CastExpression.Add(
-            UnaryExpression,
-            cast.SeparatedBy(ws).Named("CastExpression")
+            cast
+            //UnaryExpression
         );
 
         
