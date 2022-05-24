@@ -1,4 +1,5 @@
 ﻿using Eto.Parse;
+using Stride.Shader.Parsing.AST.Directives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,28 +16,6 @@ public class Operation : DirectiveToken
     public DirectiveToken Right { get; set; }
 }
 
-public class PrefixIncrement : DirectiveToken
-{
-    public string Operator { get; set; }
-    public string Name { get; set; }
-    public PrefixIncrement(Match m)
-    {
-        Match = m;
-        Operator = m.Matches[0].StringValue;
-        Name = m.Matches[1].StringValue;
-    }
-}
-
-public class CastExpression : DirectiveToken
-{
-    public TypeNameLiteral Target { get; set; }
-    public DirectiveToken From { get; set; }
-    public CastExpression(Match m)
-    {
-        Target = new TypeNameLiteral(m.Matches[0]);
-        From = GetToken(m.Matches[1]);
-    }
-}
 
 public class MulExpression : Operation
 {

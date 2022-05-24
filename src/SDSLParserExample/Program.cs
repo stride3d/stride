@@ -16,7 +16,7 @@ var parser = new ExpressionParser();
 var match2 = parser.Parse("true");
 
 s.Start();
-var match = parser.Parse("a.b[0]");
+var match = parser.Parse("false ? 2 ^ (float)my_value | (float)my_value | (MyStruct)++my_var.a[b].c[5].b.e[7][5] && 4 == ++b : false");
 s.Stop();
 Console.WriteLine($"parsing time : {s.Elapsed}");
 

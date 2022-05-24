@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Stride.Shader.Parsing.AST.Directives.OperatorTokenExtensions;
+using static Stride.Shader.Parsing.AST.Shader.OperatorTokenExtensions;
 
 namespace Stride.Shader.Parsing.AST.Shader;
 

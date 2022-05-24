@@ -1,5 +1,4 @@
 ﻿using Eto.Parse;
-using Stride.Shader.Parsing.AST.Shader;
 using Stride.Shader.Parsing.Grammars.Expression;
 using System;
 using System.Collections.Generic;

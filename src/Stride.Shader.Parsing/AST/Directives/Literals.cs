@@ -95,4 +95,8 @@ public class VariableNameLiteral : DirectiveToken
     {
         Name = m.StringValue;
     }
+    public override string ToString()
+    {
+        return $"{{ Variable : {Name} }}" ;
+    }
 }
