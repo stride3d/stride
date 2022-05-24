@@ -96,7 +96,6 @@ public partial class SDSLGrammar : Grammar
 
         PostfixExpression.Add(
             TermExpression.NotFollowedBy(ws & (Dot | LeftBracket | incrementOp)),
-            ((Plus | Minus).Named("Sign") & ws & TermExpression.NotFollowedBy(ws & (Dot | LeftBracket | incrementOp))).Named("SignedTermExpression"),
             postfixInc.Named("PostfixIncrement"),
             chain.Named("AccessorChain"),
             arrayAccess.Named("ArrayAccesor")

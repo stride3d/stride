@@ -37,7 +37,7 @@ var parser = new ExpressionParser(); //new SDSLParser();
 var s = new Stopwatch();
 //var match2 = parser.Parse("shader MyShader<float a> : Something {}");
 s.Start();
-var match = parser.Parse("5<<5%3;");
+var match = parser.Parse("5 && 6 && 7;");
 s.Stop();
 Console.WriteLine(match);
 //if (match.Errors.Any())

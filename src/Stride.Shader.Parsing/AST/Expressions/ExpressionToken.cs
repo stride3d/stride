@@ -23,11 +23,30 @@ public abstract class ExpressionToken
 		return GetToken(match.Matches.First());
 	}
 
-	internal static ExpressionToken GetToken(Match match)
+	public static ExpressionToken GetToken(Match match)
 	{
-		return match.Name switch
+		var tmp = match;
+		while (tmp.Matches.Count == 1)
+			tmp = tmp.Matches.First();
+
+		return tmp.Name switch
 		{
-			"PrimaryExpression" => PrimaryExpression.GetSubToken(match),
+			"PrimaryExpression" => GetToken(tmp),
+			"Ternary" => new ConditionalExpression(tmp),
+			"LogicalOrExpression" => LogicalOrExpression.Create(tmp),
+			"LogicalAndExpression" => LogicalAndExpression.Create(tmp),
+			"EqualsExpression" => EqualsExpression.Create(tmp),
+			"TestExpression" => TestExpression.Create(tmp),
+			"OrExpression" => OrExpression.Create(tmp),
+			"XorExpression" => XorExpression.Create(tmp),
+			"AndExpression" => AndExpression.Create(tmp),
+			"ShiftExpression" => ShiftExpression.Create(tmp),
+			"SumExpression" => SumExpression.Create(tmp),
+			"MulExpression" => MulExpression.Create(tmp),
+			"CastExpression" => new CastExpression(tmp),
+			"PrefixIncrement" => throw new NotImplementedException("prefix implement not implemented"),
+			"IntegerValue" or "FloatValue" => new NumberLiteral(tmp),
+
 			_ => throw new NotImplementedException()
 		};
 	}
