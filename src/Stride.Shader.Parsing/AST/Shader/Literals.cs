@@ -95,4 +95,8 @@ public class VariableNameLiteral : ShaderToken
     {
         Name = m.StringValue;
     }
+    public override string ToString()
+    {
+        return $"{{ Variable : {Name} }}" ;
+    }
 }

@@ -69,9 +69,9 @@ public partial class SDSLGrammar : Grammar
             Parenthesis(PrimaryExpression)
         );
         
-        var arrayAccess = new SequenceParser();
-        var chain = new SequenceParser();
-        var postfixInc = new SequenceParser();
+        var arrayAccess = new SequenceParser() { Name = "ArrayAccessor"};
+        var chain = new SequenceParser() { Name = "ChainAccessor"};
+        var postfixInc = new SequenceParser() { Name = "PostfixIncrement"};
 
 
         arrayAccess.Add(
@@ -86,30 +86,30 @@ public partial class SDSLGrammar : Grammar
             (arrayAccess | MethodCall | Identifier).Repeat(1).SeparatedBy(ws & Dot & ws)
         );
         postfixInc.Add(
-            chain.Named("AccessorChain") | arrayAccess.Named("ArrayAccessor") | Identifier, 
+            chain | arrayAccess | Identifier, 
             ws,
             incrementOp.Named("Operator")
         );
 
         PostfixExpression.Add(
             TermExpression.NotFollowedBy(ws & (Dot | LeftBracket | incrementOp)),
-            postfixInc.Named("PostfixIncrement"),
-            chain.Named("AccessorChain"),
-            arrayAccess.Named("ArrayAccesor")
+            postfixInc,
+            chain,
+            arrayAccess
         );
 
-        var prefixInc = new SequenceParser();
-        prefixInc.Add(
-            incrementOp,
+        var prefixInc = new SequenceParser(
+            incrementOp.Named("Operator"),
             ws,
             Identifier.NotFollowedBy(ws & (Dot | "["))
             | chain
             | arrayAccess
-        );
+        )
+        { Name = "PrefixIncrement"};
 
         UnaryExpression.Add(
             PostfixExpression,
-            prefixInc.Named("PrefixIncrement"),
+            prefixInc,
             Literal("sizeof").Then(LeftParen).Then(Identifier | UnaryExpression).Then(RightParen).Named("SizeOf")
         );
 

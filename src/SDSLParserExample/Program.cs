@@ -13,10 +13,10 @@ var sdsl = new SDSLParser();
 sdsl.Grammar.Using(sdsl.Grammar.CastExpression);
 var s = new Stopwatch();
 var parser = new ExpressionParser();
-var match2 = parser.Parse("false");
+var match2 = parser.Parse("true");
 
 s.Start();
-var match = parser.Parse("true ? 5 : 8+my_var");
+var match = parser.Parse("a.b[0]");
 s.Stop();
 Console.WriteLine($"parsing time : {s.Elapsed}");
 
