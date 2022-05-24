@@ -56,7 +56,8 @@ public partial class DirectiveGrammar : Grammar
 			IntegerLiteral.NotFollowedBy(Dot | FloatSuffix | Set("xX")).Named("IntegerLiteral"),
 			FloatLiteral.NotFollowedBy(Set("xX")).Then(FloatSuffix.Optional()).Named("FloatLiteral"),
 			HexaDecimalLiteral,
-			StringLiteral
+			StringLiteral,
+			BooleanTerm
 		);		
 	}
 }

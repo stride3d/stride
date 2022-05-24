@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Stride.Shader.Parsing.AST.Expressions;
+namespace Stride.Shader.Parsing.AST.Shader;
 
 public enum OperatorToken
 {

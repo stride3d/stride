@@ -13,29 +13,13 @@ var sdsl = new SDSLParser();
 sdsl.Grammar.Using(sdsl.Grammar.CastExpression);
 var s = new Stopwatch();
 var parser = new ExpressionParser();
-var match2 = parser.Parse("(abab) my_var");
+var match2 = parser.Parse("false");
 
 s.Start();
-var match = parser.Parse("(abab) my_var");
+var match = parser.Parse("true ? 5 : 8+my_var");
 s.Stop();
 Console.WriteLine($"parsing time : {s.Elapsed}");
 
 Console.WriteLine(match);
-//if (match.Errors.Any())
-//{
-//    Console.WriteLine(match.ErrorMessage[..Math.Min(10000, match.ErrorMessage.Length)]);
-//    //parser.UncommentedCode.ToString().Split("\n").Select((x, i) => (x, i+1)).ToList().ForEach(x => {
-//    //    Console.ForegroundColor = ConsoleColor.Blue;
-//    //    Console.Write(x.Item2 + " : ");
-//    //    Console.ForegroundColor = ConsoleColor.White;
-//    //    Console.WriteLine(x.x);
-//    //});
-//}
-//else
-//{
-//    match.Matches.ForEach(x => PrettyPrintMatches(x));
-//    Console.Write("");
-//}
-
 
 

@@ -1,21 +1,22 @@
 ﻿using Eto.Parse;
+using Stride.Shader.Parsing.AST.Directives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Stride.Shader.Parsing.AST.Expressions.OperatorTokenExtensions;
+using static Stride.Shader.Parsing.AST.Directives.OperatorTokenExtensions;
 
-namespace Stride.Shader.Parsing.AST.Expressions;
+namespace Stride.Shader.Parsing.AST.Shader;
 
-public class Operation : ExpressionToken
+public class Operation : ShaderToken
 {
     public OperatorToken Op { get; set; }
-    public ExpressionToken Left { get; set; }
-    public ExpressionToken Right { get; set; }
+    public ShaderToken Left { get; set; }
+    public ShaderToken Right { get; set; }
 }
 
-public class PrefixIncrement : ExpressionToken
+public class PrefixIncrement : ShaderToken
 {
     public string Operator { get; set; }
     public string Name { get; set; }
@@ -27,10 +28,10 @@ public class PrefixIncrement : ExpressionToken
     }
 }
 
-public class CastExpression : ExpressionToken
+public class CastExpression : ShaderToken
 {
     public TypeNameLiteral Target { get; set; }
-    public ExpressionToken From { get; set; }
+    public ShaderToken From { get; set; }
     public CastExpression(Match m)
     {
         Target = new TypeNameLiteral(m.Matches[0]);
@@ -236,7 +237,7 @@ public class EqualsExpression : Operation
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
-        
+
         EqualsExpression tmp = first;
         for (int i = 3; i < m.Matches.Count - 2; i += 2)
         {
@@ -306,11 +307,11 @@ public class LogicalOrExpression : Operation
     }
 }
 
-public class ConditionalExpression : ExpressionToken
+public class ConditionalExpression : ShaderToken
 {
-    public ExpressionToken Condition { get; set; }
-    public ExpressionToken TrueOutput { get; set; }
-    public ExpressionToken FalseOutput { get; set; }
+    public ShaderToken Condition { get; set; }
+    public ShaderToken TrueOutput { get; set; }
+    public ShaderToken FalseOutput { get; set; }
 
 
     public ConditionalExpression(Match m)

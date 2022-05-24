@@ -17,7 +17,7 @@ public partial class SDSLGrammar : Grammar
 	public HexDigitTerminal HexDigits = new();
     public SequenceParser HexaDecimalLiteral = new();
 
-	public BooleanTerminal BooleanTerm = new();
+	public BooleanTerminal BooleanTerm = new() { Name = "BooleanTerm"};
     
 	public AlternativeParser Literals = new();
 
@@ -68,7 +68,8 @@ public partial class SDSLGrammar : Grammar
             FloatLiteral.NotFollowedBy(Set("xX")).Named("FloatLiteral"),
             FloatLiteral.NotFollowedBy(Set("xX")).Then(FloatSuffix).Named("FloatLiteral"),
             HexaDecimalLiteral,
-			StringLiteral
+			StringLiteral,
+			BooleanTerm
 		);		
 	}
 }

@@ -2,6 +2,7 @@ namespace Stride.Shader.Parsing;
 
 using Eto.Parse;
 using Eto.Parse.Grammars;
+using Stride.Shader.Parsing.AST.Shader;
 using Stride.Shader.Parsing.Grammars;
 using Stride.Shader.Parsing.Grammars.Comments;
 using Stride.Shader.Parsing.Grammars.Directive;

@@ -6,24 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Stride.Shader.Parsing.AST.Expressions;
+namespace Stride.Shader.Parsing.AST.Shader;
 
-public abstract class ExpressionToken 
+public abstract class ShaderToken
 {
-	static ExpressionGrammar grammar;
-	protected static ExpressionGrammar Grammar { get { return grammar ??= new ExpressionGrammar(); } }
-
-	public Match Match { get; set; }
-
-	public static ExpressionToken Parse(string expr)
-	{
-		var match = Grammar.Match(expr);
-		if (!match.Success)
-			throw new ArgumentOutOfRangeException("expr", string.Format("Invalid expr string: {0}", match.ErrorMessage));
-		return GetToken(match.Matches.First());
-	}
-
-	public static ExpressionToken GetToken(Match match)
+	public Match? Match { get; set; }
+	public static ShaderToken GetToken(Match match)
 	{
 		var tmp = match;
 		while (tmp.Matches.Count == 1)
@@ -48,6 +36,7 @@ public abstract class ExpressionToken
 			"IntegerValue" or "FloatValue" => new NumberLiteral(tmp),
 			"VariableTerm" => new VariableNameLiteral(tmp),
 			"ValueTypes" or "TypeName" => new TypeNameLiteral(tmp),
+			"Boolean" => new BoolLiteral(tmp),
 			_ => throw new NotImplementedException()
 		};
 	}

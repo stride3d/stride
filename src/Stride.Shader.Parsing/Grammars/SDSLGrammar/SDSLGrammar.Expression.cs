@@ -122,8 +122,8 @@ public partial class SDSLGrammar : Grammar
         { Name = "CastExpression", Separator = ws};
 
         CastExpression.Add(
+            UnaryExpression,
             cast
-            //UnaryExpression
         );
 
         

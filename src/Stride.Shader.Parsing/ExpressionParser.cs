@@ -2,7 +2,7 @@ namespace Stride.Shader.Parsing;
 
 using Eto.Parse;
 using Eto.Parse.Grammars;
-using Stride.Shader.Parsing.AST.Expressions;
+using Stride.Shader.Parsing.AST.Shader;
 using Stride.Shader.Parsing.Grammars;
 using Stride.Shader.Parsing.Grammars.Comments;
 using Stride.Shader.Parsing.Grammars.Directive;
@@ -11,10 +11,14 @@ using Stride.Shader.Parsing.Grammars.SDSL;
 using System.Text;
 public class ExpressionParser
 {
-    //public IEnumerable<string> Defined { get; set; }
+    public ExpressionGrammar Grammar { get; set; } = new();
 
-    public ExpressionToken Parse(string expr)
+    public ShaderToken Parse(string expr)
     {
-        return ExpressionToken.Parse(expr);
+        var match = Grammar.Match(expr);
+        if (!match.Success)
+            throw new ArgumentOutOfRangeException("expr", string.Format("Invalid expr string: {0}", match.ErrorMessage));
+        return ShaderToken.GetToken(match.Matches.First());
     }
+
 }   
