@@ -7,8 +7,8 @@ using EtoParser = Eto.Parse.Parser;
 namespace Stride.Shader.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
 {
-	AlternativeParser IntegerSuffix = new();
-	AlternativeParser FloatSuffix = new();
+	AlternativeParser IntegerSuffix = new() { Name = "Suffix"};
+	AlternativeParser FloatSuffix = new() { Name = "Suffix"};
     
 	public StringParser StringLiteral = new();
 	public SequenceParser Identifier = new();
@@ -55,17 +55,20 @@ public partial class SDSLGrammar : Grammar
 		
 		
 		StringLiteral = new StringParser().WithName("StringLiteral");
-		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "float_value"}.WithName("IntegerValue");
-		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "int_value"}.WithName("FloatValue");
+		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "IntegerValue" };
+		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "FloatValue" };
+		
 		HexDigits = new();
 		HexaDecimalLiteral = Literal("0x").Or(Literal("0X")).Then(HexDigit.Repeat(1)).WithName("HexaLiteral");
 
 		BooleanTerm = new BooleanTerminal{CaseSensitive = true, TrueValues = new string[]{"true"},FalseValues = new string[]{"false"}, Name = "Boolean"};
 
 		Literals.Add(
-			IntegerLiteral.NotFollowedBy(Dot | FloatSuffix | Set("xX")).Named("IntegerLiteral"),
-			FloatLiteral.NotFollowedBy(Set("xX")).Then(FloatSuffix.Optional()).Named("FloatLiteral"),
-			HexaDecimalLiteral,
+            IntegerLiteral.NotFollowedBy(Dot | IntegerSuffix | FloatSuffix | Set("xX")).Named("IntegerLiteral"),
+            IntegerLiteral.NotFollowedBy(Dot | FloatSuffix | Set("xX")).Then(IntegerSuffix).Named("IntegerLiteral"),
+            FloatLiteral.NotFollowedBy(Set("xX")).Named("FloatLiteral"),
+            FloatLiteral.NotFollowedBy(Set("xX")).Then(FloatSuffix).Named("FloatLiteral"),
+            HexaDecimalLiteral,
 			StringLiteral
 		);		
 	}

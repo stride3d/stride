@@ -1,53 +1,88 @@
-﻿using System;
+﻿using Eto.Parse;
+using Stride.Shader.Parsing.Grammars.Directive;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Stride.Shader.Parsing.AST.Directives
+namespace Stride.Shader.Parsing.AST.Directives;
+
+public abstract class DirectiveToken { };
+
+public class CodeSnippet : DirectiveToken
 {
-    public abstract class DirectiveNode {}
-    public class CodeSnippet : DirectiveNode
+    public string Snippet { get; set; }
+}
+
+public class Define : DirectiveToken
+{
+    public string Variable { get; set; }
+    public int Value { get; set; }
+}
+
+public class Shader : DirectiveToken, IList<DirectiveToken>, ICollection<DirectiveToken>
+{
+    List<DirectiveToken> nodes = new List<DirectiveToken>();
+
+
+    #region list & collection impl
+
+    public DirectiveToken this[int index] { get => nodes[index]; set{ nodes[index] = value; } }
+
+    public int Count => nodes.Count;
+
+    public bool IsReadOnly => ((ICollection<DirectiveToken>)nodes).IsReadOnly;
+
+    public void Add(DirectiveToken item)
     {
-        public string? Code { get; set; }
-    }
-    public abstract class DirectiveWithCodeNode : DirectiveNode 
-    {
-        List<CodeSnippet> CodeSnippets { get; set; } = new();
-    }
-    public abstract class DirectiveWithChildren : DirectiveWithCodeNode
-    {
-        List<DirectiveNode> Children { get; set; } = new();
+        nodes.Add(item);
     }
 
-    public class IfDefNode : DirectiveWithChildren
+    public void Clear()
     {
-        public string ValueName { get; set; }
-    }
-    public class IfNDefNode : DirectiveWithChildren
-    {
-        public string ValueName { get; set; }
-    }
-    public class SimpleDefineNode : DirectiveNode
-    {
-        public string Name { get; set; }
+        nodes.Clear();
     }
 
-    public class DefineNode<T> : DirectiveNode
+    public bool Contains(DirectiveToken item)
     {
-        public string Name { get; set; }
-        public T Value { get; set; }
+        return nodes.Contains(item);
     }
 
-    public class IfNode : DirectiveWithChildren
+    public void CopyTo(DirectiveToken[] array, int arrayIndex)
     {
-        public ExpressionNode Expression { get; set; }
+        nodes.CopyTo(array,arrayIndex);
     }
-    public class ElIfNode : DirectiveWithChildren
+
+    public IEnumerator<DirectiveToken> GetEnumerator()
     {
-        public ExpressionNode Expression { get; set; }
+       return nodes.GetEnumerator();
     }
-    public class ElseNode : DirectiveNode
+
+    public int IndexOf(DirectiveToken item)
     {
+        return nodes.IndexOf(item);
     }
+
+    public void Insert(int index, DirectiveToken item)
+    {
+        nodes.Insert(index,item);
+    }
+
+    public bool Remove(DirectiveToken item)
+    {
+        return nodes.Remove(item);
+    }
+
+    public void RemoveAt(int index)
+    {
+        nodes.RemoveAt(index);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
 }

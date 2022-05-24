@@ -35,7 +35,7 @@ public class BasicExpressionParsing
     [Fact]
     public void TestPostfix()
     {
-        parser.Grammar.Using(parser.Grammar.PostFixExpression.Then(";"));
+        parser.Grammar.Using(parser.Grammar.PostfixExpression.Then(";"));
         List<GrammarMatch> matches = new(){
             parser.Parse("my_var++;"),
             parser.Parse("my_var.a;"),

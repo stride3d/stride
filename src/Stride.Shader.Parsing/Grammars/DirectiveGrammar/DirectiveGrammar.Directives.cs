@@ -79,7 +79,7 @@ public partial class DirectiveGrammar : Grammar
         ElseCode.Add(
             ElseDirective,
             AnyDirectives
-                .Or(AnyChar.Repeat(0).Until(startHash))
+                .Or(AnyChar.Repeat(0).Until(startHash).Named("CodeSnippet"))
                 .Repeat(0).Until(hashEndIf)
         );
 

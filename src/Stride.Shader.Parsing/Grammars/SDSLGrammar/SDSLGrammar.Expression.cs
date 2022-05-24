@@ -6,7 +6,7 @@ namespace Stride.Shader.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser TermExpression = new(){Name = "TermExpression"};
-    public AlternativeParser PostFixExpression = new(){Name = "PostFixExpression"};
+    public AlternativeParser PostfixExpression = new(){Name = "PostfixExpression"};
     public AlternativeParser UnaryExpression = new(){Name = "UnaryExpression"};
     public AlternativeParser CastExpression = new(){Name = "CastExpression"};
     public AlternativeParser MulExpression = new(){Name = "MulExpression"};
@@ -67,7 +67,7 @@ public partial class SDSLGrammar : Grammar
 
         TermExpression.Add(
             Literals,
-            ~(Plus | Minus & ws) & Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen),
+            Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
             MethodCall,
             Parenthesis(PrimaryExpression)
         );
@@ -94,8 +94,9 @@ public partial class SDSLGrammar : Grammar
             incrementOp.Named("Operator")
         );
 
-        PostFixExpression.Add(
+        PostfixExpression.Add(
             TermExpression.NotFollowedBy(ws & (Dot | LeftBracket | incrementOp)),
+            ((Plus | Minus).Named("Sign") & ws & TermExpression.NotFollowedBy(ws & (Dot | LeftBracket | incrementOp))).Named("SignedTermExpression"),
             postfixInc.Named("PostfixIncrement"),
             chain.Named("AccessorChain"),
             arrayAccess.Named("ArrayAccesor")
@@ -111,7 +112,7 @@ public partial class SDSLGrammar : Grammar
         );
 
         UnaryExpression.Add(
-            PostFixExpression,
+            PostfixExpression,
             prefixInc.Named("PrefixIncrement"),
             Literal("sizeof").Then(LeftParen).Then(Identifier | UnaryExpression).Then(RightParen).Named("SizeOf")
         );
@@ -192,16 +193,18 @@ public partial class SDSLGrammar : Grammar
             Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws)
         );
 
-        ConditionalExpression.Add( 
+        var ternary = new SequenceParser(
+            Parenthesis(LogicalOrExpression) | LogicalOrExpression,
+            Question,
+            Parenthesis(LogicalOrExpression) | LogicalOrExpression,
+            Colon,
+            Parenthesis(LogicalOrExpression) | LogicalOrExpression
+        ){ Separator = ws, Name = "Ternary"};
+
+
+        ConditionalExpression.Add(
             LogicalOrExpression.NotFollowedBy(ws & "?"),
-            (Parenthesis(LogicalOrExpression).NotFollowedBy(ws & OrOr) | LogicalOrExpression)
-                .Then("?")
-                    .Then(CastExpression | ParenExpression | LogicalOrExpression)
-                    .Then(":")
-                    .Then(CastExpression | ParenExpression | LogicalOrExpression)
-                    .SeparatedBy(ws)
-                    .Named("Ternary")
-                
+            ternary
         );
         
         ParenExpression.Add(
