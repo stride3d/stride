@@ -2,6 +2,7 @@ namespace Stride.Shader.Parsing;
 
 using Eto.Parse;
 using Eto.Parse.Grammars;
+using Stride.Shader.Parsing.AST.Directives;
 using Stride.Shader.Parsing.AST.Shader;
 using Stride.Shader.Parsing.Grammars;
 using Stride.Shader.Parsing.Grammars.Comments;
@@ -14,6 +15,10 @@ public class SDSLParser
     public SDSLGrammar Grammar {get;set;}  
     public DirectiveGrammar Directive { get;set;}
     public StringBuilder UncommentedCode { get; set; } = new();
+    public StringBuilder FinalCode { get; set; } = new();
+    public Dictionary<string,object> Macros { get; set; } = new();
+
+    public GrammarMatch? ParseTree { get; set; }
     //public IEnumerable<string> Defined { get; set; }
 
     public SDSLParser()
@@ -31,16 +36,15 @@ public class SDSLParser
 
     public void PrintParserTree(string shader)
     {
-        PrettyPrintMatches(Parse(shader).Matches[0]);
+        PrettyPrintMatches(ParseTree.Matches[0]);
     }
 
-    public GrammarMatch Parse(string shader)
+    private void RemoveComments(string code)
     {
-        var comments = Comments.Match(shader);
-        //var preprocessed = new StringBuilder(); 
+        var comments = Comments.Match(code);
         if (!comments.Matches.Any(x => x.Name == "Comment"))
         {
-            return Directive.Match(shader);
+            UncommentedCode.Append(code);
         }
         else
         {
@@ -51,14 +55,39 @@ public class SDSLParser
                     UncommentedCode.AppendLine(m.StringValue);
                 }
             }
-            //preprocessed.Add(this.PreProcessor())
-            return PreProcessor(UncommentedCode.ToString());
         }
     }
 
-    public GrammarMatch PreProcessor(string code)
+    public GrammarMatch TestParse(string code)
     {
-        return Directive.Match(code);
+        return Grammar.Match(code);
+    }
+
+    public DirectiveToken ParseDirectives(string shader)
+    {
+        FinalCode.Clear();
+        UncommentedCode.Clear();
+
+        RemoveComments(shader);
+        var matches = Directive.Match(UncommentedCode.ToString());
+        if (!matches.Success)
+            throw new Exception($"Parsing failed : \n{matches.ErrorMessage}");
+        var tokens = DirectiveToken.GetToken(matches.Matches[0]);
+
+        DirectiveToken.Evaluate(tokens, Macros, FinalCode);
+        return tokens;
+    }
+
+    public ShaderToken Parse(string shader)
+    {
+        RemoveComments(shader);
+        PreProcessor();
+        return null;
+    }
+
+    public void PreProcessor()
+    {
+        DirectiveToken.GetToken(Directive.Match(UncommentedCode.ToString()));
     }
 
     private static void PrettyPrintMatches(Match match, int depth = 0)

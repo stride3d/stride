@@ -19,15 +19,15 @@ public class BasicExpressionParsing
     {
         parser.Grammar.Using(parser.Grammar.TermExpression);
         List<GrammarMatch> matches = new(){
-            parser.Parse("5"),
-            parser.Parse("5l"),
-            parser.Parse("5u"),
-            parser.Parse("5f"),
-            parser.Parse(".5"),
-            parser.Parse("5f"),
-            parser.Parse(".5d"),
-            parser.Parse("my_var"),
-            parser.Parse("\"Hello World\"")
+            parser.TestParse("5"),
+            parser.TestParse("5l"),
+            parser.TestParse("5u"),
+            parser.TestParse("5f"),
+            parser.TestParse(".5"),
+            parser.TestParse("5f"),
+            parser.TestParse(".5d"),
+            parser.TestParse("my_var"),
+            parser.TestParse("\"Hello World\"")
         };
         Assert.True(matches.TrueForAll(x => !x.Errors.Any()));
 
@@ -37,17 +37,17 @@ public class BasicExpressionParsing
     {
         parser.Grammar.Using(parser.Grammar.PostfixExpression.Then(";"));
         List<GrammarMatch> matches = new(){
-            parser.Parse("my_var++;"),
-            parser.Parse("my_var.a;"),
-            parser.Parse("my_var[0];"),
-            parser.Parse("my_var[a];"),
-            parser.Parse("my_var.a[0];"),
-            parser.Parse("my_var.a[b];"),
-            parser.Parse("my_var.a[b]++;"),
-            parser.Parse("my_var.a[0].c;"),
-            parser.Parse("my_var.a[b].c;"),
-            parser.Parse("my_var.a[b].c++;"),
-            parser.Parse("my_var.a[b].c[5].b.e[7][5]++;"),
+            parser.TestParse("my_var++;"),
+            parser.TestParse("my_var.a;"),
+            parser.TestParse("my_var[0];"),
+            parser.TestParse("my_var[a];"),
+            parser.TestParse("my_var.a[0];"),
+            parser.TestParse("my_var.a[b];"),
+            parser.TestParse("my_var.a[b]++;"),
+            parser.TestParse("my_var.a[0].c;"),
+            parser.TestParse("my_var.a[b].c;"),
+            parser.TestParse("my_var.a[b].c++;"),
+            parser.TestParse("my_var.a[b].c[5].b.e[7][5]++;"),
             
         };
         Assert.True(matches.TrueForAll(x => !x.Errors.Any()));
@@ -60,15 +60,15 @@ public class BasicExpressionParsing
         parser.Grammar.Using(parser.Grammar.UnaryExpression.Then(";"));
         List<GrammarMatch> matches = new()
         {
-            parser.Parse("++b;"),
-            parser.Parse("++my_var.a;"),
-            parser.Parse("++my_var[0];"),
-            parser.Parse("++my_var[a];"),
-            parser.Parse("++my_var.a[0];"),
-            parser.Parse("++my_var.a[b];"),
-            parser.Parse("++my_var.a[0].c;"),
-            parser.Parse("++my_var.a[b].c;"),
-            parser.Parse("++my_var.a[b].c[5].b.e[7][5];"),
+            parser.TestParse("++b;"),
+            parser.TestParse("++my_var.a;"),
+            parser.TestParse("++my_var[0];"),
+            parser.TestParse("++my_var[a];"),
+            parser.TestParse("++my_var.a[0];"),
+            parser.TestParse("++my_var.a[b];"),
+            parser.TestParse("++my_var.a[0].c;"),
+            parser.TestParse("++my_var.a[b].c;"),
+            parser.TestParse("++my_var.a[b].c[5].b.e[7][5];"),
         };
         Assert.True(matches.TrueForAll(x => !x.Errors.Any()));
     }
@@ -79,19 +79,16 @@ public class BasicExpressionParsing
         parser.Grammar.Using(parser.Grammar.CastExpression.Then(";"));
         List<GrammarMatch> matches = new()
         {
-            parser.Parse("(float)++my_var;"),
-            parser.Parse("(float)++my_var.a;"),
-            parser.Parse("(float4)my_var[0]++;"),
-            parser.Parse("(float4x4)++my_var[a];"),
-            parser.Parse("(MyStruct)++my_var.a[0];"),
-            parser.Parse("(MyStruct)my_var.a[b]++;"),
-            parser.Parse("(MyStruct)++my_var.a[0].c;"),
-            parser.Parse("(MyStruct)my_var.a[b].c++;"),
-            parser.Parse("(MyStruct)++my_var.a[b].c[5].b.e[7][5];"),
+            parser.TestParse("(float)++my_var;"),
+            parser.TestParse("(float)++my_var.a;"),
+            parser.TestParse("(float4)my_var[0]++;"),
+            parser.TestParse("(float4x4)++my_var[a];"),
+            parser.TestParse("(MyStruct)++my_var.a[0];"),
+            parser.TestParse("(MyStruct)my_var.a[b]++;"),
+            parser.TestParse("(MyStruct)++my_var.a[0].c;"),
+            parser.TestParse("(MyStruct)my_var.a[b].c++;"),
+            parser.TestParse("(MyStruct)++my_var.a[b].c[5].b.e[7][5];"),
         };
         Assert.True(matches.TrueForAll(x => !x.Errors.Any()));
     }
-
-
-
 }

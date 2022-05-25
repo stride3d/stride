@@ -8,7 +8,17 @@ using System.Threading.Tasks;
 namespace Stride.Shader.Parsing.AST.Directives;
 
 
-public class ChainAccessor : DirectiveToken
+public class UnaryExpression : DirectiveToken
+{
+    public override Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public override void EvaluateMacros(Dictionary<string, object> macros)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class ChainAccessor : UnaryExpression
 {
     public DirectiveToken Value { get; set; }
     public DirectiveToken Field { get; set; }
@@ -21,7 +31,7 @@ public class ChainAccessor : DirectiveToken
     }
 }
 
-public class ArrayAccessor : DirectiveToken
+public class ArrayAccessor : UnaryExpression
 {
     public DirectiveToken Value { get; set; }
     public IEnumerable<DirectiveToken> Accessors { get; set; }
@@ -35,7 +45,7 @@ public class ArrayAccessor : DirectiveToken
 }
 
 
-public class PostfixIncrement : DirectiveToken
+public class PostfixIncrement : UnaryExpression
 {
     public string Operator { get; set; }
     public DirectiveToken Value { get; set; }
@@ -52,7 +62,7 @@ public class PostfixIncrement : DirectiveToken
     }
 }
 
-public class PrefixIncrement : DirectiveToken
+public class PrefixIncrement : UnaryExpression
 {
     public string Operator { get; set; }
     public DirectiveToken Value { get; set; }
@@ -64,7 +74,7 @@ public class PrefixIncrement : DirectiveToken
     }
 }
 
-public class CastExpression : DirectiveToken
+public class CastExpression : UnaryExpression
 {
     public TypeNameLiteral Target { get; set; }
     public DirectiveToken From { get; set; }

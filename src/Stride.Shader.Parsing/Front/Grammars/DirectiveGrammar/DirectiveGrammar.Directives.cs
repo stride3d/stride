@@ -34,13 +34,13 @@ public partial class DirectiveGrammar : Grammar
         var ws = WhiteSpace.Repeat(0);
 
         var hash = Literal("#");
-        var hashIfNDef = Literal("#ifndef");
-        var hashIfDef = Literal("#ifdef");
-        var hashIf = Literal("#if");
-        var hashEndIf = Literal("#endif");
-        var hashElse = Literal("#else");
-        var hashElif = Literal("#elif");
-        var hashDefine = Literal("#define");
+        var hashIfNDef = Literal("#ifndef").Named("ifndef");
+        var hashIfDef = Literal("#ifdef").Named("ifdef");
+        var hashIf = Literal("#if").Named("if");
+        var hashEndIf = Literal("#endif").Named("endif");
+        var hashElse = Literal("#else").Named("else");
+        var hashElif = Literal("#elif").Named("elif");
+        var hashDefine = Literal("#define").Named("define");
 
         var startHash =
             hashIfNDef
@@ -80,7 +80,7 @@ public partial class DirectiveGrammar : Grammar
             ElseDirective,
             AnyDirectives
                 .Or(AnyChar.Repeat(0).Until(startHash).Named("CodeSnippet"))
-                .Repeat(0).Until(hashEndIf)
+                .Repeat(0).Until(hashEndIf).Named("Children")
         );
 
         IfCode.Add(
@@ -104,7 +104,7 @@ public partial class DirectiveGrammar : Grammar
         );
 
         Directives.Add(
-            CodeOrDirective.Until(End)
+            CodeOrDirective.Until(End).Named("Directives")
         );
     }
 }

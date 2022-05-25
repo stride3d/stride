@@ -13,13 +13,17 @@ var sdsl = new SDSLParser();
 sdsl.Grammar.Using(sdsl.Grammar.CastExpression);
 var s = new Stopwatch();
 var parser = new ExpressionParser();
-var match2 = parser.Parse("true");
+var match2 = sdsl.ParseDirectives("true");
 
 s.Start();
-var match = parser.Parse("false ? 2 ^ (float)my_value | (float)my_value | (MyStruct)++my_var.a[b].c[5].b.e[7][5] && 4 == ++b : false");
+var match = sdsl.ParseDirectives(shaderf);
 s.Stop();
+Console.WriteLine(new string('*', 32));
+Console.WriteLine(shaderf);
+Console.WriteLine(new string('*',32));
+Console.WriteLine(sdsl.FinalCode);
+Console.WriteLine(new string('*', 32) + "\n\n\n");
 Console.WriteLine($"parsing time : {s.Elapsed}");
 
-Console.WriteLine(match);
 
 

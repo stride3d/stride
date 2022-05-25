@@ -9,11 +9,101 @@ using static Stride.Shader.Parsing.AST.Directives.OperatorTokenExtensions;
 
 namespace Stride.Shader.Parsing.AST.Directives;
 
-public class Operation : DirectiveToken
+public abstract class Projector : DirectiveToken
+{
+    public override Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public override void EvaluateMacros(Dictionary<string, object> macros)
+    {
+        throw new NotImplementedException();
+    }
+
+    public abstract DirectiveToken ProjectConstant();
+}
+
+public class Operation : Projector
 {
     public OperatorToken Op { get; set; }
+
     public DirectiveToken Left { get; set; }
     public DirectiveToken Right { get; set; }
+
+    Type? inferredType;
+    public override Type InferredType
+    {
+        get => inferredType ?? typeof(void);
+        set => inferredType = value;
+    }
+    public override void EvaluateMacros(Dictionary<string, object> macros)
+    {
+        if (Left is VariableNameLiteral vl)
+        {
+            if (macros.TryGetValue(vl.Name, out object value))
+            {
+                Left = value switch
+                {
+                    float v => new NumberLiteral { Value = v },
+                    double v => new NumberLiteral { Value = v },
+                    byte v => new NumberLiteral { Value = v },
+                    ushort v => new NumberLiteral { Value = v },
+                    uint v => new NumberLiteral { Value = v },
+                    ulong v => new NumberLiteral { Value = v },
+                    int v => new NumberLiteral { Value = v },
+                    long v => new NumberLiteral { Value = v },
+                    short v => new NumberLiteral { Value = v },
+                    sbyte v => new NumberLiteral { Value = v },
+                    bool v => new BoolLiteral { Value = v },
+                    string v => new StringLiteral { Value = v },
+                    _ => throw new Exception("Unusable type")
+                };
+            }
+            else
+                throw new Exception("Macro does not exist");
+        }
+        if (Right is VariableNameLiteral vr)
+        {
+            if (macros.TryGetValue(vr.Name, out object value))
+            {
+                Right = value switch
+                {
+                    float v => new NumberLiteral { Value = v },
+                    double v => new NumberLiteral { Value = v },
+                    byte v => new NumberLiteral { Value = v },
+                    ushort v => new NumberLiteral { Value = v },
+                    uint v => new NumberLiteral { Value = v },
+                    ulong v => new NumberLiteral { Value = v },
+                    int v => new NumberLiteral { Value = v },
+                    long v => new NumberLiteral { Value = v },
+                    short v => new NumberLiteral { Value = v },
+                    sbyte v => new NumberLiteral { Value = v },
+                    bool v => new BoolLiteral { Value = v },
+                    string v => new StringLiteral { Value = v },
+                    _ => throw new Exception("Unusable type")
+                };
+            }
+            else
+                throw new Exception("Macro does not exist");
+        }
+    }
+
+    public override DirectiveToken ProjectConstant()
+    {
+
+        if (Left is Projector)
+            Left = ((Projector)Left).ProjectConstant();
+        if (Right is Projector)
+            Right = ((Projector)Right).ProjectConstant();
+
+        return (Left, Right) switch
+        {
+            (NumberLiteral ln, NumberLiteral rn) => ApplyOperation(Op, ln, rn),
+            (BoolLiteral ln, BoolLiteral rn) => ApplyOperation(Op, ln, rn),
+            (StringLiteral ln, StringLiteral rn) => ApplyOperation(Op, ln, rn),
+            _ => throw new Exception("Cannot process operation")
+        };
+    }
+
+    
 }
 
 
@@ -285,17 +375,76 @@ public class LogicalOrExpression : Operation
     }
 }
 
-public class ConditionalExpression : DirectiveToken
+public class ConditionalExpression : Projector
 {
     public DirectiveToken Condition { get; set; }
     public DirectiveToken TrueOutput { get; set; }
     public DirectiveToken FalseOutput { get; set; }
 
+    Type? inferredType;
+
+    public override Type InferredType
+    {
+        get => inferredType ?? typeof(void);
+        set => inferredType = value;
+    }
 
     public ConditionalExpression(Match m)
     {
         Condition = GetToken(m.Matches[0]);
         TrueOutput = GetToken(m.Matches[1]);
         FalseOutput = GetToken(m.Matches[2]);
+    }
+
+    public override void EvaluateMacros(Dictionary<string, object> macros)
+    {
+        if (Condition is VariableNameLiteral vcondition)
+        {
+            if (macros.TryGetValue(vcondition.Name, out object value))
+            {
+                vcondition.Value = value;
+                vcondition.InferredType = value.GetType();
+            }
+            else
+                throw new Exception("Macro does not exist");
+        }
+        if (TrueOutput is VariableNameLiteral tout)
+        {
+            if (macros.TryGetValue(tout.Name, out object value))
+            {
+                tout.Value = value;
+                tout.InferredType = value.GetType();
+            }
+            else
+                throw new Exception("Macro does not exist");
+        }
+        if (FalseOutput is VariableNameLiteral fout)
+        {
+            if (macros.TryGetValue(fout.Name, out object value))
+            {
+                fout.Value = value;
+                fout.InferredType = value.GetType();
+            }
+            else
+                throw new Exception("Macro does not exist");
+        }
+
+    }
+
+    public override DirectiveToken ProjectConstant()
+    {
+        if (Condition is Projector)
+            Condition = ((Projector)Condition).ProjectConstant();
+
+        if (TrueOutput is Projector )
+            TrueOutput= ((Projector)TrueOutput).ProjectConstant();
+
+        if (FalseOutput is Projector )
+            FalseOutput= ((Projector)FalseOutput).ProjectConstant();
+
+        if (Condition is BoolLiteral c)
+            return c.Value ? TrueOutput : FalseOutput;
+        else
+            throw new Exception("Invalid condition");
     }
 }
