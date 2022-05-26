@@ -85,9 +85,9 @@ public partial class SDSLGrammar : Grammar
 
         var method = new SequenceParser(
             Attribute.Repeat(0).SeparatedBy(ws),
-            ~(Literal("stage") & WhiteSpace),
-            ~((Literal("override") | Literal("static")) & ws1),
-            Identifier & ws1 & Identifier,
+            ~(Stage.Named("Stage") & WhiteSpace),
+            ~((Literal("override").Named("Override") | Literal("static").Named("Static")) & ws1),
+            Identifier.Named("ReturnType") & ws1 & Identifier.Named("MethodName"),
             ParameterList,
             LeftBrace,
             Statement.Repeat(0).SeparatedBy(ws).Until("}"),

@@ -10,16 +10,19 @@ using System.Linq;
 var shaderf = File.ReadAllText("../../../SDSL/shader2.sdsl");
 
 var sdsl = new SDSLParser();
-sdsl.Grammar.Using(sdsl.Grammar.CastExpression);
+//sdsl.Grammar.Using(sdsl.Grammar.CastExpression);
 var s = new Stopwatch();
 var parser = new ExpressionParser();
-//var match2 = sdsl.Parse("#ifdef STRIDE_MULTISAMPLE_COUNT\n#endif");
-//sdsl.AddMacro("STRIDE_MULTISAMPLE_COUNT", "5");
+var match2 = sdsl.Parse(shaderf);
+sdsl.AddMacro("STRIDE_MULTISAMPLE_COUNT", 5);
 
 
 s.Start();
 var match = sdsl.Parse(shaderf);
 s.Stop();
+
+sdsl.PrintParserTree();
+
 Console.WriteLine(shaderf);
 Console.WriteLine(new string('*', 64));
 Console.WriteLine(match);

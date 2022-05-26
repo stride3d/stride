@@ -14,8 +14,8 @@ using CppNet;
 
 public class SDSLParser
 {
-    public SDSLGrammar Grammar {get;set;}  
-    //public DirectivePreprocessor Preprocessor { get;set;}
+    public SDSLGrammar Grammar {get;set;}
+    public DirectivePreprocessor DPreprocessor { get; set; }
     public Preprocessor Preprocessor { get; set; }
     public Dictionary<string,object> Macros { get; set; } = new();
 
@@ -24,15 +24,15 @@ public class SDSLParser
     public SDSLParser()
     {
         Grammar = new();
+        DPreprocessor = new();
+
+
         Preprocessor = new();
         Preprocessor.addFeature(Feature.DIGRAPHS);
         Preprocessor.addWarning(Warning.IMPORT);
         Preprocessor.addFeature(Feature.INCLUDENEXT);
-        Preprocessor.addFeature(Feature.LINEMARKERS);
-        Preprocessor.addFeature(Feature.DEBUG);
+        //Preprocessor.addFeature(Feature.LINEMARKERS);
         Preprocessor.setListener(new ErrorListener());
-
-
     }
 
     public SDSLParser With(Parser p)
@@ -41,7 +41,7 @@ public class SDSLParser
         return this;
     }
 
-    public void PrintParserTree(string shader)
+    public void PrintParserTree()
     {
         PrettyPrintMatches(ParseTree.Matches[0]);
     }
@@ -51,13 +51,20 @@ public class SDSLParser
         return Grammar.Match(code);
     }
 
-    public void AddMacro(string name, string value)
+    public void AddMacro(string name, object value)
     {
-        Preprocessor.addMacro(name, value);
+        Preprocessor.addMacro(name, value.ToString());
+        DPreprocessor.Macros.Add(name, value);
     }
     public void AddMacro(string name)
     {
         Preprocessor.addMacro(name, string.Empty);
+        DPreprocessor.Macros.Add(name, string.Empty);
+    }
+
+    public string DPreProcess(string code)
+    {
+        return DPreprocessor.PreProcess(code);
     }
 
     public string PreProcess(string code)
@@ -97,10 +104,13 @@ public class SDSLParser
         return textBuilder.ToString();
     }
 
-    public string Parse(string shader)
+    public ShaderToken Parse(string shader)
     {
-        return PreProcess(shader);
-
+        var code = PreProcess(shader);
+        ParseTree = Grammar.Match(code);
+        if (!ParseTree.Success)
+            throw new Exception(ParseTree.ErrorMessage);
+        return ShaderToken.GetToken(ParseTree);
         //return null;
     }
 

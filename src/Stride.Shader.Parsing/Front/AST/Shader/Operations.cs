@@ -11,7 +11,7 @@ namespace Stride.Shader.Parsing.AST.Shader;
 
 public abstract class Projector : ShaderToken
 {
-    public override Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public virtual Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public abstract ShaderToken ProjectConstant();
 }

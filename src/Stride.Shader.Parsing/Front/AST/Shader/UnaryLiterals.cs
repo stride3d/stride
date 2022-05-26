@@ -8,9 +8,14 @@ using System.Threading.Tasks;
 namespace Stride.Shader.Parsing.AST.Shader;
 
 
-public class UnaryExpression : ShaderToken
+public class UnaryExpression : Projector
 {
     public override Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public override ShaderToken ProjectConstant()
+    {
+        return this;
+    }
 }
 
 public class ChainAccessor : UnaryExpression

@@ -59,15 +59,15 @@ public partial class SDSLGrammar : Grammar
         );
 
         var staging =
-            Stage.NotFollowedBy(ws1 & Stream)
-            | Stage & ws1 & Stream
-            | Stream;
+            Stage.NotFollowedBy(ws1 & Stream).Named("Stage")
+            | Stage.Named("Stage") & ws1 & Stream.Named("Stream")
+            | Stream.Named("Stream");
 
         var valueDeclaration = new SequenceParser();
         valueDeclaration.Add(
             ~(staging & ws1),
             ~(StorageFlag & ws1),
-            ValueTypes | Identifier,
+            (ValueTypes | Identifier).Named("TypeName"),
             ws1,
             Identifier
         );

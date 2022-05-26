@@ -1,7 +1,9 @@
-Mycode starts here
-#ifdef aa
+shader MyShader {
+	stream MyStruct a;
+	stream float b;
 
-something to code
-#endif
-
-code ends here
+	void VSMain()
+	{
+		
+	}
+};

@@ -27,9 +27,10 @@ public class DirectivePreprocessor
         DirectivesParser = new();
         CommentParser = new();
         MacrosParser = new();
+        macros = new();
     }
 
-    public string RemoveComments(ref string code)
+    public string RemoveComments(string code)
     {
         var comments = CommentParser.Match(code);
         var uncommentedCode = new StringBuilder();
@@ -58,9 +59,9 @@ public class DirectivePreprocessor
         return DirectiveToken.GetToken(parseTree["Directives"]);
     }
 
-    public string PreProcess(ref string shader)
+    public string PreProcess(string shader)
     {
-        var uncommentedCode = RemoveComments(ref shader);
+        var uncommentedCode = RemoveComments(shader);
         var AST = ParseDirectives(uncommentedCode);
         AST.EvaluateMacros(macros);
         var afterDirectives = new StringBuilder();

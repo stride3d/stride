@@ -102,13 +102,11 @@ public partial class SDSLGrammar : Grammar
             )
             .SeparatedBy(ws);
 
-        var shaderToken = Literal("shader").Named("ShaderToken");
-
 
 
         ShaderExpression.Add(
             ws,
-            shaderToken & ws1 & Identifier.Named("ShaderName"),
+            Literal("shader") & ws1 & Identifier.Named("ShaderName"),
             shaderGenerics.Optional(),
             inheritances.Optional(),
             shaderBody,
