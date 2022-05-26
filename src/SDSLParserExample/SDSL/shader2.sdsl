@@ -1,12 +1,7 @@
-Some code before
-#define a
-#ifdef a
-#if 5 == 2+3
-Success, 5 equals 5
-#endif
+Mycode starts here
+#ifdef aa
+
+something to code
 #endif
 
-#if 8 == 2
-This code should disappear
-#endif
-Some code after
+code ends here

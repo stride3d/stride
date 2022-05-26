@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\CppNet\CppNet.csproj" />
     <ProjectReference Include="..\Eto.Parse\Eto.Parse\Eto.Parse.csproj" />
   </ItemGroup>
 

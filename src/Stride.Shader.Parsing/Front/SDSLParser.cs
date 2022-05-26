@@ -9,23 +9,30 @@ using Stride.Shader.Parsing.Grammars.Comments;
 using Stride.Shader.Parsing.Grammars.Directive;
 using Stride.Shader.Parsing.Grammars.SDSL;
 using System.Text;
+using CppNet;
+
+
 public class SDSLParser
 {
-    public CommentGrammar Comments {get;set;}
     public SDSLGrammar Grammar {get;set;}  
-    public DirectiveGrammar Directive { get;set;}
-    public StringBuilder UncommentedCode { get; set; } = new();
-    public StringBuilder FinalCode { get; set; } = new();
+    //public DirectivePreprocessor Preprocessor { get;set;}
+    public Preprocessor Preprocessor { get; set; }
     public Dictionary<string,object> Macros { get; set; } = new();
 
     public GrammarMatch? ParseTree { get; set; }
-    //public IEnumerable<string> Defined { get; set; }
 
     public SDSLParser()
     {
-        Comments = new();
         Grammar = new();
-        Directive = new();
+        Preprocessor = new();
+        Preprocessor.addFeature(Feature.DIGRAPHS);
+        Preprocessor.addWarning(Warning.IMPORT);
+        Preprocessor.addFeature(Feature.INCLUDENEXT);
+        Preprocessor.addFeature(Feature.LINEMARKERS);
+        Preprocessor.addFeature(Feature.DEBUG);
+        Preprocessor.setListener(new ErrorListener());
+
+
     }
 
     public SDSLParser With(Parser p)
@@ -39,55 +46,62 @@ public class SDSLParser
         PrettyPrintMatches(ParseTree.Matches[0]);
     }
 
-    private void RemoveComments(string code)
-    {
-        var comments = Comments.Match(code);
-        if (!comments.Matches.Any(x => x.Name == "Comment"))
-        {
-            UncommentedCode.Append(code);
-        }
-        else
-        {
-            foreach (var m in comments.Matches)
-            {
-                if (m.Name == "ActualCode")
-                {
-                    UncommentedCode.AppendLine(m.StringValue);
-                }
-            }
-        }
-    }
-
     public GrammarMatch TestParse(string code)
     {
         return Grammar.Match(code);
     }
 
-    public DirectiveToken ParseDirectives(string shader)
+    public void AddMacro(string name, string value)
     {
-        FinalCode.Clear();
-        UncommentedCode.Clear();
-
-        RemoveComments(shader);
-        var matches = Directive.Match(UncommentedCode.ToString());
-        if (!matches.Success)
-            throw new Exception($"Parsing failed : \n{matches.ErrorMessage}");
-        var tokens = DirectiveToken.GetToken(matches.Matches[0]);
-
-        DirectiveToken.Evaluate(tokens, Macros, FinalCode);
-        return tokens;
+        Preprocessor.addMacro(name, value);
+    }
+    public void AddMacro(string name)
+    {
+        Preprocessor.addMacro(name, string.Empty);
     }
 
-    public ShaderToken Parse(string shader)
+    public string PreProcess(string code)
     {
-        RemoveComments(shader);
-        PreProcessor();
-        return null;
+        var inputSource = new StringLexerSource(code, true);
+        Preprocessor.addInput(inputSource);
+        var textBuilder = new StringBuilder();
+
+        var isEndOfStream = false;
+        while (!isEndOfStream)
+        {
+            Token tok = Preprocessor.token();
+            switch (tok.getType())
+            {
+                case Token.EOF:
+                    isEndOfStream = true;
+                    break;
+                case Token.CCOMMENT:
+                    var strComment = tok.getText() ?? string.Empty;
+                    foreach (var commentChar in strComment)
+                    {
+                        textBuilder.Append(commentChar == '\n' ? '\n' : ' ');
+                    }
+                    break;
+                case Token.CPPCOMMENT:
+                    break;
+                default:
+                    var tokenText = tok.getText();
+                    if (tokenText != null)
+                    {
+                        textBuilder.Append(tokenText);
+                    }
+                    break;
+            }
+        }
+
+        return textBuilder.ToString();
     }
 
-    public void PreProcessor()
+    public string Parse(string shader)
     {
-        DirectiveToken.GetToken(Directive.Match(UncommentedCode.ToString()));
+        return PreProcess(shader);
+
+        //return null;
     }
 
     private static void PrettyPrintMatches(Match match, int depth = 0)
@@ -113,4 +127,8 @@ public class SDSLParser
         }
     }
 
+    private class ErrorListener : DefaultPreprocessorListener
+    {
+        
+    }
 }   

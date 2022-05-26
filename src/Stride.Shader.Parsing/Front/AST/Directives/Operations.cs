@@ -36,6 +36,10 @@ public class Operation : Projector
     }
     public override void EvaluateMacros(Dictionary<string, object> macros)
     {
+        if(Left is Operation)
+            Left.EvaluateMacros(macros);
+        if (Right is Operation)
+            Right.EvaluateMacros(macros);
         if (Left is VariableNameLiteral vl)
         {
             if (macros.TryGetValue(vl.Name, out object value))

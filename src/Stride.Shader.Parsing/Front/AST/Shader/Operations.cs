@@ -9,11 +9,45 @@ using static Stride.Shader.Parsing.AST.Shader.OperatorTokenExtensions;
 
 namespace Stride.Shader.Parsing.AST.Shader;
 
-public class Operation : ShaderToken
+public abstract class Projector : ShaderToken
+{
+    public override Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public abstract ShaderToken ProjectConstant();
+}
+
+public class Operation : Projector
 {
     public OperatorToken Op { get; set; }
+
     public ShaderToken Left { get; set; }
     public ShaderToken Right { get; set; }
+
+    Type? inferredType;
+    public override Type InferredType
+    {
+        get => inferredType ?? typeof(void);
+        set => inferredType = value;
+    }
+
+    public override ShaderToken ProjectConstant()
+    {
+
+        if (Left is Projector)
+            Left = ((Projector)Left).ProjectConstant();
+        if (Right is Projector)
+            Right = ((Projector)Right).ProjectConstant();
+
+        return (Left, Right) switch
+        {
+            (NumberLiteral ln, NumberLiteral rn) => ApplyOperation(Op, ln, rn),
+            (BoolLiteral ln, BoolLiteral rn) => ApplyOperation(Op, ln, rn),
+            (StringLiteral ln, StringLiteral rn) => ApplyOperation(Op, ln, rn),
+            _ => throw new Exception("Cannot process operation")
+        };
+    }
+
+    
 }
 
 
@@ -285,17 +319,41 @@ public class LogicalOrExpression : Operation
     }
 }
 
-public class ConditionalExpression : ShaderToken
+public class ConditionalExpression : Projector
 {
     public ShaderToken Condition { get; set; }
     public ShaderToken TrueOutput { get; set; }
     public ShaderToken FalseOutput { get; set; }
 
+    Type? inferredType;
+
+    public override Type InferredType
+    {
+        get => inferredType ?? typeof(void);
+        set => inferredType = value;
+    }
 
     public ConditionalExpression(Match m)
     {
         Condition = GetToken(m.Matches[0]);
         TrueOutput = GetToken(m.Matches[1]);
         FalseOutput = GetToken(m.Matches[2]);
+    }
+
+    public override ShaderToken ProjectConstant()
+    {
+        if (Condition is Projector)
+            Condition = ((Projector)Condition).ProjectConstant();
+
+        if (TrueOutput is Projector )
+            TrueOutput= ((Projector)TrueOutput).ProjectConstant();
+
+        if (FalseOutput is Projector )
+            FalseOutput= ((Projector)FalseOutput).ProjectConstant();
+
+        if (Condition is BoolLiteral c)
+            return c.Value ? TrueOutput : FalseOutput;
+        else
+            throw new Exception("Invalid condition");
     }
 }

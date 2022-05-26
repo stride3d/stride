@@ -8,9 +8,12 @@ using System.Threading.Tasks;
 
 namespace Stride.Shader.Parsing.AST.Shader;
 
+
 public abstract class ShaderToken
 {
-	public Match? Match { get; set; }
+	public Match Match { get; set; }
+	public abstract Type InferredType { get; set; }
+
 	public static ShaderToken GetToken(Match match)
 	{
 		var tmp = match;
@@ -19,7 +22,6 @@ public abstract class ShaderToken
 
 		return tmp.Name switch
 		{
-			"PrimaryExpression" => GetToken(tmp),
 			"Ternary" => new ConditionalExpression(tmp),
 			"LogicalOrExpression" => LogicalOrExpression.Create(tmp),
 			"LogicalAndExpression" => LogicalAndExpression.Create(tmp),
@@ -32,15 +34,31 @@ public abstract class ShaderToken
 			"SumExpression" => SumExpression.Create(tmp),
 			"MulExpression" => MulExpression.Create(tmp),
 			"CastExpression" => new CastExpression(tmp),
-			"PostfixIncrement" => new PostfixIncrement(tmp),
-			"ArrayAccessor" => new ArrayAccessor(tmp), 
-			"ChainAccessor" => new ChainAccessor(tmp), 
-			"PrefixIncrement" => new PrefixIncrement(tmp),
+			"PrefixIncrement" => throw new NotImplementedException("prefix implement not implemented"),
 			"IntegerValue" or "FloatValue" => new NumberLiteral(tmp),
-			"VariableTerm" => new VariableNameLiteral(tmp),
+			"VariableTerm" or "Identifier" => new VariableNameLiteral(tmp),
 			"ValueTypes" or "TypeName" => new TypeNameLiteral(tmp),
 			"Boolean" => new BoolLiteral(tmp),
 			_ => throw new NotImplementedException()
 		};
 	}
+
+	public static ShaderToken EvaluateExpression(ShaderToken expr, Dictionary<string,object> macros)
+    {
+		return expr switch
+		{
+			ShaderLiteral l => l,
+			Operation o => EvaluateOperation(o,macros),
+			_ => throw new Exception("Couldn't evaluate expression")
+		};
+    }
+	private static ShaderToken EvaluateOperation(Operation operation, Dictionary<string, object> macros)
+    {
+		return operation.ProjectConstant() switch
+		{
+			Operation o => o,
+			ShaderLiteral t => t,
+			_ => throw new Exception("Couldn't evaluate operation")
+		};
+    }
 }

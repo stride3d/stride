@@ -10,7 +10,6 @@ public partial class DirectiveGrammar : Grammar
     public DirectiveGrammar()
     {
         CreateAll();
-        Inner = Directives;
     }
 
     public void CreateAll()

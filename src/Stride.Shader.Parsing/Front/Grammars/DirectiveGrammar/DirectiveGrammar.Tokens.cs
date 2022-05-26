@@ -4,11 +4,6 @@ using static Eto.Parse.Terminals;
 namespace Stride.Shader.Parsing.Grammars.Directive;
 public partial class DirectiveGrammar : Grammar
 {
-    private AlternativeParser Space =  new();
-    private RepeatParser Spaces = new();
-    private SequenceParser SpacesWithLineBreak =  new();
-    private LiteralTerminal AppendStructuredBuffer = new();
-    private AlternativeParser ComponentNumber =  new();
     
     private LiteralTerminal Bool = new();
     private AlternativeParser Uint =  new();
@@ -71,11 +66,6 @@ public partial class DirectiveGrammar : Grammar
 
     public void CreateTokens()
     {
-        Space = WhiteSpace | Eol;
-        Spaces = Space.Optional().Repeat();
-        SpacesWithLineBreak = WhiteSpace.Optional().Repeat().Then(Eol);
-        AppendStructuredBuffer = Literal("AppendStructuredBuffer");
-        ComponentNumber = Literal("1") | "2" | "3" | "4";
     
         Bool = Literal("bool");
         Uint.Add("uint","unsigned int", "dword");

@@ -7,12 +7,40 @@ using System.Threading.Tasks;
 
 namespace Stride.Shader.Parsing.AST.Shader;
 
-public class NumberLiteral : ShaderToken
+
+public class ShaderLiteral : ShaderToken
+{
+    public override Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+}
+
+public class NumberLiteral : ShaderLiteral
 {
     public bool Negative { get; set; } = false;
-    public object? Value { get; set; }
+    public object Value { get; set; }
     public string? Suffix { get; set; }
 
+    protected Type? inferredType;
+
+    public override Type InferredType 
+    {
+        get
+        {
+            if (inferredType is not null)
+                return inferredType;
+            if (Suffix is null)
+                return Value.GetType();
+            else
+            {
+                return Suffix switch
+                {
+                    "u" or "l" => typeof(long),
+                    "f" or "d" => typeof(double),
+                    _ => typeof(long)
+                };
+            }
+        }
+        set => inferredType = value; 
+    }
 
     public NumberLiteral() { }
 
@@ -37,9 +65,18 @@ public class NumberLiteral : ShaderToken
         }
     }
 }
-public class HexLiteral : ShaderToken
+public class HexLiteral : NumberLiteral
 {
-    public ulong Value { get; set; }
+
+    public override Type InferredType 
+    {
+        get
+        {
+            return typeof(long);
+        }
+        set => inferredType = value;
+    }
+
 
     public HexLiteral() { }
 
@@ -49,10 +86,10 @@ public class HexLiteral : ShaderToken
         Value = Convert.ToUInt64(match.StringValue, 16);
     }
 }
-public class StringLiteral : ShaderToken
+public class StringLiteral : ShaderLiteral
 {
     public string? Value { get; set; }
-
+    public override Type InferredType { get => typeof(string); set { } }
 
     public StringLiteral() { }
 
@@ -63,9 +100,10 @@ public class StringLiteral : ShaderToken
     }
 }
 
-public class BoolLiteral : ShaderToken
+public class BoolLiteral : ShaderLiteral
 {
     public bool Value { get; set; }
+    public override Type InferredType { get => typeof(bool); set { } }
 
     public BoolLiteral() { }
 
@@ -77,7 +115,7 @@ public class BoolLiteral : ShaderToken
 }
 
 
-public class TypeNameLiteral : ShaderToken
+public class TypeNameLiteral : ShaderLiteral
 {
     public string Name { get; set; }
 
@@ -87,9 +125,15 @@ public class TypeNameLiteral : ShaderToken
     }
 }
 
-public class VariableNameLiteral : ShaderToken
+public class VariableNameLiteral : ShaderLiteral
 {
     public string Name { get; set; }
+    public object Value { get; set; }
+
+    Type? inferredType;
+
+    public override Type InferredType { get => inferredType ?? typeof(void); set => inferredType = value; }
+
 
     public VariableNameLiteral(Match m)
     {

@@ -23,7 +23,7 @@ public partial class DirectiveGrammar : Grammar
 
     public SequenceParser ConditionalDirectives = new(){Name = "ConditionalDirectives"};
     public SequenceParser DefinitionDirectives = new(){Name = "DefineDirectives"};
-    public AlternativeParser AnyDirectives = new AlternativeParser();
+    public AlternativeParser AnyDirectives = new();
 
     public SequenceParser Directives = new();
 
@@ -106,5 +106,6 @@ public partial class DirectiveGrammar : Grammar
         Directives.Add(
             CodeOrDirective.Until(End).Named("Directives")
         );
+        Inner = Directives;
     }
 }

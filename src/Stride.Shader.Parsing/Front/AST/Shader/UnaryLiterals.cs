@@ -8,7 +8,12 @@ using System.Threading.Tasks;
 namespace Stride.Shader.Parsing.AST.Shader;
 
 
-public class ChainAccessor : ShaderToken
+public class UnaryExpression : ShaderToken
+{
+    public override Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+}
+
+public class ChainAccessor : UnaryExpression
 {
     public ShaderToken Value { get; set; }
     public ShaderToken Field { get; set; }
@@ -21,7 +26,7 @@ public class ChainAccessor : ShaderToken
     }
 }
 
-public class ArrayAccessor : ShaderToken
+public class ArrayAccessor : UnaryExpression
 {
     public ShaderToken Value { get; set; }
     public IEnumerable<ShaderToken> Accessors { get; set; }
@@ -35,7 +40,7 @@ public class ArrayAccessor : ShaderToken
 }
 
 
-public class PostfixIncrement : ShaderToken
+public class PostfixIncrement : UnaryExpression
 {
     public string Operator { get; set; }
     public ShaderToken Value { get; set; }
@@ -52,7 +57,7 @@ public class PostfixIncrement : ShaderToken
     }
 }
 
-public class PrefixIncrement : ShaderToken
+public class PrefixIncrement : UnaryExpression
 {
     public string Operator { get; set; }
     public ShaderToken Value { get; set; }
@@ -64,7 +69,7 @@ public class PrefixIncrement : ShaderToken
     }
 }
 
-public class CastExpression : ShaderToken
+public class CastExpression : UnaryExpression
 {
     public TypeNameLiteral Target { get; set; }
     public ShaderToken From { get; set; }

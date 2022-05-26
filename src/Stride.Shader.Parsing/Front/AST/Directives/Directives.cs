@@ -13,7 +13,6 @@ public class DirectiveFlow : DirectiveToken
 
     public override void EvaluateMacros(Dictionary<string, object> macros)
     {
-        throw new NotImplementedException();
     }
 }
 
