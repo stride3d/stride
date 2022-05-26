@@ -1,3 +1,6 @@
 [submodule ".\\src\\Eto.Parse"]
 	path = .\\src\\Eto.Parse
 	url = https://github.com/ykafia/Eto.Parse
+[submodule ".\\src\\CppNet"]
+	path = .\\src\\CppNet
+	url = https://github.com/ykafia/CppNet
