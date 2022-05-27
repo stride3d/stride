@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CppNet\CppNet.csproj" />
     <ProjectReference Include="..\Eto.Parse\Eto.Parse\Eto.Parse.csproj" />
+    <ProjectReference Include="..\Spv.Generator\Spv.Generator\Spv.Generator.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

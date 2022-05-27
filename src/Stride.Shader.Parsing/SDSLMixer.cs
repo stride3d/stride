@@ -8,6 +8,7 @@ namespace Stride.Shader.Parsing;
 
 public class SDSLMixer
 {
+    //Dictionary<string, int> 
     List<ShaderMixin> Mixins { get; set; } = new();
     
 }
