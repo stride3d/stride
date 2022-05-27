@@ -1,5 +1,5 @@
 shader MyShader {
-	stream MyStruct a;
+	stream float3 a : POSITION;
 	stream float b;
 
 	void VSMain()

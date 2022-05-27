@@ -9,6 +9,11 @@ namespace Stride.Shader.Parsing.AST.Shader;
 
 public class ShaderMethod : ShaderToken
 {
+    public bool IsStatic { get; set; }
+    public bool IsOverride { get; set; }
+    public bool IsStaged { get; set; }
+
+
     public string Name { get; set; }
     public string ReturnType { get; set; }
     public IEnumerable<ShaderToken> ParameterList { get; set; }
@@ -16,6 +21,9 @@ public class ShaderMethod : ShaderToken
     public ShaderMethod(Match m)
     {
         Match = m;
+        IsStatic = m["Static"].Success;
+        IsOverride = m["Override"].Success;
+        IsStaged = m["Stage"].Success;
         Name = m["MethodName"].StringValue;
         ReturnType = m["ReturnType"].StringValue;
     }
@@ -27,6 +35,7 @@ public class ShaderValueDeclaration : ShaderToken
     public bool IsStaged {get;set;}
     public string Name {get;set;}
     public string Type {get;set;}
+    public string? Semantic { get; set; }
     public ShaderToken Expression {get;set;}
 
     public ShaderValueDeclaration(Match m)
@@ -34,6 +43,7 @@ public class ShaderValueDeclaration : ShaderToken
         Match = m;
         IsStream = m["Stream"].Success;
         IsStaged = m["Stage"].Success;
+        Semantic = m["Semantic"].Success ? m["Semantic"].StringValue : null;
         Type = m["TypeName"].StringValue;
         Name = m["VariableTerm"].StringValue;
     }
