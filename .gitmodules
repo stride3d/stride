@@ -4,3 +4,6 @@
 [submodule ".\\src\\CppNet"]
 	path = .\\src\\CppNet
 	url = https://github.com/ykafia/CppNet
+[submodule ".\\src\\Spv.Generator"]
+	path = .\\src\\Spv.Generator
+	url = https://github.com/ykafia/Spv.Generator
