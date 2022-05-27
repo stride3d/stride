@@ -1,6 +1,1 @@
-[submodule ".\\src\\Eto.Parse"]
-	path = .\\src\\Eto.Parse
-	url = https://github.com/ykafia/Eto.Parse
-[submodule ".\\src\\Spv.Generator"]
-	path = .\\src\\Spv.Generator
-	url = https://github.com/ykafia/Spv.Generator
+
