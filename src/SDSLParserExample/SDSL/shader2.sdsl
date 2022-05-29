@@ -1,9 +1,10 @@
 shader MyShader {
+
 	stream float3 a : POSITION;
 	stream float b;
 
 	void VSMain()
 	{
-		
+		float3(1,1,1);
 	}
 };

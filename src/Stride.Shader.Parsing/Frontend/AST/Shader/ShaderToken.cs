@@ -11,7 +11,7 @@ namespace Stride.Shader.Parsing.AST.Shader;
 
 public abstract class ShaderToken
 {
-	public Match Match { get; set; }
+	public Match? Match { get; set; }
 
 	public static ShaderToken GetToken(Match match)
 	{
@@ -24,6 +24,7 @@ public abstract class ShaderToken
 			"ShaderProgram" => new ShaderProgram(tmp),
 			"ShaderValueDeclaration" => new ShaderValueDeclaration(tmp),
 			"Method" => new ShaderMethod(tmp),
+			"Statement" => new Statements(tmp),
 			"Ternary" => new ConditionalExpression(tmp),
 			"LogicalOrExpression" => LogicalOrExpression.Create(tmp),
 			"LogicalAndExpression" => LogicalAndExpression.Create(tmp),

@@ -207,12 +207,14 @@ public partial class SDSLGrammar : Grammar
             LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ws)
         );
         
-        var parameters =
-            PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws);
 
         MethodCall.Add(
-            Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("MethodCallExpression")
+            Identifier,
+            LeftParen,
+            PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws).Until(RightParen),
+            RightParen
         );
+        MethodCall.Separator = ws;
 
         var arrayDeclaration =
             (LeftBrace & PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws) & RightBrace)
@@ -220,6 +222,7 @@ public partial class SDSLGrammar : Grammar
 
         PrimaryExpression.Add(
             arrayDeclaration,
+            MethodCall,
             ConditionalExpression            
         );
     }

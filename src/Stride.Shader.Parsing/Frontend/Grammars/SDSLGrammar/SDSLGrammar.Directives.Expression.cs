@@ -24,6 +24,7 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser DirectiveIncrementExpression = new() { Name = "DirectiveIncrementExpression" };
     public AlternativeParser DirectiveParenExpression = new() { Name = "DirectiveParenExpression" };
     public AlternativeParser DirectiveEqualsExpression = new() { Name = "DirectiveEqualsExpression" };
+    public SequenceParser DirectivesMethodCall = new() { Name = "DirectivesMethodCall" };
     public AlternativeParser DirectiveExpression = new() { Name = "DirectiveExpression" };
     public SDSLGrammar DirectiveUsingDirectiveExpression()
     {
@@ -50,7 +51,7 @@ public partial class SDSLGrammar : Grammar
         DirectiveTermExpression.Add(
             Literals,
             ~(Plus | Minus & ws) & Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen),
-            MethodCall,
+            DirectivesMethodCall,
             Parenthesis(DirectiveExpression)
         );
 
@@ -193,7 +194,7 @@ public partial class SDSLGrammar : Grammar
         var parameters =
             DirectiveExpression.Repeat(0).SeparatedBy(ws & Comma & ws);
 
-        MethodCall.Add(
+        DirectivesMethodCall.Add(
             Identifier.Then(LeftParen).Then(parameters).Then(RightParen).SeparatedBy(ws).Named("DirectiveMethodCallExpression")
         );
 
