@@ -5,6 +5,6 @@ shader MyShader {
 
 	void VSMain()
 	{
-		float3(1,1,1);
+		streams.a = float3(1,1,1);
 	}
 };

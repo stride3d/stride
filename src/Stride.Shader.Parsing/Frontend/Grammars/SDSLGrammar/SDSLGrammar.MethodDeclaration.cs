@@ -90,7 +90,7 @@ public partial class SDSLGrammar : Grammar
             Identifier.Named("ReturnType") & ws1 & Identifier.Named("MethodName"),
             ParameterList,
             LeftBrace,
-            Statement.Repeat(0).SeparatedBy(ws).Until("}"),
+            Statement.Repeat(0).SeparatedBy(ws).Until("}").Named("Statements"),
             RightBrace
         )
         { Name = "Method", Separator = ws};

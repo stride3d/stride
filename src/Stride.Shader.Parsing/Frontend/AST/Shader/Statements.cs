@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 
 namespace Stride.Shader.Parsing.AST.Shader;
 
-public class Statements : ShaderToken
+public class Statement : ShaderToken {}
+
+public class AssignChain : Statement
 {
-    public Statements(Match m)
+    public AssignChain(Match m)
     {
         Match = m;
     }

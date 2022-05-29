@@ -73,13 +73,13 @@ public partial class SDSLGrammar : Grammar
         
 
         Statement.Add(
-            //Block,
-            //ControlFlow,
-            //ForLoop,
-            //returnStatement.Named("Return"),
-            //assignChain.Named("AssignChain"),
-            //declareAssign.Named("DeclareAssign"),
-            //assignVar.Named("Assign"),
+            Block,
+            ControlFlow,
+            ForLoop,
+            returnStatement.Named("Return"),
+            assignChain.Named("AssignChain"),
+            declareAssign.Named("DeclareAssign"),
+            assignVar.Named("Assign"),
             PrimaryExpression.Then(Semi).SeparatedBy(ws).Named("EmptyStatement")
         );
 

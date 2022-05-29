@@ -17,6 +17,7 @@ public class ShaderMethod : ShaderToken
     public string Name { get; set; }
     public string ReturnType { get; set; }
     public IEnumerable<ShaderToken> ParameterList { get; set; }
+    public IEnumerable<Statement> Statements { get; set; }
 
     public ShaderMethod(Match m)
     {
@@ -26,6 +27,7 @@ public class ShaderMethod : ShaderToken
         IsStaged = m["Stage"].Success;
         Name = m["MethodName"].StringValue;
         ReturnType = m["ReturnType"].StringValue;
+        Statements = m["Statements"].Matches.Select(GetToken).Cast<Statement>().ToList();
     }
 }
 
