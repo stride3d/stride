@@ -41,3 +41,23 @@ public class AssignChain : Statement
         Value = GetToken(m["PrimaryExpression"]);
     }
 }
+
+public class ReturnStatement : Statement
+{
+    public ShaderToken ReturnValue {get;set;}
+    public ReturnStatement(Match m)
+    {
+        Match = m;
+        ReturnValue = GetToken(m["PrimaryExpression"]);
+    }
+}
+
+public class BlockStatement : Statement 
+{
+    public IEnumerable<ShaderToken> Statements {get;set;}
+    public BlockStatement(Match m)
+    {
+        Match = m;
+        Statements = m.Matches.Select(GetToken).ToList();
+    }
+}

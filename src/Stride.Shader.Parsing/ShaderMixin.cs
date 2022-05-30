@@ -12,19 +12,21 @@ public class ShaderMixin
     public string Code { get; set; }
     public string MixinName { get => AST != null ? AST.Name : string.Empty; }
     public ShaderProgram? AST { get; set; }
-    Eto.Parse.Grammar EntryPointMatcher = new Eto.Parse.Grammar(
-        Eto.Parse.Terminals.Literal("PSMain")
-        | "VSMain"
-        | "GSMain"
-        | "HSMain"
-        | "DSMain"
-        | "CSMain");
+    string[] EntryPointNames = {
+        "PSMain",
+        "VSMain",
+        "GSMain",
+        "HSMain",
+        "DSMain",
+        "CSMain"
+    };
 
-    SDSLParser Parser { get; set; } = new();
+    SDSLParser Parser { get; set; }
 
-    public ShaderMixin(string code)
+    public ShaderMixin(string code, SDSLParser parser)
     {
         Code = code;
+        Parser = parser;
     }
 
     public void Parse()
@@ -36,10 +38,10 @@ public class ShaderMixin
     {
         if (AST is not null)
             return
-                AST.Body
-                .Where(x => x is ShaderValueDeclaration)
-                .Cast<ShaderValueDeclaration>()
-                .Where(x => x.IsStream);
+                from e in AST.Body
+                where e is ShaderValueDeclaration v 
+                && v.IsStream
+                select e as ShaderValueDeclaration;
         else
             throw new Exception("AST is null");
     }
@@ -47,10 +49,10 @@ public class ShaderMixin
     {
         if (AST is not null)
             return
-                AST.Body
-                .Where(x => x is ShaderMethod)
-                .Cast<ShaderMethod>()
-                .Where(x => EntryPointMatcher.Match(x.Name).Success);
+                from e in AST.Body
+                where e is ShaderMethod method
+                && EntryPointNames.Contains(method.Name)
+                select e as ShaderMethod;
         else
             throw new Exception("AST is null");
     }
@@ -58,10 +60,10 @@ public class ShaderMixin
     {
         if (AST is not null)
             return
-                AST.Body
-                .Where(x => x is ShaderMethod)
-                .Cast<ShaderMethod>()
-                .Where(x => !EntryPointMatcher.Match(x.Name).Success);
+                from e in AST.Body
+                where e is ShaderMethod method
+                && !EntryPointNames.Contains(method.Name)
+                select e as ShaderMethod;
         else
             throw new Exception("AST is null");
     }

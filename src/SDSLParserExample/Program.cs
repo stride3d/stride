@@ -7,7 +7,8 @@ using System.Linq;
 
 
 
-var shaderf = File.ReadAllText("../../../SDSL/shader2.sdsl");
+var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
+// var shaderf = File.ReadAllText("../../../SDSL/shader2.sdsl");
 
 var sdsl = new SDSLParser();
 //sdsl.Grammar.Using(sdsl.Grammar.CastExpression);

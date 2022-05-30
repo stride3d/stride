@@ -10,7 +10,28 @@ namespace Stride.Shader.Parsing;
 public class ShaderMixer
 {
     //Dictionary<string, int> 
-    List<ShaderMixin> Mixins { get; set; } = new();
+    public SDSLParser Parser {get;set;}
+    public List<ShaderMixin> Mixins { get; set; } = new();
+
+    public ShaderMixer()
+    {
+        Parser = new();
+    }
+    public ShaderMixer(SDSLParser parser)
+    {
+        Parser = parser;
+    }
+
+    public void Add(string mixin)
+    {
+        Mixins.Add(new ShaderMixin(mixin,Parser));
+    }
+    
+    public void AddMacros(string name, object value)
+    {
+        Parser.AddMacro(name, value);
+    }
+    
 
 
 }

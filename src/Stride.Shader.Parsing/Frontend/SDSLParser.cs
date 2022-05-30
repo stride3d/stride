@@ -106,8 +106,8 @@ public class SDSLParser
 
     public ShaderToken Parse(string shader)
     {
-        //var code = PreProcess(shader);
-        ParseTree = Grammar.Match(shader);
+        var code = PreProcess(shader);
+        ParseTree = Grammar.Match(code);
         if (!ParseTree.Success)
             throw new Exception(ParseTree.ErrorMessage);
         return ShaderToken.GetToken(ParseTree);

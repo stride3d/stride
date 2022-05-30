@@ -11,12 +11,16 @@ namespace Stride.Shader.Parsing.AST.Shader;
 
 public abstract class ShaderToken
 {
+	public static string[] KeepValues = {
+		"Block",
+		"Return",
+	};
 	public Match? Match { get; set; }
 
 	public static ShaderToken GetToken(Match match)
 	{
 		var tmp = match;
-		while (tmp.Matches.Count == 1)
+		while (tmp.Matches.Count == 1 && !KeepValues.Contains(tmp.Name))
 			tmp = tmp.Matches.First();
 
 		return tmp.Name switch
@@ -24,6 +28,8 @@ public abstract class ShaderToken
 			"ShaderProgram" => new ShaderProgram(tmp),
 			"ShaderValueDeclaration" => new ShaderValueDeclaration(tmp),
 			"Method" => new ShaderMethod(tmp),
+			"Block" => new BlockStatement(tmp),
+			"Return" => new ReturnStatement(tmp),
 			"AssignChain" => new AssignChain(tmp),
 			"DeclareAssign" => new DeclareAssign(tmp),
 			"MethodCall" => new MethodCall(tmp),

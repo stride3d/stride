@@ -1,0 +1,4 @@
+shader Child : Parent
+{
+    stream float a;
+}

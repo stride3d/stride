@@ -5,6 +5,9 @@ shader MyShader {
 
 	void VSMain()
 	{
-		float a = float3(1,1,1);
+		{
+			float a = float3(1,1,1);
+		}
+		return 1;
 	}
 };
