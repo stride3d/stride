@@ -6,6 +6,21 @@ using System.Threading.Tasks;
 
 namespace Stride.Shader.Parsing.AST.Shader;
 
+public enum AssignOpToken
+{
+    Equal,
+    MulEqual,
+    DivEqual,
+    ModEqual,
+    PlusEqual,
+    MinusEqual,
+    LeftShiftEqual,
+    RightShiftEqual,
+    AndEqual,
+    OrEqual,
+    XorEqual
+}
+
 public enum OperatorToken
 {
     Mul,
@@ -30,7 +45,7 @@ public enum OperatorToken
 
 public static class OperatorTokenExtensions
 {
-    public static OperatorToken AsOperatorToken(this string s)
+    public static OperatorToken ToOperatorToken(this string s)
     {
         return s switch
         {
@@ -52,6 +67,24 @@ public static class OperatorTokenExtensions
             "!=" => OperatorToken.NotEquals,
             "&&" => OperatorToken.LogicalAnd,
             "||" => OperatorToken.LogicalOr,
+            _ => throw new NotImplementedException()
+        };
+    }
+    public static AssignOpToken ToAssignOp(this string s)
+    {
+        return s switch
+        {
+            "=" => AssignOpToken.Equal,
+            "*=" => AssignOpToken.MulEqual,
+            "/=" => AssignOpToken.DivEqual,
+            "%=" => AssignOpToken.ModEqual,
+            "+=" => AssignOpToken.PlusEqual,
+            "-=" => AssignOpToken.MinusEqual,
+            "<<=" => AssignOpToken.LeftShiftEqual,
+            ">>=" => AssignOpToken.RightShiftEqual,
+            "|=" => AssignOpToken.OrEqual,
+            "&=" => AssignOpToken.AndEqual,
+            "^=" => AssignOpToken.XorEqual,
             _ => throw new NotImplementedException()
         };
     }

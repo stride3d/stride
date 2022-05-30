@@ -58,7 +58,7 @@ public class MulExpression : Operation
         var first = new MulExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -69,7 +69,7 @@ public class MulExpression : Operation
             tmp = new MulExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -85,7 +85,7 @@ public class SumExpression : Operation
         var first = new SumExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -96,7 +96,7 @@ public class SumExpression : Operation
             tmp = new SumExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -112,7 +112,7 @@ public class ShiftExpression : Operation
         var first = new ShiftExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -123,7 +123,7 @@ public class ShiftExpression : Operation
             tmp = new ShiftExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -139,7 +139,7 @@ public class AndExpression : Operation
         var first = new AndExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -150,7 +150,7 @@ public class AndExpression : Operation
             tmp = new AndExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -165,7 +165,7 @@ public class XorExpression : Operation
         var first = new XorExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -176,7 +176,7 @@ public class XorExpression : Operation
             tmp = new XorExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -191,7 +191,7 @@ public class OrExpression : Operation
         var first = new OrExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -202,7 +202,7 @@ public class OrExpression : Operation
             tmp = new OrExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -218,7 +218,7 @@ public class TestExpression : Operation
         var first = new TestExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -229,7 +229,7 @@ public class TestExpression : Operation
             tmp = new TestExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -245,7 +245,7 @@ public class EqualsExpression : Operation
         var first = new EqualsExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -256,7 +256,7 @@ public class EqualsExpression : Operation
             tmp = new EqualsExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -272,7 +272,7 @@ public class LogicalAndExpression : Operation
         var first = new LogicalAndExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -283,7 +283,7 @@ public class LogicalAndExpression : Operation
             tmp = new LogicalAndExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -299,7 +299,7 @@ public class LogicalOrExpression : Operation
         var first = new LogicalOrExpression
         {
             Match = m,
-            Op = m.Matches[1].StringValue.AsOperatorToken(),
+            Op = m.Matches[1].StringValue.ToOperatorToken(),
             Left = GetToken(m.Matches[0]),
             Right = GetToken(m.Matches[2])
         };
@@ -310,7 +310,7 @@ public class LogicalOrExpression : Operation
             tmp = new LogicalOrExpression
             {
                 Match = m,
-                Op = m.Matches[i].StringValue.AsOperatorToken(),
+                Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
                 Right = GetToken(m.Matches[i + 1])
             };
@@ -355,5 +355,19 @@ public class ConditionalExpression : Projector
             return c.Value ? TrueOutput : FalseOutput;
         else
             throw new Exception("Invalid condition");
+    }
+}
+
+
+public class MethodCall : ShaderToken
+{
+    public string MethodName { get; set; }
+    public IEnumerable<ShaderToken> Parameters { get; set; }
+
+    public MethodCall(Match m)
+    {
+        Match = m;
+        MethodName = m.Matches.First().StringValue;
+        Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(GetToken).ToList();
     }
 }

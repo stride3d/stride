@@ -10,10 +10,34 @@ namespace Stride.Shader.Parsing.AST.Shader;
 
 public class Statement : ShaderToken {}
 
+public class DeclareAssign : Statement
+{
+    public AssignOpToken AssignOp { get; set; }
+    public string TypeName { get; set; }
+    public string VariableName { get; set; }
+    public ShaderToken Value { get; set; }
+    public DeclareAssign(Match m )
+    {
+        Match = m;
+        AssignOp = m["AssignOp"].StringValue.ToAssignOp();
+        TypeName = m["Type"].StringValue;
+        VariableName = m["Variable"].StringValue;
+        Value = GetToken(m["Value"]);
+    }
+}
+
 public class AssignChain : Statement
 {
+    public AssignOpToken AssignOp { get; set; }
+    public bool StreamValue { get; set; }
+    public IEnumerable<string> AccessNames { get; set; }
+    public ShaderToken Value { get; set; }
     public AssignChain(Match m)
     {
         Match = m;
+        AssignOp = m["AssignOp"].StringValue.ToAssignOp();
+        StreamValue = m.Matches.First().StringValue == "stream";
+        AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue);
+        Value = GetToken(m["PrimaryExpression"]);
     }
 }

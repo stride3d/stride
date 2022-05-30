@@ -25,6 +25,8 @@ public abstract class ShaderToken
 			"ShaderValueDeclaration" => new ShaderValueDeclaration(tmp),
 			"Method" => new ShaderMethod(tmp),
 			"AssignChain" => new AssignChain(tmp),
+			"DeclareAssign" => new DeclareAssign(tmp),
+			"MethodCall" => new MethodCall(tmp),
 			"Ternary" => new ConditionalExpression(tmp),
 			"LogicalOrExpression" => LogicalOrExpression.Create(tmp),
 			"LogicalAndExpression" => LogicalAndExpression.Create(tmp),

@@ -59,7 +59,7 @@ public partial class SDSLGrammar : Grammar
 
         var assignChain =
             Identifier.Then(Dot.Then(Identifier).Repeat(0))
-            .Then(AssignOperators)
+            .Then(AssignOperators.Named("AssignOp"))
             .Then(PrimaryExpression)
             .Then(Semi)
             .SeparatedBy(ws);
