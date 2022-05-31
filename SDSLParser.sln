@@ -7,9 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5F88D871-B76
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDSLParserExample", "src\SDSLParserExample\SDSLParserExample.csproj", "{04B29CCB-301A-4B1B-8EE2-3866DDAA86CD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shader.Parsing", "src\Stride.Shader.Parsing\Stride.Shader.Parsing.csproj", "{3A20C614-0B73-4592-B0A3-152FBA7C112C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders", "src\Stride.Shaders\Stride.Shaders.csproj", "{3A20C614-0B73-4592-B0A3-152FBA7C112C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shader.Parsing.Test", "src\Stride.Shader.Parsing.Test\Stride.Shader.Parsing.Test.csproj", "{6D885FCB-C043-4065-BA7E-E4937667B219}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Test", "src\Stride.Shaders.Test\Stride.Shaders.Test.csproj", "{6D885FCB-C043-4065-BA7E-E4937667B219}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CppNet", "src\CppNet\CppNet.csproj", "{C2FD9262-69F8-4B75-9AB1-FF359C9143E9}"
 EndProject

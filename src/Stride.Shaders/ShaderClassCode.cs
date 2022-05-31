@@ -1,0 +1,2 @@
+
+namespace Stride.Shaders.Parsing;
