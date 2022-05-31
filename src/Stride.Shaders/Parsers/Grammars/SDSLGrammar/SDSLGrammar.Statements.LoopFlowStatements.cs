@@ -38,11 +38,7 @@ public partial class SDSLGrammar : Grammar
             valueAssign | PrimaryExpression,
             RightParen,
             Semi 
-            | (
-                LeftBrace &
-                Statement.Repeat(0).SeparatedBy(ws) &
-                RightBrace
-            ).SeparatedBy(ws)
+            | Statement
 
         );
         ForLoop.Separator = ws;

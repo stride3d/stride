@@ -8,7 +8,10 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
+
 public class Statement : ShaderToken {}
+
+public class EmptyStatement : Statement{}
 
 public class DeclareAssign : Statement
 {

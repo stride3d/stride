@@ -1,3 +1,4 @@
+using System.Globalization;
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
@@ -55,7 +56,7 @@ public partial class SDSLGrammar : Grammar
 		
 		StringLiteral = new StringParser().WithName("StringLiteral");
 		IntegerLiteral = new NumberParser() { AllowSign = true, AllowDecimal = false, AllowExponent = false, ValueType = typeof(long), Name = "IntegerValue" };
-		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Name = "FloatValue" };
+		FloatLiteral = new NumberParser() { AllowSign = true, AllowDecimal = true, AllowExponent = true, ValueType = typeof(double), Culture = new CultureInfo("en-US") , Name = "FloatValue" };
 		
 		HexDigits = new();
 		HexaDecimalLiteral = Literal("0x").Or(Literal("0X")).Then(HexDigit.Repeat(1)).WithName("HexaLiteral");

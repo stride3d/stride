@@ -37,9 +37,9 @@ Console.WriteLine($"parsing time : {s.Elapsed}");
 var grammar = ShaderParser.GetGrammar<StrideGrammar>();
 
 var p = ShaderParser.GetParser<StrideGrammar>();
-p.Parse(shaderf,"./SDSL/shader2.sdsl");
+p.PreProcessAndParse(shaderf,"./SDSL/shader2.sdsl");
 s.Start();
-var result = p.Parse(shaderf,"./SDSL/shader2.sdsl");
+var result = p.PreProcessAndParse(shaderf,"./SDSL/shader2.sdsl");
 s.Stop();
 Console.WriteLine($"irony parsing time : {s.Elapsed}");
 

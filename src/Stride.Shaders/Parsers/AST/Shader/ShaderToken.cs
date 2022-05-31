@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
-public class Empty : ShaderToken{}
 public abstract class ShaderToken
 {
 	public static string[] KeepValues = {
 		"Block",
 		"Return",
+		"EmptyStatement",
 	};
 	public Match? Match { get; set; }
 
@@ -25,15 +25,19 @@ public abstract class ShaderToken
 
 		return tmp.Name switch
 		{
+			"Namespace" => GetToken(tmp.Matches.Last()),
 			"ShaderProgram" => new ShaderProgram(tmp),
-			"RGroup" => new Empty(),
-			"ConstantBuffer" => new Empty(),
+			"RGroup" => throw new NotImplementedException(),
+			"ConstantBuffer" => throw new NotImplementedException(),
 			"ShaderValueDeclaration" => new ShaderValueDeclaration(tmp),
 			"Method" => new ShaderMethod(tmp),
+			"ControlFlow" => throw new NotImplementedException(),
 			"Block" => new BlockStatement(tmp),
 			"Return" => new ReturnStatement(tmp),
 			"AssignChain" => new AssignChain(tmp),
 			"DeclareAssign" => new DeclareAssign(tmp),
+			"SimpleDeclare" => throw new NotImplementedException(),
+			"EmptyStatement" => new EmptyStatement(),
 			"MethodCall" => new MethodCall(tmp),
 			"Ternary" => new ConditionalExpression(tmp),
 			"LogicalOrExpression" => LogicalOrExpression.Create(tmp),
@@ -48,7 +52,8 @@ public abstract class ShaderToken
 			"MulExpression" => MulExpression.Create(tmp),
 			"CastExpression" => new CastExpression(tmp),
 			"PrefixIncrement" => throw new NotImplementedException("prefix implement not implemented"),
-			"IntegerValue" or "FloatValue" => new NumberLiteral(tmp),
+			"ChainAccessor" => throw new NotImplementedException(),
+			"IntegerValue" or "FloatValue" or "FloatLiteral" => new NumberLiteral(tmp),
 			"VariableTerm" or "Identifier" => new VariableNameLiteral(tmp),
 			"ValueTypes" or "TypeName" => new TypeNameLiteral(tmp),
 			"Boolean" => new BoolLiteral(tmp),

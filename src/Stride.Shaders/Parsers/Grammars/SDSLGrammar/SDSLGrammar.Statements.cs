@@ -70,7 +70,9 @@ public partial class SDSLGrammar : Grammar
             .Then(assignVar)
             .SeparatedBy(ws1);
 
-        
+        var simpleDeclare = 
+            ((ValueTypes | Identifier) & Identifier & arraySpecifier).SeparatedBy(ws)
+            | ((ValueTypes | Identifier) & Identifier).SeparatedBy(ws);
 
         Statement.Add(
             Block,
@@ -79,6 +81,7 @@ public partial class SDSLGrammar : Grammar
             returnStatement.Named("Return"),
             assignChain.Named("AssignChain"),
             declareAssign.Named("DeclareAssign"),
+            simpleDeclare.Named("SimpleDeclare"),
             assignVar.Named("Assign"),
             PrimaryExpression.Then(Semi).SeparatedBy(ws).Named("EmptyStatement")
         );

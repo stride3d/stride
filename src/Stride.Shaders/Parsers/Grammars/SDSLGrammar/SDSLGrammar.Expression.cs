@@ -64,7 +64,7 @@ public partial class SDSLGrammar : Grammar
 
         TermExpression.Add(
             Literals,
-            ~((Plus | Minus) & ws) & Identifier.Named("VariableTerm").Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
+            Identifier.Named("VariableTerm").Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
             MethodCall,
             Parenthesis(PrimaryExpression)
         );
@@ -109,6 +109,7 @@ public partial class SDSLGrammar : Grammar
 
         UnaryExpression.Add(
             PostfixExpression,
+            (Plus | Minus) & ws & PostfixExpression,
             prefixInc,
             Literal("sizeof").Then(LeftParen).Then(Identifier | UnaryExpression).Then(RightParen).Named("SizeOf")
         );
@@ -222,7 +223,7 @@ public partial class SDSLGrammar : Grammar
 
         PrimaryExpression.Add(
             arrayDeclaration,
-            MethodCall,
+            // MethodCall,
             ConditionalExpression            
         );
     }
