@@ -65,8 +65,8 @@ public partial class SDSLGrammar : Grammar
 		Literals.Add(
             IntegerLiteral.NotFollowedBy(Dot | IntegerSuffix | FloatSuffix | Set("xX")).Named("IntegerLiteral"),
             IntegerLiteral.NotFollowedBy(Dot | FloatSuffix | Set("xX")).Then(IntegerSuffix).Named("IntegerLiteral"),
-            FloatLiteral.NotFollowedBy(Set("xX")).Named("FloatLiteral"),
             FloatLiteral.NotFollowedBy(Set("xX")).Then(FloatSuffix).Named("FloatLiteral"),
+            FloatLiteral.NotFollowedBy(Set("xX")).Named("FloatLiteral"),
             HexaDecimalLiteral,
 			StringLiteral,
 			BooleanTerm

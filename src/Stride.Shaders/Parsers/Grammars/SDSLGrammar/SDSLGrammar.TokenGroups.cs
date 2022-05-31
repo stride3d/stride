@@ -113,7 +113,9 @@ public partial class SDSLGrammar : Grammar
             FloatTypes,
             DoubleTypes,
             IntTypes,
-            UintTypes
+            UintTypes,
+            BufferTypes,
+            TextureTypes
         );
 
         Keywords.Add(
@@ -172,7 +174,7 @@ public partial class SDSLGrammar : Grammar
             Struct,
             StructuredBuffer,
             Switch,
-            TextureTypes,
+            TextureBase,
             Triangle,
             TriangleAdj,
             TriangleStream,

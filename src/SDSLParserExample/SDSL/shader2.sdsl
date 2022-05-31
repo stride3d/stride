@@ -1,13 +1,14 @@
-shader MyShader {
+shader MyShader 
+{
 
-	stream float3 a : POSITION;
-	stream float b;
-
-	void VSMain()
+	cbuffer PerView.LightProbes
 	{
-		{
-			float a = float3(1,1,1);
-		}
-		return 1;
+		stage int IgnoredProbeStart;
+	}
+	rgroup PerView.LightProbes
+	{
+		stage Buffer<uint4> LightProbeTetrahedronProbeIndices; // tetrahaedron ID => 4 probe IDs
+		stage Buffer<float4> LightProbeTetrahedronMatrices; // tetrahaedron ID => world to tetrahedron space matrix
+		stage Buffer<float3> LightProbeCoefficients; // probe ID => SH coefficients
 	}
 };

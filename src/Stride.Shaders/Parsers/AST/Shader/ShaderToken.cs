@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
-
+public class Empty : ShaderToken{}
 public abstract class ShaderToken
 {
 	public static string[] KeepValues = {
@@ -26,6 +26,8 @@ public abstract class ShaderToken
 		return tmp.Name switch
 		{
 			"ShaderProgram" => new ShaderProgram(tmp),
+			"RGroup" => new Empty(),
+			"ConstantBuffer" => new Empty(),
 			"ShaderValueDeclaration" => new ShaderValueDeclaration(tmp),
 			"Method" => new ShaderMethod(tmp),
 			"Block" => new BlockStatement(tmp),

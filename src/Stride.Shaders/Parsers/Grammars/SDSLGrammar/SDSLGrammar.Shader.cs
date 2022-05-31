@@ -41,7 +41,7 @@ public partial class SDSLGrammar : Grammar
         );
         ConstantBuffer.Separator = ws;
         RGroup.Add(
-            "rgoup" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws),
+            "rgroup" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws),
             LeftBrace,
             ShaderValueDeclaration.Repeat(0).SeparatedBy(ws),
             RightBrace

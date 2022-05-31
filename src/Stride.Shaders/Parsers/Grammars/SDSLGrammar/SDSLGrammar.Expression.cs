@@ -64,7 +64,7 @@ public partial class SDSLGrammar : Grammar
 
         TermExpression.Add(
             Literals,
-            Identifier.Named("VariableTerm").Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
+            ~((Plus | Minus) & ws) & Identifier.Named("VariableTerm").Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
             MethodCall,
             Parenthesis(PrimaryExpression)
         );

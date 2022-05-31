@@ -45,14 +45,14 @@ public partial class SDSLGrammar : Grammar
             | Colon.Then(Identifier).SeparatedBy(ws);
 
         var arraySpecifier =
-            (LeftBracket & Literals & RightBracket)
+            (LeftBracket & PrimaryExpression & RightBracket)
             .SeparatedBy(ws);
 
         var parameter = new SequenceParser(
             ValueOrGeneric,
             ws1,
-            Identifier,
-            arraySpecifier.Optional(),
+            Identifier & ws & arraySpecifier
+            | Identifier,
             (Equal & PrimaryExpression).SeparatedBy(ws).Optional()
         );
         var parameterWithStorage = new AlternativeParser(

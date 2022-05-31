@@ -87,7 +87,10 @@ public partial class SDSLGrammar : Grammar
     protected LiteralTerminal Struct = new();
     protected LiteralTerminal StructuredBuffer = new();
     protected LiteralTerminal Switch = new();
+    protected AlternativeParser TextureBase = new();
     protected AlternativeParser TextureTypes = new();
+
+    protected AlternativeParser BufferTypes = new();
     protected LiteralTerminal Triangle = new();
     protected LiteralTerminal TriangleAdj = new();
     protected LiteralTerminal TriangleStream = new();
@@ -232,10 +235,18 @@ public partial class SDSLGrammar : Grammar
         Struct = Literal("struct");
         StructuredBuffer = Literal("StructuredBuffer");
         Switch = Literal("switch");
-        TextureTypes.Add(
+        TextureBase.Add(
             Literal("Texture").NotFollowedBy("2DMS").Then(Literal("1") | "2" | "3").Then("D").Then(Literal("Array").Optional()),
             Literal("Texture2DMS").Then(Literal("Array").Optional()),
             Literal("TextureCube").Then(Literal("Array").Optional())
+        );
+        TextureTypes.Add(
+            (TextureBase & "<" & ValueTypes.Except(TextureTypes | BufferTypes) & ">").SeparatedBy(WhiteSpace.Repeat(0)),
+            TextureBase
+        );
+        BufferTypes.Add(
+            (Buffer & "<" & ValueTypes.Except(TextureTypes | BufferTypes) & ">").SeparatedBy(WhiteSpace.Repeat(0)),
+            Buffer
         );
         Triangle = Literal("triangle");
         TriangleAdj = Literal("triangleadj");
