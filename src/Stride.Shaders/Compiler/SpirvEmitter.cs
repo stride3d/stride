@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Spv.Generator;
 using Stride.Shaders.Parsing.AST.Shader;
 
-namespace Stride.Shaders.Parsing;
+namespace Stride.Shaders;
 
 public class SpirvEmitter : Module
 {

@@ -4,20 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Spv.Generator;
+using Stride.Shaders.Parsing;
 
-namespace Stride.Shaders.Parsing;
+namespace Stride.Shaders;
 
-public class ShaderMixer
+public class ShaderMixer : ShaderSource
 {
-    //Dictionary<string, int> 
-    public SDSLParser Parser {get;set;}
+    public ShaderMixinParser Parser {get;set;}
     public List<ShaderMixin> Mixins { get; set; } = new();
 
     public ShaderMixer()
     {
         Parser = new();
     }
-    public ShaderMixer(SDSLParser parser)
+    public ShaderMixer(ShaderMixinParser parser)
     {
         Parser = parser;
     }
@@ -25,5 +25,20 @@ public class ShaderMixer
     public void Add(string mixin)
     {
         Mixins.Add(new ShaderMixin(mixin,Parser));
+    }
+
+    public override object Clone()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override bool Equals(object against)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
     }
 }

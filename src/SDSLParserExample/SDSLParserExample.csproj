@@ -5,6 +5,13 @@
     <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Stride.Core.Shaders" Version="4.0.1.1428" />
+    <!-- <PackageReference Include="Stride.Shaders.Parser" Version="4.0.1.1428" /> -->
+    <!-- <PackageReference Include="Stride.Shaders" Version="4.0.1.1428" /> -->
+
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>

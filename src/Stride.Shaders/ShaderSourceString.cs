@@ -1,3 +1,4 @@
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.AST.Shader;
 using System;
 using System.Collections.Generic;
@@ -5,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Stride.Shaders.Parsing;
+namespace Stride.Shaders;
 
 public class ShaderSourceString
 {
@@ -21,9 +22,9 @@ public class ShaderSourceString
         "CSMain"
     };
 
-    SDSLParser Parser { get; set; }
+    ShaderMixinParser Parser { get; set; }
 
-    public ShaderSourceString(string code, SDSLParser parser)
+    public ShaderSourceString(string code, ShaderMixinParser parser)
     {
         Code = code;
         Parser = parser;

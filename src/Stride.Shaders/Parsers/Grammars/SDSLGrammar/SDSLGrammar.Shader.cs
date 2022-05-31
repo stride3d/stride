@@ -7,8 +7,10 @@ public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser Declarations = new();
     public SequenceParser ShaderExpression = new();
+    public SequenceParser RGroup = new() { Name = "RGroup" };
     public SequenceParser ConstantBuffer = new() { Name = "ConstantBuffer" };
-
+    public SequenceParser NamespaceExpression = new() {Name = "Namespace"};
+    public AlternativeParser ShaderFile = new(){Name = "ShaderFile"};
 
     public SDSLGrammar UsingShader()
     {
@@ -32,14 +34,19 @@ public partial class SDSLGrammar : Grammar
 
 
         ConstantBuffer.Add(
-            "cbuffer",
-            ws1,
-            Identifier,
-            ws,
+            "cbuffer" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws),
             LeftBrace,
-            ws,
+            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws),
             RightBrace
         );
+        ConstantBuffer.Separator = ws;
+        RGroup.Add(
+            "rgoup" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws),
+            LeftBrace,
+            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws),
+            RightBrace
+        );
+        RGroup.Separator = ws;
 
 
         var shaderGenericValue = new AlternativeParser(
@@ -81,6 +88,8 @@ public partial class SDSLGrammar : Grammar
         var shaderContentTypes = new AlternativeParser(
             typeDefinition,
             StructDefinition,
+            ConstantBuffer,
+            RGroup,
             compositionDeclaration,
             MethodDeclaration,
             ShaderValueDeclaration
@@ -105,15 +114,28 @@ public partial class SDSLGrammar : Grammar
 
 
         ShaderExpression.Add(
-            ws,
             Literal("shader") & ws1 & Identifier.Named("ShaderName"),
             shaderGenerics.Optional(),
             inheritances.Optional(),
             shaderBody,
-            Semi,
-            ws
+            Semi
         );
         ShaderExpression.Separator = ws;
         ShaderExpression.Name = "ShaderProgram";
+
+        NamespaceExpression.Add(
+            ws,
+            Literal("namespace") & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws),
+            LeftBrace,
+            ShaderExpression,
+            RightBrace,
+            ws
+        );
+        NamespaceExpression.Separator = ws;
+
+        ShaderFile.Add(
+            NamespaceExpression,
+            ws & ShaderExpression & ws
+        );
     }
 }

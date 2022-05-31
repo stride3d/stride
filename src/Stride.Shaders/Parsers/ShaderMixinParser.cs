@@ -12,7 +12,7 @@ using System.Text;
 using CppNet;
 
 
-public class SDSLParser
+public class ShaderMixinParser
 {
     public SDSLGrammar Grammar {get;set;}
     public DirectivePreprocessor DPreprocessor { get; set; }
@@ -20,7 +20,7 @@ public class SDSLParser
 
     public GrammarMatch? ParseTree { get; set; }
 
-    public SDSLParser()
+    public ShaderMixinParser()
     {
         Grammar = new();
         DPreprocessor = new();
@@ -31,10 +31,10 @@ public class SDSLParser
         Preprocessor.addWarning(Warning.IMPORT);
         Preprocessor.addFeature(Feature.INCLUDENEXT);
         //Preprocessor.addFeature(Feature.LINEMARKERS);
-        Preprocessor.setListener(new ErrorListener());
+        // Preprocessor.setListener(new ErrorListener());
     }
 
-    public SDSLParser With(Parser p)
+    public ShaderMixinParser With(Parser p)
     {
         Grammar.Inner = p;
         return this;

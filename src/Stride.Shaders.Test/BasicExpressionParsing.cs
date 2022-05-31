@@ -9,7 +9,7 @@ namespace Stride.Shaders.Parsing.Test;
 
 public class BasicExpressionParsing
 {
-    SDSLParser parser;
+    ShaderMixinParser parser;
     public BasicExpressionParsing()
     {
         parser = new();

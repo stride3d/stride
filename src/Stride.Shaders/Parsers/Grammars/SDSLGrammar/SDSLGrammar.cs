@@ -8,7 +8,7 @@ public partial class SDSLGrammar : Grammar
     public SDSLGrammar() : base("sdsl")
     {
         CreateAll();
-        Inner = ShaderExpression;
+        Inner = ShaderFile;
     }
 
     public SDSLGrammar Using(Parser p)
