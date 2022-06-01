@@ -117,17 +117,20 @@ namespace Stride.VirtualReality
             ActionStatePose hand_pose_state = new ActionStatePose()
             {
                 Type = StructureType.TypeActionStatePose,
+                Next = null,
             };
 
             ActionStateGetInfo get_info = new ActionStateGetInfo()
             {
                 Type = StructureType.TypeActionStateGetInfo,
                 Action = myHandAction,
+                Next = null,
             };
 
             SpaceVelocity sv = new SpaceVelocity()
             {
-                Type = StructureType.TypeSpaceVelocity
+                Type = StructureType.TypeSpaceVelocity,
+                Next = null,
             };
 
             handLocation.Next = &sv;

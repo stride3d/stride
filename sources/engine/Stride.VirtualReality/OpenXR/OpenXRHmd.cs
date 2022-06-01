@@ -1,3 +1,5 @@
+#define DEBUG_OPENXR
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -198,7 +200,11 @@ namespace Stride.VirtualReality
             Xr.EnumerateInstanceExtensionProperties((byte*)null, 0, &propCount, null);
 
             ExtensionProperties[] props = new ExtensionProperties[propCount];
-            for (int i = 0; i < props.Length; i++) props[i].Type = StructureType.TypeExtensionProperties;
+            for (int i = 0; i < props.Length; i++)
+            {
+                props[i].Type = StructureType.TypeExtensionProperties;
+                props[i].Next = null;
+            }
             Xr.EnumerateInstanceExtensionProperties((byte*)null, propCount, &propCount, props);
 
             Logger.Info("Supported extensions (" + propCount + "):");
@@ -286,19 +292,63 @@ namespace Stride.VirtualReality
 
             // This crashes on oculus
             // For our benefit, let's log some information about the instance we've just created.
-            //InstanceProperties properties = new InstanceProperties();
-            //CheckResult(Xr.GetInstanceProperties(Instance, ref properties), "GetInstanceProperties");
+            InstanceProperties properties = new InstanceProperties()
+            {
+                Type = StructureType.TypeInstanceProperties,
+                Next = null,
+            };
+            CheckResult(Xr.GetInstanceProperties(Instance, ref properties), "GetInstanceProperties");
 
-            //var runtimeName = SilkMarshal.PtrToString((nint)properties.RuntimeName);
-            //var runtimeVersion = ((Version)(Version64)properties.RuntimeVersion).ToString(3);
+            var runtimeName = SilkMarshal.PtrToString((nint)properties.RuntimeName);
+            var runtimeVersion = ((Version)(Version64)properties.RuntimeVersion).ToString(3);
 
-            //Console.WriteLine($"[INFO] Application: Using OpenXR Runtime \"{runtimeName}\" v{runtimeVersion}");
+            Console.WriteLine($"[INFO] Application: Using OpenXR Runtime \"{runtimeName}\" v{runtimeVersion}");
 
             // We're creating a head-mounted-display (HMD, i.e. a VR headset) example, so we ask for a runtime which
             // supports that form factor. The response we get is a ulong that is the System ID.
             var getInfo = new SystemGetInfo(formFactor: FormFactor.HeadMountedDisplay) { Type = StructureType.TypeSystemGetInfo };
             CheckResult(Xr.GetSystem(Instance, in getInfo, ref system_id), "GetSystem");
             Logger.Info("Successfully got XrSystem with id " + system_id + " for HMD form factor");
+
+            SystemProperties system_props = new SystemProperties()
+            {
+                Type = StructureType.TypeSystemProperties,
+                Next = null,
+            };
+
+            // CheckResult(Xr.GetSystemProperties(Instance, system_id, &system_props), "GetSystemProperties");
+
+            uint view_config_count = 0;
+            CheckResult(Xr.EnumerateViewConfiguration(Instance, system_id, 0, ref view_config_count, null), "EnumerateViewConfiguration");
+            var viewconfigs = new ViewConfigurationType[view_config_count];
+            fixed (ViewConfigurationType* viewconfigspnt = &viewconfigs[0])
+                CheckResult(Xr.EnumerateViewConfiguration(Instance, system_id, view_config_count, ref view_config_count, viewconfigspnt), "EnumerateViewConfiguration");
+            Logger.Info("Available config types: ");
+            var viewtype_found = false;
+            for (int i = 0; i < view_config_count; i++)
+            {
+                Logger.Info("    " + viewconfigs[i]);
+                viewtype_found |= view_type == viewconfigs[i];
+            }
+            if (!viewtype_found)
+            {
+                throw new Exception("The current device doesn´t support primary stereo");
+            }
+
+            uint view_count = 0;
+            CheckResult(Xr.EnumerateViewConfigurationView(Instance, system_id, view_type, 0, ref view_count, null), "EnumerateViewConfigurationView");
+            var viewconfig_views = new ViewConfigurationView[view_count];
+            for (int i = 0; i < view_count; i++)
+            {
+                viewconfig_views[i].Type = StructureType.TypeViewConfigurationView;
+                viewconfig_views[i].Next = null;
+            }
+            fixed (ViewConfigurationView* viewspnt = &viewconfig_views[0])
+                CheckResult(Xr.EnumerateViewConfigurationView(Instance, system_id, view_type, (uint)viewconfig_views.Length, ref view_count, viewspnt), "EnumerateViewConfigurationView");
+
+            // get size
+            renderSize.Width = (int)Math.Round(viewconfig_views[0].RecommendedImageRectWidth * RenderFrameScaling) * 2; // 2 views in one frame
+            renderSize.Height = (int)Math.Round(viewconfig_views[0].RecommendedImageRectHeight * RenderFrameScaling);
 
 #if STRIDE_GRAPHICS_API_VULKAN
             GraphicsRequirementsVulkanKHR vulk = new GraphicsRequirementsVulkanKHR()
@@ -383,25 +433,17 @@ namespace Stride.VirtualReality
 #else
             throw new Exception("OpenXR is only compatible with Vulkan or DirectX11");
 #endif
+
             Session session;
             CheckResult(Xr.CreateSession(Instance, &session_create_info, &session), "CreateSession");
             globalSession = session;
-
-            uint view_count = 0;
-            CheckResult(Xr.EnumerateViewConfigurationView(Instance, system_id, view_type, 0, ref view_count, null), "EnumerateViewConfigurationView");
-            var viewconfig_views = new ViewConfigurationView[view_count];
-            fixed (ViewConfigurationView* viewspnt = &viewconfig_views[0])
-                CheckResult(Xr.EnumerateViewConfigurationView(Instance, system_id, view_type, (uint)viewconfig_views.Length, ref view_count, viewspnt), "EnumerateViewConfigurationView");
-
-            // get size
-            renderSize.Width = (int)Math.Round(viewconfig_views[0].RecommendedImageRectWidth * RenderFrameScaling) * 2; // 2 views in one frame
-            renderSize.Height = (int)Math.Round(viewconfig_views[0].RecommendedImageRectHeight * RenderFrameScaling);
 
             // --- Create swapchain for main VR rendering
             Swapchain swapchain = new Swapchain();
             SwapchainCreateInfo swapchain_create_info = new SwapchainCreateInfo()
             {
                 Type = StructureType.TypeSwapchainCreateInfo,
+                Next = null,
                 UsageFlags = SwapchainUsageFlags.SwapchainUsageTransferDstBit |
                                 SwapchainUsageFlags.SwapchainUsageSampledBit |
                                 SwapchainUsageFlags.SwapchainUsageColorAttachmentBit,
@@ -443,8 +485,18 @@ namespace Stride.VirtualReality
             CheckResult(Xr.EnumerateSwapchainImages(swapchain, 0, ref img_count, null), "EnumerateSwapchainImages");
 #if STRIDE_GRAPHICS_API_VULKAN
             images = new SwapchainImageVulkanKHR[img_count];
+            for (int i = 0; i < img_count; i++)
+            {
+                images[i].Type = StructureType.TypeSwapchainImageVulkanKhr;
+                images[i].Next = null;
+            }
 #elif STRIDE_GRAPHICS_API_DIRECT3D11
             images = new SwapchainImageD3D11KHR[img_count];
+            for (int i = 0; i < img_count; i++)
+            {
+                images[i].Type = StructureType.TypeSwapchainImageD3D11Khr;
+                images[i].Next = null;
+            }
 #endif
             fixed (void* sibhp = &images[0])
             {
@@ -472,12 +524,16 @@ namespace Stride.VirtualReality
             // Do not allocate these every frame to save some resources
             views = new View[view_count]; //(XrView*)malloc(sizeof(XrView) * view_count);
             for (int i = 0; i < view_count; i++)
+            {
                 views[i].Type = StructureType.TypeView;
+                views[i].Next = null;
+            }
 
             projection_views = new CompositionLayerProjectionView[view_count]; //(XrCompositionLayerProjectionView*)malloc(sizeof(XrCompositionLayerProjectionView) * view_count);
             for (int i = 0; i < view_count; i++)
             {
                 projection_views[i].Type = StructureType.TypeCompositionLayerProjectionView; //XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+                projection_views[i].Next = null;
                 projection_views[i].SubImage.Swapchain = swapchain;
                 projection_views[i].SubImage.ImageArrayIndex = 0;
                 projection_views[i].SubImage.ImageRect.Offset.X = (renderSize.Width * i) / 2;
@@ -490,8 +546,9 @@ namespace Stride.VirtualReality
             ReferenceSpaceCreateInfo play_space_create_info = new ReferenceSpaceCreateInfo()
             {
                 Type = StructureType.TypeReferenceSpaceCreateInfo,
+                Next = null,
                 ReferenceSpaceType = play_space_type,
-                PoseInReferenceSpace = new Posef(new Quaternionf(0f, 0f, 0f, 1f), new Vector3f(0f, 0f, 0f))
+                PoseInReferenceSpace = new Posef(new Quaternionf(0f, 0f, 0f, 1f), new Vector3f(0f, 0f, 0f)),
             };
             var play_space = new Space();
             CheckResult(Xr.CreateReferenceSpace(session, &play_space_create_info, &play_space), "CreateReferenceSpace");
@@ -499,7 +556,8 @@ namespace Stride.VirtualReality
 
             ActionSetCreateInfo gameplay_actionset_info = new ActionSetCreateInfo()
             {
-                Type = StructureType.TypeActionSetCreateInfo
+                Type = StructureType.TypeActionSetCreateInfo,
+                Next = null,
             };
 
             Span<byte> asname = new Span<byte>(gameplay_actionset_info.ActionSetName, 16);
@@ -519,6 +577,7 @@ namespace Stride.VirtualReality
             SessionActionSetsAttachInfo actionset_attach_info = new SessionActionSetsAttachInfo()
             {
                 Type = StructureType.TypeSessionActionSetsAttachInfo,
+                Next = null,
                 CountActionSets = 1,
                 ActionSets = &gameplay_actionset
             };
@@ -526,7 +585,11 @@ namespace Stride.VirtualReality
             CheckResult(Xr.AttachSessionActionSets(session, &actionset_attach_info), "AttachSessionActionSets");
 
             // figure out what interaction profile we are using, and determine if it has a touchpad/thumbstick or both
-            handProfileState.Type = StructureType.TypeInteractionProfileState;
+            handProfileState = new InteractionProfileState()
+            {
+                Type = StructureType.TypeInteractionProfileState,
+                Next = null,
+            };
             Xr.StringToPath(Instance, "/user/hand/left", ref leftHandPath);
         }
 
@@ -560,12 +623,17 @@ namespace Stride.VirtualReality
             };
 
             //Logger.Warning("WaitFrame");
-            globalFrameState = new FrameState();
+            globalFrameState = new FrameState()
+            {
+                Type = StructureType.TypeFrameState,
+                Next = null,
+            };
             CheckResult(Xr.WaitFrame(globalSession, in frame_wait_info, ref globalFrameState), "WaitFrame");
 
             FrameBeginInfo frame_begin_info = new FrameBeginInfo()
             {
                 Type = StructureType.TypeFrameBeginInfo,
+                Next = null,
             };
 
             //Logger.Warning("BeginFrame");
@@ -598,12 +666,14 @@ namespace Stride.VirtualReality
 
             ViewState view_state = new ViewState()
             {
-                Type = StructureType.TypeViewState
+                Type = StructureType.TypeViewState,
+                Next = null,
             };
 
             unsafe
             {
                 uint view_count = 2;
+                // Logger.Warning("LocateView");
                 CheckResult(Xr.LocateView(globalSession, &view_locate_info, &view_state, 2, &view_count, views), "XrLocateView");
             }
 
@@ -635,19 +705,28 @@ namespace Stride.VirtualReality
 #elif STRIDE_GRAPHICS_API_DIRECT3D11
         public unsafe uint GetSwapchainImage()
         {
-            //Logger.Warning("AcquireSwapchainImage");
+            // Logger.Warning("AcquireSwapchainImage");
             // Get the swapchain image
             var swapchainIndex = 0u;
-            var acquireInfo = new SwapchainImageAcquireInfo() { Type = StructureType.TypeSwapchainImageAcquireInfo };
+            var acquireInfo = new SwapchainImageAcquireInfo() { 
+                Type = StructureType.TypeSwapchainImageAcquireInfo,
+                Next = null,
+            };
             CheckResult(Xr.AcquireSwapchainImage(globalSwapchain, in acquireInfo, ref swapchainIndex), "AcquireSwapchainImage");
 
-            //Logger.Warning("WaitSwapchainImage");
-            var waitInfo = new SwapchainImageWaitInfo(timeout: long.MaxValue) { Type = StructureType.TypeSwapchainImageWaitInfo };
+            // Logger.Warning("WaitSwapchainImage");
+            var waitInfo = new SwapchainImageWaitInfo(timeout: long.MaxValue) { 
+                Type = StructureType.TypeSwapchainImageWaitInfo,
+                Next = null,
+            };
             swapImageCollected = (Xr.WaitSwapchainImage(globalSwapchain, in waitInfo) == Result.Success);
             if(!swapImageCollected)
             {
-                Logger.Warning("WaitSwapchainImage failed");
-                var releaseInfo = new SwapchainImageReleaseInfo() { Type = StructureType.TypeSwapchainImageReleaseInfo };
+                // Logger.Warning("WaitSwapchainImage failed");
+                var releaseInfo = new SwapchainImageReleaseInfo() { 
+                    Type = StructureType.TypeSwapchainImageReleaseInfo,
+                    Next = null,
+                };
                 CheckResult(Xr.ReleaseSwapchainImage(globalSwapchain, in releaseInfo), "ReleaseSwapchainImage");
             }
 
@@ -677,13 +756,16 @@ namespace Stride.VirtualReality
 
             Debug.Assert(commandList.NativeDeviceContext == baseDevice.NativeDeviceContext);
 
-            //Logger.Warning("Blit render target");
+            // Logger.Warning("Blit render target");
             baseDevice.NativeDeviceContext.CopyResource(renderFrame.NativeRenderTargetView.Resource, render_targets[swapchainPointer].Resource);
 
 
             // Release the swapchain image
-            //Logger.Warning("ReleaseSwapchainImage");
-            var releaseInfo = new SwapchainImageReleaseInfo() { Type = StructureType.TypeSwapchainImageReleaseInfo };
+            // Logger.Warning("ReleaseSwapchainImage");
+            var releaseInfo = new SwapchainImageReleaseInfo() { 
+                Type = StructureType.TypeSwapchainImageReleaseInfo,
+                Next = null,
+            };
             CheckResult(Xr.ReleaseSwapchainImage(globalSwapchain, in releaseInfo), "ReleaseSwapchainImage");
         }
 #endif
@@ -951,7 +1033,11 @@ namespace Stride.VirtualReality
 
         public override unsafe void Update(GameTime gameTime)
         {
-            var runtime_event = new EventDataBuffer();
+            var runtime_event = new EventDataBuffer()
+            {
+                Type = StructureType.TypeEventDataBuffer,
+                Next = null
+            };
             while (Xr.PollEvent(Instance, &runtime_event) == Result.Success)
             {
                 switch (runtime_event.Type)
@@ -1044,6 +1130,7 @@ namespace Stride.VirtualReality
             ActionsSyncInfo actions_sync_info = new ActionsSyncInfo()
             {
                 Type = StructureType.TypeActionsSyncInfo,
+                Next = null,
                 CountActiveActionSets = 1,
                 ActiveActionSets = &active_actionsets,
             };
