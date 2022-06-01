@@ -51,7 +51,8 @@ public class ReturnStatement : Statement
     public ReturnStatement(Match m)
     {
         Match = m;
-        ReturnValue = GetToken(m["PrimaryExpression"]);
+        if(m.HasMatches)
+            ReturnValue = GetToken(m["PrimaryExpression"]);
     }
 }
 

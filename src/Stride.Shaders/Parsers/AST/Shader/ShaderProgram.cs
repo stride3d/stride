@@ -7,6 +7,28 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
+public class ResourceGroup : ShaderToken
+{
+    public IEnumerable<ShaderToken> Variables {get;set;}
+
+    public ResourceGroup(Match m)
+    {
+        Match = m;
+        Variables = m["Variables"].Matches.Select(GetToken).ToList();
+        
+    }
+}
+public class ConstantBuffer : ShaderToken
+{
+    public IEnumerable<ShaderToken> Variables {get;set;}
+
+    public ConstantBuffer(Match m)
+    {
+        Match = m;
+        Variables = m["Variables"].Matches.Select(GetToken).ToList();
+
+    }
+}
 public class ShaderMethod : ShaderToken
 {
     public bool IsStatic { get; set; }

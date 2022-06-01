@@ -7,7 +7,7 @@ public partial class SDSLGrammar : Grammar
 {
     public AlternativeParser Declarations = new();
     public SequenceParser ShaderExpression = new();
-    public SequenceParser RGroup = new() { Name = "RGroup" };
+    public SequenceParser ResourceGroup = new() { Name = "ResourceGroup" };
     public SequenceParser ConstantBuffer = new() { Name = "ConstantBuffer" };
     public SequenceParser NamespaceExpression = new() {Name = "Namespace"};
     public AlternativeParser ShaderFile = new(){Name = "ShaderFile"};
@@ -34,19 +34,19 @@ public partial class SDSLGrammar : Grammar
 
 
         ConstantBuffer.Add(
-            "cbuffer" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws),
+            "cbuffer" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("GroupName"),
             LeftBrace,
-            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws),
+            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws).Named("Variables"),
             RightBrace
         );
         ConstantBuffer.Separator = ws;
-        RGroup.Add(
-            "rgroup" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws),
+        ResourceGroup.Add(
+            "rgroup" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("GroupName"),
             LeftBrace,
-            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws),
+            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws).Named("Variables"),
             RightBrace
         );
-        RGroup.Separator = ws;
+        ResourceGroup.Separator = ws;
 
 
         var shaderGenericValue = new AlternativeParser(
@@ -89,7 +89,7 @@ public partial class SDSLGrammar : Grammar
             typeDefinition,
             StructDefinition,
             ConstantBuffer,
-            RGroup,
+            ResourceGroup,
             compositionDeclaration,
             MethodDeclaration,
             ShaderValueDeclaration
@@ -125,7 +125,7 @@ public partial class SDSLGrammar : Grammar
 
         NamespaceExpression.Add(
             ws,
-            Literal("namespace") & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws),
+            Literal("namespace") & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("Namespace"),
             LeftBrace,
             ShaderExpression,
             RightBrace,

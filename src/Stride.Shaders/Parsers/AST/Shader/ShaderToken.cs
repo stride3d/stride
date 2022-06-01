@@ -14,6 +14,8 @@ public abstract class ShaderToken
 		"Block",
 		"Return",
 		"EmptyStatement",
+		"ConstantBuffer",
+		"ResourceGroup",
 	};
 	public Match? Match { get; set; }
 
@@ -27,11 +29,11 @@ public abstract class ShaderToken
 		{
 			"Namespace" => GetToken(tmp.Matches.Last()),
 			"ShaderProgram" => new ShaderProgram(tmp),
-			"RGroup" => throw new NotImplementedException(),
-			"ConstantBuffer" => throw new NotImplementedException(),
+			"ResourceGroup" => new ResourceGroup(tmp),
+			"ConstantBuffer" => new ConstantBuffer(tmp),
 			"ShaderValueDeclaration" => new ShaderValueDeclaration(tmp),
 			"Method" => new ShaderMethod(tmp),
-			"ControlFlow" => throw new NotImplementedException(),
+			"ControlFlow" => ControlFlow.Create(tmp),
 			"Block" => new BlockStatement(tmp),
 			"Return" => new ReturnStatement(tmp),
 			"AssignChain" => new AssignChain(tmp),

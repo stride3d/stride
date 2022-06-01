@@ -23,10 +23,8 @@ public partial class SDSLGrammar : Grammar
 
         var returnStatement = new SequenceParser(
             Return,
-            ws1,
-            PrimaryExpression,
-            ws,
-            Semi
+            (ws1 & PrimaryExpression & ws & Semi)
+            |(ws & Semi)
         );
 
         var attrParams =

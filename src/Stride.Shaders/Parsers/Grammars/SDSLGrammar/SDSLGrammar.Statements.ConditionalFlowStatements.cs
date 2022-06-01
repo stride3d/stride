@@ -13,20 +13,25 @@ public partial class SDSLGrammar : Grammar
 
 
         var ifStatement =
-            If.Then(LeftParen).Then(PrimaryExpression).Then(RightParen).Then(Statement).SeparatedBy(ws);
+            If.Then(LeftParen).Then(PrimaryExpression.Named("Condition")).Then(RightParen).Then(Statement).SeparatedBy(ws).Named("IfStatement");
 
         var elseIfStatement =
-            Else.Then(ifStatement).SeparatedBy(ws1);
+            Else.Then(ifStatement).SeparatedBy(ws1).Named("ElseIfStatement");
 
         var elseStatement =
-            Else.Then(Statement).SeparatedBy(ws1);
+            Else.Then(Statement).SeparatedBy(ws1).Named("ElseStatement");
+        
+        var conditionalFlow = new AlternativeParser(
+            ifStatement & ws & elseIfStatement.Repeat(0).SeparatedBy(ws) & elseStatement,
+            ifStatement & ws & elseIfStatement.Repeat(0).SeparatedBy(ws),
+            ifStatement & ws & elseStatement,
+            ifStatement
+        ){Name = "ConditionalFlow"};
 
         ControlFlow.Add(
             Attribute.Repeat(0).Named("Attributes"),
             ws,
-            ifStatement.Named("IfStatement")
-            | elseStatement.Named("ElseStatement")
-            | elseIfStatement.Named("ElseIfStatement")
+            conditionalFlow
             | ForLoop
         );
     }
