@@ -3,6 +3,20 @@ using Eto.Parse;
 namespace Stride.Shaders.Parsing.AST.Shader;
 
 
+public class ForLoop : ControlFlow
+{
+    public DeclareAssign Initializer {get;set;}
+    public ShaderToken Condition {get;set;}
+    public ShaderToken Updater {get;set;} 
+    public ForLoop(Match m)
+    {
+        Match = m;
+        
+        
+    }
+}
+
+
 public class IfStatement : ControlFlow
 {
     public ShaderToken Attributes {get;set;}
@@ -13,8 +27,8 @@ public class IfStatement : ControlFlow
         Match = m;
         if(m["Attributes"].HasMatches)
             throw new NotImplementedException();
-        Condition = GetToken(m["Control"]["IfStatement"]["Condition"]);
-        Statements = GetToken(m["Control"]["IfStatement"]["Statement"]);
+        Condition = GetToken(m["Condition"]);
+        Statements = GetToken(m["Statement"]);
     }
 }
 
@@ -56,19 +70,25 @@ public class ConditionalFlow : ControlFlow
     public ConditionalFlow(Match m)
     {
         Match = m["ConditionalFlow"];
-        throw new NotImplementedException();
+        If = new IfStatement(Match["IfStatement"]);
+        if(Match.Matches.Any(x => x.Name == "ElseIfStatement"))
+            ElseIfs = Match.Matches.Where(x => x.Name == "ElseIfStatement").Select(x => new ElseIfStatement(x)).ToList();
+        if(Match["ElseStatement"])
+            Else = new ElseStatement(Match["ElseStatement"]);
     }
 }
 
 
-public class ControlFlow : ShaderToken
+public class ControlFlow : Statement
 {
     public static ControlFlow Create(Match m)
     {
         return m.Matches[1].Name switch 
         {
             "ConditionalFlow" => new ConditionalFlow(m),
+            "ForLoop" => new ForLoop(m),
             _ => throw new NotImplementedException()
         };
     }
 }
+

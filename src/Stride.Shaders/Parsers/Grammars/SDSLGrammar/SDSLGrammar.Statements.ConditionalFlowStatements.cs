@@ -12,8 +12,13 @@ public partial class SDSLGrammar : Grammar
         var ws1 = WhiteSpace.Repeat(1);
 
 
-        var ifStatement =
-            If.Then(LeftParen).Then(PrimaryExpression.Named("Condition")).Then(RightParen).Then(Statement).SeparatedBy(ws).Named("IfStatement");
+        var ifStatement = new SequenceParser(
+            If,
+            LeftParen,
+            PrimaryExpression.Named("Condition"),
+            RightParen,
+            Statement
+        ){Name = "IfStatement", Separator = ws};
 
         var elseIfStatement =
             Else.Then(ifStatement).SeparatedBy(ws1).Named("ElseIfStatement");

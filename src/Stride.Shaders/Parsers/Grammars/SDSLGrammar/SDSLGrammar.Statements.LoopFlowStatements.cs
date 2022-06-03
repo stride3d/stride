@@ -6,8 +6,8 @@ namespace Stride.Shaders.Parsing.Grammars.SDSL;
 
 public partial class SDSLGrammar : Grammar
 {
-    public AlternativeParser WhileLoop = new() { Name = "ForLoop"};
-    public AlternativeParser ForEachLoop = new() { Name = "ForLoop"};
+    public SequenceParser WhileLoop = new() { Name = "WhileLoop"};
+    public SequenceParser ForEachLoop = new() { Name = "ForEachLoop"};
     public SequenceParser ForLoop = new() { Name = "ForLoop"};
 
     public void CreateLoopFlowStatements()
@@ -16,14 +16,15 @@ public partial class SDSLGrammar : Grammar
         var ws1 = WhiteSpace.Repeat(1);
 
         var valueDeclare = new SequenceParser(
-            ((ValueTypes | Identifier) & Identifier).SeparatedBy(ws1),
-            "=",
+            ((ValueTypes | Identifier) & Identifier).SeparatedBy(ws1)
+            | UnaryExpression,
+            AssignOperators.Named("Operator"),
             PrimaryExpression
         )
-        { Separator = ws };
+        { Separator = ws, Name = "Initializer"};
         var valueAssign = new SequenceParser(
             Identifier,
-            AssignOperators,
+            AssignOperators.Named("Operator"),
             PrimaryExpression
         )
         { Separator = ws };
@@ -42,6 +43,24 @@ public partial class SDSLGrammar : Grammar
 
         );
         ForLoop.Separator = ws;
+
+        WhileLoop.Add(
+            While,
+            LeftParen,
+            PrimaryExpression.Named("Condition"),
+            RightParen,
+            Statement
+        );
+        WhileLoop.Separator = ws;
+
+        ForEachLoop.Add(
+            Literal("foreach"),
+            LeftParen,
+            ((ValueTypes | Literal("var") | Identifier) & Identifier & In & PrimaryExpression).SeparatedBy(ws).Named("Declarator"),
+            RightParen,
+            Statement
+        );
+        ForEachLoop.Separator = ws;
 
     }
 }
