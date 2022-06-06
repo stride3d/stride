@@ -4,28 +4,16 @@ namespace Stride.Shaders;
 
 public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassSource>
 {
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ShaderClassSource"/> class.
-    /// </summary>
     public ShaderClassSource()
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ShaderClassSource"/> class.
-    /// </summary>
-    /// <param name="className">Name of the class.</param>
     public ShaderClassSource(string className)
         : this(className, null)
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ShaderClassSource"/> class.
-    /// </summary>
-    /// <param name="className">Name of the class.</param>
-    /// <param name="genericArguments">The generic parameters.</param>
+    
     public ShaderClassSource(string className, params string[] genericArguments)
     {
         ClassName = className;
@@ -56,7 +44,7 @@ public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassS
 
     public bool Equals(ShaderClassSource shaderClassSource)
     {
-        if (ReferenceEquals(null, shaderClassSource)) return false;
+        if (shaderClassSource is null) return false;
         if (ReferenceEquals(this, shaderClassSource)) return true;
         return string.Equals(ClassName, shaderClassSource.ClassName) 
             && GenericArguments.OrderBy(x => x).SequenceEqual(shaderClassSource.GenericArguments.OrderBy(x => x));
@@ -65,7 +53,7 @@ public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassS
 
     public override bool Equals(object obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
+        if (obj is null) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
         return Equals((ShaderClassSource)obj);

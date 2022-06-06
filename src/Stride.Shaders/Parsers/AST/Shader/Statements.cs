@@ -1,4 +1,5 @@
 ﻿using Eto.Parse;
+using Spv.Generator;
 using Stride.Shaders.Parsing.AST.Shader;
 using System;
 using System.Collections.Generic;
@@ -9,9 +10,9 @@ using System.Threading.Tasks;
 namespace Stride.Shaders.Parsing.AST.Shader;
 
 
-public class Statement : ShaderToken {}
+public abstract class Statement : ShaderToken {}
 
-public class EmptyStatement : Statement{}
+public class EmptyStatement : Statement {}
 
 public class DeclareAssign : Statement
 {
@@ -43,11 +44,12 @@ public class AssignChain : Statement
         AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue);
         Value = GetToken(m["PrimaryExpression"]);
     }
+
 }
 
 public class ReturnStatement : Statement
 {
-    public ShaderToken ReturnValue {get;set;}
+    public ShaderToken? ReturnValue {get;set;}
     public ReturnStatement(Match m)
     {
         Match = m;

@@ -16,8 +16,8 @@ public partial class SDSLGrammar : Grammar
         var ws1 = WhiteSpace.Repeat(1);
 
         var valueDeclare = new SequenceParser(
-            ((ValueTypes | Identifier) & Identifier).SeparatedBy(ws1)
-            | UnaryExpression,
+            ((ValueTypes | Identifier) & Identifier).SeparatedBy(ws1).Named("NewVariable")
+            | UnaryExpression.Named("ExistingVariable"),
             AssignOperators.Named("Operator"),
             PrimaryExpression
         )

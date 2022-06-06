@@ -3,51 +3,71 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Stride.Shaders.Parsing.AST.Shader;
 
-namespace Stride.Shaders.Parsing.Backend;
+namespace Stride.Shaders.Compiling;
 
 
-public enum Operators
+public class Register 
 {
-    Mul,
-    Div,
-    Mod,
-    Plus,
-    Minus,
-    LeftShift,
-    RightShift,
-    And,
-    Or,
-    Xor,
-    Less,
-    Greater,
-    LessEqual,
-    GreaterEqual,
-    Equals,
-    NotEquals,
-    LogicalAnd,
-    LogicalOr
+    private string name;
+    public string Name 
+    { 
+        get => name ?? "id_" + GetHashCode(); 
+        set => name = value;
+    }
 }
 
-
-public interface Register { }
-
-public struct NamedRegister : Register
+public class NamedRegister : Register
 {
-    public string Name { get; set; }
+    
+    public override string ToString()
+    {
+        return Name;
+    }
 }
-public struct ValueRegister<T> : Register
+public class ValueRegister : Register
 {
-    public T Value { get; set; }
+    public ShaderLiteral Literal { get; set; }
+    public ValueRegister(ShaderLiteral v)
+    {
+        Literal = v;
+        Name = v.Value.ToString();
+    }
+    public override string ToString()
+    {
+        return Literal.Value?.ToString() ?? "null";
+    }
 }
 
-public struct ThreeAddressOperation
+public class OperationRegister : Register
 {
-    public string RegisterName { get; set; }
     public Register Left { get; set; }
     public Register Right { get; set; }
-    public Operators Op { get; set; }
+    public OperatorToken Op { get; set; }
+
+    public override string ToString()
+    {
+        return 
+            new StringBuilder()
+            .Append(Name)
+            .Append(" = ")
+            .Append(Left.Name)
+            .Append(' ')
+            .Append(Op)
+            .Append(' ')
+            .Append(Right.Name)
+            .Append(';').ToString();
+    }
 }
 
+public class AssignRegister : Register
+{
+    public AssignOpToken Op {get;set;}
+    public Register Value {get;set;}
 
-
+    public override string ToString()
+    {
+        return new StringBuilder().Append(Name).Append(' ').Append(Op).Append(' ').Append(Value.Name).ToString();
+    }
+}

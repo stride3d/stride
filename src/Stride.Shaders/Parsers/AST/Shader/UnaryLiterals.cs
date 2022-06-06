@@ -10,12 +10,7 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 
 public class UnaryExpression : Projector
 {
-    public override Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-    public override ShaderToken ProjectConstant()
-    {
-        return this;
-    }
+    public override string InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 }
 
 public class ChainAccessor : UnaryExpression

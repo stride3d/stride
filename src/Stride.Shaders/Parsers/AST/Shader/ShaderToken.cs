@@ -62,23 +62,4 @@ public abstract class ShaderToken
 			_ => throw new NotImplementedException()
 		};
 	}
-
-	public static ShaderToken EvaluateExpression(ShaderToken expr, Dictionary<string,object> macros)
-    {
-		return expr switch
-		{
-			ShaderLiteral l => l,
-			Operation o => EvaluateOperation(o,macros),
-			_ => throw new Exception("Couldn't evaluate expression")
-		};
-    }
-	private static ShaderToken EvaluateOperation(Operation operation, Dictionary<string, object> macros)
-    {
-		return operation.ProjectConstant() switch
-		{
-			Operation o => o,
-			ShaderLiteral t => t,
-			_ => throw new Exception("Couldn't evaluate operation")
-		};
-    }
 }

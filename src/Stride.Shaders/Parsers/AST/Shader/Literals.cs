@@ -10,37 +10,32 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 
 public class ShaderLiteral : Projector
 {
-    public override Type InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-    public override ShaderToken ProjectConstant()
-    {
-        return this;
-    }
+    public override string InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public object Value {get;set;}
 }
 
 public class NumberLiteral : ShaderLiteral
 {
     public bool Negative { get; set; } = false;
-    public object Value { get; set; }
     public string? Suffix { get; set; }
 
-    protected Type? inferredType;
+    protected string? inferredType;
 
-    public override Type InferredType 
+    public override string InferredType 
     {
         get
         {
             if (inferredType is not null)
                 return inferredType;
-            if (Suffix is null)
-                return Value.GetType();
             else
             {
                 return Suffix switch
                 {
-                    "u" or "l" => typeof(long),
-                    "f" or "d" => typeof(double),
-                    _ => typeof(long)
+                    "u" => "uint",
+                    "l" => "long",
+                    "f" => "float",
+                    "d" => "double",
+                    _ => "int"
                 };
             }
         }
@@ -72,12 +67,11 @@ public class NumberLiteral : ShaderLiteral
 }
 public class HexLiteral : NumberLiteral
 {
-
-    public override Type InferredType 
+    public override string InferredType 
     {
         get
         {
-            return typeof(long);
+            return "long";
         }
         set => inferredType = value;
     }
@@ -93,8 +87,7 @@ public class HexLiteral : NumberLiteral
 }
 public class StringLiteral : ShaderLiteral
 {
-    public string? Value { get; set; }
-    public override Type InferredType { get => typeof(string); set { } }
+    public override string InferredType { get => "string"; set { } }
 
     public StringLiteral() { }
 
@@ -107,8 +100,7 @@ public class StringLiteral : ShaderLiteral
 
 public class BoolLiteral : ShaderLiteral
 {
-    public bool Value { get; set; }
-    public override Type InferredType { get => typeof(bool); set { } }
+    public override string InferredType { get => "bool"; set { } }
 
     public BoolLiteral() { }
 
@@ -133,11 +125,10 @@ public class TypeNameLiteral : ShaderLiteral
 public class VariableNameLiteral : ShaderLiteral
 {
     public string Name { get; set; }
-    public object Value { get; set; }
 
-    Type? inferredType;
+    string? inferredType;
 
-    public override Type InferredType { get => inferredType ?? typeof(void); set => inferredType = value; }
+    public override string InferredType { get => inferredType; set => inferredType = value; }
 
 
     public VariableNameLiteral(Match m)

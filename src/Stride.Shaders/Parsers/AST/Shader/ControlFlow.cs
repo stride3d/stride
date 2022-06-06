@@ -5,12 +5,14 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 
 public class ForLoop : ControlFlow
 {
-    public DeclareAssign Initializer {get;set;}
+    public List<ShaderToken> Attributes {get;set;}
+    public ShaderToken Initializer {get;set;}
     public ShaderToken Condition {get;set;}
     public ShaderToken Updater {get;set;} 
     public ForLoop(Match m)
     {
         Match = m;
+        var forMatch = m["ForLoop"];
         
         
     }

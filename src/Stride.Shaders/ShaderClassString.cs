@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders;
 
-public class ShaderSourceString
+public class ShaderClassString
 {
     public string Code { get; set; }
-    public string ClassName { get => AST != null ? AST.Name : string.Empty; }
+    public string ClassName { get; set; }
     public ShaderProgram? AST { get; set; }
     string[] EntryPointNames = {
         "PSMain",
@@ -24,7 +24,7 @@ public class ShaderSourceString
 
     ShaderMixinParser Parser { get; set; }
 
-    public ShaderSourceString(string code, ShaderMixinParser parser)
+    public ShaderClassString(string code, ShaderMixinParser parser)
     {
         Code = code;
         Parser = parser;
@@ -37,36 +37,32 @@ public class ShaderSourceString
 
     public IEnumerable<ShaderValueDeclaration> GetStreamValues()
     {
-        if (AST is not null)
-            return
-                from e in AST.Body
-                where e is ShaderValueDeclaration v 
-                && v.IsStream
-                select e as ShaderValueDeclaration;
-        else
-            throw new Exception("AST is null");
+        return
+            from e in AST?.Body
+            where e is ShaderValueDeclaration v
+            && v.IsStream
+            select e as ShaderValueDeclaration;
+    }
+
+    public ShaderMethod GetEntryPoint(EntryPoints entry)
+    {
+        return AST?.Body.First(e => e is ShaderMethod m && m.Name == entry.ToString()) as ShaderMethod;
     }
     public IEnumerable<ShaderMethod> GetEntryPoints()
     {
-        if (AST is not null)
-            return
-                from e in AST.Body
+        return
+                from e in AST?.Body
                 where e is ShaderMethod method
                 && EntryPointNames.Contains(method.Name)
                 select e as ShaderMethod;
-        else
-            throw new Exception("AST is null");
     }
     public IEnumerable<ShaderMethod> GetMethods()
     {
-        if (AST is not null)
-            return
-                from e in AST.Body
-                where e is ShaderMethod method
-                && !EntryPointNames.Contains(method.Name)
-                select e as ShaderMethod;
-        else
-            throw new Exception("AST is null");
+        return
+            from e in AST?.Body
+            where e is ShaderMethod method
+            && !EntryPointNames.Contains(method.Name)
+            select e as ShaderMethod;
     }
 
 
