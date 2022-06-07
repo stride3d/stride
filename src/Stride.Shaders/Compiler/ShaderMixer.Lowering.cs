@@ -1,10 +1,11 @@
+using Stride.Shaders.Compiling;
 using Stride.Shaders.Parsing.AST.Shader;
 
-namespace Stride.Shaders.Compiling;
+namespace Stride.Shaders;
 
-public static class Lowering
+public partial class ShaderMixer
 {
-    public static IEnumerable<Register> LowerToken(ShaderToken token)
+    public IEnumerable<Register> LowerToken(ShaderToken token)
     {
         
         return token switch 
@@ -17,7 +18,7 @@ public static class Lowering
         };
     }
 
-    static IEnumerable<Register> Lower(DeclareAssign s)
+    IEnumerable<Register> Lower(DeclareAssign s)
     {
         var v = LowerToken(s.Value);
         return v.Append(
@@ -29,13 +30,13 @@ public static class Lowering
         );
     }
 
-    static IEnumerable<Register> Lower(ConditionalExpression cexp)
+    IEnumerable<Register> Lower(ConditionalExpression cexp)
     {
         var result = new List<Register>();
         return result;
     }
 
-    static IEnumerable<Register> Lower(Operation o)
+    IEnumerable<Register> Lower(Operation o)
     {
         IEnumerable<Register> l = LowerToken(o.Left);
         IEnumerable<Register> r = LowerToken(o.Right);
@@ -50,7 +51,7 @@ public static class Lowering
         );
     }
 
-    static IEnumerable<Register> Lower(ShaderLiteral lit)
+    IEnumerable<Register> Lower(ShaderLiteral lit)
     {
         return new List<Register>{
             lit switch {

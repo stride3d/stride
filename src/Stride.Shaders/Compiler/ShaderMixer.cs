@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using Spv.Generator;
 using Stride.Shaders.Parsing;
 
-namespace Stride.Shaders;
+namespace Stride.Shaders.Compiling;
 
-public class ShaderMixer : ShaderSource
+public partial class ShaderMixer : ShaderSource
 {
     public ShaderMixinParser Parser {get;set;}
     public List<ShaderMixin> Mixins { get; set; } = new();
+
+    public Dictionary<string,object> Variables = new();
 
     public ShaderMixer()
     {
