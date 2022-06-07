@@ -10,7 +10,10 @@ using System.Threading.Tasks;
 namespace Stride.Shaders.Parsing.AST.Shader;
 
 
-public abstract class Statement : ShaderToken {}
+public class Statement : ShaderToken 
+{
+    public List<Compiling.Register> LowCode {get;set;} = new();
+}
 
 public class EmptyStatement : Statement {}
 
