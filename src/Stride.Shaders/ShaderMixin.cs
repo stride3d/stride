@@ -35,14 +35,14 @@ public class ShaderMixin
         AST = (ShaderProgram)Parser.Parse(Code);
     }
 
-    public IEnumerable<ShaderValueDeclaration> GetStreamValues()
+    public IEnumerable<ShaderVariableDeclaration> GetStreamValues()
     {
         if (AST is not null)
             return
                 from e in AST.Body
-                where e is ShaderValueDeclaration v 
+                where e is ShaderVariableDeclaration v 
                 && v.IsStream
-                select e as ShaderValueDeclaration;
+                select e as ShaderVariableDeclaration;
         else
             throw new Exception("AST is null");
     }

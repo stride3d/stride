@@ -10,24 +10,21 @@ namespace Stride.Shaders.Compiling;
 
 public partial class ShaderMixer : ShaderSource
 {
-    public ShaderMixinParser Parser {get;set;}
-    public List<ShaderMixin> Mixins { get; set; } = new();
+    public ShaderSource Mixins { get; set; }
+    public MixinVirtualTable LocalVTable {get;set;}
+
+    public MixinVirtualTable VirtualVTable {get;set;}
 
     public Dictionary<string,object> Variables = new();
 
-    public ShaderMixer()
+    public ShaderMixer(string code)
     {
-        Parser = new();
-    }
-    public ShaderMixer(ShaderMixinParser parser)
-    {
-        Parser = parser;
-    }
 
-    public void Add(string mixin)
-    {
-        Mixins.Add(new ShaderMixin(mixin,Parser));
     }
+    // public ShaderMixer(string code, Dictionary<string,object> macros)
+    // {
+        
+    // }
 
     public override object Clone()
     {

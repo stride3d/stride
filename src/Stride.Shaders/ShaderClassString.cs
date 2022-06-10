@@ -10,10 +10,7 @@ namespace Stride.Shaders;
 
 public class ShaderClassString
 {
-    public string Code { get; set; }
-    public string ClassName { get; set; }
-    public ShaderProgram? AST { get; set; }
-    string[] EntryPointNames = {
+    static string[] EntryPointNames = {
         "PSMain",
         "VSMain",
         "GSMain",
@@ -22,29 +19,32 @@ public class ShaderClassString
         "CSMain"
     };
 
-    ShaderMixinParser Parser { get; set; }
 
-    public ShaderClassString(string code, ShaderMixinParser parser)
+    public string Code { get; set; }
+    public string ClassName => AST is null ? "" : AST.Name;
+    public ShaderProgram? AST { get; set; }
+
+    public ShaderClassString(string code)
     {
         Code = code;
-        Parser = parser;
+        AST = ShaderMixinParser.ParseShader(code);
     }
 
     public void Parse()
     {
-        AST = (ShaderProgram)Parser.Parse(Code);
+        AST = ShaderMixinParser.ParseShader(Code);
     }
 
-    public IEnumerable<ShaderValueDeclaration> GetStreamValues()
+    public IEnumerable<ShaderVariableDeclaration> GetStreamValues()
     {
         return
             from e in AST?.Body
-            where e is ShaderValueDeclaration v
+            where e is ShaderVariableDeclaration v
             && v.IsStream
-            select e as ShaderValueDeclaration;
+            select e as ShaderVariableDeclaration;
     }
 
-    public ShaderMethod GetEntryPoint(EntryPoints entry)
+    public ShaderMethod? GetEntryPoint(EntryPoints entry)
     {
         return AST?.Body.First(e => e is ShaderMethod m && m.Name == entry.ToString()) as ShaderMethod;
     }

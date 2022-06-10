@@ -53,7 +53,7 @@ public class ShaderMethod : ShaderToken
     }
 }
 
-public class ShaderValueDeclaration : ShaderToken
+public class ShaderVariableDeclaration : ShaderToken
 {
     public bool IsStream {get;set;}
     public bool IsStaged {get;set;}
@@ -62,7 +62,7 @@ public class ShaderValueDeclaration : ShaderToken
     public string? Semantic { get; set; }
     public ShaderToken Expression {get;set;}
 
-    public ShaderValueDeclaration(Match m)
+    public ShaderVariableDeclaration(Match m)
     {
         Match = m;
         IsStream = m["Stream"].Success;

@@ -10,7 +10,7 @@ namespace Stride.Shaders.Compiling;
 
 public class Register 
 {
-    private string name;
+    private string? name;
     public string Name 
     { 
         get => name ?? "id_" + GetHashCode(); 

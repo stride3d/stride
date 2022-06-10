@@ -14,6 +14,11 @@ using CppNet;
 
 public class ShaderMixinParser
 {
+
+    private static readonly ShaderMixinParser instance = new();
+    public static ShaderProgram ParseShader(string shader) => (ShaderProgram)instance.Parse(shader);
+    
+
     public SDSLGrammar Grammar {get;set;}
     public DirectivePreprocessor DPreprocessor { get; set; }
     public Preprocessor Preprocessor { get; set; }

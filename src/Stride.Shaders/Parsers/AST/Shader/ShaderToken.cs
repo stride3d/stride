@@ -31,7 +31,7 @@ public abstract class ShaderToken
 			"ShaderProgram" => new ShaderProgram(tmp),
 			"ResourceGroup" => new ResourceGroup(tmp),
 			"ConstantBuffer" => new ConstantBuffer(tmp),
-			"ShaderValueDeclaration" => new ShaderValueDeclaration(tmp),
+			"ShaderValueDeclaration" => new ShaderVariableDeclaration(tmp),
 			"Method" => new ShaderMethod(tmp),
 			"ControlFlow" => ControlFlow.Create(tmp),
 			"Block" => new BlockStatement(tmp),
