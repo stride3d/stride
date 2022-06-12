@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 using Stride.LauncherApp.Resources;
@@ -17,6 +17,8 @@ namespace Stride.LauncherApp.ViewModels
 {
     internal class NewsPageViewModel : DispatcherViewModel
     {
+        private static readonly HttpClient httpClient = new();
+
         public NewsPageViewModel(IViewModelServiceProvider serviceProvider)
             : base(serviceProvider)
         {
@@ -63,56 +65,43 @@ namespace Stride.LauncherApp.ViewModels
         public static async Task<List<NewsPageViewModel>> FetchNewsPages(IViewModelServiceProvider serviceProvider, int maxCount)
         {
             var result = new List<NewsPageViewModel>();
-            var rss = new MemoryStream();
             try
             {
-                WebRequest request = WebRequest.Create(Urls.RssFeed);
-                using (var reponse = await request.GetResponseAsync())
+                using (var response = await httpClient.GetAsync(Urls.RssFeed))
                 {
-                    using (var str = reponse.GetResponseStream())
-                    {
-                        str?.CopyTo(rss);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Unable to reach the url, return an empty list.
-                return result;
-            }
+                    response.EnsureSuccessStatusCode();
+                    var rss = await response.Content.ReadAsStreamAsync();
 
-            rss.Position = 0;
-            if (rss.Length == 0)
-                return result;
+                    if (rss.Length == 0)
+                        return result;
 
-            try
-            {
-                int count = 0;
-                using (XmlReader rssReader = XmlReader.Create(rss))
-                {
-                    rssReader.MoveToContent();
-                    while (rssReader.ReadToFollowing("item") && count < maxCount)
+                    int count = 0;
+                    using (XmlReader rssReader = XmlReader.Create(rss))
                     {
-                        rssReader.ReadToFollowing("title");
-                        string title = rssReader.Read() ? rssReader.Value : null;
-                        rssReader.ReadToFollowing("description");
-                        string description = rssReader.Read() ? rssReader.Value : null;
-                        rssReader.ReadToFollowing("pubDate");
-                        var date = new DateTime();
-                        bool dateValid = rssReader.Read() && DateTime.TryParseExact(rssReader.Value, "ddd, dd MMM yyyy HH:mm:ss zz00", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
-                        rssReader.ReadToFollowing("link");
-                        string link = rssReader.Read() ? rssReader.Value : null;
-                        if (dateValid && title != null && link != null && description != null)
+                        rssReader.MoveToContent();
+                        while (rssReader.ReadToFollowing("item") && count < maxCount)
                         {
-                            var page = new NewsPageViewModel(serviceProvider)
+                            rssReader.ReadToFollowing("title");
+                            string title = rssReader.Read() ? rssReader.Value : null;
+                            rssReader.ReadToFollowing("description");
+                            string description = rssReader.Read() ? rssReader.Value : null;
+                            rssReader.ReadToFollowing("pubDate");
+                            var date = new DateTime();
+                            bool dateValid = rssReader.Read() && DateTime.TryParseExact(rssReader.Value, "ddd, dd MMM yyyy HH:mm:ss zz00", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+                            rssReader.ReadToFollowing("link");
+                            string link = rssReader.Read() ? rssReader.Value : null;
+                            if (dateValid && title != null && link != null && description != null)
                             {
-                                Title = title,
-                                Url = link,
-                                Description = description,
-                                Date = date
-                            };
-                            result.Add(page);
-                            ++count;
+                                var page = new NewsPageViewModel(serviceProvider)
+                                {
+                                    Title = title,
+                                    Url = link,
+                                    Description = description,
+                                    Date = date
+                                };
+                                result.Add(page);
+                                ++count;
+                            }
                         }
                     }
                 }

@@ -5,28 +5,28 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-
 using Stride.Core;
 using Stride.Core.Extensions;
-using Stride.LauncherApp.Views;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
+using Stride.LauncherApp.Resources;
+using Stride.LauncherApp.Views;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
-using System.Net;
-using Stride.LauncherApp.Resources;
-using System.Text.RegularExpressions;
 
 namespace Stride.LauncherApp.Services
 {
     public static class SelfUpdater
     {
         public static readonly string Version;
+        private static readonly HttpClient httpClient = new();
 
         private static SelfUpdateWindow selfUpdateWindow;
 
@@ -46,7 +46,7 @@ namespace Stride.LauncherApp.Services
                 {
                     await UpdateLauncherFiles(dispatcher, services.Get<IDialogService>(), store, CancellationToken.None);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     dispatcher.Invoke(() => selfUpdateWindow?.ForceClose());
                     throw;
@@ -214,9 +214,13 @@ namespace Stride.LauncherApp.Services
 
 
                 var strideInstaller = Path.Combine(Path.GetTempPath(), $"StrideSetup-{Guid.NewGuid()}.exe");
-                using (WebClient webClient = new WebClient())
+                using (var response = await httpClient.GetAsync(strideInstallerUrl))
                 {
-                    webClient.DownloadFile(strideInstallerUrl, strideInstaller);
+                    response.EnsureSuccessStatusCode();
+
+                    await using var responseStream = await response.Content.ReadAsStreamAsync();
+                    await using var fileStream = File.Create(strideInstaller);
+                    responseStream.CopyTo(fileStream);
                 }
 
                 var startInfo = new ProcessStartInfo(strideInstaller)

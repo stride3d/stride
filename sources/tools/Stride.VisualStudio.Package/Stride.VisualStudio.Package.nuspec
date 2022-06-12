@@ -5,12 +5,12 @@
     <version>4.1.0</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
-    <licenseUrl>https://github.com/stride3d/stride/blob/master/LICENSE.md</licenseUrl>
+    <license type="expression">MIT</license>
     <projectUrl>http://stride3d.net/</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/stride3d/media/master/images/mainlogo/nuget/logo.png</iconUrl>
     <repository type="git" url="https://github.com/stride3d/stride" />
-    <copyright>&#169; Stride contributors and Silicon Studio Corp.</copyright>
-    <description>Visual Studio Integration Plugin for Stride</description>
+    <copyright>&#169; Stride contributors, Silicon Studio Corp. and  the .NET Foundation</copyright>
+    <description>Visual Studio Extension for Stride</description>
     <tags>internal</tags>
   </metadata>
   <files>

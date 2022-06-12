@@ -87,13 +87,16 @@ namespace Stride.Core.Assets.Quantum
 
         public virtual void Dispose()
         {
-            nodeListener.ValueChanging -= AssetContentChanging;
-            nodeListener.ValueChanged -= AssetContentChanged;
-            nodeListener.ItemChanging -= AssetItemChanging;
-            nodeListener.ItemChanged -= AssetItemChanged;
-            nodeListener.Dispose();
-            ClearAllBaseLinks();
-            isDisposed = true;
+            if (!isDisposed)
+            {
+                nodeListener.ValueChanging -= AssetContentChanging;
+                nodeListener.ValueChanged -= AssetContentChanged;
+                nodeListener.ItemChanging -= AssetItemChanging;
+                nodeListener.ItemChanged -= AssetItemChanged;
+                nodeListener.Dispose();
+                ClearAllBaseLinks();
+                isDisposed = true;
+            }
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <Import Project="..\..\targets\Stride.Core.props" />
 
@@ -14,9 +14,6 @@
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Reference Include="PresentationFramework.Aero" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
