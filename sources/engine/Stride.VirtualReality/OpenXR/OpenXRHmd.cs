@@ -1,5 +1,3 @@
-#define DEBUG_OPENXR
-
 using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
@@ -149,12 +147,11 @@ namespace Stride.VirtualReality
             baseDevice = device;
             // Create our API object for OpenXR.
             Xr = XR.GetApi();
-            Logger.Warning("Abra cadabra");
 
             PrintApiLayers();
 
 
-            Logger.Info("Installing extensions");
+            Logger.Debug("Installing extensions");
 
             Extensions.Clear();
 #if STRIDE_GRAPHICS_API_DIRECT3D11
@@ -179,14 +176,14 @@ namespace Stride.VirtualReality
             }
             Xr.EnumerateInstanceExtensionProperties((byte*)null, propCount, &propCount, props);
 
-            Logger.Info("Supported extensions (" + propCount + "):");
+            Logger.Debug("Supported extensions (" + propCount + "):");
             List<string> AvailableExtensions = new List<string>();
             for (int i = 0; i < props.Length; i++)
             {
                 fixed (void* nptr = props[i].ExtensionName)
                 {
                     var extension_name = Marshal.PtrToStringAnsi(new System.IntPtr(nptr));
-                    Logger.Info(extension_name);
+                    Logger.Debug(extension_name);
                     AvailableExtensions.Add(extension_name);
                 }
             }
@@ -275,7 +272,7 @@ namespace Stride.VirtualReality
             // supports that form factor. The response we get is a ulong that is the System ID.
             var getInfo = new SystemGetInfo(formFactor: FormFactor.HeadMountedDisplay) { Type = StructureType.TypeSystemGetInfo };
             CheckResult(Xr.GetSystem(Instance, in getInfo, ref system_id), "GetSystem");
-            Logger.Info("Successfully got XrSystem with id " + system_id + " for HMD form factor");
+            Logger.Debug("Successfully got XrSystem with id " + system_id + " for HMD form factor");
 
             SystemProperties system_props = new SystemProperties()
             {
@@ -290,11 +287,11 @@ namespace Stride.VirtualReality
             var viewconfigs = new ViewConfigurationType[view_config_count];
             fixed (ViewConfigurationType* viewconfigspnt = &viewconfigs[0])
                 CheckResult(Xr.EnumerateViewConfiguration(Instance, system_id, view_config_count, ref view_config_count, viewconfigspnt), "EnumerateViewConfiguration");
-            Logger.Info("Available config types: ");
+            Logger.Debug("Available config types: ");
             var viewtype_found = false;
             for (int i = 0; i < view_config_count; i++)
             {
-                Logger.Info("    " + viewconfigs[i]);
+                Logger.Debug("    " + viewconfigs[i]);
                 viewtype_found |= view_type == viewconfigs[i];
             }
             if (!viewtype_found)
@@ -318,7 +315,7 @@ namespace Stride.VirtualReality
             renderSize.Height = (int)Math.Round(viewconfig_views[0].RecommendedImageRectHeight * RenderFrameScaling);
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-            Logger.Info(
+            Logger.Debug(
                 "Initializing DX11 graphics device: "
             );
             GraphicsRequirementsD3D11KHR dx11 = new GraphicsRequirementsD3D11KHR()
@@ -331,8 +328,8 @@ namespace Stride.VirtualReality
             // this function pointer was loaded with xrGetInstanceProcAddr
             Delegate dx11_req = Marshal.GetDelegateForFunctionPointer((IntPtr)xrGetD3D11GraphicsRequirementsKHR.Handle, typeof(pfnGetD3D11GraphicsRequirementsKHR));
             dx11_req.DynamicInvoke(Instance, system_id, new System.IntPtr(&dx11));
-            Logger.Info("Initializing dx11 graphics device");
-            Logger.Info(
+            Logger.Debug("Initializing dx11 graphics device");
+            Logger.Debug(
                 "DX11 device luid: " + dx11.AdapterLuid
                 + " min feature level: " + dx11.MinFeatureLevel
             );
@@ -402,7 +399,7 @@ namespace Stride.VirtualReality
             {
                 var texture = new SharpDX.Direct3D11.Texture2D((IntPtr)images[i].Texture);
                 var color_desc = texture.Description;
-                Logger.Info("Color texture description: " + color_desc.Width.ToString() + "x" + color_desc.Height.ToString() + " format: " + color_desc.Format.ToString());
+                Logger.Debug("Color texture description: " + color_desc.Width.ToString() + "x" + color_desc.Height.ToString() + " format: " + color_desc.Format.ToString());
 
                 var target_desc = new SharpDX.Direct3D11.RenderTargetViewDescription()
                 {
@@ -685,7 +682,7 @@ namespace Stride.VirtualReality
 
         public override void SetTrackingSpace(TrackingSpace space)
         {
-            Logger.Info("Changing tracking space to: " + space);
+            Logger.Debug("Changing tracking space to: " + space);
             switch (space) {
                 case TrackingSpace.Seated:
                     play_space_type = ReferenceSpaceType.Local;
@@ -750,7 +747,7 @@ namespace Stride.VirtualReality
             if (count == 0)
             {
 
-                Logger.Info("No API Layers");
+                Logger.Debug("No API Layers");
                 return;
             }
 
@@ -763,12 +760,12 @@ namespace Stride.VirtualReality
 
             CheckResult(Xr.EnumerateApiLayerProperties(count, &count, props), "EnumerateApiLayerProperties");
 
-            Logger.Info("API Layers:");
+            Logger.Debug("API Layers:");
             for (uint i = 0; i < count; i++)
             {
                 fixed (void* nptr = props[i].LayerName)
                 fixed (void* dptr = props[i].Description)
-                    Logger.Info(
+                    Logger.Debug(
                         Marshal.PtrToStringAnsi(new System.IntPtr(nptr))
                         + " "
                         + props[i].LayerVersion
@@ -780,27 +777,27 @@ namespace Stride.VirtualReality
 
         private unsafe void PrintSystemProperties(SystemProperties system_properties)
         {
-            Logger.Info(
+            Logger.Debug(
                 "System properties: "
                 + Marshal.PtrToStringAnsi(new System.IntPtr(system_properties.SystemName))
                 + ", vendor: "
                 + Marshal.PtrToStringAnsi(new System.IntPtr(system_properties.VendorId))
             );
-            Logger.Info(
+            Logger.Debug(
                 "Max layers: "
                 + system_properties.GraphicsProperties.MaxLayerCount
             );
-            Logger.Info(
+            Logger.Debug(
                 "Max swapchain size: "
                 + system_properties.GraphicsProperties.MaxSwapchainImageWidth
                 + "x"
                 + system_properties.GraphicsProperties.MaxSwapchainImageHeight
             );
-            Logger.Info(
+            Logger.Debug(
                 "Orientation Tracking: "
                 + system_properties.TrackingProperties.OrientationTracking
             );
-            Logger.Info(
+            Logger.Debug(
                 "tPosition Tracking: "
                 + system_properties.TrackingProperties.PositionTracking
             );
@@ -810,13 +807,13 @@ namespace Stride.VirtualReality
         {
             foreach (var viewconfig_view in viewconfig_views)
             {
-                Logger.Info("View Configuration View:");
-                Logger.Info(
+                Logger.Debug("View Configuration View:");
+                Logger.Debug(
                     "Resolution: Recommended "
                     + viewconfig_view.RecommendedImageRectWidth + "x" + viewconfig_view.RecommendedImageRectHeight
                     + " Max: " + viewconfig_view.MaxImageRectWidth + "x" + viewconfig_view.MaxImageRectHeight
                 );
-                Logger.Info(
+                Logger.Debug(
                     "Swapchain Samples: Recommended"
                     + viewconfig_view.RecommendedSwapchainSampleCount
                     + " Max: " + viewconfig_view.MaxSwapchainSampleCount
@@ -962,7 +959,7 @@ namespace Stride.VirtualReality
                     case StructureType.TypeEventDataSessionStateChanged:
                         {
                             var session_event = Unsafe.As<EventDataBuffer, EventDataSessionStateChanged>(ref runtime_event);
-                            Logger.Info("EVENT: session state changed " + state + " -> " + session_event.State);
+                            Logger.Debug("EVENT: session state changed " + state + " -> " + session_event.State);
                             state = session_event.State;
                             switch (session_event.State)
                             {
@@ -1011,17 +1008,17 @@ namespace Stride.VirtualReality
                         }
                     case StructureType.TypeEventDataInteractionProfileChanged:
                         {
-                            Logger.Info("EVENT: interaction profile changed");
+                            Logger.Debug("EVENT: interaction profile changed");
                             var profile_changed_event = Unsafe.As<EventDataBuffer, EventDataInteractionProfileChanged>(ref runtime_event);
                             CheckResult(Xr.GetCurrentInteractionProfile(profile_changed_event.Session, leftHandPath, ref handProfileState), "GetCurrentInteractionProfile");
-                            Logger.Info(
+                            Logger.Debug(
                                 "Profile changed to" + handProfileState.InteractionProfile.ToString()
                             );
                             break;
                         }
                     default:
                         {
-                            Logger.Info("EVENT: other type: " + runtime_event.Type);
+                            Logger.Debug("EVENT: other type: " + runtime_event.Type);
                             break;
                         }
                 }
