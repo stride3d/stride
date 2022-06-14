@@ -299,7 +299,7 @@ namespace Stride.VirtualReality
             };
             CheckResult(Xr.GetInstanceProperties(Instance, ref properties), "GetInstanceProperties");
 
-            var runtimeName = SilkMarshal.PtrToString((nint)properties.RuntimeName);
+            var runtimeName = Marshal.PtrToStringAnsi(new System.IntPtr(properties.RuntimeName));
             var runtimeVersion = ((Version)(Version64)properties.RuntimeVersion).ToString(3);
 
             Console.WriteLine($"[INFO] Application: Using OpenXR Runtime \"{runtimeName}\" v{runtimeVersion}");
@@ -861,8 +861,8 @@ namespace Stride.VirtualReality
             // Print the debug message we got! There's a bunch more info we could
             // add here too, but this is a pretty good start, and you can always
             // add a breakpoint this line!
-            var function_name = SilkMarshal.PtrToString((nint)msg->FunctionName);
-            var message = SilkMarshal.PtrToString((nint)msg->Message);
+            var function_name = Marshal.PtrToStringAnsi(new System.IntPtr(msg->FunctionName));
+            var message = Marshal.PtrToStringAnsi(new System.IntPtr(msg->Message));
             Logger.Warning(function_name + " " + message);
 
             // Returning XR_TRUE here will force the calling function to fail
