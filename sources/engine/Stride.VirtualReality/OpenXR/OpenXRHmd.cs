@@ -2,18 +2,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
 using Silk.NET.OpenXR;
 using System.Runtime.InteropServices;
-using System.Linq;
 using Silk.NET.Core;
 using System.Diagnostics;
 using Silk.NET.Core.Native;
-using Stride.Graphics.SDL;
-using Vortice.Vulkan;
 using System.Runtime.CompilerServices;
 
 namespace Stride.VirtualReality
@@ -27,14 +23,8 @@ namespace Stride.VirtualReality
         public Space globalPlaySpace;
         public FrameState globalFrameState;
         public ReferenceSpaceType play_space_type = ReferenceSpaceType.Local; //XR_REFERENCE_SPACE_TYPE_LOCAL;
-        //public SwapchainImageVulkan2KHR[] images;
-        //public SwapchainImageVulkan2KHR[] depth_images;
-#if STRIDE_GRAPHICS_API_VULKAN
-        public SwapchainImageVulkanKHR[] images;
-        public SwapchainImageVulkanKHR[] depth_images;
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         public SwapchainImageD3D11KHR[] images;
-        public SwapchainImageD3D11KHR[] depth_images;
         public SharpDX.Direct3D11.RenderTargetView[] render_targets;
 #endif
         public ActionSet globalActionSet;
@@ -59,19 +49,7 @@ namespace Stride.VirtualReality
 
         private Size2 renderSize;
 
-#if STRIDE_GRAPHICS_API_VULKAN
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private unsafe delegate Result pfnGetVulkanGraphicsRequirements2KHR(Instance instance, ulong sys_id, GraphicsRequirementsVulkanKHR* req);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private unsafe delegate Result pfnGetVulkanGraphicsDevice2KHR(Instance instance, VulkanGraphicsDeviceGetInfoKHR* getInfo, VkPhysicalDevice* vulkanPhysicalDevice);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private unsafe delegate Result pfnGetVulkanGraphicsRequirementsKHR(Instance instance, ulong sys_id, GraphicsRequirementsVulkanKHR* req);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private unsafe delegate Result pfnGetVulkanGraphicsDeviceKHR(Instance instance, ulong systemId, VkHandle vkInstance, VkHandle* vkPhysicalDevice);
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private unsafe delegate Result pfnGetD3D11GraphicsRequirementsKHR(Instance instance, ulong sys_id, GraphicsRequirementsD3D11KHR* req);
 #endif
@@ -81,10 +59,7 @@ namespace Stride.VirtualReality
 
         private List<string> Extensions = new List<string>();
         internal bool begunFrame, swapImageCollected;
-#if STRIDE_GRAPHICS_API_VULKAN
-        internal Texture swapTexture;
-        internal ulong swapchainPointer;
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         internal uint swapchainPointer;
 #endif
 
@@ -182,10 +157,7 @@ namespace Stride.VirtualReality
             Logger.Info("Installing extensions");
 
             Extensions.Clear();
-#if STRIDE_GRAPHICS_API_VULKAN
-            //Extensions.Add("XR_KHR_vulkan_enable2");
-            Extensions.Add("XR_KHR_vulkan_enable");
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
             Extensions.Add("XR_KHR_D3D11_enable");
 #endif
 #if DEBUG_OPENXR
@@ -228,12 +200,7 @@ namespace Stride.VirtualReality
                 }
             }
 
-#if STRIDE_GRAPHICS_API_VULKAN
-            if (!AvailableExtensions.Contains("XR_KHR_vulkan_enable"))
-            {
-                throw new InvalidOperationException($"OpenXR error! Current implementation doesn't support directX 11");
-            }
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
             if (!AvailableExtensions.Contains("XR_KHR_D3D11_enable"))
             {
                 throw new InvalidOperationException($"OpenXR error! Current implementation doesn't support directX 11");
@@ -350,55 +317,7 @@ namespace Stride.VirtualReality
             renderSize.Width = (int)Math.Round(viewconfig_views[0].RecommendedImageRectWidth * RenderFrameScaling) * 2; // 2 views in one frame
             renderSize.Height = (int)Math.Round(viewconfig_views[0].RecommendedImageRectHeight * RenderFrameScaling);
 
-#if STRIDE_GRAPHICS_API_VULKAN
-            GraphicsRequirementsVulkanKHR vulk = new GraphicsRequirementsVulkanKHR()
-            {
-                Type = StructureType.TypeGraphicsRequirementsVulkanKhr
-            };
-
-            Silk.NET.Core.PfnVoidFunction func = new Silk.NET.Core.PfnVoidFunction();
-            CheckResult(Xr.GetInstanceProcAddr(Instance, "xrGetVulkanGraphicsRequirementsKHR", ref func), "GetInstanceProcAddr::xrGetVulkanGraphicsRequirementsKHR");
-            // this function pointer was loaded with xrGetInstanceProcAddr
-            Delegate vulk_req = Marshal.GetDelegateForFunctionPointer((IntPtr)func.Handle, typeof(pfnGetVulkanGraphicsRequirementsKHR));
-            vulk_req.DynamicInvoke(Instance, system_id, new System.IntPtr(&vulk));
-            Logger.Info("Initializing vulkan graphics device");
-
-            VkHandle physicalDevice = new VkHandle();
-            Silk.NET.Core.PfnVoidFunction func2 = new Silk.NET.Core.PfnVoidFunction();
-            CheckResult(Xr.GetInstanceProcAddr(Instance, "xrGetVulkanGraphicsDeviceKHR", ref func2), "GetInstanceProcAddr::xrGetVulkanGraphicsDeviceKHR");
-            Delegate vulk_dev = Marshal.GetDelegateForFunctionPointer((IntPtr)func2.Handle, typeof(pfnGetVulkanGraphicsDeviceKHR));
-            var result = vulk_dev.DynamicInvoke(Instance, system_id, new VkHandle((nint)device.NativeInstance.Handle), new System.IntPtr(&physicalDevice));
-
-            Logger.Info(
-                "Initializing vulkan graphics device vulkan device: "
-                + ((nint)device.NativeDevice.Handle).ToString()
-                + " instance "
-                + ((nint)device.NativeInstance.Handle).ToString()
-                + " physical device "
-                + ((nint)physicalDevice.Handle).ToString()
-                + result
-            );
-
-            // --- Create session
-            var graphics_binding_vulkan = new GraphicsBindingVulkanKHR()
-            {
-                Type = StructureType.TypeGraphicsBindingVulkanKhr,
-                Device = new VkHandle((nint)device.NativeDevice.Handle),
-                Instance = new VkHandle((nint)device.NativeInstance.Handle),
-                PhysicalDevice = physicalDevice,
-                QueueFamilyIndex = 0,
-                QueueIndex = 0,
-            };
-
-            if (graphics_binding_vulkan.PhysicalDevice.Handle == 0)
-                throw new InvalidOperationException("OpenXR couldn't find a physical device.\n\nIs an OpenXR runtime running (e.g. SteamVR)?");
-
-            SessionCreateInfo session_create_info = new SessionCreateInfo() {
-                Type = StructureType.TypeSessionCreateInfo,
-                Next = &graphics_binding_vulkan,
-                SystemId = system_id
-            };
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
             Logger.Info(
                 "Initializing DX11 graphics device: "
             );
@@ -431,7 +350,7 @@ namespace Stride.VirtualReality
                 SystemId = system_id
             };
 #else
-            throw new Exception("OpenXR is only compatible with Vulkan or DirectX11");
+            throw new Exception("OpenXR is only compatible with DirectX11");
 #endif
 
             Session session;
@@ -448,9 +367,7 @@ namespace Stride.VirtualReality
                                 SwapchainUsageFlags.SwapchainUsageSampledBit |
                                 SwapchainUsageFlags.SwapchainUsageColorAttachmentBit,
                 CreateFlags = 0,
-#if STRIDE_GRAPHICS_API_VULKAN
-                Format = (long)43, // VK_FORMAT_R8G8B8A8_SRGB = 43
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
                 Format = (long)PixelFormat.R8G8B8A8_UNorm_SRgb,
 #endif
                 SampleCount = viewconfig_views[0].RecommendedSwapchainSampleCount,
@@ -464,33 +381,9 @@ namespace Stride.VirtualReality
             CheckResult(Xr.CreateSwapchain(session, &swapchain_create_info, &swapchain), "CreateSwapchain");
             globalSwapchain = swapchain;
 
-#if STRIDE_GRAPHICS_API_VULKAN
-            swapTexture = new Texture(baseDevice, new TextureDescription()
-            {
-                ArraySize = 1,
-                Depth = 1,
-                Dimension = TextureDimension.Texture2D,
-                Flags = TextureFlags.RenderTarget | TextureFlags.ShaderResource,
-                Format = PixelFormat.R8G8B8A8_UNorm_SRgb,
-                Height = renderSize.Height,
-                MipLevels = 1,
-                MultisampleCount = MultisampleCount.None,
-                Options = TextureOptions.None,
-                Usage = GraphicsResourceUsage.Default,
-                Width = renderSize.Width,
-            });
-#endif
-
             uint img_count = 0;
             CheckResult(Xr.EnumerateSwapchainImages(swapchain, 0, ref img_count, null), "EnumerateSwapchainImages");
-#if STRIDE_GRAPHICS_API_VULKAN
-            images = new SwapchainImageVulkanKHR[img_count];
-            for (int i = 0; i < img_count; i++)
-            {
-                images[i].Type = StructureType.TypeSwapchainImageVulkanKhr;
-                images[i].Next = null;
-            }
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
             images = new SwapchainImageD3D11KHR[img_count];
             for (int i = 0; i < img_count; i++)
             {
@@ -689,20 +582,7 @@ namespace Stride.VirtualReality
             headPos.Z = views[0].Pose.Position.Z;
         }
 
-#if STRIDE_GRAPHICS_API_VULKAN
-        public unsafe ulong GetSwapchainImage()
-        {
-            // Get the swapchain image
-            var swapchainIndex = 0u;
-            var acquireInfo = new SwapchainImageAcquireInfo() { Type = StructureType.TypeSwapchainImageAcquireInfo };
-            CheckResult(Xr.AcquireSwapchainImage(globalSwapchain, in acquireInfo, ref swapchainIndex), "AcquireSwapchainImage");
-
-            var waitInfo = new SwapchainImageWaitInfo(timeout: long.MaxValue) { Type = StructureType.TypeSwapchainImageWaitInfo };
-            swapImageCollected = Xr.WaitSwapchainImage(globalSwapchain, in waitInfo) == Result.Success;
-
-            return images[swapchainIndex].Image;
-         }
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         public unsafe uint GetSwapchainImage()
         {
             // Logger.Warning("AcquireSwapchainImage");
@@ -734,20 +614,7 @@ namespace Stride.VirtualReality
         }
 #endif
 
-#if STRIDE_GRAPHICS_API_VULKAN
-        public override unsafe void Commit(CommandList commandList, Texture renderFrame)
-        {
-            // if we didn't wait a frame, don't commit
-            if (begunFrame == false || swapImageCollected == false)
-                return;
-
-            // copy texture to swapchain image
-            swapTexture.SetFullHandles(new VkImage(swapchainPointer), VkImageView.Null, 
-                                       renderFrame.NativeLayout, renderFrame.NativeAccessMask,
-                                       renderFrame.NativeFormat, renderFrame.NativeImageAspect);
-            commandList.Copy(renderFrame, swapTexture);
-        }
-#elif STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         public override void Commit(CommandList commandList, Texture renderFrame)
         {
             // if we didn't wait a frame, don't commit
