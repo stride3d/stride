@@ -31,7 +31,7 @@
     </When>
   </Choose>
   <Choose>
-    <When Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' Or '$(StrideGraphicsApi)' == 'Vulkan' ">
+    <When Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' ">
       <ItemGroup>
         <StrideNativeLib Include="..\..\..\deps\OpenVR\$(StridePlatform)\**\openvr_api.*">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
