@@ -816,6 +816,45 @@ namespace Stride.VirtualReality
             }
         }
 
+        public override void SetTrackingSpace(TrackingSpace space)
+        {
+            Logger.Info("Changing tracking space to: " + space);
+            switch (space) {
+                case TrackingSpace.Seated:
+                    play_space_type = ReferenceSpaceType.Local;
+                    break;
+                case TrackingSpace.Standing:
+                    play_space_type = ReferenceSpaceType.Stage;
+                    break;
+                case TrackingSpace.RawAndUncalibrated:
+                    play_space_type = ReferenceSpaceType.View;
+                    break;
+            }
+
+            var play_space = new Space();
+            ReferenceSpaceCreateInfo play_space_create_info = new ReferenceSpaceCreateInfo()
+            {
+                Type = StructureType.TypeReferenceSpaceCreateInfo,
+                Next = null,
+                ReferenceSpaceType = play_space_type,
+                PoseInReferenceSpace = new Posef(new Quaternionf(0f, 0f, 0f, 1f), new Vector3f(0f, 0f, 0f)),
+            };
+            unsafe
+            {
+                CheckResult(Xr.CreateReferenceSpace(globalSession, &play_space_create_info, &play_space), "CreateReferenceSpace");
+            }
+            globalPlaySpace = play_space;
+        }
+
+        public override void Recenter()
+        {
+            // TODO: OpenXR doens´t have a renceter api. Recenter in this case needs to be done from the 
+            // engine by moving the world or adding an offset?
+            // 
+            // The VR api could have a new property CanRencenter or DoesRecenter that returns true or false
+            // if the specific API can do a renceter or the engine needs to take care of that
+        }
+
 #if DEBUG_OPENXR
         private static unsafe uint DebugCallback(DebugUtilsMessageSeverityFlagsEXT severity, DebugUtilsMessageTypeFlagsEXT types, DebugUtilsMessengerCallbackDataEXT* msg, void* user_data)
         {
