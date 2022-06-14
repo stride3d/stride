@@ -698,6 +698,11 @@ namespace Stride.VirtualReality
                     break;
             }
 
+            if (!globalPlaySpace.Equals(null))
+            {
+                CheckResult(Xr.DestroySpace(globalPlaySpace), "DestroySpace");
+            }
+
             var play_space = new Space();
             ReferenceSpaceCreateInfo play_space_create_info = new ReferenceSpaceCreateInfo()
             {
