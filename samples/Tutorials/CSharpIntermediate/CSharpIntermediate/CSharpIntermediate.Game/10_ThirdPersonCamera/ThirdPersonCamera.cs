@@ -67,8 +67,7 @@ namespace CSharpIntermediate.Code
 
                 // The third person pivot gets the same position and rotation as the first person pivot + the camera offset
                 thirdPersonPivot.Transform.Position = new Vector3(0);
-                thirdPersonPivot.Transform.Rotation = firstPersonPivot.Transform.Rotation;
-                thirdPersonPivot.Transform.Position += Vector3.Transform(CameraOffset, firstPersonPivot.Transform.Rotation);
+                thirdPersonPivot.Transform.Position += CameraOffset;
 
                 // Make sure that the WorldMatrix of the thirdperson pivot is up to date
                 thirdPersonPivot.Transform.UpdateWorldMatrix();
@@ -93,8 +92,6 @@ namespace CSharpIntermediate.Code
                         thirdPersonPivot.Transform.Position = new Vector3(0);
                     }
                 }
-
-                Input.MousePosition = new Vector2(0.5f);
             }
         }
     }

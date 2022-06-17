@@ -55,7 +55,7 @@ namespace CSharpIntermediate.Code
                 var mouseMovement = Input.MouseDelta * MouseSpeed;
 
                 // Update camera rotation values
-                camRotation.Y += mouseMovement.X;
+                camRotation.Y += -mouseMovement.X;
                 camRotation.X += InvertMouseY ? -mouseMovement.Y : mouseMovement.Y;
                 camRotation.X = MathUtil.Clamp(camRotation.X, maxCameraAnglesRadians.X, maxCameraAnglesRadians.Y);
 
