@@ -84,7 +84,7 @@ namespace CSharpIntermediate.Code
                     if (hitDistance >= MinimumCameraDistance)
                     {
                         // If the distance is larger than the minimum distance, place the camera at the hitpoint
-                        thirdPersonPivot.Transform.Position.Z = -(hitDistance-0.1f);
+                        thirdPersonPivot.Transform.Position.Z = -(hitDistance - 0.1f);
                     }
                     else
                     {
