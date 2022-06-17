@@ -7,7 +7,7 @@ using Spv.Generator;
 using Stride.Shaders.Parsing.AST.Shader;
 using static Spv.Specification;
 
-namespace Stride.Shaders;
+namespace Stride.Shaders.Spirv;
 
 public partial class SpirvEmitter : Module
 {

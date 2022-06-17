@@ -6,25 +6,35 @@ using System.Threading.Tasks;
 using Spv.Generator;
 using Stride.Shaders.Parsing;
 
-namespace Stride.Shaders.Compiling;
+namespace Stride.Shaders.Mixer;
 
 public partial class ShaderMixer : ShaderSource
 {
     public ShaderSource Mixins { get; set; }
-    public MixinVirtualTable LocalVTable {get;set;}
-
-    public MixinVirtualTable VirtualVTable {get;set;}
 
     public Dictionary<string,object> Variables = new();
 
     public ShaderMixer(string code)
     {
-
+        Mixins = new ShaderStringSource(code);
     }
-    // public ShaderMixer(string code, Dictionary<string,object> macros)
-    // {
-        
-    // }
+    public ShaderMixer(ShaderSource m)
+    {
+        Mixins = m;
+    }
+
+    public void AddMixin(ShaderSource mixin)
+    {
+        if(Mixins is ShaderStringSource sss)
+        {
+            var sas = new ShaderArraySource();
+            sas.Add(Mixins);
+            sas.Add(mixin);
+            Mixins = sas;
+        }
+        else if(Mixins is ShaderArraySource sas)
+            sas.Add(mixin);
+    }
 
     public override object Clone()
     {

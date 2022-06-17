@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Stride.Shaders;
+namespace Stride.Shaders.Mixer;
 
 public class ShaderMixin
 {

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Stride.Shaders.Parsing.AST.Shader;
 
-namespace Stride.Shaders.Compiling;
+namespace Stride.Shaders.Spirv;
 
 
 public class Register 

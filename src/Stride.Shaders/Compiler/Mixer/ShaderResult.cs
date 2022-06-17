@@ -1,4 +1,4 @@
-namespace Stride.Shaders;
+namespace Stride.Shaders.Mixer;
 
 public struct ShaderResult<T,E>
 {

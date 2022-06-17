@@ -1,7 +1,7 @@
 
 using System.Text;
 
-namespace Stride.Shaders;
+namespace Stride.Shaders.Mixer;
 
  public abstract class ShaderClassCode : ShaderSource
 {

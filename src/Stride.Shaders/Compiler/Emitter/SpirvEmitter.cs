@@ -7,7 +7,7 @@ using Spv.Generator;
 using Stride.Shaders.Parsing.AST.Shader;
 using static Spv.Specification;
 
-namespace Stride.Shaders;
+namespace Stride.Shaders.Spirv;
 
 public partial class SpirvEmitter : Module
 {
@@ -16,7 +16,7 @@ public partial class SpirvEmitter : Module
 
     }
 
-    public void Construct(ShaderClassString code, EntryPoints entry)
+    public void Construct(ShaderStringSource code, EntryPoints entry)
     {
         AddCapability(Capability.Shader);
         SetMemoryModel(AddressingModel.Logical, MemoryModel.Simple);

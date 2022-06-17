@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Stride.Shaders;
+namespace Stride.Shaders.Mixer;
 
 public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassSource>
 {
@@ -82,6 +82,11 @@ public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassS
     public override string ToString()
     {
         return ToClassName();
+    }
+
+    public override void EnumerateMixins(SortedSet<ShaderSource> shaderSources)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>
