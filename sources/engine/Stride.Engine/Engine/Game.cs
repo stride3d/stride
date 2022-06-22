@@ -443,9 +443,6 @@ namespace Stride.Engine
                 }
             }
             base.EndDraw(present);
-
-            if (VRDeviceSystem.Device is OpenXRHmd oxr)
-                oxr.Flush();
         }
 
         /// <summary>
