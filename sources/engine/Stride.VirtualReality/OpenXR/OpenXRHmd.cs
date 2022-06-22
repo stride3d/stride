@@ -1040,5 +1040,19 @@ namespace Stride.VirtualReality
             leftHand.Update(gameTime);
             rightHand.Update(gameTime);
         }
+
+        public override void Dispose()
+        {
+            foreach(var render_target in render_targets)
+            {
+                render_target.Dispose();
+            }
+
+            CheckResult(Xr.DestroySpace(globalPlaySpace), "DestroySpace");
+            CheckResult(Xr.DestroyActionSet(globalActionSet), "DestroyActionSet");
+            CheckResult(Xr.DestroySwapchain(globalSwapchain), "DestroySwapchain");
+            CheckResult(Xr.DestroySession(globalSession), "DestroySession");
+            CheckResult(Xr.DestroyInstance(Instance), "DestroyInstance");
+        }
     }
 }
