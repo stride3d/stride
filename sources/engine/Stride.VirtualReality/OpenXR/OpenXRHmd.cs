@@ -102,6 +102,8 @@ namespace Stride.VirtualReality
 
         public override bool CanInitialize => true;
 
+        public override bool CanMirrorTexture => false;
+
         public override Size2 OptimalRenderFrameSize => renderSize;
 
         // TODO (not implemented)
