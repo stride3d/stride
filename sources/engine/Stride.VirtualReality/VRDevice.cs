@@ -50,6 +50,8 @@ namespace Stride.VirtualReality
 
         public abstract bool CanInitialize { get; }
 
+        public virtual bool CanMirrorTexture { get; } = true;
+
         public bool SupportsOverlays { get; protected set; } = false;
 
         public virtual VROverlay CreateOverlay(int width, int height, int mipLevels, int sampleCount)
