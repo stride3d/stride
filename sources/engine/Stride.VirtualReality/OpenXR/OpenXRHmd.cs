@@ -611,30 +611,7 @@ namespace Stride.VirtualReality
         }
 #endif
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11
         public override void Commit(CommandList commandList, Texture renderFrame)
-        {
-            // if we didn't wait a frame, don't commit
-            if (begunFrame == false || swapImageCollected == false)
-                return;
-
-            Debug.Assert(commandList.NativeDeviceContext == baseDevice.NativeDeviceContext);
-
-            // Logger.Warning("Blit render target");
-            baseDevice.NativeDeviceContext.CopyResource(renderFrame.NativeRenderTargetView.Resource, render_targets[swapchainPointer].Resource);
-
-
-            // Release the swapchain image
-            // Logger.Warning("ReleaseSwapchainImage");
-            var releaseInfo = new SwapchainImageReleaseInfo() { 
-                Type = StructureType.TypeSwapchainImageReleaseInfo,
-                Next = null,
-            };
-            CheckResult(Xr.ReleaseSwapchainImage(globalSwapchain, in releaseInfo), "ReleaseSwapchainImage");
-        }
-#endif
-
-        public unsafe void Flush()
         {
             // if we didn't wait a frame, don't commit
             if (begunFrame == false)
@@ -644,12 +621,28 @@ namespace Stride.VirtualReality
 
             if (swapImageCollected)
             {
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+            Debug.Assert(commandList.NativeDeviceContext == baseDevice.NativeDeviceContext);
+            // Logger.Warning("Blit render target");
+            baseDevice.NativeDeviceContext.CopyResource(renderFrame.NativeRenderTargetView.Resource, render_targets[swapchainPointer].Resource);
+#endif
+
+            // Release the swapchain image
+            // Logger.Warning("ReleaseSwapchainImage");
+            var releaseInfo = new SwapchainImageReleaseInfo() { 
+                Type = StructureType.TypeSwapchainImageReleaseInfo,
+                Next = null,
+            };
+            CheckResult(Xr.ReleaseSwapchainImage(globalSwapchain, in releaseInfo), "ReleaseSwapchainImage");
+
                 for (var eye = 0; eye < 2; eye++)
                 {
                     projection_views[eye].Fov = views[eye].Fov;
                     projection_views[eye].Pose = views[eye].Pose;
                 }
 
+                unsafe
+                {
                 fixed (CompositionLayerProjectionView* projection_views_ptr = &projection_views[0])
                 {
                     var projectionLayer = new CompositionLayerProjection
@@ -672,6 +665,7 @@ namespace Stride.VirtualReality
 
                     //Logger.Warning("EndFrame");
                     CheckResult(Xr.EndFrame(globalSession, in frameEndInfo), "EndFrame");
+                    }
                 }
             }
             else
@@ -679,6 +673,7 @@ namespace Stride.VirtualReality
                 EndNullFrame();
             }
         }
+
 
         public override void SetTrackingSpace(TrackingSpace space)
         {
