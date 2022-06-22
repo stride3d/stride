@@ -25,12 +25,13 @@ namespace CSharpIntermediate.Code
                 if (Input.IsKeyPressed(Stride.Input.Keys.G))
                 {
                     await RetrieveStrideRepos();
+                    await Script.NextFrame();
                 }
 
                 foreach (var openCollectiveEvent in openCollectiveEvents)
                 {
                     drawY += 20;
-                    DebugText.Print(openCollectiveEvent.Name new Int2(drawX, drawY));
+                    DebugText.Print(openCollectiveEvent.Name, new Int2(drawX, drawY));
                 }
 
                 // We have to await the next frame. If we don't do this, our game will be stuck in an infinite loop
