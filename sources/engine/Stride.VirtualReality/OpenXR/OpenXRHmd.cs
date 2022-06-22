@@ -29,9 +29,6 @@ namespace Stride.VirtualReality
         public InteractionProfileState handProfileState;
         internal ulong leftHandPath;
 
-        // ExtDebugUtils is a handy OpenXR debugging extension which we'll enable if available unless told otherwise.
-        public bool? IsDebugUtilsSupported;
-
         // OpenXR handles
         public Instance Instance;
         public ulong system_id = 0;
