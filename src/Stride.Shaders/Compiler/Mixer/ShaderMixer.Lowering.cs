@@ -1,5 +1,5 @@
-using Stride.Shaders.Compiling;
 using Stride.Shaders.Parsing.AST.Shader;
+using Stride.Shaders.Spirv;
 
 namespace Stride.Shaders;
 

@@ -8,7 +8,7 @@ using Stride.Shaders.Parsing;
 
 namespace Stride.Shaders.Mixer;
 
-public partial class ShaderMixer : ShaderSource
+public partial class ShaderMixer
 {
     public ShaderSource Mixins { get; set; }
 
@@ -34,20 +34,5 @@ public partial class ShaderMixer : ShaderSource
         }
         else if(Mixins is ShaderArraySource sas)
             sas.Add(mixin);
-    }
-
-    public override object Clone()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override bool Equals(object against)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override int GetHashCode()
-    {
-        throw new NotImplementedException();
     }
 }

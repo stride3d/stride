@@ -1,4 +1,4 @@
-shader Simple {
+shader Simple : Parent<5, float, 12>, Parent2 {
     float a = 0;
 
     void VSMain(){

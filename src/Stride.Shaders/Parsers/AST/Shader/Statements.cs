@@ -1,6 +1,7 @@
 ﻿using Eto.Parse;
 using Spv.Generator;
 using Stride.Shaders.Parsing.AST.Shader;
+using Stride.Shaders.Spirv;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 
 public class Statement : ShaderToken 
 {
-    public List<Compiling.Register> LowCode {get;set;} = new();
+    public List<Register> LowCode {get;set;} = new();
 }
 
 public class EmptyStatement : Statement {}

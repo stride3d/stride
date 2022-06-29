@@ -9,12 +9,12 @@ using Stride.Core.Shaders;
 using Stride.Core.Shaders.Parser;
 using Stride.Core.Shaders.Grammar.Stride;
 using Stride.Shaders.Parsing.AST.Shader;
-using Stride.Shaders.Compiling;
+using Stride.Shaders.Mixer;
 
 var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
 
-// ShaderCompiling();
-ThreeAddress(shaderf);
+ShaderCompiling(shaderf);
+// ThreeAddress(shaderf);
 
 static void ThreeAddress(string code)
 {

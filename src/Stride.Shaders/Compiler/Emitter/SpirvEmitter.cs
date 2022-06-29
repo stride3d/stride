@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Spv.Generator;
+using Stride.Shaders.Mixer;
 using Stride.Shaders.Parsing.AST.Shader;
 using static Spv.Specification;
 

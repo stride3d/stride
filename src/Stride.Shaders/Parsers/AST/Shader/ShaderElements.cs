@@ -84,8 +84,15 @@ public class ShaderGenerics : ShaderToken
     public IEnumerable<Generics> Generics { get; set; }
 }
 
-public class Mixin : ShaderToken
+public class MixinToken : ShaderToken
 {
     public string Name { get; set; }
-    public IEnumerable<object> GenericsValues { get; set; }
+    public List<string> GenericsValues { get; set; }
+
+    public MixinToken(Match m)
+    {
+        Match = m;
+        Name = m["Name"].StringValue;
+        GenericsValues = m["Generics"].Matches.Select(x => x.StringValue).ToList();
+    }
 }

@@ -4,6 +4,10 @@ namespace Stride.Shaders.Mixer;
 
 public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassSource>
 {
+    public override string ShaderName => throw new NotImplementedException();
+
+    public override IEnumerable<string> Mixins => throw new NotImplementedException();
+
     public ShaderClassSource()
     {
     }

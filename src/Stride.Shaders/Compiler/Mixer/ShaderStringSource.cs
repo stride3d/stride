@@ -15,6 +15,10 @@ public class ShaderStringSource : ShaderSource
     public string ClassName => AST is null ? "" : AST.Name;
     public ShaderProgram? AST { get; set; }
 
+    public override string ShaderName => throw new NotImplementedException();
+
+    public override IEnumerable<string> Mixins => throw new NotImplementedException();
+
     public ShaderStringSource(string code)
     {
         Code = code;
@@ -41,5 +45,10 @@ public class ShaderStringSource : ShaderSource
     public override void EnumerateMixins(SortedSet<ShaderSource> shaderSources)
     {
         throw new NotImplementedException();
+    }
+
+    public override string? ToString()
+    {
+        return base.ToString();
     }
 }

@@ -72,7 +72,7 @@ public partial class SDSLGrammar : Grammar
             "<",
             inheritGenericsValues.Repeat(1).SeparatedBy(ws & Comma & ws),
             ">"
-        ){ Separator = ws, Name = "InheritanceGenerics"};
+        ){ Separator = ws, Name = "Generics"};
 
         var compositionDeclaration = new SequenceParser(
             Literal("compose"),
@@ -106,10 +106,11 @@ public partial class SDSLGrammar : Grammar
         var inheritances = 
             Colon
             .Then(
-                Identifier.Then(inheritGenerics.Optional()).SeparatedBy(ws)
+                Identifier.Named("Name").Then(inheritGenerics.Optional()).SeparatedBy(ws).Named("Mixin")
                 .Repeat(1).SeparatedBy(ws & Comma & ws)
             )
-            .SeparatedBy(ws);
+            .SeparatedBy(ws)
+            .Named("Mixins");
 
 
 
