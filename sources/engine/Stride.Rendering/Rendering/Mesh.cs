@@ -33,6 +33,7 @@ namespace Stride.Rendering
             NodeIndex = mesh.NodeIndex;
             Name = mesh.Name;
             BoundingBox = mesh.BoundingBox;
+            BoundingSphere = mesh.BoundingSphere;
             Skinning = mesh.Skinning;
         }
 
