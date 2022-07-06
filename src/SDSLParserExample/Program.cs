@@ -10,11 +10,20 @@ using Stride.Core.Shaders.Parser;
 using Stride.Core.Shaders.Grammar.Stride;
 using Stride.Shaders.Parsing.AST.Shader;
 using Stride.Shaders.Mixer;
+using Stride.Shaders;
 
 var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
 
-ShaderCompiling(shaderf);
+// ShaderCompiling(shaderf);
 // ThreeAddress(shaderf);
+LoadShaders();
+
+static void LoadShaders()
+{
+    var sources = new ShaderSourceManager();
+    sources.AddDirectory("./SDSL/MixinSamples");
+    var x = 0;
+}
 
 static void ThreeAddress(string code)
 {

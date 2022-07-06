@@ -1,0 +1,8 @@
+shader ShaderBase : ShaderBaseStream
+{
+    // Declare Vertex shader main method
+    stage void VSMain() {}
+
+    // Declare Pixel shader main method
+    stage void PSMain() {}
+};

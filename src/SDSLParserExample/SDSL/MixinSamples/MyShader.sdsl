@@ -1,0 +1,8 @@
+shader MyShader : ShaderBase
+{
+
+    void VSMain()
+    {
+
+    }
+}

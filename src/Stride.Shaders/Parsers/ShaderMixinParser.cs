@@ -16,7 +16,7 @@ public class ShaderMixinParser
 {
 
     private static readonly ShaderMixinParser instance = new();
-    public static ShaderProgram ParseShader(string shader) => (ShaderProgram)instance.Parse(shader);
+    public static ShaderProgram ParseShader(string shader) => instance.Parse(shader);
     
 
     public SDSLGrammar Grammar {get;set;}
@@ -97,13 +97,13 @@ public class ShaderMixinParser
         return textBuilder.ToString();
     }
 
-    public ShaderToken Parse(string shader)
+    public ShaderProgram Parse(string shader)
     {
         var code = PreProcess(shader);
         ParseTree = Grammar.Match(code);
         if (!ParseTree.Success)
             throw new Exception(ParseTree.ErrorMessage);
-        return ShaderToken.GetToken(ParseTree);
+        return (ShaderProgram)ShaderToken.GetToken(ParseTree);
         //return null;
     }
 
