@@ -16,7 +16,7 @@ Example of use:
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
     <XunitRunnerConsoleVersion>2.4.1</XunitRunnerConsoleVersion>
     <StrideStoreUrl Condition="'$(StrideStoreUrl)' == ''">https://api.nuget.org/v3/index.json</StrideStoreUrl>
-    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 17.9\bin\x86\AdvancedInstaller.com')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 17.9\bin\x86\AdvancedInstaller.com</AdvancedInstallerPath>
+    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 19.4\bin\x86\AdvancedInstaller.com')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 19.4\bin\x86\AdvancedInstaller.com</AdvancedInstallerPath>
     <StrideBuildPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == ''">true</StrideBuildPrerequisitesInstaller>
   </PropertyGroup>
 

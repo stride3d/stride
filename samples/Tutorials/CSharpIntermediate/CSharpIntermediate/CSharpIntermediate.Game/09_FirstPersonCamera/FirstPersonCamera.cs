@@ -52,18 +52,18 @@ namespace CSharpIntermediate.Code
             if (isActive)
             {
                 Input.LockMousePosition();
-                var mouseMovement = -Input.MouseDelta * MouseSpeed;
+                var mouseMovement = Input.MouseDelta * MouseSpeed;
 
                 // Update camera rotation values
-                camRotation.Y += mouseMovement.X;
-                camRotation.X += InvertMouseY ? mouseMovement.Y : -mouseMovement.Y;
+                camRotation.Y += -mouseMovement.X;
+                camRotation.X += InvertMouseY ? -mouseMovement.Y : mouseMovement.Y;
                 camRotation.X = MathUtil.Clamp(camRotation.X, maxCameraAnglesRadians.X, maxCameraAnglesRadians.Y);
 
                 // Apply Y rotation to character entity
                 character.Orientation = Quaternion.RotationY(camRotation.Y);
                 // Entity.Transform.Rotation = Quaternion.RotationY(camRotation.Y);
 
-                // Apply X rptatopmnew camera rotation to the existing camera rotations
+                // Apply X camera rotation to the existing camera rotations
                 firstPersonCameraPivot.Transform.Rotation = Quaternion.RotationX(camRotation.X);
             }
         }

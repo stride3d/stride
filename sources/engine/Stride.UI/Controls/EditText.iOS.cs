@@ -28,7 +28,7 @@ namespace Stride.UI.Controls
         private static void InitializeStaticImpl()
         {
             doneButton = UIButton.FromType(UIButtonType.RoundedRect);
-            doneButton.SetTitle(NSBundle.MainBundle.LocalizedString("UIDoneButton", null), UIControlState.Normal);
+            doneButton.SetTitle(NSBundle.MainBundle.GetLocalizedString("UIDoneButton", null), UIControlState.Normal);
             doneButton.SetTitleColor(UIColor.Black, UIControlState.Normal);
             doneButton.TouchDown += DoneButtonOnTouchDown;
 
