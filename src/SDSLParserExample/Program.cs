@@ -16,12 +16,12 @@ var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
 
 // ShaderCompiling(shaderf);
 // ThreeAddress(shaderf);
-LoadShaders();
+LoadShaders(shaderf);
 
-static void LoadShaders()
+static void LoadShaders(string shaderf)
 {
-    var sources = new ShaderSourceManager();
-    sources.AddDirectory("./SDSL/MixinSamples");
+    var compiler = new EffectCompiler("./SDSL/MixinSamples");
+    var mixin = new ShaderMixinParser();
     var x = 0;
 }
 

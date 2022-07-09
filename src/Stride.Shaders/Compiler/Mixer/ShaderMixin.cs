@@ -8,11 +8,14 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders.Mixer;
 
-public class ShaderMixin
+public abstract class ShaderMixin : ShaderSource
 {
-    public string Code { get; set; }
-    public string MixinName { get => AST != null ? AST.Name : string.Empty; }
-    public ShaderProgram? AST { get; set; }
+    public abstract string Code { get; }
+    public string? ClassName => AST?.Name;
+    public override IEnumerable<string> Mixins => AST.Mixins.Select(x => x.Name).ToList();
+
+    public ShaderProgram AST { get; set; }
+
     string[] EntryPointNames = {
         "PSMain",
         "VSMain",
@@ -21,19 +24,6 @@ public class ShaderMixin
         "DSMain",
         "CSMain"
     };
-
-    ShaderMixinParser Parser { get; set; }
-
-    public ShaderMixin(string code, ShaderMixinParser parser)
-    {
-        Code = code;
-        Parser = parser;
-    }
-
-    public void Parse()
-    {
-        AST = (ShaderProgram)Parser.Parse(Code);
-    }
 
     public IEnumerable<ShaderVariableDeclaration> GetStreamValues()
     {
@@ -68,6 +58,4 @@ public class ShaderMixin
         else
             throw new Exception("AST is null");
     }
-
-
 }

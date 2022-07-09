@@ -3,50 +3,19 @@ using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
 
 namespace Stride.Shaders.Parsing.Grammars.SDSL;
-public partial class SDSLGrammar : Grammar
+public class SDSLMixinReader : SDSLGrammar
 {
-    public AlternativeParser Declarations = new();
-    public SequenceParser ShaderExpression = new();
-    public SequenceParser ResourceGroup = new() { Name = "ResourceGroup" };
-    public SequenceParser ConstantBuffer = new() { Name = "ConstantBuffer" };
-    public SequenceParser NamespaceExpression = new() {Name = "Namespace"};
-    public AlternativeParser ShaderFile = new(){Name = "ShaderFile"};
-
-    public SDSLGrammar UsingShader()
+    public override void CreateAll()
     {
-        Inner = ShaderExpression;
-        return this;
+        CreateTokens();
+        CreateTokenGroups();
+        CreateLiterals();
+        CreateExpressions();
     }
-    public virtual void CreateShader()
+    public override void CreateShader()
     {
         var ws = WhiteSpace.Repeat(0);
         var ws1 = WhiteSpace.Repeat(1);
-
-
-        var typeDefinition = new SequenceParser(
-            Literal("typedef") & " ",
-            Identifier & " ",
-            ~("<" & (Identifier | PrimaryExpression).Repeat(1).SeparatedBy(ws & "," & ws).Until(">") & ">").Named("TypedefGenerics"),
-            Identifier,
-            Semi
-        )
-        { Name = "TypeDef", Separator = ws};
-
-
-        ConstantBuffer.Add(
-            "cbuffer" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("GroupName"),
-            LeftBrace,
-            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws).Named("Variables"),
-            RightBrace
-        );
-        ConstantBuffer.Separator = ws;
-        ResourceGroup.Add(
-            "rgroup" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("GroupName"),
-            LeftBrace,
-            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws).Named("Variables"),
-            RightBrace
-        );
-        ResourceGroup.Separator = ws;
 
 
         var shaderGenericValue = new AlternativeParser(
@@ -85,20 +54,9 @@ public partial class SDSLGrammar : Grammar
         ){ Name = "CompositionDeclaration"};
 
 
-        var shaderContentTypes = new AlternativeParser(
-            typeDefinition,
-            StructDefinition,
-            ConstantBuffer,
-            ResourceGroup,
-            compositionDeclaration,
-            MethodDeclaration,
-            ShaderValueDeclaration
-
-        );
-
         var shaderBody = new SequenceParser(
             LeftBrace,
-            shaderContentTypes.Repeat(0).SeparatedBy(ws).Until(ws & "}"),
+            AnyChar.Repeat(0).Until("}"),
             RightBrace
         )
         {Name = "Body", Separator = ws};
@@ -138,5 +96,6 @@ public partial class SDSLGrammar : Grammar
             NamespaceExpression,
             ws & ShaderExpression & ws
         );
+        this.Inner = ShaderFile;
     }
 }

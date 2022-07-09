@@ -16,7 +16,7 @@ public partial class ShaderMixer
 
     public ShaderMixer(string code)
     {
-        Mixins = new ShaderStringSource(code);
+        Mixins = new ShaderClassString(code);
     }
     public ShaderMixer(ShaderSource m)
     {
@@ -25,7 +25,7 @@ public partial class ShaderMixer
 
     public void AddMixin(ShaderSource mixin)
     {
-        if(Mixins is ShaderStringSource sss)
+        if(Mixins is ShaderClassString sss)
         {
             var sas = new ShaderArraySource();
             sas.Add(Mixins);

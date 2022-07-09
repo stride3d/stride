@@ -17,7 +17,7 @@ public partial class SpirvEmitter : Module
 
     }
 
-    public void Construct(ShaderStringSource code, EntryPoints entry)
+    public void Construct(ShaderClassString code, EntryPoints entry)
     {
         AddCapability(Capability.Shader);
         SetMemoryModel(AddressingModel.Logical, MemoryModel.Simple);

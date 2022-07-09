@@ -29,7 +29,7 @@ public class ShaderArraySource : ShaderSource, IEnumerable<ShaderSource>, IEquat
     }
     public void Add(string shader)
     {
-        Values.Add(new ShaderStringSource(shader));
+        Values.Add(new ShaderClassString(shader));
     }
 
     public override object Clone()

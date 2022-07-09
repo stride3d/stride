@@ -36,6 +36,12 @@ public class ShaderSourceManager
         classNameToPath[className] = path;
     }
 
+    public string GetShaderSource(string className)
+    {
+        return loadedShaderSources[className].Source;
+    }
+
+
     public static ShaderSourceWithHash CreateShaderSourceWithHash(string type, string source)
     {
         return new ShaderSourceWithHash

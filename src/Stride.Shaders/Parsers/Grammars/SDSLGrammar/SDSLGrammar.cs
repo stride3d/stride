@@ -17,7 +17,7 @@ public partial class SDSLGrammar : Grammar
         return this;
     }
 
-    public void CreateAll()
+    public virtual void CreateAll()
     {
         CreateTokens();
         CreateTokenGroups();

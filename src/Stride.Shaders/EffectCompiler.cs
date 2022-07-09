@@ -1,7 +1,20 @@
+using Stride.Shaders.Mixer;
+using Stride.Shaders.Parsing;
+
 namespace Stride.Shaders;
 
 public class EffectCompiler
 {
-    public ShaderLoader ShaderLoader {get;set;}
+    public ShaderLoader Loader {get;set;}
+
+    public EffectCompiler(string path)
+    {  
+        Loader = new ShaderLoader(path);
+    }
+
+    public void Compile(ShaderMixin mixin)
+    {
+        var mixer = new ShaderMixer();
+    }
     
 }

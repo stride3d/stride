@@ -17,17 +17,22 @@ public class ShaderMixinParser
 
     private static readonly ShaderMixinParser instance = new();
     public static ShaderProgram ParseShader(string shader) => instance.Parse(shader);
+    public static List<string> GetMixins(string shader) => instance.ParseMixins(shader);
+
     
 
     public SDSLGrammar Grammar {get;set;}
     public DirectivePreprocessor DPreprocessor { get; set; }
     public Preprocessor Preprocessor { get; set; }
 
+    public SDSLMixinReader MixinParser {get;set;}
+
     public GrammarMatch? ParseTree { get; set; }
 
     public ShaderMixinParser()
     {
         Grammar = new();
+        MixinParser = new();
         DPreprocessor = new();
 
 
@@ -105,6 +110,13 @@ public class ShaderMixinParser
             throw new Exception(ParseTree.ErrorMessage);
         return (ShaderProgram)ShaderToken.GetToken(ParseTree);
         //return null;
+    }
+    List<string> ParseMixins(string shader)
+    {
+        var match = MixinParser.Match(shader);
+        if (!match.Success)
+            throw new Exception(match.ErrorMessage);
+        return new();
     }
 
     private static void PrettyPrintMatches(Match match, int depth = 0)
