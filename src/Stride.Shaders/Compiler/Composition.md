@@ -14,6 +14,10 @@ A single shader should be a full shader, defining all methods and variables in o
 
 An array of shader will contain multiple shader definition all linked by inheritances. It can be created from one shader requiring parent shaders to find in a shader dictionary/storage of some sort.
 
+## Mixin graph
+
+The graph that the mixin system forms will have to be simplified to an array shader.
+
 ### Spirv design
 
 #### RGroup and CBuffer
@@ -30,5 +34,3 @@ Temporary IDs will be generated (maybe GuID?) and later converted to actual avai
 Needs a bit of research.
 Instead of generating full methods, we generate a list of statements for each methods then combine them depending the order.
 
-
-## Mixin shader
