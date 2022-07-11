@@ -16,10 +16,14 @@ public class ShaderArraySource : ShaderSource, IEnumerable<ShaderSource>, IEquat
     {
         Values = new();
     }
+    public ShaderArraySource(IEnumerable<ShaderSource> values)
+    {
+        Values = new ShaderSourceCollection(values);
+    }
 
     public override string ShaderName => throw new NotImplementedException();
 
-    public override IEnumerable<string> Mixins => throw new NotImplementedException();
+    public override IEnumerable<string> MixinNames => throw new NotImplementedException();
 
     ShaderSourceCollection Values {get;set;}
 

@@ -6,7 +6,7 @@ public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassS
 {
     public override string ShaderName => throw new NotImplementedException();
 
-    public override IEnumerable<string> Mixins => throw new NotImplementedException();
+    public override IEnumerable<string> MixinNames => throw new NotImplementedException();
 
     public ShaderClassSource()
     {

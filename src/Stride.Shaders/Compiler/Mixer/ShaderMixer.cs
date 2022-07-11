@@ -11,25 +11,26 @@ namespace Stride.Shaders.Mixer;
 public partial class ShaderMixer
 {
     public ShaderSource Mixins { get; set; }
+    public ShaderLoader Loader {get;set;}
 
     public Dictionary<string,object> Variables = new();
 
-    public ShaderMixer(string code)
+    public ShaderMixer(string code, ShaderLoader loader)
     {
-        Mixins = new ShaderClassString(code);
-    }
-    public ShaderMixer(ShaderSource m)
-    {
-        Mixins = m;
+        Loader = loader;
+        var mixin = new ShaderClassString(code);
+        Mixins = new ShaderArraySource(mixin.MixinNames.Select(loader.Get).Select(x => new ShaderClassString(x)));
     }
 
     public void AddMixin(ShaderSource mixin)
     {
-        if(Mixins is ShaderClassString sss)
+        if (Mixins is ShaderClassString)
         {
-            var sas = new ShaderArraySource();
-            sas.Add(Mixins);
-            sas.Add(mixin);
+            var sas = new ShaderArraySource
+            {
+                Mixins,
+                mixin
+            };
             Mixins = sas;
         }
         else if(Mixins is ShaderArraySource sas)

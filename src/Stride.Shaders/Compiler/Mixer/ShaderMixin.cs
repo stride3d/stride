@@ -10,13 +10,7 @@ namespace Stride.Shaders.Mixer;
 
 public abstract class ShaderMixin : ShaderSource
 {
-    public abstract string Code { get; }
-    public string? ClassName => AST?.Name;
-    public override IEnumerable<string> Mixins => AST.Mixins.Select(x => x.Name).ToList();
-
-    public ShaderProgram AST { get; set; }
-
-    string[] EntryPointNames = {
+    static readonly string[] EntryPointNames = {
         "PSMain",
         "VSMain",
         "GSMain",
@@ -24,6 +18,12 @@ public abstract class ShaderMixin : ShaderSource
         "DSMain",
         "CSMain"
     };
+
+    public abstract string Code { get; }
+    public string? ClassName => AST?.Name;
+    public override IEnumerable<string> MixinNames => AST.Mixins.Select(x => x.Name).ToList();
+
+    public ShaderProgram AST { get; set; }
 
     public IEnumerable<ShaderVariableDeclaration> GetStreamValues()
     {

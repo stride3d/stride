@@ -10,14 +10,14 @@ namespace Stride.Shaders.Mixer;
 
 public class ShaderClassString : ShaderMixin
 {
-    string source;
+    readonly string source;
     public override string Code => source;
     public override string ShaderName => AST.Name;
 
 
     public ShaderClassString(string code)
     {
-        this.source = code;
+        source = code;
     }
 
     public void Parse()
