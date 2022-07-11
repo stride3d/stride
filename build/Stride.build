@@ -328,10 +328,9 @@ Example of use:
   -->
   <Target Name="PackageInstaller" DependsOnTargets="PackageLauncher;DownloadSignClient;SignCredentialsCheck">
     <!-- Run advanced installer -->
-    <!-- Currently disabled due to code signing issues (getting a 500 error); until this is resolved, we rely on old StrideSetup.exe + self-update -->
-    <!--<Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\launcher\Setup\setup.aip"' EnvironmentVariables="StrideSignUser=&quot;$(StrideSignUser)&quot;;StrideSignSecret=&quot;$(StrideSignSecret)&quot;"/>
+    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\launcher\Setup\setup.aip"' EnvironmentVariables="StrideSignUser=&quot;$(StrideSignUser)&quot;;StrideSignSecret=&quot;$(StrideSignSecret)&quot;"/>
 
-    <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-SetupFiles\StrideSetup.exe" DestinationFolder="$(StrideRoot)bin\launcher"/>-->
+    <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-SetupFiles\StrideSetup.exe" DestinationFolder="$(StrideRoot)bin\launcher"/>
   </Target>
   
   <!--
