@@ -208,16 +208,19 @@ namespace Stride.Assets
                         var tfm = project.GetProperty("TargetFramework");
                         if (tfm != null)
                         {
+                            // Library
                             if (tfm.EvaluatedValue == "netstandard2.0"
                                 || (tfm.EvaluatedValue.StartsWith("net4") && solutionProject.Type == ProjectType.Library))
                             {
+                                // In case it's a single TargetFramework, add the "s" at the end
                                 tfm.Xml.Name = "TargetFrameworks";
                                 tfm.Xml.Value = "net6.0";
                                 isProjectDirty = true;
                             }
-                            else if (tfm.EvaluatedValue.StartsWith("net4") && solutionProject.Type == ProjectType.Executable)
+                            // Executable
+                            else if ((tfm.EvaluatedValue.StartsWith("net4") || tfm.EvaluatedValue.StartsWith("net5")) && solutionProject.Type == ProjectType.Executable)
                             {
-                                tfm.Xml.Value = "net6.0-windows7.0";
+                                tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net6.0-windows" : "net6.0";
                                 isProjectDirty = true;
                             }
                         }
