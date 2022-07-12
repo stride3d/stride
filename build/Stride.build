@@ -45,7 +45,7 @@ Example of use:
   <!--
   Package Installer: install-prerequisites.exe
   -->
-  <Target Name="PrerequisitesInstaller">
+  <Target Name="PrerequisitesInstaller" DependsOnTargets="DownloadSignClient;SignCredentialsCheck">
     <Delete Files="$(StrideRoot)Bin\Prerequisites\install-prerequisites.exe"/>
     <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\prerequisites\prerequisites.aip"' EnvironmentVariables="StrideSignUser=&quot;$(StrideSignUser)&quot;;StrideSignSecret=&quot;$(StrideSignSecret)&quot;"/>
     <!-- Note: this exe will be signed as part of GameStudio.nupkg -->
