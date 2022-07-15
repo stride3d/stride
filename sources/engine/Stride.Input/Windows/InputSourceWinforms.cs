@@ -48,6 +48,7 @@ namespace Stride.Input
             input = inputManager;
 
             uiControl.LostFocus += UIControlOnLostFocus;
+            MissingInputHack();
 
             // Hook window proc
             defaultWndProc = Win32Native.GetWindowLong(uiControl.Handle, Win32Native.WindowLongType.WndProc);
@@ -62,6 +63,40 @@ namespace Stride.Input
 
             mouse = new MouseWinforms(this, uiControl);
             RegisterDevice(mouse);
+        }
+
+        /// <summary>
+        /// This function houses a hack to fix the window missing some input events,
+        /// see Stride pull #181 for more information (https://github.com/stride3d/stride/pull/181).
+        /// TODO: Find a proper solution to replace this workaround.
+        /// </summary>
+        private void MissingInputHack()
+        {
+#if STRIDE_INPUT_RAWINPUT
+            Device.RegisterDevice(SharpDX.Multimedia.UsagePage.Generic, SharpDX.Multimedia.UsageId.GenericKeyboard, DeviceFlags.None);
+            Device.KeyboardInput += (sender, args) =>
+            {
+                switch (args.State)
+                {
+                    case KeyState.SystemKeyDown:
+                    case KeyState.ImeKeyDown:
+                    case KeyState.KeyDown:
+                    {
+                        keyboard?.HandleKeyUp(args.Key);
+                        heldKeys.Add(args.Key);
+                        break;
+                    }
+                    case KeyState.SystemKeyUp:
+                    case KeyState.ImeKeyUp:
+                    case KeyState.KeyUp:
+                    {
+                        heldKeys.Remove(args.Key);
+                        keyboard?.HandleKeyDown(args.Key);
+                        break;
+                    }
+                }
+            };
+#endif
         }
 
         public override void Dispose()

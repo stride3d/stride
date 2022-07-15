@@ -126,6 +126,7 @@ namespace Stride.Core.Presentation.Controls
             dpiScale = VisualTreeHelper.GetDpi(this);
 
             var style = NativeHelper.GetWindowLong(Handle, NativeHelper.GWL_STYLE);
+            // Removes Caption bar and the sizing border
             // Must be a child window to be hosted
             style |= NativeHelper.WS_CHILD;
 
@@ -200,10 +201,6 @@ namespace Stride.Core.Presentation.Controls
                     // TODO: do we want SWP_NOCOPYBITS?
                     const int flags = NativeHelper.SWP_ASYNCWINDOWPOS | NativeHelper.SWP_NOACTIVATE | NativeHelper.SWP_NOZORDER;
                     NativeHelper.SetWindowPos(Handle, NativeHelper.HWND_TOP, boundingBox.X, boundingBox.Y, boundingBox.Z, boundingBox.W, flags);
-                
-                    var style = NativeHelper.GetWindowLong(Handle, NativeHelper.GWL_STYLE);
-                    // Workaround for missing keyboard input see issue #94
-                    NativeHelper.SetWindowLong(Handle, NativeHelper.GWL_STYLE, style & ~NativeHelper.WS_CHILD);
                 }
                 
                 if (attached)
