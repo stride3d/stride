@@ -148,6 +148,20 @@ namespace Stride.Assets
 
                     var packageReferences = project.GetItems("PackageReference").ToList();
 
+                    // Remove Stride reference for older executable projects (it was necessary in the past due to runtime.json)
+                    if (dependency.Version.MinVersion < new PackageVersion("4.1.0.0")
+                        && solutionProject.Type == ProjectType.Executable
+                        && (solutionProject.Platform == PlatformType.macOS || solutionProject.Platform == PlatformType.Linux))
+                    {
+                        var strideReference = packageReferences.FirstOrDefault(x => x.EvaluatedInclude == "Stride");
+                        if (strideReference != null)
+                        {
+                            packageReferences.Remove(strideReference);
+                            project.RemoveItem(strideReference);
+                            isProjectDirty = true;
+                        }
+                    }
+
                     foreach (var packageReference in packageReferences)
                     {
                         if (packageReference.EvaluatedInclude.StartsWith("Stride.") && packageReference.GetMetadataValue("Version") != CurrentVersion)
