@@ -123,7 +123,7 @@ Example of use:
   <PropertyGroup>
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
   </PropertyGroup>
-  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;SignPackage;VSIXPlugin"/>
+  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;VSIXPlugin;SignPackage"/>
 
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution).sln" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
