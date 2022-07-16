@@ -40,6 +40,8 @@ Example of use:
 
     <MSBuild Targets="91-VisualStudio\Stride_VisualStudio_Package;91-VisualStudio\Stride_VisualStudio_PackageInstall" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -OutputDirectory "$(StrideRoot)bin\vsix"' />
+ 
+    <Exec Command='sign\SignClient sign -c "sign\appsettings.json" --input "..\bin\vsix\*.nupkg" --name "Stride" --user "$(StrideSignUser)" --secret "$(StrideSignSecret.Replace("%", "%%"))" -f "sign\nupkgfilter.txt"' EchoOff="true" />
   </Target>
   
   <!--
@@ -123,7 +125,7 @@ Example of use:
   <PropertyGroup>
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
   </PropertyGroup>
-  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;VSIXPlugin;SignPackage"/>
+  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;SignPackage;VSIXPlugin"/>
 
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution).sln" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
