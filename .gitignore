@@ -154,5 +154,3 @@ fastlane/report.xml
 fastlane/screenshots
 *.user
 project.lock.json
-/hooks
-/lfs/objects
