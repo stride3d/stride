@@ -1,3 +1,2 @@
 **/Stride*.exe
-**/packageinstall.exe
-**/*-prerequisites.exe
+**/*.vsix
