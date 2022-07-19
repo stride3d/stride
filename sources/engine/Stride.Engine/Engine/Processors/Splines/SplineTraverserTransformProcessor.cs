@@ -17,15 +17,18 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
     private Entity entity;
 
     private SplineNode originSplineNode { get; set; }
-    private int currentSplineNodeIndex = 0;
-    
+    private int originSplineNodeIndex = 0;
+
     private SplineNode targetSplineNode { get; set; }
     private int targetSplineNodeIndex = 0;
 
     private bool attachedToSpline = false;
-    private int originSplinePointIndex = 0;
-    private BezierPoint[] splinePointsToTraverse = null;
-    private Vector3 targetSplinePointWorldPosition { get; set; } = new Vector3(0);
+    private BezierPoint[] bezierPointsToTraverse = null;
+
+    private BezierPoint originBezierPoint { get; set; }
+    private BezierPoint targetBezierPoint { get; set; }
+    private int bezierPointIndex = 0;
+
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SplineTransformProcessor"/> class.
@@ -65,10 +68,10 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
         this.entity = null;
         originSplineNode = null;
         targetSplineNode = null;
-        targetSplinePointWorldPosition = new Vector3(0);
+        targetBezierPoint = null;
         targetSplineNodeIndex = 0;
-        originSplinePointIndex = 0;
-        splinePointsToTraverse = null;
+        bezierPointIndex = 0;
+        bezierPointsToTraverse = null;
     }
 
     public class SplineTraverserTransformationInfo
@@ -81,9 +84,6 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
         if (entity != null && splineTraverserComponent?.SplineComponent?.Nodes?.Count > 1 && splineTraverserComponent?.SplineComponent?.Spline?.SplineNodes?.Count > 1)
         {
             // A spline traverser should target the closes two spline nodes. 
-            // 1. Get the closest point on spline
-            // 2. Determine current en target spline node based on traverser speed
-
             var currentPositionOfTraverser = splineTraverserComponent.Entity.Transform.WorldMatrix.TranslationVector;
             var splinePositionInfo = splineTraverserComponent.SplineComponent.GetClosestPointOnSpline(currentPositionOfTraverser);
 
@@ -91,52 +91,40 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
             if (splineTraverserComponent.Speed < 0)
             {
                 originSplineNode = splinePositionInfo.SplineNodeB;
-                currentSplineNodeIndex = splinePositionInfo.SplineNodeBIndex;
+                originSplineNodeIndex = splinePositionInfo.SplineNodeBIndex;
 
                 targetSplineNode = splinePositionInfo.SplineNodeA;
                 targetSplineNodeIndex = splinePositionInfo.SplineNodeAIndex;
 
-                Debug.WriteLine($"currentSplinePointIndex {originSplinePointIndex} -  targetSplineNodeIndex: {targetSplineNodeIndex}");
+                bezierPointsToTraverse = targetSplineNode.GetBezierPoints();
 
-                 splinePointsToTraverse = targetSplineNode.GetBezierPoints();
-
-                if (splinePointsToTraverse == null)
+                if (bezierPointsToTraverse == null)
                 {
                     return;
                 }
 
-                originSplinePointIndex = splinePointsToTraverse.Length - 1;
-                targetSplinePointWorldPosition = splinePointsToTraverse[originSplinePointIndex].Position; //Take the last position at the end of the curve
+                bezierPointIndex = bezierPointsToTraverse.Length - 1;
+                targetBezierPoint = bezierPointsToTraverse[bezierPointIndex]; //Take the last position at the end of the curve
             }
-            else
+            else // Forwards traversing
             {
                 originSplineNode = splinePositionInfo.SplineNodeAIndex > splinePositionInfo.SplineNodeBIndex ? splinePositionInfo.SplineNodeB : splinePositionInfo.SplineNodeA;
-                currentSplineNodeIndex = splinePositionInfo.SplineNodeAIndex > splinePositionInfo.SplineNodeBIndex ? splinePositionInfo.SplineNodeBIndex: splinePositionInfo.SplineNodeAIndex;
+                originSplineNodeIndex = splinePositionInfo.SplineNodeAIndex > splinePositionInfo.SplineNodeBIndex ? splinePositionInfo.SplineNodeBIndex : splinePositionInfo.SplineNodeAIndex;
 
-                targetSplineNode = splineTraverserComponent?.SplineComponent?.Nodes[currentSplineNodeIndex + 1].SplineNode;
+                targetSplineNode = splineTraverserComponent?.SplineComponent?.Nodes[originSplineNodeIndex + 1].SplineNode;
                 targetSplineNodeIndex = splinePositionInfo.SplineNodeAIndex + 1;
 
-                splinePointsToTraverse = originSplineNode.GetBezierPoints();
+                bezierPointsToTraverse = originSplineNode.GetBezierPoints();
 
-                if (splinePointsToTraverse == null)
+                if (bezierPointsToTraverse == null)
                 {
                     return;
                 }
 
-                originSplinePointIndex = 1;
-                targetSplinePointWorldPosition = splinePointsToTraverse[originSplinePointIndex].Position;
+                bezierPointIndex = 0;
+                targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
             }
 
-            //if (splineTraverserComponent.SplineComponent.Nodes.Count == splinePositionInfo.CurrentSplineNodeIndex + 1)
-            //{
-            //    targetCurveIndex = splinePositionInfo.CurrentSplineNodeIndex + 1;
-            //}
-            //else
-            //{
-            //    targetCurveIndex = 0;
-            //}
-
-            Debug.WriteLine("Instance Added: " + targetSplinePointWorldPosition );
             attachedToSpline = true;
             splineTraverserComponent.Dirty = false;
 
@@ -155,21 +143,26 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
 
         if (splineTraverserComponent.IsMoving && splineTraverserComponent.Speed != 0 && attachedToSpline)
         {
-            var entityWorldPosition = entity.Transform.WorldMatrix.TranslationVector;
-            var velocity = (targetSplinePointWorldPosition - entityWorldPosition);
-            velocity.Normalize();
-            velocity *= Math.Abs(splineTraverserComponent.Speed) * (float)time.Elapsed.TotalSeconds;
+            UpdatePosition(time);
 
-            entity.Transform.Position += velocity;
-            entity.Transform.UpdateWorldMatrix();
-
-            var distance = Vector3.Distance(entity.Transform.WorldMatrix.TranslationVector, targetSplinePointWorldPosition);
+            var distance = Vector3.Distance(entity.Transform.WorldMatrix.TranslationVector, targetBezierPoint.Position);
 
             if (distance < 0.25)
             {
                 SetNextTarget();
             }
         }
+    }
+
+    private void UpdatePosition(GameTime time)
+    {
+        var entityWorldPosition = entity.Transform.WorldMatrix.TranslationVector;
+        var velocity = (targetBezierPoint.Position - entityWorldPosition);
+        velocity.Normalize();
+        velocity *= Math.Abs(splineTraverserComponent.Speed) * (float)time.Elapsed.TotalSeconds;
+
+        entity.Transform.Position += velocity;
+        entity.Transform.UpdateWorldMatrix();
     }
 
     private void SetNextTarget()
@@ -179,11 +172,11 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
         // Are we going backwards?
         if (splineTraverserComponent.Speed < 0)
         {
-            // Is there a previous curve point?
-            if (originSplinePointIndex - 1 >= 0)
+            // Is there a previous bezier point?
+            if (bezierPointIndex - 1 >= 0)
             {
-                originSplinePointIndex--;
-                targetSplinePointWorldPosition = splinePointsToTraverse[originSplinePointIndex].Position;
+                bezierPointIndex--;
+                targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
             }
             else
             {
@@ -205,10 +198,10 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
         {
 
             // Is there a next point on the current spline?
-            if (originSplinePointIndex + 1 < splinePointsToTraverse.Length)
+            if (bezierPointIndex + 1 < bezierPointsToTraverse.Length)
             {
-                originSplinePointIndex++;
-                targetSplinePointWorldPosition = splinePointsToTraverse[originSplinePointIndex].Position;
+                bezierPointIndex++;
+                targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
             }
             else
             {
@@ -225,7 +218,6 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
                 }
             }
         }
-
     }
 
     private void GoToNextSplineNode(int nodesCount)
@@ -234,7 +226,7 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
         if (splineTraverserComponent.Speed < 0)
         {
             originSplineNode = targetSplineNode;
-           
+
             targetSplineNodeIndex--;
             if (targetSplineNodeIndex >= 0)
             {
@@ -246,15 +238,15 @@ public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverser
                 targetSplineNode = splineTraverserComponent.SplineComponent.Nodes[targetSplineNodeIndex].SplineNode;
             }
 
-            splinePointsToTraverse = targetSplineNode.GetBezierPoints();
-            originSplinePointIndex = splinePointsToTraverse.Length - 1;
+            bezierPointsToTraverse = targetSplineNode.GetBezierPoints();
+            bezierPointIndex = bezierPointsToTraverse.Length - 1;
 
         }
         else // We are going forwards?
         {
-            originSplinePointIndex = 0;
+            bezierPointIndex = 0;
             originSplineNode = targetSplineNode;
-            splinePointsToTraverse = originSplineNode.GetBezierPoints();
+            bezierPointsToTraverse = originSplineNode.GetBezierPoints();
 
             targetSplineNodeIndex++;
             if (targetSplineNodeIndex < nodesCount)

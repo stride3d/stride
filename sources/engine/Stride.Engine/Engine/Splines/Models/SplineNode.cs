@@ -147,7 +147,6 @@ namespace Stride.Engine.Splines
             Length += baseBezierPoints[baseBezierPointCount - 1].TotalLengthOnCurve;
 
             ArcLengthParameterization();
-
             UpdateBoundingBox();
         }
 
