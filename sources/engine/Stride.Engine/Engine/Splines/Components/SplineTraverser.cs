@@ -17,7 +17,7 @@ namespace Stride.Engine.Splines.Components
         public bool Dirty { get; set; }
 
         private SplineComponent splineComponent;
-        private float percentage;
+        private float speed = 1.0f;
 
         /// <summary>
         /// Event triggered when the last node of the spline has been reached
@@ -51,13 +51,24 @@ namespace Stride.Engine.Splines.Components
         }
 
         [Display(20, "Speed")]
-        public float Speed { get; set; } = 1.0f;
+        public float Speed
+        {
+            get { return speed; }
+            set
+            {
+                speed = value;
+
+                if (speed == 0)
+                {
+                    IsMoving = false;
+                }
+
+                Dirty = true;
+            }
+        }
 
         [Display(40, "Moving")]
         public bool IsMoving { get; set; }
-
-        [Display(50, "Reverse")]
-        public bool IsReverseTravelling { get; set; }
 
         internal void Update(TransformComponent transformComponent)
         {
