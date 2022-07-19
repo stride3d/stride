@@ -15,9 +15,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\Stride.Core.IO\NativeLockFile.cs">
-      <Link>Windows\NativeLockFile.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
@@ -28,7 +25,6 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="6.0.0" />
-    <!-- <PackageReference Include="Newtonsoft.Json" Version="12.0.3" /> -->
     <PackageReference Include="NuGet.Configuration" Version="6.0.0" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="System.Management" Version="4.7.0" />

@@ -20,7 +20,11 @@ namespace Stride.Graphics
 
         private int boundScissorCount;
         private readonly Rectangle[] scissors = new Rectangle[MaxViewportAndScissorRectangleCount];
+
+#pragma warning disable 414 // The field 'CommandList.scissorsDirty' is assigned but its value is never used
+        // This field is used in CommandList.Direct3D12.cs and CommandList.Vulkan.cs
         private bool scissorsDirty = false;
+#pragma warning restore 414
 
         private Texture depthStencilBuffer;
 

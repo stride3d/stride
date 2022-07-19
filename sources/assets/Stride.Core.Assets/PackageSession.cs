@@ -220,8 +220,6 @@ namespace Stride.Core.Assets
 
     public class StandalonePackage : PackageContainer
     {
-        private readonly Package package;
-
         public StandalonePackage([NotNull] Package package)
             : base(package)
         {
@@ -232,7 +230,7 @@ namespace Stride.Core.Assets
         /// </summary>
         public List<string> Assemblies { get; } = new List<string>();
 
-        public override string ToString() => $"Package: {package.Meta.Name}";
+        public override string ToString() => $"Package: {Package.Meta.Name}";
     }
 
     public enum DependencyType

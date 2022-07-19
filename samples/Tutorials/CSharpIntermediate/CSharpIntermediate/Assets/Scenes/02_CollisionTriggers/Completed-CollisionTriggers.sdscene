@@ -1,0 +1,2181 @@
+!SceneAsset
+Id: f01b7404-0b11-40c9-8729-8dcc544ef23c
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! ed814855-0d1a-494a-8479-606dc81893cd
+        - ref!! 4b0a7892-e2dd-43ed-ae96-73a86d297bfa
+        - ref!! 2c685f37-8ceb-4e8d-a2a6-1d950b9cd1e5
+        - ref!! 4ef5d805-4aa4-498d-8e9f-f0725f71fe37
+        - ref!! 90250255-6561-4f83-a1fc-298e8270876f
+        - ref!! 22f22a4b-1b2e-418d-9538-4e5d0a4ada0e
+    Parts:
+        -   Folder: Walls
+            Entity:
+                Id: 0361b622-f553-4b9e-8cf7-d9bde557d754
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: aa79be3e-6b55-4fdf-8bd4-d1e8514c57f2
+                        Position: {X: -2.0000002, Y: 0.0, Z: -6.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! 1414e2e6-31c2-4172-9039-7bdcec784ba4
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 86c225dd-0463-47c5-9114-0d6a7b1649b1
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: 063f4335-c87c-4a81-a44a-563c9664ea4d
+                Name: Ground
+                Components:
+                    8fed8b81fc3d471a2ce2ec39bbb7325a: !TransformComponent
+                        Id: 5936f60b-637a-4e12-b86b-184189824b6c
+                        Position: {X: -5.4999995, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Children: {}
+                    f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
+                        Id: efa425b3-91e1-4d1d-ac1c-baf00a194d7e
+                        Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: c9926fc9-6589-40e8-a42d-22106e39343a
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: 082a759c-58db-467a-8734-8263aceaf80b
+                Name: GroundCollider
+                Components:
+                    1af962892ebd2d07148ebc7a399e1e34: !TransformComponent
+                        Id: 3db4b6e2-d887-44b6-8742-b3217ff2f939
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    6ba40a3116280c5339f6148d51580f7b: !StaticColliderComponent
+                        Id: a9d7e480-51a7-4e22-bc5e-8850085738f4
+                        CollisionGroup: StaticFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            21dd436cc2cb430bd71cbe9891a2a1d8: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 1f6a48cb-f1c3-4fa0-8426-10460b957224
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 08eb047b-ecca-4617-8282-964831f75770
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 2cc38161-48ad-45e5-b84a-797706e853a2
+                        Position: {X: 1.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 2cb9ab49-c9ff-46d9-a061-cc9646f052b3
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: cfb7085e-36a0-4a48-9bcf-b13fdd6b426c
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 45ae59d0-ca28-4cf6-876a-95b67c09142d
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 0b2fa703-c4a7-4f6c-86da-6cc85632693e
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: 084c7ccc-0435-40a1-9cbe-f6e55eebdfaa
+                        Position: {X: -6.0, Y: 0.0, Z: -6.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! 13e21641-7a82-48e9-80bb-689761354474
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 2bf6a317-46e5-4890-bfca-1e33ee08b1df
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 11f02e21-0429-40cc-847d-cd59327ba0dd
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 5ebf7ae0-fdcb-4aa3-80af-44bbb84fdc15
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 70f040fb-3eff-47da-a20c-278878dd13a1
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: d2260b56-5e9e-4252-a6e2-1af9fde4d729
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: af53c9aa-a7dd-42c1-b048-093597ed192a
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 1262d348-3624-4de0-98ef-cd532451599f
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: a4827df7-59d4-4757-a262-fe0b1f7af0fa
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 26b3168a-ceb8-499a-83e0-e5dafe69bbef
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: b8b100f1-d341-4aa7-af0a-a25161f7739c
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 997544b7-3b76-4ffd-81ed-0059ccd5dddd
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 15bfd3c1-c0da-420f-b9c3-9a97d12fbabc
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: f4b1fb3e-72b9-44f7-9aef-f489cce4b2b5
+                        Position: {X: 5.9999995, Y: 0.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! a4827df7-59d4-4757-a262-fe0b1f7af0fa
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 71ea0616-e690-4dce-80cd-c5ab19afdcd7
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 17bc6728-c238-47bd-84ea-338f6ea6bbb4
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 71abe552-db57-4a44-89ab-f5b04a9b125a
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 6673072c-eaa2-43b4-8173-11dcc1470ad6
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 7816e023-abd3-47ac-b08a-dc7e03518589
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: d75f2bed-c8a6-4a52-a04d-ad1f8f2623a6
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 1c7fef19-372c-4464-b86a-146f882973c8
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: d672f217-4d92-4a11-8862-2011a85e38ee
+                        Position: {X: 6.0, Y: 0.0, Z: 6.0}
+                        Rotation: {X: 0.0, Y: 0.7071068, Z: 0.0, W: 0.7071067}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 31ec56f0-122a-442f-ba0b-022293400aab
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 29e360f2-b516-47ed-b95e-c5ccc7fdb029
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 1dd76e64-de71-43d1-96a2-84832b0120ba
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: e4388eda-440d-444d-a58b-dabd14dcf17b
+                        Position: {X: -6.0, Y: 0.0, Z: 5.9999995}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 3737517c-7e17-42a7-b0da-9f30d497222f
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 6563e9fe-60c8-4de4-bf81-6fa6988528d1
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 205d180e-3164-472f-843e-cb13478ab8d4
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: 831f876f-6249-4dc5-8102-e93d485a74c1
+                        Position: {X: -1.0842642, Y: 0.1848677, Z: -2.8560681}
+                        Rotation: {X: -0.73039365, Y: 0.27939585, Z: -0.47868133, W: -0.39915872}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: f3d211ce-eb21-4929-9432-a4060b226c52
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 7b644182-143f-433c-a83c-1be0e3af4600
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 20d7c0ec-8066-47e4-81e6-4e52c9cc7e08
+                Name: Ladder0x2x0handle
+                Components:
+                    1e0d46103a7dea80297379a5d77443c1: !TransformComponent
+                        Id: 534d55dc-117c-44ac-9480-bfb8620e9776
+                        Position: {X: -4.796396, Y: 1.0, Z: 0.032114506}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    938e3a10e1782cd9b89dd0c4ee6b6640: !ModelComponent
+                        Id: 4808e6c6-95ff-4c6e-9b26-30964132d9fe
+                        Model: f381ed79-1e17-4ddd-b99b-eb700b626f42:Models/Ladder0x2x0handle
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: bdef49b0-5148-4bde-9d44-94d32a87c137
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 22c52395-cead-4f72-b2e0-f45fe5d3fe28
+                Name: BoxF
+                Components:
+                    bf3b1e0243078596131088f87dd4ed36: !TransformComponent
+                        Id: 7f04b352-12dd-4a50-b06b-1ea1433ff027
+                        Position: {X: -1.9655209, Y: 1.1289288, Z: -2.013882}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    50f3338f4a392c10a0c4b8a9a795bed7: !ModelComponent
+                        Id: 405f47b4-12a6-44ec-b318-223b464f1c4a
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 193b40bf-3c1b-4360-9546-1999fbca5877
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 22f22a4b-1b2e-418d-9538-4e5d0a4ada0e
+                Name: Ramp
+                Components:
+                    541eee48b9f481373eabc376bb39b65c: !TransformComponent
+                        Id: c86c9bb1-9bc2-4e69-bab5-c72d13b21ae6
+                        Position: {X: 0.0, Y: 0.0, Z: 4.0}
+                        Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a19fac781d9526c32b533b77c2bf77de: ref!! 117a8761-3545-4050-9e97-584eb71f0283
+        -   Folder: null
+            Entity:
+                Id: 25c3bd19-909b-453a-8fe2-650ceb61c78e
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 2d9db1da-2f3e-473e-a6b8-c940b63a6f20
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 21d6bc59-603b-4df4-9581-1d6b2669a05e
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: a2e5b24c-f8c7-4f21-89e5-8e4654ab2775
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: acce34a2-21e6-4eab-b7be-17a625a31d86
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 28ceeddc-e96a-4195-bba6-900caaf69950
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 13e21641-7a82-48e9-80bb-689761354474
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 8edbc39f-112d-4a4d-9d9e-b1723766e515
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 675d21a7-70c1-4718-8363-87ebab8a13c4
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: f5e7681c-d550-47a5-b852-534a25395177
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 2c685f37-8ceb-4e8d-a2a6-1d950b9cd1e5
+                Name*: CollisionTrigger
+                Components:
+                    a2d6ca1adcf6ec41a4c7d29eb46ea480: !TransformComponent
+                        Id: 5efa6f48-8b9f-4b9a-9dcf-a93d866ed792
+                        Position*: {X: -0.31192067, Y: 0.087384224, Z: -0.5333669}
+                        Rotation*: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale*: {X: 3.8242629, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8fff9564224e164bbfeeb200886985b1: !ModelComponent
+                        Id: 488f040f-d41b-4b1f-9d7a-faee1c27632c
+                        Model: 7d681fef-c2b5-451f-b5fc-d78b5ac5260c:Models/Cube
+                        Materials:
+                            34918ce33a6c1ff301831d3a29019fe3~0: c5f8292f-4ef2-4417-b296-ca46f08b2411:Materials/Transparent
+                    33d35d98ecea8f0f27d90d51258f35f0: !StaticColliderComponent
+                        Id: 7205d59e-05e0-4002-a226-074e1c98f717
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            26e142c62d04eb94f5753e67c4ea3cac: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    e3dd6d98a2b885befa8e52ce4ebbe724: !CSharpIntermediate.Code.CollisionTriggerDemo,CSharpIntermediate.Game
+                        Id: 307ca574-fed8-498c-b4ff-c2b20dd526f5
+                    d85b2b6e072fba4f9eac30a89cde96ea: ~(Deleted)
+        -   Folder: Ground
+            Entity:
+                Id: 32eff668-d7a7-4ca5-aa86-874749578949
+                Name: Ground
+                Components:
+                    8fed8b81fc3d471a2ce2ec39bbb7325a: !TransformComponent
+                        Id: 17bc5bf7-9223-4446-9c2e-551c4d24c454
+                        Position: {X: -5.4999995, Y: 0.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Children: {}
+                    f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
+                        Id: 411cb83b-57cc-424b-bf94-cd11ff23a6cd
+                        Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 99b86c5a-d67f-42f3-83bd-915f1c9cb8d5
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 3508162c-950a-48d8-b9f7-d0d0d789f822
+                Name: table
+                Components:
+                    9a077707b7d91e9c3f6f80eabbf6a83e: !TransformComponent
+                        Id: f9e87925-46ff-477f-9877-ef560b42a5b4
+                        Position: {X: 4.392847, Y: 0.0, Z: -3.153232}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    6b045f347ec870808499ca99f03a7242: !ModelComponent
+                        Id: 77b8dd32-0cca-4ef7-97bb-1e42664e5e87
+                        Model: d5482be8-144a-4f3a-a6c6-238c4a8e7908:Models/table
+                        Materials:
+                            aac48e089700b5666f7834876488d4a7~0: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:Materials/DullSilver
+                            052f7ac2d72b1c7dc1e7f4f61043a136~1: c6f9218e-ae58-4d4d-9bb5-c83f722b9977:Materials/DarkStone
+                            086eef7c07d069c1f14a417bee475279~2: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:Materials/DullSilver
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 1c9a5abc-8191-4536-b49f-a38c5313e5d9
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 38ca71c4-b581-415c-aa58-5837c1196381
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 3fbe621f-3db1-4717-97d2-16d5ee839b57
+                        Position: {X: 2.0, Y: 1.0, Z: -0.49999988}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: ab7ca977-ee29-4125-a1c3-6152960908aa
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: e458b9c5-2cdf-4307-9e90-8311de24da1d
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: af01ee46-1132-4956-9993-e1d21ce655af
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 39537850-f310-48fc-ba02-a02074044eba
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: d8d3d44a-a53e-43a1-8928-5700091e21f6
+                        Position: {X: -6.0, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! b49b6de7-5cb7-4bd1-a207-422df5c71b63
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 1e30b3e7-8014-4f79-af21-9d19d52dde1a
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 43194af6-e0ea-47a0-9b70-5136e524ccea
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 9d85f176-143f-4a7b-9547-fe6fbd33b25c
+                        Position: {X: 1.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 737f8478-2d4d-42e8-ad1f-036517bb16b9
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 2315dea4-38cc-4520-9846-1813080aef21
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 85741fad-fc5a-4fc8-b2d6-f30f2a32c032
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 4503ea4c-5e95-4da7-801d-83d9bbb35259
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: e136dccb-26b1-4a5d-924d-ada297a2c478
+                        Position: {X: -7.000001, Y: 0.0, Z: 2.0}
+                        Rotation: {X: 0.0, Y: 0.7071068, Z: 0.0, W: 0.7071067}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 5ebf7ae0-fdcb-4aa3-80af-44bbb84fdc15
+                            6d9b4b507a297e05f57e1e9ccbd8ec1b: ref!! 2af19fd1-cb8c-4b94-a955-bc1442ba5193
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: d1a37e40-a7a6-4293-b6dd-dd5f47853696
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: 46af840c-cef9-46bf-b92f-5e44ed6cbbc0
+                Name: Ground
+                Components:
+                    8fed8b81fc3d471a2ce2ec39bbb7325a: !TransformComponent
+                        Id: ea2f6ec1-f36a-43dd-9bf6-c341fa41ceff
+                        Position: {X: 4.5000005, Y: 0.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Children: {}
+                    f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
+                        Id: 8f0c0141-e6d5-41b1-9377-029d8bc3c1ab
+                        Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 620cdb9e-e123-43c0-abe9-8108caa46663
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 477c9489-e237-4c3d-8b0a-62560107dbb2
+                Name: Box2x1x1
+                Components:
+                    93de224b90e2294a896f8bb03d0c6705: !TransformComponent
+                        Id: 1b6bb023-672f-4109-a66e-20b2d2b17663
+                        Position: {X: 1.0, Y: 0.5, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d2619cccd5f24041a405add501ed26e6: !ModelComponent
+                        Id: e8611724-0bf6-4485-8152-6e006454b2a0
+                        Model: 922930df-514b-4eb5-8274-e427eecc434f:Models/Box2x1x1
+                        Materials:
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    6b416dc1a6679e41858a68dcecd16bc7: !StaticColliderComponent
+                        Id: bd1a1e9b-d6cd-455c-a2e5-b7d82e02607f
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a285fe854591f5418a5ff9682aa641d8: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 2.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 0c9cfca0-5b2d-4816-92e9-5713542e53a6
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 4b0a7892-e2dd-43ed-ae96-73a86d297bfa
+                Name: Camera
+                Components:
+                    43b6d7e6422949c15f6735faea91095e: !TransformComponent
+                        Id: a84cecc3-ca4a-405a-b1fc-660a35897140
+                        Position: {X: 4.8175883, Y: 1.7583332, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d8be164949a4d0cbe218b34252bb345c: !CameraComponent
+                        Id: 5941d884-9a66-4f45-bd04-36f353995b24
+                        Name: null
+                        Projection: Perspective
+                        VerticalFieldOfView: 65.0
+                        Slot: 41f9c2cc-ee60-452f-8f6d-44e30148d556
+        -   Folder: Walls
+            Entity:
+                Id: 4b564046-6afb-4352-a121-eb534ac559df
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: b914aec2-9a92-4a6c-b523-e3a9c4f60eb0
+                        Position: {X: -7.000001, Y: 0.0, Z: 6.0}
+                        Rotation: {X: 0.0, Y: 0.7071068, Z: 0.0, W: 0.7071067}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 261396f8-4299-4d5f-a956-d08c4056b7ae
+                            6d9b4b507a297e05f57e1e9ccbd8ec1b: ref!! ddf02c96-5d62-4492-95f3-e63cddb19772
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 9a11c9b8-bfff-46a1-b0d7-01f302e193f3
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 4e3127fb-aca1-4df2-b7a8-ec0cd63cc108
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 31ec56f0-122a-442f-ba0b-022293400aab
+                        Position: {X: 2.0, Y: 1.0, Z: -0.49999988}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 6c729259-ccbf-4169-a18b-52e7c7f34b72
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 7066902a-99c5-4bf0-a263-5642b37188fc
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 546568bc-d23f-43d3-83bc-0ac52080156e
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 4ef5d805-4aa4-498d-8e9f-f0725f71fe37
+                Name: TeleportLocation
+                Components:
+                    c7c4cf05283ea9187949c4bf052f957a: !TransformComponent
+                        Id: f98e0aea-ddb1-4c4c-8006-6aefd7b5adfa
+                        Position: {X: -0.5, Y: 1.9736722, Z: 4.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    39b31ed04d334dd4b1b8d9175d834daf: !CSharpIntermediate.Code.Teleport,CSharpIntermediate.Game
+                        Id: 92cee80a-056a-4e38-8c32-fadabce5b17f
+                        Ball: ref!! 90250255-6561-4f83-a1fc-298e8270876f
+        -   Folder: Walls
+            Entity:
+                Id: 4f7fe151-82d2-4ea0-9fe0-3d022640a7cf
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: 316cba8c-f6cf-4997-9aea-251a020eec08
+                        Position: {X: 1.9999995, Y: 0.0, Z: -6.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! 3ceaec36-f8f5-40b0-856c-1effed111562
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: b90661fa-e8d6-428e-841f-5d39c319f8e6
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 4feeccc9-27ad-47c7-8971-cbfcd2469c25
+                Name: BoxE
+                Components:
+                    d68b495573f73d8ec33bb4c027141f5b: !TransformComponent
+                        Id: 33908660-25a0-4b8f-872d-32e8debc27ce
+                        Position: {X: -3.9248953, Y: 0.5, Z: 4.1733384}
+                        Rotation: {X: 0.0, Y: 0.19509047, Z: 0.0, W: 0.98078525}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d26d4401654559a61beaec07aae5d27c: !ModelComponent
+                        Id: 59d46297-fc93-4b3f-b961-80b326bc9d1b
+                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:Models/BoxE
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 22edceae-5cb9-472d-8ebf-fe09eef1e3cc
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 54d8ca08-cda8-41a0-99ef-078e377a83d2
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: 853855d6-1401-46a7-a5f4-3592020c4aa3
+                        Position: {X: -2.0000002, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! 15ea6759-2c8a-4979-8b8b-94f827f95e79
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 96bd877a-adae-4395-8302-ac35a5623916
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: 5af4ea80-4346-42b6-8df6-dab91c4dc88e
+                Name: Ground
+                Components:
+                    8fed8b81fc3d471a2ce2ec39bbb7325a: !TransformComponent
+                        Id: 44da12ce-a9d9-473c-b6d3-1b4bf3bcd608
+                        Position: {X: -0.4999994, Y: 0.0, Z: -1.1920929E-07}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Children: {}
+                    f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
+                        Id: f10e475a-9c41-4b2a-99ee-9c75996d9ebe
+                        Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: e173cb28-86d4-4c4d-bde7-6302d0d62821
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 5c4512d3-94cb-4e7e-ad35-190c31356799
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: fdd81027-02c7-4faf-8472-66f7f81e684a
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: e259ffa1-e8d4-434c-88fc-9c701608da03
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 745b84d9-e8ab-4ce0-acb4-aa75c678c4ef
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 9346f53e-9233-4ee7-9d11-9e20c517179e
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 618e6df2-7e29-499c-8a9f-b5ed65626e87
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 63874d34-9acb-493e-aeb0-07590f72f4f8
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 2ef7131b-64f2-4087-8650-ec7074d5e9d2
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 23e1d69c-345f-4970-8d05-df59ae33b0db
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 9dfae6f8-8193-4e61-ae0c-b7c49009e05b
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 622a581b-b9f3-43fd-be02-6c16991fe9b1
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: 31bdd1de-fb5b-41c5-8d54-bd3fdb05656e
+                        Position: {X: 1.9999995, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! 63874d34-9acb-493e-aeb0-07590f72f4f8
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: f81d77e8-6626-472e-a9b3-4509f28bd397
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 63e269f6-410c-44d2-8999-e672af5f1931
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: e02c90b8-efe9-401a-b272-bbb9aadc3089
+                        Position: {X: 6.0, Y: 0.0, Z: 2.0}
+                        Rotation: {X: 0.0, Y: 0.7071068, Z: 0.0, W: 0.7071067}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 3fbe621f-3db1-4717-97d2-16d5ee839b57
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: fc470615-de04-41e5-bde6-7d26e2481dab
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 64f1e7c5-753a-4904-a003-b90bf2022c90
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: aa5c9684-6874-43b9-b580-20b6575983f1
+                        Position: {X: 1.9999998, Y: 0.0, Z: -7.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! bfcf3a2f-5085-43a0-a3b6-dc2da67d40bc
+                            6d9b4b507a297e05f57e1e9ccbd8ec1b: ref!! 8ccfb852-190d-403b-80fd-bd77246dbb39
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: e2b3e4bc-3b15-4349-969c-974dae4f1ea7
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 653c43bf-4b3f-49a1-8f80-2aa86844b9cb
+                Name: MachinegunModel
+                Components:
+                    bd77aec31db5bedbf6e4703cba7620a0: !TransformComponent
+                        Id: 91ac2ea4-dc48-4085-b857-c763ffa4acae
+                        Position: {X: 0.34085572, Y: 1.1914668, Z: -4.9723096}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2f6675f73fa7da1d626d316d25218ac1: !ModelComponent
+                        Id: bd825b02-538d-409b-9b7b-78d3c4cdc916
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 45e5b999-26cb-4b1d-a795-ce9587684765
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 6ae04bf9-2949-420f-9f8d-ac2749ca1339
+                Name: Box2x1x1
+                Components:
+                    fbf7a85e49c05eb997826ae4be14544b: !TransformComponent
+                        Id: 4ae33dd6-c5c1-4bfd-9cf9-6aefc104824b
+                        Position: {X: 6.000001, Y: 0.0, Z: 3.0}
+                        Rotation: {X: -0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            598017553775baa4350012936ef177ff: ref!! c291e05f-1c96-43e7-80e6-1383d77a4fda
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 7affae99-a628-49e8-bb7c-ac8b2ac47ef0
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 700d46fe-3c0c-4e67-ad88-62ec3742b993
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 9c24452b-5789-4d6a-bca4-d9c3f9796669
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: b02339a0-721c-457a-a67b-f7aeef7445c1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: d95ca874-a616-4851-b2c8-7f7ad08db9b6
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: a8331544-d7b7-43b9-9562-f0750aa71ded
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: 7205c2f2-7531-4cca-a722-379c506a7042
+                Name: Ground
+                Components:
+                    8fed8b81fc3d471a2ce2ec39bbb7325a: !TransformComponent
+                        Id: 49bc269f-de1c-46ed-9c96-7cf148254a34
+                        Position: {X: -5.4999995, Y: 0.0, Z: -1.1920929E-07}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Children: {}
+                    f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
+                        Id: 2e3a82ba-7771-4c7d-a7e3-b0f88d5d4044
+                        Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 3c1bd1d8-ed0e-4ba4-9d7b-ab06016be6f2
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 7472050a-7421-4427-8bf5-ee9f9a1f9325
+                Name: Box2x1x1
+                Components:
+                    93de224b90e2294a896f8bb03d0c6705: !TransformComponent
+                        Id: b824e4a5-5e59-4b89-89fd-16adff71d66f
+                        Position: {X: 1.0, Y: 0.5, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d2619cccd5f24041a405add501ed26e6: !ModelComponent
+                        Id: ee7d2143-b90d-416e-924e-0910d62aaa5c
+                        Model: 922930df-514b-4eb5-8274-e427eecc434f:Models/Box2x1x1
+                        Materials:
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    6b416dc1a6679e41858a68dcecd16bc7: !StaticColliderComponent
+                        Id: a6d94e0b-4a8e-4857-8b31-55bc846ad695
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a285fe854591f5418a5ff9682aa641d8: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 2.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: e9d6392a-232a-419a-bd63-8552ce5b8a9a
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 759cac84-4233-403e-a952-fa52c564e751
+                Name: BoxE
+                Components:
+                    d68b495573f73d8ec33bb4c027141f5b: !TransformComponent
+                        Id: fdc32c56-4707-411d-93d5-4111fe9f739b
+                        Position: {X: -1.8387775, Y: 0.5, Z: -2.0751097}
+                        Rotation: {X: 0.0, Y: 0.19509047, Z: 0.0, W: 0.98078525}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d26d4401654559a61beaec07aae5d27c: !ModelComponent
+                        Id: 41690ffa-2a91-4a16-aa01-5022439b3c6e
+                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:Models/BoxE
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 77c439c0-c5ac-4721-8e75-70038a48d34c
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 779d730e-296e-4e91-bfbf-b14797cc14fe
+                Name: MaterialModel
+                Components:
+                    7f48b997265d19bf8b54958b78489b9e: !TransformComponent
+                        Id: 729c4f31-e799-4de9-bf4a-dc1a506580a0
+                        Position: {X: 4.5795193, Y: 0.0, Z: 4.5489}
+                        Rotation: {X: 0.0, Y: -0.932765, Z: 0.0, W: 0.36048505}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    dc834c63926949c8b2e854cff6c71062: !ModelComponent
+                        Id: f9ea8427-d946-41cd-a62f-75ffa34bb042
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 6d51050a-1062-452f-abd0-5810d7a53325
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 7a1e25a2-f8e2-4dbc-93e9-60f23df5da5c
+                Name: Box2x1x1
+                Components:
+                    93de224b90e2294a896f8bb03d0c6705: !TransformComponent
+                        Id: 10ef3e32-91b5-4192-be64-f0371765d2b6
+                        Position: {X: 1.0, Y: 0.5, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d2619cccd5f24041a405add501ed26e6: !ModelComponent
+                        Id: 0edc807b-48da-4cb5-9dbf-e22ecaf1cc68
+                        Model: 922930df-514b-4eb5-8274-e427eecc434f:Models/Box2x1x1
+                        Materials:
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    6b416dc1a6679e41858a68dcecd16bc7: !StaticColliderComponent
+                        Id: 41934a76-8aed-4674-928c-690b9cb82023
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a285fe854591f5418a5ff9682aa641d8: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 2.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: a41bff0d-65b2-4117-bc70-89ed3b5d584d
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 7db21174-807f-42d1-a267-aa49ae738aec
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: b9b988df-b38d-4b23-806c-a42a1426fe6b
+                        Position: {X: 4.354127, Y: 0.807375, Z: -2.6856482}
+                        Rotation: {X: -0.10159004, Y: 0.16348566, Z: -0.5179293, W: 0.83348733}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: 4462cc93-6268-43a6-b5c0-198488596ecf
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 458fecff-cd6e-44cb-8416-e25954af5138
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 7e66d91b-586a-4a6d-8dcd-8445fa1be900
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 5b190d03-3648-43f4-8e6f-bd9370b6cab0
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 3995304a-0429-403c-a685-7f23b6b34fc1
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: d6e73afc-0b4c-4a54-8ace-5acbb43bd301
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 011f712f-38b5-4f9b-b9e1-6deaef7038bf
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: 7f4c1f52-258a-4227-93e8-b13c86076a13
+                Name: Ground
+                Components:
+                    8fed8b81fc3d471a2ce2ec39bbb7325a: !TransformComponent
+                        Id: c0923d47-ddaa-4b02-b493-d8eb5ee25cf4
+                        Position: {X: 4.5000005, Y: 0.0, Z: -1.1920929E-07}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Children: {}
+                    f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
+                        Id: 9dd70d3e-0bf0-46f1-a7d6-aa8c88c7da6f
+                        Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 9d288c6a-c0b3-4c71-bf15-d7007aa9a7e8
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 808b5e52-2940-4454-a177-ba77e425482b
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: f04b7b1a-31fb-449a-84af-46691bf8e81b
+                        Position: {X: -5.0000005, Y: 0.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! 5b190d03-3648-43f4-8e6f-bd9370b6cab0
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: b177ce96-c183-4be9-b55e-7276738daa3f
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 816a56c6-75a7-4695-a0e4-0513ed514154
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 261396f8-4299-4d5f-a956-d08c4056b7ae
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: bfb9d844-f398-4e6e-817d-7f3d3e5e4a9d
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 4a403d91-4c87-4110-9a09-0d4a7ef8f9d9
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 40599ea6-6ca4-4a1a-882a-b4648a4b1998
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: 82dd461b-7616-4d5e-a766-be41f6bba5ae
+                Name: Ground
+                Components:
+                    8fed8b81fc3d471a2ce2ec39bbb7325a: !TransformComponent
+                        Id: 70e9eca2-5e57-459f-bb93-e2aee851698e
+                        Position: {X: 4.5000005, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Children: {}
+                    f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
+                        Id: 07d497c9-3a17-48b7-91a3-fa5f0b78a4d0
+                        Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: f1ced593-eb7f-4621-a893-58716765e6fd
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 836aa3fa-5f3e-4916-9624-81e6bb8d772c
+                Name: Directional light
+                Components:
+                    16e72a50b470bfe748983da5458eb723: !TransformComponent
+                        Id: 0ec9ba78-1910-43be-8f46-09ef2e06a45e
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.007513374, Y: -0.85018384, Z: -0.45847577, W: -0.25871006}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    97d8ad5803ac5cb648f845db4591e5cf: !LightComponent
+                        Id: d8dbdc56-a334-4f12-90e2-3a516782b1ae
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 0.97332424, G: 0.975, B: 0.84093755}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: XLarge
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+                        Intensity: 2.0
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 6fb0f099-8844-4b0b-bb60-809fa9895243
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 90250255-6561-4f83-a1fc-298e8270876f
+                Name: Ball
+                Components:
+                    2e40cf343a3cf2a2b0044d0011fae553: !TransformComponent
+                        Id: 1b9958fd-eaf3-48c2-83c9-d886762179f3
+                        Position: {X: -0.5, Y: 1.9736722, Z: 4.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a07c3f22b2be5ddfc8b92f5c0c2d0087: !ModelComponent
+                        Id: 028ff03a-3048-4129-aaca-47bdc7deb633
+                        Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
+                        Materials: {}
+                    0b571d0793095d6b9f667b5f19f9b7d5: !RigidbodyComponent
+                        Id: 5fea6c8d-dc8c-421f-a216-32348d7190d3
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            096dc09bb35b0d33f4b49d6a7104c6c7: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+        -   Folder: Walls
+            Entity:
+                Id: 920e3f63-da71-480a-af66-de097a07d16f
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: 80158726-8f8f-4578-9f7b-5a326188853a
+                        Position: {X: -5.0000005, Y: 0.0, Z: -1.0}
+                        Rotation: {X: 0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! 9c24452b-5789-4d6a-bca4-d9c3f9796669
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: c42621bf-0615-46c8-8864-0865986153fb
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 92794b45-7fef-49ad-9bd0-b01e658696ee
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 8ee5e1b9-9052-40dd-bb41-af045169ffbf
+                        Position: {X: 1.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: db1c4a56-bb1c-4f77-853b-10d7c60b38f4
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 8ca03be4-0ad8-4782-92aa-03e92909f923
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: d165a2cc-b58d-4b5c-bf50-0db94f60aa71
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: 9dc18825-64fb-40de-96d4-08b37eb9da9f
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 4a70dabc-6636-47ff-9970-91d08e8e6bfb
+                        Position: {X: 2.0, Y: 1.0, Z: -0.49999988}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 39a70f46-c7dc-42db-a75a-eb79e93ce6e7
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 38638e1c-07e3-4757-95c9-38c0faf629a1
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 59e198e4-8aa7-4b27-b289-7ffcb3682b1e
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: 9f582c03-3a6c-4774-8c9f-b7f928ac355a
+                Name: Box2x1x1
+                Components:
+                    fbf7a85e49c05eb997826ae4be14544b: !TransformComponent
+                        Id: 167f161e-f3e6-4ec0-adbf-f5842aa2c04e
+                        Position: {X: -5.0, Y: 0.0, Z: 3.0}
+                        Rotation: {X: -0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            598017553775baa4350012936ef177ff: ref!! 10ef3e32-91b5-4192-be64-f0371765d2b6
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 4f8344dd-64e4-42ff-b0f0-a2123dd168e1
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: a72c2fc6-c8ab-4243-b5f6-05357ca75321
+                Name: Ramp1x1x1
+                Components:
+                    f209476be8802a4aa93c1768358ae3c4: !TransformComponent
+                        Id: 117a8761-3545-4050-9e97-584eb71f0283
+                        Position*: {X: 0.50000006, Y: 0.5, Z: -0.49999994}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f8c751136a9aa643afa88b938510189c: !ModelComponent
+                        Id: 358d11e3-1b87-4134-b668-929388de61b0
+                        Model: e55d79be-700a-44db-a70f-8512c67dd07d:Models/Ramp1x1x1
+                        Materials: {}
+                    ef71e33350ba7041a0b72c62a58ca295: !StaticColliderComponent
+                        Id: e03a1b1e-21d5-4203-8363-ecc8320e1d53
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            8359b4c0fa7e894ba4582a7bdd8e1ae6: !ColliderShapeAssetDesc
+                                Shape: 26f14582-93fd-4080-9f17-1f4444fe2205:CollisionMeshes/Ramp1x1x1
+        -   Folder: null
+            Entity:
+                Id: b29fea62-9193-4f58-8936-0e48f3817db2
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 15ea6759-2c8a-4979-8b8b-94f827f95e79
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: ba74e538-81d7-4809-a3f0-66ea24395559
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 7c55bd64-0484-45b4-8b55-46cdf982646b
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: afa40620-4fdb-4866-8178-b3a96711aa23
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: b2dd5dc3-c192-46b8-971c-284d0001ab3b
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 6ae2d6e6-5ed8-45eb-bbe4-24c2b2296fbe
+                        Position: {X: 1.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: b90ee82e-6c2e-461c-8562-f80541b67bcd
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 66cfce7c-9c4e-4d39-bc98-1fa10bf16a76
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 28ad2098-88a9-4d40-a88b-f640554b8b25
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: b7434e5f-b95e-4db9-aecc-4a81c75ae37d
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: bfcf3a2f-5085-43a0-a3b6-dc2da67d40bc
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: f5271f61-0dc6-4d3c-92b6-ad2e86157158
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 95c30f55-796c-42ee-b0b8-1981bb5feceb
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: b4c9227a-d00e-4c52-afaf-ad2b8881b996
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: b7987b75-abd0-4264-89e6-e4c4b5f8af1f
+                Name: Box2x1x1
+                Components:
+                    93de224b90e2294a896f8bb03d0c6705: !TransformComponent
+                        Id: c291e05f-1c96-43e7-80e6-1383d77a4fda
+                        Position: {X: 1.0, Y: 0.5, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d2619cccd5f24041a405add501ed26e6: !ModelComponent
+                        Id: ba755a5d-5a5a-4728-9e8e-f6ef521ca144
+                        Model: 922930df-514b-4eb5-8274-e427eecc434f:Models/Box2x1x1
+                        Materials:
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    6b416dc1a6679e41858a68dcecd16bc7: !StaticColliderComponent
+                        Id: f23a2348-2884-4d74-b131-5ae246746946
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a285fe854591f5418a5ff9682aa641d8: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 2.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: b284636a-8bff-47ff-9416-2939cbf4b131
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: b826e6ce-4d29-4a1c-999f-af8e75126eb4
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 8ccfb852-190d-403b-80fd-bd77246dbb39
+                        Position: {X: 1.0, Y: 1.0, Z: 0.5000002}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: f648a0af-00ab-4e73-928f-62eea27eb7a3
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: e81cc532-8fb3-428e-afa1-a144efd699dc
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 6ce51046-dd1d-484e-a4f3-235d62d0e8a8
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: c063a851-a8d6-4638-9934-911c963aabf2
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 1414e2e6-31c2-4172-9039-7bdcec784ba4
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 847d036d-1ffb-41a0-870b-09bac0b1ab1b
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 4b5f4a93-bd7a-4c6a-9e35-a15f5ae66bc8
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: a59011f6-6c67-4ce2-b10e-533422c63e84
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: c479b62d-bf16-4f40-915c-29b80ef01569
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 3737517c-7e17-42a7-b0da-9f30d497222f
+                        Position: {X: 1.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 6fb95507-812a-4cee-9096-a6def4542a80
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 46ee1c49-e800-4a09-af87-f1669b4b1af2
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 36187162-602b-4648-805d-213bde6e6054
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: c6968eb3-67bc-43fa-a15c-6a5e2846de06
+                Name: BoxF
+                Components:
+                    bf3b1e0243078596131088f87dd4ed36: !TransformComponent
+                        Id: 761f9110-37c6-42ea-ac7a-a83639dd9050
+                        Position: {X: -4.0516386, Y: 1.1289288, Z: 4.234566}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    50f3338f4a392c10a0c4b8a9a795bed7: !ModelComponent
+                        Id: 5b8c8317-bcaf-453d-a205-ca3ca6bb1183
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: fef57993-8d27-4e79-9dd4-9c0f7368427e
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: c8bf5801-3854-4670-8f60-f8cab4c2a552
+                Name: Skybox
+                Components:
+                    a052bb2a7ce338fbc0727426771a7d4c: !TransformComponent
+                        Id: 2363f259-aebb-415c-8f91-845ec7a9a2d8
+                        Position: {X: 0.0, Y: 2.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    508e804e75f75666d3c5e41788acc3cc: !BackgroundComponent
+                        Id: 68e8c9cd-f1e1-4df4-a250-7aa84da39965
+                        Texture: b7f73672-f9bf-44ae-8a04-0017010b4ca1:Materials/Skybox texture
+                        Intensity*: 3.01
+                    0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
+                        Id: 4933a7e7-0721-4f01-8794-3460168e056c
+                        Enabled*: true
+                        Type: !LightSkybox
+                            Skybox: ae4fd991-6290-4c24-b73b-25d81a1a4837:Materials/Skybox
+                        Intensity*: 4.0
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 157729d7-9c11-4c7d-8483-68f15dc8a47d
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: c9bf4383-1805-494e-8195-1ee3c0268828
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: e564f830-2175-4c45-b848-f9fb6608b5e3
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 0e38aec3-0f84-4bc2-93f7-623f03425985
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 9d4ebaa9-3381-4f43-8186-07d3b4e9b436
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 842364c2-44d5-4f33-bc64-bc67047326e6
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: cdfe1771-e027-4850-a340-b75c663b57fb
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: 4b85b45f-fa69-4f6b-93a4-e8dbc3b2c4ee
+                        Position: {X: -2.0000002, Y: 0.0, Z: -7.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 9d85f176-143f-4a7b-9547-fe6fbd33b25c
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 8f85967b-945d-4dd2-a4e3-130fa356d914
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: d87312c9-029a-4b79-aade-9d60dc3e6d96
+                Name: Ground
+                Components:
+                    8fed8b81fc3d471a2ce2ec39bbb7325a: !TransformComponent
+                        Id: ff8e1d2e-35df-454c-81be-d90a2c53ff32
+                        Position: {X: -0.4999994, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Children: {}
+                    f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
+                        Id: 43f877e9-9881-4aa3-ae91-e0f7a2ff45ff
+                        Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 6566caf9-1fbf-46cb-b440-b5c3f1ab06b2
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: d8cbfa3b-a726-4e43-9505-571b479690d9
+                Name: Ground
+                Components:
+                    8fed8b81fc3d471a2ce2ec39bbb7325a: !TransformComponent
+                        Id: 263d68ff-f94a-4f8c-9945-b6c735ed79a9
+                        Position: {X: -0.4999994, Y: 0.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Children: {}
+                    f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
+                        Id: a3854a0e-7df5-44d5-ace5-1d58692197da
+                        Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: f7cf8e94-8c8c-49ad-ae01-c4f6b757a16a
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: dc61d0d4-9a77-45de-8f64-cad551b79ecb
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: f02b0476-b53d-4208-860d-99ef92d18c6d
+                        Position: {X: -7.000001, Y: 0.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.7071068, Z: 0.0, W: 0.7071067}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 71abe552-db57-4a44-89ab-f5b04a9b125a
+                            6d9b4b507a297e05f57e1e9ccbd8ec1b: ref!! fdd81027-02c7-4faf-8472-66f7f81e684a
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 68a5ba41-d842-4b51-a25f-b157457b1b55
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: ddd2771d-00f3-45dd-a91a-0dd7e8ed8c09
+                Name: Box4x2x1
+                Components:
+                    7a62451986d6ca2f69557cc11b3d72be: !TransformComponent
+                        Id: ba481886-f1e2-449b-b45a-7ede1ffe765d
+                        Position: {X: 5.9999995, Y: 0.0, Z: -1.0}
+                        Rotation: {X: 0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            47252b6e7461be562f8ee34feb9a840b: ref!! 2d9db1da-2f3e-473e-a6b8-c940b63a6f20
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: a0f9af94-238e-419a-8500-8a452e543370
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: ddf65068-1745-440c-a64c-78dc136a4bdb
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: ddf02c96-5d62-4492-95f3-e63cddb19772
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 630a07fa-25c4-4ad6-80d8-56d8115d1bee
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: c062e450-d956-4453-aa2b-03999d6f2016
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 2568a09d-66f7-4ba1-a963-ea8cfe81dbec
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: debd4596-347e-4097-a80d-8b48a5993546
+                Name: Box2x1x1
+                Components:
+                    fbf7a85e49c05eb997826ae4be14544b: !TransformComponent
+                        Id: 4bc70672-1e22-476b-be4e-85497cebadc8
+                        Position: {X: 6.000001, Y: 1.0, Z: 3.0}
+                        Rotation: {X: -0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            598017553775baa4350012936ef177ff: ref!! b824e4a5-5e59-4b89-89fd-16adff71d66f
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 242a503d-95f0-41d1-900f-940185076904
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: e01a3bd6-4d54-4b25-be59-7725199f751e
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: ba03ca89-e8dd-43a0-9d54-40a290e5060a
+                        Position: {X: -6.0, Y: 0.0, Z: -7.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 8ee5e1b9-9052-40dd-bb41-af045169ffbf
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: f25ce237-0a5a-4f4c-8ae8-57053599c238
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: e412b912-58cf-4cfd-a7d2-26ded662031b
+                Name: Box2x1x1
+                Components:
+                    fbf7a85e49c05eb997826ae4be14544b: !TransformComponent
+                        Id: d55a0026-e984-42dd-9733-dcd4d2010cae
+                        Position: {X: -5.0, Y: 1.0, Z: 3.0}
+                        Rotation: {X: -0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            598017553775baa4350012936ef177ff: ref!! 1b6bb023-672f-4109-a66e-20b2d2b17663
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 4ed8c295-d113-4200-9a53-d622a91982b1
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: ed814855-0d1a-494a-8479-606dc81893cd
+                Name: DefaultScenery
+                Components:
+                    2e0f2a60dded97f67c3c5a8a13ee2e04: !TransformComponent
+                        Id: a282f814-285d-4d48-ae9c-3580a93b3d6e
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a9eb95bcae32e29bb244a98d82284431: ref!! 5936f60b-637a-4e12-b86b-184189824b6c
+                            d31b642be8a4394ef2323ee880aca00d: ref!! ff8e1d2e-35df-454c-81be-d90a2c53ff32
+                            43d2ec296ae5e4c67045c11258be2304: ref!! 70e9eca2-5e57-459f-bb93-e2aee851698e
+                            e6cd0f88d2fb8e72affa70a9aa9b8fa3: ref!! 49bc269f-de1c-46ed-9c96-7cf148254a34
+                            a508ea27d08164ba29127f821480992f: ref!! 44da12ce-a9d9-473c-b6d3-1b4bf3bcd608
+                            037c0edf0d8c09bedd8299b38b141f90: ref!! c0923d47-ddaa-4b02-b493-d8eb5ee25cf4
+                            69ce4a685f6e0da273048e40acaf7382: ref!! 17bc5bf7-9223-4446-9c2e-551c4d24c454
+                            4ca7f97ba242fddc671123e2b26bce56: ref!! 263d68ff-f94a-4f8c-9945-b6c735ed79a9
+                            56af4b6ce201e23b9bcd5565caa896d4: ref!! ea2f6ec1-f36a-43dd-9bf6-c341fa41ceff
+                            daaca14686a212a5013413620ece6a17: ref!! 3db4b6e2-d887-44b6-8742-b3217ff2f939
+                            76fd8079aae2e2992a546a531d576a85: ref!! d672f217-4d92-4a11-8862-2011a85e38ee
+                            2a94b87de0567a08ac2cfe52f9e44c57: ref!! b914aec2-9a92-4a6c-b523-e3a9c4f60eb0
+                            51ed25cb16d5fad5c208beb59d0e064a: ref!! e02c90b8-efe9-401a-b272-bbb9aadc3089
+                            886b44730eef561022162984822dd1ca: ref!! e136dccb-26b1-4a5d-924d-ada297a2c478
+                            38e83a102a4ac0b10890387dc8dfe535: ref!! a6a4be68-ab70-4bcc-b257-0551639950d1
+                            de8e2e047d8df0e7fc6694651f7f1c60: ref!! f02b0476-b53d-4208-860d-99ef92d18c6d
+                            b347523a77d694b8a35f431fdb566520: ref!! b6c0addc-6190-4b8e-9e71-6e0cfcb08f88
+                            92ea5a070246b74e2606a1cf06fc72c1: ref!! aa5c9684-6874-43b9-b580-20b6575983f1
+                            55613ac0a60bbb117ee03a00070c236a: ref!! d20fffc4-950d-412b-83d3-84815f27c4f2
+                            d39eb3ad0684e4ceefdfdb2385e81dde: ref!! 4b85b45f-fa69-4f6b-93a4-e8dbc3b2c4ee
+                            665d2a3a7ba6710f3d6f521504589539: ref!! e4388eda-440d-444d-a58b-dabd14dcf17b
+                            597071202cdad191f46360779ea69e16: ref!! ba03ca89-e8dd-43a0-9d54-40a290e5060a
+                            c80c5386705820955b0450a6f6ec17f3: ref!! 0ec9ba78-1910-43be-8f46-09ef2e06a45e
+                            c0bf067145eaeb4b1e38c3f672bda9cb: ref!! 2363f259-aebb-415c-8f91-845ec7a9a2d8
+                            2d2d8fa66abecf8fc9405addc22ec9da: ref!! 4bc70672-1e22-476b-be4e-85497cebadc8
+                            bcaf9e3e433a3756e0d509f62ae0e07a: ref!! 4ae33dd6-c5c1-4bfd-9cf9-6aefc104824b
+                            b8a41de195cbbe4b57504c8de4372710: ref!! d55a0026-e984-42dd-9733-dcd4d2010cae
+                            0f6832bc99a38b1f8481206a80e905fb: ref!! 167f161e-f3e6-4ec0-adbf-f5842aa2c04e
+                            91ac5e738472c697aafd903cc5c6d9cf: ref!! f04b7b1a-31fb-449a-84af-46691bf8e81b
+                            e3a72b31f360cf4518e08ae56a2334b6: ref!! 80158726-8f8f-4578-9f7b-5a326188853a
+                            1781c2a9b4b73ac62165c39c7e9c0eac: ref!! ba481886-f1e2-449b-b45a-7ede1ffe765d
+                            0627e7b9dd32a033d56962fecee6bf07: ref!! f4b1fb3e-72b9-44f7-9aef-f489cce4b2b5
+                            e6afd38d6a6c38cf5c96e2831d182d63: ref!! 316cba8c-f6cf-4997-9aea-251a020eec08
+                            a228bd941fcbb3910c10d8bddf48b58c: ref!! aa79be3e-6b55-4fdf-8bd4-d1e8514c57f2
+                            b256412ab64bddfe4fd510173244666e: ref!! 084c7ccc-0435-40a1-9cbe-f6e55eebdfaa
+                            c3d96743d11b6ffa6f9eeb7e8fb77c96: ref!! 31bdd1de-fb5b-41c5-8d54-bd3fdb05656e
+                            635250dc6c547d80742dc04cf9e9e14b: ref!! 853855d6-1401-46a7-a5f4-3592020c4aa3
+                            d7d6f116f3df45f9070d43e207c60a67: ref!! d8d3d44a-a53e-43a1-8928-5700091e21f6
+                            84940d2380b28b5df6ec6521ea5ae557: ref!! 534d55dc-117c-44ac-9480-bfb8620e9776
+                            0528e821418010ea6bf17b6fb53682ad: ref!! 33908660-25a0-4b8f-872d-32e8debc27ce
+                            71bb2c71f916ecd3c2858c85caced801: ref!! 761f9110-37c6-42ea-ac7a-a83639dd9050
+                            20b4fddad86c92dffcad96c1dc257c96: ref!! 729c4f31-e799-4de9-bf4a-dc1a506580a0
+                            e3e606e092957212942910b453f577b5: ref!! f9e87925-46ff-477f-9877-ef560b42a5b4
+                            189c823ec8134879257344001abf36ac: ref!! b9b988df-b38d-4b23-806c-a42a1426fe6b
+                            61ce56a389a269ff620a375bcdb2df99: ref!! 91ac2ea4-dc48-4085-b857-c763ffa4acae
+                            01cd138b62e3c6fb37e6e9244e8355f4: ref!! 0d521758-3862-443d-ab7e-ff0435a32b22
+                            6cb62d1dcf8ecf4782c9199fda7e1dc7: ref!! 7f04b352-12dd-4a50-b06b-1ea1433ff027
+                            8bfb900ae6c9c2cde608c50edc872842: ref!! fdc32c56-4707-411d-93d5-4111fe9f739b
+                            14ba46931b46e9c19908e4f3027a3ec1: ref!! 831f876f-6249-4dc5-8102-e93d485a74c1
+        -   Folder: Walls
+            Entity:
+                Id: eef7eb55-63e0-44a2-8663-c640aaaeae33
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: d20fffc4-950d-412b-83d3-84815f27c4f2
+                        Position: {X: -2.0000002, Y: 0.0, Z: 5.9999995}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 6ae2d6e6-5ed8-45eb-bbe4-24c2b2296fbe
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: ff894ed2-0521-457b-a0a6-08903230b28f
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: f000d603-1f1e-4289-b246-848f78c7988e
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: b49b6de7-5cb7-4bd1-a207-422df5c71b63
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 6e621890-edef-4f0c-b546-e6c443bd201a
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 1fb4f57d-d7b2-4146-a3c4-20ada66973f5
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 47c695a3-a0a2-462a-9fb1-51c032308159
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: f1f148a4-f767-4547-8d4e-c9413b8349b3
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: b6c0addc-6190-4b8e-9e71-6e0cfcb08f88
+                        Position: {X: 1.9999998, Y: 0.0, Z: 5.9999995}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! e564f830-2175-4c45-b848-f9fb6608b5e3
+                            6d9b4b507a297e05f57e1e9ccbd8ec1b: ref!! 2cc38161-48ad-45e5-b84a-797706e853a2
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 4c7e7433-374a-4999-8424-7e8167865c96
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: f532d279-2bf1-419c-9f1c-0688e1298427
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 3ceaec36-f8f5-40b0-856c-1effed111562
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 468b2569-ea67-44d1-8338-43ac525fe8a7
+                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
+                        Materials:
+                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 30fb4b4e-8724-4a51-ae1a-cf17d09759aa
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 4778e3a6-1bad-4a49-b3ed-c94566d3cce4
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: null
+            Entity:
+                Id: f55a8671-f753-468e-b714-3626028cb32e
+                Name: Box4x2x1
+                Components:
+                    cafed28ac2678c4e84c546d7570eabd3: !TransformComponent
+                        Id: 2af19fd1-cb8c-4b94-a955-bc1442ba5193
+                        Position: {X: 2.0, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7807e4f88759f5408bc713431dfc8978: !ModelComponent
+                        Id: 92045977-1d4d-4ed2-9519-dd8aeffef637
+                        Model: null
+                        Materials: {}
+                    793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
+                        Id: 9a949306-b088-4ce6-b0be-dcf013ddb064
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            16348c7905caf14d82d3668b90f0c07b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 4.0, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: b7fb846d-83ca-4f77-a112-7fc1df98c290
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: fac61423-a397-400a-851e-d12ff1f86958
+                Name: TutorialUI
+                Components:
+                    f448749b52a320d40d810d33becfc1f5: !TransformComponent
+                        Id: 0d521758-3862-443d-ab7e-ff0435a32b22
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1e68bc24472b991fafa8974e889b459a: !UIComponent
+                        Id: f5207da6-7dbb-43c4-a8b3-45bc4af18166
+                        Page: 5175f272-13da-45dd-9f7b-540e7121dd56:UI/LoadTutorialUI
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                        RenderGroup: Group4
+                    76335c0dab5254e13c23c7182873cb9c: !CSharpIntermediate.Code.TutorialUI,CSharpIntermediate.Game
+                        Id: a1174431-7cd9-4ef0-90d3-fc34e918f3d4
+                        ShowMenuOnSceneLoad: false
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 80a6b3eb-b87e-4c16-96c4-61afc31f7ac3
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Walls
+            Entity:
+                Id: fd82c853-ebe6-44a9-8957-0cc00ef2728b
+                Name: Box4x2x1
+                Components:
+                    b8e38dff92d51a2f11f245525d2d81fc: !TransformComponent
+                        Id: a6a4be68-ab70-4bcc-b257-0551639950d1
+                        Position: {X: 6.0, Y: 0.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.7071068, Z: 0.0, W: 0.7071067}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            b21be5daf45269b2eb2029633ebdfd6b: ref!! 4a70dabc-6636-47ff-9970-91d08e8e6bfb
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 126c8441-74f2-4b92-8316-0f02f098baaf
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b

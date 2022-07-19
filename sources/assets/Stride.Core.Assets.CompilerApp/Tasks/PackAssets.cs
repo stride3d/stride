@@ -172,7 +172,7 @@ namespace Stride.Core.Assets.CompilerApp.Tasks
                             RegisterItem(outputFile);
                         }
                     }
-                    catch (YamlException e)
+                    catch (YamlException)
                     {
                         // Not a Yaml asset? Process it as binary (copy)
                         File.Copy(asset.FilePath, outputFile, true);

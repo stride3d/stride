@@ -302,7 +302,7 @@ namespace Stride.Physics
 
             SetupBoneLink();
 
-            var rbci = new BulletSharp.RigidBodyConstructionInfo(0.0f, MotionState, ColliderShape.InternalShape, Vector3.Zero);
+            using var rbci = new BulletSharp.RigidBodyConstructionInfo(0.0f, MotionState, ColliderShape.InternalShape, Vector3.Zero);
             InternalRigidBody = new BulletSharp.RigidBody(rbci)
             {
                 UserObject = this,

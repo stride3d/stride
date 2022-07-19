@@ -36,7 +36,7 @@ namespace Stride.Graphics.Font
             ClearCache();
         }
 
-        private void ReloadCache(GraphicsResourceBase graphicsResourceBase)
+        private void ReloadCache(GraphicsResourceBase graphicsResourceBase, IServiceRegistry services)
         {
             foreach (var cacheTexture in cacheTextures)
                 cacheTexture.Recreate();

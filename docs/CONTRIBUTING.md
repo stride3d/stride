@@ -2,7 +2,7 @@
 
 ## Check our issue tracker
 
-Please take a look at our [issue tracker](https://github.com/stride3d/stride/issues), especially issues marked with [help wanted](https://github.com/stride3d/stride/labels/help%20wanted).
+Please take a look at our [issue tracker](https://github.com/stride3d/stride/issues).
 
 If you are just getting started with Stride, issues marked with ['good first issue'](https://github.com/stride3d/stride/labels/good%20first%20issue) can be a good entry point.
 

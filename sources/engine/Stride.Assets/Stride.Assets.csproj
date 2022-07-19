@@ -16,13 +16,11 @@
     <PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" ExcludeAssets="runtime" />
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
-    <!--PackageReference Include="Esent.Interop" Version="1.9.4" /-->
-    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.6.0" />
     <PackageReference Include="SSH.NET" Version="2016.1.0" />
     <PackageReference Include="System.AppContext" Version="4.3.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0-preview.7.21377.19" />
+    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
     <PackageReference Include="System.Console" Version="4.3.1" />
     <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />

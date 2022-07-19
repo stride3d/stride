@@ -9,6 +9,7 @@
 	- `Graphics` : All graphics samples (display 3d models, sprites, text...etc.)
 	- `Input` : All input samples (touch, mouse, gamepad...etc.)
 	- `UI` : All UI samples
+	- `Tutorials` : All Tutorial sample projects with a related video or Stride documentation page
 	- `StrideSamples.sln` : A top level `StrideSamples.sln` referencing all Game Packages (sdpkg)
 - Inside a category, we store a package in its own directory. For example `SimpleAudio` in `Audio`
 	- Audio
@@ -22,8 +23,3 @@
 			- `SimpleAudio.Windows` : Windows Desktop executable
 			- `SimpleAudio.sdpkg` : Package description
 			- `SimpleAudio.sdtpl` : Package Template description
-
-
-
-
-

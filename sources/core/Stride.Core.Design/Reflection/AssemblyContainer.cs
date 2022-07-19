@@ -134,9 +134,13 @@ namespace Stride.Core.Reflection
         {
             if (assemblyName == null) throw new ArgumentNullException(nameof(assemblyName));
 
+            // Note: Do not compare by full name as it is too restricive in regards to versioning.
+            // For example consider App -> Foo -> Bar (1.0) with the App referencing a newer version of Bar (2.0)
+            // A full name comparison would now compare Bar (1.0) to Bar (2.0) and fail to load.
+
             // First, check the list of already loaded assemblies
             {
-                var matchingAssembly = loadedAssemblies.FirstOrDefault(x => x.Assembly.FullName == assemblyName.FullName);
+                var matchingAssembly = loadedAssemblies.FirstOrDefault(x => AssemblyName.ReferenceMatchesDefinition(assemblyName, x.Assembly.GetName()));
                 if (matchingAssembly != null)
                     return matchingAssembly.Assembly;
             }
@@ -179,7 +183,7 @@ namespace Stride.Core.Reflection
                         try
                         {
                             var otherAssemblyName = AssemblyName.GetAssemblyName(dependency);
-                            if (otherAssemblyName.FullName == assemblyName.FullName)
+                            if (AssemblyName.ReferenceMatchesDefinition(assemblyName, otherAssemblyName))
                                 return LoadAssemblyFromPathInternal(dependency);
                         }
                         catch (Exception)

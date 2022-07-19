@@ -238,6 +238,42 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Earthmark",
+      "name": "Daniel Miller",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1251609?v=4",
+      "profile": "https://github.com/Earthmark",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "joreg",
+      "name": "joreg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1067952?v=4",
+      "profile": "http://joreg.ath.cx",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "jrinker03",
+      "name": "James Rinker",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49572939?v=4",
+      "profile": "https://github.com/jrinker03",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "tristanmcpherson",
+      "name": "Tristan McPherson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/979937?v=4",
+      "profile": "https://github.com/tristanmcpherson",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -119,6 +119,10 @@ namespace Stride.Engine
                 else
                     SceneInstance = new SceneInstance(Services, content.Load<Scene>(InitialSceneUrl));
             }
+            else
+            {
+                SceneInstance ??= new SceneInstance(Services) { RootScene = new Scene() };
+            }
 
             if (InitialGraphicsCompositorUrl != null && content.Exists(InitialGraphicsCompositorUrl))
             {

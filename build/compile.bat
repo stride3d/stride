@@ -5,7 +5,7 @@ setlocal
 set STARTTIME=%TIME%
 set __SkipTestBuild=true
 set __BuildType=Debug
-set __BuildVerbosity=m
+set __BuildVerbosity=n
 set __BuildDoc=0
 set __ContinueOnError=false
 set __SelectedProject=Stride.sln
@@ -36,7 +36,7 @@ echo.
 echo   debug   : Build debug version
 echo   release : Build release version
 echo   tests   : Build tests
-echo verbosity : Verbosity level [q]uiet, [m]inimal, [n]ormal or [d]iagnostic. Default is [m]inimal
+echo verbosity : Verbosity level [q]uiet, [m]inimal, [n]ormal or [d]iagnostic. Default is [n]ormal
 echo   project : Chosen project
 echo.
 

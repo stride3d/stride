@@ -9,6 +9,7 @@ namespace FirstPersonShooter.Core
     {
         public static Vector3 LogicDirectionToWorldDirection(Vector2 logicDirection, CameraComponent camera, Vector3 upVector)
         {
+            camera.Update();
             var inverseView = Matrix.Invert(camera.ViewMatrix);
 
             var forward = Vector3.Cross(upVector, inverseView.Right);
