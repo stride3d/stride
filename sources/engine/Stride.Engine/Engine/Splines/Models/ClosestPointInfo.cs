@@ -7,5 +7,8 @@ namespace Stride.Engine.Splines.Models
         public float DistanceToOrigin;
 
         public float LengthOnCurve;
+
+        public int SplineNodeAIndex { get; internal set; }
+        public int SplineNodeBIndex { get; internal set; }
     }
 }

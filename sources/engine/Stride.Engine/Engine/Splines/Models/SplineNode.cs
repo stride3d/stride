@@ -165,15 +165,15 @@ namespace Stride.Engine.Splines
         /// <summary>
         /// Retrieves information about the closest point on the spline in relation to the given world position
         /// </summary>
-        /// <param name="originalPosition"></param>
+        /// <param name="originPosition">A Vector3 world position </param>
         /// <returns></returns>
-        public ClosestPointInfo GetClosestPointOnCurve(Vector3 originalPosition)
+        public ClosestPointInfo GetClosestPointOnCurve(Vector3 originPosition)
         {
             ClosestPointInfo info = null;
             for (var i = 0; i < bezierPointCount; i++)
             {
                 var currentCurvePoint = GetBezierPoints()[i];
-                var curSplinePointDistance = Vector3.Distance(currentCurvePoint.Position, originalPosition);
+                var curSplinePointDistance = Vector3.Distance(currentCurvePoint.Position, originPosition);
 
                 if (info == null || curSplinePointDistance < info.DistanceToOrigin)
                 {

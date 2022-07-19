@@ -190,14 +190,17 @@ namespace Stride.Engine.Splines
                 var curNode = splineNodes[i];
                 var closestPoint = curNode.GetClosestPointOnCurve(originalPosition);
                 closestPoint.SplineNodeA = curNode;
+                closestPoint.SplineNodeAIndex = i;
 
-                if(i + 1 <= splineNodes.Count-1)
+                if (i + 1 <= splineNodes.Count-1)
                 {
                     closestPoint.SplineNodeB = splineNodes[i+1];
+                    closestPoint.SplineNodeBIndex = i + 1;
                 }
                 else
                 {
                     closestPoint.SplineNodeB = splineNodes[0];
+                    closestPoint.SplineNodeBIndex = 0;
                 }
 
                 if (currentClosestPoint == null || closestPoint.DistanceToOrigin < currentClosestPoint.DistanceToOrigin)
