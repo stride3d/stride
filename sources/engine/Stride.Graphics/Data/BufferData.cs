@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
 
@@ -54,7 +55,7 @@ namespace Stride.Graphics.Data
         /// <returns>A buffer data.</returns>
         public static BufferData New<T>(BufferFlags bufferFlags, T[] content) where T : struct
         {
-            var sizeOf = Utilities.SizeOf(content);
+            var sizeOf = Unsafe.SizeOf<T>() * content.Length;
             var buffer = new byte[sizeOf];
             Utilities.Write(buffer, content, 0, content.Length);
             return new BufferData(bufferFlags, buffer);

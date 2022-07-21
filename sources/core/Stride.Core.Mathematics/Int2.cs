@@ -28,6 +28,7 @@
 */
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics
@@ -43,7 +44,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Int2"/> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<Int2>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<Int2>();
 
         /// <summary>
         /// A <see cref="Stride.Core.Mathematics.Int2"/> with all of its components set to zero.

@@ -31,7 +31,7 @@ namespace Stride.Extensions
             }
 
             const int PolySize = 3; // currently only triangle list are supported
-            var polyIndicesSize = PolySize * Utilities.SizeOf<int>();
+            var polyIndicesSize = PolySize * sizeof(int);
             var vertexBuffer = meshData.VertexBuffers[0];
             var oldIndexBuffer = meshData.IndexBuffer;
             var vertexStride = vertexBuffer.Declaration.VertexStride;
@@ -48,7 +48,7 @@ namespace Stride.Extensions
                     var accu = Vector3.Zero;
                     for (var u = 0; u < PolySize; ++u)
                     {
-                        var curIndex = *(int*)(indexBufferPointerStart + Utilities.SizeOf<int>() * (i * PolySize + u));
+                        var curIndex = *(int*)(indexBufferPointerStart + sizeof(int) * (i * PolySize + u));
                         var pVertexPos = (Vector3*)(vertexBufferPointerStart + vertexStride * curIndex);
                         accu += *pVertexPos;
                     }
@@ -64,7 +64,7 @@ namespace Stride.Extensions
             var sortedIndices = sortList.OrderBy(x => Vector3.Dot(x.Value, viewDirectionForSorting)).Select(x => x.Key).ToList();   // TODO have a generic delegate for sorting
             
             // re-write the index buffer
-            var newIndexBufferData = new byte[oldIndexBuffer.Count * Utilities.SizeOf<int>()];
+            var newIndexBufferData = new byte[oldIndexBuffer.Count * sizeof(int)];
             fixed (byte* newIndexDataStart = &newIndexBufferData[0])
             fixed (byte* oldIndexDataStart = &oldIndexBuffer.Buffer.GetSerializationData().Content[0])
             {

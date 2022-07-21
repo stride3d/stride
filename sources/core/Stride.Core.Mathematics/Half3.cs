@@ -23,6 +23,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Serialization;
 
@@ -38,7 +39,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Half3"/> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<Half3>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<Half3>();
 
         /// <summary>
         /// A <see cref="Stride.Core.Mathematics.Half3"/> with all of its components set to zero.

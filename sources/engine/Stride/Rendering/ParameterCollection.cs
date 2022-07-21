@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Collections;
@@ -293,7 +294,7 @@ namespace Stride.Rendering
             var parameter = GetAccessor(key);
 
             // Align to float4
-            var stride = (Utilities.SizeOf<T>() + 15) / 16 * 16;
+            var stride = (Unsafe.SizeOf<T>() + 15) / 16 * 16;
             var values = new T[parameter.Count];
 
             fixed (byte* dataValues = DataValues)
@@ -327,7 +328,7 @@ namespace Stride.Rendering
             }
 
             // Align to float4
-            var stride = (Utilities.SizeOf<T>() + 15) / 16 * 16;
+            var stride = (Unsafe.SizeOf<T>() + 15) / 16 * 16;
             var sizeInBytes = sourceParameter.Count * stride;
 
             fixed (byte* sourceDataValues = DataValues)
@@ -373,7 +374,7 @@ namespace Stride.Rendering
         public unsafe void Set<T>(ValueParameter<T> parameter, int count, ref T firstValue) where T : struct
         {
             // Align to float4
-            var stride = (Utilities.SizeOf<T>() + 15) / 16 * 16;
+            var stride = (Unsafe.SizeOf<T>() + 15) / 16 * 16;
             var elementCount = parameter.Count;
             if (count > elementCount)
             {

@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 
 namespace Stride.Graphics
@@ -231,7 +232,7 @@ namespace Stride.Graphics
         /// </remarks>
         public T[] GetPixels<T>(int yOffset = 0) where T : struct
         {
-            var sizeOfOutputPixel = Utilities.SizeOf<T>();
+            var sizeOfOutputPixel = Unsafe.SizeOf<T>();
             var totalSize = Width * Height * pixelSize;
             if ((totalSize % sizeOfOutputPixel) != 0)
                 throw new ArgumentException(string.Format("Invalid sizeof(T), not a multiple of current size [{0}]in bytes ", totalSize));
@@ -280,7 +281,7 @@ namespace Stride.Graphics
             }
             else
             {
-                var sizeOfOutputPixel = Utilities.SizeOf<T>() * pixelCount;
+                var sizeOfOutputPixel = Unsafe.SizeOf<T>() * pixelCount;
                 var sizePerWidth = sizeOfOutputPixel / Width;
                 var remainingPixels = sizeOfOutputPixel % Width;
                 for (int i = 0; i < sizePerWidth; i++)
@@ -334,7 +335,7 @@ namespace Stride.Graphics
             }
             else
             {
-                var sizeOfOutputPixel = Utilities.SizeOf<T>() * pixelCount;
+                var sizeOfOutputPixel = Unsafe.SizeOf<T>() * pixelCount;
                 var sizePerWidth = sizeOfOutputPixel / Width;
                 var remainingPixels = sizeOfOutputPixel % Width;
                 for (int i = 0; i < sizePerWidth; i++)
