@@ -112,10 +112,17 @@ namespace Stride.Core
         /// <typeparam name="T">a struct to evaluate</typeparam>
         /// <returns>sizeof this struct</returns>
         [Obsolete("Use System.Runtime.CompilerServices.Unsafe.SizeOf<T>()")]
-        public static int SizeOf<T>() where T : struct
-        {
-            return Unsafe.SizeOf<T>();
-        }
+        public static int SizeOf<T>() where T : struct => Unsafe.SizeOf<T>();
+
+        /// <summary>
+        /// Return the sizeof an array of struct. Equivalent to sizeof operator but works on generics too.
+        /// </summary>
+        /// <typeparam name="T">a struct</typeparam>
+        /// <param name="array">The array of struct to evaluate.</param>
+        /// <returns>sizeof in bytes of this array of struct</returns>
+        [Obsolete("Use System.Runtime.CompilerServices.Unsafe.SizeOf<T>() * array.Length")]
+        public static int SizeOf<T>(T[] array) where T : struct
+            => array is null ? 0 : array.Length * Unsafe.SizeOf<T>();
 
         /// <summary>
         /// Pins the specified source and call an action with the pinned pointer.
