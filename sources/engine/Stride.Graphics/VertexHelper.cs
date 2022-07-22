@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -36,7 +36,7 @@ namespace Stride.Graphics
         {
             if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
             if (vertexBufferData == null) throw new ArgumentNullException("vertexBufferData");
-            var vertexStride = Utilities.SizeOf<T>();
+            var vertexStride = Unsafe.SizeOf<T>();
             var vertexBufferPtr = Interop.Fixed(vertexBufferData);
             return GenerateMultiTextureCoordinates(vertexDeclaration, (IntPtr)vertexBufferPtr, vertexBufferData.Length, 0, vertexStride, maxTexcoord);
         }
@@ -112,7 +112,7 @@ namespace Stride.Graphics
         /// </exception>
         /// <exception cref="System.InvalidOperationException">The vertex buffer must contain at least the TEXCOORD</exception>
         /// <remarks>
-        /// The original vertex buffer must contain at least a TEXCOORD[0-9] attribute in order for this method to work. 
+        /// The original vertex buffer must contain at least a TEXCOORD[0-9] attribute in order for this method to work.
         /// This method will copy the value of the first existing TEXCOORD found in the vertex buffer to the newly created TEXCOORDS.
         /// </remarks>
         public static unsafe VertexTransformResult GenerateMultiTextureCoordinates(VertexDeclaration vertexDeclaration, IntPtr vertexBufferData, int vertexCount, int vertexOffset, int vertexStride, int maxTexcoord = 9)
@@ -208,7 +208,7 @@ namespace Stride.Graphics
             if (vertexBufferData == null) throw new ArgumentNullException("vertexBufferData");
             if (typeof(T) == typeof(byte)) throw new ArgumentOutOfRangeException("T", "Type vertex can't be a byte");
 
-            var vertexStride = Utilities.SizeOf<T>();
+            var vertexStride = Unsafe.SizeOf<T>();
             var vertexBufferPtr = Interop.Fixed(vertexBufferData);
             fixed (void* indexBufferPtr = indexBuffer)
             {
@@ -362,7 +362,7 @@ namespace Stride.Graphics
                     // Gram-Schmidt orthogonalize
                     var newTangentUnormalized = tangent - normal * Vector3.Dot(normal, tangent);
                     var length = newTangentUnormalized.Length();
-                    
+
                     // Workaround to handle degenerated case
                     // TODO: We need to understand more how we can handle this more accurately
                     if (MathUtil.IsZero(length))

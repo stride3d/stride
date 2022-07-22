@@ -54,7 +54,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Matrix"/> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<Matrix>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<Matrix>();
 
         /// <summary>
         /// A <see cref="Stride.Core.Mathematics.Matrix"/> with all of its components set to zero.

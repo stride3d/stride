@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -43,19 +44,19 @@ namespace Stride.Extensions
                         vertexElementFormat = PixelFormat.R16G16_Float;
 
                         // Adjust next offset if current object has been resized
-                        offsetShift = Utilities.SizeOf<Half2>() - Utilities.SizeOf<Vector2>();
+                        offsetShift = Unsafe.SizeOf<Half2>() - Unsafe.SizeOf<Vector2>();
                         break;
                     case PixelFormat.R32G32B32_Float:
                         vertexElementFormat = PixelFormat.R16G16B16A16_Float;
 
                         // Adjust next offset if current object has been resized
-                        offsetShift = Utilities.SizeOf<Half4>() - Utilities.SizeOf<Vector3>();
+                        offsetShift = Unsafe.SizeOf<Half4>() - Unsafe.SizeOf<Vector3>();
                         break;
                     case PixelFormat.R32G32B32A32_Float:
                         vertexElementFormat = PixelFormat.R16G16B16A16_Float;
 
                         // Adjust next offset if current object has been resized
-                        offsetShift = Utilities.SizeOf<Half4>() - Utilities.SizeOf<Vector4>();
+                        offsetShift = Unsafe.SizeOf<Half4>() - Unsafe.SizeOf<Vector4>();
                         break;
                 }
 

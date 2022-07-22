@@ -3,6 +3,7 @@
 #pragma warning disable SA1402 // File may only contain a single type
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Core.Storage;
@@ -228,7 +229,7 @@ namespace Stride.Rendering
         [DataMemberIgnore]
         public ParameterKeyValueMetadata<T> DefaultValueMetadataT { get; private set; }
 
-        public override int Size => Interop.SizeOf<T>();
+        public override int Size => Unsafe.SizeOf<T>();
 
         public override string ToString()
         {

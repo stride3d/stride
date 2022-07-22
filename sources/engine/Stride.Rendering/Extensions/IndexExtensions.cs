@@ -91,7 +91,7 @@ namespace Stride.Extensions
             }
 
             // Generate index buffer
-            var indexBufferData = new byte[indexMapping.Indices.Length * Utilities.SizeOf<int>()];
+            var indexBufferData = new byte[indexMapping.Indices.Length * sizeof(int)];
             fixed (int* indexDataStart = &indexMapping.Indices[0])
             fixed (byte* indexBufferDataStart = &indexBufferData[0])
             {
@@ -126,7 +126,7 @@ namespace Stride.Extensions
 
             // Create new index buffer
             var indexCount = meshData.IndexBuffer.Count;
-            var indexBufferData = new byte[indexCount * Utilities.SizeOf<ushort>()];
+            var indexBufferData = new byte[indexCount * sizeof(ushort)];
             fixed (byte* oldIndexBufferDataStart = &meshData.IndexBuffer.Buffer.GetDataSafe()[0])
             fixed (byte* indexBufferDataStart = &indexBufferData[0])
             {
@@ -281,7 +281,7 @@ namespace Stride.Extensions
             
             // copy them into a byte[]
             var triangleCount = meshData.IndexBuffer.Count / 3;
-            var indexBufferData = new byte[triangleCount * 12 * Utilities.SizeOf<int>()];
+            var indexBufferData = new byte[triangleCount * 12 * sizeof(int)];
             fixed (int* indexDataStart = &newIndices[0])
             fixed (byte* indexBufferDataStart = &indexBufferData[0])
             {

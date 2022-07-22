@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core.Annotations;
 
 namespace Stride.Core
@@ -13,7 +14,7 @@ namespace Stride.Core
         public UnmanagedArray(int length)
         {
             Length = length;
-            sizeOfT = Utilities.SizeOf<T>();
+            sizeOfT = Unsafe.SizeOf<T>();
             var finalSize = length * sizeOfT;
             Pointer = Utilities.AllocateMemory(finalSize);
             isShared = false;
@@ -22,7 +23,7 @@ namespace Stride.Core
         public UnmanagedArray(int length, IntPtr unmanagedDataPtr)
         {
             Length = length;
-            sizeOfT = Utilities.SizeOf<T>();
+            sizeOfT = Unsafe.SizeOf<T>();
             Pointer = unmanagedDataPtr;
             isShared = true;
         }
