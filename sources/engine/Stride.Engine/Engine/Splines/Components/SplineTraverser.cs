@@ -9,11 +9,12 @@ namespace Stride.Engine.Splines.Components
     /// Component representing a Spline Traverser.
     /// </summary>
     [DataContract("SplineTraverserComponent")]
-    [Display("SplineTraverser", Expand = ExpandRule.Once)]
+    [Display("Spline Traverser", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(SplineTraverserTransformProcessor))]
     [ComponentCategory("Splines")]
     public sealed class SplineTraverserComponent : EntityComponent
     {
+        [DataMemberIgnore]
         public bool Dirty { get; set; }
 
         private SplineComponent splineComponent;
