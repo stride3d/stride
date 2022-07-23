@@ -27,7 +27,6 @@ namespace Stride.Engine.Splines.Processors
         private bool attachedToSpline = false;
         private BezierPoint[] bezierPointsToTraverse = null;
 
-        private BezierPoint originBezierPoint { get; set; }
         private BezierPoint targetBezierPoint { get; set; }
         private int bezierPointIndex = 0;
 

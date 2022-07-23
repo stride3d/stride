@@ -19,7 +19,7 @@ namespace Stride.Engine.Splines.Components
     /// </remarks>
 
     [DataContract]
-    [DefaultEntityComponentProcessor(typeof(SplineNodeTransformProcessor), ExecutionMode = ExecutionMode.All)]
+    [DefaultEntityComponentProcessor(typeof(SplineNodeTransformProcessor))]
     [Display("Spline node", Expand = ExpandRule.Once)]
     [ComponentCategory("Splines")]
     public sealed class SplineNodeComponent : EntityComponent

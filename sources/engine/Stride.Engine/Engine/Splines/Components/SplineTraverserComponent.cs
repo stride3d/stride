@@ -13,7 +13,6 @@ namespace Stride.Engine.Splines.Components
     [DataContract("SplineTraverserComponent")]
     [Display("Spline Traverser", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(SplineTraverserTransformProcessor))]
-
     [ComponentCategory("Splines")]
     public sealed class SplineTraverserComponent : EntityComponent
     {
@@ -28,12 +27,14 @@ namespace Stride.Engine.Splines.Components
 
         /// <summary>
         /// Event triggered when the last node of the spline has been reached
+        /// Does not get triggerd if spline loops
         /// </summary>
         public delegate void SplineTraverserEndReachedHandler();
         public event SplineTraverserEndReachedHandler OnSplineEndReached;
 
         /// <summary>
-        /// Event triggered when a spline node has been reached. Does not get triggered when the last node of the spline has been reached.
+        /// Event triggered when a spline node has been reached. 
+        /// Does not get triggered when the last node of the spline has been reached and the spline doesn't loop.
         /// </summary>
         /// <param name="splineNode"></param>
         public delegate void SplineTraverserNodeReachedHandler(SplineNodeComponent splineNode);
