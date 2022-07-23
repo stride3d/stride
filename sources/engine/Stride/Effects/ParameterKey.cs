@@ -278,10 +278,8 @@ namespace Stride.Rendering
         {
         }
 
-        internal override object ReadValue(IntPtr data)
-        {
-            return Utilities.Read<T>(data);
-        }
+        internal override unsafe object ReadValue(nint data)
+            => Unsafe.ReadUnaligned<T>((void*)data);
     }
 
     /// <summary>

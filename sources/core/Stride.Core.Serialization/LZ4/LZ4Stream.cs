@@ -399,7 +399,7 @@ namespace Stride.Core.LZ4
                     fixed (byte* pSrc = dataBuffer)
                     fixed (byte* pDst = buffer)
                     {
-                        Utilities.CopyMemory((IntPtr)pDst + offset, (IntPtr)pSrc + bufferOffset, chunk);
+                        CoreUtilities.CopyBlockUnaligned((nint)pDst + offset, (nint)pSrc + bufferOffset, chunk);
                     }
 					bufferOffset += chunk;
 					offset += chunk;
@@ -416,9 +416,9 @@ namespace Stride.Core.LZ4
 			return total;
 		}
 
-	    /// <inheritdoc/>
-	    public unsafe override int Read(IntPtr buffer, int count)
-	    {
+        /// <inheritdoc/>
+        public unsafe override int Read(nint buffer, int count)
+        {
             if (!CanRead) throw NotSupported("Read");
 
             var total = 0;
@@ -430,7 +430,7 @@ namespace Stride.Core.LZ4
                 {
                     fixed (byte* pSrc = dataBuffer)
                     {
-                        Utilities.CopyMemory((IntPtr)buffer + total, (IntPtr)pSrc + bufferOffset, chunk);
+                        CoreUtilities.CopyBlockUnaligned(buffer + total, (nint)pSrc + bufferOffset, chunk);
                     }
                     bufferOffset += chunk;
                     count -= chunk;
@@ -539,7 +539,7 @@ namespace Stride.Core.LZ4
                     fixed (byte* pSrc = buffer)
                     fixed (byte* pDst = dataBuffer)
                     {
-                        Utilities.CopyMemory((IntPtr)pDst + bufferOffset, (IntPtr)pSrc + offset, chunk);
+                        CoreUtilities.CopyBlockUnaligned((nint)pDst + bufferOffset, (nint)pSrc + offset, chunk);
                     }
 					offset += chunk;
 					count -= chunk;
@@ -553,7 +553,7 @@ namespace Stride.Core.LZ4
 		}
 
 	    /// <inheritdoc/>
-        public override unsafe void Write(IntPtr buffer, int count)
+        public override unsafe void Write(nint buffer, int count)
         {
             if (!CanWrite) throw NotSupported("Write");
 
@@ -574,7 +574,7 @@ namespace Stride.Core.LZ4
                 {
                     fixed (byte* pDst = dataBuffer)
                     {
-                        Utilities.CopyMemory((IntPtr)pDst + bufferOffset, (IntPtr)buffer + offset, chunk);
+                        CoreUtilities.CopyBlockUnaligned((nint)pDst + bufferOffset, buffer + offset, chunk);
                     }
                     offset += chunk;
                     count -= chunk;
@@ -587,7 +587,7 @@ namespace Stride.Core.LZ4
             }
         }
 
-	    /// <summary>
+        /// <summary>
         /// Reset the stream to its initial position and state
         /// </summary>
         public void Reset()

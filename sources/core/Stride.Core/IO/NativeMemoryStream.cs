@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Stride.Core.IO
@@ -70,10 +71,12 @@ namespace Stride.Core.IO
         /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
+            Debug.Assert(offset >= 0 && count >= 0 && offset + count <= buffer.Length);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 count = bytesLeft;
-            Utilities.Read((IntPtr)dataCurrent, buffer, offset, count);
+            fixed (byte* pinned = buffer)
+                CoreUtilities.CopyBlockUnaligned((nint)pinned + offset, (nint)dataCurrent, count);
             dataCurrent += count;
             return count;
         }
@@ -81,34 +84,38 @@ namespace Stride.Core.IO
         /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
+            Debug.Assert(offset >= 0 && count >= 0 && offset + count <= buffer.Length);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 throw new InvalidOperationException("Buffer too small");
 
-            Utilities.Write((IntPtr)dataCurrent, buffer, offset, count);
+            fixed (byte* pinned = buffer)
+                CoreUtilities.CopyBlockUnaligned((nint)dataCurrent, (nint)pinned + offset, count);
             dataCurrent += count;
         }
 
         /// <inheritdoc/>
-        public override int Read(IntPtr buffer, int count)
+        public override int Read(nint buffer, int count)
         {
+            Debug.Assert(count >= 0);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 count = bytesLeft;
 
-            Utilities.CopyMemory(buffer, (IntPtr)dataCurrent, count);
+            CoreUtilities.CopyBlockUnaligned(buffer, (nint)dataCurrent, count);
             dataCurrent += count;
             return count;
         }
 
         /// <inheritdoc/>
-        public override void Write(IntPtr buffer, int count)
+        public override void Write(nint buffer, int count)
         {
+            Debug.Assert(count >= 0);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 throw new InvalidOperationException("Buffer too small");
 
-            Utilities.CopyMemory((IntPtr)dataCurrent, buffer, count);
+            CoreUtilities.CopyBlockUnaligned((nint)dataCurrent, buffer, count);
             dataCurrent += count;
         }
 

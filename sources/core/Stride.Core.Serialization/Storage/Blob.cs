@@ -28,7 +28,7 @@ namespace Stride.Core.Storage
         {
             this.size = size;
             this.content = Marshal.AllocHGlobal(size);
-            Utilities.CopyMemory(this.content, content, size);
+            CoreUtilities.CopyBlockUnaligned(this.content, content, size);
         }
 
         internal Blob(ObjectDatabase objectDatabase, ObjectId objectId, NativeStream stream)

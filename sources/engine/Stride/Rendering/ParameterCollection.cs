@@ -26,7 +26,7 @@ namespace Stride.Rendering
         private ParameterCollectionLayout layout;
 
         // TODO: Switch to FastListStruct (for serialization)
-        private FastList<ParameterKeyInfo> parameterKeyInfos = new FastList<ParameterKeyInfo>(4);
+        private FastList<ParameterKeyInfo> parameterKeyInfos = new(4);
 
         // Constants and resources
         [DataMemberIgnore]
@@ -79,7 +79,7 @@ namespace Stride.Rendering
                 fixed (byte* dataValuesSources = parameterCollection.DataValues)
                 fixed (byte* dataValuesDest = DataValues)
                 {
-                    Utilities.CopyMemory((IntPtr)dataValuesDest, (IntPtr)dataValuesSources, DataValues.Length);
+                    Unsafe.CopyBlockUnaligned(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
                 }
             }
         }
@@ -236,7 +236,7 @@ namespace Stride.Rendering
         /// <param name="value"></param>
         public void Set<T>(ValueParameterKey<T> parameter, T value) where T : struct
         {
-            Set(GetAccessor(parameter), ref value);
+            Set(GetAccessor(parameter), value);
         }
 
         /// <summary>
@@ -294,21 +294,17 @@ namespace Stride.Rendering
             var parameter = GetAccessor(key);
 
             // Align to float4
-            var stride = (Unsafe.SizeOf<T>() + 15) / 16 * 16;
+            var stride = (Unsafe.SizeOf<T>() + 15) & ~15;
             var values = new T[parameter.Count];
 
-            fixed (byte* dataValues = DataValues)
+            ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(DataValues), parameter.Offset);
+            for (int i = 0; i < values.Length; ++i)
             {
-                var dataPtr = (IntPtr)dataValues + parameter.Offset;
-
-                for (int i = 0; i < values.Length; ++i)
-                {
-                    Utilities.Read(dataPtr, ref values[i]);
-                    dataPtr += stride;
-                }
-
-                return values;
+                values[i] = Unsafe.ReadUnaligned<T>(ref data);
+                data = ref Unsafe.Add(ref data, stride);
             }
+
+            return values;
         }
 
         /// <summary>
@@ -328,15 +324,14 @@ namespace Stride.Rendering
             }
 
             // Align to float4
-            var stride = (Unsafe.SizeOf<T>() + 15) / 16 * 16;
+            var stride = (Unsafe.SizeOf<T>() + 15) & ~15;
             var sizeInBytes = sourceParameter.Count * stride;
-
             fixed (byte* sourceDataValues = DataValues)
             fixed (byte* destDataValues = destination.DataValues)
             {
-                var sourcePtr = (IntPtr)sourceDataValues + sourceParameter.Offset;
-                var destPtr = (IntPtr)destDataValues + destParameter.Offset;
-                Utilities.CopyMemory(destPtr, sourcePtr, sizeInBytes);
+                var sourcePtr = sourceDataValues + sourceParameter.Offset;
+                var destPtr = destDataValues + destParameter.Offset;
+                Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)sizeInBytes);
             }
         }
 
@@ -347,10 +342,7 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameter<T> parameter, T value) where T : struct
-        {
-            fixed (byte* dataValues = DataValues)
-                Utilities.Write((IntPtr)dataValues + parameter.Offset, ref value);
-        }
+            => Unsafe.WriteUnaligned(ref DataValues[parameter.Offset], value);
 
         /// <summary>
         /// Sets a blittable value.
@@ -359,10 +351,7 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameter<T> parameter, ref T value) where T : struct
-        {
-            fixed (byte* dataValues = DataValues)
-                Utilities.Write((IntPtr)dataValues + parameter.Offset, ref value);
-        }
+            => Unsafe.WriteUnaligned(ref DataValues[parameter.Offset], value);
 
         /// <summary>
         /// Sets blittable values.
@@ -374,25 +363,18 @@ namespace Stride.Rendering
         public unsafe void Set<T>(ValueParameter<T> parameter, int count, ref T firstValue) where T : struct
         {
             // Align to float4
-            var stride = (Unsafe.SizeOf<T>() + 15) / 16 * 16;
+            var stride = (Unsafe.SizeOf<T>() + 15) & ~15;
             var elementCount = parameter.Count;
             if (count > elementCount)
             {
                 throw new IndexOutOfRangeException();
             }
 
-            fixed (byte* dataValues = DataValues)
+            ref var data = ref DataValues[parameter.Offset];
+            for (var i = 0; i < count; i++)
             {
-                var dataPtr = (IntPtr)dataValues + parameter.Offset;
-
-                var value = Interop.Pin(ref firstValue);
-                for (int i = 0; i < count; ++i)
-                {
-                    Utilities.Write(dataPtr, ref value);
-                    dataPtr += stride;
-
-                    value = Interop.IncrementPinned(value);
-                }
+                Unsafe.WriteUnaligned(ref data, Unsafe.Add(ref firstValue, i));
+                data = ref Unsafe.Add(ref data, stride);
             }
         }
 
@@ -435,10 +417,7 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <returns></returns>
         public unsafe T Get<T>(ValueParameter<T> parameter) where T : struct
-        {
-            fixed (byte* dataValues = DataValues)
-                return Utilities.Read<T>((IntPtr)dataValues + parameter.Offset);
-        }
+            => Unsafe.ReadUnaligned<T>(ref DataValues[parameter.Offset]);
 
         /// <summary>
         /// Gets a permutation.
@@ -634,7 +613,11 @@ namespace Stride.Rendering
                     // It's data
                     fixed (byte* dataValues = DataValues)
                     fixed (byte* newDataValuesPtr = newDataValues)
-                        Utilities.CopyMemory((IntPtr)newDataValuesPtr + newParameterKeyInfo.Offset, (IntPtr)dataValues + parameterKeyInfo.Offset, Math.Min(newTotalSize, totalSize));
+                        CoreUtilities.CopyBlockUnaligned(
+                            destination: (nint)newDataValuesPtr + newParameterKeyInfo.Offset,
+                            source: (nint)dataValues + parameterKeyInfo.Offset,
+                            byteCount: Math.Min(newTotalSize, totalSize));
+
                 }
                 else if (newParameterKeyInfo.BindingSlot != -1)
                 {
@@ -709,10 +692,10 @@ namespace Stride.Rendering
         public struct Copier
         {
             private CopyRange[] ranges;
-            private ParameterCollection destination;
-            private ParameterCollection source;
+            private readonly ParameterCollection destination;
+            private readonly ParameterCollection source;
             private int sourceLayoutCounter;
-            private string subKey;
+            private readonly string subKey;
 
             public Copier(ParameterCollection destination, ParameterCollection source, string subKey = null)
             {
@@ -764,7 +747,10 @@ namespace Stride.Rendering
                         {
                             fixed (byte* destDataValues = destination.DataValues)
                             fixed (byte* sourceDataValues = source.DataValues)
-                                Utilities.CopyMemory((IntPtr)destDataValues + range.DestStart, (IntPtr)sourceDataValues + range.SourceStart, range.Size);
+                                CoreUtilities.CopyBlockUnaligned(
+                                    destination: (nint)destDataValues + range.DestStart,
+                                    source: (nint)sourceDataValues + range.SourceStart,
+                                    byteCount: range.Size);
                         }
                     }
                 }
@@ -774,7 +760,7 @@ namespace Stride.Rendering
             {
                 fixed (byte* destPtr = destination.DataValues)
                 fixed (byte* sourcePtr = source.DataValues)
-                    Utilities.CopyMemory((IntPtr)destPtr, (IntPtr)sourcePtr, destinationLayout.BufferSize);
+                    CoreUtilities.CopyBlockUnaligned((nint)destPtr, (nint)sourcePtr, destinationLayout.BufferSize);
 
                 var resourceCount = destinationLayout.ResourceCount;
                 for (int i = 0; i < resourceCount; ++i)

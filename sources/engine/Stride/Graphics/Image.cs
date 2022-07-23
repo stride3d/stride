@@ -75,6 +75,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
@@ -192,9 +193,9 @@ namespace Stride.Graphics
         /// <summary>
         /// Reset the buffer (by default it is not cleared)
         /// </summary>
-        public void Clear()
+        public unsafe void Clear()
         {
-            Utilities.ClearMemory(buffer, 0, totalSizeInBytes);
+            Unsafe.InitBlockUnaligned((void*)buffer, 0, (uint)totalSizeInBytes);
         }
 
         /// <summary>
