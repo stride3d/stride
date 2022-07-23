@@ -1,9 +1,11 @@
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine.Design;
-using Stride.Engine.Processors;
 using Stride.Engine.Splines.Models;
-using static Stride.Engine.Splines.SplineNode;
+using Stride.Engine.Splines.Processors;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -25,6 +27,9 @@ namespace Stride.Engine.Splines.Components
         private SplineNode splineNode;
         private Vector3 _previousPosition;
 
+        /// <summary>
+        /// Reference to the splinenode class
+        /// </summary>
         public SplineNode SplineNode
         {
             get

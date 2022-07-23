@@ -1,22 +1,26 @@
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Engine.Splines.Components;
 
-namespace Stride.Engine.Splines;
-
-/// <summary>
-/// Updates <see cref="Engine.SplineTraverserComponent"/>.
-/// </summary>
-public class SplineTraverserViewHierarchyTransformOperation : TransformOperation
+namespace Stride.Engine.Splines.HierarchyTransformOperations
 {
-    public readonly SplineTraverserComponent SplineTraverserComponent;
-
-    public SplineTraverserViewHierarchyTransformOperation(SplineTraverserComponent modelComponent)
+    /// <summary>
+    /// Updates <see cref="Engine.SplineTraverserComponent"/>.
+    /// </summary>
+    public class SplineTraverserViewHierarchyTransformOperation : TransformOperation
     {
-        SplineTraverserComponent = modelComponent;
-    }
+        public readonly SplineTraverserComponent SplineTraverserComponent;
 
-    /// <inheritdoc/>
-    public override void Process(TransformComponent transformComponent)
-    {
-        SplineTraverserComponent.Update(transformComponent);
+        public SplineTraverserViewHierarchyTransformOperation(SplineTraverserComponent modelComponent)
+        {
+            SplineTraverserComponent = modelComponent;
+        }
+
+        /// <inheritdoc/>
+        public override void Process(TransformComponent transformComponent)
+        {
+            SplineTraverserComponent.Update(transformComponent);
+        }
     }
 }

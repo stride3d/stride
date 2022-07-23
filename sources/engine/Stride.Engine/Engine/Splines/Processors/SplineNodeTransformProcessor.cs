@@ -1,10 +1,10 @@
-//// Copyright (c) Stride contributors (https://Stride.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+//// Copyright (c) Stride contributors (https://Stride.com)
 //// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
+using Stride.Engine.Splines.HierarchyTransformOperations;
 
-namespace Stride.Engine.Processors
+namespace Stride.Engine.Splines.Processors
 {
     /// <summary>
     /// The processor for <see cref="SplineNodeComponent"/>.

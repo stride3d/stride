@@ -1,7 +1,10 @@
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Collections.Generic;
 using Stride.Core;
 using Stride.Engine.Design;
-using Stride.Engine.Processors;
+using Stride.Engine.Splines.Processors;
 using Stride.Core.Mathematics;
 using Stride.Engine.Splines.Models;
 
@@ -11,7 +14,7 @@ namespace Stride.Engine.Splines.Components
     /// Component representing an Spline.
     /// </summary>
     [DataContract("SplineComponent")]
-    [Display("Spline", Expand = ExpandRule.Once)]
+    [Display("Spline", Expand = ExpandRule.Always)]
     [DefaultEntityComponentProcessor(typeof(SplineTransformProcessor))]
     [ComponentCategory("Splines")]
     public sealed class SplineComponent : EntityComponent
@@ -21,6 +24,9 @@ namespace Stride.Engine.Splines.Components
         private SplineRenderer splineRenderer;
         private Spline spline;
 
+        /// <summary>
+        /// Reference to the Spline
+        /// </summary>
         [DataMemberIgnore]
         public Spline Spline
         {

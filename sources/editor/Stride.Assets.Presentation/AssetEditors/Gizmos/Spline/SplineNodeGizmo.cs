@@ -1,8 +1,8 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
+using Stride.Engine.Splines.Models;
 using Stride.Extensions;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
@@ -38,7 +38,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             RenderGroup = RenderGroup.Group4;
 
             mainGizmoEntity = new Entity();
-  
+
             var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, tangentSphereRadius, 48).ToMeshDraw();
             gizmoTangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { outMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
             gizmoTangentIn = new Entity("TangentSphereIn") { new ModelComponent { Model = new Model { inMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };

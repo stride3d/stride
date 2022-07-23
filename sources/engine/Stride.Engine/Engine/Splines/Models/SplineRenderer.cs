@@ -1,16 +1,19 @@
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine.Splines.Models.Mesh;
 
-namespace Stride.Engine.Splines
+namespace Stride.Engine.Splines.Models
 {
     [DataContract]
     public class SplineRenderer
     {
         private bool segments;
         private bool boundingBox;
+        private Entity splineMeshEntity;
 
         public delegate void SplineRendererSettingsUpdatedHandler();
         public event SplineRendererSettingsUpdatedHandler OnSplineRendererSettingsUpdated;
@@ -68,8 +71,8 @@ namespace Stride.Engine.Splines
         /// <param name="splinePosition"></param>
         /// <returns>An entity with sub entities containing various meshes to visualise the spline</returns>
         public Entity Create(Spline spline, GraphicsDevice graphicsDevice, Vector3 splinePosition)
-        {     
-            var splineMeshEntity = new Entity("SplineRenderer");
+        {
+            splineMeshEntity = new Entity("SplineRenderer");
 
             if (graphicsDevice == null || SegmentsMaterial == null || spline == null)
                 return splineMeshEntity;
@@ -79,7 +82,7 @@ namespace Stride.Engine.Splines
             if (nodes?.Count > 1)
             {
                 var totalNodesCount = nodes.Count;
-                for (int i = 0; i < totalNodesCount; i++)
+                for (var i = 0; i < totalNodesCount; i++)
                 {
                     var currentSplineNode = nodes[i];
 
@@ -104,7 +107,7 @@ namespace Stride.Engine.Splines
                             break;
 
                         var splinePoints = new Vector3[curvePointsInfo.Length];
-                        for (int j = 0; j < curvePointsInfo.Length; j++)
+                        for (var j = 0; j < curvePointsInfo.Length; j++)
                         {
                             if (curvePointsInfo[j] == null)
                                 break;

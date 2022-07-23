@@ -1,7 +1,9 @@
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Engine.Design;
-using Stride.Engine.Processors;
+using Stride.Engine.Splines.Processors;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -11,9 +13,13 @@ namespace Stride.Engine.Splines.Components
     [DataContract("SplineTraverserComponent")]
     [Display("Spline Traverser", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(SplineTraverserTransformProcessor))]
+
     [ComponentCategory("Splines")]
     public sealed class SplineTraverserComponent : EntityComponent
     {
+        /// <summary>
+        /// Keeps track of whether the Traverser needs to be Resetting its origin and target spline node
+        /// </summary>
         [DataMemberIgnore]
         public bool Dirty { get; set; }
 
@@ -33,7 +39,10 @@ namespace Stride.Engine.Splines.Components
         public delegate void SplineTraverserNodeReachedHandler(SplineNodeComponent splineNode);
         public event SplineTraverserNodeReachedHandler OnSplineNodeReached;
 
-
+        /// <summary>
+        /// The spline to traverse
+        /// No spline, no movement
+        /// </summary>
         [Display(10, "SplineComponent")]
         public SplineComponent SplineComponent
         {
@@ -51,6 +60,11 @@ namespace Stride.Engine.Splines.Components
             }
         }
 
+        /// <summary>
+        /// The speed at which the traverser moves over the spline
+        /// Use a negative value, to go in to the opposite direction
+        /// Note: Using a high value, can cause jitters. With a higher speed value, it is recommended to reduced the amount of spline points
+        /// </summary>
         [Display(20, "Speed")]
         public float Speed
         {
@@ -68,6 +82,9 @@ namespace Stride.Engine.Splines.Components
             }
         }
 
+        /// <summary>
+        /// For a traverse to work we require a Spline reference, a non-zero and IsMoving must be True
+        /// </summary>
         [Display(40, "Moving")]
         public bool IsMoving { get; set; }
 

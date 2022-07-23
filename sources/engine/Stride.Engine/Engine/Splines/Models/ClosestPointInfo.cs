@@ -1,4 +1,5 @@
-using Stride.Core.Mathematics;
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 namespace Stride.Engine.Splines.Models
 {

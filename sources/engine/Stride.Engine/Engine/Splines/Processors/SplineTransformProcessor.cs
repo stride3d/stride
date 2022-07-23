@@ -1,12 +1,13 @@
-using Stride.Engine.Splines;
-using Stride.Engine.Splines.Components;
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core.Mathematics;
-using Stride.Games;
-using System.Collections.Generic;
 using Stride.Graphics;
 using Stride.Rendering;
+using Stride.Engine.Splines.Components;
+using Stride.Engine.Splines.HierarchyTransformOperations;
 
-namespace Stride.Engine.Processors
+namespace Stride.Engine.Splines.Processors
 {
     /// <summary>
     /// The processor for <see cref="SplineComponent"/>.

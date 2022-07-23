@@ -1,9 +1,11 @@
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine.Splines.Models;
 
-namespace Stride.Engine.Splines
+namespace Stride.Engine.Splines.Models
 {
     [DataContract]
     public class Spline
@@ -75,7 +77,7 @@ namespace Stride.Engine.Splines
                 if (SplineNodes.Count > 1)
                 {
 
-                    for (int i = 0; i < totalNodesCount; i++)
+                    for (var i = 0; i < totalNodesCount; i++)
                     {
                         var currentSplineNode = SplineNodes[i];
                         if (SplineNodes[i] == null)
@@ -118,12 +120,12 @@ namespace Stride.Engine.Splines
         public float GetTotalSplineDistance()
         {
             float distance = 0;
-            for (int i = 0; i < SplineNodes.Count; i++)
+            for (var i = 0; i < SplineNodes.Count; i++)
             {
                 var curve = SplineNodes[i];
                 if (curve != null)
                 {
-                    if (Loop || (!Loop && i < SplineNodes.Count - 1))
+                    if (Loop || !Loop && i < SplineNodes.Count - 1)
                     {
                         distance += curve.Length;
                     }
@@ -149,7 +151,7 @@ namespace Stride.Engine.Splines
             var nextNodeDistance = 0.0f;
             var prevNodeDistance = 0.0f;
 
-            for (int i = 0; i < SplineNodes.Count; i++)
+            for (var i = 0; i < SplineNodes.Count; i++)
             {
                 var currentSplineNode = SplineNodes[i];
                 splinePositionInfo.SplineNodeA = currentSplineNode;
@@ -158,11 +160,11 @@ namespace Stride.Engine.Splines
 
                 if (requiredDistance < nextNodeDistance)
                 {
-                    var targetIndex = (i == splineNodes.Count - 1) ? 0 : i;
+                    var targetIndex = i == splineNodes.Count - 1 ? 0 : i;
                     splinePositionInfo.SplineNodeB = splineNodes[targetIndex];
 
                     // Inverse lerp(betweenValue - minHeight) / (maxHeight - minHeight);
-                    var percentageInCurve = ((requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance)) * 100;
+                    var percentageInCurve = (requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance) * 100;
 
                     splinePositionInfo.Position = currentSplineNode.GetPositionOnCurve(percentageInCurve);
                     return splinePositionInfo;
@@ -180,7 +182,7 @@ namespace Stride.Engine.Splines
         public ClosestPointInfo GetClosestPointOnSpline(Vector3 originalPosition)
         {
             ClosestPointInfo currentClosestPoint = null;
-            for (int i = 0; i < splineNodes.Count; i++)
+            for (var i = 0; i < splineNodes.Count; i++)
             {
                 if (!Loop && i == splineNodes.Count - 1)
                 {
@@ -192,9 +194,9 @@ namespace Stride.Engine.Splines
                 closestPoint.SplineNodeA = curNode;
                 closestPoint.SplineNodeAIndex = i;
 
-                if (i + 1 <= splineNodes.Count-1)
+                if (i + 1 <= splineNodes.Count - 1)
                 {
-                    closestPoint.SplineNodeB = splineNodes[i+1];
+                    closestPoint.SplineNodeB = splineNodes[i + 1];
                     closestPoint.SplineNodeBIndex = i + 1;
                 }
                 else
@@ -214,7 +216,7 @@ namespace Stride.Engine.Splines
 
         public void DeregisterSplineNodeDirtyEvents()
         {
-            for (int i = 0; i < SplineNodes?.Count; i++)
+            for (var i = 0; i < SplineNodes?.Count; i++)
             {
                 var splineNode = SplineNodes[i];
                 if (splineNode != null)
@@ -230,8 +232,8 @@ namespace Stride.Engine.Splines
         public void RegisterSplineNodeDirtyEvents()
         {
             DeregisterSplineNodeDirtyEvents();
-          
-            for (int i = 0; i < SplineNodes?.Count; i++)
+
+            for (var i = 0; i < SplineNodes?.Count; i++)
             {
                 var splineNode = SplineNodes[i];
                 if (splineNode != null)
@@ -249,7 +251,7 @@ namespace Stride.Engine.Splines
         private void UpdateBoundingBox()
         {
             var allCurvePointsPositions = new List<Vector3>();
-            for (int i = 0; i < splineNodes.Count; i++)
+            for (var i = 0; i < splineNodes.Count; i++)
             {
                 if (!Loop && i == splineNodes.Count - 1)
                 {
@@ -259,14 +261,14 @@ namespace Stride.Engine.Splines
                 var positions = splineNodes[i].GetBezierPoints();
                 if (positions != null)
                 {
-                    for (int j = 0; j < positions.Length; j++)
+                    for (var j = 0; j < positions.Length; j++)
                     {
                         if (positions[j] != null)
                             allCurvePointsPositions.Add(positions[j].Position);
                     }
                 }
             }
-            BoundingBox.FromPoints(allCurvePointsPositions.ToArray(), out BoundingBox NewBoundingBox);
+            BoundingBox.FromPoints(allCurvePointsPositions.ToArray(), out var NewBoundingBox);
             BoundingBox = NewBoundingBox;
         }
     }

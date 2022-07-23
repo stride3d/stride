@@ -1,9 +1,11 @@
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine.Splines.Models;
 
-namespace Stride.Engine.Splines
+namespace Stride.Engine.Splines.Models
 {
     [DataContract]
     public class SplineNode
@@ -126,7 +128,7 @@ namespace Stride.Engine.Splines
             // 2 methods of arc length parameterization: Use a larger amount of pre calculated points or devide segments per distance
             // We create a base spline that contains a large amount of segments.
             // Later on we can distill this as a way of determining arc length parameterization
-            float t = 1.0f / (baseBezierPointCount - 1);
+            var t = 1.0f / (baseBezierPointCount - 1);
             for (var i = 0; i < baseBezierPointCount; i++)
             {
                 baseBezierPoints[i] = new BezierPoint { Position = CalculateBezierPoint(t * i) };
@@ -157,7 +159,7 @@ namespace Stride.Engine.Splines
         /// <returns></returns>
         public Vector3 GetPositionOnCurve(float percentage)
         {
-            var distance = (Length / 100) * Math.Clamp(percentage, 0, 100);
+            var distance = Length / 100 * Math.Clamp(percentage, 0, 100);
             return GetBezierPointForDistance(distance).Position;
         }
 
@@ -197,7 +199,7 @@ namespace Stride.Engine.Splines
 
             for (var i = 0; i < bezierPointCount; i++)
             {
-                var estimatedExptedDistance = (Length / (bezierPointCount - 1)) * i;
+                var estimatedExptedDistance = Length / (bezierPointCount - 1) * i;
                 parameterizedBezierPoints[i] = GetBezierPointForDistance(estimatedExptedDistance);
             }
 
@@ -206,7 +208,7 @@ namespace Stride.Engine.Splines
 
         private BezierPoint GetBezierPointForDistance(float distance)
         {
-            for (int j = 0; j < baseBezierPointCount; j++)
+            for (var j = 0; j < baseBezierPointCount; j++)
             {
                 var curPoint = baseBezierPoints[j];
                 if (curPoint.TotalLengthOnCurve >= distance)
@@ -224,22 +226,22 @@ namespace Stride.Engine.Splines
             var oneMinusT = 1 - t;
             var oneMinusTPower3 = oneMinusT * oneMinusT * oneMinusT;
             var oneMinusTPower2 = oneMinusT * oneMinusT;
-            var x = oneMinusTPower3 * p0.X + (3 * oneMinusTPower2 * t * p1.X) + (3 * oneMinusT * tPower2 * p2.X) + tPower3 * p3.X;
-            var y = oneMinusTPower3 * p0.Y + (3 * oneMinusTPower2 * t * p1.Y) + (3 * oneMinusT * tPower2 * p2.Y) + tPower3 * p3.Y;
-            var z = oneMinusTPower3 * p0.Z + (3 * oneMinusTPower2 * t * p1.Z) + (3 * oneMinusT * tPower2 * p2.Z) + tPower3 * p3.Z;
+            var x = oneMinusTPower3 * p0.X + 3 * oneMinusTPower2 * t * p1.X + 3 * oneMinusT * tPower2 * p2.X + tPower3 * p3.X;
+            var y = oneMinusTPower3 * p0.Y + 3 * oneMinusTPower2 * t * p1.Y + 3 * oneMinusT * tPower2 * p2.Y + tPower3 * p3.Y;
+            var z = oneMinusTPower3 * p0.Z + 3 * oneMinusTPower2 * t * p1.Z + 3 * oneMinusT * tPower2 * p2.Z + tPower3 * p3.Z;
             return new Vector3(x, y, z);
         }
 
         private void UpdateBoundingBox()
         {
             var curvePointsPositions = new Vector3[parameterizedBezierPoints.Length];
-            for (int j = 0; j < parameterizedBezierPoints.Length; j++)
+            for (var j = 0; j < parameterizedBezierPoints.Length; j++)
             {
                 if (parameterizedBezierPoints[j] == null)
                     break;
                 curvePointsPositions[j] = parameterizedBezierPoints[j].Position;
             }
-            BoundingBox.FromPoints(curvePointsPositions, out BoundingBox NewBoundingBox);
+            BoundingBox.FromPoints(curvePointsPositions, out var NewBoundingBox);
             BoundingBox = NewBoundingBox;
         }
     }
