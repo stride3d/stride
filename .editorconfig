@@ -16,7 +16,7 @@ insert_final_newline = false
 # XAML Code Style Rules          #
 ##################################
 
-[*.xaml]
+[*.{xaml,props,targets,proj,csproj,pbxproj,shproj,ttproj,vcxproj}]
 # enable this once we have merged most of our branches into master
 indent_style = space
 indent_size = 2
