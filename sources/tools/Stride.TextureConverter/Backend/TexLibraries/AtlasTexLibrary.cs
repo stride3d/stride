@@ -199,18 +199,21 @@ namespace Stride.TextureConverter.TexLibraries
             h = position.Height;
             int x = position.UOffset;
             int y = position.VOffset;
-            long subImageData, atlasData;
+            nint subImageData, atlasData;
             int xOffset, yOffset;
             for (int i = 0; i < mipmapCount; ++i)
             {
-                xOffset = (int)((Decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
+                xOffset = (int)((decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
                 yOffset = y * atlas.SubImageArray[i].RowPitch;
-                subImageData = request.Texture.SubImageArray[i].Data.ToInt64();
-                atlasData = atlas.SubImageArray[i].Data.ToInt64();
+                subImageData = request.Texture.SubImageArray[i].Data;
+                atlasData = atlas.SubImageArray[i].Data;
 
                 for (int j = 0; j < h; ++j)
                 {
-                    Utilities.CopyMemory(new IntPtr(atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset), new IntPtr(subImageData + j * request.Texture.SubImageArray[i].RowPitch), request.Texture.SubImageArray[i].RowPitch);
+                    CoreUtilities.CopyBlockUnaligned(
+                        destination: atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset,
+                        source: subImageData + j * request.Texture.SubImageArray[i].RowPitch,
+                        byteCount: request.Texture.SubImageArray[i].RowPitch);
                 }
 
                 w = w > 1 ? w >>= 1 : w;
@@ -256,9 +259,9 @@ namespace Stride.TextureConverter.TexLibraries
             texture.Width = position.Width;
             texture.Height = position.Height;
 
-            long atlasData, textureData;
+            nint atlasData, textureData;
             int xOffset, yOffset;
-            IntPtr destPtr, srcPtr;
+            nint destPtr, srcPtr;
 
             w = position.Width;
             h = position.Height;
@@ -269,24 +272,26 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 Tools.ComputePitch(texture.Format, w, h, out rowPitch, out slicePitch);
 
-                texture.SubImageArray[i] = new TexImage.SubImage();
-                texture.SubImageArray[i].Data = new IntPtr(texture.Data.ToInt64() + offset);
-                texture.SubImageArray[i].DataSize = slicePitch;
-                texture.SubImageArray[i].Width = w;
-                texture.SubImageArray[i].Height = h;
-                texture.SubImageArray[i].RowPitch = rowPitch;
-                texture.SubImageArray[i].SlicePitch = slicePitch;
+                texture.SubImageArray[i] = new TexImage.SubImage
+                {
+                    Data = texture.Data + offset,
+                    DataSize = slicePitch,
+                    Width = w,
+                    Height = h,
+                    RowPitch = rowPitch,
+                    SlicePitch = slicePitch
+                };
 
-                atlasData = atlas.SubImageArray[i].Data.ToInt64();
-                textureData = texture.SubImageArray[i].Data.ToInt64();
-                xOffset = (int)((Decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
+                atlasData = atlas.SubImageArray[i].Data;
+                textureData = texture.SubImageArray[i].Data;
+                xOffset = (int)((decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
                 yOffset = y * atlas.SubImageArray[i].RowPitch;
 
                 for (int j = 0; j < h; ++j)
                 {
-                    srcPtr = new IntPtr(atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset);
-                    destPtr = new IntPtr(textureData + j * rowPitch);
-                    Utilities.CopyMemory(destPtr, srcPtr, rowPitch);
+                    srcPtr = atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset;
+                    destPtr = textureData + j * rowPitch;
+                    CoreUtilities.CopyBlockUnaligned(destPtr, srcPtr, rowPitch);
                 }
 
                 offset += slicePitch;
@@ -527,23 +532,16 @@ namespace Stride.TextureConverter.TexLibraries
         {
             if (!node.IsEmpty() && node.IsLeaf())
             {
-                long atlasData = atlas.Data.ToInt64();
-                long textureData = node.Texture.Data.ToInt64();
-                //int xOffset = (int)((Decimal)node.X / atlas.Width * atlas.RowPitch);
-                //int yOffset = node.Y * atlas.RowPitch;
-                //IntPtr destPtr, srcPtr;
-
                 int x, y, xOffset, yOffset;
-                IntPtr destPtr, srcPtr;
 
                 x = node.X;
                 y = node.Y;
-                
+
                 for (int i = 0; i < node.Texture.MipmapCount && i < atlas.MipmapCount; ++i)
                 {
-                    atlasData = atlas.SubImageArray[i].Data.ToInt64();
-                    textureData = node.Texture.SubImageArray[i].Data.ToInt64();
-                    xOffset = (int)((Decimal)x / (Decimal)atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
+                    nint atlasData = atlas.SubImageArray[i].Data;
+                    nint textureData = node.Texture.SubImageArray[i].Data;
+                    xOffset = (int)((decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
                     yOffset = y * atlas.SubImageArray[i].RowPitch;
 
                     /*if (node.Texture.SubImageArray[i].Width == 3)
@@ -554,9 +552,9 @@ namespace Stride.TextureConverter.TexLibraries
                     }*/
                     for (int j = 0; j < node.Texture.SubImageArray[i].Height; ++j)
                     {
-                        destPtr = new IntPtr(atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset);
-                        srcPtr = new IntPtr(textureData + j * node.Texture.SubImageArray[i].RowPitch);
-                        Utilities.CopyMemory(destPtr, srcPtr, node.Texture.SubImageArray[i].RowPitch);
+                        var destPtr = atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset;
+                        var srcPtr = textureData + j * node.Texture.SubImageArray[i].RowPitch;
+                        CoreUtilities.CopyBlockUnaligned(destPtr, srcPtr, node.Texture.SubImageArray[i].RowPitch);
                     }
 
                     x = x <= 1 ? 0 : x >>= 1;

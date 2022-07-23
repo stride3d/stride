@@ -210,7 +210,10 @@ namespace Stride.Assets.Models
                     // Data
                     fixed (byte* dataValues0 = parameters0.DataValues)
                     fixed (byte* dataValues1 = parameters1.DataValues)
-                        if (!Core.Utilities.CompareMemory((IntPtr)dataValues0 + parameterKeyInfo.Offset, (IntPtr)dataValues1 + otherParameterKeyInfo.Offset, parameterKeyInfo.Count))
+                        if (!CoreUtilities.SequenceEqual(
+                            dataValues0 + parameterKeyInfo.Offset,
+                            dataValues1 + otherParameterKeyInfo.Offset,
+                            parameterKeyInfo.Count))
                             return false;
                 }
                 else if (parameterKeyInfo.BindingSlot != -1)

@@ -130,7 +130,7 @@ namespace Stride.Rendering
 
                 fixed (Matrix* blendMatricesPtr = &renderModelObjectInfo[0])
                 {
-                    Utilities.CopyMemory(mappedCB, new IntPtr(blendMatricesPtr), renderModelObjectInfo.Length * sizeof(Matrix));
+                    CoreUtilities.CopyBlockUnaligned(mappedCB, (nint)blendMatricesPtr, renderModelObjectInfo.Length * sizeof(Matrix));
                 }
             });
         }

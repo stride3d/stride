@@ -45,8 +45,8 @@ namespace Stride.Extensions
             {
                 foreach (var vertexElementWithOffset in offsets)
                 {
-                    Utilities.CopyMemory(ptrOutput, ptrInput + vertexElementWithOffset.Offset, vertexElementWithOffset.Size);
-                    ptrOutput = ptrOutput + vertexElementWithOffset.Size;
+                    CoreUtilities.CopyBlockUnaligned(ptrOutput, ptrInput + vertexElementWithOffset.Offset, vertexElementWithOffset.Size);
+                    ptrOutput += vertexElementWithOffset.Size;
                 }
                 ptrInput += declaration.VertexStride;
             }

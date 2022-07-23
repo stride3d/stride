@@ -107,28 +107,29 @@ namespace Stride.Core.IO
         /// <param name="count">The maximum number of bytes to read. </param>
         /// <exception cref="ArgumentNullException">array is null. </exception>
         /// <returns>The total number of bytes read into the buffer. This might be less than the number of bytes requested if that number of bytes are not currently available, or zero if the end of the stream is reached.</returns>
-        public virtual int Read(IntPtr buffer, int count)
+        public virtual unsafe int Read(nint buffer, int count)
         {
             var temporaryBuffer = nativeStreamBuffer;
             if (temporaryBuffer == null)
                 temporaryBuffer = nativeStreamBuffer = new byte[NativeStreamBufferSize];
 
             var readSize = 0;
+            fixed (byte* temporaryBufferStart = temporaryBuffer) {
+                for (var offset = 0; offset < count; offset += NativeStreamBufferSize, buffer += NativeStreamBufferSize)
+                {
+                    // Compute missing bytes in this block
+                    var blockSize = count - offset;
+                    if (blockSize > NativeStreamBufferSize)
+                        blockSize = NativeStreamBufferSize;
 
-            for (var offset = 0; offset < count; offset += NativeStreamBufferSize, buffer += NativeStreamBufferSize)
-            {
-                // Compute missing bytes in this block
-                var blockSize = count - offset;
-                if (blockSize > NativeStreamBufferSize)
-                    blockSize = NativeStreamBufferSize;
+                    var currentReadSize = Read(temporaryBuffer, 0, blockSize);
+                    readSize += currentReadSize;
+                    CoreUtilities.CopyBlockUnaligned(buffer, (nint)temporaryBufferStart, currentReadSize);
 
-                var currentReadSize = Read(temporaryBuffer, 0, blockSize);
-                readSize += currentReadSize;
-                Utilities.Write(buffer, temporaryBuffer, 0, currentReadSize);
-
-                // Reached end of stream?
-                if (currentReadSize < blockSize)
-                    break;
+                    // Reached end of stream?
+                    if (currentReadSize < blockSize)
+                        break;
+                }
             }
 
             return readSize;
@@ -139,23 +140,24 @@ namespace Stride.Core.IO
         /// </summary>
         /// <param name="buffer">The buffer containing data to write to the stream.</param>
         /// <param name="count">The number of bytes to be written to the current stream. </param>
-        public virtual unsafe void Write(IntPtr buffer, int count)
+        public virtual unsafe void Write(nint buffer, int count)
         {
             var temporaryBuffer = nativeStreamBuffer;
             if (temporaryBuffer == null)
                 temporaryBuffer = nativeStreamBuffer = new byte[NativeStreamBufferSize];
 
-            for (var offset = 0; offset < count; offset += NativeStreamBufferSize, buffer += NativeStreamBufferSize)
-            {
-                // Compute missing bytes in this block
-                var blockSize = count - offset;
-                if (blockSize > NativeStreamBufferSize)
-                    blockSize = NativeStreamBufferSize;
+            fixed (byte* temporaryBufferStart = temporaryBuffer) {
+                for (var offset = 0; offset < count; offset += NativeStreamBufferSize, buffer += NativeStreamBufferSize)
+                {
+                    // Compute missing bytes in this block
+                    var blockSize = count - offset;
+                    if (blockSize > NativeStreamBufferSize)
+                        blockSize = NativeStreamBufferSize;
 
-                fixed (byte* temporaryBufferStart = temporaryBuffer)
-                    Utilities.CopyMemory((IntPtr)temporaryBufferStart, buffer, blockSize);
+                        CoreUtilities.CopyBlockUnaligned((nint)temporaryBufferStart, buffer, blockSize);
 
-                Write(temporaryBuffer, 0, blockSize);
+                    Write(temporaryBuffer, 0, blockSize);
+                }
             }
         }
     }

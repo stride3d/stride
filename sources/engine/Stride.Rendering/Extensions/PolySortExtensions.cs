@@ -62,7 +62,7 @@ namespace Stride.Extensions
 
             // sort the list
             var sortedIndices = sortList.OrderBy(x => Vector3.Dot(x.Value, viewDirectionForSorting)).Select(x => x.Key).ToList();   // TODO have a generic delegate for sorting
-            
+
             // re-write the index buffer
             var newIndexBufferData = new byte[oldIndexBuffer.Count * sizeof(int)];
             fixed (byte* newIndexDataStart = &newIndexBufferData[0])
@@ -72,7 +72,10 @@ namespace Stride.Extensions
 
                 foreach (var index in sortedIndices)
                 {
-                    Utilities.CopyMemory((IntPtr)(newIndexBufferPointer), (IntPtr)(oldIndexDataStart + index * polyIndicesSize), polyIndicesSize);
+                    CoreUtilities.CopyBlockUnaligned(
+                        destination: newIndexBufferPointer,
+                        source: oldIndexDataStart + index * polyIndicesSize,
+                        byteCount: polyIndicesSize);
 
                     newIndexBufferPointer += polyIndicesSize;
                 }

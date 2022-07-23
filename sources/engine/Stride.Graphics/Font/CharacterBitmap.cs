@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-
 using SharpFont;
 
 using Stride.Core;
@@ -62,15 +61,15 @@ namespace Stride.Graphics.Font
             this.pixelMode = pixelMode;
         }
 
-        private static unsafe void CopyAndAddBordersFromGrays(IntPtr data, IntPtr dataBytes, ref Int2 borderSize, int width, int rows)
+        private static unsafe void CopyAndAddBordersFromGrays(nint data, nint dataBytes, ref Int2 borderSize, int width, int rows)
         {
             var widthLessBorders = width - (borderSize.X << 1);
             var rowsLessBorders = rows - (borderSize.Y << 1);
 
             var resetBorderLineSize = width * borderSize.Y;
-            Utilities.ClearMemory(dataBytes, 0, resetBorderLineSize);
-            Utilities.ClearMemory(dataBytes + width * rows - resetBorderLineSize, 0, resetBorderLineSize); // set last border lines to null
-            
+            CoreUtilities.InitBlockUnaligned(dataBytes, 0, resetBorderLineSize);
+            CoreUtilities.InitBlockUnaligned(dataBytes + width * rows - resetBorderLineSize, 0, resetBorderLineSize); // set last border lines to null
+
             var src = (byte*)data;
             var dst = (byte*)dataBytes + resetBorderLineSize;
 
@@ -104,8 +103,8 @@ namespace Stride.Graphics.Font
             var rowsLessBorders = rows - (borderSize.Y << 1);
 
             var resetBorderLineSize = width * borderSize.Y;
-            Utilities.ClearMemory(dataBytes, 0, resetBorderLineSize); // set first border lines to null 
-            Utilities.ClearMemory(dataBytes + rows * width - resetBorderLineSize, 0, resetBorderLineSize); // set last border lines to null
+            CoreUtilities.InitBlockUnaligned(dataBytes, 0, resetBorderLineSize); // set first border lines to null
+            CoreUtilities.InitBlockUnaligned(dataBytes + rows * width - resetBorderLineSize, 0, resetBorderLineSize); // set last border lines to null
 
             var rowSrc = (byte*)data;
             var dst = (byte*)dataBytes + resetBorderLineSize;
@@ -125,7 +124,7 @@ namespace Stride.Graphics.Font
                     for (int k = 0; k < 8; k++)
                     {
                         dst[col] = (*src & mask) != 0 ? byte.MaxValue : (byte)0;
-                            
+
                         mask >>= 1;
                         ++col;
 

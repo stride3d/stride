@@ -175,7 +175,7 @@ namespace Stride.Graphics
                 var newVertexOffset = 0;
                 for (int i = 0; i < vertexCount; ++i)
                 {
-                    Utilities.CopyMemory(new IntPtr(&newBuffer[newVertexOffset]), new IntPtr(&oldBuffer[oldVertexOffset]), vertexStride);
+                    CoreUtilities.CopyBlockUnaligned(&newBuffer[newVertexOffset], &oldBuffer[oldVertexOffset], vertexStride);
 
                     var textureCoord = *(Vector2*)&oldBuffer[oldVertexOffset + vertexUVOffset];
                     for (int j = 0; j < newVertexElements.Count; j++)
@@ -351,7 +351,7 @@ namespace Stride.Graphics
                 var newVertexOffset = 0;
                 for (int i = 0; i < vertexCount; ++i)
                 {
-                    Utilities.CopyMemory(new IntPtr(&newBuffer[newVertexOffset]), new IntPtr(&oldBuffer[oldVertexOffset]), oldVertexStride);
+                    CoreUtilities.CopyBlockUnaligned(&newBuffer[newVertexOffset], &oldBuffer[oldVertexOffset], oldVertexStride);
 
                     var normal = *(Vector3*)&oldBuffer[oldVertexOffset + normalOffset];
                     var newTangentPtr = ((float*)(&newBuffer[newVertexOffset + tangentOffset]));

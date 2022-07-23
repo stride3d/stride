@@ -1,7 +1,8 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 
 namespace Stride.Particles.VertexLayouts
@@ -62,7 +63,7 @@ namespace Stride.Particles.VertexLayouts
         /// <param name="ptrRef">Pointer to the source data</param>
         public void SetAttribute(AttributeAccessor accessor, IntPtr ptrRef)
         {
-            Utilities.CopyMemory(VertexBuffer + accessor.Offset, ptrRef, accessor.Size);
+            CoreUtilities.CopyBlockUnaligned(VertexBuffer + accessor.Offset, ptrRef, accessor.Size);
         }
 
         /// <summary>
@@ -74,7 +75,7 @@ namespace Stride.Particles.VertexLayouts
         {
             for (var i = 0; i < vertexBuilder.VerticesPerParticle; i++)
             {
-                Utilities.CopyMemory(VertexBuffer + accessor.Offset + i * VertexStride, ptrRef, accessor.Size);
+                CoreUtilities.CopyBlockUnaligned(VertexBuffer + accessor.Offset + i * VertexStride, ptrRef, accessor.Size);
             }
         }
 
@@ -87,7 +88,7 @@ namespace Stride.Particles.VertexLayouts
         {
             for (var i = 0; i < VerticesPerSegCurrent; i++)
             {
-                Utilities.CopyMemory(VertexBuffer + accessor.Offset + i * VertexStride, ptrRef, accessor.Size);
+                CoreUtilities.CopyBlockUnaligned(VertexBuffer + accessor.Offset + i * VertexStride, ptrRef, accessor.Size);
             }
         }
 
@@ -98,31 +99,31 @@ namespace Stride.Particles.VertexLayouts
         /// <param name="accessorTo">Vertex attribute accessor to the destination attribute</param>
         /// <param name="accessorFrom">Vertex attribute accessor to the source attribute</param>
         /// <param name="transformMethod">Transform method for the type data</param>
-        public void TransformAttributePerSegment<T, U>(AttributeAccessor accessorFrom, AttributeAccessor accessorTo, IAttributeTransformer<T, U> transformMethod, ref U transformer) 
+        public unsafe void TransformAttributePerSegment<T, U>(AttributeAccessor accessorFrom, AttributeAccessor accessorTo, IAttributeTransformer<T, U> transformMethod, ref U transformer) 
             where T : struct
             where U : struct
         {
             for (var i = 0; i < VerticesPerSegCurrent; i++)
             {
-                var temp = Utilities.Read<T>(VertexBuffer + accessorFrom.Offset + i * VertexStride);
+                var temp = Unsafe.ReadUnaligned<T>((byte*)VertexBuffer + accessorFrom.Offset + i * VertexStride);
 
                 transformMethod.Transform(ref temp, ref transformer);
 
-                Utilities.Write(VertexBuffer + accessorTo.Offset + i * VertexStride, ref temp);
+                Unsafe.WriteUnaligned((byte*)VertexBuffer + accessorTo.Offset + i * VertexStride, temp);
             }
         }
 
-        public void TransformAttributePerParticle<T, U>(AttributeAccessor accessorFrom, AttributeAccessor accessorTo, IAttributeTransformer<T, U> transformMethod, ref U transformer) 
+        public unsafe void TransformAttributePerParticle<T, U>(AttributeAccessor accessorFrom, AttributeAccessor accessorTo, IAttributeTransformer<T, U> transformMethod, ref U transformer) 
             where T : struct
             where U : struct
         {
             for (var i = 0; i < vertexBuilder.VerticesPerParticle; i++)
             {
-                var temp = Utilities.Read<T>(VertexBuffer + accessorFrom.Offset + i * VertexStride);
+                var temp = Unsafe.ReadUnaligned<T>((byte*)VertexBuffer + accessorFrom.Offset + i * VertexStride);
 
                 transformMethod.Transform(ref temp, ref transformer);
 
-                Utilities.Write(VertexBuffer + accessorTo.Offset + i * VertexStride, ref temp);
+                Unsafe.WriteUnaligned((byte*)VertexBuffer + accessorTo.Offset + i * VertexStride, temp);
             }
         }
 

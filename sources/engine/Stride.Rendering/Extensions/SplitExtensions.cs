@@ -125,7 +125,10 @@ namespace Stride.Extensions
                         {
                             //copy vertex buffer
                             foreach (var index in splitInfo.UsedIndices)
-                                Utilities.CopyMemory((IntPtr)(newVertexBufferPtr + stride * splitInfo.IndexRemapping[index]), (IntPtr)(vertexBufferPtr + stride * index), stride);
+                                CoreUtilities.CopyBlockUnaligned(
+                                    destination: newVertexBufferPtr + stride * splitInfo.IndexRemapping[index],
+                                    source: vertexBufferPtr + stride * index,
+                                    byteCount: stride);
                         }
 
                         newMeshDrawData.VertexBuffers[vbIndex] = new VertexBufferBinding(

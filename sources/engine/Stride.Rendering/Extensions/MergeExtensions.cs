@@ -89,7 +89,7 @@ namespace Stride.Extensions
                     var sourceBuffer = meshDrawData.VertexBuffers[0].Buffer.GetSerializationData();
                     fixed (byte* sourceBufferDataStart = &sourceBuffer.Content[0])
                     {
-                        Utilities.CopyMemory((IntPtr)destBufferDataCurrent, (IntPtr)sourceBufferDataStart, sourceBuffer.Content.Length);
+                        CoreUtilities.CopyBlockUnaligned(destBufferDataCurrent, sourceBufferDataStart, sourceBuffer.Content.Length);
                         destBufferDataCurrent += sourceBuffer.Content.Length;
                     }
                 }
@@ -133,7 +133,7 @@ namespace Stride.Extensions
 
                         fixed (byte* sourceBufferDataStart = &sourceBufferContent[0])
                         {
-                            Utilities.CopyMemory((IntPtr)destBufferDataCurrent, (IntPtr)sourceBufferDataStart,
+                            CoreUtilities.CopyBlockUnaligned(destBufferDataCurrent, sourceBufferDataStart,
                                 sourceBufferContent.Length);
                             destBufferDataCurrent += sourceBufferContent.Length;
                         }
@@ -270,9 +270,9 @@ namespace Stride.Extensions
                         indices[i] = (ushort)(BitConverter.ToInt16(baseIndices, 2 * i) + offset);
                 }
             }
-
+            // TODO: PERF: Avoid this copying with MemoryMarshal.Cast
             var buffer = new byte[sizeOf];
-            Utilities.Write(buffer, indices, 0, indices.Length);
+            indices.AsSpan().AsByte().CopyTo(buffer.AsSpan());
             return buffer;
         }
 
@@ -305,9 +305,9 @@ namespace Stride.Extensions
                         indices[i] = (uint)(BitConverter.ToInt16(baseIndices, 2 * i) + offset);
                 }
             }
-
+            // TODO: PERF: Avoid this copying with MemoryMarshal.Cast
             var buffer = new byte[sizeOf];
-            Utilities.Write(buffer, indices, 0, indices.Length);
+            indices.AsSpan().AsByte().CopyTo(buffer.AsSpan());
             return buffer;
         }
 

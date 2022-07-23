@@ -103,7 +103,7 @@ namespace Stride.Extensions
                                     *((Half2*)newBufferElementPtr) = (Half2)(*((Vector2*)oldBufferElementPtr));
                                     break;
                                 case PixelFormat.R32G32B32_Float:
-                                    // Put 1.0f in 
+                                    // Put 1.0f in
                                     *((Half4*)newBufferElementPtr) = (Half4)(new Vector4(*((Vector3*)oldBufferElementPtr), 1.0f));
                                     break;
                                 case PixelFormat.R32G32B32A32_Float:
@@ -114,7 +114,7 @@ namespace Stride.Extensions
                         else
                         {
                             // Copy as is
-                            Utilities.CopyMemory(newBufferElementPtr, oldBufferElementPtr, element.VertexElementWithOffset.Size);
+                            CoreUtilities.CopyBlockUnaligned(newBufferElementPtr, oldBufferElementPtr, element.VertexElementWithOffset.Size);
                         }
                     }
 

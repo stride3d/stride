@@ -55,7 +55,7 @@ namespace Stride.Rendering
                 var mappedDrawLighting = resourceGroup.ConstantBuffer.Data + logicalGroup.ConstantBufferOffset;
 
                 fixed (byte* dataValues = sourceParameters.DataValues)
-                    Utilities.CopyMemory(mappedDrawLighting, (IntPtr)dataValues + sourceOffset, logicalGroup.ConstantBufferSize);
+                    CoreUtilities.CopyBlockUnaligned(mappedDrawLighting, (nint)dataValues + sourceOffset, logicalGroup.ConstantBufferSize);
             }
         }
     }

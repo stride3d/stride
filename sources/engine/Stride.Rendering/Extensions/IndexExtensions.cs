@@ -51,7 +51,7 @@ namespace Stride.Extensions
                 for (int i = 0; i < indexBuffer.Count; ++i)
                 {
                     var index = ((int*)indexBufferStart)[i];
-                    Utilities.CopyMemory((IntPtr)newVerticesStart + i * stride, (IntPtr)vertexBufferStart + index * stride, stride);
+                    CoreUtilities.CopyBlockUnaligned(newVerticesStart + i * stride, vertexBufferStart + index * stride, stride);
                 }
             }
 
@@ -84,7 +84,7 @@ namespace Stride.Extensions
                 var vertexBufferDataCurrent = vertexBufferDataStart;
                 for (int i = 0; i < vertices.Length; ++i)
                 {
-                    Utilities.CopyMemory((IntPtr)vertexBufferDataCurrent, new IntPtr(&oldVertexBufferDataStart[oldVertexStride * vertices[i]]), newVertexStride);
+                    CoreUtilities.CopyBlockUnaligned(vertexBufferDataCurrent, &oldVertexBufferDataStart[oldVertexStride * vertices[i]], newVertexStride);
                     vertexBufferDataCurrent += newVertexStride;
                 }
                 meshData.VertexBuffers[0] = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer, vertexBufferData).ToSerializableVersion(), declaration, indexMapping.Vertices.Length);
@@ -95,7 +95,7 @@ namespace Stride.Extensions
             fixed (int* indexDataStart = &indexMapping.Indices[0])
             fixed (byte* indexBufferDataStart = &indexBufferData[0])
             {
-                Utilities.CopyMemory((IntPtr)indexBufferDataStart, (IntPtr)indexDataStart, indexBufferData.Length);
+                CoreUtilities.CopyBlockUnaligned(indexBufferDataStart, indexDataStart, indexBufferData.Length);
                 meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, indexBufferData).ToSerializableVersion(), true, indexMapping.Indices.Length);
             }
         }
@@ -278,14 +278,14 @@ namespace Stride.Extensions
 
             // Generate the new indices
             var newIndices = GenerateIndexBufferAEN(meshData.IndexBuffer, meshData.VertexBuffers[0]);
-            
+
             // copy them into a byte[]
             var triangleCount = meshData.IndexBuffer.Count / 3;
             var indexBufferData = new byte[triangleCount * 12 * sizeof(int)];
             fixed (int* indexDataStart = &newIndices[0])
             fixed (byte* indexBufferDataStart = &indexBufferData[0])
             {
-                Utilities.CopyMemory((IntPtr)indexBufferDataStart, (IntPtr)indexDataStart, indexBufferData.Length);
+                CoreUtilities.CopyBlockUnaligned(indexBufferDataStart, indexDataStart, indexBufferData.Length);
             }
 
             meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, indexBufferData).ToSerializableVersion(), true, triangleCount * 12);

@@ -210,7 +210,10 @@ namespace Stride.TextureConverter.TexLibraries
                         {
                             for (int j = 0; j < ct; ++j)
                             {
-                                Utilities.CopyMemory(sdImage.PixelBuffer[ct2].DataPointer, sdImage.PixelBuffer[j + i * SubImagePerArrayElement].DataPointer, sdImage.PixelBuffer[j + i * SubImagePerArrayElement].BufferStride);
+                                CoreUtilities.CopyBlockUnaligned(
+                                    sdImage.PixelBuffer[ct2].DataPointer,
+                                    sdImage.PixelBuffer[j + i * SubImagePerArrayElement].DataPointer,
+                                    sdImage.PixelBuffer[j + i * SubImagePerArrayElement].BufferStride);
                                 ++ct2;
                             }
                         }
@@ -265,7 +268,7 @@ namespace Stride.TextureConverter.TexLibraries
                         for (int i = 0; i < image.ArraySize * newMipMapCount; ++i)
                         {
                             if (i == newMipMapCount || (i > newMipMapCount && (i % newMipMapCount == 0))) j += gap;
-                            Utilities.CopyMemory(sdImage.PixelBuffer[i].DataPointer, image.SubImageArray[j].Data, image.SubImageArray[j].DataSize);
+                            CoreUtilities.CopyBlockUnaligned(sdImage.PixelBuffer[i].DataPointer, image.SubImageArray[j].Data, image.SubImageArray[j].DataSize);
                             ++j;
                         }
                     }
@@ -302,7 +305,7 @@ namespace Stride.TextureConverter.TexLibraries
                     throw new InvalidOperationException("Image size different than expected.");
                 }
 
-                Utilities.CopyMemory(sdImage.DataPointer, image.Data, image.DataSize);
+                CoreUtilities.CopyBlockUnaligned(sdImage.DataPointer, image.Data, image.DataSize);
             }
 
             using (var fileStream = new FileStream(request.FilePath, FileMode.Create, FileAccess.Write))
@@ -364,7 +367,7 @@ namespace Stride.TextureConverter.TexLibraries
                 throw new InvalidOperationException("Image size different than expected.");
             }
 
-            Utilities.CopyMemory(sdImage.DataPointer, image.Data, image.DataSize);
+            CoreUtilities.CopyBlockUnaligned(sdImage.DataPointer, image.Data, image.DataSize);
 
             request.XkImage = sdImage;
         }

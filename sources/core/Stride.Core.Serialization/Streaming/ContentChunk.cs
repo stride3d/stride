@@ -95,16 +95,15 @@ namespace Stride.Core.Streaming
                 var buffer = new byte[bufferCapacity];
 
                 int count = Size;
-                fixed (byte* bufferFixed = buffer)
+                fixed (byte* bufferStart = buffer)
                 {
                     var chunkBytesPtr = chunkBytes;
-                    var bufferPtr = new IntPtr(bufferFixed);
                     do
                     {
                         int read = stream.Read(buffer, 0, Math.Min(count, bufferCapacity));
                         if (read <= 0)
                             break;
-                        Utilities.CopyMemory(chunkBytesPtr, bufferPtr, read);
+                        CoreUtilities.CopyBlockUnaligned(chunkBytesPtr, (nint)bufferStart, read);
                         chunkBytesPtr += read;
                         count -= read;
                     } while (count > 0);

@@ -127,7 +127,7 @@ namespace Stride.Rendering.Lights
             allMasks.Clear();
 
             fixed (void* ptr = groupMasks)
-                Utilities.ClearMemory((IntPtr)ptr, 0, groupMasks.Length * sizeof(uint));
+                CoreUtilities.InitBlockUnaligned(ptr, 0, groupMasks.Length * sizeof(uint));
 
             // Only clear collections that were previously allocated (no need to iterate on all collections from the pool)
             foreach (var collection in lightCollectionPool)

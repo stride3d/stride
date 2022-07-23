@@ -23,6 +23,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
@@ -307,7 +308,7 @@ namespace Stride.Graphics
 
             // Map the staging resource to a CPU accessible memory
             var mappedResource = commandList.MapSubresource(stagingTexture, 0, MapMode.Read);
-            Utilities.CopyMemory(toData.Pointer, mappedResource.DataBox.DataPointer, toData.Size);
+            CoreUtilities.CopyBlockUnaligned(toData.Pointer, mappedResource.DataBox.DataPointer, toData.Size);
             // Make sure that we unmap the resource in case of an exception
             commandList.UnmapSubresource(mappedResource);
         }
@@ -348,7 +349,7 @@ namespace Stride.Graphics
                     throw new ArgumentException("offset is only supported for textured declared with ResourceUsage.Default", "offsetInBytes");
 
                 var mappedResource = commandList.MapSubresource(this, 0, Usage == GraphicsResourceUsage.Staging ? MapMode.Write : MapMode.WriteDiscard);
-                Utilities.CopyMemory(mappedResource.DataBox.DataPointer, fromData.Pointer, fromData.Size);
+                CoreUtilities.CopyBlockUnaligned(mappedResource.DataBox.DataPointer, fromData.Pointer, fromData.Size);
                 commandList.UnmapSubresource(mappedResource);
             }
         }
@@ -622,7 +623,12 @@ namespace Stride.Graphics
         /// <param name="dataPointer"></param>
         public void Recreate<T>(T[] dataPointer) where T : struct
         {
-            Utilities.Pin(dataPointer, Recreate);
+            var gch = GCHandle.Alloc(dataPointer, GCHandleType.Pinned);
+            try {
+                Recreate(gch.AddrOfPinnedObject());
+            } finally {
+                gch.Free();
+            }
         }
     }
 

@@ -280,7 +280,7 @@ namespace Stride.TextureConverter
                 Disposed = this.Disposed,
             };
 
-            if (CopyMemory) Utilities.CopyMemory(newTex.Data, this.Data, this.DataSize);
+            if (CopyMemory) CoreUtilities.CopyBlockUnaligned(newTex.Data, this.Data, this.DataSize);
 
             int offset = 0;
             for (int i = 0; i < this.SubImageArray.Length; ++i)

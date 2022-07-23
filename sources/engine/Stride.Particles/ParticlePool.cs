@@ -246,7 +246,7 @@ namespace Stride.Particles
                 Utilities.CopyMemory(dstParticle[accessor], srcParticle[accessor], field.Size);
             }
 #else
-            Utilities.CopyMemory(dstParticle, srcParticle, ParticleSize);
+            CoreUtilities.CopyBlockUnaligned(dstParticle, srcParticle, ParticleSize);
 #endif
         }
 
@@ -399,12 +399,12 @@ namespace Stride.Particles
             Utilities.ClearMemory(newPool + oldSize * oldCapacity, 0, (newSize - oldSize) * oldCapacity);
 #else
             // Clear the memory first instead of once per particle
-            Utilities.ClearMemory(newPool, 0, newSize * newCapacity);
+            CoreUtilities.InitBlockUnaligned(newPool, 0, newSize * newCapacity);
 
             // Complex case - needs to copy the head of each particle
             for (var i = 0; i < oldCapacity; i++)
             {
-                Utilities.CopyMemory(newPool + i * newSize, oldPool + i * oldSize, oldSize);
+                CoreUtilities.CopyBlockUnaligned(newPool + i * newSize, oldPool + i * oldSize, oldSize);
             }
 #endif
         }
@@ -440,7 +440,7 @@ namespace Stride.Particles
 
             // Fields haven't changed so we can iterate them. In case of Add/Remove fields you shouldn't use this
             foreach (var field in fields.Values)
-            {                
+            {
                 var copySize = Math.Min(oldCapacity, newCapacity) * field.Size;
                 Utilities.CopyMemory(newPool + newOffset, oldPool + oldOffset, copySize);
 
@@ -450,12 +450,12 @@ namespace Stride.Particles
 #else
             if (newCapacity > oldCapacity)
             {
-                Utilities.CopyMemory(newPool, oldPool, newSize * oldCapacity);
-                Utilities.ClearMemory(newPool + newSize * oldCapacity, 0, newSize * (newCapacity - oldCapacity));
+                CoreUtilities.CopyBlockUnaligned(newPool, oldPool, newSize * oldCapacity);
+                CoreUtilities.InitBlockUnaligned(newPool + newSize * oldCapacity, 0, newSize * (newCapacity - oldCapacity));
             }
             else
             {
-                Utilities.CopyMemory(newPool, oldPool, newSize * newCapacity);
+                CoreUtilities.CopyBlockUnaligned(newPool, oldPool, newSize * newCapacity);
             }
 #endif
         }
@@ -532,7 +532,7 @@ namespace Stride.Particles
             }
 #else
             // Clear the memory first instead of once per particle
-            Utilities.ClearMemory(newPool, 0, newSize * newCapacity);
+            CoreUtilities.InitBlockUnaligned(newPool, 0, newSize * newCapacity);
 
             // Complex case - needs to copy up to two parts of each particle
             var firstHalfSize = 0;
@@ -553,14 +553,14 @@ namespace Stride.Particles
                 else
                 {
                     firstHalfSize += field.Size;
-                }                
+                }
             }
 
             if (firstHalfSize > 0)
             {
                 for (var i = 0; i < oldCapacity; i++)
                 {
-                    Utilities.CopyMemory(newPool + i * newSize, oldPool + i * oldSize, firstHalfSize);
+                    CoreUtilities.CopyBlockUnaligned(newPool + i * newSize, oldPool + i * oldSize, firstHalfSize);
                 }
             }
 
@@ -570,7 +570,7 @@ namespace Stride.Particles
 
                 for (var i = 0; i < oldCapacity; i++)
                 {
-                    Utilities.CopyMemory(newPool + i * newSize + firstHalfSize, oldPool + i * oldSize + secondHalfOffset, secondHalfSize);
+                    CoreUtilities.CopyBlockUnaligned(newPool + i * newSize + firstHalfSize, oldPool + i * oldSize + secondHalfOffset, secondHalfSize);
                 }
             }
 #endif

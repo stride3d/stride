@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 
 namespace Stride.Particles
@@ -47,7 +48,7 @@ namespace Stride.Particles
         /// Creates an invalid <see cref="Particle"/>. Accessing the invalid <see cref="Particle"/> is not resticted by the engine.
         /// </summary>
         /// <returns></returns>
-        static internal Particle Invalid()
+        internal static Particle Invalid()
         {
             return new Particle(IntPtr.Zero);
         }
@@ -61,12 +62,12 @@ namespace Stride.Particles
         /// <typeparam name="T">The field type.</typeparam>
         /// <param name="accessor">The field accessor</param>
         /// <returns>The field value.</returns>
-        public T Get<T>(ParticleFieldAccessor<T> accessor) where T : struct
+        public unsafe T Get<T>(ParticleFieldAccessor<T> accessor) where T : struct
         {
 #if PARTICLES_SOA
-            return Utilities.Read<T>(accessor[Index]);
+            return Unsafe.ReadUnaligned<T>(accessor[Index]);
 #else
-            return Utilities.Read<T>(Pointer + accessor);
+            return Unsafe.ReadUnaligned<T>((byte*)Pointer + accessor);
 #endif
         }
 
@@ -76,12 +77,12 @@ namespace Stride.Particles
         /// <typeparam name="T">The field type.</typeparam>
         /// <param name="accessor">The field accessor</param>
         /// <param name="value">The value to set</param>
-        public void Set<T>(ParticleFieldAccessor<T> accessor, ref T value) where T : struct
+        public unsafe void Set<T>(ParticleFieldAccessor<T> accessor, ref T value) where T : struct
         {
 #if PARTICLES_SOA
-            Utilities.Write(accessor[Index], ref value);
+            Unsafe.WriteUnaligned((byte*)accessor[Index], value);
 #else
-            Utilities.Write(Pointer + accessor, ref value);
+            Unsafe.WriteUnaligned((byte*)Pointer + accessor, value);
 #endif
         }
 
@@ -91,12 +92,12 @@ namespace Stride.Particles
         /// <typeparam name="T">The field type.</typeparam>
         /// <param name="accessor">The field accessor</param>
         /// <param name="value">The value to set</param>
-        public void Set<T>(ParticleFieldAccessor<T> accessor, T value) where T : struct
+        public unsafe void Set<T>(ParticleFieldAccessor<T> accessor, T value) where T : struct
         {
 #if PARTICLES_SOA
-            Utilities.Write(accessor[Index], ref value);
+            Unsafe.WriteUnaligned((byte*)accessor[Index], value);
 #else
-            Utilities.Write(Pointer + accessor, ref value);
+            Unsafe.WriteUnaligned((byte*)Pointer + accessor, value);
 #endif
         }
 

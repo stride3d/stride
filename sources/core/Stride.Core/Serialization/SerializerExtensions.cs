@@ -274,6 +274,7 @@ namespace Stride.Core.Serialization
         /// <param name="stream">The stream.</param>
         /// <param name="count"></param>
         /// <returns>A byte array containing the data read from the stream.</returns>
+        [Obsolete("Allocates. Read into the destination.")]
         [NotNull]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] ReadBytes([NotNull] this SerializationStream stream, int count)

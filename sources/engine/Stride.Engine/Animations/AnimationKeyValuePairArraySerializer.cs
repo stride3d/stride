@@ -35,11 +35,10 @@ namespace Stride.Animations
         {
             if (mode == ArchiveMode.Deserialize)
             {
-                int count = obj.Length;
-                var rawData = stream.ReadBytes(Unsafe.SizeOf<AnimationKeyValuePair<T>>() * count);
+                var rawData = stream.ReadBytes(Unsafe.SizeOf<AnimationKeyValuePair<T>>() * obj.Length);
                 fixed (void* rawDataPtr = rawData)
                 {
-                    Utilities.Read((IntPtr)rawDataPtr, obj, 0, count);
+                    rawData.AsSpan().CopyTo(obj.AsSpan().AsByte());
                 }
             }
             else if (mode == ArchiveMode.Serialize)

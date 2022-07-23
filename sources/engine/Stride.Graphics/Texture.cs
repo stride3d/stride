@@ -843,7 +843,7 @@ namespace Stride.Graphics
             // The fast way: If same stride, we can directly copy the whole texture in one shot
             if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride && !isFlippedTexture)
             {
-                Utilities.CopyMemory(toData.Pointer, box.DataPointer, mipMapSize);
+                CoreUtilities.CopyBlockUnaligned(toData.Pointer, box.DataPointer, mipMapSize);
             }
             else
             {
@@ -859,11 +859,11 @@ namespace Stride.Graphics
 
                     if (isFlippedTexture)
                     {
-                        sourcePtr = sourcePtr + box.RowPitch * (height - 1);
+                        sourcePtr += box.RowPitch * (height - 1);
                         for (int i = height - 1; i >= 0; i--)
                         {
                             // Copy a single row
-                            Utilities.CopyMemory(new IntPtr(destPtr), new IntPtr(sourcePtr), rowStride);
+                            CoreUtilities.CopyBlockUnaligned(destPtr, sourcePtr, rowStride);
                             sourcePtr -= box.RowPitch;
                             destPtr += rowStride;
                         }
@@ -873,7 +873,7 @@ namespace Stride.Graphics
                         for (int i = 0; i < height; i++)
                         {
                             // Copy a single row
-                            Utilities.CopyMemory(new IntPtr(destPtr), new IntPtr(sourcePtr), rowStride);
+                            CoreUtilities.CopyBlockUnaligned(destPtr, sourcePtr, rowStride);
                             sourcePtr += box.RowPitch;
                             destPtr += rowStride;
                         }
@@ -993,7 +993,7 @@ namespace Stride.Graphics
                 // The fast way: If same stride, we can directly copy the whole texture in one shot
                 if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride)
                 {
-                    Utilities.CopyMemory(box.DataPointer, fromData.Pointer, sizeOfTextureData);
+                    CoreUtilities.CopyBlockUnaligned(box.DataPointer, fromData.Pointer, sizeOfTextureData);
                 }
                 else
                 {
@@ -1008,7 +1008,7 @@ namespace Stride.Graphics
                         // Iterate on each line
                         for (int i = 0; i < height; i++)
                         {
-                            Utilities.CopyMemory((IntPtr)destPtr, (IntPtr)sourcePtr, rowStride);
+                            CoreUtilities.CopyBlockUnaligned(destPtr, sourcePtr, rowStride);
                             destPtr += box.RowPitch;
                             sourcePtr += rowStride;
                         }

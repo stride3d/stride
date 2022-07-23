@@ -5,6 +5,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 
@@ -18,36 +19,34 @@ namespace Stride.Graphics
     {
         public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
         {
-            using (var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size))
-            using (var bitmap = (Bitmap)System.Drawing.Image.FromStream(memoryStream))
+            using var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size);
+            using var bitmap = (Bitmap)System.Drawing.Image.FromStream(memoryStream);
+            var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+            // Lock System.Drawing.Bitmap
+
+            var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            var image = Image.New2D(bitmap.Width, bitmap.Height, 1, PixelFormat.B8G8R8A8_UNorm, 1, bitmapData.Stride);
+            // var dataRect = new DataRectangle(bitmapData.Stride, bitmapData.Scan0);
+
+            try
             {
-                var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-                // Lock System.Drawing.Bitmap
-
-                var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                var image = Image.New2D(bitmap.Width, bitmap.Height, 1, PixelFormat.B8G8R8A8_UNorm, 1, bitmapData.Stride);
-                // var dataRect = new DataRectangle(bitmapData.Stride, bitmapData.Scan0);
-
-                try
-                {
-                    // TODO: Test if still necessary
-                    // Directly load image as RGBA instead of BGRA, because OpenGL ES devices don't support it out of the box (extension).
-                    //image.Description.Format = PixelFormat.R8G8B8A8_UNorm;
-                    //CopyMemoryBGRA(image.PixelBuffer[0].DataPointer, bitmapData.Scan0, image.PixelBuffer[0].BufferStride);
-                    Utilities.CopyMemory(image.PixelBuffer[0].DataPointer, bitmapData.Scan0, image.PixelBuffer[0].BufferStride);
-                }
-                finally
-                {
-                    bitmap.UnlockBits(bitmapData);
-
-                    if (handle != null)
-                        handle.Value.Free();
-                    else if (!makeACopy)
-                        Utilities.FreeMemory(pSource);
-                }
-
-                return image;
+                // TODO: Test if still necessary
+                // Directly load image as RGBA instead of BGRA, because OpenGL ES devices don't support it out of the box (extension).
+                //image.Description.Format = PixelFormat.R8G8B8A8_UNorm;
+                //CopyMemoryBGRA(image.PixelBuffer[0].DataPointer, bitmapData.Scan0, image.PixelBuffer[0].BufferStride);
+                Unsafe.CopyBlockUnaligned((void*)image.PixelBuffer[0].DataPointer, (void*)bitmapData.Scan0, (uint)image.PixelBuffer[0].BufferStride);
             }
+            finally
+            {
+                bitmap.UnlockBits(bitmapData);
+
+                if (handle != null)
+                    handle.Value.Free();
+                else if (!makeACopy)
+                    Utilities.FreeMemory(pSource);
+            }
+
+            return image;
         }
 
         public static void SaveGifFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
@@ -80,48 +79,46 @@ namespace Stride.Graphics
             throw new NotImplementedException();
         }
 
-        private static void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream, ImageFormat imageFormat)
+        private static unsafe void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream, ImageFormat imageFormat)
         {
-            using (var bitmap = new Bitmap(description.Width, description.Height))
+            using var bitmap = new Bitmap(description.Width, description.Height);
+            var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+
+            // Lock System.Drawing.Bitmap
+            var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            try
             {
-                var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-
-                // Lock System.Drawing.Bitmap
-                var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-                try
+                // Copy memory
+                var format = description.Format;
+                if (format == PixelFormat.R8G8B8A8_UNorm || format == PixelFormat.R8G8B8A8_UNorm_SRgb)
                 {
-                    // Copy memory
-                    var format = description.Format;
-                    if (format == PixelFormat.R8G8B8A8_UNorm || format == PixelFormat.R8G8B8A8_UNorm_SRgb)
-                    {
-                        CopyMemoryBGRA(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
-                    }
-                    else if (format == PixelFormat.B8G8R8A8_UNorm || format == PixelFormat.B8G8R8A8_UNorm_SRgb)
-                    {
-                        Utilities.CopyMemory(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
-                    }
-                    else if (format == PixelFormat.R8_UNorm || format == PixelFormat.A8_UNorm)
-                    {
-                        // TODO Ideally we will want to support grayscale images, but the SpriteBatch can only render RGBA for now
-                        //  so convert the grayscale image as an RGBA and save it
-                        CopyMemoryRRR1(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
-                    }
-                    else
-                    {
-                        throw new ArgumentException(
-                            message: $"The pixel format {format} is not supported. Supported formats are {PixelFormat.B8G8R8A8_UNorm}, {PixelFormat.B8G8R8A8_UNorm_SRgb}, {PixelFormat.R8G8B8A8_UNorm}, {PixelFormat.R8G8B8A8_UNorm_SRgb}, {PixelFormat.R8_UNorm}, {PixelFormat.A8_UNorm}", 
-                            paramName: nameof(description));
-                    }
+                    CopyMemoryBGRA(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
                 }
-                finally
+                else if (format == PixelFormat.B8G8R8A8_UNorm || format == PixelFormat.B8G8R8A8_UNorm_SRgb)
                 {
-                    bitmap.UnlockBits(bitmapData);
+                    Unsafe.CopyBlockUnaligned((void*)bitmapData.Scan0, (void*)pixelBuffers[0].DataPointer, (uint)pixelBuffers[0].BufferStride);
                 }
-
-                // Save
-                bitmap.Save(imageStream, imageFormat);
+                else if (format == PixelFormat.R8_UNorm || format == PixelFormat.A8_UNorm)
+                {
+                    // TODO Ideally we will want to support grayscale images, but the SpriteBatch can only render RGBA for now
+                    //  so convert the grayscale image as an RGBA and save it
+                    CopyMemoryRRR1(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
+                }
+                else
+                {
+                    throw new ArgumentException(
+                        message: $"The pixel format {format} is not supported. Supported formats are {PixelFormat.B8G8R8A8_UNorm}, {PixelFormat.B8G8R8A8_UNorm_SRgb}, {PixelFormat.R8G8B8A8_UNorm}, {PixelFormat.R8G8B8A8_UNorm_SRgb}, {PixelFormat.R8_UNorm}, {PixelFormat.A8_UNorm}",
+                        paramName: nameof(description));
+                }
             }
+            finally
+            {
+                bitmap.UnlockBits(bitmapData);
+            }
+
+            // Save
+            bitmap.Save(imageStream, imageFormat);
         }
     }
 }

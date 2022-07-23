@@ -934,7 +934,7 @@ namespace Stride.TextureConverter.DxtWrapper
                 fixed (byte* ptr = buffer)
                 {
                     DDSHeaderDX9* headerPtr = &header;
-                    Stride.Core.Utilities.CopyMemory((IntPtr)headerPtr, (IntPtr)ptr, headerSize);
+                    Core.CoreUtilities.CopyBlockUnaligned((IntPtr)headerPtr, (IntPtr)ptr, headerSize);
                 }
                 if (header.dwMagic != 0x20534444 || header.dwPfSize != 32)
                     return -1;

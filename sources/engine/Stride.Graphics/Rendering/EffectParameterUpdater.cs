@@ -73,7 +73,10 @@ namespace Stride.Rendering
                 if (parameters.DataValues != null && resourceGroup.ConstantBuffer.Size > 0)
                 {
                     fixed (byte* dataValues = parameters.DataValues)
-                        Utilities.CopyMemory(resourceGroup.ConstantBuffer.Data, (IntPtr)dataValues + bufferStartOffset, resourceGroup.ConstantBuffer.Size);
+                        CoreUtilities.CopyBlockUnaligned(
+                            destination: resourceGroup.ConstantBuffer.Data,
+                            source: (nint)dataValues + bufferStartOffset,
+                            byteCount: resourceGroup.ConstantBuffer.Size);
                     bufferStartOffset += resourceGroup.ConstantBuffer.Size;
                 }
             }

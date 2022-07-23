@@ -176,7 +176,7 @@ namespace Stride.Graphics
         /// Begins text rendering (swaps and maps the vertex buffer to write to).
         /// </summary>
         /// <param name="graphicsContext">The current GraphicsContext.</param>
-        public void End([NotNull] GraphicsContext graphicsContext)
+        public unsafe void End([NotNull] GraphicsContext graphicsContext)
         {
             if (graphicsContext == null) throw new ArgumentNullException(nameof(graphicsContext));
 
@@ -191,7 +191,7 @@ namespace Stride.Graphics
             simpleEffect.Parameters.Set(TexturingKeys.Texture0, DebugSpriteFont);
             simpleEffect.Parameters.Set(SpriteEffectKeys.Color, TextColor);
             simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, MatrixTransform);
-            
+
             // Swap vertex buffer
             activeVertexBufferIndex = ++activeVertexBufferIndex >= VertexBufferCount ? 0 : activeVertexBufferIndex;
 
@@ -202,7 +202,7 @@ namespace Stride.Graphics
             unsafe
             {
                 // Clear buffer first (because of the buffer mapping mode used)
-                Utilities.ClearMemory(mappedVertexBufferPointer, 0x0, VertexBufferLength * sizeof(VertexPositionNormalTexture));
+                CoreUtilities.InitBlockUnaligned(mappedVertexBufferPointer, 0x0, VertexBufferLength * sizeof(VertexPositionNormalTexture));
 
                 charsToRenderCount = 0;
 

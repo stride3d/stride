@@ -116,25 +116,25 @@ namespace Stride.TextureConverter.TexLibraries
             array.Data = Marshal.AllocHGlobal(array.DataSize);
 
             int offset1, offset2;
-            long arrayData = array.Data.ToInt64();
-            long currentData;
-            IntPtr buffer;
+            nint arrayData = array.Data;
+            nint currentData;
+            nint buffer;
             TexImage current;
 
             offset1 = 0;
             for (int i = 0; i < request.TextureList.Count; ++i)
             {
                 current = request.TextureList[i];
-                buffer = new IntPtr(arrayData + offset1);
+                buffer = arrayData + offset1;
                 offset1 += current.DataSize;
-                Utilities.CopyMemory(buffer, current.Data, current.DataSize);
+                CoreUtilities.CopyBlockUnaligned(buffer, current.Data, current.DataSize);
 
                 offset2 = 0;
-                currentData = buffer.ToInt64();
+                currentData = buffer;
                 for (int j = 0; j < current.SubImageArray.Length; ++j)
                 {
                     array.SubImageArray[i * current.SubImageArray.Length + j] = current.SubImageArray[j];
-                    array.SubImageArray[i * current.SubImageArray.Length + j].Data = new IntPtr(currentData + offset2);
+                    array.SubImageArray[i * current.SubImageArray.Length + j].Data = currentData + offset2;
                     offset2 += current.SubImageArray[j].DataSize;
                 }
             }
@@ -261,7 +261,10 @@ namespace Stride.TextureConverter.TexLibraries
 
             for (int i = 0; i < subImageCount; ++i)
             {
-                Utilities.CopyMemory(array.SubImageArray[indice].Data, request.Texture.SubImageArray[i].Data, request.Texture.SubImageArray[i].DataSize);
+                CoreUtilities.CopyBlockUnaligned(
+                    destination: array.SubImageArray[indice].Data,
+                    source: request.Texture.SubImageArray[i].Data,
+                    byteCount: request.Texture.SubImageArray[i].DataSize);
                 ++indice;
             }
         }
@@ -290,9 +293,9 @@ namespace Stride.TextureConverter.TexLibraries
 
             // Allocating memory
             int newSize = array.DataSize + request.Texture.DataSize;
-            IntPtr buffer = Marshal.AllocHGlobal(newSize);
+            nint buffer = Marshal.AllocHGlobal(newSize);
 
-            long bufferData = buffer.ToInt64();
+            nint bufferData = buffer;
             TexImage.SubImage[] subImages = new TexImage.SubImage[array.SubImageArray.Length + subImageCount];
             int offset = 0;
 
@@ -300,8 +303,8 @@ namespace Stride.TextureConverter.TexLibraries
             for (int i = 0; i < indice; ++i)
             {
                 subImages[i] = array.SubImageArray[i];
-                subImages[i].Data = new IntPtr(bufferData + offset);
-                Utilities.CopyMemory(subImages[i].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
+                subImages[i].Data = bufferData + offset;
+                CoreUtilities.CopyBlockUnaligned(subImages[i].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
             }
 
@@ -310,7 +313,7 @@ namespace Stride.TextureConverter.TexLibraries
             for (int i = 0; i < subImageCount; ++i)
             {
                 subImages[ct] = request.Texture.SubImageArray[i];
-                Utilities.CopyMemory(subImages[ct].Data, request.Texture.SubImageArray[i].Data, request.Texture.SubImageArray[i].DataSize);
+                CoreUtilities.CopyBlockUnaligned(subImages[ct].Data, request.Texture.SubImageArray[i].Data, request.Texture.SubImageArray[i].DataSize);
                 offset += request.Texture.SubImageArray[i].DataSize;
                 ++ct;
             }
@@ -319,8 +322,8 @@ namespace Stride.TextureConverter.TexLibraries
             for (int i = indice; i < array.SubImageArray.Length; ++i)
             {
                 subImages[ct] = array.SubImageArray[i];
-                subImages[ct].Data = new IntPtr(bufferData + offset);
-                Utilities.CopyMemory(subImages[ct].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
+                subImages[ct].Data = bufferData + offset;
+                CoreUtilities.CopyBlockUnaligned(subImages[ct].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
                 ++ct;
             }
@@ -360,26 +363,23 @@ namespace Stride.TextureConverter.TexLibraries
             int elementSize = 0;
             for (int i = 0; i < subImageCount; ++i) elementSize += array.SubImageArray[i].DataSize;
             int newSize = array.DataSize - elementSize;
-            IntPtr buffer = Marshal.AllocHGlobal(newSize);
-
-            long bufferData = buffer.ToInt64();
+            nint buffer = Marshal.AllocHGlobal(newSize);
             TexImage.SubImage[] subImages = new TexImage.SubImage[array.SubImageArray.Length - subImageCount];
             int offset = 0;
 
             for (int i = 0; i < indice; ++i)
             {
                 subImages[i] = array.SubImageArray[i];
-                subImages[i].Data = new IntPtr(bufferData + offset);
-                Utilities.CopyMemory(subImages[i].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
+                subImages[i].Data = buffer + offset;
+                CoreUtilities.CopyBlockUnaligned(subImages[i].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
             }
 
-            int ct = indice;
             for (int i = indice + subImageCount; i < array.SubImageArray.Length; ++i)
             {
                 subImages[indice] = array.SubImageArray[i];
-                subImages[indice].Data = new IntPtr(bufferData + offset);
-                Utilities.CopyMemory(subImages[indice].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
+                subImages[indice].Data = buffer + offset;
+                CoreUtilities.CopyBlockUnaligned(subImages[indice].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
                 ++indice;
             }

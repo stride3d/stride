@@ -80,7 +80,9 @@ namespace Stride.Shaders
         {
             if (ReferenceEquals(null, shaderClassString)) return false;
             if (ReferenceEquals(this, shaderClassString)) return true;
-            return string.Equals(ClassName, shaderClassString.ClassName) && Utilities.Compare(GenericArguments, shaderClassString.GenericArguments);
+            return
+                string.Equals(ClassName, shaderClassString.ClassName) &&
+                GenericArguments.SequenceEqualAllowNull(shaderClassString.GenericArguments);
         }
 
         public override bool Equals(object obj)
