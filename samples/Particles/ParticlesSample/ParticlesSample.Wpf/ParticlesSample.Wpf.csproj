@@ -57,6 +57,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Stride.Core.Presentation" Version="4.1.0.1" />
     <PackageReference Include="Win32Host" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
