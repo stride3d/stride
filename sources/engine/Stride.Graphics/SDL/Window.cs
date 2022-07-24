@@ -37,7 +37,7 @@ namespace Stride.Graphics.SDL
         /// Initializes a new instance of the <see cref="Window"/> class with <paramref name="title"/> as the title of the Window.
         /// </summary>
         /// <param name="title">Title of the window, see Text property.</param>
-        public unsafe Window(string title) : this(title, IntPtr.Zero) { }
+        public Window(string title) : this(title, IntPtr.Zero) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Window"/> class with <paramref name="title"/> as the title of the Window.
@@ -67,7 +67,7 @@ namespace Stride.Graphics.SDL
                     // SDL doesn't create OpenGL context when using SDL_CreateWindowFrom.
                     // See https://wiki.libsdl.org/SDL_CreateWindowFrom
                     // and https://gamedev.stackexchange.com/a/119903.
-                    var dummy = SDL.CreateWindow("OpenGL Dummy", 0, 0, 1, 1, (uint)flags);
+                    var dummy = SDL.CreateWindow($"{title} - OpenGL Dummy", 0, 0, 1, 1, (uint)flags);
                     var addrStr = new IntPtr(dummy).ToString("X");
                     SDL.SetHint(Sdl.HintVideoWindowSharePixelFormat, addrStr);
                     sdlHandle = SDL.CreateWindowFrom(parentPtr);
