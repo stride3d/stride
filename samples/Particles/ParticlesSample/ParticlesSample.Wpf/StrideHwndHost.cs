@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Silk.NET.SDL;
 using Stride.Engine;
 using Stride.Games;
