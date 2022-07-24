@@ -37,7 +37,14 @@ namespace Stride.Graphics.SDL
         /// Initializes a new instance of the <see cref="Window"/> class with <paramref name="title"/> as the title of the Window.
         /// </summary>
         /// <param name="title">Title of the window, see Text property.</param>
-        public unsafe Window(string title)
+        public unsafe Window(string title) : this(title, IntPtr.Zero) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Window"/> class with <paramref name="title"/> as the title of the Window.
+        /// </summary>
+        /// <param name="title">Title of the window, see Text property.</param>
+        /// <param name="parent">Parent window handle</param>
+        public unsafe Window(string title, IntPtr parent)
         {
             WindowFlags flags = WindowFlags.WindowAllowHighdpi;
 #if STRIDE_GRAPHICS_API_OPENGL
@@ -50,8 +57,33 @@ namespace Stride.Graphics.SDL
 #else
             flags |= WindowFlags.WindowHidden | WindowFlags.WindowResizable;
 #endif
-            // Create the SDL window and then extract the native handle.
-            sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
+            // If there is a parent hwnd
+            if (parent != IntPtr.Zero)
+            {
+                void* parentPtr = parent.ToPointer();
+
+                if (flags.HasFlag(WindowFlags.WindowOpengl))
+                {
+                    // SDL doesn't create OpenGL context when using SDL_CreateWindowFrom.
+                    // See https://wiki.libsdl.org/SDL_CreateWindowFrom
+                    // and https://gamedev.stackexchange.com/a/119903.
+                    var dummy = SDL.CreateWindow("OpenGL Dummy", 0, 0, 1, 1, (uint)flags);
+                    var addrStr = new IntPtr(dummy).ToString("X");
+                    SDL.SetHint(Sdl.HintVideoWindowSharePixelFormat, addrStr);
+                    sdlHandle = SDL.CreateWindowFrom(parentPtr);
+                    SDL.SetHint(Sdl.HintVideoWindowSharePixelFormat, string.Empty);
+                    SDL.DestroyWindow(dummy);
+                }
+                else
+                {
+                    sdlHandle = SDL.CreateWindowFrom(parentPtr);
+                }
+            }
+            else // no parent window
+            {
+                // Create the SDL window and then extract the native handle.
+                sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
+            }
 
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
             GraphicsAdapter.DefaultWindow = sdlHandle;
