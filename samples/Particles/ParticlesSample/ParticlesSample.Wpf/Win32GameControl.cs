@@ -11,12 +11,37 @@ using Stride.Games;
 
 namespace ParticlesSample
 {
-    internal class Win32GameControl : ContentControl
+    internal class Win32GameControl : FrameworkElement
     {
         public Win32GameControl()
         {
             Loaded += Win32GameHost_Loaded;
             Unloaded += Win32GameHost_Unloaded;
+        }
+
+        protected override int VisualChildrenCount => _gameEngineHost is null ? 0 : 1;
+
+        protected override Visual GetVisualChild(int index)
+        {
+            if (index == 0 && _gameEngineHost is not null) return _gameEngineHost;
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            _gameEngineHost?.Arrange(new Rect(finalSize));
+            return finalSize;
+        }
+
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            if (_gameEngineHost is not null)
+            {
+                _gameEngineHost.Measure(availableSize);
+                return _gameEngineHost.DesiredSize;
+            }
+
+            return availableSize;
         }
 
         private void Win32GameHost_Loaded(object sender, RoutedEventArgs e)
@@ -51,7 +76,9 @@ namespace ParticlesSample
 
             // Create SDL window using child
             _sdlWindow = new Stride.Graphics.SDL.Window("Embedded Stride Window", childHandle);
-            Content = new GameEngineHost(childHandle);
+            _gameEngineHost = new GameEngineHost(childHandle);
+            AddVisualChild(_gameEngineHost);
+            InvalidateMeasure(); // force refresh
             var context = new GameContextSDL(_sdlWindow);
 
             // Start the game
@@ -67,10 +94,11 @@ namespace ParticlesSample
                 _game = null;
             }
 
-            if (Content is not null)
+            if (_gameEngineHost is not null)
             {
-                (Content as IDisposable)?.Dispose();
-                Content = null;
+                RemoveVisualChild(_gameEngineHost);
+                _gameEngineHost.Dispose();
+                _gameEngineHost = null;
             }
 
             if (_sdlWindow is not null)
@@ -81,6 +109,7 @@ namespace ParticlesSample
         }
 
         private Game? _game;
+        private GameEngineHost? _gameEngineHost;
         private Stride.Graphics.SDL.Window? _sdlWindow;
     }
 }
