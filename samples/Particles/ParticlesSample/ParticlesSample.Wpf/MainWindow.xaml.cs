@@ -37,8 +37,8 @@ namespace ParticlesSample
         {
             // Get the handle for the content window
             var host = Window.GetWindow(contentCtrl);
-            WindowInteropHelper wih = new(host);
-            IntPtr hwnd = wih.Handle;
+            var wih = new WindowInteropHelper(host);
+            var hostHandle = wih.Handle;
 
             // Create a child window in which to host the game
             var className = GetType().Name;
@@ -51,7 +51,7 @@ namespace ParticlesSample
             wndClass.hCursor = IntPtr.Zero;
             NativeMethods.RegisterClassEx(ref wndClass);
 
-            var child = NativeMethods.CreateWindowEx(
+            var childHandle = NativeMethods.CreateWindowEx(
                 0,
                 className,
                 "",
@@ -59,13 +59,13 @@ namespace ParticlesSample
                 0,
                 0,
                 (int)Width, (int)Height,
-                hwnd,
+                hostHandle,
                 IntPtr.Zero, IntPtr.Zero, 0);
 
             // Create SDL window using child
-            _sdlWindow = new("Embedded Stride Window", child);
-            contentCtrl.Content = new GameEngineHost(_sdlWindow.Handle);
-            GameContextSDL context = new(_sdlWindow);
+            _sdlWindow = new Stride.Graphics.SDL.Window("Embedded Stride Window", childHandle);
+            contentCtrl.Content = new GameEngineHost(childHandle);
+            var context = new GameContextSDL(_sdlWindow);
 
             // Start the game
             _game = new();
@@ -88,6 +88,6 @@ namespace ParticlesSample
         }
 
         private Game? _game;
-        Stride.Graphics.SDL.Window? _sdlWindow;
+        private Stride.Graphics.SDL.Window? _sdlWindow;
     }
 }
