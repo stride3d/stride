@@ -19,7 +19,7 @@
 
     <GridSplitter Grid.Column="1" Width="8"/>
 
-    <ContentControl Grid.Column="2" x:Name="contentCtrl" />
+    <local:Win32GameControl Grid.Column="2"/>
 
   </Grid>
 </Window>
