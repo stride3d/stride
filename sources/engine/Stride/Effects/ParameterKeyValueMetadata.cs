@@ -4,6 +4,7 @@
 
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 
 namespace Stride.Rendering
@@ -47,8 +48,7 @@ namespace Stride.Rendering
             if (typeof(T).GetTypeInfo().IsValueType)
             {
                 // Struct copy
-                var value = DefaultValue;
-                Interop.CopyInline((void*)dest, ref value);
+                Unsafe.AsRef<T>((void*)dest) = DefaultValue;
                 return true;
             }
 

@@ -78,9 +78,10 @@ namespace Stride.Graphics
         /// <remarks>
         /// The first dimension of mipMapTextures describes the number of array (Texture Array), second dimension is the mipmap, the third is the texture data for a particular mipmap.
         /// </remarks>
-        public static unsafe Texture New1D<T>(GraphicsDevice device, int width, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
+        public static unsafe Texture New1D<T>(GraphicsDevice device, int width, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
         {
-            return New(device, TextureDescription.New1D(width, format, textureFlags, usage), new[] { GetDataBox(format, width, 1, 1, textureData, (IntPtr)Interop.Fixed(textureData)) });
+            fixed (T* texture = textureData)
+                return New(device, TextureDescription.New1D(width, format, textureFlags, usage), new[] { GetDataBox(format, width, 1, 1, textureData, (nint)texture) });
         }
 
         /// <summary>

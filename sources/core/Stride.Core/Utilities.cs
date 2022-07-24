@@ -95,8 +95,11 @@ namespace Stride.Core
         /// <param name="source">The source.</param>
         /// <param name="pinAction">The pin action to perform on the pinned pointer.</param>
         [Obsolete("Use fixed statement with `unmanaged` type constraint. See https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/fixed-statement")]
-        public static unsafe void Pin<T>(ref T source, Action<nint> pinAction) where T : struct
-            => pinAction((nint)Interop.Fixed(ref source));
+        public static unsafe void Pin<T>(ref T source, Action<nint> pinAction) where T : unmanaged
+        {
+            fixed (void* ptr = &source)
+                pinAction((nint)ptr);
+        }
 
         /// <summary>
         /// Pins the specified source and call an action with the pinned pointer.
@@ -105,8 +108,14 @@ namespace Stride.Core
         /// <param name="source">The source array.</param>
         /// <param name="pinAction">The pin action to perform on the pinned pointer.</param>
         [Obsolete("Use fixed statement with `unmanaged` type constraint. See https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/fixed-statement")]
-        public static unsafe void Pin<T>(T[] source, [NotNull] Action<nint> pinAction) where T : struct
-            => pinAction(source is null ? 0 : (nint)Interop.Fixed(source));
+        public static unsafe void Pin<T>(T[] source, [NotNull] Action<nint> pinAction) where T : unmanaged
+        {
+            if (source is null)
+                pinAction(0);
+            else
+                fixed (void* ptr = source)
+                    pinAction((nint)ptr);
+        }
 
         /// <summary>
         /// Covnerts a structured array to an equivalent byte array.

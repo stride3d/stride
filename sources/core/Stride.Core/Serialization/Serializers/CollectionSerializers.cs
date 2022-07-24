@@ -313,7 +313,7 @@ namespace Stride.Core.Serialization.Serializers
     /// Data serializer for blittable T[].
     /// </summary>
     /// <typeparam name="T">Generics type of T[].</typeparam>
-    public class BlittableArraySerializer<T> : ArraySerializer<T>
+    public class BlittableArraySerializer<T> : ArraySerializer<T> where T : unmanaged
     {
         private int elementSize;
 
@@ -327,14 +327,15 @@ namespace Stride.Core.Serialization.Serializers
         public override unsafe void Serialize(ref T[] obj, ArchiveMode mode, SerializationStream stream)
         {
             var size = obj.Length * elementSize;
-            var objPinned = Interop.Fixed(obj);
-            if (mode == ArchiveMode.Deserialize)
-            {
-                stream.NativeStream.Read((IntPtr)objPinned, size);
-            }
-            else if (mode == ArchiveMode.Serialize)
-            {
-                stream.NativeStream.Write((IntPtr)objPinned, size);
+            fixed (void* ptr = obj) {
+                if (mode == ArchiveMode.Deserialize)
+                {
+                    stream.NativeStream.Read((nint)ptr, size);
+                }
+                else if (mode == ArchiveMode.Serialize)
+                {
+                    stream.NativeStream.Write((nint)ptr, size);
+                }
             }
         }
     }

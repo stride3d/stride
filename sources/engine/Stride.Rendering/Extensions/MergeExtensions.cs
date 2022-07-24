@@ -272,7 +272,7 @@ namespace Stride.Extensions
             }
             // TODO: PERF: Avoid this copying with MemoryMarshal.Cast
             var buffer = new byte[sizeOf];
-            indices.AsSpan().AsByte().CopyTo(buffer.AsSpan());
+            indices.AsSpan().ToByte().CopyTo(buffer.AsSpan());
             return buffer;
         }
 
@@ -307,7 +307,7 @@ namespace Stride.Extensions
             }
             // TODO: PERF: Avoid this copying with MemoryMarshal.Cast
             var buffer = new byte[sizeOf];
-            indices.AsSpan().AsByte().CopyTo(buffer.AsSpan());
+            indices.AsSpan().ToByte().CopyTo(buffer.AsSpan());
             return buffer;
         }
 

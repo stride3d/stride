@@ -12,19 +12,19 @@ internal static class StrideCoreExtensions
     public static ref T As<T>(ref this byte reference)
         => ref Unsafe.As<byte, T>(ref reference);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<T> As<T>(this Span<byte> span) where T : struct
-        => MemoryMarshal.Cast<byte, T>(span);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReadOnlySpan<T> As<T>(this ReadOnlySpan<byte> span) where T : struct
-        => MemoryMarshal.Cast<byte, T>(span);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref byte AsByte<T>(ref this T reference) where T : struct
         => ref Unsafe.As<T, byte>(ref reference);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<byte> AsByte<T>(this Span<T> span) where T : struct
+    public static Span<T> To<T>(this Span<byte> span) where T : struct
+        => MemoryMarshal.Cast<byte, T>(span);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ReadOnlySpan<T> To<T>(this ReadOnlySpan<byte> span) where T : struct
+        => MemoryMarshal.Cast<byte, T>(span);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Span<byte> ToByte<T>(this Span<T> span) where T : struct
         => MemoryMarshal.Cast<T, byte>(span);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReadOnlySpan<byte> AsByte<T>(this ReadOnlySpan<T> span) where T : struct
+    public static ReadOnlySpan<byte> ToByte<T>(this ReadOnlySpan<T> span) where T : struct
         => MemoryMarshal.Cast<T, byte>(span);
 
     /// <summary>Determines whether two sequences are equal. Comparing the elements is done using the default equality comparer for their type.

@@ -38,7 +38,7 @@ namespace Stride.Animations
                 var rawData = stream.ReadBytes(Unsafe.SizeOf<AnimationKeyValuePair<T>>() * obj.Length);
                 fixed (void* rawDataPtr = rawData)
                 {
-                    rawData.AsSpan().CopyTo(obj.AsSpan().AsByte());
+                    rawData.AsSpan().CopyTo(obj.AsSpan().ToByte());
                 }
             }
             else if (mode == ArchiveMode.Serialize)

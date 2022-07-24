@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Shaders;
 
@@ -53,8 +55,8 @@ namespace Stride.Graphics
             if (resourceGroupBindings.Length == 0)
                 return;
 
-            var resourceGroupBinding = Interop.Pin(ref resourceGroupBindings[0]);
-            for (int i = 0; i < resourceGroupBindings.Length; i++, resourceGroupBinding = Interop.IncrementPinned(resourceGroupBinding))
+            ref var resourceGroupBinding = ref MemoryMarshal.GetArrayDataReference(resourceGroupBindings);
+            for (int i = 0; i < resourceGroupBindings.Length; i++, resourceGroupBinding = ref Unsafe.Add(ref resourceGroupBinding, 1))
             {
                 var resourceGroup = resourceGroups[resourceGroupsOffset + i];
 

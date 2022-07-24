@@ -58,7 +58,7 @@ namespace Stride.Graphics.Data
         {
             var sizeOf = Unsafe.SizeOf<T>() * content.Length;
             var buffer = new byte[sizeOf];
-            content.AsSpan().CopyTo(buffer.AsSpan().As<T>());
+            content.AsSpan().CopyTo(buffer.AsSpan().To<T>());
             return new BufferData(bufferFlags, buffer);
         }
     }

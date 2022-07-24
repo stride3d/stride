@@ -71,19 +71,18 @@ namespace Stride.Graphics
         /// <returns>A new instance of Cube <see cref="Texture" /> class.</returns>
         /// <exception cref="System.ArgumentException">Invalid texture datas. First dimension must be equal to 6;textureData</exception>
         /// <remarks>The first dimension of mipMapTextures describes the number of array (TextureCube Array), the second is the texture data for a particular cube face.</remarks>
-        public static unsafe Texture NewCube<T>(GraphicsDevice device, int size, PixelFormat format, T[][] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
+        public static unsafe Texture NewCube<T>(GraphicsDevice device, int size, PixelFormat format, T[][] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
         {
             if (textureData.Length != 6)
                 throw new ArgumentException("Invalid texture datas. First dimension must be equal to 6", "textureData");
 
             var dataBoxes = new DataBox[6];
 
-            dataBoxes[0] = GetDataBox(format, size, size, 1, textureData[0], (IntPtr)Interop.Fixed(textureData[0]));
-            dataBoxes[1] = GetDataBox(format, size, size, 1, textureData[0], (IntPtr)Interop.Fixed(textureData[1]));
-            dataBoxes[2] = GetDataBox(format, size, size, 1, textureData[0], (IntPtr)Interop.Fixed(textureData[2]));
-            dataBoxes[3] = GetDataBox(format, size, size, 1, textureData[0], (IntPtr)Interop.Fixed(textureData[3]));
-            dataBoxes[4] = GetDataBox(format, size, size, 1, textureData[0], (IntPtr)Interop.Fixed(textureData[4]));
-            dataBoxes[5] = GetDataBox(format, size, size, 1, textureData[0], (IntPtr)Interop.Fixed(textureData[5]));
+            for (var i = 0; i < 6; i++)
+            {
+                fixed (void* texture = textureData[i])
+                    dataBoxes[i] = GetDataBox(format, size, size, 1, textureData[0], (nint)texture);
+            }
 
             return new Texture(device).InitializeFrom(TextureDescription.NewCube(size, format, textureFlags, usage), dataBoxes);
         }
