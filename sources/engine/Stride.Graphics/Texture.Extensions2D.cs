@@ -77,9 +77,10 @@ namespace Stride.Graphics
         /// <remarks>
         /// Each value in textureData is a pixel in the destination texture.
         /// </remarks>
-        public static unsafe Texture New2D<T>(GraphicsDevice device, int width, int height, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, TextureOptions options = TextureOptions.None) where T : struct
+        public static unsafe Texture New2D<T>(GraphicsDevice device, int width, int height, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, TextureOptions options = TextureOptions.None) where T : unmanaged
         {
-            return New2D(device, width, height, 1, format, new[] { GetDataBox(format, width, height, 1, textureData, (IntPtr)Interop.Fixed(textureData)) }, textureFlags, 1, usage, MultisampleCount.None, options);
+            fixed (T* texture = textureData)
+                return New2D(device, width, height, 1, format, new[] { GetDataBox(format, width, height, 1, textureData, (nint)texture) }, textureFlags, 1, usage, MultisampleCount.None, options);
         }
 
         /// <summary>

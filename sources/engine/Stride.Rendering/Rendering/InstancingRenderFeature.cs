@@ -97,10 +97,12 @@ namespace Stride.Rendering
             }
         }
 
-        private static unsafe void SetBufferData<TData>(CommandList commandList, Buffer buffer, TData[] fromData, int elementCount) where TData : struct
+        private static unsafe void SetBufferData<TData>(CommandList commandList, Buffer buffer, TData[] fromData, int elementCount) where TData : unmanaged
         {
-            var dataPointer = new DataPointer(Interop.Fixed(fromData), Math.Min(elementCount, fromData.Length) * Unsafe.SizeOf<TData>());
-            buffer.SetData(commandList, dataPointer);
+            fixed (void* from = fromData) {
+                var dataPointer = new DataPointer(from, Math.Min(elementCount, fromData.Length) * Unsafe.SizeOf<TData>());
+                buffer.SetData(commandList, dataPointer);
+            }
         }
 
         public override void PrepareEffectPermutations(RenderDrawContext context)

@@ -72,7 +72,7 @@ namespace Stride.Core.IO
         /// <inheritdoc/>
         public override unsafe int Read(byte[] buffer, int offset, int count)
         {
-            Debug.Assert(offset >= 0 && count >= 0 && offset + count <= buffer.Length);
+            Debug.Assert((uint)offset < (uint)buffer.Length && (uint)count <= (uint)buffer.Length && (uint)offset + (uint)count <= (uint)buffer.Length);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 count = bytesLeft;
@@ -85,7 +85,7 @@ namespace Stride.Core.IO
         /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
-            Debug.Assert(offset >= 0 && count >= 0 && offset + count <= buffer.Length);
+            Debug.Assert((uint)offset < (uint)buffer.Length && (uint)count <= (uint)buffer.Length && (uint)offset + (uint)count <= (uint)buffer.Length);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 throw new InvalidOperationException("Buffer too small");

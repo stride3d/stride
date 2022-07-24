@@ -64,7 +64,7 @@ namespace Stride.Engine.Design
             /// <inheritdoc/>
             public override unsafe void SetBlittable(nint obj, nint data)
             {
-                var parameterCollection = UpdateEngineHelper.PtrToObject<ParameterCollection>(obj);
+                var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
 
                 var value = Unsafe.ReadUnaligned<T>((void*)data);
                 parameterCollection.Set(parameterKey, ref value);
@@ -79,14 +79,13 @@ namespace Stride.Engine.Design
             /// <inheritdoc/>
             public override unsafe nint GetStructAndUnbox(nint obj, object data)
             {
-                var parameterCollection = UpdateEngineHelper.PtrToObject<ParameterCollection>(obj);
+                var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
 
-                var valuePtr = UpdateEngineHelper.Unbox<T>(data);
+                ref var valuePtr = ref Unsafe.Unbox<T>(data);
 
-                var value = parameterCollection.Get(parameterKey);
-                Unsafe.WriteUnaligned((void*)valuePtr, value);
+                valuePtr = parameterCollection.Get(parameterKey);
 
-                return valuePtr;
+                return (nint)Unsafe.AsPointer(ref valuePtr);
             }
 
             /// <inheritdoc/>
@@ -141,14 +140,14 @@ namespace Stride.Engine.Design
             /// <inheritdoc/>
             public override object GetObject(IntPtr obj)
             {
-                var parameterCollection = UpdateEngineHelper.PtrToObject<ParameterCollection>(obj);
+                var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
                 return parameterCollection.GetObject(parameterKey);
             }
 
             /// <inheritdoc/>
             public override void SetObject(IntPtr obj, object data)
             {
-                var parameterCollection = UpdateEngineHelper.PtrToObject<ParameterCollection>(obj);
+                var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
                 parameterCollection.SetObject(parameterKey, data);
             }
         }

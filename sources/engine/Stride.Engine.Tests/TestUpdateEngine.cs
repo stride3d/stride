@@ -3,16 +3,75 @@
 
 using System;
 using System.Collections.Generic;
-using Xunit;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core;
-using Stride.Engine.Design;
 using Stride.Updater;
-using Stride.Rendering;
+using Xunit;
 
 namespace Stride.Engine.Tests
 {
     public class TestUpdateEngine
     {
+        [StructLayout(LayoutKind.Auto)] public struct AutoLayout { }
+        [StructLayout(LayoutKind.Sequential)] public struct SequentialLayout { }
+        [StructLayout(LayoutKind.Explicit)] public struct ExplicitLayout { }
+        [StructLayout(LayoutKind.Auto)] public struct AutoLayoutObjRef { public object Ref; }
+        [StructLayout(LayoutKind.Sequential)] public struct SequentialLayoutObjRef { public object Ref; }
+        [StructLayout(LayoutKind.Explicit)] public struct ExplicitLayoutObjRef { [FieldOffset(0)] public object Ref; }
+
+        [Fact]
+        public unsafe void TestGCHandleAlloc()
+        {
+            static bool CanPin<T>()
+            {
+                var array = new T[1];
+                try {
+                    GCHandle.Alloc(array, GCHandleType.Pinned).Free();
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+            Assert.False(CanPin<AutoLayout>());
+            Assert.True(CanPin<SequentialLayout>());
+            Assert.True(CanPin<ExplicitLayout>());
+            Assert.False(CanPin<AutoLayoutObjRef>());
+            Assert.False(CanPin<SequentialLayoutObjRef>());
+            Assert.False(CanPin<ExplicitLayoutObjRef>());
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private class C { public uint u = 0xdeadbeefu; }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct S { public S() { } public uint u = 0xbeefdeadu; }
+        [Fact]
+        public unsafe void TestPointerToClassToPointer()
+        {
+            var c = new C();
+            var gch = GCHandle.Alloc(c, GCHandleType.Pinned);
+            try {
+                var p = UpdateEngineHelper.ObjectToPointer(c);
+                var q = Unsafe.AsPointer(ref c);
+                Assert.NotEqual((nint)q, (nint)p);
+                var o = UpdateEngineHelper.PointerToObject<C>(p);
+                Assert.Same(c, o);
+                Assert.Equal(c.u, o.u);
+            } finally
+            {
+                gch.Free();
+            }
+        }
+        [Fact]
+        public unsafe void TestPointerToStructToPointer()
+        {
+            var s = new S();
+            object boxed = s;
+            var p = UpdateEngineHelper.ObjectToPointer(boxed);
+            Assert.NotEqual((nint)Unsafe.AsPointer(ref s), (nint)p);
+            Assert.NotEqual((nint)Unsafe.AsPointer(ref boxed), (nint)p);
+            var t = UpdateEngineHelper.PointerToStruct<S>(p);
+            Assert.Equal(s.u, t.u);
+        }
         [Fact]
         public void TestIntField()
         {

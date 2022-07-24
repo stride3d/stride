@@ -17,6 +17,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
@@ -168,18 +169,15 @@ namespace Stride.Core.Storage
         /// <param name="value">The value.</param>
         public void WriteByte(byte value)
         {
-            fixed (uint* currentBlockStart = &currentBlock1)
+            ref var currentBlock = ref Unsafe.As<uint, byte>(ref currentBlock1);
+
+            var position = currentLength++ % 16;
+
+            Unsafe.Add(ref currentBlock,  position) = value;
+
+            if (position == 15)
             {
-                var currentBlock = (byte*)currentBlockStart;
-
-                var position = currentLength++ % 16;
-
-                currentBlock[position] = value;
-
-                if (position == 15)
-                {
-                    BodyCore(currentBlock);
-                }
+                BodyCore(ref currentBlock);
             }
         }
 
@@ -208,22 +206,27 @@ namespace Stride.Core.Storage
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte[] buffer, int offset, int count)
         {
-            fixed (byte* bufferStart = buffer)
-            {
-                Write(bufferStart + offset, count);
-            }
+            Debug.Assert((uint)offset < (uint)buffer.Length && (uint)count <= (uint)buffer.Length && (uint)offset + (uint)count <= (uint)buffer.Length);
+#if NET5_0_OR_GREATER
+            ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(buffer), offset);
+#else // AssemblyProcessor
+            ref var data = ref (buffer is null || buffer.Length == 0) ? ref Unsafe.NullRef<byte>() : ref buffer[0];
+            data = ref Unsafe.Add(ref data, offset);
+#endif
+            Write(ref data, count);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write([NotNull] string str)
         {
-            fixed (char* strPtr = str)
-                Write((byte*)strPtr, str.Length * sizeof(char));
+#if NET5_0_OR_GREATER
+            ref var ch = ref Unsafe.AsRef(in str.GetPinnableReference());
+#else // AssemblyProcessor
+            ref var ch = ref Unsafe.AsRef(in str.AsSpan().GetPinnableReference());
+#endif
+            Write(ref Unsafe.As<char, byte>(ref ch), str.Length * sizeof(char));
         }
 
-// Those routines are using Interop which are not implemented when compiling
-// the assembly processor as it is it that generates them (Chicken & Egg problem).
-#if !STRIDE_ASSEMBLY_PROCESSOR
         /// <summary>
         /// Writes the specified buffer to this instance.
         /// </summary>
@@ -245,8 +248,14 @@ namespace Stride.Core.Storage
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T[] buffer, int offset, int count) where T : struct
         {
-            var ptr = (IntPtr)Interop.Fixed(buffer) + offset * Unsafe.SizeOf<T>();
-            Write((byte*)ptr, count * Unsafe.SizeOf<T>());
+            Debug.Assert((uint)offset < (uint)buffer.Length && (uint)count <= (uint)buffer.Length && (uint)offset + (uint)count <= (uint)buffer.Length);
+#if NET5_0_OR_GREATER
+            ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(buffer), offset);
+#else // AssemblyProcessor
+            ref var data = ref (buffer is null || buffer.Length == 0) ? ref Unsafe.NullRef<T>() : ref buffer[0];
+            data = ref Unsafe.Add(ref data, offset);
+#endif
+            Write(ref Unsafe.As<T, byte>(ref data), count * Unsafe.SizeOf<T>());
         }
 
         /// <summary>
@@ -256,11 +265,7 @@ namespace Stride.Core.Storage
         /// <param name="data">The data.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(ref T data) where T : struct
-        {
-            var ptr = (byte*)Interop.Fixed(ref data);
-            Write(ptr, Unsafe.SizeOf<T>());
-        }
-#endif
+            => Write(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>());
 
         /// <summary>
         /// Writes a buffer of byte to this builder.
@@ -269,6 +274,7 @@ namespace Stride.Core.Storage
         /// <param name="count">The count.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
+        [Obsolete("Use Write(ref byte, int)")]
         public void Write(byte* buffer, int length)
         {
             fixed (uint* currentBlockStart = &currentBlock1)
@@ -324,8 +330,73 @@ namespace Stride.Core.Storage
                 }
             }
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
+        /// <summary>
+        /// Writes a buffer of byte to this builder.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="count">The count.</param>
+        /// <exception cref="System.ArgumentNullException">buffer</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
+        public void Write(ref byte buffer, int length)
+        {
+            ref var currentBlock = ref Unsafe.As<uint, byte>(ref currentBlock1);
+            var position = currentLength % 16;
+
+            currentLength += length;
+
+            // Partial block to continue?
+            if (position != 0)
+            {
+                var remainder = 16 - position;
+
+                var partialLength = length;
+                if (partialLength > remainder)
+                    partialLength = remainder;
+
+                ref var dest = ref Unsafe.Add(ref currentBlock, position);
+                for (var copyLength = partialLength; copyLength > 0; --copyLength) {
+                    dest = buffer;
+                    dest = ref Unsafe.Add(ref dest, 1);
+                    buffer = ref Unsafe.Add(ref buffer, 1);
+                }
+                length -= partialLength;
+
+                //Utilities.CopyMemory((IntPtr)currentBlock + position, (IntPtr)buffer, partialLength);
+                //buffer += partialLength;
+                //length -= partialLength;
+
+                if (partialLength == remainder)
+                {
+                    BodyCore(ref currentBlock);
+                }
+            }
+
+            if (length > 0)
+            {
+                var blocks = length / 16;
+                length -= blocks * 16;
+
+                // Main loop
+                while (blocks-- > 0)
+                {
+                    BodyCore(ref buffer);
+                    buffer = ref Unsafe.Add(ref buffer, 16);
+                }
+
+                // Start partial block
+                for (; length > 0; --length) {
+                    currentBlock = buffer;
+                    currentBlock = ref Unsafe.Add(ref currentBlock, 1);
+                    buffer = ref Unsafe.Add(ref buffer, 1);
+                }
+                //if (length > 0)
+                //{
+                //    Utilities.CopyMemory((IntPtr)currentBlock, (IntPtr)buffer, length);
+                //}
+            }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Use BodyCore(ref byte)")]
         private void BodyCore(byte* data)
         {
             var b = (uint*)data;
@@ -344,6 +415,31 @@ namespace Stride.Core.Storage
 
             // K4 - consume fourth integer
             H4 ^= RotateLeft((*b++ * C4), 18) * C1;
+            H4 = (RotateLeft(H4, 13) + H1) * 5 + 0x32ac3b17;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void BodyCore(ref byte data)
+        {
+            ref var b = ref Unsafe.As<byte, uint>(ref data);
+
+            // K1 - consume first integer
+            H1 ^= RotateLeft((b * C1), 15) * C2;
+            H1 = (RotateLeft(H1, 19) + H2) * 5 + 0x561ccd1b;
+            b = ref Unsafe.Add(ref b, 1);
+
+            // K2 - consume second integer
+            H2 ^= RotateLeft((b * C2), 16) * C3;
+            H2 = (RotateLeft(H2, 17) + H3) * 5 + 0x0bcaa747;
+            b = ref Unsafe.Add(ref b, 1);
+
+            // K3 - consume third integer
+            H3 ^= RotateLeft((b * C3), 17) * C4;
+            H3 = (RotateLeft(H3, 15) + H4) * 5 + 0x96cd1c35;
+            b = ref Unsafe.Add(ref b, 1);
+
+            // K4 - consume fourth integer
+            H4 ^= RotateLeft((b * C4), 18) * C1;
             H4 = (RotateLeft(H4, 13) + H1) * 5 + 0x32ac3b17;
         }
 

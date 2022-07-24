@@ -666,7 +666,7 @@ namespace Stride.Graphics
         /// <typeparam name="TData">The type of the T pixel data.</typeparam>
         /// <returns>The expected width</returns>
         /// <exception cref="System.ArgumentException">If the size is invalid</exception>
-        public int CalculateWidth<TData>(int mipLevel = 0) where TData : struct
+        public int CalculateWidth<TData>(int mipLevel = 0) where TData : unmanaged
         {
             var widthOnMip = CalculateMipSize((int)Width, mipLevel);
             var rowStride = widthOnMip * Format.SizeInBytes();
@@ -686,7 +686,7 @@ namespace Stride.Graphics
         /// <param name="mipLevel">The mip level.</param>
         /// <returns>The number of pixel data.</returns>
         /// <remarks>This method is used to allocated a texture data buffer to hold pixel datas: var textureData = new T[ texture.CalculatePixelCount&lt;T&gt;() ] ;.</remarks>
-        public int CalculatePixelDataCount<TData>(int mipLevel = 0) where TData : struct
+        public int CalculatePixelDataCount<TData>(int mipLevel = 0) where TData : unmanaged
         {
             return CalculateWidth<TData>(mipLevel) * CalculateMipSize(Height, mipLevel) * CalculateMipSize(Depth, mipLevel);
         }
@@ -703,7 +703,7 @@ namespace Stride.Graphics
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// This method creates internally a stagging resource, copies to it and map it to memory. Use method with explicit staging resource
         /// for optimal performances.</remarks>
-        public TData[] GetData<TData>(CommandList commandList, int arraySlice = 0, int mipSlice = 0) where TData : struct
+        public TData[] GetData<TData>(CommandList commandList, int arraySlice = 0, int mipSlice = 0) where TData : unmanaged
         {
             var toData = new TData[this.CalculatePixelDataCount<TData>(mipSlice)];
             GetData(commandList, toData, arraySlice, mipSlice);
@@ -724,7 +724,7 @@ namespace Stride.Graphics
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// This method creates internally a stagging resource if this texture is not already a stagging resouce, copies to it and map it to memory. Use method with explicit staging resource
         /// for optimal performances.</remarks>
-        public bool GetData<TData>(CommandList commandList, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : struct
+        public bool GetData<TData>(CommandList commandList, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : unmanaged
         {
             // Get data from this resource
             if (Usage == GraphicsResourceUsage.Staging)
@@ -755,9 +755,10 @@ namespace Stride.Graphics
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// </remarks>
-        public unsafe bool GetData<TData>(CommandList commandList, Texture stagingTexture, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : struct
+        public unsafe bool GetData<TData>(CommandList commandList, Texture stagingTexture, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : unmanaged
         {
-            return GetData(commandList, stagingTexture, new DataPointer((IntPtr)Interop.Fixed(toData), toData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, doNotWait);
+            fixed (TData* to = toData)
+                return GetData(commandList, stagingTexture, new DataPointer(to, toData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, doNotWait);
         }
 
         /// <summary>
@@ -773,9 +774,10 @@ namespace Stride.Graphics
         /// <remarks>
         /// See unmanaged documentation for usage and restrictions.
         /// </remarks>
-        public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null) where TData : struct
+        public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null) where TData : unmanaged
         {
-            SetData(commandList, new DataPointer((IntPtr)Interop.Fixed(fromData), fromData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, region);
+            fixed (TData* from = fromData)
+                SetData(commandList, new DataPointer(from, fromData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, region);
         }
 
         /// <summary>
@@ -1209,7 +1211,7 @@ namespace Stride.Graphics
             return requestedLevel == 0 ? maxMipMap : Math.Min(requestedLevel, maxMipMap);
         }
 
-        private static DataBox GetDataBox<T>(PixelFormat format, int width, int height, int depth, T[] textureData, IntPtr fixedPointer) where T : struct
+        private static DataBox GetDataBox<T>(PixelFormat format, int width, int height, int depth, T[] textureData, IntPtr fixedPointer) where T : unmanaged
         {
             // Check that the textureData size is correct
             if (textureData == null) throw new ArgumentNullException("textureData");
