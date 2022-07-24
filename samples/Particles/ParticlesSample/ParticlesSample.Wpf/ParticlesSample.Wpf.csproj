@@ -57,6 +57,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Win32Host" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\ParticlesSample.Game\ParticlesSample.Game.csproj" />
   </ItemGroup>
 </Project>

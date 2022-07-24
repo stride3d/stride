@@ -9,18 +9,17 @@
   <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="180"/>
-      <ColumnDefinition Width="8"/>
+      <ColumnDefinition Width="Auto"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
 
-    <TextBlock Grid.Column="0" 
-               TextWrapping="Wrap">
-      This is a stride game embedded in a WPF application
+    <TextBlock Grid.Column="0" TextWrapping="Wrap">
+      This is a Stride game embedded in a WPF application
     </TextBlock>
 
-    <GridSplitter Grid.Column="1"/>
-    
-    
+    <GridSplitter Grid.Column="1" Width="8"/>
+
+    <local:StrideHwndHost Grid.Column="2" />
 
   </Grid>
 </Window>
