@@ -35,14 +35,40 @@ namespace ParticlesSample
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            var host = Window.GetWindow(this);
+            // Get the handle for the content window
+            var host = Window.GetWindow(contentCtrl);
             WindowInteropHelper wih = new(host);
             IntPtr hwnd = wih.Handle;
-            _sdlWindow = new("Embedded Stride Window", hwnd);
-            contentCtrl.Content = new GameEngineHost(_sdlWindow.Handle);
 
+            // Create a child window in which to host the game
+            var className = GetType().Name;
+            var wndClass = new NativeMethods.WndClassEx();
+            wndClass.cbSize = (uint)Marshal.SizeOf(wndClass);
+            wndClass.hInstance = NativeMethods.GetModuleHandle(null);
+            wndClass.lpfnWndProc = NativeMethods.DefaultWindowProc;
+            wndClass.lpszClassName = className;
+            // If this is not null, the cursor is drawn whenever the mouse is moved.
+            wndClass.hCursor = IntPtr.Zero;
+            NativeMethods.RegisterClassEx(ref wndClass);
+
+            var child = NativeMethods.CreateWindowEx(
+                0,
+                className,
+                "",
+                NativeMethods.WS_CHILD | NativeMethods.WS_VISIBLE,
+                0,
+                0,
+                (int)Width, (int)Height,
+                hwnd,
+                IntPtr.Zero, IntPtr.Zero, 0);
+
+            // Create SDL window using child
+            _sdlWindow = new("Embedded Stride Window", child);
+            contentCtrl.Content = new GameEngineHost(_sdlWindow.Handle);
             GameContextSDL context = new(_sdlWindow);
-            _game = new Game();
+
+            // Start the game
+            _game = new();
             _game.Run(context);
         }
 
