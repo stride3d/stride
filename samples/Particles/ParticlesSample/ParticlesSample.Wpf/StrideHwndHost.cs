@@ -1,3 +1,4 @@
+using System;
 using Silk.NET.SDL;
 using Stride.Engine;
 using Stride.Games;
@@ -8,7 +9,7 @@ namespace ParticlesSample
 {
     public class StrideHwndHost : Win32HwndHost
     {
-        protected unsafe override void InitializeHostedContent()
+        protected override void InitializeHostedContent()
         {
             _window = new Window("Stride Window", Hwnd);
             _game = new Game();
@@ -19,7 +20,7 @@ namespace ParticlesSample
 
         protected unsafe override void ResizeHostedContent()
         {
-            if (_window is not null)
+            if (_window is not null && _window.SdlHandle != IntPtr.Zero)
             {
                 var area = this.GetScaledWindowSize();
                 var windowPtr = (Silk.NET.SDL.Window*)_window.SdlHandle.ToPointer();
