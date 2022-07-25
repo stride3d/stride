@@ -21,7 +21,7 @@ namespace Stride.Input
         private static Sdl SDL = Window.SDL;
 
         private readonly Window uiControl;
-        private readonly Dictionary<(long touchId, long finderId), int> touchFingerIndexMap = new Dictionary<(long touchId, long finderId), int>();
+        private readonly Dictionary<(long touchId, long fingerId), int> touchFingerIndexMap = new Dictionary<(long touchId, long fingerId), int>();
         private int touchCounter;
 
         public PointerSDL(InputSourceSDL source, Window uiControl)
