@@ -1,25 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProductVersion>16.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net6</TargetFrameworks>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_DESKTOP;DEBUG;TRACE</DefineConstants>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DefineConstants>$(DefineConstants);STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_DESKTOP</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_DESKTOP;TRACE</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -64,9 +51,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
@@ -80,17 +64,14 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11.0" ExcludeAssets="runtime" />
   </ItemGroup>
   <!-- Generate hash file for assembly -->
-  <UsingTask
-  TaskName="WriteAllText"
-  TaskFactory="RoslynCodeTaskFactory"
-  AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+  <UsingTask TaskName="WriteAllText" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Path ParameterType="System.String" />
       <Contents ParameterType="System.String" />
     </ParameterGroup>
     <Task>
-      <Using Namespace="System"/>
-      <Using Namespace="System.IO"/>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[
 File.WriteAllText(Path, Contents);
@@ -103,14 +84,10 @@ File.WriteAllText(Path, Contents);
 
 
   <Target Name="GenerateHash" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\
-cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\
-$(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
+    <Exec Command="xcopy /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\&#xD;&#xA;cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\&#xD;&#xA;$(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)" />
     <GetFileHash Files="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
-      <Output
-          TaskParameter="Hash"
-          PropertyName="PackedAssemblyHash" />
+      <Output TaskParameter="Hash" PropertyName="PackedAssemblyHash" />
     </GetFileHash>
-    <WriteAllText Path="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt).hash" Contents="$(PackedAssemblyHash)"/>
+    <WriteAllText Path="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt).hash" Contents="$(PackedAssemblyHash)" />
   </Target>
 </Project>

@@ -18,8 +18,8 @@
 
     <Error Condition="'@(_StrideVisualCRuntime2019NotInstalled)' != ''" Text="@(_StrideVisualCRuntime2019NotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
   </Target>
-  
-  <!-- 
+
+  <!--
   *****************************************************************************************************************************
   Platform Detection
   *****************************************************************************************************************************
@@ -34,7 +34,7 @@
     <StridePlatform Condition="'$(StridePlatform)' == ''">Windows</StridePlatform>
   </PropertyGroup>
 
-  <!-- 
+  <!--
   *****************************************************************************************************************************
   Assembly Processor
   *****************************************************************************************************************************
@@ -42,7 +42,8 @@
   <PropertyGroup>
     <!--By default, turn on assembly processor-->
     <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorFramework>netstandard2.0</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorFramework Condition=" '$(MSBuildRuntimeType)' == 'Core' ">net6.0</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorFramework Condition=" '$(MSBuildRuntimeType)' != 'Core' ">net472</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorExt>.dll</StrideAssemblyProcessorExt>
     <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
     <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
@@ -52,7 +53,7 @@
     <TempFolder>$(TEMP)</TempFolder>
     <TempFolder Condition="'$(TempFolder)' == ''">$(TMPDIR)</TempFolder>
     <TempFolder Condition="'$(TempFolder)' == ''">/tmp</TempFolder>
-    
+
     <StrideAssemblyProcessorHash>$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorPath).hash'))</StrideAssemblyProcessorHash>
     <StrideAssemblyProcessorTempBasePath>$(TempFolder)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
     <StrideAssemblyProcessorTempPath>$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
@@ -100,7 +101,7 @@
     </PrepareForRunDependsOn>
   </PropertyGroup>
 
-  <!-- 
+  <!--
   *****************************************************************************************************************************
   NuGet tweaks
   *****************************************************************************************************************************
@@ -120,8 +121,8 @@
                     and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
     </ItemGroup>
   </Target>
-  
-  <!-- 
+
+  <!--
   *****************************************************************************************************************************
   Dependencies reading (from .ssdeps)
   Important: Please keep in sync with Stride.Core.PostSettings.Dependencies.Targets
