@@ -18,7 +18,7 @@ namespace Stride.Input
     internal class PointerSDL : PointerDeviceBase, IDisposable
     {
         private readonly Window uiControl;
-        private readonly Dictionary<(long touchId, long finderId), int> touchFingerIndexMap = new Dictionary<(long touchId, long finderId), int>();
+        private readonly Dictionary<(long touchId, long fingerId), int> touchFingerIndexMap = new Dictionary<(long touchId, long fingerId), int>();
         private int touchCounter;
 
         public PointerSDL(InputSourceSDL source, Window uiControl)
