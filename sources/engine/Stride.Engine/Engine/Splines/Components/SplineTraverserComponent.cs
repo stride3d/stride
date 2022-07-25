@@ -3,6 +3,7 @@
 
 using Stride.Core;
 using Stride.Engine.Design;
+using Stride.Engine.Splines.Models;
 using Stride.Engine.Splines.Processors;
 
 namespace Stride.Engine.Splines.Components
@@ -16,36 +17,32 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineTraverserComponent : EntityComponent
     {
+        private SplineTraverser splineTraverser;
+        private SplineComponent splineComponent;
+
         /// <summary>
-        /// Keeps track of whether the Traverser needs to be Resetting its origin and target spline node
+        /// SplineTraverser object
         /// </summary>
         [DataMemberIgnore]
-        public bool Dirty { get; set; }
-
-        private SplineComponent splineComponent;
-        private float speed = 1.0f;
-
-        /// <summary>
-        /// Event triggered when the last node of the spline has been reached
-        /// Does not get triggerd if spline loops
-        /// </summary>
-        public delegate void SplineTraverserEndReachedHandler();
-        public event SplineTraverserEndReachedHandler OnSplineEndReached;
-
-        /// <summary>
-        /// Event triggered when a spline node has been reached. 
-        /// Does not get triggered when the last node of the spline has been reached and the spline doesn't loop.
-        /// </summary>
-        /// <param name="splineNode"></param>
-        public delegate void SplineTraverserNodeReachedHandler(SplineNodeComponent splineNode);
-        public event SplineTraverserNodeReachedHandler OnSplineNodeReached;
+        public SplineTraverser SplineTraverser
+        {
+            get {
+                splineTraverser ??= new SplineTraverser();
+                return splineTraverser; 
+            }
+            set
+            {
+                splineTraverser = value;
+                SplineTraverser.EnqueueSplineTraverserUpdate();
+            }
+        }
 
         /// <summary>
         /// The spline to traverse
         /// No spline, no movement
         /// </summary>
-        [Display(10, "SplineComponent")]
-        public SplineComponent SplineComponent
+        [Display(10, "Spline")]
+        public SplineComponent Spline
         {
             get { return splineComponent; }
             set
@@ -57,7 +54,8 @@ namespace Stride.Engine.Splines.Components
                     IsMoving = false;
                 }
 
-                Dirty = true;
+                SplineTraverser.Spline = splineComponent?.Spline;
+                SplineTraverser.Entity = Entity;
             }
         }
 
@@ -69,17 +67,15 @@ namespace Stride.Engine.Splines.Components
         [Display(20, "Speed")]
         public float Speed
         {
-            get { return speed; }
+            get { return SplineTraverser.Speed; }
             set
             {
-                speed = value;
+                SplineTraverser.Speed = value;
 
-                if (speed == 0)
+                if (SplineTraverser.Speed == 0)
                 {
                     IsMoving = false;
                 }
-
-                Dirty = true;
             }
         }
 
@@ -87,7 +83,17 @@ namespace Stride.Engine.Splines.Components
         /// For a traverse to work we require a Spline reference, a non-zero and IsMoving must be True
         /// </summary>
         [Display(40, "Moving")]
-        public bool IsMoving { get; set; }
+        public bool IsMoving
+        {
+            get
+            {
+                return SplineTraverser.IsMoving;
+            }
+            set
+            {
+                SplineTraverser.IsMoving = value;
+            }
+        }
 
         internal void Update(TransformComponent transformComponent)
         {
@@ -96,12 +102,12 @@ namespace Stride.Engine.Splines.Components
 
         public void ActivateSplineNodeReached(SplineNodeComponent splineNode)
         {
-            OnSplineNodeReached?.Invoke(splineNode);
+             //OnSplineNodeReached?.Invoke(splineNode);
         }
 
         public void ActivateOnSplineEndReached()
         {
-            OnSplineEndReached?.Invoke();
+            //OnSplineEndReached?.Invoke();
         }
     }
 }

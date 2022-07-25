@@ -14,8 +14,14 @@ namespace Stride.Engine.Splines.Models
         private List<SplineNode> splineNodes;
 
         /// <summary>
-        /// Event triggered when the spline has been update
-        /// This happens when the entity is translated or rotated, or when a SplineNode is updated
+        /// Event triggered when the spline has become dirty
+        /// </summary>
+        public delegate void DirtySplineHandler();
+        public event DirtySplineHandler OnSplineDirty;
+
+        /// <summary>
+        /// Event triggered when the spline has been updated
+        /// This happens when the entity is translated, rotated, a SplineNode is updated or when the OnSplineEnqueueUpdate event is called
         /// </summary>
         public delegate void SplineUpdatedHandler();
         public event SplineUpdatedHandler OnSplineUpdated;
@@ -34,12 +40,9 @@ namespace Stride.Engine.Splines.Models
             set
             {
                 splineNodes = value;
-                Dirty = true;
+                EnqueueSplineUpdate();
             }
         }
-
-        [DataMemberIgnore]
-        public bool Dirty { get; set; }
 
         [DataMemberIgnore]
         public float TotalSplineDistance { get; internal set; }
@@ -57,7 +60,7 @@ namespace Stride.Engine.Splines.Models
             set
             {
                 loop = value;
-                Dirty = true;
+                EnqueueSplineUpdate();
             }
         }
 
@@ -67,50 +70,46 @@ namespace Stride.Engine.Splines.Models
         }
 
         /// <summary>
-        /// Updates the splines and its splines nodes
+        /// Calculates the spline using its splines nodes
         /// </summary>
-        public void UpdateSpline()
+        public void CalculateSpline()
         {
-            if (Dirty)
+            var totalNodesCount = SplineNodes.Count;
+            if (SplineNodes.Count > 1)
             {
-                var totalNodesCount = SplineNodes.Count;
-                if (SplineNodes.Count > 1)
-                {
 
-                    for (var i = 0; i < totalNodesCount; i++)
+                for (var i = 0; i < totalNodesCount; i++)
+                {
+                    var currentSplineNode = SplineNodes[i];
+                    if (SplineNodes[i] == null)
+                        break;
+
+                    if (i < totalNodesCount - 1)
                     {
-                        var currentSplineNode = SplineNodes[i];
-                        if (SplineNodes[i] == null)
+                        var nextSplineNode = SplineNodes[i + 1];
+                        if (nextSplineNode == null)
                             break;
 
-                        if (i < totalNodesCount - 1)
-                        {
-                            var nextSplineNode = SplineNodes[i + 1];
-                            if (nextSplineNode == null)
-                                break;
+                        currentSplineNode.TargetWorldPosition = nextSplineNode.WorldPosition;
+                        currentSplineNode.TargetTangentInWorldPosition = nextSplineNode.TangentInWorldPosition;
 
-                            currentSplineNode.TargetWorldPosition = nextSplineNode.WorldPosition;
-                            currentSplineNode.TargetTangentInWorldPosition = nextSplineNode.TangentInWorldPosition;
+                        SplineNodes[i].CalculateBezierCurve();
+                    }
+                    else if (i == totalNodesCount - 1 && Loop)
+                    {
+                        var firstSplineNode = SplineNodes[0];
+                        currentSplineNode.TargetWorldPosition = firstSplineNode.WorldPosition;
+                        currentSplineNode.TargetTangentInWorldPosition = firstSplineNode.TangentInWorldPosition;
 
-                            SplineNodes[i].CalculateBezierCurve();
-                        }
-                        else if (i == totalNodesCount - 1 && Loop)
-                        {
-                            var firstSplineNode = SplineNodes[0];
-                            currentSplineNode.TargetWorldPosition = firstSplineNode.WorldPosition;
-                            currentSplineNode.TargetTangentInWorldPosition = firstSplineNode.TangentInWorldPosition;
-
-                            SplineNodes[i].CalculateBezierCurve();
-                        }
+                        SplineNodes[i].CalculateBezierCurve();
                     }
                 }
-
-                TotalSplineDistance = GetTotalSplineDistance();
-                UpdateBoundingBox();
-
-                Dirty = false;
-                OnSplineUpdated?.Invoke();
             }
+
+            TotalSplineDistance = GetTotalSplineDistance();
+            UpdateBoundingBox();
+
+            OnSplineUpdated?.Invoke();
         }
 
         /// <summary>
@@ -178,7 +177,6 @@ namespace Stride.Engine.Splines.Models
             return splinePositionInfo;
         }
 
-
         public ClosestPointInfo GetClosestPointOnSpline(Vector3 originalPosition)
         {
             ClosestPointInfo currentClosestPoint = null;
@@ -221,7 +219,7 @@ namespace Stride.Engine.Splines.Models
                 var splineNode = SplineNodes[i];
                 if (splineNode != null)
                 {
-                    splineNode.OnSplineNodeDirty -= MakeSplineDirty;
+                    splineNode.OnSplineNodeDirty -= EnqueueSplineUpdate;
                 }
             }
         }
@@ -238,14 +236,17 @@ namespace Stride.Engine.Splines.Models
                 var splineNode = SplineNodes[i];
                 if (splineNode != null)
                 {
-                    splineNode.OnSplineNodeDirty += MakeSplineDirty;
+                    splineNode.OnSplineNodeDirty += EnqueueSplineUpdate;
                 }
             }
         }
 
-        private void MakeSplineDirty()
+        /// <summary>
+        /// Triggers that the current spline should enqueue for an update
+        /// </summary>
+        public void EnqueueSplineUpdate()
         {
-            Dirty = true;
+            OnSplineDirty?.Invoke();
         }
 
         private void UpdateBoundingBox()

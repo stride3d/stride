@@ -38,7 +38,7 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 spline = value;
-                Spline.Dirty = true;
+                Spline.EnqueueSplineUpdate();
             }
         }
 
@@ -72,7 +72,7 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 splineNodesComponents = value;
-                Spline.Dirty = true;
+                Spline.EnqueueSplineUpdate();
             }
         }
 
@@ -97,26 +97,26 @@ namespace Stride.Engine.Splines.Components
 
         public SplineComponent()
         {
-            Spline.Dirty = true;
+
         }
 
         public void UpdateSpline()
         {
-            Spline.Dirty = true;
+            Spline.EnqueueSplineUpdate();
         }
 
         internal void Update(TransformComponent transformComponent)
         {
             if (previousPosition.X != Entity.Transform.Position.X || previousPosition.Y != Entity.Transform.Position.Y || previousPosition.Z != Entity.Transform.Position.Z)
             {
-                Spline.Dirty = true;
+                Spline.EnqueueSplineUpdate();
                 previousPosition = Entity.Transform.Position;
             }
         }
 
         private void SplineRenderer_OnSplineRendererSettingsUpdated()
         {
-            Spline.Dirty = true;
+            Spline.EnqueueSplineUpdate();
         }
 
         public SplinePositionInfo GetPositionOnSpline(float percentage)
