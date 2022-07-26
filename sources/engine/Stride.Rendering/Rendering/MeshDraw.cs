@@ -16,8 +16,12 @@ namespace Stride.Rendering
 
         public int StartLocation;
 
+        public bool DrawAuto;
+
         public VertexBufferBinding[] VertexBuffers;
 
         public IndexBufferBinding IndexBuffer;
+
+        public ArgumentBufferBinding ArgumentBuffer;
     }
 }

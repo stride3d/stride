@@ -215,19 +215,37 @@ namespace Stride.Rendering
                 commandList.SetDescriptorSets(0, descriptorSetsLocal);
                 
                 // Draw
-                if (drawData.IndexBuffer == null)
+                if (drawData.IndexBuffer is null)
                 {
-                    if (renderMesh.InstanceCount > 0)
-                        commandList.DrawInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
+                    if (drawData.DrawAuto)
+                    {
+                        commandList.DrawAuto();
+                    }
+                    else if (drawData.ArgumentBuffer is null)
+                    {
+                        if (renderMesh.InstanceCount > 0)
+                            commandList.DrawInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
+                        else
+                            commandList.Draw(drawData.DrawCount, drawData.StartLocation);
+                    }
                     else
-                        commandList.Draw(drawData.DrawCount, drawData.StartLocation);
+                    {
+                        commandList.DrawInstanced(drawData.ArgumentBuffer.Buffer, drawData.ArgumentBuffer.AlignedByteOffset);
+                    }
                 }
                 else
                 {
-                    if (renderMesh.InstanceCount > 0)
-                        commandList.DrawIndexedInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
+                    if (drawData.ArgumentBuffer is null)
+                    {
+                        if (renderMesh.InstanceCount > 0)
+                            commandList.DrawIndexedInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
+                        else
+                            commandList.DrawIndexed(drawData.DrawCount, drawData.StartLocation);
+                    }
                     else
-                        commandList.DrawIndexed(drawData.DrawCount, drawData.StartLocation);
+                    {
+                        commandList.DrawIndexedInstanced(drawData.ArgumentBuffer.Buffer, drawData.ArgumentBuffer.AlignedByteOffset);
+                    }
                 }
             }
         }
