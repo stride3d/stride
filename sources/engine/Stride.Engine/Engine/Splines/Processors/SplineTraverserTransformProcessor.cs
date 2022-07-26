@@ -1,12 +1,9 @@
 //// Copyright (c) Stride contributors (https://Stride.com)
 //// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using Stride.Core.Mathematics;
 using Stride.Engine.Splines.Components;
 using Stride.Engine.Splines.HierarchyTransformOperations;
-using Stride.Engine.Splines.Models;
 using Stride.Games;
 
 namespace Stride.Engine.Splines.Processors
@@ -44,6 +41,9 @@ namespace Stride.Engine.Splines.Processors
             component.SplineTraverser.OnSplineTraverserDirty += () => component.SplineTraverser?.CalculateTargets();
 
             splineTraverserComponents.Add(component);
+
+            component.SplineTraverser.Spline = component.Spline.Spline;
+            component.SplineTraverser.Entity = entity;
 
             // Register model view hierarchy update
             entity.Transform.PostOperations.Add(data.TransformOperation);

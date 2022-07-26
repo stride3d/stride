@@ -26,9 +26,10 @@ namespace Stride.Engine.Splines.Components
         [DataMemberIgnore]
         public SplineTraverser SplineTraverser
         {
-            get {
+            get
+            {
                 splineTraverser ??= new SplineTraverser();
-                return splineTraverser; 
+                return splineTraverser;
             }
             set
             {
@@ -53,9 +54,6 @@ namespace Stride.Engine.Splines.Components
                 {
                     IsMoving = false;
                 }
-
-                SplineTraverser.Spline = splineComponent?.Spline;
-                SplineTraverser.Entity = Entity;
             }
         }
 
@@ -98,16 +96,6 @@ namespace Stride.Engine.Splines.Components
         internal void Update(TransformComponent transformComponent)
         {
 
-        }
-
-        public void ActivateSplineNodeReached(SplineNodeComponent splineNode)
-        {
-             //OnSplineNodeReached?.Invoke(splineNode);
-        }
-
-        public void ActivateOnSplineEndReached()
-        {
-            //OnSplineEndReached?.Invoke();
         }
     }
 }

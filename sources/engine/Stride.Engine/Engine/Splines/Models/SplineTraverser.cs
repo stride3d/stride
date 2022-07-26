@@ -1,3 +1,6 @@
+//// Copyright (c) Stride contributors (https://Stride.com)
+//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -25,7 +28,9 @@ namespace Stride.Engine.Splines.Models
         private BezierPoint targetBezierPoint { get; set; }
         private int bezierPointIndex = 0;
 
-
+        /// <summary>
+        /// The entity that is traversing the spline
+        /// </summary>
         public Entity Entity
         {
             get { return entity; }
@@ -46,7 +51,6 @@ namespace Stride.Engine.Splines.Models
         /// The spline to traverse
         /// No spline, no movement
         /// </summary>
-
         public Spline Spline
         {
             get { return spline; }
@@ -85,7 +89,7 @@ namespace Stride.Engine.Splines.Models
         }
 
         /// <summary>
-        /// For a traverse to work we require a Spline reference, a non-zero and IsMoving must be True
+        /// For a traverser to work we require a Spline reference, a non-zero speed and IsMoving must be True
         /// </summary>
         public bool IsMoving
         {
@@ -128,7 +132,7 @@ namespace Stride.Engine.Splines.Models
         }
 
         /// <summary>
-        ///......
+        /// Invokes the Spline is Dirty event
         /// </summary>
         public void EnqueueSplineTraverserUpdate()
         {
@@ -161,6 +165,7 @@ namespace Stride.Engine.Splines.Models
 
                     bezierPointIndex = bezierPointsToTraverse.Length - 1;
                     targetBezierPoint = bezierPointsToTraverse[bezierPointIndex]; //Take the last position at the end of the curve
+
                 }
                 else // Forwards traversing
                 {
@@ -182,7 +187,6 @@ namespace Stride.Engine.Splines.Models
                 }
 
                 attachedToSpline = true;
-
             }
         }
 
