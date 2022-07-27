@@ -33,7 +33,8 @@ namespace Stride.Rendering.Compositing
         /// <userdoc>Copy VR rendering to the current render target. Leave disabled to have different rendering on desktop than VR headset.</userdoc>
         [DataMember(25)]
         [DefaultValue(true)]
-        public bool CopyMirror { 
+        public bool CopyMirror 
+        { 
             get
             {
                 if(VRDevice != null)
