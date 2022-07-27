@@ -217,34 +217,44 @@ namespace Stride.Rendering
                 // Draw
                 if (drawData.IndexBuffer is null)
                 {
-                    if (drawData.DrawAuto)
-                    {
-                        commandList.DrawAuto();
-                    }
-                    else if (drawData.ArgumentBuffer is null)
+                    if (drawData.IndirectDrawing is null) //direct drawing
                     {
                         if (renderMesh.InstanceCount > 0)
                             commandList.DrawInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
                         else
                             commandList.Draw(drawData.DrawCount, drawData.StartLocation);
                     }
-                    else
+                    else // indirect drawing
                     {
-                        commandList.DrawInstanced(drawData.ArgumentBuffer.Buffer, drawData.ArgumentBuffer.AlignedByteOffset);
+                        if (drawData.IndirectDrawing.DrawAuto)
+                        {
+                            commandList.DrawAuto();
+                        }
+                        else
+                        {
+                            commandList.DrawInstanced(drawData.IndirectDrawing.ArgumentBuffer, drawData.IndirectDrawing.AlignedByteOffset);
+                        }
                     }
                 }
                 else
                 {
-                    if (drawData.ArgumentBuffer is null)
+                    if (drawData.IndirectDrawing is null) //direct drawing
                     {
                         if (renderMesh.InstanceCount > 0)
                             commandList.DrawIndexedInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
                         else
                             commandList.DrawIndexed(drawData.DrawCount, drawData.StartLocation);
                     }
-                    else
+                    else // indirect drawing
                     {
-                        commandList.DrawIndexedInstanced(drawData.ArgumentBuffer.Buffer, drawData.ArgumentBuffer.AlignedByteOffset);
+                        if (drawData.IndirectDrawing.DrawAuto)
+                        {
+                            // throw exception? DrawAuto should not have an index buffer, as it always comes from the stream out stage
+                        }
+                        else
+                        { 
+                            commandList.DrawIndexedInstanced(drawData.IndirectDrawing.ArgumentBuffer, drawData.IndirectDrawing.AlignedByteOffset);
+                        }
                     }
                 }
             }
