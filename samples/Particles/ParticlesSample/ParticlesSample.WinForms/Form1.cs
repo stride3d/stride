@@ -10,7 +10,7 @@ namespace ParticlesSample
         {
             InitializeComponent();
 
-            // Create SDL window using child
+            // Create SDL window using panel
             var _sdlWindow = new Stride.Graphics.SDL.Window("Embedded Stride Window", panel1.Handle);
             var context = new GameContextSDL(_sdlWindow);
 
@@ -18,7 +18,7 @@ namespace ParticlesSample
             Game _game = new();
             Task.Run(() =>
             {
-                _game.Run(context); // This causes the form to fail :-(
+                _game.Run(context);
             });
         }
     }
