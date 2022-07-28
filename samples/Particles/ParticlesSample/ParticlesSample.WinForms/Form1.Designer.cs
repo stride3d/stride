@@ -37,9 +37,10 @@ namespace ParticlesSample
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(10, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(147, 15);
+            this.label1.Size = new System.Drawing.Size(587, 15);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Game hosted in WinForms";
+            this.label1.Text = "Game hosted in WinForms. The game runs but mouse (and probably other user input) " +
+    "is not handled properly.";
             // 
             // panel1
             // 
