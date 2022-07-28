@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -81,7 +82,12 @@ namespace ParticlesSample
 
             // Start the game
             _game = new();
-            _game.Run(context);
+            Task.Run(() =>
+            {
+                // Running the game in its own task allows rendering while
+                // dragging and resizing the window.
+                _game.Run(context);
+            });
         }
 
         private void Win32GameHost_Unloaded(object sender, RoutedEventArgs e)
