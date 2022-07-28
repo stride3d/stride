@@ -29,7 +29,7 @@ namespace ParticlesSample
         private void InitializeComponent()
         {
             this.label1 = new System.Windows.Forms.Label();
-            this.game1 = new ParticlesSample.Win32GameControl();
+            this.panel1 = new System.Windows.Forms.Panel();
             this.SuspendLayout();
             // 
             // label1
@@ -41,19 +41,19 @@ namespace ParticlesSample
             this.label1.TabIndex = 0;
             this.label1.Text = "Game hosted in WinForms";
             // 
-            // game1
+            // panel1
             // 
-            this.game1.Location = new System.Drawing.Point(129, 53);
-            this.game1.Name = "panel1";
-            this.game1.Size = new System.Drawing.Size(556, 331);
-            this.game1.TabIndex = 1;
+            this.panel1.Location = new System.Drawing.Point(12, 48);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(776, 390);
+            this.panel1.TabIndex = 2;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.game1);
+            this.Controls.Add(this.panel1);
             this.Controls.Add(this.label1);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -65,6 +65,6 @@ namespace ParticlesSample
         #endregion
 
         private Label label1;
-        private Win32GameControl game1;
+        private Panel panel1;
     }
 }
