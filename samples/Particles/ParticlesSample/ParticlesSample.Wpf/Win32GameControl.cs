@@ -82,12 +82,12 @@ namespace ParticlesSample
 
             // Start the game
             _game = new();
-            Task.Run(() =>
+            Task.Factory.StartNew(() =>
             {
                 // Running the game in its own task allows rendering while
                 // dragging and resizing the window.
                 _game.Run(context);
-            });
+            }, TaskCreationOptions.LongRunning);
         }
 
         private void Win32GameHost_Unloaded(object sender, RoutedEventArgs e)

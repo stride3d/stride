@@ -16,10 +16,11 @@ namespace ParticlesSample
 
             // Start the game
             Game _game = new();
-            Task.Run(() =>
+            Task.Factory.StartNew(() =>
             {
+                // Must move this off current thread or the form will hang.
                 _game.Run(context);
-            });
+            }, TaskCreationOptions.LongRunning);
         }
     }
 }
