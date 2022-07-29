@@ -19,13 +19,17 @@ namespace Stride.Engine.Splines.Models
 
         [DataMemberIgnore]
         public Vector3 WorldPosition { get; set; }
+
         [DataMemberIgnore]
         public Vector3 TangentOutWorldPosition { get; set; }
+
         [DataMemberIgnore]
         public Vector3 TangentInWorldPosition { get; set; }
+
         [DataMemberIgnore]
 
         public Vector3 TargetTangentInWorldPosition { get; set; }
+
         [DataMemberIgnore]
         public Vector3 TargetWorldPosition { get; set; }
 
@@ -143,6 +147,11 @@ namespace Stride.Engine.Splines.Models
                     var distance = Vector3.Distance(baseBezierPoints[i].Position, baseBezierPoints[i - 1].Position);
                     baseBezierPoints[i].DistanceToPreviousPoint = distance;
                     baseBezierPoints[i].TotalLengthOnCurve = baseBezierPoints[i - 1].TotalLengthOnCurve + distance;
+
+
+                    //Point previous to current bezierPoint and store rotation
+                    var normalDif = Vector3.Normalize(baseBezierPoints[i].Position - baseBezierPoints[i-1].Position); 
+                    baseBezierPoints[i-1].Rotation = Quaternion.LookRotation(normalDif, Vector3.UnitY);
                 }
             }
 

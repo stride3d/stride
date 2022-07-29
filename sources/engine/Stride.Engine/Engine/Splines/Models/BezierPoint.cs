@@ -8,6 +8,7 @@ namespace Stride.Engine.Splines.Models
     public class BezierPoint
     {
         public Vector3 Position;
+        public Quaternion Rotation;
         public float DistanceToPreviousPoint;
         public float TotalLengthOnCurve;
     }

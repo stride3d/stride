@@ -42,7 +42,7 @@ namespace Stride.Engine.Splines.Processors
 
             splineTraverserComponents.Add(component);
 
-            component.SplineTraverser.Spline = component.Spline.Spline;
+            component.SplineTraverser.Spline = component.SplineComponent?.Spline;
             component.SplineTraverser.Entity = entity;
 
             // Register model view hierarchy update

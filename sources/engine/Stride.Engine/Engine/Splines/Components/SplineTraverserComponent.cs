@@ -43,7 +43,7 @@ namespace Stride.Engine.Splines.Components
         /// No spline, no movement
         /// </summary>
         [Display(10, "Spline")]
-        public SplineComponent Spline
+        public SplineComponent SplineComponent
         {
             get { return splineComponent; }
             set
