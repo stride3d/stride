@@ -12,8 +12,8 @@ namespace ParticlesSample
 
             // Create SDL window using panel
             _sdlWindow = new Stride.Graphics.SDL.Window("Embedded Stride Window", panel1.Handle);
-            var context = new GameContextSDL(_sdlWindow);
-            
+            var context = new GameContextSDL(_sdlWindow, _sdlWindow.Size.Width, _sdlWindow.Size.Height);
+
             // Start the game
             _game = new();
             Task.Factory.StartNew(() =>

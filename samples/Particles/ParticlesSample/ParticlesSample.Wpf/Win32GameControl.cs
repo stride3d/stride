@@ -69,7 +69,7 @@ namespace ParticlesSample
                 NativeMethods.WS_CHILD | NativeMethods.WS_VISIBLE,
                 0,
                 0,
-                (int)Width, (int)Height,
+                (int)ActualWidth, (int)ActualHeight,
                 hostHandle,
                 IntPtr.Zero, IntPtr.Zero, 0);
 
@@ -78,7 +78,7 @@ namespace ParticlesSample
             _gameEngineHost = new GameEngineHost(childHandle);
             AddVisualChild(_gameEngineHost);
             InvalidateMeasure(); // force refresh
-            var context = new GameContextSDL(_sdlWindow);
+            var context = new GameContextSDL(_sdlWindow, _sdlWindow.Size.Width, _sdlWindow.Size.Height);
 
             // Start the game
             _game = new();
