@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Core;
+using System.Runtime.CompilerServices;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Data;
@@ -30,7 +30,7 @@ namespace Stride.Extensions
                 viewDirectionForSorting = -Vector3.UnitZ;
             }
 
-            const int PolySize = 3; // currently only triangle list are supported
+            const uint PolySize = 3; // currently only triangle list are supported
             var polyIndicesSize = PolySize * sizeof(int);
             var vertexBuffer = meshData.VertexBuffers[0];
             var oldIndexBuffer = meshData.IndexBuffer;
@@ -42,7 +42,7 @@ namespace Stride.Extensions
             fixed (byte* vertexBufferPointerStart = &vertexBuffer.Buffer.GetSerializationData().Content[vertexBuffer.Offset])
             fixed (byte* indexBufferPointerStart = &oldIndexBuffer.Buffer.GetSerializationData().Content[oldIndexBuffer.Offset])
             {
-                for (var i = 0; i < oldIndexBuffer.Count / PolySize; ++i) 
+                for (var i = 0; i < oldIndexBuffer.Count / PolySize; ++i)
                 {
                     // compute the bary-center
                     var accu = Vector3.Zero;
@@ -72,7 +72,7 @@ namespace Stride.Extensions
 
                 foreach (var index in sortedIndices)
                 {
-                    CoreUtilities.CopyBlockUnaligned(
+                    Unsafe.CopyBlockUnaligned(
                         destination: newIndexBufferPointer,
                         source: oldIndexDataStart + index * polyIndicesSize,
                         byteCount: polyIndicesSize);

@@ -17,7 +17,7 @@ namespace Stride.Extensions
         /// </summary>
         /// <param name="meshData">The mesh data.</param>
         /// <param name="vertexElementToExtract">The declaration to extract (e.g. "POSITION0"...etc.) </param>
-        public static T[] GetVertexBufferData<T>(this MeshDraw meshData, params string[] vertexElementToExtract) where T : struct
+        public static unsafe T[] GetVertexBufferData<T>(this MeshDraw meshData, params string[] vertexElementToExtract) where T : unmanaged
         {
             var declaration = meshData.VertexBuffers[0].Declaration;
 
@@ -35,24 +35,21 @@ namespace Stride.Extensions
 
             var output = new T[outputSize / Unsafe.SizeOf<T>()];
 
-            var handleOutput = GCHandle.Alloc(output, GCHandleType.Pinned);
-            var ptrOutput = handleOutput.AddrOfPinnedObject();
-
-            var handleInput = GCHandle.Alloc(meshData.VertexBuffers[0].Buffer.GetSerializationData().Content, GCHandleType.Pinned);
-            var ptrInput = handleInput.AddrOfPinnedObject();
-
-            for (int i = 0; i < count; i++)
-            {
-                foreach (var vertexElementWithOffset in offsets)
+            fixed (T* ptrOutputT = output)
+            fixed (byte* ptrInputStart = meshData.VertexBuffers[0].Buffer.GetSerializationData().Content) {
+                var ptrOutput = (byte*)ptrOutputT;
+                var ptrInput = ptrInputStart;
+                for (int i = 0; i < count; i++)
                 {
-                    CoreUtilities.CopyBlockUnaligned(ptrOutput, ptrInput + vertexElementWithOffset.Offset, vertexElementWithOffset.Size);
-                    ptrOutput += vertexElementWithOffset.Size;
+                    foreach (var vertexElementWithOffset in offsets)
+                    {
+                        Unsafe.CopyBlockUnaligned(ptrOutput, ptrInput + vertexElementWithOffset.Offset, (uint)vertexElementWithOffset.Size);
+                        ptrOutput += vertexElementWithOffset.Size;
+                    }
+                    ptrInput += declaration.VertexStride;
                 }
-                ptrInput += declaration.VertexStride;
             }
 
-            handleInput.Free();
-            handleOutput.Free();
             return output;
         }
     }

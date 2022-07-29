@@ -1,8 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
 using System.Collections.Generic;
-using Stride.Core;
+using System.Runtime.CompilerServices;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Rendering;
@@ -125,10 +124,10 @@ namespace Stride.Extensions
                         {
                             //copy vertex buffer
                             foreach (var index in splitInfo.UsedIndices)
-                                CoreUtilities.CopyBlockUnaligned(
+                                Unsafe.CopyBlockUnaligned(
                                     destination: newVertexBufferPtr + stride * splitInfo.IndexRemapping[index],
                                     source: vertexBufferPtr + stride * index,
-                                    byteCount: stride);
+                                    byteCount: (uint)stride);
                         }
 
                         newMeshDrawData.VertexBuffers[vbIndex] = new VertexBufferBinding(

@@ -85,8 +85,8 @@ namespace Stride.Extensions
             fixed (byte* oldBuffer = &vertexBufferBinding.Buffer.GetSerializationData().Content[vertexBufferBinding.Offset])
             fixed (byte* newBuffer = &newBufferData[0])
             {
-                var oldBufferVertexPtr = (IntPtr)oldBuffer;
-                var newBufferVertexPtr = (IntPtr)newBuffer;
+                var oldBufferVertexPtr = oldBuffer;
+                var newBufferVertexPtr = newBuffer;
                 for (int i = 0; i < vertexBufferBinding.Count; ++i)
                 {
                     foreach (var element in vertexElements)
@@ -114,7 +114,7 @@ namespace Stride.Extensions
                         else
                         {
                             // Copy as is
-                            CoreUtilities.CopyBlockUnaligned(newBufferElementPtr, oldBufferElementPtr, element.VertexElementWithOffset.Size);
+                            Unsafe.CopyBlockUnaligned(newBufferElementPtr, oldBufferElementPtr, (uint)element.VertexElementWithOffset.Size);
                         }
                     }
 

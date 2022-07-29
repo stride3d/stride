@@ -1,13 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
-
-using Stride.Core;
 using Stride.Core.Diagnostics;
-using Stride.TextureConverter.Requests;
 using Stride.Graphics;
+using Stride.TextureConverter.Requests;
 
 namespace Stride.TextureConverter.TexLibraries
 {
@@ -93,7 +90,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// </summary>
         /// <param name="array">The array.</param>
         /// <param name="request">The request.</param>
-        private void Create(TexImage array, ArrayCreationRequest request)
+        private unsafe void Create(TexImage array, ArrayCreationRequest request)
         {
             array.Width = request.TextureList[0].Width;
             array.Height = request.TextureList[0].Height;
@@ -127,7 +124,7 @@ namespace Stride.TextureConverter.TexLibraries
                 current = request.TextureList[i];
                 buffer = arrayData + offset1;
                 offset1 += current.DataSize;
-                CoreUtilities.CopyBlockUnaligned(buffer, current.Data, current.DataSize);
+                Unsafe.CopyBlockUnaligned((void*)buffer, (void*)current.Data, (uint)current.DataSize);
 
                 offset2 = 0;
                 currentData = buffer;
@@ -250,7 +247,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="array">The array.</param>
         /// <param name="request">The request.</param>
         /// <exception cref="TexLibraryException">The given texture must match the dimension of the texture array.</exception>
-        private void Update(TexImage array, ArrayUpdateRequest request)
+        private unsafe void Update(TexImage array, ArrayUpdateRequest request)
         {
             Log.Info("Updating texture "+request.Indice+" in the texture array ...");
 
@@ -261,10 +258,10 @@ namespace Stride.TextureConverter.TexLibraries
 
             for (int i = 0; i < subImageCount; ++i)
             {
-                CoreUtilities.CopyBlockUnaligned(
-                    destination: array.SubImageArray[indice].Data,
-                    source: request.Texture.SubImageArray[i].Data,
-                    byteCount: request.Texture.SubImageArray[i].DataSize);
+                Unsafe.CopyBlockUnaligned(
+                    destination: (void*)array.SubImageArray[indice].Data,
+                    source: (void*)request.Texture.SubImageArray[i].Data,
+                    byteCount: (uint)request.Texture.SubImageArray[i].DataSize);
                 ++indice;
             }
         }
@@ -276,7 +273,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="array">The array.</param>
         /// <param name="request">The request.</param>
         /// <exception cref="TexLibraryException">You can't add a texture to a texture cube.</exception>
-        private void Insert(TexImage array, ArrayInsertionRequest request)
+        private unsafe void Insert(TexImage array, ArrayInsertionRequest request)
         {
             Log.Info("Inserting texture at rank " + request.Indice + " in the texture array ...");
 
@@ -304,7 +301,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 subImages[i] = array.SubImageArray[i];
                 subImages[i].Data = bufferData + offset;
-                CoreUtilities.CopyBlockUnaligned(subImages[i].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
+                Unsafe.CopyBlockUnaligned((void*)subImages[i].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
             }
 
@@ -313,7 +310,7 @@ namespace Stride.TextureConverter.TexLibraries
             for (int i = 0; i < subImageCount; ++i)
             {
                 subImages[ct] = request.Texture.SubImageArray[i];
-                CoreUtilities.CopyBlockUnaligned(subImages[ct].Data, request.Texture.SubImageArray[i].Data, request.Texture.SubImageArray[i].DataSize);
+                Unsafe.CopyBlockUnaligned((void*)subImages[ct].Data, (void*)request.Texture.SubImageArray[i].Data, (uint)request.Texture.SubImageArray[i].DataSize);
                 offset += request.Texture.SubImageArray[i].DataSize;
                 ++ct;
             }
@@ -323,7 +320,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 subImages[ct] = array.SubImageArray[i];
                 subImages[ct].Data = bufferData + offset;
-                CoreUtilities.CopyBlockUnaligned(subImages[ct].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
+                Unsafe.CopyBlockUnaligned((void*)subImages[ct].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
                 ++ct;
             }
@@ -346,7 +343,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="array">The array.</param>
         /// <param name="request">The request.</param>
         /// <exception cref="TexLibraryException">You can't remove a texture from a texture cube.</exception>
-        private void Remove(TexImage array, ArrayElementRemovalRequest request)
+        private unsafe void Remove(TexImage array, ArrayElementRemovalRequest request)
         {
             Log.Info("Removing texture at rank " + request.Indice + " from the texture array ...");
 
@@ -371,7 +368,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 subImages[i] = array.SubImageArray[i];
                 subImages[i].Data = buffer + offset;
-                CoreUtilities.CopyBlockUnaligned(subImages[i].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
+                Unsafe.CopyBlockUnaligned((void*)subImages[i].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
             }
 
@@ -379,7 +376,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 subImages[indice] = array.SubImageArray[i];
                 subImages[indice].Data = buffer + offset;
-                CoreUtilities.CopyBlockUnaligned(subImages[indice].Data, array.SubImageArray[i].Data, array.SubImageArray[i].DataSize);
+                Unsafe.CopyBlockUnaligned((void*)subImages[indice].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
                 ++indice;
             }

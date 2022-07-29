@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.IO;
@@ -23,12 +25,13 @@ namespace Stride.Core.Storage
             this.objectId = objectId;
         }
 
-        internal Blob(ObjectDatabase objectDatabase, ObjectId objectId, IntPtr content, int size)
+        internal unsafe Blob(ObjectDatabase objectDatabase, ObjectId objectId, IntPtr content, int size)
             : this(objectDatabase, objectId)
         {
+            Debug.Assert(size >= 0);
             this.size = size;
             this.content = Marshal.AllocHGlobal(size);
-            CoreUtilities.CopyBlockUnaligned(this.content, content, size);
+            Unsafe.CopyBlockUnaligned((void*)this.content, (void*)content, (uint)size);
         }
 
         internal Blob(ObjectDatabase objectDatabase, ObjectId objectId, NativeStream stream)

@@ -296,7 +296,7 @@ namespace Stride.Graphics
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// </remarks>
-        public void GetData(CommandList commandList, Buffer stagingTexture, DataPointer toData)
+        public unsafe void GetData(CommandList commandList, Buffer stagingTexture, DataPointer toData)
         {
             // Check size validity of data to copy to
             if (toData.Size > this.Description.SizeInBytes)
@@ -308,7 +308,7 @@ namespace Stride.Graphics
 
             // Map the staging resource to a CPU accessible memory
             var mappedResource = commandList.MapSubresource(stagingTexture, 0, MapMode.Read);
-            CoreUtilities.CopyBlockUnaligned(toData.Pointer, mappedResource.DataBox.DataPointer, toData.Size);
+            Unsafe.CopyBlockUnaligned((void*)toData.Pointer, (void*)mappedResource.DataBox.DataPointer, (uint)toData.Size);
             // Make sure that we unmap the resource in case of an exception
             commandList.UnmapSubresource(mappedResource);
         }
@@ -323,7 +323,7 @@ namespace Stride.Graphics
         /// <remarks>
         /// See the unmanaged documentation about Map/UnMap for usage and restrictions.
         /// </remarks>
-        public void SetData(CommandList commandList, DataPointer fromData, int offsetInBytes = 0)
+        public unsafe void SetData(CommandList commandList, DataPointer fromData, int offsetInBytes = 0)
         {
             // Check size validity of data to copy to
             if (fromData.Size > this.Description.SizeInBytes)
@@ -349,7 +349,7 @@ namespace Stride.Graphics
                     throw new ArgumentException("offset is only supported for textured declared with ResourceUsage.Default", "offsetInBytes");
 
                 var mappedResource = commandList.MapSubresource(this, 0, Usage == GraphicsResourceUsage.Staging ? MapMode.Write : MapMode.WriteDiscard);
-                CoreUtilities.CopyBlockUnaligned(mappedResource.DataBox.DataPointer, fromData.Pointer, fromData.Size);
+                Unsafe.CopyBlockUnaligned((void*)mappedResource.DataBox.DataPointer, (void*)fromData.Pointer, (uint)fromData.Size);
                 commandList.UnmapSubresource(mappedResource);
             }
         }

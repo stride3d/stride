@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
 
@@ -58,7 +59,8 @@ namespace Stride.Graphics.Data
         {
             var sizeOf = Unsafe.SizeOf<T>() * content.Length;
             var buffer = new byte[sizeOf];
-            content.AsSpan().CopyTo(buffer.AsSpan().As<T>());
+            var source = MemoryMarshal.AsBytes(content.AsSpan());
+            source.CopyTo(buffer.AsSpan());
             return new BufferData(bufferFlags, buffer);
         }
     }

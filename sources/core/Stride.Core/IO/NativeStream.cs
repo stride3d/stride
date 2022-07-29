@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Core.IO
 {
@@ -124,7 +125,7 @@ namespace Stride.Core.IO
 
                     var currentReadSize = Read(temporaryBuffer, 0, blockSize);
                     readSize += currentReadSize;
-                    CoreUtilities.CopyBlockUnaligned(buffer, (nint)temporaryBufferStart, currentReadSize);
+                    Unsafe.CopyBlockUnaligned((void*)buffer, temporaryBufferStart, (uint)currentReadSize);
 
                     // Reached end of stream?
                     if (currentReadSize < blockSize)
@@ -154,7 +155,7 @@ namespace Stride.Core.IO
                     if (blockSize > NativeStreamBufferSize)
                         blockSize = NativeStreamBufferSize;
 
-                        CoreUtilities.CopyBlockUnaligned((nint)temporaryBufferStart, buffer, blockSize);
+                        Unsafe.CopyBlockUnaligned(temporaryBufferStart, (void*)buffer, (uint)blockSize);
 
                     Write(temporaryBuffer, 0, blockSize);
                 }

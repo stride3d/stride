@@ -46,10 +46,10 @@ namespace Stride.Core
         /// <param name="byteCount">The number of bytes to copy.</param>
         /// <remarks>This API corresponds to the <c>unaligned.1 cpblk</c> opcode sequence.
         /// No alignment assumptions are made about the <paramref name="destination"/> or <paramref name="source"/> pointers.</remarks>
-        [Obsolete("Use System.Runtime.CompilerServices.Unsafe.CopyBlockUnaligned or CoreUtilities.CopyBlockUnaligned")]
+        [Obsolete("Use System.Runtime.CompilerServices.Unsafe.CopyBlockUnaligned")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void CopyMemory(nint destination, nint source, int byteCount)
-            => CoreUtilities.CopyBlockUnaligned(destination, source, byteCount);
+            => Unsafe.CopyBlockUnaligned((void*)destination, (void*)source, (uint)byteCount);
 
         /// <summary>
         /// Compares two block of memory.
@@ -58,9 +58,13 @@ namespace Stride.Core
         /// <param name="against">The pointer to compare against.</param>
         /// <param name="sizeToCompare">The size in bytes to compare.</param>
         /// <returns>True if the buffers are equivalent, false otherwise.</returns>
-        [Obsolete("Use CoreUtilities.SequenceEqual or Span<T>.SequenceEqual.")]
+        [Obsolete("Use Span<T>.SequenceEqual.")]
         public static unsafe bool CompareMemory(nint from, nint against, int sizeToCompare)
-            => CoreUtilities.SequenceEqual(from, against, sizeToCompare);
+        {
+            var lhs = new Span<byte>((void*)from, sizeToCompare);
+            var rhs = new Span<byte>((void*)against, sizeToCompare);
+            return lhs.SequenceEqual(rhs);
+        }
 
         /// <summary>Clears the memory.</summary>
         /// <param name="destination">The destination address.</param>

@@ -843,7 +843,7 @@ namespace Stride.Graphics
             // The fast way: If same stride, we can directly copy the whole texture in one shot
             if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride && !isFlippedTexture)
             {
-                CoreUtilities.CopyBlockUnaligned(toData.Pointer, box.DataPointer, mipMapSize);
+                Unsafe.CopyBlockUnaligned((void*)toData.Pointer, (void*)box.DataPointer, (uint)mipMapSize);
             }
             else
             {
@@ -863,7 +863,7 @@ namespace Stride.Graphics
                         for (int i = height - 1; i >= 0; i--)
                         {
                             // Copy a single row
-                            CoreUtilities.CopyBlockUnaligned(destPtr, sourcePtr, rowStride);
+                            Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)rowStride);
                             sourcePtr -= box.RowPitch;
                             destPtr += rowStride;
                         }
@@ -873,7 +873,7 @@ namespace Stride.Graphics
                         for (int i = 0; i < height; i++)
                         {
                             // Copy a single row
-                            CoreUtilities.CopyBlockUnaligned(destPtr, sourcePtr, rowStride);
+                            Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)rowStride);
                             sourcePtr += box.RowPitch;
                             destPtr += rowStride;
                         }
@@ -993,7 +993,7 @@ namespace Stride.Graphics
                 // The fast way: If same stride, we can directly copy the whole texture in one shot
                 if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride)
                 {
-                    CoreUtilities.CopyBlockUnaligned(box.DataPointer, fromData.Pointer, sizeOfTextureData);
+                    Unsafe.CopyBlockUnaligned((void*)box.DataPointer, (void*)fromData.Pointer, (uint)sizeOfTextureData);
                 }
                 else
                 {
@@ -1008,7 +1008,7 @@ namespace Stride.Graphics
                         // Iterate on each line
                         for (int i = 0; i < height; i++)
                         {
-                            CoreUtilities.CopyBlockUnaligned(destPtr, sourcePtr, rowStride);
+                            Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)rowStride);
                             destPtr += box.RowPitch;
                             sourcePtr += rowStride;
                         }

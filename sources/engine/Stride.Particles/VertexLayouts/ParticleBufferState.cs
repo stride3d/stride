@@ -3,7 +3,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Stride.Core;
 
 namespace Stride.Particles.VertexLayouts
 {
@@ -61,9 +60,9 @@ namespace Stride.Particles.VertexLayouts
         /// </summary>
         /// <param name="accessor">Accessor to the vertex data</param>
         /// <param name="ptrRef">Pointer to the source data</param>
-        public void SetAttribute(AttributeAccessor accessor, IntPtr ptrRef)
+        public unsafe void SetAttribute(AttributeAccessor accessor, nint ptrRef)
         {
-            CoreUtilities.CopyBlockUnaligned(VertexBuffer + accessor.Offset, ptrRef, accessor.Size);
+            Unsafe.CopyBlockUnaligned((byte*)VertexBuffer + accessor.Offset, (void*)ptrRef, (uint)accessor.Size);
         }
 
         /// <summary>
@@ -71,11 +70,11 @@ namespace Stride.Particles.VertexLayouts
         /// </summary>
         /// <param name="accessor">Accessor to the vertex data</param>
         /// <param name="ptrRef">Pointer to the source data</param>
-        public void SetAttributePerParticle(AttributeAccessor accessor, IntPtr ptrRef)
+        public unsafe void SetAttributePerParticle(AttributeAccessor accessor, nint ptrRef)
         {
             for (var i = 0; i < vertexBuilder.VerticesPerParticle; i++)
             {
-                CoreUtilities.CopyBlockUnaligned(VertexBuffer + accessor.Offset + i * VertexStride, ptrRef, accessor.Size);
+                Unsafe.CopyBlockUnaligned((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
             }
         }
 
@@ -84,11 +83,11 @@ namespace Stride.Particles.VertexLayouts
         /// </summary>
         /// <param name="accessor">Accessor to the vertex data</param>
         /// <param name="ptrRef">Pointer to the source data</param>
-        public void SetAttributePerSegment(AttributeAccessor accessor, IntPtr ptrRef)
+        public unsafe void SetAttributePerSegment(AttributeAccessor accessor, nint ptrRef)
         {
             for (var i = 0; i < VerticesPerSegCurrent; i++)
             {
-                CoreUtilities.CopyBlockUnaligned(VertexBuffer + accessor.Offset + i * VertexStride, ptrRef, accessor.Size);
+                Unsafe.CopyBlockUnaligned((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
             }
         }
 

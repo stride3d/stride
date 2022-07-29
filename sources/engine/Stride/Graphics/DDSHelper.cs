@@ -1069,7 +1069,7 @@ namespace Stride.Graphics
                     {
                         int pixsize = pixelBuffers[index].BufferStride;
                         fixed (byte* pinned = buffer)
-                            CoreUtilities.CopyBlockUnaligned((nint)pinned, source: pixelBuffers[index].DataPointer, pixsize);
+                            Unsafe.CopyBlockUnaligned(pinned, source: (void*)pixelBuffers[index].DataPointer, (uint)pixsize);
                         stream.Write(buffer, 0, pixsize);
                         ++index;
                     }

@@ -5,9 +5,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Stride.Core;
+using System.Runtime.CompilerServices;
 using Stride.Core.Collections;
-using Stride.Engine;
 
 namespace Stride.Rendering.Lights
 {
@@ -127,7 +126,7 @@ namespace Stride.Rendering.Lights
             allMasks.Clear();
 
             fixed (void* ptr = groupMasks)
-                CoreUtilities.InitBlockUnaligned(ptr, 0, groupMasks.Length * sizeof(uint));
+                Unsafe.InitBlockUnaligned(ptr, 0, (uint)groupMasks.Length * sizeof(uint));
 
             // Only clear collections that were previously allocated (no need to iterate on all collections from the pool)
             foreach (var collection in lightCollectionPool)

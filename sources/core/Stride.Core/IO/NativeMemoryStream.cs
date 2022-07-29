@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Core.IO
 {
@@ -69,14 +70,14 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
-        public override int Read(byte[] buffer, int offset, int count)
+        public override unsafe int Read(byte[] buffer, int offset, int count)
         {
             Debug.Assert(offset >= 0 && count >= 0 && offset + count <= buffer.Length);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 count = bytesLeft;
             fixed (byte* pinned = buffer)
-                CoreUtilities.CopyBlockUnaligned((nint)pinned + offset, (nint)dataCurrent, count);
+                Unsafe.CopyBlockUnaligned(pinned + offset, dataCurrent, (uint)count);
             dataCurrent += count;
             return count;
         }
@@ -90,19 +91,19 @@ namespace Stride.Core.IO
                 throw new InvalidOperationException("Buffer too small");
 
             fixed (byte* pinned = buffer)
-                CoreUtilities.CopyBlockUnaligned((nint)dataCurrent, (nint)pinned + offset, count);
+                Unsafe.CopyBlockUnaligned(dataCurrent, pinned + offset, (uint)count);
             dataCurrent += count;
         }
 
         /// <inheritdoc/>
-        public override int Read(nint buffer, int count)
+        public override unsafe int Read(nint buffer, int count)
         {
             Debug.Assert(count >= 0);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 count = bytesLeft;
 
-            CoreUtilities.CopyBlockUnaligned(buffer, (nint)dataCurrent, count);
+            Unsafe.CopyBlockUnaligned((void*)buffer, dataCurrent, (uint)count);
             dataCurrent += count;
             return count;
         }
@@ -115,7 +116,7 @@ namespace Stride.Core.IO
             if (count > bytesLeft)
                 throw new InvalidOperationException("Buffer too small");
 
-            CoreUtilities.CopyBlockUnaligned((nint)dataCurrent, buffer, count);
+            Unsafe.CopyBlockUnaligned(dataCurrent, (void*)buffer, (uint)count);
             dataCurrent += count;
         }
 

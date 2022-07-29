@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -934,7 +935,7 @@ namespace Stride.TextureConverter.DxtWrapper
                 fixed (byte* ptr = buffer)
                 {
                     DDSHeaderDX9* headerPtr = &header;
-                    Core.CoreUtilities.CopyBlockUnaligned((IntPtr)headerPtr, (IntPtr)ptr, headerSize);
+                    Unsafe.CopyBlockUnaligned(headerPtr, ptr, (uint)headerSize);
                 }
                 if (header.dwMagic != 0x20534444 || header.dwPfSize != 32)
                     return -1;

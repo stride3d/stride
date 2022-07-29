@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Serialization;
 
@@ -38,7 +39,8 @@ namespace Stride.Animations
                 var rawData = stream.ReadBytes(Unsafe.SizeOf<AnimationKeyValuePair<T>>() * obj.Length);
                 fixed (void* rawDataPtr = rawData)
                 {
-                    rawData.AsSpan().CopyTo(obj.AsSpan().AsByte());
+                    var destination = MemoryMarshal.AsBytes(obj.AsSpan());
+                    rawData.AsSpan().CopyTo(destination);
                 }
             }
             else if (mode == ArchiveMode.Serialize)

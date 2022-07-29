@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Shaders;
 
@@ -48,7 +48,7 @@ namespace Stride.Graphics
             }
         }
 
-        public void Apply(CommandList commandList, ResourceGroup[] resourceGroups, int resourceGroupsOffset)
+        public unsafe void Apply(CommandList commandList, ResourceGroup[] resourceGroups, int resourceGroupsOffset)
         {
             if (resourceGroupBindings.Length == 0)
                 return;
@@ -75,7 +75,7 @@ namespace Stride.Graphics
                         if (hasResourceRenaming)
                         {
                             var mappedConstantBuffer = commandList.MapSubresource(preallocatedBuffer, 0, MapMode.WriteDiscard);
-                            CoreUtilities.CopyBlockUnaligned(mappedConstantBuffer.DataBox.DataPointer, resourceGroup.ConstantBuffer.Data, resourceGroup.ConstantBuffer.Size);
+                            Unsafe.CopyBlockUnaligned((void*)mappedConstantBuffer.DataBox.DataPointer, (void*)resourceGroup.ConstantBuffer.Data, (uint)resourceGroup.ConstantBuffer.Size);
                             commandList.UnmapSubresource(mappedConstantBuffer);
                         }
                         else

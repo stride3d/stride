@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -202,7 +203,7 @@ namespace Stride.Graphics
             unsafe
             {
                 // Clear buffer first (because of the buffer mapping mode used)
-                CoreUtilities.InitBlockUnaligned(mappedVertexBufferPointer, 0x0, VertexBufferLength * sizeof(VertexPositionNormalTexture));
+                Unsafe.InitBlockUnaligned((void*)mappedVertexBufferPointer, 0x0, (uint)VertexBufferLength * (uint)sizeof(VertexPositionNormalTexture));
 
                 charsToRenderCount = 0;
 

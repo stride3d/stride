@@ -11,6 +11,7 @@ using Stride.Graphics;
 using Stride.TextureConverter.Requests;
 using FreeImageAPI;
 using FreeImageAPI.Plugins;
+using System.Runtime.CompilerServices;
 
 namespace Stride.TextureConverter.TexLibraries
 {
@@ -88,7 +89,7 @@ namespace Stride.TextureConverter.TexLibraries
             libraryData.Data = IntPtr.Zero;
         }
 
-        public void EndLibrary(TexImage image)
+        public unsafe void EndLibrary(TexImage image)
         {
             if (!image.LibraryData.ContainsKey(this)) return;
             FreeImageTextureLibraryData libraryData = (FreeImageTextureLibraryData)image.LibraryData[this];
@@ -114,7 +115,7 @@ namespace Stride.TextureConverter.TexLibraries
                     image.SubImageArray[i].RowPitch = rowPitch;
                     image.SubImageArray[i].SlicePitch = slicePitch;
 
-                    CoreUtilities.CopyBlockUnaligned(image.SubImageArray[i].Data, FreeImage.GetBits(libraryData.Bitmaps[i]), size);
+                    Unsafe.CopyBlockUnaligned((void*)image.SubImageArray[i].Data, (void*)FreeImage.GetBits(libraryData.Bitmaps[i]), (uint)size);
                     offset += size;
                 }
             }

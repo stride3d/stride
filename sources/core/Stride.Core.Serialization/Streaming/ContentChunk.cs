@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 #if !USE_UNMANAGED
 using System.Runtime.InteropServices;
 #endif
@@ -59,6 +60,7 @@ namespace Stride.Core.Streaming
 
         internal ContentChunk(ContentStorage storage, int location, int size)
         {
+            Debug.Assert(size >= 0);
             Storage = storage;
             Location = location;
             Size = size;
@@ -91,19 +93,19 @@ namespace Stride.Core.Streaming
 #if USE_UNMANAGED
                 var chunkBytes = Utilities.AllocateMemory(Size);
 
-                int bufferCapacity = Math.Min(8192, Size);
+                var bufferCapacity = Math.Min(8192u, (uint)Size);
                 var buffer = new byte[bufferCapacity];
 
-                int count = Size;
+                var count = (uint)Size;
                 fixed (byte* bufferStart = buffer)
                 {
-                    var chunkBytesPtr = chunkBytes;
+                    var chunkBytesPtr = (byte*)chunkBytes;
                     do
                     {
-                        int read = stream.Read(buffer, 0, Math.Min(count, bufferCapacity));
+                        var read = (uint)stream.Read(buffer, 0, (int)Math.Min(count, bufferCapacity));
                         if (read <= 0)
                             break;
-                        CoreUtilities.CopyBlockUnaligned(chunkBytesPtr, (nint)bufferStart, read);
+                        Unsafe.CopyBlockUnaligned(chunkBytesPtr, bufferStart, read);
                         chunkBytesPtr += read;
                         count -= read;
                     } while (count > 0);

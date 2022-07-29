@@ -24,8 +24,10 @@
 #pragma warning disable SA1027 // Tabs must not be used
 #pragma warning disable SA1137 // Elements should have the same indentation
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using Stride.Core.IO;
 
 namespace Stride.Core.LZ4
@@ -374,7 +376,7 @@ namespace Stride.Core.LZ4
 
 			if (bufferOffset >= bufferLength && !AcquireNextChunk())
 				return -1; // that's just end of stream
-            
+
             position += 1;
 
 			return dataBuffer[bufferOffset++];
@@ -399,7 +401,7 @@ namespace Stride.Core.LZ4
                     fixed (byte* pSrc = dataBuffer)
                     fixed (byte* pDst = buffer)
                     {
-                        CoreUtilities.CopyBlockUnaligned((nint)pDst + offset, (nint)pSrc + bufferOffset, chunk);
+                        Unsafe.CopyBlockUnaligned(pDst + offset, pSrc + bufferOffset, (uint)chunk);
                     }
 					bufferOffset += chunk;
 					offset += chunk;
@@ -419,6 +421,7 @@ namespace Stride.Core.LZ4
         /// <inheritdoc/>
         public unsafe override int Read(nint buffer, int count)
         {
+            Debug.Assert((count | bufferLength | bufferOffset) >= 0);
             if (!CanRead) throw NotSupported("Read");
 
             var total = 0;
@@ -430,7 +433,7 @@ namespace Stride.Core.LZ4
                 {
                     fixed (byte* pSrc = dataBuffer)
                     {
-                        CoreUtilities.CopyBlockUnaligned(buffer + total, (nint)pSrc + bufferOffset, chunk);
+                        Unsafe.CopyBlockUnaligned((byte*)buffer + total, pSrc + bufferOffset, (uint)chunk);
                     }
                     bufferOffset += chunk;
                     count -= chunk;
@@ -520,6 +523,11 @@ namespace Stride.Core.LZ4
 		/// <param name="count">The number of bytes to be written to the current stream.</param>
 		public override unsafe void Write(byte[] buffer, int offset, int count)
 		{
+            Debug.Assert(
+                bufferLength >= 0 &&
+                (dataBuffer is null || (uint)bufferOffset + (uint)count <= (uint)bufferLength) &&
+                (uint)offset <= (uint)buffer.Length &&
+                (uint)offset + (uint)count <= (uint)buffer.Length);
 			if (!CanWrite) throw NotSupported("Write");
 
 		    position += count;
@@ -539,7 +547,7 @@ namespace Stride.Core.LZ4
                     fixed (byte* pSrc = buffer)
                     fixed (byte* pDst = dataBuffer)
                     {
-                        CoreUtilities.CopyBlockUnaligned((nint)pDst + bufferOffset, (nint)pSrc + offset, chunk);
+                        Unsafe.CopyBlockUnaligned(pDst + bufferOffset, pSrc + offset, (uint)chunk);
                     }
 					offset += chunk;
 					count -= chunk;
@@ -555,6 +563,7 @@ namespace Stride.Core.LZ4
 	    /// <inheritdoc/>
         public override unsafe void Write(nint buffer, int count)
         {
+            Debug.Assert((uint)bufferOffset + (uint)count <= (uint)bufferLength);
             if (!CanWrite) throw NotSupported("Write");
 
             position += count;
@@ -574,7 +583,7 @@ namespace Stride.Core.LZ4
                 {
                     fixed (byte* pDst = dataBuffer)
                     {
-                        CoreUtilities.CopyBlockUnaligned((nint)pDst + bufferOffset, buffer + offset, chunk);
+                        Unsafe.CopyBlockUnaligned(pDst + bufferOffset, (byte*)buffer + offset, (uint)chunk);
                     }
                     offset += chunk;
                     count -= chunk;

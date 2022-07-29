@@ -609,14 +609,15 @@ namespace Stride.Rendering
                     var elementSize = newParameterKeyInfos.Items[i].Key.Size;
                     var newTotalSize = elementSize + (elementSize + 15) / 16 * 16 * (newParameterKeyInfo.Count - 1);
                     var totalSize = elementSize + (elementSize + 15) / 16 * 16 * (parameterKeyInfo.Count - 1);
+                    Debug.Assert((newTotalSize | totalSize) >= 0);
 
                     // It's data
                     fixed (byte* dataValues = DataValues)
                     fixed (byte* newDataValuesPtr = newDataValues)
-                        CoreUtilities.CopyBlockUnaligned(
-                            destination: (nint)newDataValuesPtr + newParameterKeyInfo.Offset,
-                            source: (nint)dataValues + parameterKeyInfo.Offset,
-                            byteCount: Math.Min(newTotalSize, totalSize));
+                        Unsafe.CopyBlockUnaligned(
+                            destination: newDataValuesPtr + newParameterKeyInfo.Offset,
+                            source: dataValues + parameterKeyInfo.Offset,
+                            byteCount: (uint)Math.Min(newTotalSize, totalSize));
 
                 }
                 else if (newParameterKeyInfo.BindingSlot != -1)
@@ -747,10 +748,10 @@ namespace Stride.Rendering
                         {
                             fixed (byte* destDataValues = destination.DataValues)
                             fixed (byte* sourceDataValues = source.DataValues)
-                                CoreUtilities.CopyBlockUnaligned(
-                                    destination: (nint)destDataValues + range.DestStart,
-                                    source: (nint)sourceDataValues + range.SourceStart,
-                                    byteCount: range.Size);
+                                Unsafe.CopyBlockUnaligned(
+                                    destination: destDataValues + range.DestStart,
+                                    source: sourceDataValues + range.SourceStart,
+                                    byteCount: (uint)range.Size);
                         }
                     }
                 }
@@ -760,7 +761,7 @@ namespace Stride.Rendering
             {
                 fixed (byte* destPtr = destination.DataValues)
                 fixed (byte* sourcePtr = source.DataValues)
-                    CoreUtilities.CopyBlockUnaligned((nint)destPtr, (nint)sourcePtr, destinationLayout.BufferSize);
+                    Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
 
                 var resourceCount = destinationLayout.ResourceCount;
                 for (int i = 0; i < resourceCount; ++i)
