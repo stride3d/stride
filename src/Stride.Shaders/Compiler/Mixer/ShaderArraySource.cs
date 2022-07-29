@@ -21,11 +21,7 @@ public class ShaderArraySource : ShaderSource, IEnumerable<ShaderSource>, IEquat
         Values = new ShaderSourceCollection(values);
     }
 
-    public override string ShaderName => throw new NotImplementedException();
-
-    public override IEnumerable<string> MixinNames => throw new NotImplementedException();
-
-    ShaderSourceCollection Values {get;set;}
+    public ShaderSourceCollection Values {get;set;}
 
     public void Add(ShaderSource shader)
     {
@@ -37,11 +33,6 @@ public class ShaderArraySource : ShaderSource, IEnumerable<ShaderSource>, IEquat
     }
 
     public override object Clone()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void EnumerateMixins(SortedSet<ShaderSource> shaderSources)
     {
         throw new NotImplementedException();
     }

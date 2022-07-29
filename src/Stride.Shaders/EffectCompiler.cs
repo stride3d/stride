@@ -12,9 +12,4 @@ public class EffectCompiler
         Loader = new ShaderLoader(path);
     }
 
-    public void Compile(ShaderMixin mixin)
-    {
-        var mixer = new ShaderMixer();
-    }
-    
 }

@@ -8,29 +8,16 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders.Mixer;
 
-public class ShaderClassString : ShaderMixin
+public class ShaderClassString : ShaderSource
 {
-    readonly string source;
-    public override string Code => source;
-    public override string ShaderName => AST.Name;
-
+    public string ShaderSourceCode {get;set;}
 
     public ShaderClassString(string code)
     {
-        source = code;
-    }
-
-    public void Parse()
-    {
-        AST = ShaderMixinParser.ParseShader(source);
+        ShaderSourceCode = code;
     }
 
     public override object Clone()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void EnumerateMixins(SortedSet<ShaderSource> shaderSources)
     {
         throw new NotImplementedException();
     }

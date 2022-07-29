@@ -4,10 +4,6 @@ namespace Stride.Shaders.Mixer;
 
 public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassSource>
 {
-    public override string ShaderName => throw new NotImplementedException();
-
-    public override IEnumerable<string> MixinNames => throw new NotImplementedException();
-
     public ShaderClassSource()
     {
     }
@@ -87,12 +83,6 @@ public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassS
     {
         return ToClassName();
     }
-
-    public override void EnumerateMixins(SortedSet<ShaderSource> shaderSources)
-    {
-        throw new NotImplementedException();
-    }
-
     /// <summary>
     /// Performs an implicit conversion from <see cref="System.String"/> to <see cref="ShaderClassSource"/>.
     /// </summary>

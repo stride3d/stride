@@ -14,7 +14,7 @@ A single shader should be a full shader, defining all methods and variables in o
 
 An array of shader will contain multiple shader definition all linked by inheritances. It can be created from one shader requiring parent shaders to find in a shader dictionary/storage of some sort.
 
-## Mixin graph
+## Shader mixin
 
 The graph that the mixin system forms will have to be simplified to an array shader.
 
