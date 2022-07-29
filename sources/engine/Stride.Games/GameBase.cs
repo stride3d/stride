@@ -438,8 +438,14 @@ namespace Stride.Games
             {
                 // TODO temporary workaround as the engine doesn't support yet resize
                 var graphicsDeviceManagerImpl = (GraphicsDeviceManager)graphicsDeviceManager;
-                Context.RequestedWidth = graphicsDeviceManagerImpl.PreferredBackBufferWidth;
-                Context.RequestedHeight = graphicsDeviceManagerImpl.PreferredBackBufferHeight;
+                if (Context.RequestedWidth == 0)
+                {
+                    Context.RequestedWidth = graphicsDeviceManagerImpl.PreferredBackBufferWidth;
+                }
+                if (Context.RequestedHeight == 0)
+                {
+                    Context.RequestedHeight = graphicsDeviceManagerImpl.PreferredBackBufferHeight;
+                }
                 Context.RequestedBackBufferFormat = graphicsDeviceManagerImpl.PreferredBackBufferFormat;
                 Context.RequestedDepthStencilFormat = graphicsDeviceManagerImpl.PreferredDepthStencilFormat;
                 Context.RequestedGraphicsProfile = graphicsDeviceManagerImpl.PreferredGraphicsProfile;
