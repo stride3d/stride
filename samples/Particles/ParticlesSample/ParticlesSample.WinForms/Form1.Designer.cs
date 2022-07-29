@@ -44,6 +44,10 @@ namespace ParticlesSample
             // 
             // panel1
             // 
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.panel1.Location = new System.Drawing.Point(12, 48);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(776, 390);
