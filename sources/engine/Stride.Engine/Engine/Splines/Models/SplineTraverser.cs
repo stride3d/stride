@@ -15,6 +15,7 @@ namespace Stride.Engine.Splines.Models
         private Entity entity;
         private float speed = 1.0f;
         private bool isMoving = false;
+        private float thresholdDistance = 0.1f;
 
         private SplineNode originSplineNode { get; set; }
         private int originSplineNodeIndex = 0;
@@ -79,11 +80,6 @@ namespace Stride.Engine.Splines.Models
             {
                 speed = value;
 
-                if (speed == 0)
-                {
-                    IsMoving = false;
-                }
-
                 EnqueueSplineTraverserUpdate();
             }
         }
@@ -139,12 +135,13 @@ namespace Stride.Engine.Splines.Models
             OnSplineTraverserDirty?.Invoke();
         }
 
-        public void CalculateTargets()
+        public void DetermineOriginAndTarget()
         {
             if (entity != null && Spline?.SplineNodes?.Count > 1)
             {
-                // A spline traverser should target the closes two spline nodes. 
-                var currentPositionOfTraverser = entity.Transform.WorldMatrix.TranslationVector;
+                // A spline traverser should target the closest two spline nodes. 
+                //var currentPositionOfTraverser = entity.Transform.WorldMatrix.TranslationVector;
+                entity.Transform.GetWorldTransformation(out Vector3 currentPositionOfTraverser, out Quaternion rotationq, out Vector3 scale);
                 var splinePositionInfo = spline.GetClosestPointOnSpline(currentPositionOfTraverser);
 
                 // Are we going backwards?
@@ -163,9 +160,8 @@ namespace Stride.Engine.Splines.Models
                         return;
                     }
 
-                    bezierPointIndex = bezierPointsToTraverse.Length - 1;
-                    targetBezierPoint = bezierPointsToTraverse[bezierPointIndex]; //Take the last position at the end of the curve
-
+                    bezierPointIndex = splinePositionInfo.ClosestBezierPointIndex;
+                    targetBezierPoint = bezierPointsToTraverse[bezierPointIndex - 1];
                 }
                 else // Forwards traversing
                 {
@@ -182,8 +178,8 @@ namespace Stride.Engine.Splines.Models
                         return;
                     }
 
-                    bezierPointIndex = 0;
-                    targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
+                    bezierPointIndex = bezierPointIndex = splinePositionInfo.ClosestBezierPointIndex;
+                    targetBezierPoint = bezierPointsToTraverse[bezierPointIndex + 1];
                 }
 
                 attachedToSpline = true;
@@ -199,7 +195,7 @@ namespace Stride.Engine.Splines.Models
 
             if (!attachedToSpline)
             {
-                CalculateTargets();
+                DetermineOriginAndTarget();
             }
 
             if (IsMoving && Speed != 0 && attachedToSpline)
@@ -208,7 +204,7 @@ namespace Stride.Engine.Splines.Models
 
                 var distance = Vector3.Distance(entity.Transform.WorldMatrix.TranslationVector, targetBezierPoint.Position);
 
-                if (distance < 0.25)
+                if (distance < thresholdDistance)
                 {
                     SetNextTarget();
                 }
@@ -268,14 +264,14 @@ namespace Stride.Engine.Splines.Models
                 {
                     OnSplineNodeReached?.Invoke(targetSplineNode);
 
-                    //is there a next Spline node?
+                    // Is there a next Spline node?
                     if (targetSplineNodeIndex + 1 < nodesCount || Spline.Loop)
                     {
                         GoToNextSplineNode(nodesCount);
                     }
                     else
                     {
-                        //In the end, its doesn't even matter
+                        // In the end, its doesn't even matter
                         OnSplineEndReached?.Invoke();
                         IsMoving = false;
                     }

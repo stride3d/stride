@@ -38,7 +38,7 @@ namespace Stride.Engine.Splines.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, SplineTraverserComponent component, SplineTraverserTransformationInfo data)
         {
-            component.SplineTraverser.OnSplineTraverserDirty += () => component.SplineTraverser?.CalculateTargets();
+            component.SplineTraverser.OnSplineTraverserDirty += () => component.SplineTraverser?.DetermineOriginAndTarget();
 
             splineTraverserComponents.Add(component);
 

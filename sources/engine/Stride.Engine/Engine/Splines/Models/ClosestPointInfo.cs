@@ -10,6 +10,11 @@ namespace Stride.Engine.Splines.Models
         public float LengthOnCurve;
 
         public int SplineNodeAIndex { get; internal set; }
+
         public int SplineNodeBIndex { get; internal set; }
+
+        public int ClosestBezierPointIndex { get; internal set; }
+
+        public BezierPoint ClosestBezierPoint { get; internal set; }
     }
 }

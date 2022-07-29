@@ -182,15 +182,16 @@ namespace Stride.Engine.Splines.Models
             ClosestPointInfo info = null;
             for (var i = 0; i < bezierPointCount; i++)
             {
-                var currentCurvePoint = GetBezierPoints()[i];
-                var curSplinePointDistance = Vector3.Distance(currentCurvePoint.Position, originPosition);
+                var currentBezierPoint = GetBezierPoints()[i];
+                var curSplinePointDistance = Vector3.Distance(currentBezierPoint.Position, originPosition);
 
                 if (info == null || curSplinePointDistance < info.DistanceToOrigin)
                 {
                     info ??= new ClosestPointInfo();
-                    info.Position = currentCurvePoint.Position;
+                    info.ClosestBezierPoint = currentBezierPoint;
+                    info.ClosestBezierPointIndex = i;
                     info.DistanceToOrigin = curSplinePointDistance;
-                    info.LengthOnCurve = currentCurvePoint.TotalLengthOnCurve;
+                    info.LengthOnCurve = currentBezierPoint.TotalLengthOnCurve;
                 }
             }
             return info;
