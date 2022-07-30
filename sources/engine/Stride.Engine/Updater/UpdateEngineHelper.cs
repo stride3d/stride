@@ -1,9 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable STRIDE6000 // TODO: Remove this suppression
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
+#if CHECKED
+using System.Collections.Concurrent;
+using System.Linq.Expressions;
+using System.Reflection;
+#endif
 namespace Stride.Updater
 {
     /// <summary>
@@ -18,11 +23,12 @@ namespace Stride.Updater
         /// <para>An instance with nonprimitive (non-blittable) members cannot be pinned.</para></summary>
         /// <returns>A new <see cref="GCHandle"/> of type <see cref="GCHandleType.Pinned"/>.
         /// This handle must be released with <see cref="GCHandle.Free"/> when it is no longer needed.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
         public static GCHandle Pin<T>(T @object) where T : class {
             #if CHECKED
             static Func<bool> IsReferenceOrContainsReferences(Type type)
             {
-                var method = pinMethod?.MakeGenericMethod(type)
+                var method = isReferenceOrContainsReferences?.MakeGenericMethod(type)
                     ?? throw new MethodAccessException();
                 return Expression.Lambda<Func<bool>>(Expression.Call(method)).Compile();
             }
@@ -38,12 +44,13 @@ namespace Stride.Updater
             return GCHandle.Alloc(@object, GCHandleType.Pinned);
         }
         #if CHECKED
-        private static readonly MethodInfo pinMethod = typeof(RuntimeHelpers).GetMethod(nameof(RuntimeHelpers.IsReferenceOrContainsReferences), BindingFlags.Static | BindingFlags.Public);
+        private static readonly MethodInfo isReferenceOrContainsReferences = typeof(RuntimeHelpers)
+            .GetMethod(nameof(RuntimeHelpers.IsReferenceOrContainsReferences), BindingFlags.Static | BindingFlags.Public);
         private static readonly ConcurrentDictionary<Type, Func<bool>> isPinnable = new();
         private static readonly ConcurrentDictionary<Type, bool> isPinnableBroken = new();
         #endif
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
         public static unsafe nint ObjectToPointer(object o)
             #if false
             ldarga.s o
@@ -52,7 +59,7 @@ namespace Stride.Updater
             ret
             #endif
             => ((nint*)Unsafe.AsPointer(ref o))[0];
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
         public static unsafe T PointerToObject<T>(nint address) where T : class
             #if false
             ldarga.s address
@@ -63,7 +70,7 @@ namespace Stride.Updater
             #endif
             => Unsafe.AsRef<T>(&address);
         /// <summary>Copies the value out of the pinned box.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
         public static unsafe T PointerToStruct<T>(nint address) where T : struct
             #if false
             ldarga.s address
@@ -77,7 +84,7 @@ namespace Stride.Updater
         /// <summary>Obtains a reference to the object at the specified address,
         /// then unboxes the value of type <typeparamref name="T"/> and
         /// returns the controlled-mutability managed pointer.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
         public static unsafe ref T RefBoxedStruct<T>(nint address) where T : struct
             #if false
             ldarga.s address
