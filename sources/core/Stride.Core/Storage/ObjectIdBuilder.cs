@@ -354,6 +354,7 @@ namespace Stride.Core.Storage
                 if (partialLength > remainder)
                     partialLength = remainder;
 
+                #warning PERF: Do not copy byte-for-byte.
                 ref var dest = ref Unsafe.Add(ref currentBlock, position);
                 for (var copyLength = partialLength; copyLength > 0; --copyLength) {
                     dest = buffer;
@@ -361,10 +362,6 @@ namespace Stride.Core.Storage
                     buffer = ref Unsafe.Add(ref buffer, 1);
                 }
                 length -= partialLength;
-
-                //Utilities.CopyMemory((IntPtr)currentBlock + position, (IntPtr)buffer, partialLength);
-                //buffer += partialLength;
-                //length -= partialLength;
 
                 if (partialLength == remainder)
                 {
@@ -385,15 +382,12 @@ namespace Stride.Core.Storage
                 }
 
                 // Start partial block
+                #warning PERF: Do not copy byte-for-byte.
                 for (; length > 0; --length) {
                     currentBlock = buffer;
                     currentBlock = ref Unsafe.Add(ref currentBlock, 1);
                     buffer = ref Unsafe.Add(ref buffer, 1);
                 }
-                //if (length > 0)
-                //{
-                //    Utilities.CopyMemory((IntPtr)currentBlock, (IntPtr)buffer, length);
-                //}
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Use BodyCore(ref byte)")]
