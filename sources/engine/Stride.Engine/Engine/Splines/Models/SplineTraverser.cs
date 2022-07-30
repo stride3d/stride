@@ -2,11 +2,9 @@
 //// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Games;
-using Stride.Core.Diagnostics;
 
 namespace Stride.Engine.Splines.Models
 {
@@ -20,7 +18,6 @@ namespace Stride.Engine.Splines.Models
         private float thresholdDistance = 0.1f;
 
         private SplineNode originSplineNode { get; set; }
-        private int originSplineNodeIndex = 0;
 
         private SplineNode targetSplineNode { get; set; }
         private int targetSplineNodeIndex = 0;
@@ -43,10 +40,12 @@ namespace Stride.Engine.Splines.Models
 
                 if (entity == null)
                 {
-                    IsMoving = false;
+                    isMoving = false;
                 }
-
-                EnqueueSplineTraverserUpdate();
+                else
+                {
+                    EnqueueSplineTraverserUpdate();
+                }
             }
         }
 
@@ -63,10 +62,12 @@ namespace Stride.Engine.Splines.Models
 
                 if (spline == null)
                 {
-                    IsMoving = false;
+                    isMoving = false;
                 }
-
-                EnqueueSplineTraverserUpdate();
+                else
+                {
+                    EnqueueSplineTraverserUpdate();
+                }
             }
         }
 
@@ -99,7 +100,10 @@ namespace Stride.Engine.Splines.Models
             {
                 isMoving = value;
 
-                EnqueueSplineTraverserUpdate();
+                if (isMoving)
+                {
+                    EnqueueSplineTraverserUpdate();
+                }
             }
         }
 
@@ -141,13 +145,10 @@ namespace Stride.Engine.Splines.Models
         {
             if (entity != null && Spline?.SplineNodes?.Count > 1)
             {
-                // A spline traverser should target the closest two spline nodes. 
                 var currentPositionOfTraverser = entity.Transform.WorldMatrix.TranslationVector;
-                //entity.Transform.GetWorldTransformation(out Vector3 currentPositionOfTraverser, out Quaternion rotationq, out Vector3 scale);
                 var splinePositionInfo = spline.GetClosestPointOnSpline(currentPositionOfTraverser);
                 var forwards = Speed > 0;
 
-                originSplineNodeIndex = forwards ? splinePositionInfo.SplineNodeAIndex : splinePositionInfo.SplineNodeBIndex;
                 targetSplineNodeIndex = forwards ? splinePositionInfo.SplineNodeBIndex : splinePositionInfo.SplineNodeAIndex;
 
                 originSplineNode = forwards ? splinePositionInfo.SplineNodeA : splinePositionInfo.SplineNodeB;
@@ -163,7 +164,7 @@ namespace Stride.Engine.Splines.Models
                 bezierPointIndex = splinePositionInfo.ClosestBezierPointIndex;
                 targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
                 attachedToSpline = true;
-                SetNextTarget(targetSplineNodeIndex);
+                SetNextTarget();
             }
         }
 
@@ -187,7 +188,7 @@ namespace Stride.Engine.Splines.Models
 
                 if (distance < thresholdDistance)
                 {
-                    SetNextTarget(targetSplineNodeIndex);
+                    SetNextTarget();
                 }
             }
         }
@@ -203,7 +204,7 @@ namespace Stride.Engine.Splines.Models
             entity.Transform.UpdateWorldMatrix();
         }
 
-        private void SetNextTarget(int targetSplineNodeIndex)
+        private void SetNextTarget()
         {
             var nodesCount = Spline.SplineNodes.Count;
             var forwards = Speed > 0;
@@ -220,28 +221,21 @@ namespace Stride.Engine.Splines.Models
             {
                 OnSplineNodeReached?.Invoke(targetSplineNode);
 
-                // Is there a next Spline node?
-                if ((forwards && targetSplineNodeIndex + 1 < nodesCount) || (backwards && targetSplineNodeIndex - 1 == 0))
+                // Is there a next/previous Spline node?
+                if (Spline.Loop || (forwards && targetSplineNodeIndex + 1 < nodesCount) || (backwards && targetSplineNodeIndex - 1 == 0))
+                {
+                    SetNextSplineNode(nodesCount, forwards, backwards, indexIncrement);
+                }
+                else
                 {
                     OnSplineEndReached?.Invoke(targetSplineNode);
-
-                    if (!spline.Loop)
-                    {
-                        IsMoving = false;
-                        return;
-                    }
+                    isMoving = false;
                 }
-
-                GoToNextSplineNode(nodesCount);
             }
         }
 
-        private void GoToNextSplineNode(int nodesCount)
+        private void SetNextSplineNode(int nodesCount, bool forwards, bool backwards, int indexIncrement)
         {
-            var forwards = Speed > 0;
-            var backwards = !forwards;
-            var indexIncrement = forwards ? 1 : -1;
-
             originSplineNode = targetSplineNode;
             targetSplineNodeIndex += indexIncrement;
 
@@ -249,16 +243,17 @@ namespace Stride.Engine.Splines.Models
             {
                 targetSplineNode = Spline.SplineNodes[targetSplineNodeIndex];
             }
-            else if (Spline.Loop && (forwards && targetSplineNodeIndex == nodesCount) || (backwards && targetSplineNodeIndex < 0))
+            else if (Spline.Loop && ((forwards && targetSplineNodeIndex == nodesCount) || (backwards && targetSplineNodeIndex < 0)))
             {
+                OnSplineEndReached?.Invoke(targetSplineNode);
                 targetSplineNodeIndex = forwards ? 0 : nodesCount - 1;
                 targetSplineNode = Spline.SplineNodes[targetSplineNodeIndex];
             }
 
             bezierPointsToTraverse = forwards ? originSplineNode.GetBezierPoints() : targetSplineNode.GetBezierPoints();
-            bezierPointIndex = forwards ? bezierPointIndex = 1 : bezierPointsToTraverse.Length - 1;
+            bezierPointIndex = forwards ? bezierPointIndex = 0 : bezierPointsToTraverse.Length - 1;
 
-            SetNextTarget(targetSplineNodeIndex);
+            SetNextTarget();
         }
     }
 }
