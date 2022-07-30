@@ -65,7 +65,7 @@ namespace Stride.Particles
         public unsafe T Get<T>(ParticleFieldAccessor<T> accessor) where T : struct
         {
 #if PARTICLES_SOA
-            return Unsafe.ReadUnaligned<T>(accessor[Index]);
+            return Unsafe.ReadUnaligned<T>((byte*)accessor[Index]);
 #else
             return Unsafe.ReadUnaligned<T>((byte*)Pointer + accessor);
 #endif

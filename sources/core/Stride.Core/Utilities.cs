@@ -501,10 +501,8 @@ namespace Stride.Core
         [Obsolete("Use SequenceEqualAllowNull")]
         public static bool Compare(IEnumerable left, IEnumerable right)
         {
-            if (ReferenceEquals(left, right))
-                return true;
-            if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
-                return false;
+            if (ReferenceEquals(left, right)) return true;
+            if (left is null || right is null) return false;
             return left.Cast<object>().SequenceEqual(right.Cast<object>());
         }
 
@@ -551,7 +549,7 @@ namespace Stride.Core
         public static bool Compare<TKey, TValue>(IDictionary<TKey, TValue> first, IDictionary<TKey, TValue> second)
         {
             if (ReferenceEquals(first, second)) return true;
-            if (ReferenceEquals(first, null) || ReferenceEquals(second, null)) return false;
+            if (first is null || second is null) return false;
             if (first.Count != second.Count) return false;
 
             var comparer = EqualityComparer<TValue>.Default;
@@ -576,7 +574,7 @@ namespace Stride.Core
         public static bool Compare<TKey, TValue>(Collections.SortedList<TKey, TValue> first, Collections.SortedList<TKey, TValue> second)
         {
             if (ReferenceEquals(first, second)) return true;
-            if (ReferenceEquals(first, null) || ReferenceEquals(second, null)) return false;
+            if (first is null || second is null) return false;
             if (first.Count != second.Count) return false;
 
             var comparer = EqualityComparer<TValue>.Default;
