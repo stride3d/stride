@@ -2,9 +2,11 @@
 //// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Games;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Engine.Splines.Models
 {
@@ -105,7 +107,7 @@ namespace Stride.Engine.Splines.Models
         /// Event triggered when the last node of the spline has been reached
         /// Does not get triggerd if spline loops
         /// </summary>
-        public delegate void SplineTraverserEndReachedHandler();
+        public delegate void SplineTraverserEndReachedHandler(SplineNode splineNode);
         public event SplineTraverserEndReachedHandler OnSplineEndReached;
 
         /// <summary>
@@ -140,55 +142,34 @@ namespace Stride.Engine.Splines.Models
             if (entity != null && Spline?.SplineNodes?.Count > 1)
             {
                 // A spline traverser should target the closest two spline nodes. 
-                //var currentPositionOfTraverser = entity.Transform.WorldMatrix.TranslationVector;
-                entity.Transform.GetWorldTransformation(out Vector3 currentPositionOfTraverser, out Quaternion rotationq, out Vector3 scale);
+                var currentPositionOfTraverser = entity.Transform.WorldMatrix.TranslationVector;
+                //entity.Transform.GetWorldTransformation(out Vector3 currentPositionOfTraverser, out Quaternion rotationq, out Vector3 scale);
                 var splinePositionInfo = spline.GetClosestPointOnSpline(currentPositionOfTraverser);
+                var forwards = Speed > 0;
 
-                // Are we going backwards?
-                if (Speed < 0)
+                originSplineNodeIndex = forwards ? splinePositionInfo.SplineNodeAIndex : splinePositionInfo.SplineNodeBIndex;
+                targetSplineNodeIndex = forwards ? splinePositionInfo.SplineNodeBIndex : splinePositionInfo.SplineNodeAIndex;
+
+                originSplineNode = forwards ? splinePositionInfo.SplineNodeA : splinePositionInfo.SplineNodeB;
+                targetSplineNode = forwards ? splinePositionInfo.SplineNodeB : splinePositionInfo.SplineNodeA;
+
+                bezierPointsToTraverse = forwards ? originSplineNode.GetBezierPoints() : targetSplineNode.GetBezierPoints();
+
+                if (bezierPointsToTraverse == null)
                 {
-                    originSplineNode = splinePositionInfo.SplineNodeB;
-                    originSplineNodeIndex = splinePositionInfo.SplineNodeBIndex;
-
-                    targetSplineNode = splinePositionInfo.SplineNodeA;
-                    targetSplineNodeIndex = splinePositionInfo.SplineNodeAIndex;
-
-                    bezierPointsToTraverse = targetSplineNode.GetBezierPoints();
-
-                    if (bezierPointsToTraverse == null)
-                    {
-                        return;
-                    }
-
-                    bezierPointIndex = splinePositionInfo.ClosestBezierPointIndex;
-                    targetBezierPoint = bezierPointsToTraverse[bezierPointIndex - 1];
-                }
-                else // Forwards traversing
-                {
-                    originSplineNode = splinePositionInfo.SplineNodeAIndex > splinePositionInfo.SplineNodeBIndex ? splinePositionInfo.SplineNodeB : splinePositionInfo.SplineNodeA;
-                    originSplineNodeIndex = splinePositionInfo.SplineNodeAIndex > splinePositionInfo.SplineNodeBIndex ? splinePositionInfo.SplineNodeBIndex : splinePositionInfo.SplineNodeAIndex;
-
-                    targetSplineNode = spline.SplineNodes[originSplineNodeIndex + 1];
-                    targetSplineNodeIndex = splinePositionInfo.SplineNodeAIndex + 1;
-
-                    bezierPointsToTraverse = originSplineNode.GetBezierPoints();
-
-                    if (bezierPointsToTraverse == null)
-                    {
-                        return;
-                    }
-
-                    bezierPointIndex = bezierPointIndex = splinePositionInfo.ClosestBezierPointIndex;
-                    targetBezierPoint = bezierPointsToTraverse[bezierPointIndex + 1];
+                    return;
                 }
 
+                bezierPointIndex = splinePositionInfo.ClosestBezierPointIndex;
+                targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
                 attachedToSpline = true;
+                SetNextTarget(targetSplineNodeIndex);
             }
         }
 
         public void Update(GameTime time)
         {
-            if(entity == null || spline == null)
+            if (entity == null || spline == null)
             {
                 return;
             }
@@ -206,7 +187,7 @@ namespace Stride.Engine.Splines.Models
 
                 if (distance < thresholdDistance)
                 {
-                    SetNextTarget();
+                    SetNextTarget(targetSplineNodeIndex);
                 }
             }
         }
@@ -222,104 +203,62 @@ namespace Stride.Engine.Splines.Models
             entity.Transform.UpdateWorldMatrix();
         }
 
-        private void SetNextTarget()
+        private void SetNextTarget(int targetSplineNodeIndex)
         {
             var nodesCount = Spline.SplineNodes.Count;
+            var forwards = Speed > 0;
+            var backwards = !forwards;
+            var indexIncrement = forwards ? 1 : -1;
 
-            // Are we going backwards?
-            if (Speed < 0)
+            // Is there a next/previous bezier point?
+            if ((forwards && bezierPointIndex + 1 < bezierPointsToTraverse.Length) || (backwards && bezierPointIndex - 1 >= 0))
             {
-                // Is there a previous bezier point?
-                if (bezierPointIndex - 1 >= 0)
-                {
-                    bezierPointIndex--;
-                    targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
-                }
-                else
-                {
-                    // Is there a next Spline node?
-                    if (targetSplineNodeIndex - 1 >= 0 || Spline.Loop)
-                    {
-                        GoToNextSplineNode(nodesCount);
-                    }
-                    else
-                    {
-                        //In the end, its doesn't even matter
-                        OnSplineEndReached();
-                        IsMoving = false;
-                    }
-                }
-
+                bezierPointIndex += indexIncrement;
+                targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
             }
-            else // We are going forward
+            else
             {
+                OnSplineNodeReached?.Invoke(targetSplineNode);
 
-                // Is there a next point on the current spline?
-                if (bezierPointIndex + 1 < bezierPointsToTraverse.Length)
+                // Is there a next Spline node?
+                if ((forwards && targetSplineNodeIndex + 1 < nodesCount) || (backwards && targetSplineNodeIndex - 1 == 0))
                 {
-                    bezierPointIndex++;
-                    targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
-                }
-                else
-                {
-                    OnSplineNodeReached?.Invoke(targetSplineNode);
+                    OnSplineEndReached?.Invoke(targetSplineNode);
 
-                    // Is there a next Spline node?
-                    if (targetSplineNodeIndex + 1 < nodesCount || Spline.Loop)
+                    if (!spline.Loop)
                     {
-                        GoToNextSplineNode(nodesCount);
-                    }
-                    else
-                    {
-                        // In the end, its doesn't even matter
-                        OnSplineEndReached?.Invoke();
                         IsMoving = false;
+                        return;
                     }
                 }
+
+                GoToNextSplineNode(nodesCount);
             }
         }
 
         private void GoToNextSplineNode(int nodesCount)
         {
-            // Are we going backwards?
-            if (Speed < 0)
+            var forwards = Speed > 0;
+            var backwards = !forwards;
+            var indexIncrement = forwards ? 1 : -1;
+
+            originSplineNode = targetSplineNode;
+            targetSplineNodeIndex += indexIncrement;
+
+            if ((forwards && targetSplineNodeIndex < nodesCount) || (backwards && targetSplineNodeIndex >= 0))
             {
-                originSplineNode = targetSplineNode;
-
-                targetSplineNodeIndex--;
-                if (targetSplineNodeIndex >= 0)
-                {
-                    targetSplineNode = Spline.SplineNodes[targetSplineNodeIndex];
-                }
-                else if (targetSplineNodeIndex < 0 && Spline.Loop)
-                {
-                    targetSplineNodeIndex = nodesCount - 1;
-                    targetSplineNode = Spline.SplineNodes[targetSplineNodeIndex];
-                }
-
-                bezierPointsToTraverse = targetSplineNode.GetBezierPoints();
-                bezierPointIndex = bezierPointsToTraverse.Length - 1;
-
+                targetSplineNode = Spline.SplineNodes[targetSplineNodeIndex];
             }
-            else // We are going forwards?
+            else if (Spline.Loop && (forwards && targetSplineNodeIndex == nodesCount) || (backwards && targetSplineNodeIndex < 0))
             {
-                bezierPointIndex = 0;
-                originSplineNode = targetSplineNode;
-                bezierPointsToTraverse = originSplineNode.GetBezierPoints();
-
-                targetSplineNodeIndex++;
-                if (targetSplineNodeIndex < nodesCount)
-                {
-                    targetSplineNode = Spline.SplineNodes[targetSplineNodeIndex];
-                }
-                else if (targetSplineNodeIndex == nodesCount && Spline.Loop)
-                {
-                    targetSplineNode = Spline.SplineNodes[0];
-                    targetSplineNodeIndex = 0;
-                }
+                targetSplineNodeIndex = forwards ? 0 : nodesCount - 1;
+                targetSplineNode = Spline.SplineNodes[targetSplineNodeIndex];
             }
 
-            SetNextTarget();
+            bezierPointsToTraverse = forwards ? originSplineNode.GetBezierPoints() : targetSplineNode.GetBezierPoints();
+            bezierPointIndex = forwards ? bezierPointIndex = 1 : bezierPointsToTraverse.Length - 1;
+
+            SetNextTarget(targetSplineNodeIndex);
         }
     }
 }

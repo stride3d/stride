@@ -177,9 +177,9 @@ namespace Stride.Engine.Splines.Models
         /// </summary>
         /// <param name="originPosition">A Vector3 world position </param>
         /// <returns></returns>
-        public ClosestPointInfo GetClosestPointOnCurve(Vector3 originPosition)
+        public SplinePositionInfo GetClosestPointOnCurve(Vector3 originPosition)
         {
-            ClosestPointInfo info = null;
+            SplinePositionInfo info = null;
             for (var i = 0; i < bezierPointCount; i++)
             {
                 var currentBezierPoint = GetBezierPoints()[i];
@@ -187,8 +187,9 @@ namespace Stride.Engine.Splines.Models
 
                 if (info == null || curSplinePointDistance < info.DistanceToOrigin)
                 {
-                    info ??= new ClosestPointInfo();
+                    info ??= new SplinePositionInfo();
                     info.ClosestBezierPoint = currentBezierPoint;
+                    info.Position = currentBezierPoint.Position;
                     info.ClosestBezierPointIndex = i;
                     info.DistanceToOrigin = curSplinePointDistance;
                     info.LengthOnCurve = currentBezierPoint.TotalLengthOnCurve;

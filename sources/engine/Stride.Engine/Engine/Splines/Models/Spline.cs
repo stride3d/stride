@@ -177,9 +177,9 @@ namespace Stride.Engine.Splines.Models
             return splinePositionInfo;
         }
 
-        public ClosestPointInfo GetClosestPointOnSpline(Vector3 originalPosition)
+        public SplinePositionInfo GetClosestPointOnSpline(Vector3 originalPosition)
         {
-            ClosestPointInfo currentClosestPoint = null;
+            SplinePositionInfo currentClosestPoint = null;
             for (var i = 0; i < splineNodes.Count; i++)
             {
                 if (!Loop && i == splineNodes.Count - 1)

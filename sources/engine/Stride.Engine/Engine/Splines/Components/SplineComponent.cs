@@ -124,7 +124,7 @@ namespace Stride.Engine.Splines.Components
             return Spline.GetPositionOnSpline(percentage);
         }
 
-        public ClosestPointInfo GetClosestPointOnSpline(Vector3 originPosition)
+        public SplinePositionInfo GetClosestPointOnSpline(Vector3 originPosition)
         {
             return Spline.GetClosestPointOnSpline(originPosition);
         }
