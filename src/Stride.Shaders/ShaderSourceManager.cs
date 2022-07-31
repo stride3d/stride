@@ -24,11 +24,15 @@ public class ShaderSourceManager
         {
             Directory.EnumerateFiles(p,"*.sdsl",SearchOption.AllDirectories)
             .Select(x => new ShaderSourceWithHash{ Path = x, Source = File.ReadAllText(x)})
-            .ToList().ForEach(_ => shaders.Add(_));
+            .ToList().ForEach(AddShaderSource);
         }
     }
 
-
+    public void AddShaderSource(ShaderSourceWithHash source)
+    {
+        loadedShaderSources[Path.GetFileNameWithoutExtension(source.Path)] = source;
+        classNameToPath[Path.GetFileNameWithoutExtension(source.Path)] = source.Path;
+    }
     public void AddShaderSource(string className, string source, string path)
     {
         var shaderSource = new ShaderSourceWithHash { Path = path, Source = source };

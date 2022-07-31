@@ -7,6 +7,30 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
+public class ShaderStructField : ShaderToken
+{
+    public string Type {get;set;}
+    public string Name {get;set;}
+    
+
+    public ShaderStructField(Match m)
+    {
+        Match = m;        
+    }
+}
+
+public class ShaderStruct : ShaderToken
+{
+    public IEnumerable<ShaderToken> Fields {get;set;}
+
+    public ShaderStruct(Match m)
+    {
+        Match = m;
+        Fields = m["Fields"].Matches.Select(GetToken).ToList();
+        
+    }
+}
+
 public class ResourceGroup : ShaderToken
 {
     public IEnumerable<ShaderToken> Variables {get;set;}

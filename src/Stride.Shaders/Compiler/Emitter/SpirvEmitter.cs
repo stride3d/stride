@@ -12,17 +12,24 @@ namespace Stride.Shaders.Spirv;
 
 public partial class SpirvEmitter : Module
 {
+    public Dictionary<string,Instruction> ShaderTypes {get;set;}
+
     public SpirvEmitter(uint version) : base(version)
     {
-
+        ShaderTypes = new();
+        CreateNativeTypes();
     }
 
-    public void Construct(ShaderClassString code, EntryPoints entry)
+    public void Construct(ShaderProgram program, EntryPoints entry)
     {
         AddCapability(Capability.Shader);
         SetMemoryModel(AddressingModel.Logical, MemoryModel.Simple);
         
         // Create all user defined types
+
+        // Create stream types
+
+        CreateStreamStructs(program);
 
         // Manage input output and stream
 
