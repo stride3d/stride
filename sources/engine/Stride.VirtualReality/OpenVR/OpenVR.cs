@@ -326,7 +326,8 @@ namespace Stride.VirtualReality
                     currentIndex++;
                 }
             }
-            velocity = angVelocity = default;
+            velocity = default;
+            angVelocity = default;
             return DeviceState.Invalid;
         }
 
