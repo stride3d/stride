@@ -128,5 +128,10 @@ namespace Stride.Engine.Splines.Components
         {
             return Spline.GetClosestPointOnSpline(originPosition);
         }
+
+        ~SplineComponent()
+        {
+            spline = null;
+        }
     }
 }

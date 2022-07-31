@@ -58,9 +58,9 @@ namespace Stride.Engine.Splines.Components
         }
 
         /// <summary>
-        /// The speed at which the traverser moves over the spline
-        /// Use a negative value, to go in to the opposite direction
-        /// Note: Using a high value, can cause jitters. With a higher speed value, it is recommended to reduced the amount of spline points
+        /// The speed at which the traverser moves over the spline. Use a negative value, to go in to the opposite direction
+        /// Note: Using a high value, can cause jitters. 
+        /// With a higher speed value, it is recommended to reduced the amount of spline points or segments
         /// </summary>
         [Display(20, "Speed")]
         public float Speed
@@ -96,6 +96,11 @@ namespace Stride.Engine.Splines.Components
         internal void Update(TransformComponent transformComponent)
         {
 
+        }
+
+        ~SplineTraverserComponent()
+        {
+            splineTraverser = null;
         }
     }
 }

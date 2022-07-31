@@ -78,5 +78,10 @@ namespace Stride.Engine.Splines.Components
         {
             return SplineNode.GetBezierPoints();
         }
+
+        ~SplineNodeComponent()
+        {
+            splineNode = null;
+        }
     }
 }
