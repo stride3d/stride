@@ -97,14 +97,16 @@ namespace Stride.Graphics
                     usedBindingCount++;
                 }
 
-                var createInfo = new VkDescriptorSetLayoutCreateInfo
-                {
-                    sType = VkStructureType.DescriptorSetLayoutCreateInfo,
-                    bindingCount = (uint)usedBindingCount,
-                    pBindings = usedBindingCount > 0 ? (VkDescriptorSetLayoutBinding*)Core.Interop.Fixed(bindings) : null,
-                };
-                vkCreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout);
-                return descriptorSetLayout;
+                fixed (VkDescriptorSetLayoutBinding* fBindings = bindings) {
+                    var createInfo = new VkDescriptorSetLayoutCreateInfo
+                    {
+                        sType = VkStructureType.DescriptorSetLayoutCreateInfo,
+                        bindingCount = (uint)usedBindingCount,
+                        pBindings = usedBindingCount > 0 ? fBindings : null,
+                    };
+                    vkCreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout);
+                    return descriptorSetLayout;
+                }
             }
         }
     }

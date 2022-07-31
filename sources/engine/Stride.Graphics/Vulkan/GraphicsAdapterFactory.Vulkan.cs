@@ -183,13 +183,14 @@ namespace Stride.Graphics
             try
             {
                 fixed (void* enabledExtensionNamesPointer = &enabledExtensionNames[0])
+                fixed (void* fEnabledLayerNames = enabledLayerNames)
                 {
                     var instanceCreateInfo = new VkInstanceCreateInfo
                     {
                         sType = VkStructureType.InstanceCreateInfo,
                         pApplicationInfo = &applicationInfo,
                         enabledLayerCount = enabledLayerNames != null ? (uint)enabledLayerNames.Length : 0,
-                        ppEnabledLayerNames = enabledLayerNames?.Length > 0 ? (byte**)Core.Interop.Fixed(enabledLayerNames) : null,
+                        ppEnabledLayerNames = enabledLayerNames?.Length > 0 ? (byte**)fEnabledLayerNames : null,
                         enabledExtensionCount = (uint)enabledExtensionNames.Length,
                         ppEnabledExtensionNames = (byte**)enabledExtensionNamesPointer,
                     };

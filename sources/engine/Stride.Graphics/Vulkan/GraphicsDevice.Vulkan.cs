@@ -315,17 +315,19 @@ namespace Stride.Graphics
 
             try
             {
-                var deviceCreateInfo = new VkDeviceCreateInfo
-                {
-                    sType = VkStructureType.DeviceCreateInfo,
-                    queueCreateInfoCount = 1,
-                    pQueueCreateInfos = &queueCreateInfo,
-                    enabledExtensionCount = (uint)enabledExtensionNames.Length,
-                    ppEnabledExtensionNames = enabledExtensionNames.Length > 0 ? (byte**)Core.Interop.Fixed(enabledExtensionNames) : null,
-                    pEnabledFeatures = &enabledFeature,
-                };
+                fixed (void* fEnabledExtensionNames = enabledExtensionNames) {
+                    var deviceCreateInfo = new VkDeviceCreateInfo
+                    {
+                        sType = VkStructureType.DeviceCreateInfo,
+                        queueCreateInfoCount = 1,
+                        pQueueCreateInfos = &queueCreateInfo,
+                        enabledExtensionCount = (uint)enabledExtensionNames.Length,
+                        ppEnabledExtensionNames = enabledExtensionNames.Length > 0 ? (byte**)fEnabledExtensionNames : null,
+                        pEnabledFeatures = &enabledFeature,
+                    };
 
-                vkCreateDevice(NativePhysicalDevice, &deviceCreateInfo, null, out nativeDevice);
+                    vkCreateDevice(NativePhysicalDevice, &deviceCreateInfo, null, out nativeDevice);
+                }
             }
             finally
             {
@@ -771,15 +773,17 @@ namespace Stride.Graphics
                 .Where(size => size.descriptorCount > 0)
                 .ToArray();
 
-            var descriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo
-            {
-                sType = VkStructureType.DescriptorPoolCreateInfo,
-                poolSizeCount = (uint)poolSizes.Length,
-                pPoolSizes = (VkDescriptorPoolSize*)Core.Interop.Fixed(poolSizes),
-                maxSets = GraphicsDevice.MaxDescriptorSetCount,
-            };
-            vkCreateDescriptorPool(GraphicsDevice.NativeDevice, &descriptorPoolCreateInfo, null, out var descriptorPool);
-            return descriptorPool;
+            fixed (VkDescriptorPoolSize* fPoolSizes = poolSizes) {
+                var descriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo
+                {
+                    sType = VkStructureType.DescriptorPoolCreateInfo,
+                    poolSizeCount = (uint)poolSizes.Length,
+                    pPoolSizes = fPoolSizes,
+                    maxSets = GraphicsDevice.MaxDescriptorSetCount,
+                };
+                vkCreateDescriptorPool(GraphicsDevice.NativeDevice, &descriptorPoolCreateInfo, null, out var descriptorPool);
+                return descriptorPool;
+            }
         }
 
         protected override void ResetObject(VkDescriptorPool obj)
