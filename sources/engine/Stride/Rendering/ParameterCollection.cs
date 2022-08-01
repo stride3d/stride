@@ -326,12 +326,14 @@ namespace Stride.Rendering
             // Align to float4
             var stride = (Unsafe.SizeOf<T>() + 15) & ~15;
             var sizeInBytes = sourceParameter.Count * stride;
+            Debug.Assert((uint)sizeInBytes <= (uint)Math.Min(DataValues.Length, destination.DataValues.Length));
             fixed (byte* sourceDataValues = DataValues)
             fixed (byte* destDataValues = destination.DataValues)
             {
-                var sourcePtr = sourceDataValues + sourceParameter.Offset;
-                var destPtr = destDataValues + destParameter.Offset;
-                Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)sizeInBytes);
+                Unsafe.CopyBlockUnaligned(
+                    destination: destDataValues + destParameter.Offset,
+                    source: sourceDataValues + sourceParameter.Offset,
+                    (uint)sizeInBytes);
             }
         }
 
@@ -583,17 +585,21 @@ namespace Stride.Rendering
 
             // Update default values
             var bufferOffset = 0;
-            foreach (var layoutParameterKeyInfo in layoutParameterKeyInfos)
-            {
-                if (layoutParameterKeyInfo.Offset != -1)
+            fixed (byte* newDataValuesPtr = newDataValues) {
+                foreach (var layoutParameterKeyInfo in layoutParameterKeyInfos)
                 {
-                    // It's data
-                    // TODO: Set default value
-                    var defaultValueMetadata = layoutParameterKeyInfo.Key?.DefaultValueMetadata;
-                    if (defaultValueMetadata != null)
+                    if (layoutParameterKeyInfo.Offset != -1)
                     {
-                        fixed (byte* newDataValuesPtr = newDataValues)
-                            defaultValueMetadata.WriteBuffer((IntPtr)newDataValuesPtr + bufferOffset + layoutParameterKeyInfo.Offset, 16);
+                        // It's data
+                        // TODO: Set default value
+                        var defaultValueMetadata = layoutParameterKeyInfo.Key?.DefaultValueMetadata;
+                        if (defaultValueMetadata != null)
+                        {
+                            const int size = 16;
+                            var offset = bufferOffset + layoutParameterKeyInfo.Offset;
+                            Debug.Assert((uint)offset + (uint)size <= (uint)newDataValues.Length);
+                            defaultValueMetadata.WriteBuffer((nint)newDataValuesPtr + offset, size);
+                        }
                     }
                 }
             }
@@ -612,12 +618,16 @@ namespace Stride.Rendering
                     Debug.Assert((newTotalSize | totalSize) >= 0);
 
                     // It's data
-                    fixed (byte* dataValues = DataValues)
-                    fixed (byte* newDataValuesPtr = newDataValues)
+                    fixed (byte* src = DataValues)
+                    fixed (byte* dst = newDataValues) {
+                        var byteCount = (uint)Math.Min(newTotalSize, totalSize);
+                        Debug.Assert((uint)newParameterKeyInfo.Offset + byteCount <= (uint)newDataValues.Length);
+                        Debug.Assert((uint)parameterKeyInfo.Offset + byteCount <= (uint)DataValues.Length);
                         Unsafe.CopyBlockUnaligned(
-                            destination: newDataValuesPtr + newParameterKeyInfo.Offset,
-                            source: dataValues + parameterKeyInfo.Offset,
-                            byteCount: (uint)Math.Min(newTotalSize, totalSize));
+                            destination: dst + newParameterKeyInfo.Offset,
+                            source: src + parameterKeyInfo.Offset,
+                            byteCount);
+                    }
 
                 }
                 else if (newParameterKeyInfo.BindingSlot != -1)

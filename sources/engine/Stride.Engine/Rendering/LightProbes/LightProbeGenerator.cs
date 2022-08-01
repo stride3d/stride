@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Stride.Core;
 using Stride.Core.Collections;
@@ -119,23 +120,24 @@ namespace Stride.Rendering.LightProbes
 
             var lightProbePositions = new FastList<Vector3>();
             var lightProbeCoefficients = new Color3[lightProbes.Count * LambertHamonicOrder * LambertHamonicOrder];
-            fixed (Color3* destColors = lightProbeCoefficients)
+            var destColors = lightProbeCoefficients.AsSpan();
+
+            for (var lightProbeIndex = 0; lightProbeIndex < lightProbes.Count; lightProbeIndex++)
             {
-                for (var lightProbeIndex = 0; lightProbeIndex < lightProbes.Count; lightProbeIndex++)
+                var lightProbe = lightProbes[lightProbeIndex];
+
+                // Copy light position
+                lightProbePositions.Add(lightProbe.Entity.Transform.WorldMatrix.TranslationVector);
+
+                // Copy coefficients
+                if (lightProbe.Coefficients != null)
                 {
-                    var lightProbe = lightProbes[lightProbeIndex];
-
-                    // Copy light position
-                    lightProbePositions.Add(lightProbe.Entity.Transform.WorldMatrix.TranslationVector);
-
-                    // Copy coefficients
-                    if (lightProbe.Coefficients != null)
+                    var lightProbeCoefStart = lightProbeIndex * LambertHamonicOrder * LambertHamonicOrder;
+                    for (var index = 0; index < LambertHamonicOrder * LambertHamonicOrder; index++)
                     {
-                        var lightProbeCoefStart = lightProbeIndex * LambertHamonicOrder * LambertHamonicOrder;
-                        for (var index = 0; index < LambertHamonicOrder * LambertHamonicOrder; index++)
-                        {
-                            destColors[lightProbeCoefStart + index] = index < lightProbe.Coefficients.Count ? lightProbe.Coefficients[index] : new Color3();
-                        }
+                        // TODO: PERF: will do bounds checks; if can be proven outside the loop that this is guaranteed inside bounds,
+                        // use Unsafe.Add(ref T) on the origin obtained from ref T Span<T>.GetPinnableReference()
+                        destColors[lightProbeCoefStart + index] = index < lightProbe.Coefficients.Count ? lightProbe.Coefficients[index] : new Color3();
                     }
                 }
             }

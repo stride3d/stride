@@ -45,7 +45,7 @@ namespace Stride.Extensions
             var stride = vertexBuffer.Stride;
             var newVertices = new byte[stride * indexBuffer.Count];
 
-            fixed (byte* newVerticesStart = newVertices)
+            fixed (byte* newVerticesStart = &newVertices[0]) // throw for null or empty
             fixed (byte* indexBufferStart = &indexBuffer.Buffer.GetDataSafe()[indexBuffer.Offset])
             fixed (byte* vertexBufferStart = &vertexBuffer.Buffer.GetDataSafe()[indexBuffer.Offset])
             {

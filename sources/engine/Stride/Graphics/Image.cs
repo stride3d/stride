@@ -535,18 +535,16 @@ namespace Stride.Graphics
             if (buffer == null)
                 throw new ArgumentNullException("buffer");
 
-            int size = buffer.Length;
-
             // If buffer is allocated on Larget Object Heap, then we are going to pin it instead of making a copy.
-            if (size > (85 * 1024))
+            if (buffer.Length > (85 * 1024))
             {
                 var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                return Load(handle.AddrOfPinnedObject(), size, false, handle, loadAsSRGB);
+                return Load(handle.AddrOfPinnedObject(), buffer.Length, false, handle, loadAsSRGB);
             }
 
             fixed (void* pbuffer = buffer)
             {
-                return Load((IntPtr)pbuffer, size, true, loadAsSRGB);
+                return Load((IntPtr)pbuffer, buffer.Length, true, loadAsSRGB);
             }
         }
 

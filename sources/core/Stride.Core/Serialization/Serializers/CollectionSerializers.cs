@@ -327,7 +327,7 @@ namespace Stride.Core.Serialization.Serializers
         public override unsafe void Serialize(ref T[] obj, ArchiveMode mode, SerializationStream stream)
         {
             var size = obj.Length * elementSize;
-            fixed (void* ptr = obj) {
+            fixed (void* ptr = &obj[0]) {
                 if (mode == ArchiveMode.Deserialize)
                 {
                     stream.NativeStream.Read((nint)ptr, size);

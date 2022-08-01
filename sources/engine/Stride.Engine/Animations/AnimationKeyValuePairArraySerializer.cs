@@ -37,11 +37,8 @@ namespace Stride.Animations
             if (mode == ArchiveMode.Deserialize)
             {
                 var rawData = stream.ReadBytes(Unsafe.SizeOf<AnimationKeyValuePair<T>>() * obj.Length);
-                fixed (void* rawDataPtr = rawData)
-                {
-                    var destination = MemoryMarshal.AsBytes(obj.AsSpan());
-                    rawData.AsSpan().CopyTo(destination);
-                }
+                var destination = MemoryMarshal.AsBytes(obj.AsSpan());
+                rawData.AsSpan().CopyTo(destination);
             }
             else if (mode == ArchiveMode.Serialize)
             {

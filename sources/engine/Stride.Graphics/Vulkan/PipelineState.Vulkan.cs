@@ -48,7 +48,7 @@ namespace Stride.Graphics
         private unsafe void Recreate()
         {
             // Note: important to pin this so that stages[x].Name is valid during this whole function
-            fixed (void* defaultEntryPointData = defaultEntryPoint)
+            fixed (void* defaultEntryPointData = defaultEntryPoint) // null if array is empty or null
                 RecreateInner();
         }
         private unsafe void RecreateInner()
@@ -157,9 +157,7 @@ namespace Stride.Graphics
                 viewportCount = 1,
             };
 
-            // TODO: Verify `(array.Length == 0) == (fixed (T* f = array) f == null)`;
-            // testing in C# interactive suggests that is the case,
-            // but https://source.dot.net/#System.Private.CoreLib/src/System/Runtime/InteropServices/MemoryMarshal.CoreCLR.cs,24 suggests otherwise
+            // fixed yields null if array is empty or null
             fixed (VkDynamicState* dynamicStatesPointer = dynamicStates)
             fixed (VkVertexInputAttributeDescription* fInputAttributes = inputAttributes)
             fixed (VkVertexInputBindingDescription* fInputBindings = inputBindings)
@@ -170,16 +168,16 @@ namespace Stride.Graphics
                 {
                     sType = VkStructureType.PipelineVertexInputStateCreateInfo,
                     vertexAttributeDescriptionCount = (uint)inputAttributeCount,
-                    pVertexAttributeDescriptions = inputAttributes.Length > 0 ? fInputAttributes : null,
+                    pVertexAttributeDescriptions = fInputAttributes,
                     vertexBindingDescriptionCount = (uint)inputBindingCount,
-                    pVertexBindingDescriptions = inputBindings.Length > 0 ? fInputBindings : null,
+                    pVertexBindingDescriptions = fInputBindings,
                 };
 
                 var colorBlendState = new VkPipelineColorBlendStateCreateInfo
                 {
                     sType = VkStructureType.PipelineColorBlendStateCreateInfo,
                     attachmentCount = (uint)renderTargetCount,
-                    pAttachments = colorBlendAttachments.Length > 0 ? fColorBlendAttachments : null,
+                    pAttachments = fColorBlendAttachments,
                 };
 
                 var dynamicState = new VkPipelineDynamicStateCreateInfo
@@ -280,6 +278,7 @@ namespace Stride.Graphics
                 };
             }
 
+            // fixed yields null if array is empty or null
             fixed (VkAttachmentReference* fColorAttachmentReferences = colorAttachmentReferences)
             fixed (VkAttachmentDescription* fAttachments = attachments) {
                 var depthAttachmentReference = new VkAttachmentReference
@@ -292,7 +291,7 @@ namespace Stride.Graphics
                 {
                     pipelineBindPoint = VkPipelineBindPoint.Graphics,
                     colorAttachmentCount = (uint)renderTargetCount,
-                    pColorAttachments = colorAttachmentReferences.Length > 0 ? fColorAttachmentReferences : null,
+                    pColorAttachments = fColorAttachmentReferences,
                     pDepthStencilAttachment = hasDepthStencilAttachment ? &depthAttachmentReference : null,
                 };
 
@@ -300,7 +299,7 @@ namespace Stride.Graphics
                 {
                     sType = VkStructureType.RenderPassCreateInfo,
                     attachmentCount = (uint)attachmentCount,
-                    pAttachments = attachments.Length > 0 ? fAttachments : null,
+                    pAttachments = fAttachments,
                     subpassCount = 1,
                     pSubpasses = &subpass,
                 };

@@ -206,7 +206,9 @@ namespace Stride.Core.Storage
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte[] buffer, int offset, int count)
         {
-            Debug.Assert((uint)offset < (uint)buffer.Length && (uint)count <= (uint)buffer.Length && (uint)offset + (uint)count <= (uint)buffer.Length);
+            Debug.Assert(
+                (uint)(offset | count) <= (uint)buffer.Length &&
+                (uint)offset + (uint)count <= (uint)buffer.Length);
 #if NET5_0_OR_GREATER
             ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(buffer), offset);
 #else // AssemblyProcessor
@@ -248,7 +250,9 @@ namespace Stride.Core.Storage
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T[] buffer, int offset, int count) where T : struct
         {
-            Debug.Assert((uint)offset < (uint)buffer.Length && (uint)count <= (uint)buffer.Length && (uint)offset + (uint)count <= (uint)buffer.Length);
+            Debug.Assert(
+                (uint)(offset | count) <= (uint)buffer.Length &&
+                (uint)offset + (uint)count <= (uint)buffer.Length);
 #if NET5_0_OR_GREATER
             ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(buffer), offset);
 #else // AssemblyProcessor

@@ -72,11 +72,13 @@ namespace Stride.Core.IO
         /// <inheritdoc/>
         public override unsafe int Read(byte[] buffer, int offset, int count)
         {
-            Debug.Assert((uint)offset < (uint)buffer.Length && (uint)count <= (uint)buffer.Length && (uint)offset + (uint)count <= (uint)buffer.Length);
+            Debug.Assert(
+                (uint)(offset | count) <= (uint)buffer.Length &&
+                (uint)offset + (uint)count <= (uint)buffer.Length);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 count = bytesLeft;
-            fixed (byte* pinned = buffer)
+            fixed (byte* pinned = &buffer[0])
                 Unsafe.CopyBlockUnaligned(pinned + offset, dataCurrent, (uint)count);
             dataCurrent += count;
             return count;
@@ -85,12 +87,14 @@ namespace Stride.Core.IO
         /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
-            Debug.Assert((uint)offset < (uint)buffer.Length && (uint)count <= (uint)buffer.Length && (uint)offset + (uint)count <= (uint)buffer.Length);
+            Debug.Assert(
+                (uint)(offset | count) <= (uint)buffer.Length &&
+                (uint)offset + (uint)count <= (uint)buffer.Length);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
                 throw new InvalidOperationException("Buffer too small");
 
-            fixed (byte* pinned = buffer)
+            fixed (byte* pinned = &buffer[0])
                 Unsafe.CopyBlockUnaligned(dataCurrent, pinned + offset, (uint)count);
             dataCurrent += count;
         }

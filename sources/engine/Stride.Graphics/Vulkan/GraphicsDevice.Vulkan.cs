@@ -291,9 +291,9 @@ namespace Stride.Graphics
             var availableExtensionNames = new List<string>();
             var desiredExtensionNames = new List<string>();
 
-            for (int index = 0; index < extensionProperties.Length; index++)
+            fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
             {
-                fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
+                for (int index = 0; index < extensionProperties.Length; index++)
                 {
                     var namePointer = new IntPtr(extensionPropertiesPtr[index].extensionName);
                     var name = Marshal.PtrToStringAnsi(namePointer);
@@ -315,6 +315,7 @@ namespace Stride.Graphics
 
             try
             {
+                // fixed yields null if array is empty or null
                 fixed (void* fEnabledExtensionNames = enabledExtensionNames) {
                     var deviceCreateInfo = new VkDeviceCreateInfo
                     {
@@ -322,7 +323,7 @@ namespace Stride.Graphics
                         queueCreateInfoCount = 1,
                         pQueueCreateInfos = &queueCreateInfo,
                         enabledExtensionCount = (uint)enabledExtensionNames.Length,
-                        ppEnabledExtensionNames = enabledExtensionNames.Length > 0 ? (byte**)fEnabledExtensionNames : null,
+                        ppEnabledExtensionNames = (byte**)fEnabledExtensionNames,
                         pEnabledFeatures = &enabledFeature,
                     };
 
@@ -773,7 +774,7 @@ namespace Stride.Graphics
                 .Where(size => size.descriptorCount > 0)
                 .ToArray();
 
-            fixed (VkDescriptorPoolSize* fPoolSizes = poolSizes) {
+            fixed (VkDescriptorPoolSize* fPoolSizes = poolSizes) { // null if array is empty or null
                 var descriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo
                 {
                     sType = VkStructureType.DescriptorPoolCreateInfo,

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Diagnostics;
 using Stride.Core.Native;
 
 namespace Stride.Core.LZ4.Services
@@ -11,6 +12,14 @@ namespace Stride.Core.LZ4.Services
 
         public unsafe int Decode(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset, int outputLength, bool knownOutputLength)
         {
+            var length = (uint)(input?.Length ?? 0);
+            Debug.Assert(
+                (uint)(inputOffset | inputLength) <= length &&
+                (uint)inputOffset + (uint)inputLength <= length);
+            length = (uint)(output?.Length ?? 0);
+            Debug.Assert(
+                (uint)(outputOffset | outputLength) <= length &&
+                (uint)outputOffset + (uint)outputLength <= length);
             fixed (byte* pInput = input)
             fixed (byte* pOutput = output)
             {
@@ -27,6 +36,14 @@ namespace Stride.Core.LZ4.Services
 
         public unsafe int Encode(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset, int outputLength)
         {
+            var length = (uint)(input?.Length ?? 0);
+            Debug.Assert(
+                (uint)(inputOffset | inputLength) <= length &&
+                (uint)inputOffset + (uint)inputLength <= length);
+            length = (uint)(output?.Length ?? 0);
+            Debug.Assert(
+                (uint)(outputOffset | outputLength) <= length &&
+                (uint)outputOffset + (uint)outputLength <= length);
             fixed (byte* pInput = input)
             fixed (byte* pOutput = output)
             {
@@ -36,6 +53,14 @@ namespace Stride.Core.LZ4.Services
 
         public unsafe int EncodeHC(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset, int outputLength)
         {
+            var length = (uint)(input?.Length ?? 0);
+            Debug.Assert(
+                (uint)(inputOffset | inputLength) <= length &&
+                (uint)inputOffset + (uint)inputLength <= length);
+            length = (uint)(output?.Length ?? 0);
+            Debug.Assert(
+                (uint)(outputOffset | outputLength) <= length &&
+                (uint)outputOffset + (uint)outputLength <= length);
             fixed (byte* pInput = input)
             fixed (byte* pOutput = output)
             {

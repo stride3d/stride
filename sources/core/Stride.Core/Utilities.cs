@@ -114,7 +114,7 @@ namespace Stride.Core
         [Obsolete("Use fixed statement with `unmanaged` type constraint. See https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/fixed-statement")]
         public static unsafe void Pin<T>(T[] source, [NotNull] Action<nint> pinAction) where T : unmanaged
         {
-            if (source is null)
+            if ((source?.Length ?? 0) == 0)
                 pinAction(0);
             else
                 fixed (void* ptr = source)

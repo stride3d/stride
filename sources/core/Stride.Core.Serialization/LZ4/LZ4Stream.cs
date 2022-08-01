@@ -393,14 +393,18 @@ namespace Stride.Core.LZ4
 
 			var total = 0;
 
-			while (count > 0)
-			{
-				var chunk = Math.Min(count, bufferLength - bufferOffset);
-				if (chunk > 0)
+            if (count > 0 && (buffer?.Length ?? 0) == 0)
+                throw new ArgumentOutOfRangeException(offset > 0 ? nameof(offset) : nameof(count));
+            while (count > 0)
+            {
+                var chunk = Math.Min(count, bufferLength - bufferOffset);
+                if (chunk > 0)
                 {
+                    // fixed yields null if array is empty or null
                     fixed (byte* pSrc = dataBuffer)
                     fixed (byte* pDst = buffer)
                     {
+                        Debug.Assert(pSrc is not null);
                         Unsafe.CopyBlockUnaligned(pDst + offset, pSrc + bufferOffset, (uint)chunk);
                     }
 					bufferOffset += chunk;
@@ -433,6 +437,7 @@ namespace Stride.Core.LZ4
                 {
                     fixed (byte* pSrc = dataBuffer)
                     {
+                        Debug.Assert(pSrc is not null);
                         Unsafe.CopyBlockUnaligned((byte*)buffer + total, pSrc + bufferOffset, (uint)chunk);
                     }
                     bufferOffset += chunk;
@@ -526,7 +531,7 @@ namespace Stride.Core.LZ4
             Debug.Assert(
                 bufferLength >= 0 &&
                 (dataBuffer is null || (uint)bufferOffset + (uint)count <= (uint)bufferLength) &&
-                (uint)offset <= (uint)buffer.Length &&
+                (uint)(offset | count) <= (uint)buffer.Length &&
                 (uint)offset + (uint)count <= (uint)buffer.Length);
 			if (!CanWrite) throw NotSupported("Write");
 
@@ -547,6 +552,7 @@ namespace Stride.Core.LZ4
                     fixed (byte* pSrc = buffer)
                     fixed (byte* pDst = dataBuffer)
                     {
+                        Debug.Assert(pDst is not null);
                         Unsafe.CopyBlockUnaligned(pDst + bufferOffset, pSrc + offset, (uint)chunk);
                     }
 					offset += chunk;
@@ -583,6 +589,7 @@ namespace Stride.Core.LZ4
                 {
                     fixed (byte* pDst = dataBuffer)
                     {
+                        Debug.Assert(pDst is not null);
                         Unsafe.CopyBlockUnaligned(pDst + bufferOffset, (byte*)buffer + offset, (uint)chunk);
                     }
                     offset += chunk;

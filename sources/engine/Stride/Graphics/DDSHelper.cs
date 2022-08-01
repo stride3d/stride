@@ -1068,8 +1068,10 @@ namespace Stride.Graphics
                     for (int slice = 0; slice < depth; ++slice)
                     {
                         int pixsize = pixelBuffers[index].BufferStride;
-                        fixed (byte* pinned = buffer)
+                        Debug.Assert((uint)pixsize <= buffer.Length);
+                        fixed (byte* pinned = buffer) {
                             Unsafe.CopyBlockUnaligned(pinned, source: (void*)pixelBuffers[index].DataPointer, (uint)pixsize);
+                        }
                         stream.Write(buffer, 0, pixsize);
                         ++index;
                     }

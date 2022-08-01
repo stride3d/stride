@@ -29,9 +29,9 @@ namespace Stride.Navigation
         public Logger Logger;
 
         private NavigationMesh oldNavigationMesh;
-        
-        private List<StaticColliderData> colliders = new List<StaticColliderData>();
-        private HashSet<Guid> registeredGuids = new HashSet<Guid>();
+
+        private readonly List<StaticColliderData> colliders = new();
+        private readonly HashSet<Guid> registeredGuids = new();
 
         /// <summary>
         /// Initializes the builder, optionally with a previous navigation mesh when building incrementally
@@ -124,9 +124,11 @@ namespace Stride.Navigation
             lastCache = oldNavigationMesh?.Cache;
 
             // The new navigation mesh that will be created
-            result.NavigationMesh = new NavigationMesh();
-            result.NavigationMesh.CellSize = buildSettings.CellSize;
-            result.NavigationMesh.TileSize = buildSettings.TileSize;
+            result.NavigationMesh = new NavigationMesh
+            {
+                CellSize = buildSettings.CellSize,
+                TileSize = buildSettings.TileSize
+            };
 
             // Tile cache for this new navigation mesh
             NavigationMeshCache newCache = result.NavigationMesh.Cache = new NavigationMeshCache();
@@ -156,7 +158,7 @@ namespace Stride.Navigation
                     sceneNavigationMeshInputBuilder.AppendOther(BuildPlaneGeometry(plane, globalBoundingBox));
                 }
             }
-            
+
             // TODO: Generate tile local mesh input data
             var inputVertices = sceneNavigationMeshInputBuilder.Points.ToArray();
             var inputIndices = sceneNavigationMeshInputBuilder.Indices.ToArray();
@@ -260,13 +262,12 @@ namespace Stride.Navigation
                     result.NavigationMesh.LayersInternal.Add(currentGroup.Id, layer);
 
                     // Copy tiles from from the previous build into the current
-                    NavigationMeshLayer sourceLayer = null;
-                    if (oldNavigationMesh != null && oldNavigationMesh.LayersInternal.TryGetValue(currentGroup.Id, out sourceLayer))
+                    if (oldNavigationMesh != null && oldNavigationMesh.LayersInternal.TryGetValue(currentGroup.Id, out var sourceLayer))
                     {
                         foreach (var sourceTile in sourceLayer.Tiles)
                             layer.TilesInternal.Add(sourceTile.Key, sourceTile.Value);
                     }
-                    
+
                     foreach (var p in builtTiles)
                     {
                         if (p.Item2 == null)
@@ -285,9 +286,11 @@ namespace Stride.Navigation
                     // Add information about which tiles were updated to the result
                     if (tilesToBuild.Count > 0)
                     {
-                        var layerUpdateInfo = new NavigationMeshLayerUpdateInfo();
-                        layerUpdateInfo.GroupId = currentGroup.Id;
-                        layerUpdateInfo.UpdatedTiles = tilesToBuild.ToList();
+                        var layerUpdateInfo = new NavigationMeshLayerUpdateInfo
+                        {
+                            GroupId = currentGroup.Id,
+                            UpdatedTiles = tilesToBuild.ToList()
+                        };
                         result.UpdatedLayers.Add(layerUpdateInfo);
                     }
                 }
@@ -355,7 +358,7 @@ namespace Stride.Navigation
 
                 unsafe
                 {
-                    IntPtr builder = Navigation.CreateBuilder();
+                    var builder = Navigation.CreateBuilder();
 
                     // Turn build settings into native structure format
                     Navigation.BuildSettings internalBuildSettings = new Navigation.BuildSettings
@@ -382,15 +385,19 @@ namespace Stride.Navigation
                         AgentMaxSlope = agentSettings.MaxSlope.Degrees,
                     };
 
-                    Navigation.SetSettings(builder, new IntPtr(&internalBuildSettings));
-                    IntPtr buildResultPtr = Navigation.Build(builder, inputVertices, inputVertices.Length, inputIndices, inputIndices.Length);
-                    Navigation.GeneratedData* generatedDataPtr = (Navigation.GeneratedData*)buildResultPtr;
+                    Navigation.SetSettings(builder, &internalBuildSettings);
+                    Navigation.GeneratedData* generatedDataPtr;
+                    fixed (Vector3* fInputVertices = inputVertices)
+                    fixed (int* fInputIndices = inputIndices)
+                        generatedDataPtr = Navigation.Build(builder, fInputVertices, inputVertices?.Length ?? 0, fInputIndices, inputIndices?.Length ?? 0);
+
                     if (generatedDataPtr->Success && generatedDataPtr->NavmeshDataLength > 0)
                     {
-                        meshTile = new NavigationMeshTile();
-
-                        // Copy the generated navigationMesh data
-                        meshTile.Data = new byte[generatedDataPtr->NavmeshDataLength + sizeof(long)];
+                        meshTile = new NavigationMeshTile
+                        {
+                            // Copy the generated navigationMesh data
+                            Data = new byte[generatedDataPtr->NavmeshDataLength + sizeof(long)]
+                        };
                         Marshal.Copy(generatedDataPtr->NavmeshData, meshTile.Data, 0, generatedDataPtr->NavmeshDataLength);
 
                         // Append time stamp
@@ -532,10 +539,11 @@ namespace Stride.Navigation
                             var planeDesc = GetColliderShapeDesc<StaticPlaneColliderShapeDesc>(planeShape.Description);
                             Matrix transform = entityWorldMatrix;
 
-                            Plane plane = new Plane(planeDesc.Normal, planeDesc.Offset);
-
-                            // Pre-Transform plane parameters
-                            plane.Normal = Vector3.TransformNormal(planeDesc.Normal, transform);
+                            Plane plane = new Plane(planeDesc.Normal, planeDesc.Offset)
+                            {
+                                // Pre-Transform plane parameters
+                                Normal = Vector3.TransformNormal(planeDesc.Normal, transform)
+                            };
                             plane.Normal.Normalize();
                             plane.D += Vector3.Dot(transform.TranslationVector, plane.Normal);
 
@@ -562,7 +570,7 @@ namespace Stride.Navigation
                         {
                             var mesh = (StaticMeshColliderShape)shape;
                             Matrix transform = mesh.PositiveCenterMatrix * entityWorldMatrix;
-                            
+
                             mesh.GetMeshDataCopy(out var verts, out var indices);
 
                             // Convert hull indices to int
@@ -653,7 +661,7 @@ namespace Stride.Navigation
             // Extend bounding box for agent size
             BoundingBox boundingBoxToCheck = inputBuilder.BoundingBox;
             NavigationMeshBuildUtils.ExtendBoundingBox(ref boundingBoxToCheck, new Vector3(agentSettings.Radius));
-            
+
             List<Point> newTileList = NavigationMeshBuildUtils.GetOverlappingTiles(buildSettings, boundingBoxToCheck);
             foreach (Point p in newTileList)
             {
@@ -670,12 +678,9 @@ namespace Stride.Navigation
             float maxDiagonal = Math.Max(maxSize.X, Math.Max(maxSize.Y, maxSize.Z));
 
             // Generate source plane triangles
-            Vector3[] planePoints;
-            int[] planeInds;
-            NavigationMeshBuildUtils.BuildPlanePoints(ref plane, maxDiagonal, out planePoints, out planeInds);
+            NavigationMeshBuildUtils.BuildPlanePoints(ref plane, maxDiagonal, out var planePoints, out var planeInds);
 
-            Vector3 tangent, bitangent;
-            NavigationMeshBuildUtils.GenerateTangentBinormal(plane.Normal, out tangent, out bitangent);
+            NavigationMeshBuildUtils.GenerateTangentBinormal(plane.Normal, out var tangent, out var bitangent);
             // Calculate plane offset so that the plane always covers the whole range of the bounding box
             Vector3 planeOffset = Vector3.Dot(boundingBox.Center, tangent) * tangent;
             planeOffset += Vector3.Dot(boundingBox.Center, bitangent) * bitangent;
@@ -698,11 +703,9 @@ namespace Stride.Navigation
         /// </summary>
         private TColliderType GetColliderShapeDesc<TColliderType>(IColliderShapeDesc desc) where TColliderType : class, IColliderShapeDesc
         {
-            var direct = desc as TColliderType;
-            if (direct != null)
+            if (desc is TColliderType direct)
                 return direct;
-            var asset = desc as ColliderShapeAssetDesc;
-            if (asset == null)
+            if (desc is not ColliderShapeAssetDesc asset)
                 throw new Exception("Invalid collider shape description");
             return asset.Shape.Descriptions.First() as TColliderType;
         }
