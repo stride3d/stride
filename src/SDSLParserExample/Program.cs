@@ -24,7 +24,7 @@ static void LoadShaders()
     manager.AddDirectory("./SDSL/MixinSamples");
 
     var mixer = new SimpleMixer("SingleShader",manager);
-    mixer.EmitSpirv();
+    mixer.EmitSpirv(EntryPoints.VSMain);
     var x = 0;
 }
 

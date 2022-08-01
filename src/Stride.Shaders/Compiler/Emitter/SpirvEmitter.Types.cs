@@ -32,15 +32,22 @@ public partial class SpirvEmitter : Module
 
     public int Width(string v) => v switch {
         "sbyte" or "byte"=> 8,
-        "short" or "half" => 16,
-        "int" or "float" => 32,
-        "long" or "double" => 64,
+        "ushort" or "short" or "half" => 16,
+        "uint" or "int" or "float" => 32,
+        "ulong" or "long" or "double" => 64,
         _ => throw new NotImplementedException()
     };
 
 
     void CreateNativeTypes()
     {
+        ShaderTypes["bool"] = TypeBool();
+        for (int i = 1; i < 5; i++)
+            ShaderTypes["bool" + i] = TypeVector(ShaderTypes["bool"], i);
+        for (int i = 1; i < 5; i++)
+        for (int j = 1; j < 5; j++)
+            ShaderTypes["bool" + i + "x" + j] = TypeMatrix(ShaderTypes["bool"+i], j);
+                
         foreach(var t in nativeFloatTypes)
         {
             ShaderTypes[t] = TypeFloat(Width(t));

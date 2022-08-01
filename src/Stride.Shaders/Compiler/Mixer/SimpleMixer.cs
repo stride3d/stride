@@ -16,9 +16,9 @@ public class SimpleMixer
         program = ShaderMixinParser.ParseShader(source.ShaderSourceCode);
         il = new();
     }
-    public void EmitSpirv()
+    public void EmitSpirv(EntryPoints entry)
     {
         var spirv = new SpirvEmitter(455);
-        spirv.Construct(program,EntryPoints.PSMain);
+        spirv.Construct(program,entry);
     }
 }

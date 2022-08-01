@@ -53,29 +53,6 @@ public class ConstantBuffer : ShaderToken
 
     }
 }
-public class ShaderMethod : ShaderToken
-{
-    public bool IsStatic { get; set; }
-    public bool IsOverride { get; set; }
-    public bool IsStaged { get; set; }
-
-
-    public string Name { get; set; }
-    public string ReturnType { get; set; }
-    public IEnumerable<ShaderToken> ParameterList { get; set; }
-    public IEnumerable<Statement> Statements { get; set; }
-
-    public ShaderMethod(Match m)
-    {
-        Match = m;
-        IsStatic = m["Static"].Success;
-        IsOverride = m["Override"].Success;
-        IsStaged = m["Stage"].Success;
-        Name = m["MethodName"].StringValue;
-        ReturnType = m["ReturnType"].StringValue;
-        Statements = m["Statements"].Matches.Select(GetToken).Cast<Statement>().ToList();
-    }
-}
 
 public class ShaderVariableDeclaration : ShaderToken
 {

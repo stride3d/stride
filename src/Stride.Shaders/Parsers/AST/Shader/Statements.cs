@@ -11,9 +11,18 @@ using System.Threading.Tasks;
 namespace Stride.Shaders.Parsing.AST.Shader;
 
 
-public class Statement : ShaderToken 
+public abstract class Statement : ShaderToken 
 {
     public List<Register> LowCode {get;set;} = new();
+
+    public virtual IEnumerable<string> GetStreamValuesAssigned()
+    {
+        return Array.Empty<string>();
+    }
+    public virtual IEnumerable<string> GetStreamValuesUsed()
+    {
+        return Array.Empty<string>();
+    }
 }
 
 public class EmptyStatement : Statement {}
@@ -37,16 +46,23 @@ public class DeclareAssign : Statement
 public class AssignChain : Statement
 {
     public AssignOpToken AssignOp { get; set; }
-    public bool StreamValue { get; set; }
+    public bool StreamValue => AccessNames.Any() && AccessNames.First() == "streams";
     public IEnumerable<string> AccessNames { get; set; }
     public ShaderToken Value { get; set; }
     public AssignChain(Match m)
     {
         Match = m;
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
-        StreamValue = m.Matches.First().StringValue == "stream";
         AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue);
         Value = GetToken(m["PrimaryExpression"]);
+    }
+
+    public override IEnumerable<string> GetStreamValuesAssigned()
+    {
+        if(StreamValue)
+            return new List<string>(){AccessNames.ElementAt(1)};
+        else
+            return Array.Empty<string>();
     }
 
 }
@@ -64,10 +80,14 @@ public class ReturnStatement : Statement
 
 public class BlockStatement : Statement 
 {
-    public IEnumerable<ShaderToken> Statements {get;set;}
+    public IEnumerable<Statement> Statements {get;set;}
     public BlockStatement(Match m)
     {
         Match = m;
-        Statements = m.Matches.Select(GetToken).ToList();
+        Statements = m.Matches.Select(GetToken).Cast<Statement>().ToList();
+    }
+    public override IEnumerable<string> GetStreamValuesAssigned()
+    {
+        return Statements.SelectMany(x => x.GetStreamValuesAssigned());
     }
 }

@@ -9,7 +9,17 @@ using static Stride.Shaders.Parsing.AST.Shader.OperatorTokenExtensions;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
-public abstract class Projector : ShaderToken
+
+public class Expression : ShaderToken
+{
+    public virtual IEnumerable<string> GetVariableNamesUsed()
+    {
+        return Array.Empty<string>();
+    }
+}
+
+
+public abstract class Projector : Expression
 {
     public virtual string InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 }
@@ -321,15 +331,15 @@ public class ConditionalExpression : Projector
 }
 
 
-public class MethodCall : ShaderToken
+public class MethodCall : Expression
 {
     public string MethodName { get; set; }
-    public IEnumerable<ShaderToken> Parameters { get; set; }
+    public IEnumerable<Expression> Parameters { get; set; }
 
     public MethodCall(Match m)
     {
         Match = m;
         MethodName = m.Matches.First().StringValue;
-        Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(GetToken).ToList();
+        Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(GetToken).Cast<Expression>().ToList();
     }
 }

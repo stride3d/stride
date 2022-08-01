@@ -29,11 +29,11 @@ public partial class SpirvEmitter : Module
 
         // Create stream types
 
-        CreateStreamStructs(program);
+        CreateStreamStructs(program, entry);
 
         // Manage input output and stream
 
-        // Generate methods
+        // Generate methods()
         
     }
 }
