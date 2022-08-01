@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_PLATFORM_ANDROID
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Stride.Core;
@@ -15,7 +16,7 @@ namespace Stride.Graphics
     /// </summary>
     partial class StandardImageHelper
     {
-        public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
+        public static unsafe Image LoadFromMemory(nint pSource, int size, bool makeACopy, GCHandle? handle)
         {
             using (var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size))
             {
@@ -29,9 +30,8 @@ namespace Stride.Graphics
                     bitmap.Dispose();
                     bitmap = temp;
                 }
-                
+
                 var bitmapData = bitmap.LockPixels();
-                
                 var image = Image.New2D(bitmap.Width, bitmap.Height, 1, PixelFormat.B8G8R8A8_UNorm, 1, bitmap.RowBytes);
                 // Directly load image as RGBA instead of BGRA, because OpenGL ES devices don't support it out of the box (extension).
                 image.Description.Format = PixelFormat.R8G8B8A8_UNorm;
@@ -83,12 +83,14 @@ namespace Stride.Graphics
         private static void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream, Bitmap.CompressFormat imageFormat)
         {
             var colors = pixelBuffers[0].GetPixels<int>();
-
+            var source = colors.AsSpan();
             using (var bitmap = Bitmap.CreateBitmap(description.Width, description.Height, Bitmap.Config.Argb8888))
             {
                 var pixelData = bitmap.LockPixels();
                 var sizeToCopy = colors.Length * sizeof(int);
-
+                Debug.Assert(
+                    (description.Width | description.Height) >= 0 &&
+                    colors.Length <= checked(description.Width * description.Height));
                 unsafe
                 {
                     fixed (int* pSrc = colors)
@@ -100,7 +102,7 @@ namespace Stride.Graphics
                         }
                         else if (description.Format == PixelFormat.B8G8R8A8_UNorm || description.Format == PixelFormat.B8G8R8A8_UNorm_SRgb)
                         {
-                            Unsafe.CopyBlockUnaligned(pixelData, (nint)pSrc, sizeToCopy);
+                            Unsafe.CopyBlockUnaligned(pixelData, (nint)pSrc, (uint)sizeToCopy);
                         }
                         else
                         {
