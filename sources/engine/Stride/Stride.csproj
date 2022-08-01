@@ -10,7 +10,6 @@
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <!--<DefineConstants>$(DefineConstants);STRIDE_PLATFORM_ANDROID</DefineConstants>-->
   </PropertyGroup>
 
   <PropertyGroup>

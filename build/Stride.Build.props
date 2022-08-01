@@ -5,7 +5,6 @@
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11;Direct3D12</StrideGraphicsApis>
-    <StrideGraphicsApiDependentBuildAll>true</StrideGraphicsApiDependentBuildAll>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
   </PropertyGroup>
 </Project>
