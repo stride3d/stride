@@ -326,7 +326,10 @@ namespace Stride.Rendering
             // Align to float4
             var stride = (Unsafe.SizeOf<T>() + 15) & ~15;
             var sizeInBytes = sourceParameter.Count * stride;
-            Debug.Assert((uint)sizeInBytes <= (uint)Math.Min(DataValues.Length, destination.DataValues.Length));
+            Debug.Assert(
+                (destParameter.Offset | sourceParameter.Offset | sizeInBytes) >= 0 &&
+                (uint)sourceParameter.Offset + (uint)sizeInBytes <= (uint)(DataValues?.Length ?? 0) &&
+                (uint)destParameter.Offset + (uint)sizeInBytes <= (uint)(destination.DataValues?.Length ?? 0));
             fixed (byte* sourceDataValues = DataValues)
             fixed (byte* destDataValues = destination.DataValues)
             {
