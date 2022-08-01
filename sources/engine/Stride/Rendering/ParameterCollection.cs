@@ -595,10 +595,10 @@ namespace Stride.Rendering
                         var defaultValueMetadata = layoutParameterKeyInfo.Key?.DefaultValueMetadata;
                         if (defaultValueMetadata != null)
                         {
-                            const int size = 16;
+                            const int alignment = 16;
                             var offset = bufferOffset + layoutParameterKeyInfo.Offset;
-                            Debug.Assert((uint)offset + (uint)size <= (uint)newDataValues.Length);
-                            defaultValueMetadata.WriteBuffer((nint)newDataValuesPtr + offset, size);
+                            Debug.Assert((uint)offset <= (uint)newDataValues.Length);
+                            defaultValueMetadata.WriteBuffer((nint)newDataValuesPtr + offset, alignment);
                         }
                     }
                 }
