@@ -155,9 +155,8 @@ namespace Stride.Rendering
 
             // Compute size
             var elementSize = parameterKey.Size;
-            var totalSize = elementSize;
-            if (elementCount > 1)
-                totalSize += (elementSize + 15) / 16 * 16 * (elementCount - 1);
+            var totalSize = (elementSize + 15) & ~15;
+            if (elementCount != 1) totalSize *= elementCount;
 
             // Create offset entry
             var memberOffset = DataValues.Length;
