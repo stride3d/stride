@@ -306,7 +306,8 @@ namespace Stride.Graphics
                 });
             }
 
-            GraphicsDevice.NativeDevice.UpdateDescriptorSets(0, null, (uint)copies.Count, copies.Count > 0 ? (CopyDescriptorSet*)Interop.Fixed(copies.Items) : null);
+            fixed (CopyDescriptorSet* fCopiesItems = copies.Items)
+                GraphicsDevice.NativeDevice.UpdateDescriptorSets(0, null, (uint)copies.Count, fCopiesItems);
 #else
             var bindingCount = activePipeline.DescriptorBindingMapping.Count;
             var writes = stackalloc VkWriteDescriptorSet[bindingCount];

@@ -15,6 +15,8 @@ namespace Stride.Core.Serialization
         /// <inheritdoc/>
         public override unsafe void Serialize(ref string value)
         {
+            if (string.IsNullOrEmpty(value))
+                return;
             fixed (char* bufferStart = value)
             {
                 Serialize((IntPtr)bufferStart, sizeof(char) * value.Length);

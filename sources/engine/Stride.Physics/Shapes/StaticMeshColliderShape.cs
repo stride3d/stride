@@ -130,8 +130,7 @@ namespace Stride.Physics
                 for (var i = 0; i < nodesLength; i++)
                 {
                     var node = model.Skeleton.Nodes[i];
-                    Matrix localMatrix;
-                    Matrix.Transformation(ref node.Transform.Scale, ref node.Transform.Rotation, ref node.Transform.Position, out localMatrix);
+                    Matrix.Transformation(ref node.Transform.Scale, ref node.Transform.Rotation, ref node.Transform.Position, out var localMatrix);
 
                     Matrix worldMatrix;
                     if (node.ParentIndex != -1)
@@ -152,14 +151,14 @@ namespace Stride.Physics
                     }
                 }
             }
-            
+
             int totalVerts = 0, totalIndices = 0;
             foreach (var meshData in model.Meshes)
             {
                 totalVerts += meshData.Draw.VertexBuffers[0].Count;
                 totalIndices += meshData.Draw.IndexBuffer.Count;
             }
-            
+
             var combinedVerts = new List<Vector3>(totalVerts);
             var combinedIndices = new List<int>(totalIndices);
 
@@ -169,8 +168,8 @@ namespace Stride.Physics
                 var iBuffer = meshData.Draw.IndexBuffer.Buffer;
                 byte[] verticesBytes = TryFetchBufferContent(vBuffer, ref rawContent, sharedContent, dbProvider);
                 byte[] indicesBytes = TryFetchBufferContent(iBuffer, ref rawContent, sharedContent, dbProvider);
-                
-                if(verticesBytes == null || indicesBytes == null)
+
+                if((verticesBytes?.Length ?? 0) == 0 || (indicesBytes?.Length ?? 0) == 0)
                 {
                     throw new InvalidOperationException(
                         $"Failed to find mesh buffers while attempting to build a {nameof(StaticMeshColliderShape)}. " +
@@ -188,19 +187,17 @@ namespace Stride.Physics
                     for (int i = 0, vHead = vBindings.Offset; i < count; i++, vHead += stride)
                     {
                         var pos = *(Vector3*)(bytePtr + vHead);
-                        
                         if (nodeTransforms != null)
                         {
                             Matrix posMatrix = Matrix.Translation(pos);
-                            Matrix finalMatrix;
-                            Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out finalMatrix);
+                            Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
                             pos = finalMatrix.TranslationVector;
                         }
 
                         combinedVerts.Add(pos);
                     }
                 }
-                
+
                 fixed (byte* bytePtr = indicesBytes)
                 {
                     if (meshData.Draw.IndexBuffer.Is32Bit)
@@ -264,7 +261,7 @@ namespace Stride.Physics
                 var commandList = (CommandList)typeof(GraphicsDevice)
                     .GetField("InternalMainCommandList", flags)
                     .GetValue(buffer.GraphicsDevice);
-                
+
                 output = new byte[buffer.SizeInBytes];
                 fixed (byte* window = output)
                 {
@@ -277,8 +274,8 @@ namespace Stride.Physics
                     else
                     {
                         // inefficient way to use the Copy method using dynamic staging texture
-                        using (var throughStaging = buffer.ToStaging())
-                            buffer.GetData(commandList, throughStaging, ptr);
+                        using var throughStaging = buffer.ToStaging();
+                        buffer.GetData(commandList, throughStaging, ptr);
                     }
                 }
 

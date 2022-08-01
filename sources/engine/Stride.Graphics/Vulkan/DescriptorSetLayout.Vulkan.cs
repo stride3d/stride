@@ -97,7 +97,7 @@ namespace Stride.Graphics
                     usedBindingCount++;
                 }
 
-                fixed (VkDescriptorSetLayoutBinding* fBindings = bindings) {
+                fixed (VkDescriptorSetLayoutBinding* fBindings = bindings) { // null if array is empty or null
                     var createInfo = new VkDescriptorSetLayoutCreateInfo
                     {
                         sType = VkStructureType.DescriptorSetLayoutCreateInfo,

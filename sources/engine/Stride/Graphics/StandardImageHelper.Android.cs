@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Android.Graphics;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Graphics
 {
@@ -95,11 +96,11 @@ namespace Stride.Graphics
                         // Copy the memory
                         if (description.Format == PixelFormat.R8G8B8A8_UNorm || description.Format == PixelFormat.R8G8B8A8_UNorm_SRgb)
                         {
-                            CopyMemoryBGRA(pixelData, (IntPtr)pSrc, sizeToCopy);
+                            CopyMemoryBGRA(pixelData, (nint)pSrc, sizeToCopy);
                         }
                         else if (description.Format == PixelFormat.B8G8R8A8_UNorm || description.Format == PixelFormat.B8G8R8A8_UNorm_SRgb)
                         {
-                            Utilities.CopyMemory(pixelData, (IntPtr)pSrc, sizeToCopy);
+                            Unsafe.CopyBlockUnaligned(pixelData, (nint)pSrc, sizeToCopy);
                         }
                         else
                         {

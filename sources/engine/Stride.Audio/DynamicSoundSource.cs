@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -304,6 +305,7 @@ namespace Stride.Audio
         /// <param name="type">If this buffer is the last buffer of the stream set to true, if not false</param>
         protected unsafe void FillBuffer(short[] pcm, int bufferSize, AudioLayer.BufferType type)
         {
+            Debug.Assert((uint)bufferSize <= (uint)pcm.Length << 1);
             fixed (void* pcmBuffer = pcm)
             {
                 FillBuffer(new IntPtr(pcmBuffer), bufferSize, type);
@@ -317,6 +319,7 @@ namespace Stride.Audio
         /// <param name="type">If this buffer is the last buffer of the stream set to true, if not false</param>
         protected unsafe void FillBuffer(byte[] pcm, int bufferSize, AudioLayer.BufferType type)
         {
+            Debug.Assert((uint)bufferSize <= (uint)pcm.Length);
             fixed (void* pcmBuffer = pcm)
             {
                 FillBuffer(new IntPtr(pcmBuffer), bufferSize, type);

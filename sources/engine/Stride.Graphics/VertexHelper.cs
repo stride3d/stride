@@ -212,7 +212,7 @@ namespace Stride.Graphics
             fixed (void* vertexBufferPtr = vertexBufferData)
             fixed (void* indexBufferPtr = indexBuffer)
             {
-                return GenerateTangentBinormal(vertexDeclaration, (nint)vertexBufferPtr, vertexBufferData.Length, 0, vertexStride, (nint)indexBufferPtr, true, indexBuffer != null ? indexBuffer.Length : 0);
+                return GenerateTangentBinormal(vertexDeclaration, (nint)vertexBufferPtr, vertexBufferData.Length, 0, vertexStride, (nint)indexBufferPtr, true, indexBuffer?.Length ?? 0);
             }
         }
 

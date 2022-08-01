@@ -163,7 +163,7 @@ namespace Stride.Input
             }
             return Win32Native.CallWindowProc(oldWndProc, hWnd, msg, wParam, lParam);
         }
-        
+
         private unsafe string GetCompositionString(IntPtr context, int type)
         {
             int len = Win32Native.ImmGetCompositionString(context, type, IntPtr.Zero, 0);
@@ -171,7 +171,7 @@ namespace Stride.Input
 
             fixed (byte* dataPtr = data)
             {
-                Win32Native.ImmGetCompositionString(context, type, new IntPtr(dataPtr), len);
+                Win32Native.ImmGetCompositionString(context, type, (nint)dataPtr, len);
             }
 
             return Encoding.Unicode.GetString(data);

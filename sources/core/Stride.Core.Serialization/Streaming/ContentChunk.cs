@@ -97,7 +97,7 @@ namespace Stride.Core.Streaming
                 var buffer = new byte[bufferCapacity];
 
                 var count = (uint)Size;
-                fixed (byte* bufferStart = buffer)
+                fixed (byte* bufferStart = buffer) // null if array is empty or null
                 {
                     var chunkBytesPtr = (byte*)chunkBytes;
                     do
