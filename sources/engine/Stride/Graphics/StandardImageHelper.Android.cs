@@ -102,7 +102,7 @@ namespace Stride.Graphics
                         }
                         else if (description.Format == PixelFormat.B8G8R8A8_UNorm || description.Format == PixelFormat.B8G8R8A8_UNorm_SRgb)
                         {
-                            Unsafe.CopyBlockUnaligned(pixelData, (nint)pSrc, (uint)sizeToCopy);
+                            Unsafe.CopyBlockUnaligned((void*)pixelData, (void*)pSrc, (uint)sizeToCopy);
                         }
                         else
                         {
