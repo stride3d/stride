@@ -12,7 +12,7 @@ namespace Stride.Core.Serialization
     /// </summary>
     public class VirtualFileStream : NativeStream
     {
-        public Stream InternalStream { get; internal protected set; }
+        public Stream InternalStream { get; protected internal set; }
         protected VirtualFileStream virtualFileStream;
         protected readonly long startPosition;
         protected readonly long endPosition;
@@ -41,9 +41,9 @@ namespace Stride.Core.Serialization
         {
             this.disposeInternalStream = disposeInternalStream;
 
-            if (internalStream is VirtualFileStream)
+            if (internalStream is VirtualFileStream vfs)
             {
-                virtualFileStream = (VirtualFileStream)internalStream;
+                virtualFileStream = vfs;
                 internalStream = virtualFileStream.InternalStream;
                 startPosition += virtualFileStream.startPosition;
                 if (endPosition == -1)
@@ -73,7 +73,7 @@ namespace Stride.Core.Serialization
 
             if (disposeInternalStream && InternalStream != null)
             {
-                InternalStream.Dispose();   
+                InternalStream.Dispose();
             }
 
             InternalStream = null;
@@ -201,6 +201,17 @@ namespace Stride.Core.Serialization
             }
 
             InternalStream.Write(buffer, offset, count);
+        }
+
+        /// <inheritdoc/>
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (endPosition != -1 && buffer.Length > endPosition - InternalStream.Position)
+            {
+                throw new NotSupportedException("Can't write beyond end of stream.");
+            }
+
+            InternalStream.Write(buffer);
         }
 
         /// <inheritdoc/>
