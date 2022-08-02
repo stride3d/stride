@@ -155,8 +155,7 @@
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((nint)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
 <# if (supportsGenerics) { #>
@@ -242,7 +241,7 @@
                     if (hasTypeInfo)
                     {
                         Unsafe.SkipInit(out ObjectId serializationTypeId);
-                        stream.Serialize((nint)Unsafe.AsPointer(ref serializationTypeId), ObjectId.HashSize);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
 						if (objectDataSerializer is null)

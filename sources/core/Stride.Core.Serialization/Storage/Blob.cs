@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
@@ -34,12 +35,12 @@ namespace Stride.Core.Storage
             Unsafe.CopyBlockUnaligned((void*)this.content, (void*)content, (uint)size);
         }
 
-        internal Blob(ObjectDatabase objectDatabase, ObjectId objectId, NativeStream stream)
+        internal unsafe Blob(ObjectDatabase objectDatabase, ObjectId objectId, Stream stream)
             : this(objectDatabase, objectId)
         {
-            this.size = (int)stream.Length;
-            this.content = Marshal.AllocHGlobal(this.size);
-            stream.Read(this.content, this.size);
+            size = (int)stream.Length;
+            content = Marshal.AllocHGlobal(size);
+            stream.Read(new Span<byte>((void*)content, size));
         }
 
         /// <summary>
@@ -85,10 +86,7 @@ namespace Stride.Core.Storage
         /// </summary>
         /// It will keeps a reference to the <see cref="Blob"/> until disposed.
         /// <returns>A <see cref="NativeStream"/> over the <see cref="Content"/>.</returns>
-        public NativeStream GetContentStream()
-        {
-            return new BlobStream(this);
-        }
+        public Stream GetContentStream() => new BlobStream(this);
 
         /// <inheritdoc/>
         protected override void Destroy()

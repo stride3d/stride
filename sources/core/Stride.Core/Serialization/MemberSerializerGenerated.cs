@@ -16,14 +16,14 @@ namespace Stride.Core.Serialization
         {
             var context = stream.Context;
 
-            if (objType.GetTypeInfo().IsValueType)
+            if (objType.IsValueType)
             {
-                if (dataSerializer == null)
+                if (dataSerializer is null)
                 {
                     dataSerializer = context.SerializerSelector.GetSerializer(objType);
 
                     // If we still have no serializer, throw an exception
-                    if (dataSerializer == null)
+                    if (dataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + objType.FullName);
                 }
 
@@ -37,7 +37,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -52,12 +52,12 @@ namespace Stride.Core.Serialization
                     stream.Write((byte)SerializeClassFlags.None);
 
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = context.SerializerSelector.GetSerializer(objType);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + objType.FullName);
                         }
 
@@ -70,7 +70,7 @@ namespace Stride.Core.Serialization
             else
             {
 
-                var isNull = ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull);
 
                 if (isNull)
                 {
@@ -79,12 +79,12 @@ namespace Stride.Core.Serialization
                 else
                 {
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = context.SerializerSelector.GetSerializer(objType);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + objType.FullName);
                         }
 
@@ -113,7 +113,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -137,7 +137,7 @@ namespace Stride.Core.Serialization
             else
             {
 
-                var isNull = ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull);
 
                 if (isNull)
                 {
@@ -163,12 +163,12 @@ namespace Stride.Core.Serialization
 
             if (isValueType)
             {
-                if (dataSerializer == null)
+                if (dataSerializer is null)
                 {
                     dataSerializer = (DataSerializer<T>)context.SerializerSelector.GetSerializer(typeof(T));
 
                     // If we still have no serializer, throw an exception
-                    if (dataSerializer == null)
+                    if (dataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
                 }
 
@@ -182,7 +182,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -197,12 +197,12 @@ namespace Stride.Core.Serialization
                     stream.Write((byte)SerializeClassFlags.None);
 
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = (DataSerializer<T>)context.SerializerSelector.GetSerializer(typeof(T));
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
                         }
 
@@ -215,7 +215,7 @@ namespace Stride.Core.Serialization
             else
             {
 
-                var isNull = ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull);
 
                 if (isNull)
                 {
@@ -224,12 +224,12 @@ namespace Stride.Core.Serialization
                 else
                 {
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = (DataSerializer<T>)context.SerializerSelector.GetSerializer(typeof(T));
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
                         }
 
@@ -267,7 +267,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -291,7 +291,7 @@ namespace Stride.Core.Serialization
             else
             {
 
-                var isNull = ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull);
 
                 if (isNull)
                 {
@@ -318,14 +318,14 @@ namespace Stride.Core.Serialization
         {
             var context = stream.Context;
 
-            if (objType.GetTypeInfo().IsValueType)
+            if (objType.IsValueType)
             {
-                if (dataSerializer == null)
+                if (dataSerializer is null)
                 {
                     dataSerializer = context.SerializerSelector.GetSerializer(objType);
 
                     // If we still have no serializer, throw an exception
-                    if (dataSerializer == null)
+                    if (dataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + objType.FullName);
                 }
 
@@ -344,7 +344,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -357,7 +357,7 @@ namespace Stride.Core.Serialization
 
                     // If real type is not expected type, we need to store type info as well.
                     var expectedType = objType;
-                    type = objType.GetTypeInfo().IsSealed ? expectedType : obj.GetType();
+                    type = objType.IsSealed ? expectedType : obj.GetType();
                     hasTypeInfo = type != expectedType;
                     objectDataSerializer = null;
                     if (hasTypeInfo)
@@ -365,7 +365,7 @@ namespace Stride.Core.Serialization
                         // Find matching serializer (always required w/ typeinfo, since type was different than expected)
                         objectDataSerializer = context.SerializerSelector.GetSerializer(type);
 
-                        if (objectDataSerializer == null)
+                        if (objectDataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + type.FullName);
 
                         // Update expected type
@@ -392,8 +392,7 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
                         objectDataSerializer.PreSerialize(ref obj, mode, stream);
@@ -401,12 +400,12 @@ namespace Stride.Core.Serialization
                     }
                     else
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = context.SerializerSelector.GetSerializer(expectedType);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + expectedType.FullName);
                         }
 
@@ -420,8 +419,8 @@ namespace Stride.Core.Serialization
             {
 
                 flags = (SerializeClassFlags)stream.ReadByte();
-                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
-                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+                var isNull = 0 != (flags & SerializeClassFlags.IsNull);
+                hasTypeInfo = 0 != (flags & SerializeClassFlags.IsTypeInfo);
 
                 if (isNull)
                 {
@@ -432,10 +431,10 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         Unsafe.SkipInit(out ObjectId serializationTypeId);
-                        stream.Serialize((nint)Unsafe.AsPointer(ref serializationTypeId), ObjectId.HashSize);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer == null)
+						if (objectDataSerializer is null)
 						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + objType.FullName);
 
                         objectDataSerializer.PreSerialize(ref obj, mode, stream);
@@ -445,12 +444,12 @@ namespace Stride.Core.Serialization
                     }
                     else
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = context.SerializerSelector.GetSerializer(objType);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + objType.FullName);
                         }
 
@@ -486,7 +485,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -507,7 +506,7 @@ namespace Stride.Core.Serialization
                         // Find matching serializer (always required w/ typeinfo, since type was different than expected)
                         objectDataSerializer = context.SerializerSelector.GetSerializer(type);
 
-                        if (objectDataSerializer == null)
+                        if (objectDataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + type.FullName);
 
                         // Update expected type
@@ -534,8 +533,7 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
                         objCopy = obj;
@@ -555,8 +553,8 @@ namespace Stride.Core.Serialization
             {
 
                 flags = (SerializeClassFlags)stream.ReadByte();
-                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
-                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+                var isNull = 0 != (flags & SerializeClassFlags.IsNull);
+                hasTypeInfo = 0 != (flags & SerializeClassFlags.IsTypeInfo);
 
                 if (isNull)
                 {
@@ -567,10 +565,10 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         Unsafe.SkipInit(out ObjectId serializationTypeId);
-                        stream.Serialize((nint)Unsafe.AsPointer(ref serializationTypeId), ObjectId.HashSize);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer == null)
+						if (objectDataSerializer is null)
 						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                         objCopy = obj;
@@ -599,12 +597,12 @@ namespace Stride.Core.Serialization
 
             if (isValueType)
             {
-                if (dataSerializer == null)
+                if (dataSerializer is null)
                 {
                     dataSerializer = (DataSerializer<T>)context.SerializerSelector.GetSerializer(typeof(T));
 
                     // If we still have no serializer, throw an exception
-                    if (dataSerializer == null)
+                    if (dataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
                 }
 
@@ -624,7 +622,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -645,7 +643,7 @@ namespace Stride.Core.Serialization
                         // Find matching serializer (always required w/ typeinfo, since type was different than expected)
                         objectDataSerializer = context.SerializerSelector.GetSerializer(type);
 
-                        if (objectDataSerializer == null)
+                        if (objectDataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + type.FullName);
 
                         // Update expected type
@@ -672,8 +670,7 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
                         objCopy = obj;
@@ -683,12 +680,12 @@ namespace Stride.Core.Serialization
                     }
                     else
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = (DataSerializer<T>)context.SerializerSelector.GetSerializer(expectedType);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + expectedType.FullName);
                         }
 
@@ -702,8 +699,8 @@ namespace Stride.Core.Serialization
             {
 
                 flags = (SerializeClassFlags)stream.ReadByte();
-                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
-                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+                var isNull = 0 != (flags & SerializeClassFlags.IsNull);
+                hasTypeInfo = 0 != (flags & SerializeClassFlags.IsTypeInfo);
 
                 if (isNull)
                 {
@@ -714,10 +711,10 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         Unsafe.SkipInit(out ObjectId serializationTypeId);
-                        stream.Serialize((nint)Unsafe.AsPointer(ref serializationTypeId), ObjectId.HashSize);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer == null)
+						if (objectDataSerializer is null)
 						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                         objCopy = obj;
@@ -729,12 +726,12 @@ namespace Stride.Core.Serialization
                     }
                     else
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = (DataSerializer<T>)context.SerializerSelector.GetSerializer(typeof(T));
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
                         }
 
@@ -779,7 +776,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -800,7 +797,7 @@ namespace Stride.Core.Serialization
                         // Find matching serializer (always required w/ typeinfo, since type was different than expected)
                         objectDataSerializer = context.SerializerSelector.GetSerializer(type);
 
-                        if (objectDataSerializer == null)
+                        if (objectDataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + type.FullName);
 
                         // Update expected type
@@ -827,8 +824,7 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
                         objCopy = obj;
@@ -848,8 +844,8 @@ namespace Stride.Core.Serialization
             {
 
                 flags = (SerializeClassFlags)stream.ReadByte();
-                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
-                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+                var isNull = 0 != (flags & SerializeClassFlags.IsNull);
+                hasTypeInfo = 0 != (flags & SerializeClassFlags.IsTypeInfo);
 
                 if (isNull)
                 {
@@ -860,10 +856,10 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         Unsafe.SkipInit(out ObjectId serializationTypeId);
-                        stream.Serialize((nint)Unsafe.AsPointer(ref serializationTypeId), ObjectId.HashSize);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer == null)
+						if (objectDataSerializer is null)
 						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                         objCopy = obj;
@@ -893,14 +889,14 @@ namespace Stride.Core.Serialization
         {
             var context = stream.Context;
 
-            if (objType.GetTypeInfo().IsValueType)
+            if (objType.IsValueType)
             {
-                if (dataSerializer == null)
+                if (dataSerializer is null)
                 {
                     dataSerializer = context.SerializerSelector.GetSerializer(objType);
 
                     // If we still have no serializer, throw an exception
-                    if (dataSerializer == null)
+                    if (dataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + objType.FullName);
                 }
 
@@ -922,7 +918,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -933,9 +929,8 @@ namespace Stride.Core.Serialization
 
                     if (externalIdentifiableAsGuid)
                     {
-                        var identifiable = obj as IIdentifiable;
                         var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
-                        if (identifiable != null && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
+                        if (obj is IIdentifiable identifiable && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
                         {
                             flags |= SerializeClassFlags.IsExternalIdentifiable;
                             stream.Write((byte)flags);
@@ -963,7 +958,7 @@ namespace Stride.Core.Serialization
 
                     // If real type is not expected type, we need to store type info as well.
                     var expectedType = objType;
-                    type = objType.GetTypeInfo().IsSealed ? expectedType : obj.GetType();
+                    type = objType.IsSealed ? expectedType : obj.GetType();
                     hasTypeInfo = type != expectedType;
                     objectDataSerializer = null;
                     if (hasTypeInfo)
@@ -971,7 +966,7 @@ namespace Stride.Core.Serialization
                         // Find matching serializer (always required w/ typeinfo, since type was different than expected)
                         objectDataSerializer = context.SerializerSelector.GetSerializer(type);
 
-                        if (objectDataSerializer == null)
+                        if (objectDataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + type.FullName);
 
                         // Update expected type
@@ -1002,8 +997,7 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
                         objectDataSerializer.PreSerialize(ref obj, mode, stream);
@@ -1011,12 +1005,12 @@ namespace Stride.Core.Serialization
                     }
                     else
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = context.SerializerSelector.GetSerializer(expectedType);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + expectedType.FullName);
                         }
 
@@ -1030,13 +1024,13 @@ namespace Stride.Core.Serialization
             {
 
                 flags = (SerializeClassFlags)stream.ReadByte();
-                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != (flags & SerializeClassFlags.IsNull);
                 var objectReferences = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeReferences) : null;
                 var referenceCallback = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeCallback) : null;
-                var isReference = (flags & SerializeClassFlags.IsReference) == SerializeClassFlags.IsReference;
-                var isExternalIdentifiable = (flags & SerializeClassFlags.IsExternalIdentifiable) == SerializeClassFlags.IsExternalIdentifiable;
+                var isReference = 0 != (flags & SerializeClassFlags.IsReference);
+                var isExternalIdentifiable = 0 != (flags & SerializeClassFlags.IsExternalIdentifiable);
                 index = reuseReferences && !isNull && !isExternalIdentifiable ? stream.ReadInt32() : -1;
-                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+                hasTypeInfo = 0 != (flags & SerializeClassFlags.IsTypeInfo);
 
                 if (isNull)
                 {
@@ -1065,10 +1059,10 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         Unsafe.SkipInit(out ObjectId serializationTypeId);
-                        stream.Serialize((nint)Unsafe.AsPointer(ref serializationTypeId), ObjectId.HashSize);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer == null)
+						if (objectDataSerializer is null)
 						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + objType.FullName);
 
                         objectDataSerializer.PreSerialize(ref obj, mode, stream);
@@ -1083,12 +1077,12 @@ namespace Stride.Core.Serialization
                     }
                     else
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = context.SerializerSelector.GetSerializer(objType);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + objType.FullName);
                         }
 
@@ -1140,7 +1134,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -1151,9 +1145,8 @@ namespace Stride.Core.Serialization
 
                     if (externalIdentifiableAsGuid)
                     {
-                        var identifiable = obj as IIdentifiable;
                         var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
-                        if (identifiable != null && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
+                        if (obj is IIdentifiable identifiable && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
                         {
                             flags |= SerializeClassFlags.IsExternalIdentifiable;
                             stream.Write((byte)flags);
@@ -1189,7 +1182,7 @@ namespace Stride.Core.Serialization
                         // Find matching serializer (always required w/ typeinfo, since type was different than expected)
                         objectDataSerializer = context.SerializerSelector.GetSerializer(type);
 
-                        if (objectDataSerializer == null)
+                        if (objectDataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + type.FullName);
 
                         // Update expected type
@@ -1220,8 +1213,7 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
                         objCopy = obj;
@@ -1241,13 +1233,13 @@ namespace Stride.Core.Serialization
             {
 
                 flags = (SerializeClassFlags)stream.ReadByte();
-                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != (flags & SerializeClassFlags.IsNull);
                 var objectReferences = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeReferences) : null;
                 var referenceCallback = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeCallback) : null;
-                var isReference = (flags & SerializeClassFlags.IsReference) == SerializeClassFlags.IsReference;
-                var isExternalIdentifiable = (flags & SerializeClassFlags.IsExternalIdentifiable) == SerializeClassFlags.IsExternalIdentifiable;
+                var isReference = 0 != (flags & SerializeClassFlags.IsReference);
+                var isExternalIdentifiable = 0 != (flags & SerializeClassFlags.IsExternalIdentifiable);
                 index = reuseReferences && !isNull && !isExternalIdentifiable ? stream.ReadInt32() : -1;
-                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+                hasTypeInfo = 0 != (flags & SerializeClassFlags.IsTypeInfo);
 
                 if (isNull)
                 {
@@ -1276,10 +1268,10 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         Unsafe.SkipInit(out ObjectId serializationTypeId);
-                        stream.Serialize((nint)Unsafe.AsPointer(ref serializationTypeId), ObjectId.HashSize);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer == null)
+						if (objectDataSerializer is null)
 						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                         objCopy = obj;
@@ -1326,12 +1318,12 @@ namespace Stride.Core.Serialization
 
             if (isValueType)
             {
-                if (dataSerializer == null)
+                if (dataSerializer is null)
                 {
                     dataSerializer = (DataSerializer<T>)context.SerializerSelector.GetSerializer(typeof(T));
 
                     // If we still have no serializer, throw an exception
-                    if (dataSerializer == null)
+                    if (dataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
                 }
 
@@ -1354,7 +1346,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -1365,9 +1357,8 @@ namespace Stride.Core.Serialization
 
                     if (externalIdentifiableAsGuid)
                     {
-                        var identifiable = obj as IIdentifiable;
                         var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
-                        if (identifiable != null && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
+                        if (obj is IIdentifiable identifiable && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
                         {
                             flags |= SerializeClassFlags.IsExternalIdentifiable;
                             stream.Write((byte)flags);
@@ -1403,7 +1394,7 @@ namespace Stride.Core.Serialization
                         // Find matching serializer (always required w/ typeinfo, since type was different than expected)
                         objectDataSerializer = context.SerializerSelector.GetSerializer(type);
 
-                        if (objectDataSerializer == null)
+                        if (objectDataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + type.FullName);
 
                         // Update expected type
@@ -1434,8 +1425,7 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
                         objCopy = obj;
@@ -1445,12 +1435,12 @@ namespace Stride.Core.Serialization
                     }
                     else
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = (DataSerializer<T>)context.SerializerSelector.GetSerializer(expectedType);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + expectedType.FullName);
                         }
 
@@ -1464,13 +1454,13 @@ namespace Stride.Core.Serialization
             {
 
                 flags = (SerializeClassFlags)stream.ReadByte();
-                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != (flags & SerializeClassFlags.IsNull);
                 var objectReferences = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeReferences) : null;
                 var referenceCallback = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeCallback) : null;
-                var isReference = (flags & SerializeClassFlags.IsReference) == SerializeClassFlags.IsReference;
-                var isExternalIdentifiable = (flags & SerializeClassFlags.IsExternalIdentifiable) == SerializeClassFlags.IsExternalIdentifiable;
+                var isReference = 0 != (flags & SerializeClassFlags.IsReference);
+                var isExternalIdentifiable = 0 != (flags & SerializeClassFlags.IsExternalIdentifiable);
                 index = reuseReferences && !isNull && !isExternalIdentifiable ? stream.ReadInt32() : -1;
-                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+                hasTypeInfo = 0 != (flags & SerializeClassFlags.IsTypeInfo);
 
                 if (isNull)
                 {
@@ -1499,10 +1489,10 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         Unsafe.SkipInit(out ObjectId serializationTypeId);
-                        stream.Serialize((nint)Unsafe.AsPointer(ref serializationTypeId), ObjectId.HashSize);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer == null)
+						if (objectDataSerializer is null)
 						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                         objCopy = obj;
@@ -1519,12 +1509,12 @@ namespace Stride.Core.Serialization
                     }
                     else
                     {
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = (DataSerializer<T>)context.SerializerSelector.GetSerializer(typeof(T));
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + typeof(T).FullName);
                         }
 
@@ -1585,7 +1575,7 @@ namespace Stride.Core.Serialization
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -1596,9 +1586,8 @@ namespace Stride.Core.Serialization
 
                     if (externalIdentifiableAsGuid)
                     {
-                        var identifiable = obj as IIdentifiable;
                         var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
-                        if (identifiable != null && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
+                        if (obj is IIdentifiable identifiable && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
                         {
                             flags |= SerializeClassFlags.IsExternalIdentifiable;
                             stream.Write((byte)flags);
@@ -1634,7 +1623,7 @@ namespace Stride.Core.Serialization
                         // Find matching serializer (always required w/ typeinfo, since type was different than expected)
                         objectDataSerializer = context.SerializerSelector.GetSerializer(type);
 
-                        if (objectDataSerializer == null)
+                        if (objectDataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + type.FullName);
 
                         // Update expected type
@@ -1665,8 +1654,7 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
                         objCopy = obj;
@@ -1686,13 +1674,13 @@ namespace Stride.Core.Serialization
             {
 
                 flags = (SerializeClassFlags)stream.ReadByte();
-                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != (flags & SerializeClassFlags.IsNull);
                 var objectReferences = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeReferences) : null;
                 var referenceCallback = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeCallback) : null;
-                var isReference = (flags & SerializeClassFlags.IsReference) == SerializeClassFlags.IsReference;
-                var isExternalIdentifiable = (flags & SerializeClassFlags.IsExternalIdentifiable) == SerializeClassFlags.IsExternalIdentifiable;
+                var isReference = 0 != (flags & SerializeClassFlags.IsReference);
+                var isExternalIdentifiable = 0 != (flags & SerializeClassFlags.IsExternalIdentifiable);
                 index = reuseReferences && !isNull && !isExternalIdentifiable ? stream.ReadInt32() : -1;
-                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+                hasTypeInfo = 0 != (flags & SerializeClassFlags.IsTypeInfo);
 
                 if (isNull)
                 {
@@ -1721,10 +1709,10 @@ namespace Stride.Core.Serialization
                     if (hasTypeInfo)
                     {
                         Unsafe.SkipInit(out ObjectId serializationTypeId);
-                        stream.Serialize((nint)Unsafe.AsPointer(ref serializationTypeId), ObjectId.HashSize);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer == null)
+						if (objectDataSerializer is null)
 						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                         objCopy = obj;

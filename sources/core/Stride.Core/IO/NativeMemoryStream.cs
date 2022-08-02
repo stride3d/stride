@@ -10,7 +10,8 @@ namespace Stride.Core.IO
     /// <summary>
     /// A <see cref="MemoryStream"/> over a native memory region.
     /// </summary>
-    public unsafe class NativeMemoryStream : NativeStream
+    [Obsolete("Consider using MemoryStream or UnmanagedMemoryStream.")]
+    public unsafe class NativeMemoryStream : Stream
     {
         private readonly byte* dataStart;
         private readonly byte* dataEnd;
@@ -128,33 +129,6 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
-        [Obsolete("Use Read(Span<byte>).")]
-        public override unsafe int Read(nint buffer, int count)
-        {
-            Debug.Assert(count >= 0);
-            var bytesLeft = (int)(dataEnd - dataCurrent);
-            if (count > bytesLeft)
-                count = bytesLeft;
-
-            Unsafe.CopyBlockUnaligned((void*)buffer, dataCurrent, (uint)count);
-            dataCurrent += count;
-            return count;
-        }
-
-        /// <inheritdoc/>
-        [Obsolete("Use Stream.Write(ReadOnlySpan<byte>).")]
-        public override void Write(nint buffer, int count)
-        {
-            Debug.Assert(count >= 0);
-            var bytesLeft = (int)(dataEnd - dataCurrent);
-            if (count > bytesLeft)
-                throw new InvalidOperationException("Buffer too small");
-
-            Unsafe.CopyBlockUnaligned(dataCurrent, (void*)buffer, (uint)count);
-            dataCurrent += count;
-        }
-
-        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (dataCurrent >= dataEnd)
@@ -170,74 +144,6 @@ namespace Stride.Core.IO
                 throw new InvalidOperationException("Buffer too small");
 
             *dataCurrent++ = value;
-        }
-
-        /// <inheritdoc/>
-        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-        public override ushort ReadUInt16()
-        {
-            if (dataCurrent + sizeof(ushort) > dataEnd)
-                throw new InvalidOperationException("Buffer too small");
-
-            var result = *((ushort*)dataCurrent);
-            dataCurrent += sizeof(ushort);
-            return result;
-        }
-
-        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-        public override uint ReadUInt32()
-        {
-            if (dataCurrent + sizeof(uint) > dataEnd)
-                throw new InvalidOperationException("Buffer too small");
-
-            var result = *((uint*)dataCurrent);
-            dataCurrent += sizeof(uint);
-            return result;
-        }
-
-        /// <inheritdoc/>
-        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-        public override ulong ReadUInt64()
-        {
-            if (dataCurrent + sizeof(ulong) > dataEnd)
-                throw new InvalidOperationException("Buffer too small");
-
-            var result = *((ulong*)dataCurrent);
-            dataCurrent += sizeof(ulong);
-            return result;
-        }
-
-        /// <inheritdoc/>
-        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-        public override void Write(ushort i)
-        {
-            if (dataCurrent + sizeof(ushort) > dataEnd)
-                throw new InvalidOperationException("Buffer too small");
-
-            *((ushort*)dataCurrent) = i;
-            dataCurrent += sizeof(ushort);
-        }
-
-        /// <inheritdoc/>
-        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-        public override void Write(uint i)
-        {
-            if (dataCurrent + sizeof(uint) > dataEnd)
-                throw new InvalidOperationException("Buffer too small");
-
-            *((uint*)dataCurrent) = i;
-            dataCurrent += sizeof(uint);
-        }
-
-        /// <inheritdoc/>
-        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-        public override void Write(ulong i)
-        {
-            if (dataCurrent + sizeof(ulong) > dataEnd)
-                throw new InvalidOperationException("Buffer too small");
-
-            *((ulong*)dataCurrent) = i;
-            dataCurrent += sizeof(ulong);
         }
 
         /// <inheritdoc/>

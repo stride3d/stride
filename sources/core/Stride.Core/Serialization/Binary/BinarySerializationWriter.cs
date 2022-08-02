@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using Stride.Core.Annotations;
 using Stride.Core.IO;
 
@@ -19,7 +20,7 @@ namespace Stride.Core.Serialization
         public BinarySerializationWriter([NotNull] Stream outputStream)
         {
             Writer = new BinaryWriter(outputStream);
-            NativeStream = outputStream.ToNativeStream();
+            NativeStream = outputStream;
         }
 
         private BinaryWriter Writer { get; }
@@ -30,18 +31,17 @@ namespace Stride.Core.Serialization
             NativeStream.WriteByte(value ? (byte)1 : (byte)0);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         /// <inheritdoc />
         public override unsafe void Serialize(ref float value)
         {
-            fixed (float* valuePtr = &value)
-                NativeStream.Write(*(uint*)valuePtr);
+            NativeStream.Write(Unsafe.As<float, uint>(ref value));
         }
 
         /// <inheritdoc />
         public override unsafe void Serialize(ref double value)
         {
-            fixed (double* valuePtr = &value)
-                NativeStream.Write(*(ulong*)valuePtr);
+            NativeStream.Write(Unsafe.As<double, ulong>(ref value));
         }
 
         /// <inheritdoc />
@@ -79,6 +79,7 @@ namespace Stride.Core.Serialization
         {
             NativeStream.Write(value);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <inheritdoc />
         public override void Serialize(ref string value)
@@ -109,10 +110,6 @@ namespace Stride.Core.Serialization
         {
             NativeStream.Write(values, offset, count);
         }
-
-        /// <inheritdoc/>
-        [Obsolete("Use Serialize(Span<T>)")]
-        public override void Serialize(IntPtr buffer, int count) => NativeStream.Write(buffer, count);
 
         /// <inheritdoc />
         public override void Serialize(Span<byte> buffer) => NativeStream.Write(buffer);

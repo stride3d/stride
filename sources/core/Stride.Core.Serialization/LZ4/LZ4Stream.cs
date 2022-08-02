@@ -28,12 +28,11 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
-using Stride.Core.IO;
 
 namespace Stride.Core.LZ4
 {
-	/// <summary>Block compression stream. Allows to use LZ4 for stream compression.</summary>
-    public class LZ4Stream : NativeStream
+    /// <summary>Block compression stream. Allows to use LZ4 for stream compression.</summary>
+    public class LZ4Stream : Stream
 	{
 		#region ChunkFlags
 
@@ -449,39 +448,6 @@ namespace Stride.Core.LZ4
             return total;
         }
 
-        /// <inheritdoc/>
-        [Obsolete("Use Stream.Read(ReadOnlySpan<byte>).")]
-        public override unsafe int Read(nint buffer, int count)
-        {
-            Debug.Assert((count | bufferLength | bufferOffset) >= 0);
-            if (!CanRead) throw NotSupported("Read");
-
-            var total = 0;
-
-            while (count > 0)
-            {
-                var chunk = Math.Min(count, bufferLength - bufferOffset);
-                if (chunk > 0)
-                {
-                    fixed (byte* pSrc = dataBuffer)
-                    {
-                        Debug.Assert(pSrc is not null);
-                        Unsafe.CopyBlockUnaligned((byte*)buffer + total, pSrc + bufferOffset, (uint)chunk);
-                    }
-                    bufferOffset += chunk;
-                    count -= chunk;
-                    total += chunk;
-                }
-                else
-                {
-                    if (!AcquireNextChunk()) break;
-                }
-            }
-            position += total;
-
-            return total;
-        }
-
 	    /// <summary>When overridden in a derived class, sets the position within the current stream.</summary>
 		/// <param name="offset">A byte offset relative to the <paramref name="origin" /> parameter.</param>
 		/// <param name="origin">A value of type <see cref="T:System.IO.SeekOrigin" /> indicating the reference point used to obtain the new position.</param>
@@ -614,44 +580,6 @@ namespace Stride.Core.LZ4
                     var dst = dataBuffer.AsSpan(bufferOffset);
                     buffer[..chunk].CopyTo(dst);
                     buffer = buffer[chunk..];
-                    bufferOffset += chunk;
-                }
-                else
-                {
-                    FlushCurrentChunk();
-                }
-            }
-        }
-
-        /// <inheritdoc/>
-        [Obsolete("Use Stream.Write(ReadOnlySpan<byte>).")]
-        public override unsafe void Write(nint buffer, int count)
-        {
-            Debug.Assert((uint)bufferOffset + (uint)count <= (uint)bufferLength);
-            if (!CanWrite) throw NotSupported("Write");
-
-            position += count;
-	        int offset = 0;
-
-            if (dataBuffer == null)
-            {
-                dataBuffer = new byte[blockSize];
-                bufferLength = blockSize;
-                bufferOffset = 0;
-            }
-
-            while (count > 0)
-            {
-                var chunk = Math.Min(count, bufferLength - bufferOffset);
-                if (chunk > 0)
-                {
-                    fixed (byte* pDst = dataBuffer)
-                    {
-                        Debug.Assert(pDst is not null);
-                        Unsafe.CopyBlockUnaligned(pDst + bufferOffset, (byte*)buffer + offset, (uint)chunk);
-                    }
-                    offset += chunk;
-                    count -= chunk;
                     bufferOffset += chunk;
                 }
                 else

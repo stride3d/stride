@@ -81,12 +81,6 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc/>
-        [Obsolete("Use Serialize(Span<T>)")]
-        public override void Serialize(IntPtr memory, int count)
-        {
-        }
-
-        /// <inheritdoc/>
         public override void Serialize(Span<byte> memory)
         {
         }

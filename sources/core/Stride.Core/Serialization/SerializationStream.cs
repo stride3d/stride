@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
-using Stride.Core.IO;
+using System.IO;
 
 namespace Stride.Core.Serialization
 {
@@ -21,7 +21,7 @@ namespace Stride.Core.Serialization
         /// <summary>
         /// The underlying native stream.
         /// </summary>
-        public NativeStream NativeStream { get; protected set; }
+        public Stream NativeStream { get; protected set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializationStream"/> class.
@@ -122,13 +122,6 @@ namespace Stride.Core.Serialization
         /// <param name="count">The size, in bytes, to serialize.</param>
         public abstract void Serialize(byte[] values, int offset, int count);
 
-        /// <summary>
-        /// Serializes the specified memory area.
-        /// </summary>
-        /// <param name="memory">The memory area to serialize.</param>
-        /// <param name="count">The size, in bytes, to serialize.</param>
-        [Obsolete("Use Serialize(Span<T>)")]
-        public abstract void Serialize(IntPtr memory, int count);
         /// <summary>
         /// Serializes the specified memory area.
         /// </summary>

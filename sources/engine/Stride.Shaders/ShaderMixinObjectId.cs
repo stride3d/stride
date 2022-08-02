@@ -23,16 +23,16 @@ namespace Stride.Shaders
         private static object generatorLock = new object();
         private static ShaderMixinObjectId generator;
 
-        private readonly NativeMemoryStream memStream;
+        private readonly UnmanagedMemoryStream memStream;
         private readonly HashSerializationWriter writer;
         private ObjectIdBuilder objectIdBuilder;
         private IntPtr buffer;
 
-        private ShaderMixinObjectId()
+        private unsafe ShaderMixinObjectId()
         {
             objectIdBuilder = new ObjectIdBuilder();
             buffer = Marshal.AllocHGlobal(65536);
-            memStream = new NativeMemoryStream(buffer, 65536);
+            memStream = new UnmanagedMemoryStream((byte*)buffer, 65536);
             writer = new HashSerializationWriter(memStream);
             writer.Context.SerializerSelector = new SerializerSelector("Default", "Hash");
         }

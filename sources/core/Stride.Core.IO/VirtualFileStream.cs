@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
-using Stride.Core.IO;
 
 namespace Stride.Core.Serialization
 {
@@ -10,7 +9,7 @@ namespace Stride.Core.Serialization
     /// A multithreaded wrapper over a Stream, used by the VirtualFileSystem.
     /// It also allows restricted access to subparts of the Stream (useful for serialization and data streaming).
     /// </summary>
-    public class VirtualFileStream : NativeStream
+    public class VirtualFileStream : Stream
     {
         public Stream InternalStream { get; protected internal set; }
         protected VirtualFileStream virtualFileStream;
