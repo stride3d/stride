@@ -14,15 +14,6 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 public abstract class Statement : ShaderToken 
 {
     public List<Register> LowCode {get;set;} = new();
-
-    public virtual IEnumerable<string> GetStreamValuesAssigned()
-    {
-        return Array.Empty<string>();
-    }
-    public virtual IEnumerable<string> GetStreamValuesUsed()
-    {
-        return Array.Empty<string>();
-    }
 }
 
 public class EmptyStatement : Statement {}
@@ -56,15 +47,6 @@ public class AssignChain : Statement
         AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue);
         Value = GetToken(m["PrimaryExpression"]);
     }
-
-    public override IEnumerable<string> GetStreamValuesAssigned()
-    {
-        if(StreamValue)
-            return new List<string>(){AccessNames.ElementAt(1)};
-        else
-            return Array.Empty<string>();
-    }
-
 }
 
 public class ReturnStatement : Statement
@@ -85,9 +67,5 @@ public class BlockStatement : Statement
     {
         Match = m;
         Statements = m.Matches.Select(GetToken).Cast<Statement>().ToList();
-    }
-    public override IEnumerable<string> GetStreamValuesAssigned()
-    {
-        return Statements.SelectMany(x => x.GetStreamValuesAssigned());
     }
 }

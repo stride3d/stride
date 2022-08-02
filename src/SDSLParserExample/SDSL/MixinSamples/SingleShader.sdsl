@@ -1,4 +1,7 @@
 shader SingleShader {
+
+    stage stream float4 triInput;
+
     // Default SV_POSITION output for VS/GS shaders
     stage stream float4 ShadingPosition : SV_Position;
 
@@ -24,6 +27,6 @@ shader SingleShader {
 
     void VSMain() 
     {
-        streams.ShadingPosition = float4(1,1,1,1);
+        streams.ShadingPosition = streams.triInput;
     }
 };

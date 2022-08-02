@@ -70,7 +70,7 @@ public class ShaderVariableDeclaration : ShaderToken
         IsStaged = m["Stage"].Success;
         Semantic = m["Semantic"].Success ? m["Semantic"].StringValue : null;
         Type = m["TypeName"].StringValue;
-        Name = m["VariableTerm"].StringValue;
+        Name = m["Identifier"].StringValue;
     }
 }
 public class Generics : ShaderToken

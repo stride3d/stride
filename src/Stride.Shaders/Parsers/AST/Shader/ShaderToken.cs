@@ -54,7 +54,7 @@ public abstract class ShaderToken
 			"MulExpression" => MulExpression.Create(tmp),
 			"CastExpression" => new CastExpression(tmp),
 			"PrefixIncrement" => throw new NotImplementedException("prefix implement not implemented"),
-			"ChainAccessor" => throw new NotImplementedException(),
+			"ChainAccessor" => new ChainAccessor(tmp),
 			"IntegerValue" or "FloatValue" or "FloatLiteral" => new NumberLiteral(tmp),
 			"VariableTerm" or "Identifier" => new VariableNameLiteral(tmp),
 			"ValueTypes" or "TypeName" => new TypeNameLiteral(tmp),
@@ -62,4 +62,27 @@ public abstract class ShaderToken
 			_ => throw new NotImplementedException()
 		};
 	}
+
+
+	public IEnumerable<string> GetUsedStream()
+	{
+		return this switch 
+		{
+			AssignChain a => a.Value.GetUsedStream(),
+			ChainAccessor{Value: VariableNameLiteral{Name : "streams"}} => new string[1]{((VariableNameLiteral)((ChainAccessor)this).Field).Name},
+			Operation {Left : ChainAccessor c} => c.GetUsedStream(),
+			Operation {Right : ChainAccessor c} => c.GetUsedStream(),
+			_ => Array.Empty<string>()
+		};
+	}
+	public IEnumerable<string> GetAssignedStream()
+	{
+		return this switch 
+		{
+			AssignChain{StreamValue: true} c => new string[1]{c.AccessNames.ElementAt(1)},
+			BlockStatement b => b.Statements.SelectMany(x => x.GetAssignedStream()),
+			_ => Array.Empty<string>()
+		};
+	}
+	
 }

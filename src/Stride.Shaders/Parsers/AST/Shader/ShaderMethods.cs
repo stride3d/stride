@@ -47,11 +47,11 @@ public abstract class MainMethod : ShaderMethod
 
     public IEnumerable<string> GetStreamValuesAssigned()
     {
-        return Statements.SelectMany(x => x.GetStreamValuesAssigned());
+        return Statements.SelectMany(x => x.GetAssignedStream());
     }
     public IEnumerable<string> GetStreamValuesUsed()
     {
-        return Array.Empty<string>();
+        return Statements.SelectMany(x => x.GetUsedStream());
     }
 
 }

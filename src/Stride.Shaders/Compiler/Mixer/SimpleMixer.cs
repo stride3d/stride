@@ -1,3 +1,4 @@
+using Spv.Generator;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.AST.Shader;
 using Stride.Shaders.Spirv;
@@ -16,9 +17,10 @@ public class SimpleMixer
         program = ShaderMixinParser.ParseShader(source.ShaderSourceCode);
         il = new();
     }
-    public void EmitSpirv(EntryPoints entry)
+    public Module EmitSpirv(EntryPoints entry)
     {
         var spirv = new SpirvEmitter(455);
         spirv.Construct(program,entry);
+        return spirv;
     }
 }
