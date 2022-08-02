@@ -137,6 +137,20 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc/>
+        public override int Read(Span<byte> buffer)
+        {
+            if (endPosition != -1)
+            {
+                var maxCount = (int)(endPosition - InternalStream.Position);
+                if (buffer.Length > maxCount)
+                    buffer = buffer[..maxCount];
+            }
+
+            var bytesProcessed = InternalStream.Read(buffer);
+            return bytesProcessed;
+        }
+
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (endPosition != -1 && InternalStream.Position >= endPosition)
