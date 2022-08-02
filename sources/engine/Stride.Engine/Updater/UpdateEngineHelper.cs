@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#pragma warning disable STRIDE6000 // TODO: Remove this suppression
+#pragma warning disable STRIDE2000 // TODO: Remove this suppression
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -15,7 +15,7 @@ namespace Stride.Updater
     {
         public static int ArrayFirstElementOffset = ComputeArrayFirstElementOffset();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
         public static unsafe nint ObjectToPointer(object o)
             #if false
             ldarga.s o
@@ -24,7 +24,7 @@ namespace Stride.Updater
             ret
             #endif
             => ((nint*)Unsafe.AsPointer(ref o))[0];
-        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
         public static unsafe T PointerToObject<T>(nint address) where T : class
             #if false
             ldarga.s address
@@ -35,7 +35,7 @@ namespace Stride.Updater
             #endif
             => Unsafe.AsRef<T>(&address);
         /// <summary>Copies the value out of the pinned box.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
         public static unsafe T PointerToStruct<T>(nint address) where T : struct
             #if false
             ldarga.s address
@@ -49,7 +49,7 @@ namespace Stride.Updater
         /// <summary>Obtains a reference to the object at the specified address,
         /// then unboxes the value of type <typeparamref name="T"/> and
         /// returns the controlled-mutability managed pointer.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
         public static unsafe ref T RefBoxedStruct<T>(nint address) where T : struct
             #if false
             ldarga.s address

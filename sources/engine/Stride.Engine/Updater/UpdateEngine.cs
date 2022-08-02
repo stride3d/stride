@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#pragma warning disable STRIDE6000 // TODO: Remove this suppression
+#pragma warning disable STRIDE2000 // TODO: Remove this suppression
 using System;
 using System.Collections.Generic;
 using System.Linq;

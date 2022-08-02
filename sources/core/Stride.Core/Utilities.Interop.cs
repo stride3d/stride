@@ -24,10 +24,10 @@ using System;
 
 namespace Stride.Core
 {
-    [Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
+    [Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
     internal sealed class Interop
     {
-        [Obsolete("Do not use.", DiagnosticId = "STRIDE6000")]
+        [Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
         public static void Pin<T>(T data) where T : class
         {
             throw new NotImplementedException();
