@@ -2,8 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Stride.Core.IO;
 
 namespace Stride.Core.Serialization
@@ -17,7 +15,7 @@ namespace Stride.Core.Serialization
 
         // Helper buffer for classes needing it.
         // If null, it should be initialized with BufferTLSSize constant.
-        [ThreadStatic]
+        [Obsolete("Let the caller provide a buffer.")]
         protected static byte[] bufferTLS;
 
         /// <summary>
@@ -129,7 +127,13 @@ namespace Stride.Core.Serialization
         /// </summary>
         /// <param name="memory">The memory area to serialize.</param>
         /// <param name="count">The size, in bytes, to serialize.</param>
+        [Obsolete("Use Serialize(Span<T>)")]
         public abstract void Serialize(IntPtr memory, int count);
+        /// <summary>
+        /// Serializes the specified memory area.
+        /// </summary>
+        /// <param name="memory">The memory area to serialize.</param>
+        public abstract void Serialize(Span<byte> memory);
 
         /// <summary>
         /// Flushes all recent writes (for better batching).

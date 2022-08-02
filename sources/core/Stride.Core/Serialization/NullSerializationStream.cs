@@ -7,6 +7,7 @@ namespace Stride.Core.Serialization
     /// <summary>
     /// Empty implementation of <see cref="SerializationStream"/>.
     /// </summary>
+    [Obsolete] // not used
     public class NullSerializationStream : SerializationStream
     {
         /// <inheritdoc/>
@@ -80,7 +81,13 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc/>
+        [Obsolete("Use Serialize(Span<T>)")]
         public override void Serialize(IntPtr memory, int count)
+        {
+        }
+
+        /// <inheritdoc/>
+        public override void Serialize(Span<byte> memory)
         {
         }
 

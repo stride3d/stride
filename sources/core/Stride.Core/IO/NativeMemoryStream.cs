@@ -21,6 +21,7 @@ namespace Stride.Core.IO
         /// </summary>
         /// <param name="data">The native data pointer.</param>
         /// <param name="length">The data length.</param>
+        [Obsolete("Consider using MemoryStream or UnmanagedMemoryStream.")]
         public NativeMemoryStream(IntPtr data, long length)
             : this((byte*)data, length)
         {
@@ -31,6 +32,7 @@ namespace Stride.Core.IO
         /// </summary>
         /// <param name="data">The native data pointer.</param>
         /// <param name="length">The data length.</param>
+        [Obsolete("Consider using MemoryStream or UnmanagedMemoryStream.")]
         public NativeMemoryStream(byte* data, long length)
         {
             this.dataStart = data;
@@ -70,6 +72,18 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        public override int Read(Span<byte> buffer)
+        {
+            Debug.Assert(dataEnd >= dataCurrent);
+            var read = (nint)(dataEnd - dataCurrent);
+            if (read > buffer.Length) read = buffer.Length;
+            var src = new Span<byte>(dataCurrent, (int)read);
+            src.CopyTo(buffer);
+            dataCurrent += read;
+            return (int)read;
+        }
+
+        /// <inheritdoc/>
         public override unsafe int Read(byte[] buffer, int offset, int count)
         {
             Debug.Assert(
@@ -82,6 +96,20 @@ namespace Stride.Core.IO
                 Unsafe.CopyBlockUnaligned(pinned + offset, dataCurrent, (uint)count);
             dataCurrent += count;
             return count;
+        }
+
+        /// <inheritdoc/>
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            Debug.Assert(dataEnd >= dataCurrent);
+            var written = (nint)(dataEnd - dataCurrent);
+            if (written < buffer.Length)
+                throw new IOException();
+            else
+                written = buffer.Length;
+            var dst = new Span<byte>(dataCurrent, (int)written);
+            buffer.CopyTo(dst);
+            dataCurrent += written;
         }
 
         /// <inheritdoc/>
@@ -100,6 +128,7 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        [Obsolete("Use Read(Span<byte>).")]
         public override unsafe int Read(nint buffer, int count)
         {
             Debug.Assert(count >= 0);
@@ -113,6 +142,7 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        [Obsolete("Use Stream.Write(ReadOnlySpan<byte>).")]
         public override void Write(nint buffer, int count)
         {
             Debug.Assert(count >= 0);
@@ -127,7 +157,7 @@ namespace Stride.Core.IO
         /// <inheritdoc/>
         public override int ReadByte()
         {
-            if (dataCurrent == dataEnd)
+            if (dataCurrent >= dataEnd)
                 return -1;
 
             return *dataCurrent++;
@@ -136,13 +166,14 @@ namespace Stride.Core.IO
         /// <inheritdoc/>
         public override void WriteByte(byte value)
         {
-            if (dataCurrent == dataEnd)
+            if (dataCurrent >= dataEnd)
                 throw new InvalidOperationException("Buffer too small");
 
             *dataCurrent++ = value;
         }
 
         /// <inheritdoc/>
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public override ushort ReadUInt16()
         {
             if (dataCurrent + sizeof(ushort) > dataEnd)
@@ -153,6 +184,7 @@ namespace Stride.Core.IO
             return result;
         }
 
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public override uint ReadUInt32()
         {
             if (dataCurrent + sizeof(uint) > dataEnd)
@@ -164,6 +196,7 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public override ulong ReadUInt64()
         {
             if (dataCurrent + sizeof(ulong) > dataEnd)
@@ -175,6 +208,7 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public override void Write(ushort i)
         {
             if (dataCurrent + sizeof(ushort) > dataEnd)
@@ -185,6 +219,7 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public override void Write(uint i)
         {
             if (dataCurrent + sizeof(uint) > dataEnd)
@@ -195,6 +230,7 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public override void Write(ulong i)
         {
             if (dataCurrent + sizeof(ulong) > dataEnd)
@@ -205,34 +241,22 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
-        public override bool CanRead
-        {
-            get { return true; }
-        }
+        public override bool CanRead => true;
 
         /// <inheritdoc/>
-        public override bool CanSeek
-        {
-            get { return true; }
-        }
+        public override bool CanSeek => true;
 
         /// <inheritdoc/>
-        public override bool CanWrite
-        {
-            get { return true; }
-        }
+        public override bool CanWrite => true;
 
         /// <inheritdoc/>
-        public override long Length
-        {
-            get { return dataEnd - dataStart; }
-        }
+        public override long Length => dataEnd - dataStart;
 
         /// <inheritdoc/>
         public override long Position
         {
-            get { return dataCurrent - dataStart; }
-            set { dataCurrent = dataStart + value; }
+            get => dataCurrent - dataStart;
+            set => dataCurrent = dataStart + value;
         }
     }
 }

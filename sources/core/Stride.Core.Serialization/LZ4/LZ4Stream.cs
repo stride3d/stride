@@ -181,7 +181,7 @@ namespace Stride.Core.LZ4
 				}
 			    innerStreamPosition += 1;
 				var b = buffer[0];
-				result = result + ((ulong)(b & 0x7F) << count);
+				result += ((ulong)(b & 0x7F) << count);
 				count += 7;
 				if ((b & 0x80) == 0 || count >= 64) break;
 			}
@@ -195,13 +195,12 @@ namespace Stride.Core.LZ4
 		/// <returns>The value.</returns>
 		private ulong ReadVarInt()
 		{
-			ulong result;
-			if (!TryReadVarInt(out result)) throw EndOfStream();
-			return result;
+            if (!TryReadVarInt(out var result)) throw EndOfStream();
+            return result;
 		}
 
-		/// <summary>Reads the block of bytes. 
-		/// Contrary to <see cref="Stream.Read"/> does not read partial data if possible. 
+		/// <summary>Reads the block of bytes.
+		/// Contrary to <see cref="Stream.Read"/> does not read partial data if possible.
 		/// If there is no data (yet) it waits.</summary>
 		/// <param name="buffer">The buffer.</param>
 		/// <param name="offset">The offset.</param>
@@ -281,9 +280,8 @@ namespace Stride.Core.LZ4
 		{
 			do
 			{
-				ulong varint;
-				if (!TryReadVarInt(out varint)) return false;
-				var flags = (ChunkFlags)varint;
+                if (!TryReadVarInt(out var varint)) return false;
+                var flags = (ChunkFlags)varint;
 				var isCompressed = (flags & ChunkFlags.Compressed) != 0;
 
 				var originalLength = (int)ReadVarInt();
@@ -299,11 +297,8 @@ namespace Stride.Core.LZ4
 				if (!isCompressed)
 				{
                     // swap the buffers
-				    var oldDataBuffer = dataBuffer;
-                    dataBuffer = compressedDataBuffer; // no compression on this chunk
-				    compressedDataBuffer = oldDataBuffer; // ensure that compressedDataBuffer and dataBuffer are different
-
-					bufferLength = compressedLength;
+                    (compressedDataBuffer, dataBuffer) = (dataBuffer, compressedDataBuffer);
+                    bufferLength = compressedLength;
 				}
 				else
 				{
@@ -422,8 +417,41 @@ namespace Stride.Core.LZ4
 			return total;
 		}
 
+        /// <summary>When overridden in a derived class, reads a sequence of bytes from the current stream and advances the position within the stream by the number of bytes read.</summary>
+        /// <param name="buffer">An array of bytes. When this method returns, the buffer contains the specified byte array with the values between <paramref name="offset" /> and (<paramref name="offset" /> + <paramref name="count" /> - 1) replaced by the bytes read from the current source.</param>
+        /// <param name="offset">The zero-based byte offset in <paramref name="buffer" /> at which to begin storing the data read from the current stream.</param>
+        /// <param name="count">The maximum number of bytes to be read from the current stream.</param>
+        /// <returns>The total number of bytes read into the buffer. This can be less than the number of bytes requested if that many bytes are not currently available, or zero (0) if the end of the stream has been reached.</returns>
+        public override unsafe int Read(Span<byte> buffer)
+        {
+            if (!CanRead) throw NotSupported("Read");
+
+            var total = 0;
+
+            while (buffer.Length > 0)
+            {
+                var chunk = Math.Min(buffer.Length, bufferLength - bufferOffset);
+                if (chunk > 0)
+                {
+                    var src = dataBuffer.AsSpan(bufferOffset, chunk);
+                    src.CopyTo(buffer);
+                    bufferOffset += chunk;
+                    buffer = buffer[chunk..];
+                    total += chunk;
+                }
+                else
+                {
+                    if (!AcquireNextChunk()) break;
+                }
+            }
+            position += total;
+
+            return total;
+        }
+
         /// <inheritdoc/>
-        public unsafe override int Read(nint buffer, int count)
+        [Obsolete("Use Stream.Read(ReadOnlySpan<byte>).")]
+        public override unsafe int Read(nint buffer, int count)
         {
             Debug.Assert((count | bufferLength | bufferOffset) >= 0);
             if (!CanRead) throw NotSupported("Read");
@@ -460,21 +488,13 @@ namespace Stride.Core.LZ4
 		/// <returns>The new position within the current stream.</returns>
 		public override long Seek(long offset, SeekOrigin origin)
 		{
-		    long newPosition;
-            switch (origin)
+            var newPosition = origin switch
             {
-                case SeekOrigin.Begin:
-                    newPosition = offset;
-                    break;
-                case SeekOrigin.Current:
-                    newPosition = Position + offset;
-                    break;
-                case SeekOrigin.End:
-                    throw NotSupported("Seek");
-                default:
-                    throw new ArgumentOutOfRangeException("origin");
-            }
-
+                SeekOrigin.Begin => offset,
+                SeekOrigin.Current => Position + offset,
+                SeekOrigin.End => throw NotSupported("Seek"),
+                _ => throw new ArgumentOutOfRangeException("origin"),
+            };
             if (newPosition == 0)
             {
                 innerStream.Seek(-innerStreamPosition, SeekOrigin.Current);
@@ -566,7 +586,45 @@ namespace Stride.Core.LZ4
 			}
 		}
 
-	    /// <inheritdoc/>
+        /// <summary>When overridden in a derived class, writes a sequence of bytes to the current stream and advances the current position within this stream by the number of bytes written.</summary>
+        /// <param name="buffer">An array of bytes. This method copies <paramref name="count" /> bytes from <paramref name="buffer" /> to the current stream.</param>
+        /// <param name="offset">The zero-based byte offset in <paramref name="buffer" /> at which to begin copying bytes to the current stream.</param>
+        /// <param name="count">The number of bytes to be written to the current stream.</param>
+        public override unsafe void Write(ReadOnlySpan<byte> buffer)
+        {
+            Debug.Assert(
+                bufferLength >= 0 &&
+                (dataBuffer is null || (uint)bufferOffset + (uint)buffer.Length <= (uint)bufferLength));
+            if (!CanWrite) throw NotSupported("Write");
+
+            position += buffer.Length;
+
+            if (dataBuffer == null)
+            {
+                dataBuffer = new byte[blockSize];
+                bufferLength = blockSize;
+                bufferOffset = 0;
+            }
+
+            while (buffer.Length > 0)
+            {
+                var chunk = Math.Min(buffer.Length, bufferLength - bufferOffset);
+                if (chunk > 0)
+                {
+                    var dst = dataBuffer.AsSpan(bufferOffset);
+                    buffer[..chunk].CopyTo(dst);
+                    buffer = buffer[chunk..];
+                    bufferOffset += chunk;
+                }
+                else
+                {
+                    FlushCurrentChunk();
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        [Obsolete("Use Stream.Write(ReadOnlySpan<byte>).")]
         public override unsafe void Write(nint buffer, int count)
         {
             Debug.Assert((uint)bufferOffset + (uint)count <= (uint)bufferLength);

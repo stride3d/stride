@@ -322,16 +322,9 @@ namespace Stride.Core.Serialization.Serializers
         /// <inheritdoc/>
         public override void Serialize(ref Guid obj, ArchiveMode mode, SerializationStream stream)
         {
-            if (mode == ArchiveMode.Serialize)
-            {
-                var guidData = obj.ToByteArray();
-                stream.Serialize(guidData, 0, guidData.Length);
-            }
-            else if (mode == ArchiveMode.Deserialize)
-            {
-                var guidData = new byte[16];
-                stream.Serialize(guidData, 0, guidData.Length);
-                obj = new Guid(guidData);
+            if (mode == ArchiveMode.Serialize || mode == ArchiveMode.Deserialize) {
+                var span = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref obj, 1));
+                stream.Serialize(span);
             }
         }
     }

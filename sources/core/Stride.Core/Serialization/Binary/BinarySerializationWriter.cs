@@ -111,10 +111,11 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc/>
-        public override void Serialize(IntPtr memory, int count)
-        {
-            NativeStream.Write(memory, count);
-        }
+        [Obsolete("Use Serialize(Span<T>)")]
+        public override void Serialize(IntPtr buffer, int count) => NativeStream.Write(buffer, count);
+
+        /// <inheritdoc />
+        public override void Serialize(Span<byte> buffer) => NativeStream.Write(buffer);
 
         /// <inheritdoc />
         public override void Flush()

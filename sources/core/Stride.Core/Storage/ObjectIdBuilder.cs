@@ -18,6 +18,7 @@
 // limitations under the License.
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
@@ -56,15 +57,8 @@ namespace Stride.Core.Storage
             currentBlock4 = 0;
         }
 
-        public uint Seed { get { return seed; } }
-
-        public int Length
-        {
-            get
-            {
-                return currentLength;
-            }
-        }
+        public uint Seed => seed;
+        public int Length => currentLength;
 
         private uint H1;
         private uint H2;
@@ -171,7 +165,7 @@ namespace Stride.Core.Storage
         {
             ref var currentBlock = ref Unsafe.As<uint, byte>(ref currentBlock1);
 
-            var position = currentLength++ % 16;
+            var position = currentLength++ & 15;
 
             Unsafe.Add(ref currentBlock,  position) = value;
 
@@ -192,7 +186,7 @@ namespace Stride.Core.Storage
         public void Write([NotNull] byte[] buffer)
         {
             if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-            Write(buffer, 0, buffer.Length);
+            Write(buffer.AsSpan());
         }
 
         /// <summary>
@@ -205,29 +199,11 @@ namespace Stride.Core.Storage
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte[] buffer, int offset, int count)
-        {
-            Debug.Assert(
-                (offset | count) >= 0 &&
-                (uint)offset + (uint)count <= (uint)buffer.Length);
-#if NET5_0_OR_GREATER
-            ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(buffer), offset);
-#else // AssemblyProcessor
-            ref var data = ref (buffer is null || buffer.Length == 0) ? ref Unsafe.NullRef<byte>() : ref buffer[0];
-            data = ref Unsafe.Add(ref data, offset);
-#endif
-            Write(ref data, count);
-        }
+            => Write(buffer.AsSpan(offset, count));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write([NotNull] string str)
-        {
-#if NET5_0_OR_GREATER
-            ref var ch = ref Unsafe.AsRef(in str.GetPinnableReference());
-#else // AssemblyProcessor
-            ref var ch = ref Unsafe.AsRef(in str.AsSpan().GetPinnableReference());
-#endif
-            Write(ref Unsafe.As<char, byte>(ref ch), str.Length * sizeof(char));
-        }
+            => Write(str.AsSpan());
 
         /// <summary>
         /// Writes the specified buffer to this instance.
@@ -235,10 +211,8 @@ namespace Stride.Core.Storage
         /// <typeparam name="T">Type must be a struct</typeparam>
         /// <param name="data">The data.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write<T>(T data) where T : struct
-        {
-            Write(ref data);
-        }
+        public void Write<T>(T data) where T : unmanaged
+            => Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>()));
 
         /// <summary>
         /// Writes the specified buffer to this instance.
@@ -248,28 +222,36 @@ namespace Stride.Core.Storage
         /// <param name="offset">The offset.</param>
         /// <param name="count">The count.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write<T>(T[] buffer, int offset, int count) where T : struct
-        {
-            Debug.Assert(
-                (offset | count) >= 0 &&
-                (uint)offset + (uint)count <= (uint)buffer.Length);
-#if NET5_0_OR_GREATER
-            ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(buffer), offset);
-#else // AssemblyProcessor
-            ref var data = ref (buffer is null || buffer.Length == 0) ? ref Unsafe.NullRef<T>() : ref buffer[0];
-            data = ref Unsafe.Add(ref data, offset);
-#endif
-            Write(ref Unsafe.As<T, byte>(ref data), count * Unsafe.SizeOf<T>());
-        }
+        public void Write<T>(T[] buffer, int offset, int count) where T : unmanaged
+            => Write<T>(buffer.AsSpan(offset, count));
+
+        /// <summary>
+        /// Writes the specified buffer to this instance.
+        /// </summary>
+        /// <typeparam name="T">Type must be a struct</typeparam>
+        /// <param name="buffer">The buffer.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write<T>(ReadOnlySpan<T> buffer) where T : unmanaged
+            => Write(MemoryMarshal.AsBytes(buffer));
+
+        /// <summary>
+        /// Writes the specified buffer to this instance.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        [Obsolete("Use Write(ReadOnlySpan<byte>)")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(ref byte buffer, int length)
+            => Write(MemoryMarshal.CreateReadOnlySpan(ref buffer, length));
 
         /// <summary>
         /// Writes the specified buffer to this instance.
         /// </summary>
         /// <typeparam name="T">Type must be a struct</typeparam>
         /// <param name="data">The data.</param>
+        [Obsolete("Use Write(T) or Write(ReadOnlySpan<byte>)")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write<T>(ref T data) where T : struct
-            => Write(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>());
+        public void Write<T>(ref T data) where T : unmanaged
+            => Write(data);
 
         /// <summary>
         /// Writes a buffer of byte to this builder.
@@ -278,7 +260,7 @@ namespace Stride.Core.Storage
         /// <param name="count">The count.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
-        [Obsolete("Use Write(ref byte, int)")]
+        [Obsolete("Use Write(ReadOnlySpan<byte>)")]
         public void Write(byte* buffer, int length)
         {
             fixed (uint* currentBlockStart = &currentBlock1)
@@ -342,10 +324,12 @@ namespace Stride.Core.Storage
         /// <param name="count">The count.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
-        public void Write(ref byte buffer, int length)
+        public void Write(ReadOnlySpan<byte> span)
         {
             ref var currentBlock = ref Unsafe.As<uint, byte>(ref currentBlock1);
             var position = currentLength % 16;
+            ref byte buffer = ref Unsafe.AsRef(in span.GetPinnableReference());
+            int length = span.Length;
 
             currentLength += length;
 
@@ -442,10 +426,7 @@ namespace Stride.Core.Storage
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint RotateLeft(uint x, byte r)
-        {
-            return (x << r) | (x >> (32 - r));
-        }
+        static uint RotateLeft(uint x, byte r) => BitOperations.RotateLeft(x, r);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint FMix(uint h)

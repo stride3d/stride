@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Serialization.Serializers
@@ -315,28 +315,20 @@ namespace Stride.Core.Serialization.Serializers
     /// <typeparam name="T">Generics type of T[].</typeparam>
     public class BlittableArraySerializer<T> : ArraySerializer<T> where T : unmanaged
     {
-        private int elementSize;
 
         /// <inheritdoc/>
         public override void Initialize(SerializerSelector serializerSelector)
         {
-            elementSize = Unsafe.SizeOf<T>();
         }
 
         /// <inheritdoc/>
-        public override unsafe void Serialize(ref T[] obj, ArchiveMode mode, SerializationStream stream)
+        public override unsafe void Serialize(ref T[] array, ArchiveMode mode, SerializationStream stream)
         {
-            var size = obj.Length * elementSize;
-            fixed (void* ptr = &obj[0]) {
-                if (mode == ArchiveMode.Deserialize)
-                {
-                    stream.NativeStream.Read((nint)ptr, size);
-                }
-                else if (mode == ArchiveMode.Serialize)
-                {
-                    stream.NativeStream.Write((nint)ptr, size);
-                }
-            }
+            var span = MemoryMarshal.Cast<T, byte>(array.AsSpan());
+            if (mode == ArchiveMode.Deserialize)
+                stream.NativeStream.Read(span);
+            else if (mode == ArchiveMode.Serialize)
+                stream.NativeStream.Write(span);
         }
     }
 
@@ -545,7 +537,7 @@ namespace Stride.Core.Serialization.Serializers
                     obj.Clear();
             }
         }
-        
+
         /// <inheritdoc/>
         public override void Serialize(ref IDictionary<TKey, TValue> obj, ArchiveMode mode, SerializationStream stream)
         {

@@ -1,17 +1,18 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Stride.Core.Annotations;
 
 namespace Stride.Core
 {
+    [Obsolete("Obtain Memory<T> using GC.Allocate*Array or a Stride-specific allocator mechanism.")]
     public class UnmanagedArray<T> : IDisposable where T : struct
     {
         private readonly int sizeOfT;
         private readonly bool isShared;
 
+        [Obsolete("Obtain Memory<T> using GC.Allocate*Array or a Stride-specific allocator mechanism.")]
         public UnmanagedArray(int length)
         {
             Length = length;
@@ -21,6 +22,7 @@ namespace Stride.Core
             isShared = false;
         }
 
+        [Obsolete("Obtain Memory<T> using GC.Allocate*Array or a Stride-specific allocator mechanism.")]
         public UnmanagedArray(int length, IntPtr unmanagedDataPtr)
         {
             Length = length;

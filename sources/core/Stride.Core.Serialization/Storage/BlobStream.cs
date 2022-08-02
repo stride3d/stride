@@ -10,7 +10,7 @@ namespace Stride.Core.Storage
     /// </summary>
     internal class BlobStream : NativeMemoryStream
     {
-        private Blob blob;
+        private readonly Blob blob;
 
         public BlobStream(Blob blob) : base(blob.Content, blob.Size)
         {
@@ -29,30 +29,20 @@ namespace Stride.Core.Storage
         }
 
         /// <inheritdoc/>
-        public override void WriteByte(byte value)
-        {
-            throw new NotSupportedException();
-        }
+        public override void WriteByte(byte value) => throw new NotSupportedException();
 
         /// <inheritdoc/>
-        public override void Write(IntPtr buffer, int count)
-        {
-            throw new NotSupportedException();
-        }
+        [Obsolete("Use Stream.Write(ReadOnlySpan<byte>).")]
+        public override void Write(IntPtr buffer, int count) => throw new NotSupportedException();
 
         /// <inheritdoc/>
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new NotSupportedException();
-        }
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
         /// <inheritdoc/>
-        public override bool CanWrite
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override void Write(ReadOnlySpan<byte> buffer) => throw new NotSupportedException();
+
+
+        /// <inheritdoc/>
+        public override bool CanWrite => false;
     }
 }
