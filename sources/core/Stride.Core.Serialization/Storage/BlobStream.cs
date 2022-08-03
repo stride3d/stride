@@ -13,7 +13,8 @@ namespace Stride.Core.Storage
     {
         private readonly Blob blob;
 
-        public unsafe BlobStream(Blob blob) : base((byte*)blob.Content, blob.Size)
+        public unsafe BlobStream(Blob blob)
+            : base((byte*)blob.Content, blob.Size, capacity: blob.Size, access: FileAccess.Read)
         {
             this.blob = blob;
 

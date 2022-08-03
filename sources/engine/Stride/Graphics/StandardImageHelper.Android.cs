@@ -18,7 +18,7 @@ namespace Stride.Graphics
     {
         public static unsafe Image LoadFromMemory(nint pSource, int size, bool makeACopy, GCHandle? handle)
         {
-            using (var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size))
+            using (var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size, capacity: size, access: FileAccess.Read))
             {
                 var options = new BitmapFactory.Options { InPreferredConfig = Bitmap.Config.Argb8888 };
                 var bitmap = BitmapFactory.DecodeStream(memoryStream, new Rect(), options);

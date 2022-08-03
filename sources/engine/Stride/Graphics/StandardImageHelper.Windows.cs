@@ -19,7 +19,7 @@ namespace Stride.Graphics
     {
         public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
         {
-            using var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size);
+            using var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size, capacity: size, access: FileAccess.Read);
             using var bitmap = (Bitmap)System.Drawing.Image.FromStream(memoryStream);
             var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
             // Lock System.Drawing.Bitmap

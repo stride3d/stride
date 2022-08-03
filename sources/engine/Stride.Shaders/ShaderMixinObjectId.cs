@@ -31,8 +31,9 @@ namespace Stride.Shaders
         private unsafe ShaderMixinObjectId()
         {
             objectIdBuilder = new ObjectIdBuilder();
-            buffer = Marshal.AllocHGlobal(65536);
-            memStream = new UnmanagedMemoryStream((byte*)buffer, 65536);
+            const int size = 1 << 16;
+            buffer = Marshal.AllocHGlobal(size);
+            memStream = new UnmanagedMemoryStream((byte*)buffer, size, capacity: size, access: FileAccess.Write);
             writer = new HashSerializationWriter(memStream);
             writer.Context.SerializerSelector = new SerializerSelector("Default", "Hash");
         }

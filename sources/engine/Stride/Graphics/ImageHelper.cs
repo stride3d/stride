@@ -19,7 +19,8 @@ namespace Stride.Graphics
         public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
         {
             Debug.Assert(size >= 0);
-            var stream = new BinarySerializationReader(new UnmanagedMemoryStream((byte*)pSource, size));
+            var ums = new UnmanagedMemoryStream((byte*)pSource, size, capacity: size, access: FileAccess.Read);
+            var stream = new BinarySerializationReader(ums);
 
             // Read and check magic code
             var magicCode = stream.ReadUInt32();
