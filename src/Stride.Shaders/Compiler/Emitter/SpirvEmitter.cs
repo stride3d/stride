@@ -14,6 +14,7 @@ public partial class SpirvEmitter : Module
 {
     public Dictionary<string,SpvStruct> ShaderTypes {get;set;}
     public Dictionary<string,Instruction> ShaderFunctionTypes {get;set;}
+    public Dictionary<string,Instruction> Variables {get;set;}
     public SpirvEmitter(uint version) : base(version)
     {
         ShaderTypes = new();
@@ -41,9 +42,11 @@ public partial class SpirvEmitter : Module
 
         CreateStreamStructs(program, entry);
 
-        // Manage input output and stream
-
         // Generate methods()
         
+
+        // Generate main method
+
+        MainMethod(entry,program);
     }
 }

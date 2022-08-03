@@ -1,6 +1,7 @@
 using Spv.Generator;
 using Stride.Shaders.Mixer;
 using Stride.Shaders.Parsing.AST.Shader;
+using static Spv.Specification;
 
 namespace Stride.Shaders.Spirv;
 
@@ -40,6 +41,13 @@ public partial class SpirvEmitter
         Stream = new Stream(entry, this, variables as IEnumerable<(string,Instruction)>);
         StreamIn = new(entry, this, inVars);
         StreamOut = new StreamOut(entry, this, outVars);
+
+        // in-out
+
+        var streamInPtr = TypePointer(StorageClass.Input , StreamIn.SpvType);
+        var streamOutPtr = TypePointer(StorageClass.Output , StreamOut.SpvType);
+        Variables[StreamIn.Name] = Variable(streamInPtr, StorageClass.Input);
+        Variables[StreamOut.Name] = Variable(streamOutPtr, StorageClass.Output);
         
     }
 }

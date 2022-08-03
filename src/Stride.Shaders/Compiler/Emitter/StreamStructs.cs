@@ -5,6 +5,7 @@ namespace Stride.Shaders.Spirv;
 
 public abstract class StreamStruct : SpvStruct 
 {
+    public string Name {get; protected set;}
     public Dictionary<string,int> NameToPosition {get;set;} = new();
     public StreamStruct(Module m, IEnumerable<(string,Instruction)> fields)
     {
@@ -25,7 +26,7 @@ public class Stream : StreamStruct
     
     public Stream(EntryPoints entry, Module m, IEnumerable<(string,Instruction)> fields) : base(m,fields)
     {
-        var name = entry switch 
+        Name = entry switch 
         {
             EntryPoints.VSMain => "VS_STREAMS",
             EntryPoints.PSMain => "PS_STREAMS",
@@ -35,7 +36,7 @@ public class Stream : StreamStruct
             EntryPoints.DSMain => "DS_STREAMS",
             _ => throw new NotImplementedException()
         };
-        m.Name(SpvType, name);
+        m.Name(SpvType, Name);
     }
 }
 
@@ -44,7 +45,7 @@ public class StreamIn : StreamStruct
     
     public StreamIn(EntryPoints entry, Module m, IEnumerable<(string,Instruction)> fields) : base(m,fields)
     {
-        var name = entry switch 
+        Name = entry switch 
         {
             EntryPoints.VSMain => "VS_STREAMS_IN",
             EntryPoints.PSMain => "PS_STREAMS_IN",
@@ -54,7 +55,7 @@ public class StreamIn : StreamStruct
             EntryPoints.DSMain => "DS_STREAMS_IN",
             _ => throw new NotImplementedException()
         };
-        m.Name(SpvType, name);
+        m.Name(SpvType, Name);
     }
 }
 public class StreamOut : StreamStruct
@@ -62,7 +63,7 @@ public class StreamOut : StreamStruct
     
     public StreamOut(EntryPoints entry, Module m, IEnumerable<(string,Instruction)> fields) : base(m,fields)
     {
-        var name = entry switch 
+        Name = entry switch 
         {
             EntryPoints.VSMain => "VS_STREAMS_OUT",
             EntryPoints.PSMain => "PS_STREAMS_OUT",
@@ -72,6 +73,6 @@ public class StreamOut : StreamStruct
             EntryPoints.DSMain => "DS_STREAMS_OUT",
             _ => throw new NotImplementedException()
         };
-        m.Name(SpvType, name);
+        m.Name(SpvType, Name);
     }
 }

@@ -27,7 +27,13 @@ public partial class SpirvEmitter : Module
     }
     public void VSMethod(ShaderProgram p)
     {
-        
+        var typefunc = TypeFunction(TypeVoid());
+        var func = Function(TypeVoid(), FunctionControlMask.MaskNone, typefunc);
+        Label();
+        foreach(var s in ((VSMainMethod)p.Body.First(x => x is VSMainMethod)).Statements)
+        {
+            
+        }
     }
     public void PSMethod(ShaderProgram p)
     {
