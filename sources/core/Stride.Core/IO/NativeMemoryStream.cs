@@ -100,12 +100,14 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The remaining capacity in the stream
+        /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             Debug.Assert(dataEnd >= dataCurrent);
             var written = (nint)(dataEnd - dataCurrent);
             if (written < buffer.Length)
-                throw new IOException();
+                throw new IOException("Can't write beyond end of stream.");
             else
                 written = buffer.Length;
             var dst = new Span<byte>(dataCurrent, (int)written);
@@ -121,7 +123,7 @@ namespace Stride.Core.IO
                 (uint)offset + (uint)count <= (uint)buffer.Length);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
-                throw new InvalidOperationException("Buffer too small");
+                throw new InvalidOperationException("Can't write beyond end of stream.");
 
             fixed (byte* pinned = &buffer[0])
                 Unsafe.CopyBlockUnaligned(dataCurrent, pinned + offset, (uint)count);
@@ -141,7 +143,7 @@ namespace Stride.Core.IO
         public override void WriteByte(byte value)
         {
             if (dataCurrent >= dataEnd)
-                throw new InvalidOperationException("Buffer too small");
+                throw new InvalidOperationException("Cannot write beyond end of stream.");
 
             *dataCurrent++ = value;
         }

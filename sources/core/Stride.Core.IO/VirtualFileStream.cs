@@ -217,11 +217,13 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The remaining capacity in the stream
+        /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             if (endPosition != -1 && buffer.Length > endPosition - InternalStream.Position)
             {
-                throw new NotSupportedException("Can't write beyond end of stream.");
+                throw new IOException("Can't write beyond end of stream.");
             }
 
             InternalStream.Write(buffer);
