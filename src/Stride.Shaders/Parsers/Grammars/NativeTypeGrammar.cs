@@ -15,7 +15,6 @@ public class NativeTypeGrammar : Grammar
     {
         var numbers = new NumberParser(){AllowDecimal = false, AllowSign = false, AllowExponent = false, ValueType = typeof(int)};
         Inner = new AlternativeParser(
-            Terminals.Letter.Or("_").Then(Terminals.LetterOrDigit.Or("_").Repeat(0)),
             Literal("bool").Then(numbers.Named("RowCount")).Then("x").Then(numbers.Named("ColCount")).Named("BoolMatrix"),
 
             Literal("ulong").Then(numbers.Named("RowCount")).Then("x").Then(numbers.Named("ColCount")).Named("ULongMatrix"),
@@ -66,7 +65,8 @@ public class NativeTypeGrammar : Grammar
             Literal("half").Named("Half"),
 
             Literal("byte").Named("Byte"),
-            Literal("sbyte").Named("SByte")            
-        );
+            Literal("sbyte").Named("SByte"),
+            Terminals.Letter.Or("_").Then(Terminals.LetterOrDigit.Or("_").Repeat(0))        
+        ).WithName("TypeParser");
     }
 }

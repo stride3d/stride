@@ -16,8 +16,9 @@ public partial class SpirvEmitter : Module
     public Instruction? AsSpvType(string n)
     {
         var match = NativeTypeGrammar.ParseNativeType(n);
-        if(!match.HasMatches) return TryGetUserDefined(n);
-        else return match.Matches[0] switch
+        if(!match.HasMatches) return TryGetUserDefined(n); 
+        if(!match["TypeParser"].HasMatches) return TryGetUserDefined(n);        
+        else return match["TypeParser"].Matches[0] switch
         {
             { Name: "Bool" } => TypeBool(),
             { Name: "Byte" } => TypeInt(8, 0),
