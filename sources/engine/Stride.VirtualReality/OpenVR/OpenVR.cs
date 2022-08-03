@@ -370,8 +370,6 @@ namespace Stride.VirtualReality
             Debug.Assert(Unsafe.SizeOf<Vector3>() == Unsafe.SizeOf<HmdVector3_t>());
             Debug.Assert(Unsafe.SizeOf<Matrix>() > Unsafe.SizeOf<HmdMatrix34_t>());
             pose = Matrix.Identity;
-            linearVelocity = Vector3.Zero;
-            angularVelocity = Vector3.Zero;
             for (uint index = 0; index < DevicePoses.Length; index++)
             {
                 ref var devicePose = ref DevicePoses[index];
@@ -395,6 +393,8 @@ namespace Stride.VirtualReality
                 }
             }
 
+            linearVelocity = default;
+            angularVelocity = default;
             return DeviceState.Invalid;
         }
 
