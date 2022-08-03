@@ -246,7 +246,7 @@ namespace Stride.Particles
                 Utilities.CopyMemory(dstParticle[accessor], srcParticle[accessor], field.Size);
             }
 #else
-            Unsafe.CopyBlockUnaligned(&dstParticle, &srcParticle, (uint)ParticleSize);
+            Unsafe.CopyBlockUnaligned((void*)dstParticle.Pointer, (void*)srcParticle.Pointer, (uint)ParticleSize);
 #endif
         }
 

@@ -33,13 +33,13 @@ namespace Stride.Particles
         /// <summary>
         /// Pointer to the particle data block
         /// </summary>
-        public readonly IntPtr Pointer;
+        public readonly nint Pointer;
 
         /// <summary>
         /// Creates a particle from a raw pointer, assuming the pointer references valid particle data block
         /// </summary>
         /// <param name="pointer"></param>
-        public Particle(IntPtr pointer)
+        public Particle(nint pointer)
         {
             Pointer = pointer;
         }
@@ -50,7 +50,7 @@ namespace Stride.Particles
         /// <returns></returns>
         internal static Particle Invalid()
         {
-            return new Particle(IntPtr.Zero);
+            return new Particle(0);
         }
 #endif
 
@@ -104,13 +104,12 @@ namespace Stride.Particles
         #endregion
 
 #if PARTICLES_SOA
-        public IntPtr this[ParticleFieldAccessor accessor] => accessor[Index];
+        public nint this[ParticleFieldAccessor accessor] => accessor[Index];
 
         public static implicit operator int(Particle particle) => particle.Index;
 #else
-        public static implicit operator IntPtr(Particle particle) => particle.Pointer;
 
-        public IntPtr this[ParticleFieldAccessor accessor] => Pointer + accessor;
+        public nint this[ParticleFieldAccessor accessor] => Pointer + (int)accessor;
 #endif
 
 
@@ -147,10 +146,7 @@ namespace Stride.Particles
         public static bool operator ==(Particle particleLeft, Particle particleRight) => (particleLeft.Pointer == particleRight.Pointer);
         public static bool operator !=(Particle particleLeft, Particle particleRight) => (particleLeft.Pointer != particleRight.Pointer);
 
-        public override int GetHashCode()
-        {
-            return Pointer.ToInt32();
-        }
+        public override int GetHashCode() => Pointer.GetHashCode();
 #endif
     }
 }
