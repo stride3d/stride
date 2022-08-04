@@ -69,7 +69,7 @@ namespace Stride.Core.IO
         /// <inheritdoc/>
         public override void SetLength(long value)
         {
-            throw new InvalidOperationException("Length can't be changed.");
+            throw new NotSupportedException("Length can't be changed.");
         }
 
         /// <inheritdoc/>
@@ -116,6 +116,8 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The remaining capacity in the stream
+        /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
         public override void Write(byte[] buffer, int offset, int count)
         {
             Debug.Assert(
@@ -123,7 +125,7 @@ namespace Stride.Core.IO
                 (uint)offset + (uint)count <= (uint)buffer.Length);
             var bytesLeft = (int)(dataEnd - dataCurrent);
             if (count > bytesLeft)
-                throw new InvalidOperationException("Can't write beyond end of stream.");
+                throw new IOException("Can't write beyond end of stream.");
 
             fixed (byte* pinned = &buffer[0])
                 Unsafe.CopyBlockUnaligned(dataCurrent, pinned + offset, (uint)count);
@@ -140,10 +142,12 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The remaining capacity in the stream
+        /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
         public override void WriteByte(byte value)
         {
             if (dataCurrent >= dataEnd)
-                throw new InvalidOperationException("Cannot write beyond end of stream.");
+                throw new IOException("Cannot write beyond end of stream.");
 
             *dataCurrent++ = value;
         }

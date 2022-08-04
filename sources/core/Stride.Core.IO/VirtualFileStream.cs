@@ -34,7 +34,7 @@ namespace Stride.Core.Serialization
         /// <param name="startPosition">The start position.</param>
         /// <param name="endPosition">The end position.</param>
         /// <param name="disposeInternalStream">if set to <c>true</c> this instance has ownership of the internal stream and will dispose it].</param>
-        /// <exception cref="System.ArgumentException">startPosition and endPosition doesn't fit inside current bounds</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">startPosition and endPosition doesn't fit inside current bounds</exception>
         /// <exception cref="System.NotSupportedException">Attempted to create a VirtualFileStream from a Stream which doesn't support seeking.</exception>
         public VirtualFileStream(Stream internalStream, long startPosition = 0, long endPosition = -1, bool disposeInternalStream = true, bool seekToBeginning = true)
         {
@@ -49,8 +49,10 @@ namespace Stride.Core.Serialization
                     endPosition = virtualFileStream.endPosition;
                 else
                     endPosition += virtualFileStream.startPosition;
-                if (startPosition < virtualFileStream.startPosition || ((endPosition < startPosition || endPosition > virtualFileStream.endPosition) && virtualFileStream.endPosition != -1))
-                    throw new ArgumentException("startPosition and endPosition doesn't fit inside current bounds");
+                if (startPosition < virtualFileStream.startPosition)
+                    throw new ArgumentOutOfRangeException(nameof(startPosition));
+                if ((endPosition < startPosition || endPosition > virtualFileStream.endPosition) && virtualFileStream.endPosition != -1)
+                    throw new ArgumentOutOfRangeException(nameof(endPosition));
 
                 if (!virtualFileStream.disposeInternalStream)
                     this.disposeInternalStream = false;
@@ -161,6 +163,8 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The <paramref name="offset"/> and <paramref name="origin"/>
+        /// would seek to a position before the start of the stream or after the end.</exception>
         public override long Seek(long offset, SeekOrigin origin)
         {
             switch (origin)
@@ -188,7 +192,7 @@ namespace Stride.Core.Serialization
             if (newPosition < startPosition || (endPosition != -1 && newPosition > endPosition))
             {
                 InternalStream.Position = startPosition;
-                throw new InvalidOperationException("Seek position is out of bound.");
+                throw new IOException("Cannot seek to the specified position.");
             }
 
             return newPosition;
@@ -199,18 +203,20 @@ namespace Stride.Core.Serialization
         {
             if (endPosition != -1)
             {
-                throw new InvalidOperationException("Can't resize VirtualFileStream if endPosition is not -1.");
+                throw new NotSupportedException("Can't resize VirtualFileStream if endPosition is not -1.");
             }
 
             InternalStream.SetLength(value);
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The remaining capacity in the stream
+        /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (endPosition != -1 && count > endPosition - InternalStream.Position)
             {
-                throw new NotSupportedException("Can't write beyond end of stream.");
+                throw new IOException("Can't write beyond end of stream.");
             }
 
             InternalStream.Write(buffer, offset, count);
@@ -230,11 +236,13 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The remaining capacity in the stream
+        /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
         public override void WriteByte(byte value)
         {
             if (endPosition != -1 && InternalStream.Position >= endPosition)
             {
-                throw new NotSupportedException("Can't write beyond end of stream.");
+                throw new IOException("Can't write beyond end of stream.");
             }
 
             InternalStream.WriteByte(value);
