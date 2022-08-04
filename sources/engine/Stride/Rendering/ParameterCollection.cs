@@ -21,7 +21,6 @@ namespace Stride.Rendering
     [DebuggerTypeProxy(typeof(ParameterCollection.DebugView))]
     public class ParameterCollection
     {
-        private static readonly byte[] EmptyData = new byte[0];
 
         private ParameterCollectionLayout layout;
 
@@ -30,7 +29,7 @@ namespace Stride.Rendering
 
         // Constants and resources
         [DataMemberIgnore]
-        public byte[] DataValues = EmptyData;
+        public byte[] DataValues = Array.Empty<byte>();
         [DataMemberIgnore]
         public object[] ObjectValues;
 
@@ -75,11 +74,15 @@ namespace Stride.Rendering
             // Copy data
             if (parameterCollection.DataValues != null)
             {
-                DataValues = new byte[parameterCollection.DataValues.Length];
-                fixed (byte* dataValuesSources = parameterCollection.DataValues)
-                fixed (byte* dataValuesDest = DataValues)
-                {
-                    Unsafe.CopyBlockUnaligned(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
+                if (parameterCollection.DataValues.Length == 0)
+                    DataValues = Array.Empty<byte>();
+                else {
+                    DataValues = new byte[parameterCollection.DataValues.Length];
+                    fixed (byte* dataValuesSources = parameterCollection.DataValues)
+                    fixed (byte* dataValuesDest = DataValues)
+                    {
+                        Unsafe.CopyBlockUnaligned(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
+                    }
                 }
             }
         }
@@ -324,7 +327,7 @@ namespace Stride.Rendering
 
             // Align to float4
             var stride = (Unsafe.SizeOf<T>() + 15) & ~15;
-            var sizeInBytes = sourceParameter.Count * stride;
+            var sizeInBytes = Unsafe.SizeOf<T>() + stride * (sourceParameter.Count - 1);
             Debug.Assert(
                 (destParameter.Offset | sourceParameter.Offset | sizeInBytes) >= 0 &&
                 (uint)sourceParameter.Offset + (uint)sizeInBytes <= (uint)(DataValues?.Length ?? 0) &&
@@ -494,7 +497,7 @@ namespace Stride.Rendering
         /// </summary>
         public void Clear()
         {
-            DataValues = EmptyData;
+            DataValues = Array.Empty<byte>();
             ObjectValues = null;
             layout = null;
             parameterKeyInfos.Clear();
@@ -572,7 +575,8 @@ namespace Stride.Rendering
 
                     var elementSize = newParameterKeyInfos.Items[i].Key.Size;
                     var elementCount = newParameterKeyInfos.Items[i].Count;
-                    var totalSize = elementSize + (elementSize + 15) / 16 * 16 * (elementCount - 1);
+                    var totalSize = (elementSize + 15) & ~15;
+                    totalSize *= elementCount;
                     bufferSize += totalSize;
                 }
                 else if (parameterKeyInfo.BindingSlot != -1)
@@ -586,7 +590,6 @@ namespace Stride.Rendering
             var newResourceValues = new object[resourceCount];
 
             // Update default values
-            var bufferOffset = 0;
             fixed (byte* newDataValuesPtr = newDataValues) {
                 foreach (var layoutParameterKeyInfo in layoutParameterKeyInfos)
                 {
@@ -598,9 +601,8 @@ namespace Stride.Rendering
                         if (defaultValueMetadata != null)
                         {
                             const int alignment = 16;
-                            var offset = bufferOffset + layoutParameterKeyInfo.Offset;
-                            Debug.Assert((uint)offset <= (uint)newDataValues.Length);
-                            defaultValueMetadata.WriteBuffer((nint)newDataValuesPtr + offset, alignment);
+                            Debug.Assert((uint)layoutParameterKeyInfo.Offset <= (uint)newDataValues.Length);
+                            defaultValueMetadata.WriteBuffer((nint)newDataValuesPtr + layoutParameterKeyInfo.Offset, alignment);
                         }
                     }
                 }
@@ -614,21 +616,21 @@ namespace Stride.Rendering
 
                 if (newParameterKeyInfo.Offset != -1)
                 {
-                    var elementSize = newParameterKeyInfos.Items[i].Key.Size;
-                    var newTotalSize = elementSize + (elementSize + 15) / 16 * 16 * (newParameterKeyInfo.Count - 1);
-                    var totalSize = elementSize + (elementSize + 15) / 16 * 16 * (parameterKeyInfo.Count - 1);
+                    var elementSize = newParameterKeyInfo.Key.Size;
+                    var alignedSize = (elementSize + 15) & ~15;
+                    var newTotalSize = alignedSize * newParameterKeyInfo.Count;
+                    var totalSize = elementSize + alignedSize * (parameterKeyInfo.Count - 1);
                     Debug.Assert((newTotalSize | totalSize) >= 0);
 
                     // It's data
                     fixed (byte* src = DataValues)
                     fixed (byte* dst = newDataValues) {
-                        var byteCount = (uint)Math.Min(newTotalSize, totalSize);
-                        Debug.Assert((uint)newParameterKeyInfo.Offset + byteCount <= (uint)newDataValues.Length);
-                        Debug.Assert((uint)parameterKeyInfo.Offset + byteCount <= (uint)DataValues.Length);
+                        Debug.Assert((uint)newParameterKeyInfo.Offset + newTotalSize <= (uint)newDataValues.Length);
+                        Debug.Assert((uint)parameterKeyInfo.Offset + totalSize <= (uint)DataValues.Length);
                         Unsafe.CopyBlockUnaligned(
                             destination: dst + newParameterKeyInfo.Offset,
                             source: src + parameterKeyInfo.Offset,
-                            byteCount);
+                            (uint)Math.Min(totalSize, newTotalSize));
                     }
 
                 }
@@ -812,8 +814,8 @@ namespace Stride.Rendering
                         var sourceAccessor = source.GetValueAccessorHelper(sourceKey, parameterKeyInfo.Count);
                         var destAccessor = destination.GetValueAccessorHelper(parameterKeyInfo.Key, parameterKeyInfo.Count);
                         var elementCount = Math.Min(sourceAccessor.Count, destAccessor.Count);
-                        var elementSize = parameterKeyInfo.Key.Size;
-                        var size = (elementSize + 15) / 16 * 16 * (elementCount - 1) + elementSize;
+                        var elementSize = (parameterKeyInfo.Key.Size + 15) & ~15;
+                        var size = elementSize * elementCount;
                         rangesList.Add(new CopyRange { IsData = true, SourceStart = sourceAccessor.Offset, DestStart = destAccessor.Offset, Size = size });
                     }
                     else
@@ -904,11 +906,13 @@ namespace Stride.Rendering
                             // Might be some empty space (padding)
                             currentDataRange.Size = parameterKeyInfo.Offset - currentDataRange.DestStart;
 
-                            sourceLayout.LayoutParameterKeyInfos.Add(new ParameterKeyInfo(subkey, currentDataRange.SourceStart + currentDataRange.Size, parameterKeyInfo.Count));
+                            var offset = currentDataRange.SourceStart + currentDataRange.Size;
+                            var pki = new ParameterKeyInfo(subkey, offset, parameterKeyInfo.Count);
+                            sourceLayout.LayoutParameterKeyInfos.Add(pki);
 
                             var elementCount = parameterKeyInfo.Count;
-                            var elementSize = parameterKeyInfo.Key.Size;
-                            var size = (elementSize + 15) / 16 * 16 * (elementCount - 1) + elementSize;
+                            var elementSize = (parameterKeyInfo.Key.Size + 15) & ~15;
+                            var size = elementSize * elementCount;
 
                             currentDataRange.Size += size;
                         }
@@ -1006,7 +1010,7 @@ namespace Stride.Rendering
                             if (x.Key.Type == ParameterKeyType.Value)
                             {
                                 // Values
-                                var stride = (x.Key.Size + 15) / 16 * 16;
+                                var stride = (x.Key.Size + 15) & ~15;
                                 var values = new object[x.Count];
                                 fixed (byte* dataValuesStart = collection.DataValues)
                                 {

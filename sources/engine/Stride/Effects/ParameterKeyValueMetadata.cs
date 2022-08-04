@@ -45,7 +45,7 @@ namespace Stride.Rendering
         public override unsafe bool WriteBuffer(IntPtr dest, int alignment = 1)
         {
             // We only support structs (not sure how to deal with arrays yet
-            if (typeof(T).GetTypeInfo().IsValueType)
+            if (typeof(T).IsValueType)
             {
                 // Struct copy
                 Unsafe.AsRef<T>((void*)dest) = DefaultValue;
