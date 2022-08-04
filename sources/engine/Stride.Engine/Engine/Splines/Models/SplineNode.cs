@@ -159,6 +159,8 @@ namespace Stride.Engine.Splines.Models
 
             ArcLengthParameterization();
             UpdateBoundingBox();
+
+            baseBezierPoints = null;
         }
 
         /// <summary>
