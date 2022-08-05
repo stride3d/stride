@@ -47,7 +47,7 @@ namespace Stride.Core.Serialization
         /// <typeparam name="T">Type of the object to write</typeparam>
         /// <param name="stream">The stream to write the object instance to.</param>
         /// <param name="value">The value to write.</param>
-        [Obsolete("Use BinarySerializationReader.Write<T> instead.")]
+        [Obsolete("Use BinarySerializationWriter.Write<T> instead.")]
         public static void Write<T>([NotNull] Stream stream, T value)
         {
             var writer = new BinarySerializationWriter(stream);
