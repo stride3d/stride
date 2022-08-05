@@ -19,9 +19,17 @@ namespace Stride.Core.Serialization
         protected static byte[] bufferTLS;
 
         /// <summary>
-        /// The underlying native stream.
+        /// The <see cref="Stream"/> from which this serializer reads or to which it writes.
         /// </summary>
-        public Stream NativeStream { get; protected set; }
+        [Obsolete("Use UnderlyingStream instead.")]
+        public Stream NativeStream {
+            get => UnderlyingStream;
+            protected set => UnderlyingStream = value;
+        }
+        /// <summary>
+        /// The <see cref="Stream"/> from which this serializer reads or to which it writes.
+        /// </summary>
+        public Stream UnderlyingStream { get; protected set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializationStream"/> class.
