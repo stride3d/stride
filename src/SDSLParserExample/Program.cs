@@ -33,16 +33,16 @@ static void ThreeAddress(string code)
     
     var parser = new ShaderMixinParser();
 
-    // ShaderProgram? ast = parser.Parse(code) as ShaderProgram;
-    // var declare = ((ShaderMethod)ast.Body.First(x => x is ShaderMethod)).Statements.First(s => s is DeclareAssign) as DeclareAssign;
-    // var s = new Stopwatch();
-    // _ = Lowering.LowerToken(declare).ToList();
+    ShaderProgram? ast = parser.Parse(code) as ShaderProgram;
+    var declare = ((ShaderMethod)ast.Body.First(x => x is ShaderMethod)).Statements.First(s => s is DeclareAssign) as DeclareAssign;
+    var s = new Stopwatch();
+    _ = Lowering.LowerToken(declare).ToList();
 
-    // s.Start();
-    // var x = Lowering.LowerToken(declare).ToList();
-    // s.Stop();
-    // x.ForEach(Console.WriteLine);
-    // Console.WriteLine(s.Elapsed);
+    s.Start();
+    var x = Lowering.LowerToken(declare).ToList();
+    s.Stop();
+    x.ForEach(Console.WriteLine);
+    Console.WriteLine(s.Elapsed);
 }
 
 

@@ -18,7 +18,7 @@ public partial class SpirvEmitter : Module
         {
             // TODO : Generate 3 addr
 
-            // Convert 3 addr
+            // Convert 3 addr to spirv
         }
     }
 }

@@ -71,3 +71,14 @@ public class AssignRegister : Register
         return new StringBuilder().Append(Name).Append(' ').Append(Op).Append(' ').Append(Value.Name).ToString();
     }
 }
+public class AssignChainRegister : Register
+{
+    public IEnumerable<string> Chain {get;set;}
+    public AssignOpToken Op {get;set;}
+    public Register Value {get;set;}
+
+    public override string ToString()
+    {
+        return new StringBuilder().Append(string.Join(".",Chain)).Append(' ').Append(Op).Append(' ').Append(Value.Name).ToString();
+    }
+}

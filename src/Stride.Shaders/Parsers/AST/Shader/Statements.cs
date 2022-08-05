@@ -13,7 +13,7 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 
 public abstract class Statement : ShaderToken 
 {
-    public List<Register> LowCode {get;set;} = new();
+    public IEnumerable<Register> LowCode {get;set;}
 }
 
 public class EmptyStatement : Statement {}
