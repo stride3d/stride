@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Stride.Core.IO;
 
-internal static class StreamExtensions
+public static class StreamExtensions
 {
     [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
     private static unsafe T Read<T>(this Stream @this) where T : unmanaged
