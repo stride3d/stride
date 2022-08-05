@@ -283,6 +283,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "gregsn",
+      "name": "Sebastian Gregor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/575557?v=4",
+      "profile": "https://github.com/gregsn",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
