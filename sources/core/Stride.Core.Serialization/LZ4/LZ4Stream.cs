@@ -485,7 +485,7 @@ namespace Stride.Core.LZ4
             if (!CanWrite) throw NotSupported("Write");
             Debug.Assert(
                 bufferLength >= 0 &&
-                (dataBuffer is null || (uint)bufferOffset + (uint)count <= (uint)bufferLength) &&
+                (dataBuffer is null || (uint)bufferOffset <= (uint)bufferLength) &&
                 (offset | count) >= 0 &&
                 (uint)offset + (uint)count <= (uint)buffer.Length);
 
@@ -526,7 +526,7 @@ namespace Stride.Core.LZ4
             if (!CanWrite) throw NotSupported("Write");
             Debug.Assert(
                 bufferLength >= 0 &&
-                (dataBuffer is null || (uint)bufferOffset + (uint)buffer.Length <= (uint)bufferLength));
+                (dataBuffer is null || (uint)bufferOffset <= (uint)bufferLength));
 
             position += buffer.Length;
 
