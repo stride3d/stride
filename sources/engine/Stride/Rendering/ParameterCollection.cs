@@ -21,6 +21,7 @@ namespace Stride.Rendering
     [DebuggerTypeProxy(typeof(ParameterCollection.DebugView))]
     public class ParameterCollection
     {
+        // Important! Alignment must be a power of 2
         private const int Alignment = 16;
         private const int AlignmentMask = Alignment - 1;
 
@@ -647,7 +648,8 @@ namespace Stride.Rendering
                         var minTotalSize = Math.Min(oldTotalSize, newTotalSize);
                         oldSpan[..minTotalSize].CopyTo(newSpan);
                         if (newTotalSize > oldTotalSize) newSpan[minTotalSize..].Fill(0);
-                    } else
+                    }
+                    else
                     {
                         #warning Partially copying parameter values and leaving remaining bytes zero may cause undesired side effects such as e.g. Color4.Alpha becoming zero.
                         var minCount = Math.Min(oldParameterKeyInfo.Count, newParameterKeyInfo.Count);
