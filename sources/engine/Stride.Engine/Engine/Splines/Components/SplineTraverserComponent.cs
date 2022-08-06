@@ -52,7 +52,7 @@ namespace Stride.Engine.Splines.Components
 
                 if (splineComponent == null)
                 {
-                    IsMoving = false;
+                    SplineTraverser.Spline = null;
                 }
             }
         }
@@ -69,16 +69,12 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 SplineTraverser.Speed = value;
-
-                if (SplineTraverser.Speed == 0)
-                {
-                    IsMoving = false;
-                }
             }
         }
 
         /// <summary>
-        /// For a traverse to work we require a Spline reference, a non-zero and IsMoving must be True
+        /// Determines whether the spline traver is moving
+        /// For a traverser to work we require a Spline reference, a non-zero and IsMoving must be True
         /// </summary>
         [Display(40, "Moving")]
         public bool IsMoving
@@ -90,6 +86,23 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 SplineTraverser.IsMoving = value;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether the spline traver rotates along the spline
+        /// For a traverse to work we require a Spline reference, a non-zero and IsMoving must be True
+        /// </summary>
+        [Display(50, "Rotate")]
+        public bool IsRotating
+        {
+            get
+            {
+                return SplineTraverser.IsRotating;
+            }
+            set
+            {
+                SplineTraverser.IsRotating = value;
             }
         }
 

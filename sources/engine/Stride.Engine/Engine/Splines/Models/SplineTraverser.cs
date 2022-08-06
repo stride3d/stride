@@ -15,6 +15,7 @@ namespace Stride.Engine.Splines.Models
         private Entity entity;
         private float speed = 1.0f;
         private bool isMoving = false;
+        private bool isRotating = false;
         private float thresholdDistance = 0.1f;
 
         private SplineNode originSplineNode { get; set; }
@@ -25,6 +26,7 @@ namespace Stride.Engine.Splines.Models
         private bool attachedToSpline = false;
         private BezierPoint[] bezierPointsToTraverse = null;
 
+        private BezierPoint originBezierPoint { get; set; }
         private BezierPoint targetBezierPoint { get; set; }
         private int bezierPointIndex = 0;
 
@@ -88,7 +90,8 @@ namespace Stride.Engine.Splines.Models
         }
 
         /// <summary>
-        /// For a traverser to work we require a Spline reference, a non-zero speed and IsMoving must be True
+        /// Determines whether the spline traver is moving
+        /// For a traverser to work we require a Spline reference, a non-zero and IsMoving must be True
         /// </summary>
         public bool IsMoving
         {
@@ -104,6 +107,22 @@ namespace Stride.Engine.Splines.Models
                 {
                     EnqueueSplineTraverserUpdate();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Determines whether the spline traver rotates along the spline
+        /// For a traverse to work we require a Spline reference, a non-zero and IsMoving must be True
+        /// </summary>
+        public bool IsRotating
+        {
+            get
+            {
+                return isRotating;
+            }
+            set
+            {
+                isRotating = value;
             }
         }
 
@@ -162,6 +181,7 @@ namespace Stride.Engine.Splines.Models
                 }
 
                 bezierPointIndex = splinePositionInfo.ClosestBezierPointIndex;
+                originBezierPoint = bezierPointsToTraverse[bezierPointIndex];
                 targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
                 attachedToSpline = true;
                 SetNextTarget();
@@ -183,6 +203,7 @@ namespace Stride.Engine.Splines.Models
             if (IsMoving && Speed != 0 && attachedToSpline)
             {
                 UpdatePosition(time);
+                UpdateRotation(time);
 
                 var distance = Vector3.Distance(entity.Transform.WorldMatrix.TranslationVector, targetBezierPoint.Position);
 
@@ -193,13 +214,24 @@ namespace Stride.Engine.Splines.Models
             }
         }
 
+        private void UpdateRotation(GameTime time)
+        {
+            if (IsRotating)
+            {
+                var entityWorldPosition = entity.Transform.WorldMatrix.TranslationVector;
+                var distanceBetweenBezierPoints = Vector3.Distance(originBezierPoint.Position, targetBezierPoint.Position);
+                var currentDistance = Vector3.Distance(originBezierPoint.Position, entityWorldPosition);
+                var ratio = currentDistance / distanceBetweenBezierPoints;
+                entity.Transform.Rotation = Quaternion.Slerp(originBezierPoint.Rotation, targetBezierPoint.Rotation, ratio);
+            }
+        }
+
         private void UpdatePosition(GameTime time)
         {
             var entityWorldPosition = entity.Transform.WorldMatrix.TranslationVector;
             var velocity = (targetBezierPoint.Position - entityWorldPosition);
             velocity.Normalize();
             velocity *= Math.Abs(Speed) * (float)time.Elapsed.TotalSeconds;
-
             entity.Transform.Position += velocity;
             entity.Transform.UpdateWorldMatrix();
         }
@@ -214,6 +246,8 @@ namespace Stride.Engine.Splines.Models
             // Is there a next/previous bezier point?
             if ((forwards && bezierPointIndex + 1 < bezierPointsToTraverse.Length) || (backwards && bezierPointIndex - 1 >= 0))
             {
+                originBezierPoint = bezierPointsToTraverse[bezierPointIndex];
+
                 bezierPointIndex += indexIncrement;
                 targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
             }

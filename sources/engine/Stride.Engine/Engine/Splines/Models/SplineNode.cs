@@ -147,20 +147,26 @@ namespace Stride.Engine.Splines.Models
                     var distance = Vector3.Distance(baseBezierPoints[i].Position, baseBezierPoints[i - 1].Position);
                     baseBezierPoints[i].DistanceToPreviousPoint = distance;
                     baseBezierPoints[i].TotalLengthOnCurve = baseBezierPoints[i - 1].TotalLengthOnCurve + distance;
-
-
-                    //Point previous to current bezierPoint and store rotation
-                    var normalDif = Vector3.Normalize(baseBezierPoints[i].Position - baseBezierPoints[i-1].Position); 
-                    baseBezierPoints[i-1].Rotation = Quaternion.LookRotation(normalDif, Vector3.UnitY);
                 }
             }
-
             Length += baseBezierPoints[baseBezierPointCount - 1].TotalLengthOnCurve;
 
             ArcLengthParameterization();
+            CalculateRotation();
             UpdateBoundingBox();
 
             baseBezierPoints = null;
+        }
+
+        /// <summary>
+        /// Updates the last bezierpoint rotation
+        /// </summary>
+        public void UpdateFinalRotation(Quaternion rotation)
+        {
+            ////Point last bezier point to next bezier point from the next bezier curve
+            //var normalDif = Vector3.Normalize(position - baseBezierPoints[baseBezierPointCount - 1].Position);
+            //baseBezierPoints[baseBezierPointCount - 1].Rotation = Quaternion.LookRotation(normalDif, Vector3.UnitY);
+            parameterizedBezierPoints[bezierPointCount - 1].Rotation = rotation;
         }
 
         /// <summary>
@@ -207,7 +213,7 @@ namespace Stride.Engine.Splines.Models
         {
             parameterizedBezierPoints = new BezierPoint[bezierPointCount];
 
-            if (Length <= 0)
+            if (Length <= 1)
                 return;
 
             for (var i = 0; i < bezierPointCount; i++)
@@ -230,6 +236,23 @@ namespace Stride.Engine.Splines.Models
                 }
             }
             return baseBezierPoints[baseBezierPoints.Length - 1];
+        }
+
+        private void CalculateRotation()
+        {
+            if (Length <= 1)
+                return;
+
+            for (var i = 0; i < bezierPointCount; i++)
+            {
+                if (i > 0)
+                {
+                    var normalDif = Vector3.Normalize(parameterizedBezierPoints[i].Position - parameterizedBezierPoints[i - 1].Position);
+                    parameterizedBezierPoints[i - 1].Rotation = Quaternion.LookRotation(normalDif, Vector3.UnitY);
+                }
+            }
+
+            parameterizedBezierPoints[bezierPointCount - 1].Rotation = parameterizedBezierPoints[bezierPointCount - 2].Rotation;
         }
 
         private Vector3 CalculateBezierPoint(float t)

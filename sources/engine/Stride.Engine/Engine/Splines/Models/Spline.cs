@@ -77,7 +77,6 @@ namespace Stride.Engine.Splines.Models
             var totalNodesCount = SplineNodes.Count;
             if (SplineNodes.Count > 1)
             {
-
                 for (var i = 0; i < totalNodesCount; i++)
                 {
                     var currentSplineNode = SplineNodes[i];
@@ -94,6 +93,11 @@ namespace Stride.Engine.Splines.Models
                         currentSplineNode.TargetTangentInWorldPosition = nextSplineNode.TangentInWorldPosition;
 
                         SplineNodes[i].CalculateBezierCurve();
+
+                        // Update the rotation of the previous curve final bezierpoint to the rotation of the first bezier point in the current curve
+                        if(i > 0)
+                            SplineNodes[i - 1].UpdateFinalRotation(SplineNodes[i].GetBezierPoints()[0].Rotation);
+
                     }
                     else if (i == totalNodesCount - 1 && Loop)
                     {
@@ -102,6 +106,13 @@ namespace Stride.Engine.Splines.Models
                         currentSplineNode.TargetTangentInWorldPosition = firstSplineNode.TangentInWorldPosition;
 
                         SplineNodes[i].CalculateBezierCurve();
+                        SplineNodes[i - 1].UpdateFinalRotation(SplineNodes[i].GetBezierPoints()[0].Rotation);
+
+                        // Update the rotation of the previous curve final bezierpoint to the rotation of the first bezier point in the current curve
+                        SplineNodes[i - 1].UpdateFinalRotation(SplineNodes[i].GetBezierPoints()[0].Rotation);
+
+                        // Update the rotation of the previous curve final bezierpoint to the rotation of the first bezier point in the current curve
+                        SplineNodes[totalNodesCount - 1].UpdateFinalRotation(SplineNodes[0].GetBezierPoints()[0].Rotation);
                     }
                 }
             }

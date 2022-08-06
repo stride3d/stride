@@ -61,24 +61,27 @@ namespace Stride.Engine.Splines.Processors
 
         public override void Draw(RenderContext context)
         {
-            foreach (var SplineComponent in splineComponentsToUpdate)
+            foreach (var splineComponent in splineComponentsToUpdate)
             {
+                if (splineComponent.SplineRenderer.SegmentsMaterial.Passes.Count == 0)
+                    return;
+
                 // Allways perform cleanup
-                var existingRenderer = SplineComponent.Entity.FindChild("SplineRenderer");
+                var existingRenderer = splineComponent.Entity.FindChild("SplineRenderer");
                 if (existingRenderer != null)
                 {
-                    SplineComponent.Entity.RemoveChild(existingRenderer);
+                    splineComponent.Entity.RemoveChild(existingRenderer);
                     SceneInstance.GetCurrent(context)?.Remove(existingRenderer);
                 }
 
-                var totalNodesCount = SplineComponent.Nodes.Count;
+                var totalNodesCount = splineComponent.Nodes.Count;
 
                 if (totalNodesCount > 1)
                 {
-                    SplineComponent.Spline.SplineNodes.Clear();
+                    splineComponent.Spline.SplineNodes.Clear();
                     for (int i = 0; i < totalNodesCount; i++)
                     {
-                        var currentSplineNodeComponent = SplineComponent.Nodes[i];
+                        var currentSplineNodeComponent = splineComponent.Nodes[i];
 
                         if (currentSplineNodeComponent == null)
                             break;
@@ -88,25 +91,25 @@ namespace Stride.Engine.Splines.Processors
                         currentSplineNodeComponent.SplineNode.WorldPosition = startTangentOutWorldPosition;
                         currentSplineNodeComponent.SplineNode.TangentOutWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentOutLocal;
                         currentSplineNodeComponent.SplineNode.TangentInWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentInLocal;
-                        SplineComponent.Spline.SplineNodes.Add(currentSplineNodeComponent.SplineNode);
+                        splineComponent.Spline.SplineNodes.Add(currentSplineNodeComponent.SplineNode);
                     }
                 }
 
-                if (SplineComponent.Spline.SplineNodes.Count > 1)
+                if (splineComponent.Spline.SplineNodes.Count > 1)
                 {
-                    SplineComponent.Spline.RegisterSplineNodeDirtyEvents();
+                    splineComponent.Spline.RegisterSplineNodeDirtyEvents();
 
-                    SplineComponent.Spline.CalculateSpline();
+                    splineComponent.Spline.CalculateSpline();
 
                     // Update spline renderer
-                    if (SplineComponent.SplineRenderer.Segments || SplineComponent.SplineRenderer.BoundingBox)
+                    if (splineComponent.SplineRenderer.Segments || splineComponent.SplineRenderer.BoundingBox)
                     {
                         var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
-                        var splineDebugEntity = SplineComponent.SplineRenderer.Create(SplineComponent.Spline, graphicsDeviceService?.GraphicsDevice, SplineComponent.Entity.Transform.Position);
+                        var splineDebugEntity = splineComponent.SplineRenderer.Create(splineComponent.Spline, graphicsDeviceService?.GraphicsDevice, splineComponent.Entity.Transform.Position);
 
                         if (splineDebugEntity != null)
                         {
-                            SplineComponent.Entity.AddChild(splineDebugEntity);
+                            splineComponent.Entity.AddChild(splineDebugEntity);
                         }
                     }
                 }
