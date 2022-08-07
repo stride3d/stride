@@ -161,7 +161,7 @@ namespace Stride.Engine.Splines.Models
         /// <summary>
         /// Updates the last bezierpoint rotation
         /// </summary>
-        public void UpdateFinalRotation(Quaternion rotation)
+        public void UpdateLastBezierPointRotation(Quaternion rotation)
         {
             ////Point last bezier point to next bezier point from the next bezier curve
             //var normalDif = Vector3.Normalize(position - baseBezierPoints[baseBezierPointCount - 1].Position);
@@ -247,11 +247,13 @@ namespace Stride.Engine.Splines.Models
             {
                 if (i > 0)
                 {
+                    // Previous Bezier point looks at current bezier point. Store rotation in previous bezier point
                     var normalDif = Vector3.Normalize(parameterizedBezierPoints[i].Position - parameterizedBezierPoints[i - 1].Position);
                     parameterizedBezierPoints[i - 1].Rotation = Quaternion.LookRotation(normalDif, Vector3.UnitY);
                 }
             }
 
+            // Last bezier point in curve gets the same rototation as second last bezier point
             parameterizedBezierPoints[bezierPointCount - 1].Rotation = parameterizedBezierPoints[bezierPointCount - 2].Rotation;
         }
 
