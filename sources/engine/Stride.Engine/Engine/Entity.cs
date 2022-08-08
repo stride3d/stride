@@ -62,6 +62,20 @@ namespace Stride.Engine
         }
 
         /// <summary>
+        /// Create a new <see cref="Entity" /> instance having the provided name, initial position and rotation.
+        /// </summary>
+        /// <param name="position">The initial position of the entity</param>
+        /// <param name="rotation">The initial rotation of the entity</param>
+        /// <param name="name">The name to give to the entity</param>
+        public Entity(Vector3 position, Quaternion rotation, string name = null)
+            : this(name, false)
+        {
+            Id = Guid.NewGuid();
+            TransformValue = new TransformComponent { Position = position, Rotation = rotation };
+            Components.Add(TransformValue);
+        }
+
+        /// <summary>
         /// Create a new entity without any components (used for binary deserialization)
         /// </summary>
         /// <param name="name">Name of this component, might be null</param>
