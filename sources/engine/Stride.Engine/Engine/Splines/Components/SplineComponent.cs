@@ -84,8 +84,11 @@ namespace Stride.Engine.Splines.Components
         {
             get
             {
-                splineRenderer ??= new SplineRenderer();
-                splineRenderer.OnSplineRendererSettingsUpdated += SplineRenderer_OnSplineRendererSettingsUpdated;
+                if (splineRenderer == null)
+                {
+                    splineRenderer = new SplineRenderer();
+                    splineRenderer.OnSplineRendererSettingsUpdated += SplineRenderer_OnSplineRendererSettingsUpdated;
+                }
 
                 return splineRenderer;
             }

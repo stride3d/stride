@@ -16,7 +16,7 @@ namespace Stride.Engine.Splines.Models
         private float speed = 1.0f;
         private bool isMoving = false;
         private bool isRotating = false;
-        private float thresholdDistance = 0.1f;
+        private float thresholdDistance = 0.05f;
 
         private SplineNode originSplineNode { get; set; }
 
@@ -29,6 +29,7 @@ namespace Stride.Engine.Splines.Models
         private BezierPoint originBezierPoint { get; set; }
         private BezierPoint targetBezierPoint { get; set; }
         private int bezierPointIndex = 0;
+        private Quaternion startRotation;
 
         /// <summary>
         /// The entity that is traversing the spline
@@ -149,7 +150,7 @@ namespace Stride.Engine.Splines.Models
 
         public SplineTraverser()
         {
-
+            OnSplineTraverserDirty += DetermineOriginAndTarget;
         }
 
         /// <summary>
@@ -184,6 +185,7 @@ namespace Stride.Engine.Splines.Models
                 originBezierPoint = bezierPointsToTraverse[bezierPointIndex];
                 targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
                 attachedToSpline = true;
+                startRotation = entity.Transform.Rotation;
                 SetNextTarget();
             }
         }
@@ -203,7 +205,7 @@ namespace Stride.Engine.Splines.Models
             if (IsMoving && Speed != 0 && attachedToSpline)
             {
                 UpdatePosition(time);
-                UpdateRotation(time);
+                UpdateRotation();
 
                 var distance = Vector3.Distance(entity.Transform.WorldMatrix.TranslationVector, targetBezierPoint.Position);
 
@@ -214,7 +216,7 @@ namespace Stride.Engine.Splines.Models
             }
         }
 
-        private void UpdateRotation(GameTime time)
+        private void UpdateRotation()
         {
             if (IsRotating)
             {
@@ -222,7 +224,16 @@ namespace Stride.Engine.Splines.Models
                 var distanceBetweenBezierPoints = Vector3.Distance(originBezierPoint.Position, targetBezierPoint.Position);
                 var currentDistance = Vector3.Distance(originBezierPoint.Position, entityWorldPosition);
                 var ratio = currentDistance / distanceBetweenBezierPoints;
-                entity.Transform.Rotation = Quaternion.Slerp(originBezierPoint.Rotation, targetBezierPoint.Rotation, ratio);
+                try
+                {
+
+                entity.Transform.Rotation = Quaternion.Slerp(startRotation, targetBezierPoint.Rotation, ratio);
+                }
+                catch (Exception e)
+                {
+
+                    throw;
+                }
             }
         }
 
@@ -250,6 +261,7 @@ namespace Stride.Engine.Splines.Models
 
                 bezierPointIndex += indexIncrement;
                 targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
+                startRotation = entity.Transform.Rotation;
             }
             else
             {
@@ -262,8 +274,8 @@ namespace Stride.Engine.Splines.Models
                 }
                 else
                 {
-                    OnSplineEndReached?.Invoke(targetSplineNode);
                     isMoving = false;
+                    OnSplineEndReached?.Invoke(targetSplineNode);
                 }
             }
         }

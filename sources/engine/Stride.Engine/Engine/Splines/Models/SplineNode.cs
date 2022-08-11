@@ -213,7 +213,7 @@ namespace Stride.Engine.Splines.Models
         {
             parameterizedBezierPoints = new BezierPoint[bezierPointCount];
 
-            if (Length <= 1)
+            if (Length <= 0)
                 return;
 
             for (var i = 0; i < bezierPointCount; i++)
@@ -240,7 +240,7 @@ namespace Stride.Engine.Splines.Models
 
         private void CalculateRotation()
         {
-            if (Length <= 1)
+            if (Length <= 0)
                 return;
 
             for (var i = 0; i < bezierPointCount; i++)

@@ -94,7 +94,7 @@ namespace Stride.Engine.Splines.Models
 
                         SplineNodes[i].CalculateBezierCurve();
 
-                        // Update the rotation of the previous curve last bezierpoint to the rotation of the first bezier point in the current curve
+                        // Update the rotation of the last bezierpoint from the previous curve, to the rotation of the first bezier point in the current curve
                         if (i > 0)
                             SplineNodes[i - 1].UpdateLastBezierPointRotation(SplineNodes[i].GetBezierPoints()[0].Rotation);
 
@@ -106,12 +106,12 @@ namespace Stride.Engine.Splines.Models
                         currentSplineNode.TargetTangentInWorldPosition = firstSplineNode.TangentInWorldPosition;
 
                         SplineNodes[i].CalculateBezierCurve();
-  
-                        // Update the rotation of the previous curve last bezierpoint to the rotation of the first bezier point in the current curve
+
+                        // Update the rotation of the last bezierpoint from the previous curve, to the rotation of the first bezierpoint in the current curve
                         SplineNodes[i - 1].UpdateLastBezierPointRotation(SplineNodes[i].GetBezierPoints()[0].Rotation);
 
-                        // Update the rotation of the last bezier point in the current curve to the rotation of the first bezier point of the first curve
-                        SplineNodes[i].UpdateLastBezierPointRotation(SplineNodes[0].GetBezierPoints()[0].Rotation);
+                        // Update the rotation of the last bezier point in the current curve, to the rotation of the first bezier point of the first curve
+                        SplineNodes[i].UpdateLastBezierPointRotation(firstSplineNode.GetBezierPoints()[0].Rotation);
                     }
                 }
             }
