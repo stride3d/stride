@@ -28,6 +28,7 @@
 */
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics
@@ -194,7 +195,7 @@ namespace Stride.Core.Mathematics
             if (points == null) throw new ArgumentNullException("points");
             fixed (void* pointsPtr = points)
             {
-                FromPoints((IntPtr)pointsPtr, 0, points.Length, Utilities.SizeOf<Vector3>(), out result);
+                FromPoints((IntPtr)pointsPtr, 0, points.Length, Unsafe.SizeOf<Vector3>(), out result);
             }
         }
 

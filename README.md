@@ -2,7 +2,7 @@
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-26-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-32-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
 
@@ -70,9 +70,10 @@ Ask for help or report issues:
 
 ### Build Stride
 
-1. Open a command prompt, point it to a directory and clone Stride to it: `git clone https://github.com/stride3d/stride.git`
-2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 and build `Stride.GameStudio` (it should be the default startup project) or run it from VS's toolbar.
-* Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
+1. Open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
+   - Note that when you use GitHub -> Code -> Download ZIP, this doesn't support Large File Support ```lfs```, make sure you use the command above or that your git client does it for you
+2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 and build `Stride.GameStudio` in the 60-Editor solution folder (it should be the default startup project) or run it from VS's toolbar.
+   - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
 #### Build Stride without Visual Studio
 
@@ -159,6 +160,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://github.com/jrinker03"><img src="https://avatars.githubusercontent.com/u/49572939?v=4?s=100" width="100px;" alt=""/><br /><sub><b>James Rinker</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=jrinker03" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/tristanmcpherson"><img src="https://avatars.githubusercontent.com/u/979937?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tristan McPherson</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=tristanmcpherson" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/ericwj"><img src="https://avatars.githubusercontent.com/u/9473119?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Eric</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ericwj" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/gregsn"><img src="https://avatars.githubusercontent.com/u/575557?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sebastian Gregor</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=gregsn" title="Code">💻</a></td>
   </tr>
 </table>
 

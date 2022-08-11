@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
@@ -168,7 +169,7 @@ namespace Stride.Graphics
         /// for optimal performances.</remarks>
         public TData[] GetData<TData>(CommandList commandList) where TData : struct
         {
-            var toData = new TData[this.Description.SizeInBytes / Utilities.SizeOf<TData>()];
+            var toData = new TData[this.Description.SizeInBytes / Unsafe.SizeOf<TData>()];
             GetData(commandList, toData);
             return toData;
         }
@@ -235,7 +236,7 @@ namespace Stride.Graphics
         /// </remarks>
         public unsafe void GetData<TData>(CommandList commandList, Buffer stagingTexture, ref TData toData) where TData : struct
         {
-            GetData(commandList, stagingTexture, new DataPointer(Interop.Fixed(ref toData), Utilities.SizeOf<TData>()));
+            GetData(commandList, stagingTexture, new DataPointer(Interop.Fixed(ref toData), Unsafe.SizeOf<TData>()));
         }
 
         /// <summary>
@@ -250,7 +251,7 @@ namespace Stride.Graphics
         /// </remarks>
         public unsafe void GetData<TData>(CommandList commandList, Buffer stagingTexture, TData[] toData) where TData : struct
         {
-            GetData(commandList, stagingTexture, new DataPointer(Interop.Fixed(toData), toData.Length * Utilities.SizeOf<TData>()));
+            GetData(commandList, stagingTexture, new DataPointer(Interop.Fixed(toData), toData.Length * Unsafe.SizeOf<TData>()));
         }
         
         /// <summary>
@@ -266,7 +267,7 @@ namespace Stride.Graphics
         /// </remarks>
         public unsafe void SetData<TData>(CommandList commandList, ref TData fromData, int offsetInBytes = 0) where TData : struct
         {
-            SetData(commandList, new DataPointer(Interop.Fixed(ref fromData), Utilities.SizeOf<TData>()), offsetInBytes);
+            SetData(commandList, new DataPointer(Interop.Fixed(ref fromData), Unsafe.SizeOf<TData>()), offsetInBytes);
         }
 
         /// <summary>
@@ -282,7 +283,7 @@ namespace Stride.Graphics
         /// </remarks>
         public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int offsetInBytes = 0) where TData : struct
         {
-            SetData(commandList, new DataPointer(Interop.Fixed(fromData), (fromData.Length * Utilities.SizeOf<TData>())), offsetInBytes);
+            SetData(commandList, new DataPointer(Interop.Fixed(fromData), (fromData.Length * Unsafe.SizeOf<TData>())), offsetInBytes);
         }
 
         /// <summary>
@@ -388,8 +389,8 @@ namespace Stride.Graphics
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
         public static Buffer<T> New<T>(GraphicsDevice device, int elementCount, BufferFlags bufferFlags, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
         {
-            int bufferSize = Utilities.SizeOf<T>() * elementCount;
-            int elementSize = Utilities.SizeOf<T>();
+            int bufferSize = Unsafe.SizeOf<T>() * elementCount;
+            int elementSize = Unsafe.SizeOf<T>();
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
             return new Buffer<T>(device, description, bufferFlags, PixelFormat.None, IntPtr.Zero);
@@ -466,8 +467,8 @@ namespace Stride.Graphics
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
         public static unsafe Buffer<T> New<T>(GraphicsDevice device, ref T value, BufferFlags bufferFlags, PixelFormat viewFormat, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
         {
-            int bufferSize = Utilities.SizeOf<T>();
-            int elementSize = ((bufferFlags & BufferFlags.StructuredBuffer) != 0) ? Utilities.SizeOf<T>() : 0;
+            int bufferSize = Unsafe.SizeOf<T>();
+            int elementSize = ((bufferFlags & BufferFlags.StructuredBuffer) != 0) ? Unsafe.SizeOf<T>() : 0;
 
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
 
@@ -501,8 +502,8 @@ namespace Stride.Graphics
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
         public static unsafe Buffer<T> New<T>(GraphicsDevice device, T[] initialValue, BufferFlags bufferFlags, PixelFormat viewFormat, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
         {
-            int bufferSize = Utilities.SizeOf<T>() * initialValue.Length;
-            int elementSize = Utilities.SizeOf<T>();
+            int bufferSize = Unsafe.SizeOf<T>() * initialValue.Length;
+            int elementSize = Unsafe.SizeOf<T>();
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
@@ -634,7 +635,7 @@ namespace Stride.Graphics
         protected internal Buffer(GraphicsDevice device, BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer) : base(device)
         {
             InitializeFromImpl(description, viewFlags, viewFormat, dataPointer);
-            this.ElementSize = Utilities.SizeOf<T>();
+            this.ElementSize = Unsafe.SizeOf<T>();
             this.ElementCount = Description.SizeInBytes / ElementSize;
         }
 

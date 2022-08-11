@@ -44,7 +44,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Vector3"/> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<Vector3>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<Vector3>();
 
         /// <summary>
         /// A <see cref="Stride.Core.Mathematics.Vector3"/> with all of its components set to zero.
