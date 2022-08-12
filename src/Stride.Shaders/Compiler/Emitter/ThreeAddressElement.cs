@@ -46,7 +46,7 @@ public class ChainAccessorRegister : Register
 public class ArrayAccessorRegister : Register
 {
     public Register Array { get; set; }
-    public Register Index { get; set; }
+    public IEnumerable<Register> Indices { get; set; }
 }
 
 
