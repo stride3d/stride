@@ -8,36 +8,26 @@ using Stride.Shaders.Parsing.AST.Shader;
 namespace Stride.Shaders.Spirv;
 
 
-public class Register 
+public abstract class Register {}
+
+public class DeclareAssignRegister : Register
 {
-    private string? name;
-    public string Name 
-    { 
-        get => name ?? "id_" + GetHashCode(); 
-        set => name = value;
-    }
+    public string Name {get;set;}
+    public AssignOpToken Op {get;set;}
+    public Register Value {get;set;}
 }
 
-public class NamedRegister : Register
+public class AssignRegister : Register
 {
-    
-    public override string ToString()
-    {
-        return Name;
-    }
+    public Register Left {get;set;}
+    public AssignOpToken Op {get;set;}
+    public Register Right {get;set;}
 }
-public class ValueRegister : Register
+public class AssignChainRegister : Register
 {
-    public ShaderLiteral Literal { get; set; }
-    public ValueRegister(ShaderLiteral v)
-    {
-        Literal = v;
-        Name = v.Value.ToString();
-    }
-    public override string ToString()
-    {
-        return Literal.Value?.ToString() ?? "null";
-    }
+    public IEnumerable<string> NameChain {get;set;}
+    public AssignOpToken Op {get;set;}
+    public Register Value {get;set;}
 }
 
 public class OperationRegister : Register
@@ -45,40 +35,26 @@ public class OperationRegister : Register
     public Register Left { get; set; }
     public Register Right { get; set; }
     public OperatorToken Op { get; set; }
-
-    public override string ToString()
-    {
-        return 
-            new StringBuilder()
-            .Append(Name)
-            .Append(" = ")
-            .Append(Left.Name)
-            .Append(' ')
-            .Append(Op)
-            .Append(' ')
-            .Append(Right.Name)
-            .Append(';').ToString();
-    }
 }
 
-public class AssignRegister : Register
+public class ChainAccessorRegister : Register
 {
-    public AssignOpToken Op {get;set;}
-    public Register Value {get;set;}
-
-    public override string ToString()
-    {
-        return new StringBuilder().Append(Name).Append(' ').Append(Op).Append(' ').Append(Value.Name).ToString();
-    }
+    public IEnumerable<Register> Left { get; set; }
+    public IEnumerable<Register> Right { get; set; }
 }
-public class AssignChainRegister : Register
-{
-    public IEnumerable<string> Chain {get;set;}
-    public AssignOpToken Op {get;set;}
-    public Register Value {get;set;}
 
-    public override string ToString()
-    {
-        return new StringBuilder().Append(string.Join(".",Chain)).Append(' ').Append(Op).Append(' ').Append(Value.Name).ToString();
-    }
+public class ArrayAccessorRegister : Register
+{
+    public Register Array { get; set; }
+    public Register Index { get; set; }
+}
+
+
+public class VariableRegister : Register
+{
+    public string Name;
+}
+public class LiteralRegister : Register
+{
+    public ShaderLiteral Value;
 }

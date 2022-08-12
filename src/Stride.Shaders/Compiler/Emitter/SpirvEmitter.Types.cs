@@ -16,8 +16,8 @@ public partial class SpirvEmitter : Module
     public Instruction? AsSpvType(string n)
     {
         var match = NativeTypeGrammar.ParseNativeType(n);
-        if(!match.HasMatches) return TryGetUserDefined(n); 
-        if(!match["TypeParser"].HasMatches) return TryGetUserDefined(n);        
+        if (!match.HasMatches) return TryGetUserDefined(n);
+        if (!match["TypeParser"].HasMatches) return TryGetUserDefined(n);
         else return match["TypeParser"].Matches[0] switch
         {
             { Name: "Bool" } => TypeBool(),
@@ -65,13 +65,13 @@ public partial class SpirvEmitter : Module
 
     public Instruction? TryGetUserDefined(string n)
     {
-        if(ShaderTypes.TryGetValue(n, out var i))
+        if (ShaderTypes.TryGetValue(n, out var i))
             return i.SpvType;
         else return null;
     }
 
     void CreateStructTypes()
     {
-        
+
     }
 }

@@ -30,7 +30,7 @@ public static class Lowering
         var v = LowerToken(ac.Value);
         ac.LowCode = v.Append(
             new AssignChainRegister{
-                Chain = ac.AccessNames,
+                NameChain = ac.AccessNames,
                 Value = v.Last(),
                 Op = ac.AssignOp
             }
@@ -41,7 +41,7 @@ public static class Lowering
     {
         var v = LowerToken(s.Value);
         s.LowCode = v.Append(
-            new AssignRegister{
+            new DeclareAssignRegister{
                 Name = s.VariableName,
                 Value = v.Last(),
                 Op = s.AssignOp
@@ -72,14 +72,17 @@ public static class Lowering
     }
     static IEnumerable<Register> Lower(ChainAccessor lit)
     {
-        throw new NotImplementedException();
+        return new Register[]{
+            new ChainAccessorRegister{Left = LowerToken(lit.Value), Right = LowerToken(lit.Field)}
+        };
     }
     static IEnumerable<Register> Lower(ShaderLiteral lit)
     {
         return new List<Register>{
             lit switch {
-                NumberLiteral nl => new ValueRegister(nl),
-                _ => new ValueRegister(lit)
+                NumberLiteral nl => new LiteralRegister{Value = nl},
+                VariableNameLiteral vn => new VariableRegister{Name = vn.Name},
+                _ => throw new NotImplementedException()
             }
         };
     }
