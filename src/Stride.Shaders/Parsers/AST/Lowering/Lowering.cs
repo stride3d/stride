@@ -76,7 +76,7 @@ public static class Lowering
     static IEnumerable<Register> Lower(ChainAccessor lit)
     {
         return new Register[]{
-            new ChainAccessorRegister{Left = LowerToken(lit.Value), Right = LowerToken(lit.Field)}
+            new AccessorRegister{Variable = LowerToken(lit.Value), Right = LowerToken(lit.Field)}
         };
     }
     static IEnumerable<Register> Lower(ArrayAccessor lit)

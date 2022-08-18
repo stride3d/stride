@@ -37,18 +37,23 @@ public class OperationRegister : Register
     public OperatorToken Op { get; set; }
 }
 
-public class ChainAccessorRegister : Register
+public class AccessorRegister : Register
 {
-    public IEnumerable<Register> Left { get; set; }
-    public IEnumerable<Register> Right { get; set; }
+    public Register Variable { get; set; }
+    public IEnumerable<AccessorTypes> AccessorList { get; set; }
 }
 
-public class ArrayAccessorRegister : Register
+public abstract class AccessorTypes : Register{}
+
+public class FieldAccessor : AccessorTypes
 {
-    public Register Array { get; set; }
-    public IEnumerable<Register> Indices { get; set; }
+    public string Name { get; set; }
 }
 
+public class IndexAccessor : AccessorTypes
+{
+    public Register Index { get; set; }
+}
 
 public class VariableRegister : Register
 {
