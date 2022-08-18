@@ -16,13 +16,13 @@ public class UnaryExpression : Projector
 public class ChainAccessor : UnaryExpression
 {
     public ShaderToken Value { get; set; }
-    public ShaderToken Field { get; set; }
+    public IEnumerable<ShaderToken> Field { get; set; }
 
     public ChainAccessor(Match m)
     {
         Match = m;
-        Value = GetToken(m.Matches[0]);
-        Field = GetToken(m.Matches[1]);
+        Value = GetToken(m.Matches["Identifier"]);
+        Field = m.Matches.GetRange(1,m.Matches.Count-1).Select(GetToken);
     }
 }
 

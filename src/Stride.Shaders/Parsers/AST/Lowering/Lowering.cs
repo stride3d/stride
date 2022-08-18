@@ -4,7 +4,7 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 
 public static class Lowering
 {
-    public static IEnumerable<Register> LowerToken(ShaderToken token)
+    public static IEnumerable<Register> LowerToken(ShaderToken token, bool isHead = true)
     {
 
         return token switch
@@ -14,8 +14,8 @@ public static class Lowering
             DeclareAssign t => Lower(t),
             ConditionalExpression t => Lower(t),
             Operation t => Lower(t),
-            ArrayAccessor t => Lower(t),
-            ChainAccessor t => Lower(t),
+            ArrayAccessor t => Lower(t, isHead),
+            ChainAccessor t => Lower(t, isHead),
             ShaderLiteral t => Lower(t),
             _ => throw new NotImplementedException()
         };
@@ -23,7 +23,7 @@ public static class Lowering
 
     static IEnumerable<Register> Lower(BlockStatement b)
     {
-        b.LowCode = b.Statements.SelectMany(LowerToken);
+        b.LowCode = b.Statements.SelectMany(x => LowerToken(x));
         return b.LowCode;
     }
     static IEnumerable<Register> Lower(AssignChain ac)
@@ -73,23 +73,44 @@ public static class Lowering
             }
         );
     }
-    static IEnumerable<Register> Lower(ChainAccessor lit)
+    static IEnumerable<Register> Lower(ChainAccessor lit, bool isHead = true)
     {
-        return new Register[]{
-            new AccessorRegister{Variable = LowerToken(lit.Value), Right = LowerToken(lit.Field)}
-        };
+        // var a = streams.a.b.c[0][5]
+        if (!isHead)
+        {
+            var result =
+                LowerToken(lit.Value, false)
+                .Concat(lit.Field.SelectMany(x => LowerToken(x, false)));
+            return result;
+        }
+        else
+        {
+            var value = LowerToken(lit.Value, false);
+            var accessors = lit.Field.SelectMany(x => LowerToken(x, false)).Select(AccessorTypes.From);
+            return new Register[]{
+                new AccessorRegister{Variable = value.Last(), AccessorList = accessors}
+            };
+        }
     }
-    static IEnumerable<Register> Lower(ArrayAccessor lit)
+    static IEnumerable<Register> Lower(ArrayAccessor lit, bool isHead = true)
     {
-        var array = LowerToken(lit.Value);
-        var accessors = lit.Accessors.SelectMany(LowerToken);
-        return
-            array
-            .Concat(
-                new Register[]{
-                    new ArrayAccessorRegister{Array = array.Last() , Indices = accessors}
-                }
-            );
+        if (!isHead)
+        {
+            var accessors = lit.Accessors.SelectMany(x => LowerToken(x, false));
+            return LowerToken(lit.Value, false).Concat(accessors);
+        }
+        else
+        {
+            var array = LowerToken(lit.Value, false);
+            var accessors = lit.Accessors.SelectMany(x => LowerToken(x, false)).Select(AccessorTypes.From);
+            return
+                array
+                .Concat(
+                    new Register[]{
+                    new AccessorRegister{Variable = array.Last() , AccessorList = accessors}
+                    }
+                );
+        }
     }
     static IEnumerable<Register> Lower(ShaderLiteral lit)
     {

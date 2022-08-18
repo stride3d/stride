@@ -43,7 +43,17 @@ public class AccessorRegister : Register
     public IEnumerable<AccessorTypes> AccessorList { get; set; }
 }
 
-public abstract class AccessorTypes : Register{}
+public abstract class AccessorTypes : Register
+{
+    public static AccessorTypes From(Register r)
+    {
+        return r switch {
+            VariableRegister v => new FieldAccessor{Name = v.Name},
+            LiteralRegister l => new IndexAccessor{Index = l},
+            _ => throw new NotImplementedException()
+        };
+    }
+}
 
 public class FieldAccessor : AccessorTypes
 {

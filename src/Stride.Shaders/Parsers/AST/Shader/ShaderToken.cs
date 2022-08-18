@@ -55,6 +55,7 @@ public abstract class ShaderToken
 			"CastExpression" => new CastExpression(tmp),
 			"PrefixIncrement" => throw new NotImplementedException("prefix implement not implemented"),
 			"ChainAccessor" => new ChainAccessor(tmp),
+			"ArrayAccessor" => new ArrayAccessor(tmp),
 			"IntegerValue" or "FloatValue" or "FloatLiteral" => new NumberLiteral(tmp),
 			"VariableTerm" or "Identifier" => new VariableNameLiteral(tmp),
 			"ValueTypes" or "TypeName" => new TypeNameLiteral(tmp),

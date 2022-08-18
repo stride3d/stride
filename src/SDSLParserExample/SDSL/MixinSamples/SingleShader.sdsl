@@ -27,6 +27,6 @@ shader SingleShader {
 
     void VSMain() 
     {
-        streams.ShadingPosition = streams.triInput;
+        streams.ShadingPosition = a.dodo[5].machin[8][6];
     }
 };
