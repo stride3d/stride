@@ -2861,7 +2861,7 @@ Hierarchy:
                         JumpReactionThreshold: 0.15
                     809bf66aef692646891c293be4ca17b2: !ThirdPersonPlatformer.Player.PlayerInput,ThirdPersonPlatformer.Game
                         Id: 6af69b80-69ef-4626-891c-293be4ca17b2
-                        MouseSensitivity: 100.0
+                        MouseSensitivity: 1.0
                         DeadZone: 0.25
                         Camera: ref!! 65d1b71f-4862-4efc-b7c1-3c9d933979c7
                         KeysLeft:
