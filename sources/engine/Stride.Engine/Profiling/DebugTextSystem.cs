@@ -39,7 +39,7 @@ namespace Stride.Profiling
         /// <param name="position"></param>
         public void Print(string message, Int2 position)
         {
-            Print(message, position, TextColor);
+            Print(message, position, TextColor, DefaultOnScreenTime);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Stride.Profiling
         /// <param name="color"></param>
         public void Print(string message, Int2 position, Color4 color)
         {
-            Print(message, position, color, TimeSpan.Zero);
+            Print(message, position, color, DefaultOnScreenTime);
         }
 
         /// <summary>
@@ -87,6 +87,11 @@ namespace Stride.Profiling
         /// Sets or gets the color to use when drawing the profiling system fonts.
         /// </summary>
         public Color4 TextColor { get; set; } = Color.LightGreen;
+
+        /// <summary>
+        /// Sets or gets the time that messages will stay on screen by default.
+        /// </summary>
+        public TimeSpan DefaultOnScreenTime { get; set; } = TimeSpan.FromSeconds(1);
 
         /// <summary>
         /// Sets or gets the size of the messages queue, older messages will be discarded if the size is greater.
