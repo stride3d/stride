@@ -2,6 +2,7 @@
 using Spv.Generator;
 using Stride.Shaders.Parsing.AST.Shader;
 using Stride.Shaders.Spirv;
+using Stride.Shaders.ThreeAddress;
 using System;
 using System.Collections.Generic;
 using System.Linq;

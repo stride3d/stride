@@ -10,6 +10,7 @@ using Stride.Core.Shaders.Parser;
 using Stride.Core.Shaders.Grammar.Stride;
 using Stride.Shaders.Parsing.AST.Shader;
 using Stride.Shaders.Mixer;
+using Stride.Shaders.ThreeAddress;
 using Stride.Shaders;
 
 var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
