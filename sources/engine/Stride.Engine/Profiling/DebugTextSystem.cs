@@ -17,10 +17,11 @@ namespace Stride.Profiling
             public string Message;
             public Int2 Position;
             public Color4 TextColor;
+            public TimeSpan RemeaningTime;
         }
         
         private FastTextRenderer fastTextRenderer;
-        private readonly Queue<DebugOverlayMessage> overlayMessages = new Queue<DebugOverlayMessage>();
+        private readonly List<DebugOverlayMessage> overlayMessages = new List<DebugOverlayMessage>();
 
         public DebugTextSystem(IServiceRegistry registry) : base(registry)
         {
@@ -49,13 +50,36 @@ namespace Stride.Profiling
         /// <param name="color"></param>
         public void Print(string message, Int2 position, Color4 color)
         {
-            var msg = new DebugOverlayMessage { Message = message, Position = position, TextColor = color };
-            overlayMessages.Enqueue(msg);
+            Print(message, position, color, TimeSpan.Zero);
+        }
+
+        /// <summary>
+        /// Print a custom overlay message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="position"></param>
+        /// <param name="timeOnScreen"></param>
+        public void Print(string message, Int2 position, TimeSpan timeOnScreen)
+        {
+            Print(message, position, TextColor, timeOnScreen);
+        }
+
+        /// <summary>
+        /// Print a custom overlay message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="position"></param>
+        /// <param name="color"></param>
+        /// <param name="timeOnScreen"></param>
+        public void Print(string message, Int2 position, Color4 color, TimeSpan timeOnScreen)
+        {
+            var msg = new DebugOverlayMessage { Message = message, Position = position, TextColor = color, RemeaningTime = timeOnScreen };
+            overlayMessages.Add(msg);
 
             //drop one old message if the tail size has been reached
             if (overlayMessages.Count > TailSize)
             {
-                overlayMessages.Dequeue();
+                overlayMessages.RemoveAt(0);
             }
         }
 
@@ -71,7 +95,8 @@ namespace Stride.Profiling
 
         public override void Update(GameTime gameTime)
         {
-            overlayMessages.Clear();
+            // if you keep this, the timmers would not work
+            //overlayMessages.Clear();
         }
 
         public override void Draw(GameTime gameTime)
@@ -90,22 +115,28 @@ namespace Stride.Profiling
                 };
             }
 
-            if (overlayMessages.Count == 0)
-                return;
-
             // TODO GRAPHICS REFACTOR where to get command list from?
             Game.GraphicsContext.CommandList.SetRenderTargetAndViewport(null, Game.GraphicsDevice.Presenter.BackBuffer);
 
             var currentColor = TextColor;
             fastTextRenderer.Begin(Game.GraphicsContext);
-            foreach (var msg in overlayMessages)
+
+            for (int index = overlayMessages.Count - 1; index > 0; index--)
             {
+                var msg = overlayMessages[index];
                 if (msg.TextColor != currentColor)
                 {
                     currentColor = msg.TextColor;
                     fastTextRenderer.End(Game.GraphicsContext);
                     fastTextRenderer.TextColor = currentColor;
                     fastTextRenderer.Begin(Game.GraphicsContext);
+                }
+
+                msg.RemeaningTime -= gameTime.Elapsed;
+
+                if (msg.RemeaningTime < TimeSpan.Zero)
+                {
+                    overlayMessages.RemoveAt(index);
                 }
 
                 fastTextRenderer.DrawString(Game.GraphicsContext, msg.Message, msg.Position.X, msg.Position.Y);
