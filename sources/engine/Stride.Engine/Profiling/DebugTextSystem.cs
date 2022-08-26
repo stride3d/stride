@@ -17,7 +17,7 @@ namespace Stride.Profiling
             public string Message;
             public Int2 Position;
             public Color4 TextColor;
-            public TimeSpan RemeaningTime;
+            public TimeSpan RemainingTime;
         }
         
         private FastTextRenderer fastTextRenderer;
@@ -46,7 +46,7 @@ namespace Stride.Profiling
                 Message = message,
                 Position = position,
                 TextColor = color ?? TextColor,
-                RemeaningTime = timeOnScreen ?? DefaultOnScreenTime,
+                RemainingTime = timeOnScreen ?? DefaultOnScreenTime,
             };
 
             overlayMessages.Add(msg);
@@ -111,9 +111,9 @@ namespace Stride.Profiling
                     fastTextRenderer.Begin(Game.GraphicsContext);
                 }
 
-                msg.RemeaningTime -= gameTime.Elapsed;
+                msg.RemainingTime -= gameTime.Elapsed;
 
-                if (msg.RemeaningTime < TimeSpan.Zero)
+                if (msg.RemainingTime < TimeSpan.Zero)
                 {
                     overlayMessages.RemoveAt(index);
                 }
