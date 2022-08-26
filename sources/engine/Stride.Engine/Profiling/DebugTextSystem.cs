@@ -37,43 +37,18 @@ namespace Stride.Profiling
         /// </summary>
         /// <param name="message"></param>
         /// <param name="position"></param>
-        public void Print(string message, Int2 position)
-        {
-            Print(message, position, TextColor, DefaultOnScreenTime);
-        }
-
-        /// <summary>
-        /// Print a custom overlay message
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="position"></param>
-        /// <param name="color"></param>
-        public void Print(string message, Int2 position, Color4 color)
-        {
-            Print(message, position, color, DefaultOnScreenTime);
-        }
-
-        /// <summary>
-        /// Print a custom overlay message
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="position"></param>
-        /// <param name="timeOnScreen"></param>
-        public void Print(string message, Int2 position, TimeSpan timeOnScreen)
-        {
-            Print(message, position, TextColor, timeOnScreen);
-        }
-
-        /// <summary>
-        /// Print a custom overlay message
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="position"></param>
         /// <param name="color"></param>
         /// <param name="timeOnScreen"></param>
-        public void Print(string message, Int2 position, Color4 color, TimeSpan timeOnScreen)
+        public void Print(string message, Int2 position, Color4? color = null, TimeSpan? timeOnScreen = null)
         {
-            var msg = new DebugOverlayMessage { Message = message, Position = position, TextColor = color, RemeaningTime = timeOnScreen };
+            var msg = new DebugOverlayMessage 
+            { 
+                Message = message,
+                Position = position,
+                TextColor = color ?? TextColor,
+                RemeaningTime = timeOnScreen ?? DefaultOnScreenTime,
+            };
+
             overlayMessages.Add(msg);
 
             //drop one old message if the tail size has been reached
@@ -91,7 +66,7 @@ namespace Stride.Profiling
         /// <summary>
         /// Sets or gets the time that messages will stay on screen by default.
         /// </summary>
-        public TimeSpan DefaultOnScreenTime { get; set; } = TimeSpan.FromSeconds(1);
+        public TimeSpan DefaultOnScreenTime { get; set; } = TimeSpan.Zero;
 
         /// <summary>
         /// Sets or gets the size of the messages queue, older messages will be discarded if the size is greater.
@@ -100,8 +75,6 @@ namespace Stride.Profiling
 
         public override void Update(GameTime gameTime)
         {
-            // if you keep this, the timmers would not work
-            //overlayMessages.Clear();
         }
 
         public override void Draw(GameTime gameTime)
