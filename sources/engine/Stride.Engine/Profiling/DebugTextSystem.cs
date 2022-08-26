@@ -99,6 +99,7 @@ namespace Stride.Profiling
             var currentColor = TextColor;
             fastTextRenderer.Begin(Game.GraphicsContext);
 
+            // the loop is done backwards so when removing elements from the list you don't change the index of elements that weren't processed already
             for (int index = overlayMessages.Count - 1; index > 0; index--)
             {
                 var msg = overlayMessages[index];
