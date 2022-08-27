@@ -2,8 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Extensions;
 using Stride.Graphics;
@@ -22,9 +23,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private const float MaximumViewAngle = 25f * MathUtil.Pi / 180f;
         private const float GridVerticalOffset = 0.0175f;
         private const int GridTextureTopSize = 256;
+        private const int NumberOfGrids = 3;
 
         private List<Entity> originAxes = new List<Entity>();
-        private Entity grid;
+        private List<Entity> grids = new List<Entity>();
         private Entity originAxis;
 
         private readonly Color RedUniformColor = new Color(0xFC, 0x37, 0x37);
@@ -34,31 +36,37 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private delegate Image ImageBuilder();
 
         /// <summary>
-        /// The material used by the grid.
+        /// The materials used by the grids.
         /// </summary>
-        private Material GridMaterial { get; set; }
-        
+        private List<Material> GridMaterials { get; set; }
+
         protected override Entity Create()
         {
-            var rootEntity =  base.Create();
-            
-            // Create the grid
-            var gridTexture = CreateTexture(GenerateGridImage);
-            GridMaterial = CreateColoredTextureMaterial(gridTexture, GridSize * GridSize);
-            GridMaterial.Passes[0].Parameters.Set(TexturingKeys.Texture0, gridTexture);
-            GridMaterial.Passes[0].Parameters.Set(MaterialKeys.Sampler.ComposeWith("i0"), GraphicsDevice.SamplerStates.AnisotropicWrap);
-            grid = new Entity("Scene grid mesh")
+            var rootEntity = base.Create();
+
+            // Create the grids
+            GridMaterials = new List<Material>();
+            for (int i = 0; i < NumberOfGrids; i++)
             {
-                new ModelComponent
+                var gridTexture = CreateTexture(GenerateGridImage);
+                var gridMaterial = CreateColoredTextureMaterial(gridTexture, GridSize * GridSize);
+                gridMaterial.Passes[0].Parameters.Set(TexturingKeys.Texture0, gridTexture);
+                gridMaterial.Passes[0].Parameters.Set(MaterialKeys.Sampler.ComposeWith("i0"), GraphicsDevice.SamplerStates.AnisotropicWrap);
+                GridMaterials.Add(gridMaterial);
+                var grid = new Entity("Scene grid mesh " + i.ToString())
                 {
-                    Model = new Model
+                    new ModelComponent
                     {
-                        GridMaterial,
-                        new Mesh { Draw = GeometricPrimitive.Plane.New(GraphicsDevice, GridBase * GridSize, GridBase * GridSize).ToMeshDraw() }
-                    },
-                    RenderGroup = RenderGroup,
-                }
-            };
+                        Model = new Model
+                        {
+                            gridMaterial,
+                            new Mesh { Draw = GeometricPrimitive.Plane.New(GraphicsDevice, GridBase * GridSize, GridBase * GridSize).ToMeshDraw() }
+                        },
+                        RenderGroup = RenderGroup,
+                    }
+                };
+                grids.Add(grid);
+            }
 
             // Create the grid origin
             originAxis = new Entity("The grid origin axes");
@@ -69,7 +77,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 originAxis.AddChild(originAxes[i]);
 
             // create the hierarchy of grid elements
-            rootEntity.AddChild(grid);
+            foreach (var grid in grids)
+                rootEntity.AddChild(grid);
             rootEntity.AddChild(originAxis);
 
             return rootEntity;
@@ -102,7 +111,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             axisEntity.TransformValue.Scale = new Vector3(GridSize, 1f / GridBase, 1f / GridBase);
             if (axis != 0)
-                axisEntity.TransformValue.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo) * Quaternion.RotationAxis(new Vector3 { [1 + (axis%2)] = 1f}, MathUtil.PiOverTwo);
+                axisEntity.TransformValue.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo) * Quaternion.RotationAxis(new Vector3 { [1 + (axis % 2)] = 1f }, MathUtil.PiOverTwo);
             var axisEntityRoot = new Entity("Scene grid origin axis root");
             axisEntityRoot.AddChild(axisEntity);
 
@@ -167,14 +176,14 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             });
         }
 
-        protected override void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
+        private int UpdateGrid(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit, int gridIndex)
         {
             var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
             if (cameraService == null)
-                return;
+                return -1;
 
             // update the grid color
-            GridMaterial.Passes[0].Parameters.Set(GridColorKey, Color4.PremultiplyAlpha(new Color4(gridColor, alpha)));
+            GridMaterials[gridIndex].Passes[0].Parameters.Set(GridColorKey, Color4.PremultiplyAlpha(new Color4(gridColor, alpha)));
 
             // Determine the up vector depending on view matrix and projection mode
             // -> When orthographic, if we are looking along a coordinate axis, place the grid perpendicular to that axis.
@@ -202,7 +211,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 || float.IsNaN(viewInvert.TranslationVector.Y)
                 || float.IsNaN(viewInvert.TranslationVector.Z))
             {
-                return;
+                return -1;
             }
 
             // The position of the grid and the origin in the scene
@@ -214,7 +223,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             // Move the grid origin in slightly in front the grid to have it in the foreground
             originPosition[viewAxisIndex] = snappedPosition[viewAxisIndex] + MathF.Sign(viewInvert[3, viewAxisIndex]) * 0.001f * sceneUnit;
-            
+
             // Determine the intersection point of the center of the vieport with the grid plane
             var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, new Vector2(0.5f), viewInvert);
             var plane = new Plane(Vector3.Zero, upVector);
@@ -239,19 +248,22 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     snappedPosition[i] += MathF.Round(intersection[i] / gridStringLineUnit) * gridStringLineUnit;
             }
 
+            // Make the grid visible
+            grids[gridIndex].Get<ModelComponent>().Enabled = true;
+
             // Apply positions
-            grid.Transform.Position = snappedPosition;
+            grids[gridIndex].Transform.Position = snappedPosition;
             originAxis.TransformValue.Position = originPosition;
             for (int axis = 0; axis < 3; axis++)
                 originAxes[axis].TransformValue.Position[axis] = snappedPosition[axis];
 
             // Apply the scale (Note: scale cannot be applied at root or sub-position is scaled too)
-            grid.Transform.Scale = new Vector3(gridScale);
+            grids[gridIndex].Transform.Scale = new Vector3(gridScale);
             for (int axis = 0; axis < 3; axis++)
                 originAxes[axis].TransformValue.Scale = new Vector3(gridScale);
 
             // Determine and apply the rotation to the grid and origin axis entities
-            SetPlaneEntityRotation(2, upVector, grid);
+            SetPlaneEntityRotation(2, upVector, grids[gridIndex]);
             for (var axis = 0; axis < 3; axis++)
                 SetPlaneEntityRotation((axis + 2) % 3, upVector, originAxes[axis]);
 
@@ -262,9 +274,60 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 float axesAlpha = alpha * 4;
                 var color = Color4.PremultiplyAlpha(new Color4(GetAxisDefaultColor(axis), axesAlpha));
                 originAxes[axis].GetChild(0).Get<ModelComponent>().GetMaterial(0).Passes[0].Parameters.Set(GridColorKey, color);
-              
-                originAxes[axis].GetChild(0).Get<ModelComponent>().Enabled = axis != viewAxisIndex;
             }
+            return viewAxisIndex;
+        }
+
+        private void UpdateOriginAxes(List<int> invisibleAxes)
+        {
+            if (invisibleAxes.IsNullOrEmpty())
+                return;
+
+            for (int axis = 0; axis < 3; axis++)
+                originAxes[axis].GetChild(0).Get<ModelComponent>().Enabled = true;
+            foreach (var axis in invisibleAxes)
+                originAxes[axis].GetChild(0).Get<ModelComponent>().Enabled = false;
+        }
+
+        protected override void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
+        {
+            // Hide the grids and origin axes temporarily before updating them
+            for (int i = 0; i < NumberOfGrids; i++)
+            {
+                grids[i].Get<ModelComponent>().Enabled = false;
+                originAxes[i].GetChild(0).Get<ModelComponent>().Enabled = false;
+            }
+            List<int> invisibleAxes = new List<int>();
+            switch (gridAxisIndex)
+            {
+                // X, Y or Z axis
+                case < 3:
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, gridAxisIndex, sceneUnit, 0));
+                    break;
+                // X and Y axis
+                case 3:
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 0, sceneUnit, 0));
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 1, sceneUnit, 1));
+                    break;
+                // X and Z axis
+                case 4:
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 0, sceneUnit, 0));
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 2, sceneUnit, 1));
+                    break;
+                // Y and Z axis
+                case 5:
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 1, sceneUnit, 0));
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 2, sceneUnit, 1));
+                    break;
+                // X, Y, and Z axis
+                case 6:
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 0, sceneUnit, 0));
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 1, sceneUnit, 1));
+                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 2, sceneUnit, 2));
+                    break;
+            }
+            // Make the grid axes invisible
+            UpdateOriginAxes(invisibleAxes.FindAll(axis => axis > -1));
         }
 
         private static void SetPlaneEntityRotation(int modelUpAxis, Vector3 upVector, Entity entity)
@@ -344,7 +407,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private static double CalculateAverageLuminanceOriginAxis(int size)
         {
             // It calculates the number of bright pixels vs the number total of pixels
-            return  2.0 * size / (size * size);
+            return 2.0 * size / (size * size);
         }
     }
 }
