@@ -26,14 +26,6 @@ public class ShaderMethod : ShaderToken
         Statements = m["Statements"].Matches.Select(GetToken).Cast<Statement>().ToList();
     }
 
-    public void Generate3Addr()
-    {
-        foreach (var s in Statements)
-        {
-            Lowering.LowerToken(s);
-        }
-    }
-
     public static ShaderMethod Create(Match m)
     {
         return m["MethodName"].StringValue switch
@@ -69,41 +61,41 @@ public class VSMainMethod : MainMethod
 {
     public VSMainMethod(Match m) : base(m)
     {
-        Generate3Addr();
+        
     }
 }
 public class PSMainMethod : MainMethod
 {
     public PSMainMethod(Match m) : base(m)
     {
-        Generate3Addr();
+        
     }
 }
 public class GSMainMethod : MainMethod
 {
     public GSMainMethod(Match m) : base(m)
     {
-        Generate3Addr();
+        
     }
 }
 public class CSMainMethod : MainMethod
 {
     public CSMainMethod(Match m) : base(m)
     {
-        Generate3Addr();
+        
     }
 }
 public class DSMainMethod : MainMethod
 {
     public DSMainMethod(Match m) : base(m)
     {
-        Generate3Addr();
+        
     }
 }
 public class HSMainMethod : MainMethod
 {
     public HSMainMethod(Match m) : base(m)
     {
-        Generate3Addr();
+        
     }
 }

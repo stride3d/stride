@@ -10,33 +10,32 @@ using static Stride.Shaders.Parsing.AST.Shader.OperatorTokenExtensions;
 namespace Stride.Shaders.Parsing.AST.Shader;
 
 
-public class Expression : ShaderToken
+public abstract class Expression : ShaderToken, ITyped
 {
+    string? inferredType;
+    public virtual string InferredType
+    {
+        get => inferredType ?? "int";
+        set => inferredType = value;
+    }
+
+    public string GetInferredType()
+    {
+        return InferredType;
+    }
     public virtual IEnumerable<string> GetVariableNamesUsed()
     {
         return Array.Empty<string>();
     }
 }
 
-
-public abstract class Projector : Expression
-{
-    public virtual string InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-}
-
-public class Operation : Projector
+public class Operation : Expression
 {
     public OperatorToken Op { get; set; }
 
     public ShaderToken Left { get; set; }
     public ShaderToken Right { get; set; }
 
-    string? inferredType;
-    public override string InferredType
-    {
-        get => inferredType ?? "int";
-        set => inferredType = value;
-    }    
 }
 
 
@@ -308,7 +307,7 @@ public class LogicalOrExpression : Operation
     }
 }
 
-public class ConditionalExpression : Projector
+public class ConditionalExpression : Expression
 {
     public ShaderToken Condition { get; set; }
     public ShaderToken TrueOutput { get; set; }
@@ -316,7 +315,7 @@ public class ConditionalExpression : Projector
 
     string? inferredType;
 
-    public override string InferredType
+    public string InferredType
     {
         get => inferredType;
         set => inferredType = value;

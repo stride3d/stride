@@ -51,10 +51,7 @@ public class CompositeConstant<T> : Constant
     }
 }
 
-
-public class Accessor : Register{}
-
-public class AccessorChain : Register
+public class ChainAccessorRegister : Register
 {
-    public List<string>? Accessors {get;set;} 
+    public IEnumerable<string?>? Accessors {get;set;} 
 }

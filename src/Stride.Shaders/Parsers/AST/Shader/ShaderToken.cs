@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
+public interface ITyped
+{
+    public string GetInferredType();
+}
+
+
 public abstract class ShaderToken
 {
 	public static string[] KeepValues = {

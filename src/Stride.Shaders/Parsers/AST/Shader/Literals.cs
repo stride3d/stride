@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Stride.Shaders.Parsing.AST.Shader;
 
 
-public class ShaderLiteral : Projector
+public class ShaderLiteral : Expression
 {
     public override string InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     public object Value {get;set;}

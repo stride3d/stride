@@ -16,8 +16,8 @@ using Stride.Shaders;
 var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
 
 // ShaderCompiling(shaderf);
-// ThreeAddress(shaderf);
-LoadShaders();
+ThreeAddress();
+// LoadShaders();
 
 static void LoadShaders()
 {
@@ -29,21 +29,20 @@ static void LoadShaders()
     var x = 0;
 }
 
-static void ThreeAddress(string code)
+static void ThreeAddress()
 {
     
-    var parser = new ShaderMixinParser();
-
-    ShaderProgram? ast = parser.Parse(code) as ShaderProgram;
-    var declare = ((ShaderMethod)ast.Body.First(x => x is ShaderMethod)).Statements.First(s => s is DeclareAssign) as DeclareAssign;
-    var s = new Stopwatch();
-    _ = Lowering.LowerToken(declare).ToList();
-
-    s.Start();
-    var x = Lowering.LowerToken(declare).ToList();
-    s.Stop();
-    x.ForEach(Console.WriteLine);
-    Console.WriteLine(s.Elapsed);
+    var o = 
+        new Operation
+        {
+            Left = new NumberLiteral{Value = 5},
+            Right = new NumberLiteral{Value = 6},
+            Op = OperatorToken.Plus
+        };
+    var s = new DeclareAssign(){VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o};
+    var snip = new Snippet();
+    snip.Construct(s);
+    var x = 0;
 }
 
 

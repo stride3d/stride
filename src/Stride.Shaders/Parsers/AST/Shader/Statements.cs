@@ -12,19 +12,30 @@ using System.Threading.Tasks;
 namespace Stride.Shaders.Parsing.AST.Shader;
 
 
-public abstract class Statement : ShaderToken 
+public abstract class Statement : ShaderToken, ITyped
 {
     public IEnumerable<Register> LowCode {get;set;}
+    public virtual string InferredType{get => throw new NotImplementedException();set => throw new NotImplementedException();}
+
+    public string GetInferredType()
+    {
+        return InferredType;
+    }
 }
 
-public class EmptyStatement : Statement {}
+public class EmptyStatement : Statement
+{
+    public override string InferredType => "void";
+}
 
 public class DeclareAssign : Statement
 {
+    public override string InferredType => "void";
     public AssignOpToken AssignOp { get; set; }
     public string TypeName { get; set; }
     public string VariableName { get; set; }
     public ShaderToken Value { get; set; }
+    public DeclareAssign(){}
     public DeclareAssign(Match m )
     {
         Match = m;
@@ -37,6 +48,8 @@ public class DeclareAssign : Statement
 
 public class AssignChain : Statement
 {
+    public override string InferredType => "void";
+
     public AssignOpToken AssignOp { get; set; }
     public bool StreamValue => AccessNames.Any() && AccessNames.First() == "streams";
     public IEnumerable<string> AccessNames { get; set; }
@@ -52,12 +65,14 @@ public class AssignChain : Statement
 
 public class ReturnStatement : Statement
 {
-    public ShaderToken? ReturnValue {get;set;}
+    public override string InferredType => ReturnValue?.GetInferredType() ?? "void";
+    
+    public ITyped? ReturnValue {get;set;}
     public ReturnStatement(Match m)
     {
         Match = m;
         if(m.HasMatches)
-            ReturnValue = GetToken(m["PrimaryExpression"]);
+            ReturnValue = (ITyped)GetToken(m["PrimaryExpression"]);
     }
 }
 
