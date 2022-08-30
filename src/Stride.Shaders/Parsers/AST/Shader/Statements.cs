@@ -1,6 +1,7 @@
 ﻿using Eto.Parse;
 using Spv.Generator;
 using Stride.Shaders.Parsing.AST.Shader;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.ThreeAddress;
 using System;
@@ -12,29 +13,41 @@ using System.Threading.Tasks;
 namespace Stride.Shaders.Parsing.AST.Shader;
 
 
-public abstract class Statement : ShaderToken, ITyped
+public abstract class Statement : ShaderTokenTyped
 {
     public IEnumerable<Register> LowCode {get;set;}
-    public virtual string InferredType{get => throw new NotImplementedException();set => throw new NotImplementedException();}
+    public override string InferredType{get => throw new NotImplementedException();set => throw new NotImplementedException();}
 
     public string GetInferredType()
     {
         return InferredType;
+    }
+
+    public override void TypeCheck(SymbolTable symbols)
+    {
+        throw new NotImplementedException();
     }
 }
 
 public class EmptyStatement : Statement
 {
     public override string InferredType => "void";
+
+    public override void TypeCheck(SymbolTable symbols){}
 }
 
-public class DeclareAssign : Statement
+public abstract class Declaration : Statement
 {
     public override string InferredType => "void";
-    public AssignOpToken AssignOp { get; set; }
-    public string TypeName { get; set; }
+    public string TypeName {get;set;}
     public string VariableName { get; set; }
-    public ShaderToken Value { get; set; }
+    public ShaderTokenTyped Value { get; set; }
+
+}
+
+public class DeclareAssign : Declaration
+{
+    public AssignOpToken AssignOp { get; set; }
     public DeclareAssign(){}
     public DeclareAssign(Match m )
     {
@@ -42,7 +55,7 @@ public class DeclareAssign : Statement
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
         TypeName = m["Type"].StringValue;
         VariableName = m["Variable"].StringValue;
-        Value = GetToken(m["Value"]);
+        Value = (ShaderTokenTyped)GetToken(m["Value"]);
     }
 }
 
@@ -65,14 +78,14 @@ public class AssignChain : Statement
 
 public class ReturnStatement : Statement
 {
-    public override string InferredType => ReturnValue?.GetInferredType() ?? "void";
+    public override string InferredType => ReturnValue?.InferredType ?? "void";
     
-    public ITyped? ReturnValue {get;set;}
+    public ShaderTokenTyped? ReturnValue {get;set;}
     public ReturnStatement(Match m)
     {
         Match = m;
         if(m.HasMatches)
-            ReturnValue = (ITyped)GetToken(m["PrimaryExpression"]);
+            ReturnValue = (ShaderTokenTyped)GetToken(m["PrimaryExpression"]);
     }
 }
 

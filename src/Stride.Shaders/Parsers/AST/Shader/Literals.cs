@@ -1,4 +1,5 @@
 ﻿using Eto.Parse;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,10 +70,7 @@ public class HexLiteral : NumberLiteral
 {
     public override string InferredType 
     {
-        get
-        {
-            return "long";
-        }
+        get => inferredType ?? "long";
         set => inferredType = value;
     }
 
@@ -87,7 +85,7 @@ public class HexLiteral : NumberLiteral
 }
 public class StringLiteral : ShaderLiteral
 {
-    public override string InferredType { get => "string"; set { } }
+    public override string InferredType { get => "string"; set => throw new NotImplementedException(); }
 
     public StringLiteral() { }
 
@@ -100,7 +98,7 @@ public class StringLiteral : ShaderLiteral
 
 public class BoolLiteral : ShaderLiteral
 {
-    public override string InferredType { get => "bool"; set { } }
+    public override string InferredType { get => "bool"; set => throw new NotImplementedException(); }
 
     public BoolLiteral() { }
 
@@ -126,14 +124,25 @@ public class VariableNameLiteral : ShaderLiteral
 {
     public string Name { get; set; }
 
-    string? inferredType;
+    public override string InferredType { get => inferredType ?? throw new NotImplementedException(); set => inferredType = value; }
 
-    public override string InferredType { get => inferredType; set => inferredType = value; }
-
+    public VariableNameLiteral(string name)
+    {
+        Name = name;
+    }
 
     public VariableNameLiteral(Match m)
     {
         Name = m.StringValue;
+    }
+
+    public override void TypeCheck(SymbolTable symbols)
+    {
+        if(symbols.TryGetType(Name, out var type))
+        {
+            this.inferredType = type;
+        }
+        else throw new NotImplementedException();
     }
     public override string ToString()
     {

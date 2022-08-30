@@ -12,6 +12,7 @@ using Stride.Shaders.Parsing.AST.Shader;
 using Stride.Shaders.Mixer;
 using Stride.Shaders.ThreeAddress;
 using Stride.Shaders;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 
 var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
 
@@ -39,7 +40,13 @@ static void ThreeAddress()
             Right = new NumberLiteral{Value = 6},
             Op = OperatorToken.Plus
         };
-    var s = new DeclareAssign(){VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o};
+    
+    var symbols = new SymbolTable();
+    var s = new DeclareAssign(){TypeName = "int", VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o};
+    symbols.PushVar(s);
+    var s2 = new DeclareAssign(){VariableName = "dodo2", AssignOp = AssignOpToken.Equal, Value = new VariableNameLiteral("dodo")};
+    symbols.PushVar(s2);
+    
     var snip = new Snippet();
     snip.Construct(s);
     var x = 0;
