@@ -44,7 +44,14 @@ static void ThreeAddress()
     var symbols = new SymbolTable();
     var s = new DeclareAssign(){TypeName = "int", VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o};
     symbols.PushVar(s);
-    var s2 = new DeclareAssign(){VariableName = "dodo2", AssignOp = AssignOpToken.Equal, Value = new VariableNameLiteral("dodo")};
+    var o2 = 
+        new Operation
+        {
+            Left = new VariableNameLiteral("dodo"),
+            Right = new NumberLiteral{Value = 6, InferredType = "float"},
+            Op = OperatorToken.Plus
+        };
+    var s2 = new DeclareAssign(){VariableName = "dodo2", AssignOp = AssignOpToken.Equal, Value = o2};
     symbols.PushVar(s2);
     
     var snip = new Snippet();

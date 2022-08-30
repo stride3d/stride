@@ -24,7 +24,7 @@ public abstract class Expression : ShaderTokenTyped
     {
         return InferredType;
     }
-    public override void TypeCheck(SymbolTable symbols){}
+    public override void TypeCheck(SymbolTable symbols) { }
 }
 
 public class Operation : Expression
@@ -38,10 +38,29 @@ public class Operation : Expression
     {
         Left.TypeCheck(symbols);
         Right.TypeCheck(symbols);
-        if(Left.InferredType == Right.InferredType)
+        if (Left.InferredType == Right.InferredType)
             InferredType = Left.InferredType;
+        else if (Left is NumberLiteral l && Right is NumberLiteral r)
+            CheckNumberComparison(l, r);
         else
             throw new NotImplementedException();
+    }
+    public void CheckNumberComparison(NumberLiteral l, NumberLiteral r)
+    {
+        if (l.Suffix is null && r.Suffix is null)
+        {
+            throw new NotImplementedException();
+        }
+        else if (l.Suffix is not null && r.Suffix is null)
+        {
+            throw new NotImplementedException();
+        }
+        else if (l.Suffix is null && r.Suffix is not null)
+        {
+            throw new NotImplementedException();
+        }
+        else
+            throw new NotImplementedException("Wrong type");
     }
 }
 
