@@ -16,7 +16,7 @@ public abstract class Expression : ShaderTokenTyped
     protected string? inferredType;
     public override string InferredType
     {
-        get => inferredType ?? "int";
+        get => inferredType ?? throw new NotImplementedException();
         set => inferredType = value;
     }
 
@@ -24,7 +24,7 @@ public abstract class Expression : ShaderTokenTyped
     {
         return InferredType;
     }
-    public override void TypeCheck(SymbolTable symbols) { }
+    public override void TypeCheck(SymbolTable symbols, string expected = "") { }
 }
 
 public class Operation : Expression
@@ -34,22 +34,33 @@ public class Operation : Expression
     public ShaderTokenTyped Left { get; set; }
     public ShaderTokenTyped Right { get; set; }
 
-    public override void TypeCheck(SymbolTable symbols)
+    public override async void TypeCheck(SymbolTable symbols, string expected = "")
     {
-        Left.TypeCheck(symbols);
-        Right.TypeCheck(symbols);
-        if (Left.InferredType == Right.InferredType)
-            InferredType = Left.InferredType;
-        else if (Left is NumberLiteral l && Right is NumberLiteral r)
-            CheckNumberComparison(l, r);
-        else
-            throw new NotImplementedException();
+        
+        if(expected != string.Empty)
+        {
+            Left.TypeCheck(symbols,expected);
+            Right.TypeCheck(symbols,expected);
+            if (Left.InferredType == Right.InferredType && Left.InferredType == expected)
+                InferredType = Left.InferredType;
+            else
+                throw new NotImplementedException();
+        }
+        else 
+        {
+            Left.TypeCheck(symbols);
+            Right.TypeCheck(symbols);
+            if(Left.InferredType != Right.InferredType)
+                throw new NotImplementedException();
+            else
+                InferredType = Left.InferredType;
+        }
     }
-    public void CheckNumberComparison(NumberLiteral l, NumberLiteral r)
+    public void CheckNumberComparison(NumberLiteral l, NumberLiteral r, string expected)
     {
         if (l.Suffix is null && r.Suffix is null)
         {
-            throw new NotImplementedException();
+            
         }
         else if (l.Suffix is not null && r.Suffix is null)
         {

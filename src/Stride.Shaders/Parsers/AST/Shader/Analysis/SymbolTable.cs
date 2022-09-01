@@ -22,7 +22,7 @@ public class SymbolTable : Stack<Dictionary<string, Declaration>>
         foreach(var d in this)
             if(d.ContainsKey(a.VariableName))
                 throw new Exception("Variable already declared at " + a.Match);
-        a.Value.TypeCheck(this);
+        a.Value.TypeCheck(this, a.TypeName ?? "");
         CurrentScope.Add(a.VariableName, a);
     }
 

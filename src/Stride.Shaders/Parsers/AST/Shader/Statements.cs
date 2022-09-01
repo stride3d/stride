@@ -23,7 +23,7 @@ public abstract class Statement : ShaderTokenTyped
         return InferredType;
     }
 
-    public override void TypeCheck(SymbolTable symbols)
+    public override void TypeCheck(SymbolTable symbols, string expected = "")
     {
         throw new NotImplementedException();
     }
@@ -33,13 +33,13 @@ public class EmptyStatement : Statement
 {
     public override string InferredType => "void";
 
-    public override void TypeCheck(SymbolTable symbols){}
+    public override void TypeCheck(SymbolTable symbols, string expected = ""){}
 }
 
 public abstract class Declaration : Statement
 {
     public override string InferredType => "void";
-    public string TypeName {get;set;}
+    public string? TypeName {get;set;}
     public string VariableName { get; set; }
     public ShaderTokenTyped Value { get; set; }
 

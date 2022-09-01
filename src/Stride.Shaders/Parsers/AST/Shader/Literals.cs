@@ -12,35 +12,17 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 public class ShaderLiteral : Expression
 {
     public override string InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public object Value {get;set;}
+    public object Value { get; set; }
 }
 
 public class NumberLiteral : ShaderLiteral
 {
     public bool Negative { get; set; } = false;
     public string? Suffix { get; set; }
-
-    protected string? inferredType;
-
-    public override string InferredType 
+    public override string InferredType
     {
-        get
-        {
-            if (inferredType is not null)
-                return inferredType;
-            else
-            {
-                return Suffix switch
-                {
-                    "u" => "uint",
-                    "l" => "long",
-                    "f" => "float",
-                    "d" => "double",
-                    _ => "int"
-                };
-            }
-        }
-        set => inferredType = value; 
+        get => inferredType ?? throw new NotImplementedException();
+        set => inferredType = value;
     }
 
     public NumberLiteral() { }
@@ -65,10 +47,63 @@ public class NumberLiteral : ShaderLiteral
             }
         }
     }
+    public override void TypeCheck(SymbolTable symbols, string expected)
+    {
+        if (Suffix is null)
+        {
+            if (expected != string.Empty)
+            {
+                inferredType = (Value, expected) switch
+                {
+                    (_, "double") => "double",
+                    (_, "float") => "float",
+                    (_, "half") => "half",
+                    (long l, "long") => "long",
+                    (long l, "int") => "int",
+                    (long l, "uint") => "uint",
+                    (long l, "short") => "short",
+                    (long l, "byte") => "byte",
+                    (long l, "sbyte") => "sbyte",
+                    _ => throw new NotImplementedException()
+                };
+            }
+            else
+            {
+                inferredType = "int";
+            }
+        }
+        else
+        {
+            if (expected != string.Empty)
+            {
+                inferredType = Suffix switch
+                {
+                    "l" => "long",
+                    "u" => "uint",
+                    "f" => "float",
+                    "d" => "double",
+                    _ => throw new NotImplementedException()
+                };
+                if (expected != inferredType)
+                    throw new NotImplementedException();
+            }
+            else
+            {
+                inferredType = Suffix switch
+                {
+                    "l" => "long",
+                    "u" => "uint",
+                    "f" => "float",
+                    "d" => "double",
+                    _ => throw new NotImplementedException()
+                };
+            }
+        }
+    }
 }
 public class HexLiteral : NumberLiteral
 {
-    public override string InferredType 
+    public override string InferredType
     {
         get => inferredType ?? "long";
         set => inferredType = value;
@@ -136,9 +171,9 @@ public class VariableNameLiteral : ShaderLiteral
         Name = m.StringValue;
     }
 
-    public override void TypeCheck(SymbolTable symbols)
+    public override void TypeCheck(SymbolTable symbols, string expected = "")
     {
-        if(symbols.TryGetType(Name, out var type))
+        if (symbols.TryGetType(Name, out var type))
         {
             this.inferredType = type;
         }
@@ -146,6 +181,6 @@ public class VariableNameLiteral : ShaderLiteral
     }
     public override string ToString()
     {
-        return $"{{ Variable : {Name} }}" ;
+        return $"{{ Variable : {Name} }}";
     }
 }

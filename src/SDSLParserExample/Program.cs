@@ -36,8 +36,8 @@ static void ThreeAddress()
     var o = 
         new Operation
         {
-            Left = new NumberLiteral{Value = 5},
-            Right = new NumberLiteral{Value = 6},
+            Left = new NumberLiteral{Value = 5L},
+            Right = new NumberLiteral{Value = 6L},
             Op = OperatorToken.Plus
         };
     
@@ -48,7 +48,7 @@ static void ThreeAddress()
         new Operation
         {
             Left = new VariableNameLiteral("dodo"),
-            Right = new NumberLiteral{Value = 6, InferredType = "float"},
+            Right = new NumberLiteral{Value = 6L, InferredType = "float"},
             Op = OperatorToken.Plus
         };
     var s2 = new DeclareAssign(){VariableName = "dodo2", AssignOp = AssignOpToken.Equal, Value = o2};
