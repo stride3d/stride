@@ -48,9 +48,7 @@ public abstract class Declaration : Statement
 public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
 {
     public AssignOpToken AssignOp { get; set; }
-    public bool UsesStream { get; set;}
-    public bool UsesShaderVar {get;set;}
-
+    
     public DeclareAssign(){}
     public DeclareAssign(Match m )
     {
@@ -61,20 +59,20 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
         Value = (ShaderTokenTyped)GetToken(m["Value"]);
     }
 
-    public void CheckStatic(SymbolTable s)
+    public bool CheckStatic(SymbolTable s)
     {
-        if(Value is IStaticCheck sc)
+        return Value is IStaticCheck sc &&
             sc.CheckStatic(s);
     }
 
-    public void CheckStream(SymbolTable s)
+    public bool CheckStream(SymbolTable s)
     {
-        if(Value is IStreamCheck sc)
+        return Value is IStreamCheck sc &&
             sc.CheckStream(s);
     }
 }
 
-public class AssignChain : Statement
+public class AssignChain : Statement, IStreamCheck, IStaticCheck
 {
     public override string InferredType => "void";
 
@@ -89,9 +87,19 @@ public class AssignChain : Statement
         AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue);
         Value = (ShaderTokenTyped)GetToken(m["PrimaryExpression"]);
     }
+
+    public bool CheckStream(SymbolTable s)
+    {
+        return StreamValue || Value is IStreamCheck isc && isc.CheckStream(s);
+    }
+
+    public bool CheckStatic(SymbolTable s)
+    {
+        return Value is IStaticCheck isc && isc.CheckStatic(s);
+    }
 }
 
-public class ReturnStatement : Statement
+public class ReturnStatement : Statement, IStreamCheck, IStaticCheck
 {
     public override string InferredType => ReturnValue?.InferredType ?? "void";
     
@@ -102,14 +110,34 @@ public class ReturnStatement : Statement
         if(m.HasMatches)
             ReturnValue = (ShaderTokenTyped)GetToken(m["PrimaryExpression"]);
     }
+
+    public bool CheckStream(SymbolTable s)
+    {
+        return ReturnValue is IStreamCheck sc && sc.CheckStream(s);
+    }
+
+    public bool CheckStatic(SymbolTable s)
+    {
+        return ReturnValue is IStaticCheck sc && sc.CheckStatic(s);
+    }
 }
 
-public class BlockStatement : Statement 
+public class BlockStatement : Statement, IStreamCheck, IStaticCheck
 {
     public IEnumerable<Statement> Statements {get;set;}
     public BlockStatement(Match m)
     {
         Match = m;
         Statements = m.Matches.Select(GetToken).Cast<Statement>().ToList();
+    }
+
+    public bool CheckStream(SymbolTable s)
+    {
+        return Statements.Any(x => x is IStreamCheck isc && isc.CheckStream(s));
+    }
+
+    public bool CheckStatic(SymbolTable s)
+    {
+        return Statements.Any(x => x is IStaticCheck isc && isc.CheckStatic(s));
     }
 }

@@ -27,13 +27,13 @@ public abstract class Expression : ShaderTokenTyped
     public override void TypeCheck(SymbolTable symbols, string expected = "") { }
 }
 
-public class Operation : Expression
+public class Operation : Expression, IStreamCheck, IStaticCheck
 {
     public OperatorToken Op { get; set; }
 
     public ShaderTokenTyped Left { get; set; }
     public ShaderTokenTyped Right { get; set; }
-
+    
     public override async void TypeCheck(SymbolTable symbols, string expected = "")
     {
         
@@ -56,22 +56,17 @@ public class Operation : Expression
                 InferredType = Left.InferredType;
         }
     }
-    public void CheckNumberComparison(NumberLiteral l, NumberLiteral r, string expected)
+
+    public bool CheckStream(SymbolTable s)
     {
-        if (l.Suffix is null && r.Suffix is null)
-        {
-            
-        }
-        else if (l.Suffix is not null && r.Suffix is null)
-        {
-            throw new NotImplementedException();
-        }
-        else if (l.Suffix is null && r.Suffix is not null)
-        {
-            throw new NotImplementedException();
-        }
-        else
-            throw new NotImplementedException("Wrong type");
+        return Left is IStreamCheck scl && scl.CheckStream(s)
+            || Right is IStreamCheck scr && scr.CheckStream(s);
+    }
+
+    public bool CheckStatic(SymbolTable s)
+    {
+        return Left is IStaticCheck scl && scl.CheckStatic(s)
+            || Right is IStaticCheck scr && scr.CheckStatic(s);
     }
 }
 
