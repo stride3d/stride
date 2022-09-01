@@ -15,6 +15,7 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 
 public abstract class Statement : ShaderTokenTyped
 {
+    
     public IEnumerable<Register> LowCode {get;set;}
     public override string InferredType{get => throw new NotImplementedException();set => throw new NotImplementedException();}
 
@@ -32,7 +33,6 @@ public abstract class Statement : ShaderTokenTyped
 public class EmptyStatement : Statement
 {
     public override string InferredType => "void";
-
     public override void TypeCheck(SymbolTable symbols, string expected = ""){}
 }
 
@@ -45,9 +45,12 @@ public abstract class Declaration : Statement
 
 }
 
-public class DeclareAssign : Declaration
+public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
 {
     public AssignOpToken AssignOp { get; set; }
+    public bool UsesStream { get; set;}
+    public bool UsesShaderVar {get;set;}
+
     public DeclareAssign(){}
     public DeclareAssign(Match m )
     {
@@ -56,6 +59,18 @@ public class DeclareAssign : Declaration
         TypeName = m["Type"].StringValue;
         VariableName = m["Variable"].StringValue;
         Value = (ShaderTokenTyped)GetToken(m["Value"]);
+    }
+
+    public void CheckStatic(SymbolTable s)
+    {
+        if(Value is IStaticCheck sc)
+            sc.CheckStatic(s);
+    }
+
+    public void CheckStream(SymbolTable s)
+    {
+        if(Value is IStreamCheck sc)
+            sc.CheckStream(s);
     }
 }
 
@@ -66,13 +81,13 @@ public class AssignChain : Statement
     public AssignOpToken AssignOp { get; set; }
     public bool StreamValue => AccessNames.Any() && AccessNames.First() == "streams";
     public IEnumerable<string> AccessNames { get; set; }
-    public ShaderToken Value { get; set; }
+    public ShaderTokenTyped Value { get; set; }
     public AssignChain(Match m)
     {
         Match = m;
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
         AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue);
-        Value = GetToken(m["PrimaryExpression"]);
+        Value = (ShaderTokenTyped)GetToken(m["PrimaryExpression"]);
     }
 }
 

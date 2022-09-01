@@ -1,4 +1,5 @@
 using Eto.Parse;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
@@ -92,5 +93,6 @@ public class ControlFlow : Statement
             _ => throw new NotImplementedException()
         };
     }
+
 }
 
