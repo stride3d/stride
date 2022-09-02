@@ -105,7 +105,7 @@ namespace Stride.Engine.Splines.Processors
                     if (splineComponent.SplineRenderer.Segments || splineComponent.SplineRenderer.BoundingBox)
                     {
                         var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
-                        var splineDebugEntity = splineComponent.SplineRenderer.Create(splineComponent.Spline, graphicsDeviceService?.GraphicsDevice, splineComponent.Entity.Transform.Position);
+                        var splineDebugEntity = splineComponent.SplineRenderer.Create(splineComponent.Spline, graphicsDeviceService?.GraphicsDevice, splineComponent.Entity);
 
                         if (splineDebugEntity != null)
                         {

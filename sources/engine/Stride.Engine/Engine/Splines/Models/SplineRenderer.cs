@@ -5,6 +5,8 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Graphics.GeometricPrimitives;
+using Stride.Extensions;
 
 namespace Stride.Engine.Splines.Models
 {
@@ -13,9 +15,8 @@ namespace Stride.Engine.Splines.Models
     {
         private bool segments;
         private bool boundingBox;
+        private bool nodes;
         private Entity splineMeshEntity;
-        private Entity boundingBoxEntity;
-        private Entity segmentsEntity;
 
         public delegate void SplineRendererSettingsUpdatedHandler();
         public event SplineRendererSettingsUpdatedHandler OnSplineRendererSettingsUpdated;
@@ -45,6 +46,30 @@ namespace Stride.Engine.Splines.Models
         public Material SegmentsMaterial;
 
         /// <summary>
+        /// Display Spline nodes
+        /// </summary>
+        [Display(23, "Show nodes")]
+        public bool Nodes
+        {
+            get
+            {
+                return nodes;
+            }
+            set
+            {
+                nodes = value;
+
+                OnSplineRendererSettingsUpdated?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// The material used by the spline nodes mesh
+        /// </summary>
+        [Display(26, "Nodes material")]
+        public Material NodesMaterial;
+
+        /// <summary>
         /// Display the bounding boxes of each node and the entire spline
         /// </summary>
         [Display(30, "Show boundingbox")]
@@ -72,7 +97,7 @@ namespace Stride.Engine.Splines.Models
         /// <param name="graphicsDevice"></param>
         /// <param name="splinePosition"></param>
         /// <returns>An entity with sub entities containing various meshes to visualise the spline</returns>
-        public Entity Create(Spline spline, GraphicsDevice graphicsDevice, Vector3 splinePosition)
+        public Entity Create(Spline spline, GraphicsDevice graphicsDevice, Entity entity)
         {
             splineMeshEntity = new Entity("SplineRenderer");
 
@@ -91,6 +116,12 @@ namespace Stride.Engine.Splines.Models
                     if (currentSplineNode == null)
                     {
                         break;
+                    }
+
+                    // Show spline node meshes
+                    if (Nodes)
+                    {
+                        CreateSplineNodeMesh(i.ToString(), graphicsDevice, currentSplineNode.WorldPosition, entity, splineMeshEntity);
                     }
 
                     // Don't create a mesh when it is the last node and Loop is disabled
@@ -116,44 +147,56 @@ namespace Stride.Engine.Splines.Models
                             splinePoints[j] = curvePointsInfo[j].Position;
                         }
 
-                        if (Segments && SegmentsMaterial != null)
+                        // Show spline segment mesh
+                        if (Segments)
                         {
-                            DrawSegmentLine(i.ToString(), splinePoints, graphicsDevice, splinePosition, splineMeshEntity);
+                            CreateSegmentLineMesh(i.ToString(), splinePoints, graphicsDevice, entity, splineMeshEntity);
                         }
 
-                        if (BoundingBox && SegmentsMaterial != null)
+                        // Show bounding box of spline segment
+                        if (BoundingBox)
                         {
-                            UpdateSegmentBoundingBox(i.ToString(), currentSplineNode.BoundingBox, graphicsDevice, splinePosition, splineMeshEntity);
+                            UpdateSegmentBoundingBoxMesh(i.ToString(), currentSplineNode.BoundingBox, graphicsDevice, entity, splineMeshEntity);
                         }
                     }
                 }
             }
 
-            if (BoundingBox && SegmentsMaterial != null)
+            // Show bounding box of entire splines
+            if (BoundingBox)
             {
-                UpdateSegmentBoundingBox("Spline", spline.BoundingBox, graphicsDevice, splinePosition, splineMeshEntity, SegmentsMaterial);
+                UpdateSegmentBoundingBoxMesh("Spline", spline.BoundingBox, graphicsDevice, entity, splineMeshEntity, SegmentsMaterial);
             }
 
             return splineMeshEntity;
         }
 
-        private void DrawSegmentLine(string description, Vector3[] splinePoints, GraphicsDevice graphicsDevice, Vector3 position, Entity splineMeshEntity)
+        private void CreateSegmentLineMesh(string description, Vector3[] splinePoints, GraphicsDevice graphicsDevice, Entity splineEntity, Entity splineMeshEntity)
         {
             var splineMeshData = new SplineMeshData(splinePoints, graphicsDevice);
-            segmentsEntity = new Entity($"Segment_{description}") { new ModelComponent { Model = new Model { SegmentsMaterial, new Mesh { Draw = splineMeshData.Build() }, }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
+            var segmentsEntity = new Entity($"Segment_{description}") { new ModelComponent { Model = new Model { SegmentsMaterial, new Mesh { Draw = splineMeshData.Build() }, }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
             splineMeshEntity.AddChild(segmentsEntity);
-            segmentsEntity.Transform.Position -= position - splineMeshEntity.Transform.Position;
+            segmentsEntity.Transform.Position -= splineEntity.Transform.Position;
         }
 
-        private void UpdateSegmentBoundingBox(string description, BoundingBox boundingBox, GraphicsDevice graphicsDevice, Vector3 position, Entity splineMeshEntity, Material overrideMaterial = null)
+        private void UpdateSegmentBoundingBoxMesh(string description, BoundingBox boundingBox, GraphicsDevice graphicsDevice, Entity splineEntity, Entity splineMeshEntity, Material overrideMaterial = null)
         {
             var boundingBoxMesh = new BoundingBoxMesh(graphicsDevice);
             boundingBoxMesh.Build(boundingBox);
 
             var boundingBoxMaterial = overrideMaterial ?? BoundingBoxMaterial ?? SegmentsMaterial;
-            boundingBoxEntity = new Entity($"BoundingBox_{description}") { new ModelComponent { Model = new Model { boundingBoxMaterial, new Mesh { Draw = boundingBoxMesh.MeshDraw } }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
+            var boundingBoxEntity = new Entity($"BoundingBox_{description}") { new ModelComponent { Model = new Model { boundingBoxMaterial, new Mesh { Draw = boundingBoxMesh.MeshDraw } }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
             splineMeshEntity.AddChild(boundingBoxEntity);
-            boundingBoxEntity.Transform.Position -= position - boundingBoxEntity.Transform.Position;
+            boundingBoxEntity.Transform.Position -= splineEntity.Transform.Position;
+        }
+
+        private void CreateSplineNodeMesh(string description, GraphicsDevice graphicsDevice, Vector3 splineNodeWorldPosition, Entity splineEntity, Entity splineMeshEntity, Material overrideMaterial = null)
+        { 
+            var sphereMeshDraw = GeometricPrimitive.Sphere.New(graphicsDevice, 0.15f, 8).ToMeshDraw();
+            var splineNodeMaterial = overrideMaterial ?? NodesMaterial ?? SegmentsMaterial;
+            var splineNodeEntity = new Entity($"SplineNode_{description}") { new ModelComponent { Model = new Model { splineNodeMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
+            splineMeshEntity.AddChild(splineNodeEntity);
+            splineNodeEntity.Transform.Position -= splineEntity.Transform.WorldMatrix.TranslationVector - splineNodeWorldPosition;
         }
     }
 }
