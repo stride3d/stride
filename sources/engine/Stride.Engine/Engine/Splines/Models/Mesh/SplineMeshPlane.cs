@@ -15,6 +15,7 @@ namespace Stride.Engine.Splines.Models
         [Display("Width")]
         public float Width { get; set; } = 1;
 
+
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
             // First generate the arrays for vertices and indices with the correct size
@@ -23,14 +24,18 @@ namespace Stride.Engine.Splines.Models
             var vertices = new VertexPositionNormalTexture[vertexCount];
             var indices = new int[indexCount];
             var halfWidth = Width / 2;
-            var target = TargetOffset - LocalOffset; ;
+            var forward = (TargetOffset - LocalOffset);
+            forward.Normalize();
+            var right = Vector3.Cross(forward, Vector3.UnitY);
+            var left = -right;
 
             // Create custom vertices, in this case just a quad facing in Y direction
             var normal = Vector3.UnitY;
-            vertices[0] = new VertexPositionNormalTexture(new Vector3(-halfWidth, 0,  0), normal, new Vector2(0, 0));
-            vertices[1] = new VertexPositionNormalTexture(new Vector3(halfWidth, 0, 0), normal, new Vector2(1, 0));
-            vertices[2] = new VertexPositionNormalTexture(new Vector3(target.X - halfWidth, target.Y, target.Z), normal, new Vector2(0, 1));
-            vertices[3] = new VertexPositionNormalTexture(new Vector3(target.X + halfWidth, target.Y, target.Z), normal, new Vector2(1, 1));
+
+            vertices[0] = new VertexPositionNormalTexture(halfWidth * right, normal, new Vector2(0, 0));
+            vertices[1] = new VertexPositionNormalTexture(halfWidth * left, normal, new Vector2(1, 0));
+            vertices[2] = new VertexPositionNormalTexture(forward + (halfWidth * right), normal, new Vector2(0, 1));
+            vertices[3] = new VertexPositionNormalTexture(forward + (halfWidth * left), normal, new Vector2(1, 1));
 
             // Create custom indices
             indices[0] = 0;

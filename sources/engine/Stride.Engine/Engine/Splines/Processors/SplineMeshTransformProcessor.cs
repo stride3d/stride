@@ -71,9 +71,14 @@ namespace Stride.Engine.Splines.Processors
                 //    SceneInstance.GetCurrent(context)?.Remove(existingRenderer);
                 //}
 
+
+                var children = splineMeshComponent.Entity.GetChildren();
+                foreach (var child in children)
+                {
+                    splineMeshComponent.Entity.RemoveChild(child);
+                }
+
                 var totalNodesCount = splineMeshComponent.SplineComponent.Spline.SplineNodes.Count;
-
-
                 for (int i = 0; i < totalNodesCount; i++)
                 {
                     var currentSplineNodeComponent = splineMeshComponent.SplineComponent.Nodes[i];
@@ -104,7 +109,6 @@ namespace Stride.Engine.Splines.Processors
                         //// Add everything to the entity
                         meshEntity.Add(modelComponent);
                         splineMeshComponent.Entity.AddChild(meshEntity);
-
                     }
                 }
             }
