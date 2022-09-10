@@ -17,6 +17,9 @@ namespace Stride.Engine.Splines.Models
         [DataMember(530)]
         public Vector3 TargetOffset { get; set; }
 
+
+        public BezierPoint[] bezierPoints;
+
         protected abstract override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData();
     }
 }

@@ -40,16 +40,19 @@ namespace Stride.Engine.Splines.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, SplineMeshComponent component, SplineMeshTransformationInfo data)
         {
-            component.SplineComponent.Spline.OnSplineDirty += () => splineMeshComponentsToUpdate.Add(component);
-
-            splineMeshComponentsToUpdate.Add(component);
+            component.OnMeshRequiresUpdate += EnqueueMeshdComponentForUpdate;
 
             entity.Transform.PostOperations.Add(data.TransformOperation);
         }
 
+        private void EnqueueMeshdComponentForUpdate(SplineMeshComponent component)
+        {
+            splineMeshComponentsToUpdate.Add(component);
+        }
+
         protected override void OnEntityComponentRemoved(Entity entity, SplineMeshComponent component, SplineMeshTransformationInfo data)
         {
-            component.SplineComponent.Spline.OnSplineDirty -= () => splineMeshComponentsToUpdate.Add(component);
+            component.OnMeshRequiresUpdate -= EnqueueMeshdComponentForUpdate;
 
             entity.Transform.PostOperations.Remove(data.TransformOperation);
         }
@@ -57,6 +60,11 @@ namespace Stride.Engine.Splines.Processors
         public class SplineMeshTransformationInfo
         {
             public SplineMeshViewHierarchyTransformOperation TransformOperation;
+        }
+
+        public struct TempMesh
+        {
+
         }
 
         public override void Draw(RenderContext context)
@@ -92,24 +100,24 @@ namespace Stride.Engine.Splines.Processors
                         break;
                     }
 
-                    for (int j = 0; j < bezierPoints.Length - 1; j++)
-                    {
-                        var meshEntity = new Entity();
-                        var model = new Model();
-                        var modelComponent = new ModelComponent(model); 
-                        var currentSplinePoint = bezierPoints[j];
-                        var nextSplinePoint = bezierPoints[j+1];
+                    splineMeshComponent.SplineMesh.bezierPoints = bezierPoints;
 
-                        //// Generate the procedual model
-                        splineMeshComponent.SplineMesh.LocalOffset = currentSplinePoint.Position;
-                        splineMeshComponent.SplineMesh.TargetOffset = nextSplinePoint.Position;
+                    var meshEntity = new Entity();
+                    var model = new Model();
+                    var modelComponent = new ModelComponent(model);
+                    var currentSplinePoint = bezierPoints[i];
+                    //var nextSplinePoint = bezierPoints[j+1];
 
-                        splineMeshComponent.SplineMesh.Generate(Services, model);
+                    ////// Generate the procedual model
+                    splineMeshComponent.SplineMesh.LocalOffset = currentSplinePoint.Position;
+                    //splineMeshComponent.SplineMesh.TargetOffset = nextSplinePoint.Position;
 
-                        //// Add everything to the entity
-                        meshEntity.Add(modelComponent);
-                        splineMeshComponent.Entity.AddChild(meshEntity);
-                    }
+                    splineMeshComponent.SplineMesh.Generate(Services, model);
+
+                    //// Add everything to the entity
+                    meshEntity.Add(modelComponent);
+                    splineMeshComponent.Entity.AddChild(meshEntity);
+
                 }
             }
 

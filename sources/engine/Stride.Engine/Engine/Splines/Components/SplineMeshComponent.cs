@@ -17,6 +17,9 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineMeshComponent : EntityComponent
     {
+        public delegate void MeshRequiresUpdate(SplineMeshComponent component);
+        public event MeshRequiresUpdate OnMeshRequiresUpdate;
+
         private SplineComponent splineComponent;
         private SplineMesh splineMesh;
 
@@ -48,6 +51,10 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 splineComponent = value;
+                if (SplineComponent != null)
+                {
+                    OnMeshRequiresUpdate?.Invoke(this);
+                }
             }
         }
 
