@@ -36,7 +36,7 @@ namespace Stride.Engine.Splines.Models
         #region Segments
         private int segments = 2;
         /// <summary>
-        /// A minimum of 2
+        /// A minimum of 1
         /// </summary>
         /// <userdoc>The amount of segments the curve exists out of</userdoc>
         [Display(1, "Segments")]
@@ -45,9 +45,9 @@ namespace Stride.Engine.Splines.Models
             get { return segments; }
             set
             {
-                if (value < 2)
+                if (value < 1)
                 {
-                    segments = 2;
+                    segments = 1;
                 }
                 else
                 {

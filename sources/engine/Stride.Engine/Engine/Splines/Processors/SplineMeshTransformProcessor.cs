@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine.Splines.Components;
 using Stride.Engine.Splines.HierarchyTransformOperations;
+using Stride.Engine.Splines.Models;
 using Stride.Graphics;
 using Stride.Rendering;
 
@@ -40,20 +41,23 @@ namespace Stride.Engine.Splines.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, SplineMeshComponent component, SplineMeshTransformationInfo data)
         {
-            component.OnMeshRequiresUpdate += EnqueueMeshdComponentForUpdate;
+            component.OnMeshRequiresUpdate += EnqueueMeshComponentForUpdate;
+            if(component.SplineComponent != null && component.SplineMesh == null)
+            {
+                EnqueueMeshComponentForUpdate(component);
+            }
 
             entity.Transform.PostOperations.Add(data.TransformOperation);
         }
 
-        private void EnqueueMeshdComponentForUpdate(SplineMeshComponent component)
+        private void EnqueueMeshComponentForUpdate(SplineMeshComponent component)
         {
             splineMeshComponentsToUpdate.Add(component);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, SplineMeshComponent component, SplineMeshTransformationInfo data)
         {
-            component.OnMeshRequiresUpdate -= EnqueueMeshdComponentForUpdate;
-
+            component.OnMeshRequiresUpdate -= EnqueueMeshComponentForUpdate;
             entity.Transform.PostOperations.Remove(data.TransformOperation);
         }
 
@@ -71,24 +75,26 @@ namespace Stride.Engine.Splines.Processors
         {
             foreach (var splineMeshComponent in splineMeshComponentsToUpdate)
             {
-                // Allways perform cleanup
-                //var existingRenderer = splineMeshComponent.Entity.FindChild("SplineRenderer");
-                //if (existingRenderer != null)
-                //{
-                //    splineMeshComponent.Entity.RemoveChild(existingRenderer);
-                //    SceneInstance.GetCurrent(context)?.Remove(existingRenderer);
-                //}
-
-
-                var children = splineMeshComponent.Entity.GetChildren();
-                foreach (var child in children)
+                if (splineMeshComponent.SplineComponent == null)
                 {
-                    splineMeshComponent.Entity.RemoveChild(child);
+                    continue;
                 }
 
+                //Delete existing model first
+                var generatedSplineMeshEntity = splineMeshComponent.Entity.FindChild("GeneratedSplineMeshEntity");
+                if (generatedSplineMeshEntity != null)
+                {
+                    splineMeshComponent.Entity.RemoveChild(generatedSplineMeshEntity);
+                    SceneInstance.GetCurrent(context)?.Remove(generatedSplineMeshEntity);
+                }
+
+                //Gather all spline bezierpoints in to mesh data set
                 var totalNodesCount = splineMeshComponent.SplineComponent.Spline.SplineNodes.Count;
+                List<BezierPoint> splineBezierPoints = new List<BezierPoint>();
+                Vector3 originWorldPos = Vector3.Zero;
                 for (int i = 0; i < totalNodesCount; i++)
                 {
+                   
                     var currentSplineNodeComponent = splineMeshComponent.SplineComponent.Nodes[i];
                     if (currentSplineNodeComponent == null)
                     {
@@ -100,25 +106,32 @@ namespace Stride.Engine.Splines.Processors
                         break;
                     }
 
-                    splineMeshComponent.SplineMesh.bezierPoints = bezierPoints;
 
-                    var meshEntity = new Entity();
-                    var model = new Model();
-                    var modelComponent = new ModelComponent(model);
-                    var currentSplinePoint = bezierPoints[i];
-                    //var nextSplinePoint = bezierPoints[j+1];
-
-                    ////// Generate the procedual model
-                    splineMeshComponent.SplineMesh.LocalOffset = currentSplinePoint.Position;
-                    //splineMeshComponent.SplineMesh.TargetOffset = nextSplinePoint.Position;
-
-                    splineMeshComponent.SplineMesh.Generate(Services, model);
-
-                    //// Add everything to the entity
-                    meshEntity.Add(modelComponent);
-                    splineMeshComponent.Entity.AddChild(meshEntity);
-
+                    if (i == 0)
+                    {
+                        originWorldPos = bezierPoints[0].Position;
+                        splineBezierPoints.AddRange(bezierPoints);
+                    }
+                    else if (i < totalNodesCount - 1 || i == totalNodesCount-1 && splineMeshComponent.SplineComponent.Loop)
+                    {
+                        splineBezierPoints.AddRange(bezierPoints[1..(bezierPoints.Length-1)]);
+                    }
+                   
                 }
+
+                //Create a mode and generate its mesh
+                var model = new Model();
+                splineMeshComponent.SplineMesh.LocalOffset = originWorldPos;
+                splineMeshComponent.SplineMesh.bezierPoints = splineBezierPoints.ToArray();
+                splineMeshComponent.SplineMesh.Loop = splineMeshComponent.SplineComponent.Loop;
+                splineMeshComponent.SplineMesh.Generate(Services, model);
+
+                //Create a new entity, with a model component which holds the generated splinemesh
+                generatedSplineMeshEntity = new Entity("GeneratedSplineMeshEntity");
+                generatedSplineMeshEntity.Add(new ModelComponent(model));
+
+                // Add the generated spline mesh entity as a child of the component's entity
+                splineMeshComponent.Entity.AddChild(generatedSplineMeshEntity);
             }
 
             //Now that dirty splines meshes are updated, clear the collection

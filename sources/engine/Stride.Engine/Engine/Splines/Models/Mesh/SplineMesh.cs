@@ -11,14 +11,8 @@ namespace Stride.Engine.Splines.Models
     [DataContract("Spline mesh")]
     public abstract class SplineMesh : PrimitiveProceduralModelBase
     {
-        /// <summary>
-        /// Gets or sets the target offset that will be applied to the procedural model's vertexes.
-        /// </summary>
-        [DataMember(530)]
-        public Vector3 TargetOffset { get; set; }
-
-
         public BezierPoint[] bezierPoints;
+        public bool Loop;
 
         protected abstract override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData();
     }

@@ -37,6 +37,11 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 splineMesh = value;
+
+                if (splineMesh != null)
+                {
+                    InvokeMeshRequiresUpdate();
+                }
             }
         }
 
@@ -50,14 +55,20 @@ namespace Stride.Engine.Splines.Components
             get { return splineComponent; }
             set
             {
+                var oldValue = splineComponent;
                 splineComponent = value;
-                if (SplineComponent != null)
+                if (SplineComponent != null && oldValue != splineComponent)
                 {
-                    OnMeshRequiresUpdate?.Invoke(this);
+                    splineComponent.Spline.OnSplineUpdated += InvokeMeshRequiresUpdate;
+                    InvokeMeshRequiresUpdate();
                 }
             }
         }
 
+        private void InvokeMeshRequiresUpdate()
+        {
+            OnMeshRequiresUpdate?.Invoke(this);
+        }
 
         internal void Update(TransformComponent transformComponent)
         {
