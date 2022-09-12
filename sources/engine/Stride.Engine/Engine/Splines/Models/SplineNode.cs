@@ -220,22 +220,25 @@ namespace Stride.Engine.Splines.Models
             {
                 var estimatedExptedDistance = Length / (bezierPointCount - 1) * i;
                 parameterizedBezierPoints[i] = GetBezierPointForDistance(estimatedExptedDistance);
+             
+                if(i > 0)
+                    parameterizedBezierPoints[i].DistanceToPreviousPoint = parameterizedBezierPoints[i].TotalLengthOnCurve - parameterizedBezierPoints[i - 1].TotalLengthOnCurve;
             }
 
             parameterizedBezierPoints[bezierPointCount - 1] = baseBezierPoints[baseBezierPointCount - 1];
         }
 
-        private BezierPoint GetBezierPointForDistance(float distance)
+        private BezierPoint GetBezierPointForDistance(float estimatedExptedDistance)
         {
             for (var j = 0; j < baseBezierPointCount; j++)
             {
                 var curPoint = baseBezierPoints[j];
-                if (curPoint.TotalLengthOnCurve >= distance)
+                if (curPoint.TotalLengthOnCurve >= estimatedExptedDistance)
                 {
                     return curPoint;
                 }
             }
-            return baseBezierPoints[baseBezierPoints.Length - 1];
+            return baseBezierPoints[^1];
         }
 
         private void CalculateRotation()

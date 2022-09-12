@@ -1,6 +1,7 @@
 //// Copyright (c) Stride contributors (https://Stride.com)
 //// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Linq;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -14,9 +15,9 @@ namespace Stride.Engine.Splines.Models
 
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
-            var splineLength = bezierPoints.Length;
-            var vertexCount = splineLength * 2;
-            var indexCount = (splineLength - 1) * 6;
+            var splinePointCount = bezierPoints.Length;
+            var vertexCount = splinePointCount * 2;
+            var indexCount = (splinePointCount - 1) * 6;
             if (Loop)
             {
                 vertexCount += 2;
@@ -30,8 +31,9 @@ namespace Stride.Engine.Splines.Models
             var verticesIndex = 0;
             var triangleIndex = 0;
             float splineDistance = 0.0f;
+            var dist = bezierPoints.Select(a => a.DistanceToPreviousPoint);
 
-            for (int i = 0; i < splineLength - 1; i++)
+            for (int i = 0; i < splinePointCount - 1; i++)
             {
                 var startPoint = bezierPoints[i];
                 var targetPoint = bezierPoints[i + 1];
@@ -42,10 +44,7 @@ namespace Stride.Engine.Splines.Models
 
                 // Todo: deal with up normal and rotation
                 var normal = Vector3.UnitY;
-
-                // Texture calculation
-                splineDistance += targetPoint.DistanceToPreviousPoint;
-                float textureY = splineDistance / UvScale.Y;
+                float textureY;
 
                 // Create vertices
                 if (i == 0)
@@ -54,18 +53,21 @@ namespace Stride.Engine.Splines.Models
                     vertices[verticesIndex + 1] = new VertexPositionNormalTexture(startPoint.Position + (left), normal, new Vector2(1, 0));
                     verticesIndex += 2;
                 }
-
-                vertices[verticesIndex] = new VertexPositionNormalTexture(targetPoint.Position + (right), normal, new Vector2(0, textureY));
-                vertices[verticesIndex + 1] = new VertexPositionNormalTexture(targetPoint.Position + (left), normal, new Vector2(1, textureY));
-                verticesIndex += 2;
-
-                // Deal with possible loop: create 2 additional vertices in order to get the texture mapping correct
-                if (i == splineLength - 2 && Loop)
+                
+                if (i == splinePointCount - 2 && Loop) //If Loop is enabled, then the target node is the first node in the entire spline
                 {
-                    //splineDistance += bezierPoints[splineLength - 1].DistanceToPreviousPoint;
-                    //textureY = splineDistance / UvScale.Y;
+                    splineDistance += Vector3.Distance(startPoint.Position, bezierPoints[0].Position);
+                    textureY = splineDistance / UvScale.Y;
                     vertices[verticesIndex] = new VertexPositionNormalTexture(vertices[0].Position, normal, new Vector2(0, textureY));
                     vertices[verticesIndex + 1] = new VertexPositionNormalTexture(vertices[1].Position, normal, new Vector2(1, textureY));
+                }
+                else
+                {
+                    splineDistance += targetPoint.DistanceToPreviousPoint;
+                    textureY = splineDistance / UvScale.Y;
+                    vertices[verticesIndex] = new VertexPositionNormalTexture(targetPoint.Position + (right), normal, new Vector2(0, textureY));
+                    vertices[verticesIndex + 1] = new VertexPositionNormalTexture(targetPoint.Position + (left), normal, new Vector2(1, textureY));
+                    verticesIndex += 2;
                 }
 
                 // Create indices
@@ -74,7 +76,7 @@ namespace Stride.Engine.Splines.Models
                 triangleIndex += 2;
 
                 // If this was the last loop, we do 1 additional check for closing if spline is Loop
-                if (i == splineLength - 2 && Loop)
+                if (i == splinePointCount - 2 && Loop)
                 {
                     SetIndices(indices, triangleIndex, indiceIndex + 6);
                 }
