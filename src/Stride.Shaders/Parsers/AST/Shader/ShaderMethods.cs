@@ -1,6 +1,8 @@
 using Eto.Parse;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
+
 
 
 public class ShaderMethod : ShaderToken
@@ -47,11 +49,11 @@ public abstract class MainMethod : ShaderMethod
 
     public IEnumerable<string> GetStreamValuesAssigned()
     {
-        return Statements.SelectMany(x => x.GetAssignedStream());
+        return Statements.OfType<IStreamCheck>().SelectMany(x => x.GetAssignedStream());
     }
     public IEnumerable<string> GetStreamValuesUsed()
     {
-        return Statements.SelectMany(x => x.GetUsedStream());
+        return Statements.OfType<IStreamCheck>().SelectMany(x => x.GetUsedStream());
     }
 
 }

@@ -33,7 +33,7 @@ public class Operation : Expression, IStreamCheck, IStaticCheck
 
     public ShaderTokenTyped Left { get; set; }
     public ShaderTokenTyped Right { get; set; }
-    
+
     public override async void TypeCheck(SymbolTable symbols, string expected = "")
     {
 
@@ -52,13 +52,25 @@ public class Operation : Expression, IStreamCheck, IStaticCheck
             Right.TypeCheck(symbols);
             if (Left.InferredType != Right.InferredType)
             {
-                if(CheckImplicitCasting(Left,Right,expected))
-                    return;
-                else throw new NotImplementedException();
+                CheckImplicitCasting(Left, Right, expected);
             }
             else
                 InferredType = Left.InferredType;
         }
+    }
+
+    public IEnumerable<string> GetUsedStream()
+    {
+        var result = Enumerable.Empty<string>();
+        if (Left is IStreamCheck lsc)
+            result.Concat(lsc.GetUsedStream());
+        if (Right is IStreamCheck rsc)
+            result.Concat(rsc.GetUsedStream());
+        return result;
+    }
+    public IEnumerable<string> GetAssignedStream()
+    {
+        return Enumerable.Empty<string>();
     }
 
     public bool CheckStream(SymbolTable s)
@@ -72,13 +84,20 @@ public class Operation : Expression, IStreamCheck, IStaticCheck
         return Left is IStaticCheck scl && scl.CheckStatic(s)
             || Right is IStaticCheck scr && scr.CheckStatic(s);
     }
-    public bool CheckImplicitCasting(ShaderTokenTyped l, ShaderTokenTyped r, string expected)
+    public void CheckImplicitCasting(ShaderTokenTyped l, ShaderTokenTyped r, string expected)
     {
-        if (expected is not null)
-        {
+        
             
-        }
-        return true;
+        InferredType = (l.InferredType, r.InferredType, expected) switch
+        {
+            ("int","float", "int") => "int",
+            ("int","float", "float") => "float",
+            ("float","int", "int") => "int",
+            ("float","int", "float") => "float",
+            ("int","float", "") => "float",
+            ("float","int", "") => "float",
+            _ => throw new Exception($"Cannot cast types")
+        };
     }
 }
 
