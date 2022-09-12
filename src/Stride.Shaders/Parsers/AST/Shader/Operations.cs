@@ -36,42 +36,37 @@ public class Operation : Expression
 
     public override async void TypeCheck(SymbolTable symbols, string expected = "")
     {
-        
-        if(expected != string.Empty)
+
+        if (expected != string.Empty)
         {
-            Left.TypeCheck(symbols,expected);
-            Right.TypeCheck(symbols,expected);
+            Left.TypeCheck(symbols, expected);
+            Right.TypeCheck(symbols, expected);
             if (Left.InferredType == Right.InferredType && Left.InferredType == expected)
                 InferredType = Left.InferredType;
             else
                 throw new NotImplementedException();
         }
-        else 
+        else
         {
             Left.TypeCheck(symbols);
             Right.TypeCheck(symbols);
-            if(Left.InferredType != Right.InferredType)
-                throw new NotImplementedException();
+            if (Left.InferredType != Right.InferredType)
+            {
+                if(CheckImplicitCasting(Left,Right,expected))
+                    return;
+                else throw new NotImplementedException();
+            }
             else
                 InferredType = Left.InferredType;
         }
     }
-    public void CheckNumberComparison(NumberLiteral l, NumberLiteral r, string expected)
+    public bool CheckImplicitCasting(ShaderTokenTyped l, ShaderTokenTyped r, string expected)
     {
-        if (l.Suffix is null && r.Suffix is null)
+        if (expected is not null)
         {
             
         }
-        else if (l.Suffix is not null && r.Suffix is null)
-        {
-            throw new NotImplementedException();
-        }
-        else if (l.Suffix is null && r.Suffix is not null)
-        {
-            throw new NotImplementedException();
-        }
-        else
-            throw new NotImplementedException("Wrong type");
+        return true;
     }
 }
 

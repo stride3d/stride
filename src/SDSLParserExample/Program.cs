@@ -42,7 +42,7 @@ static void ThreeAddress()
         };
     
     var symbols = new SymbolTable();
-    var s = new DeclareAssign(){TypeName = "int", VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o};
+    var s = new DeclareAssign(){TypeName = "float", VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o};
     symbols.PushVar(s);
     var o2 = 
         new Operation
