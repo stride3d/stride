@@ -66,25 +66,25 @@ public abstract class ShaderToken
 	}
 
 
-	public IEnumerable<string> GetUsedStream()
-	{
-		return this switch 
-		{
-			AssignChain a => a.Value.GetUsedStream(),
-			ChainAccessor{Value: VariableNameLiteral{Name : "streams"}} => new string[1]{((VariableNameLiteral)((ChainAccessor)this).Field).Name},
-			Operation {Left : ChainAccessor c} => c.GetUsedStream(),
-			Operation {Right : ChainAccessor c} => c.GetUsedStream(),
-			_ => Array.Empty<string>()
-		};
-	}
-	public IEnumerable<string> GetAssignedStream()
-	{
-		return this switch 
-		{
-			AssignChain{StreamValue: true} c => new string[1]{c.AccessNames.ElementAt(1)},
-			BlockStatement b => b.Statements.SelectMany(x => x.GetAssignedStream()),
-			_ => Array.Empty<string>()
-		};
-	}
+	// public IEnumerable<string> GetUsedStream()
+	// {
+	// 	return this switch 
+	// 	{
+	// 		AssignChain a => a.Value.GetUsedStream(),
+	// 		ChainAccessor{Value: VariableNameLiteral{Name : "streams"}} => new string[1]{((VariableNameLiteral)((ChainAccessor)this).Field).Name},
+	// 		Operation {Left : ChainAccessor c} => c.GetUsedStream(),
+	// 		Operation {Right : ChainAccessor c} => c.GetUsedStream(),
+	// 		_ => Array.Empty<string>()
+	// 	};
+	// }
+	// public IEnumerable<string> GetAssignedStream()
+	// {
+	// 	return this switch 
+	// 	{
+	// 		AssignChain{StreamValue: true} c => new string[1]{c.AccessNames.ElementAt(1)},
+	// 		BlockStatement b => b.Statements.SelectMany(x => x.GetAssignedStream()),
+	// 		_ => Array.Empty<string>()
+	// 	};
+	// }
 	
 }
