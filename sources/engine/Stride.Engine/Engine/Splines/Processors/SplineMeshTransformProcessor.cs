@@ -114,14 +114,15 @@ namespace Stride.Engine.Splines.Processors
                     }
                     else if (i < totalNodesCount - 1 || i == totalNodesCount-1 && splineMeshComponent.SplineComponent.Loop)
                     {
+                        var lastPositionOnSpline = splineBezierPoints[splineBezierPoints.Count - 1].Position;
+                        splineBezierPoints[0].DistanceToPreviousPoint = Vector3.Distance(splineBezierPoints[0].Position, lastPositionOnSpline);
                         splineBezierPoints.AddRange(bezierPoints[1..(bezierPoints.Length-1)]);
                     }
-                   
                 }
 
                 //Create a mode and generate its mesh
                 var model = new Model();
-                splineMeshComponent.SplineMesh.LocalOffset = originWorldPos;
+                //splineMeshComponent.SplineMesh.LocalOffset = originWorldPos;
                 splineMeshComponent.SplineMesh.bezierPoints = splineBezierPoints.ToArray();
                 splineMeshComponent.SplineMesh.Loop = splineMeshComponent.SplineComponent.Loop;
                 splineMeshComponent.SplineMesh.Generate(Services, model);
@@ -129,6 +130,8 @@ namespace Stride.Engine.Splines.Processors
                 //Create a new entity, with a model component which holds the generated splinemesh
                 generatedSplineMeshEntity = new Entity("GeneratedSplineMeshEntity");
                 generatedSplineMeshEntity.Add(new ModelComponent(model));
+                generatedSplineMeshEntity.Transform.Position -= splineMeshComponent.Entity.Transform.Position;
+                //generatedSplineMeshEntity.Transform.Position -= splineMeshComponent.Entity.Transform.WorldMatrix.TranslationVector - originWorldPos;
 
                 // Add the generated spline mesh entity as a child of the component's entity
                 splineMeshComponent.Entity.AddChild(generatedSplineMeshEntity);
