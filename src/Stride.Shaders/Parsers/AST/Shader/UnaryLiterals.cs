@@ -1,4 +1,5 @@
 ﻿using Eto.Parse;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ public class UnaryExpression : Expression
     public override string InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 }
 
-public class ChainAccessor : UnaryExpression
+public class ChainAccessor : UnaryExpression, IStreamCheck
 {
     public ShaderToken Value { get; set; }
     public IEnumerable<ShaderToken> Field { get; set; }
@@ -23,6 +24,21 @@ public class ChainAccessor : UnaryExpression
         Match = m;
         Value = GetToken(m.Matches["Identifier"]);
         Field = m.Matches.GetRange(1,m.Matches.Count-1).Select(GetToken);
+    }
+
+    public IEnumerable<string> GetUsedStream()
+    {
+        if(Value is VariableNameLiteral vn && vn.Name == "streams")
+            return new List<string>{((VariableNameLiteral)Field.First()).Name};
+        return Enumerable.Empty<string>();
+    }
+    public IEnumerable<string> GetAssignedStream()
+    {
+        return Enumerable.Empty<string>();
+    }
+    public bool CheckStream(SymbolTable symbols)
+    {
+        return GetUsedStream().Any();
     }
 }
 

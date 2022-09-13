@@ -9,7 +9,7 @@ namespace Stride.Shaders.Mixer;
 public class SimpleMixer
 {
     ShaderClassString source;
-    ShaderProgram program;
+    public ShaderProgram program;
     List<Register> il;
 
     public SimpleMixer(string className, ShaderSourceManager manager)

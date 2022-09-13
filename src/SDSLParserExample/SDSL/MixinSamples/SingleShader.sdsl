@@ -28,5 +28,6 @@ shader SingleShader {
     void VSMain() 
     {
         streams.ShadingPosition = a.dodo[5].machin[8][6];
+        streams.Depth = streams.ShadingPosition;
     }
 };

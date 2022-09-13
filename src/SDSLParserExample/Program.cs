@@ -17,8 +17,8 @@ using Stride.Shaders.Parsing.AST.Shader.Analysis;
 var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
 
 // ShaderCompiling(shaderf);
-ThreeAddress();
-// LoadShaders();
+// ThreeAddress();
+LoadShaders();
 
 static void LoadShaders()
 {
@@ -26,7 +26,8 @@ static void LoadShaders()
     manager.AddDirectory("./SDSL/MixinSamples");
 
     var mixer = new SimpleMixer("SingleShader",manager);
-    var module = mixer.EmitSpirv(EntryPoints.VSMain);
+    // var module = mixer.EmitSpirv(EntryPoints.VSMain);
+    var used = mixer.program.Body.OfType<VSMainMethod>().First().GetStreamValuesUsed().ToList();
     var x = 0;
 }
 
