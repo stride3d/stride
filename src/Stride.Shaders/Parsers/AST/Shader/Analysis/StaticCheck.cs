@@ -13,3 +13,8 @@ public interface IStreamCheck
     public IEnumerable<string> GetAssignedStream();
     
 }
+
+public interface IVariableCheck
+{
+    public void CheckVariables(SymbolTable s);
+}

@@ -14,7 +14,7 @@ public partial class SpirvEmitter : Module
 {
     public Dictionary<string,SpvStruct> ShaderTypes {get;set;}
     public Dictionary<string,Instruction> ShaderFunctionTypes {get;set;}
-    public Dictionary<string,Instruction> Variables {get;set;}
+    public Dictionary<string,Instruction> Variables {get;set;} = new();
     public SpirvEmitter(uint version) : base(version)
     {
         ShaderTypes = new();

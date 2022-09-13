@@ -14,7 +14,7 @@ public class UnaryExpression : Expression
     public override string InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 }
 
-public class ChainAccessor : UnaryExpression, IStreamCheck
+public class ChainAccessor : UnaryExpression, IStreamCheck, IVariableCheck
 {
     public ShaderToken Value { get; set; }
     public IEnumerable<ShaderToken> Field { get; set; }
@@ -40,9 +40,13 @@ public class ChainAccessor : UnaryExpression, IStreamCheck
     {
         return GetUsedStream().Any();
     }
+    public void CheckVariables(SymbolTable s)
+    {
+        if(Value is IVariableCheck n) n.CheckVariables(s);
+    }
 }
 
-public class ArrayAccessor : UnaryExpression
+public class ArrayAccessor : UnaryExpression, IVariableCheck
 {
     public ShaderToken Value { get; set; }
     public IEnumerable<ShaderToken> Accessors { get; set; }
@@ -53,10 +57,14 @@ public class ArrayAccessor : UnaryExpression
         Value= GetToken(m.Matches[0]);
         Accessors = m.Matches.GetRange(1,m.Matches.Count-1).Select(GetToken);
     }
+    public void CheckVariables(SymbolTable s)
+    {
+        if(Value is IVariableCheck n) n.CheckVariables(s);
+    }
 }
 
 
-public class PostfixIncrement : UnaryExpression
+public class PostfixIncrement : UnaryExpression, IVariableCheck
 {
     public string Operator { get; set; }
     public ShaderToken Value { get; set; }
@@ -70,6 +78,10 @@ public class PostfixIncrement : UnaryExpression
     public override string ToString()
     {
         return $"{{ PostfixIncrement :  [\"{Value}\", \"{Operator}\"] }}";
+    }
+    public void CheckVariables(SymbolTable s)
+    {
+        if(Value is VariableNameLiteral n) n.CheckVariables(s);
     }
 }
 

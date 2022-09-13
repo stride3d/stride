@@ -155,7 +155,7 @@ public class TypeNameLiteral : ShaderLiteral
     }
 }
 
-public class VariableNameLiteral : ShaderLiteral
+public class VariableNameLiteral : ShaderLiteral, IVariableCheck
 {
     public string Name { get; set; }
 
@@ -178,6 +178,12 @@ public class VariableNameLiteral : ShaderLiteral
             this.inferredType = type;
         }
         else throw new NotImplementedException();
+    }
+
+    public void CheckVariables(SymbolTable s)
+    {
+        if(!s.Any(x => x.ContainsKey(Name)))
+            throw new Exception("Not a variable");
     }
     public override string ToString()
     {

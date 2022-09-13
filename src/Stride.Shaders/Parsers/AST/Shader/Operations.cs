@@ -27,7 +27,7 @@ public abstract class Expression : ShaderTokenTyped
     public override void TypeCheck(SymbolTable symbols, string expected = "") { }
 }
 
-public class Operation : Expression, IStreamCheck, IStaticCheck
+public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
 {
     public OperatorToken Op { get; set; }
 
@@ -84,10 +84,14 @@ public class Operation : Expression, IStreamCheck, IStaticCheck
         return Left is IStaticCheck scl && scl.CheckStatic(s)
             || Right is IStaticCheck scr && scr.CheckStatic(s);
     }
+
+    public void CheckVariables(SymbolTable s)
+    {
+        if(Left is IVariableCheck lvc) lvc.CheckVariables(s);
+        if(Right is IVariableCheck rvc) rvc.CheckVariables(s);
+    }
     public void CheckImplicitCasting(ShaderTokenTyped l, ShaderTokenTyped r, string expected)
     {
-        
-            
         InferredType = (l.InferredType, r.InferredType, expected) switch
         {
             ("int","float", "int") => "int",

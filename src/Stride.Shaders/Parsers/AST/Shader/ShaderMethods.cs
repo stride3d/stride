@@ -56,6 +56,12 @@ public abstract class MainMethod : ShaderMethod
         return Statements.OfType<IStreamCheck>().SelectMany(x => x.GetUsedStream());
     }
 
+    public void VariableChecking(SymbolTable sym)
+    {
+        foreach(var s in Statements)
+            sym.Analyse(s);
+    }
+
 }
 
 

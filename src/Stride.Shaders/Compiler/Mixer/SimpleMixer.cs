@@ -1,6 +1,7 @@
 using Spv.Generator;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.AST.Shader;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.ThreeAddress;
 
@@ -17,6 +18,16 @@ public class SimpleMixer
         source = new(manager.GetShaderSource(className));
         program = ShaderMixinParser.ParseShader(source.ShaderSourceCode);
         il = new();
+    }
+    public void SemanticChecks()
+    {
+        var sym = new SymbolTable();
+        sym.PushStream();
+        sym.AddScope();
+        foreach(var method in program.Body.OfType<MainMethod>())
+        {
+            method.VariableChecking(sym);
+        }
     }
     public Module EmitSpirv(EntryPoints entry)
     {

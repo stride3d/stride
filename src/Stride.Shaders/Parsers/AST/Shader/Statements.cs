@@ -82,7 +82,7 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     }
 }
 
-public class AssignChain : Statement, IStreamCheck, IStaticCheck
+public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 {
     public override string InferredType => "void";
 
@@ -121,6 +121,13 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck
     public bool CheckStatic(SymbolTable s)
     {
         return Value is IStaticCheck isc && isc.CheckStatic(s);
+    }
+
+    public void CheckVariables(SymbolTable s)
+    {
+        if(!s.Any(x => x.ContainsKey(this.AccessNames.First())))
+            throw new Exception("Variable not exist");
+        if(Value is IVariableCheck v) v.CheckVariables(s);
     }
 }
 
