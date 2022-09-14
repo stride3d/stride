@@ -71,7 +71,7 @@ namespace Stride.Engine.Splines.Models
                 };
 
                 if (i == 0) //First vertexes
-                {             
+                {
                     // Loop over each side in following order: Bottom, Right, Top, Left
                     for (int side = 0; side < sides.Length; side++)
                     {
@@ -148,43 +148,47 @@ namespace Stride.Engine.Splines.Models
                 triangleIndex += 8;
 
                 // If this was the last loop, we do 1 additional check for Closing of the sides or looping the geometry
-                if (i == splinePointCount - 2)
+                if (i == splinePointCount - 2 && !Loop && CloseEnd)
                 {
-                    //if (Loop)
-                    //{
+                    var backIndex = verticesIndex;
+                    //Front face vertices
+                    CreateVertex(verticesIndex + 0, vertices[0].Position, -Vector3.UnitZ, new Vector2(0, 0));
+                    CreateVertex(verticesIndex + 1, vertices[1].Position, -Vector3.UnitZ, new Vector2(1, 0));
+                    CreateVertex(verticesIndex + 2, vertices[4].Position, -Vector3.UnitZ, new Vector2(0, 1));
+                    CreateVertex(verticesIndex + 3, vertices[5].Position, -Vector3.UnitZ, new Vector2(1, 1));
 
-                    //}
-                    //else if (CloseEnd)
-                    //{
-                    //    var closeIndicesIndex = indicesCount - 12;
+                    ////Back face vertices            
+                    CreateVertex(verticesIndex + 4, vertices[backIndex - 8].Position, Vector3.UnitZ, new Vector2(0, 0));
+                    CreateVertex(verticesIndex + 5, vertices[backIndex - 7].Position, Vector3.UnitZ, new Vector2(1, 0));
+                    CreateVertex(verticesIndex + 6, vertices[backIndex - 4].Position, Vector3.UnitZ, new Vector2(0, 1));
+                    CreateVertex(verticesIndex + 7, vertices[backIndex - 3].Position, Vector3.UnitZ, new Vector2(1, 1));
 
-                    //    //Front
-                    //    indices[closeIndicesIndex + 0] = 0;
-                    //    indices[closeIndicesIndex + 1] = 1;
-                    //    indices[closeIndicesIndex + 2] = 6;
+                    var closeIndicesIndex = indicesCount - 12;
+                    var vertextCountIndex = vertexCount - 8;
+                    //Front
+                    indices[closeIndicesIndex + 0] = vertextCountIndex + 0;
+                    indices[closeIndicesIndex + 1] = vertextCountIndex + 3;
+                    indices[closeIndicesIndex + 2] = vertextCountIndex + 1;
 
-                    //    indices[closeIndicesIndex + 3] = 1;
-                    //    indices[closeIndicesIndex + 4] = 3;
-                    //    indices[closeIndicesIndex + 5] = 6;
-                    //    closeIndicesIndex += 6;
+                    indices[closeIndicesIndex + 3] = vertextCountIndex + 1;
+                    indices[closeIndicesIndex + 4] = vertextCountIndex + 3;
+                    indices[closeIndicesIndex + 5] = vertextCountIndex + 2;
+                    closeIndicesIndex += 6;
 
-                    //    //Back
-                    //    var closeVerticesIndex = vertexCount - 4;
-                    //    indices[closeIndicesIndex + 0] = closeVerticesIndex;
-                    //    indices[closeIndicesIndex + 1] = closeVerticesIndex + 1;
-                    //    indices[closeIndicesIndex + 2] = closeVerticesIndex + 4;
+                    //Back
+                    var closeVerticesIndex = vertexCount - 4;
+                    indices[closeIndicesIndex + 0] = closeVerticesIndex + 0;
+                    indices[closeIndicesIndex + 1] = closeVerticesIndex + 1;
+                    indices[closeIndicesIndex + 2] = closeVerticesIndex + 3;
 
-                    //    indices[closeIndicesIndex + 3] = closeVerticesIndex + 1;
-                    //    indices[closeIndicesIndex + 4] = closeVerticesIndex + 2;
-                    //    indices[closeIndicesIndex + 5] = closeVerticesIndex + 3;
-                    //}
+                    indices[closeIndicesIndex + 3] = closeVerticesIndex + 1;
+                    indices[closeIndicesIndex + 4] = closeVerticesIndex + 2;
+                    indices[closeIndicesIndex + 5] = closeVerticesIndex + 3;
                 }
-
             }
 
             // Create the primitive object for further processing by the base class
             return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, isLeftHanded: false);
-
         }
 
         private void CreateVertex(int verticesIndex, Vector3 position, Vector3 normal, Vector2 texture)
