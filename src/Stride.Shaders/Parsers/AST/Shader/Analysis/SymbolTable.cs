@@ -3,7 +3,7 @@ namespace Stride.Shaders.Parsing.AST.Shader.Analysis;
 public class Symbol
 {
     public string? Name {get;set;}
-    public string? Type {get;set;}
+    public ISymbolType? Type {get;set;}
     public Declaration? Declaration {get;set;}
 }
 
