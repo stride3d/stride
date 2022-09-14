@@ -33,8 +33,8 @@ namespace Stride.Engine.Splines.Models
             var indicesCount = (splinePointCount - 1) * 24;
             if (Loop)
             {
-                //vertexCount += 4;
-                //indicesCount += 24;
+                vertexCount += 4;
+                indicesCount += 24;
             }
             else if (CloseEnd)
             {
@@ -67,7 +67,7 @@ namespace Stride.Engine.Splines.Models
                     left - halfHeigth, //Bottom left
                     right - halfHeigth, //Bottom right
                     right + halfHeigth, //Top right
-                    left + halfHeigth // Top Lef
+                    left + halfHeigth // Top Left
                 };
 
                 if (i == 0) //First vertexes
@@ -88,8 +88,8 @@ namespace Stride.Engine.Splines.Models
 
                     for (int side = 0; side < sides.Length; side++)
                     {
-                        CreateVertex(verticesIndex + 0, vertices[side].Position, normals[side], new Vector2(0, textureY));
-                        CreateVertex(verticesIndex + 1, vertices[(side + 1) % 4].Position, normals[side], new Vector2(1, textureY));
+                        CreateVertex(verticesIndex + 0, vertices[side * 2 + 0].Position, normals[side], new Vector2(0, textureY));
+                        CreateVertex(verticesIndex + 1, vertices[side * 2 + 1].Position, normals[side], new Vector2(1, textureY));
                         verticesIndex += 2;
                     }
                 }
@@ -99,7 +99,7 @@ namespace Stride.Engine.Splines.Models
                     textureY = splineDistance / UvScale.Y;
                     for (int side = 0; side < sides.Length; side++)
                     {
-                        CreateVertex(verticesIndex + 0, targetPoint.Position + sides[side], normals[side], new Vector2(0, textureY));
+                        CreateVertex(verticesIndex + 0, targetPoint.Position + sides[side + 0], normals[side], new Vector2(0, textureY));
                         CreateVertex(verticesIndex + 1, targetPoint.Position + sides[(side + 1) % 4], normals[side], new Vector2(1, textureY));
                         verticesIndex += 2;
                     }
