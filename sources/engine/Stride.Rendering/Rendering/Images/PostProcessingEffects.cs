@@ -101,11 +101,21 @@ namespace Stride.Rendering.Images
         public AmbientOcclusion AmbientOcclusion { get; private set; }
 
         /// <summary>
+        /// Gets the ground truth ambient occlusion effect. Ported from XeGTAO of Intel.
+        /// </summary>
+        /// <userdoc>
+        /// Darkens areas where light is occluded by opaque objects, such as corners and crevices
+        /// </userdoc>
+        [DataMember(9)]
+        [Category]
+        public GroundTruthAmbientOcclusion GroundTruthAmbientOcclusion { get; private set; }
+
+        /// <summary>
         /// Gets the local reflections effect.
         /// </summary>
         /// <value>The local reflection technique.</value>
         /// <userdoc>Reflect the scene in glossy materials</userdoc>
-        [DataMember(9)]
+        [DataMember(10)]
         [Category]
         public LocalReflections LocalReflections { get; private set; }
 
@@ -114,7 +124,7 @@ namespace Stride.Rendering.Images
         /// </summary>
         /// <value>The depth of field.</value>
         /// <userdoc>Accentuate regions of the image by blurring objects in the foreground or background</userdoc>
-        [DataMember(10)]
+        [DataMember(11)]
         [Category]
         public DepthOfField DepthOfField { get; private set; }
 
@@ -269,7 +279,7 @@ namespace Stride.Rendering.Images
 
         public bool RequiresVelocityBuffer => Antialiasing?.RequiresVelocityBuffer ?? false;
 
-        public bool RequiresNormalBuffer => LocalReflections.Enabled;
+        public bool RequiresNormalBuffer => LocalReflections.Enabled || GroundTruthAmbientOcclusion.Enabled;
 
         public bool RequiresSpecularRoughnessBuffer => LocalReflections.Enabled;
 
@@ -384,6 +394,21 @@ namespace Stride.Rendering.Images
                 AmbientOcclusion.SetOutput(aoOutput);
                 AmbientOcclusion.Draw(context);
                 currentInput = aoOutput;
+            }
+
+            if (GroundTruthAmbientOcclusion.Enabled && inputDepthTexture != null)
+            {
+                var normalsBuffer = GetInput(2);
+
+                if (normalsBuffer != null)
+                {
+                    // Ground Truth Ambient Occlusion
+                    var gtaoOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
+                    GroundTruthAmbientOcclusion.SetColorDepthNormalsInput(currentInput, inputDepthTexture, normalsBuffer);
+                    GroundTruthAmbientOcclusion.SetOutput(gtaoOutput);
+                    GroundTruthAmbientOcclusion.Draw(context);
+                    currentInput = gtaoOutput; 
+                }
             }
 
             if (LocalReflections.Enabled && inputDepthTexture != null)
