@@ -75,7 +75,7 @@ namespace Stride.Engine.Splines.Processors
         {
             foreach (var splineMeshComponent in splineMeshComponentsToUpdate)
             {
-                if (splineMeshComponent.SplineComponent == null)
+                if (splineMeshComponent.SplineComponent == null || splineMeshComponent.SplineMesh == null)
                 {
                     continue;
                 }

@@ -1,7 +1,6 @@
 //// Copyright (c) Stride contributors (https://Stride.com)
 //// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Linq;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -12,7 +11,6 @@ namespace Stride.Engine.Splines.Models
     [Display("Plane")]
     public class SplineMeshPlane : SplineMesh
     {
-
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
             var splinePointCount = bezierPoints.Length;
@@ -31,7 +29,6 @@ namespace Stride.Engine.Splines.Models
             var verticesIndex = 0;
             var triangleIndex = 0;
             float splineDistance = 0.0f;
-            var dist = bezierPoints.Select(a => a.DistanceToPreviousPoint);
 
             for (int i = 0; i < splinePointCount - 1; i++)
             {
@@ -39,18 +36,16 @@ namespace Stride.Engine.Splines.Models
                 var targetPoint = bezierPoints[i + 1];
                 var forward = (targetPoint.Position - startPoint.Position);
                 forward.Normalize();
-                var right = Vector3.Cross(forward, Vector3.UnitY) * halfWidth;
-                var left = -right;
-
-                // Todo: deal with up normal and rotation
+                var left = Vector3.Cross(forward, Vector3.UnitY) * halfWidth;
+                var right = -left;
                 var normal = Vector3.UnitY;
                 float textureY;
 
                 // Create vertices
                 if (i == 0)
                 {
-                    vertices[verticesIndex] = new VertexPositionNormalTexture(startPoint.Position + (right), normal, new Vector2(0, 0));
-                    vertices[verticesIndex + 1] = new VertexPositionNormalTexture(startPoint.Position + (left), normal, new Vector2(1, 0));
+                    vertices[verticesIndex] = new VertexPositionNormalTexture(startPoint.Position + left, normal, new Vector2(0, 0));
+                    vertices[verticesIndex + 1] = new VertexPositionNormalTexture(startPoint.Position + right, normal, new Vector2(1, 0));
                     verticesIndex += 2;
                 }
                 
@@ -65,8 +60,8 @@ namespace Stride.Engine.Splines.Models
                 {
                     splineDistance += targetPoint.DistanceToPreviousPoint;
                     textureY = splineDistance / UvScale.Y;
-                    vertices[verticesIndex] = new VertexPositionNormalTexture(targetPoint.Position + (right), normal, new Vector2(0, textureY));
-                    vertices[verticesIndex + 1] = new VertexPositionNormalTexture(targetPoint.Position + (left), normal, new Vector2(1, textureY));
+                    vertices[verticesIndex] = new VertexPositionNormalTexture(targetPoint.Position + left, normal, new Vector2(0, textureY));
+                    vertices[verticesIndex + 1] = new VertexPositionNormalTexture(targetPoint.Position + right, normal, new Vector2(1, textureY));
                     verticesIndex += 2;
                 }
 

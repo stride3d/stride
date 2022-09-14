@@ -57,6 +57,7 @@ namespace Stride.Engine.Splines.Components
             {
                 var oldValue = splineComponent;
                 splineComponent = value;
+
                 if (SplineComponent != null && oldValue != splineComponent)
                 {
                     splineComponent.Spline.OnSplineUpdated += InvokeMeshRequiresUpdate;
