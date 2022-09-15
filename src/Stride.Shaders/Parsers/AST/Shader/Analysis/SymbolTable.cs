@@ -28,7 +28,7 @@ public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
     }
     public void PushStreamVar()
     {
-        if(TryGetType("streams", out var type))
+        if(TryGetType("STREAM", out var type))
             CurrentScope["streams"] = new SymbolVariable(){Name = "streams", Type = type};
     }
     public ISymbolType PushType(string name, Eto.Parse.Match type)
