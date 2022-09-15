@@ -13,23 +13,23 @@ public partial class SDSLGrammar : Grammar
     protected LiteralTerminal AppendStructuredBuffer = new();
     protected AlternativeParser ComponentNumber =  new();
     
-    protected LiteralTerminal Bool = new();
+    protected SequenceParser Bool = new(){Name = "ScalarType"};
     protected SequenceParser BoolVec =  new();
     protected SequenceParser BoolMat =  new();
-    protected AlternativeParser Uint =  new();
+    protected AlternativeParser Uint =  new(){Name = "ScalarType"};
     protected SequenceParser UintVec =  new();
     protected SequenceParser UintMat =  new();
-    protected LiteralTerminal Int = new();
+    protected SequenceParser Int = new(){Name = "ScalarType"};
     protected SequenceParser IntVec =  new();
     protected SequenceParser IntMat =  new();
     
-    protected LiteralTerminal Half = new();
+    protected SequenceParser Half = new(){Name = "ScalarType"};
     protected SequenceParser HalfVec =  new();
     protected SequenceParser HalfMat =  new();
-    protected LiteralTerminal Float = new();
+    protected SequenceParser Float = new(){Name = "ScalarType"};
     protected SequenceParser FloatVec =  new();
     protected SequenceParser FloatMat =  new();
-    protected LiteralTerminal Double = new();
+    protected SequenceParser Double = new(){Name = "ScalarType"};
     protected SequenceParser DoubleVec =  new();
     protected SequenceParser DoubleMat =  new();
     protected LiteralTerminal Buffer = new();
@@ -161,27 +161,27 @@ public partial class SDSLGrammar : Grammar
         Spaces = Space.Optional().Repeat();
         SpacesWithLineBreak = WhiteSpace.Optional().Repeat().Then(Eol);
         AppendStructuredBuffer = Literal("AppendStructuredBuffer");
-        ComponentNumber = Literal("1") | "2" | "3" | "4";
+        ComponentNumber.Add("1" , "2" , "3" , "4");
     
-        Bool = Literal("bool");
-        BoolVec.Add(Bool,ComponentNumber);
-        BoolMat.Add(BoolVec,Literal("x"),ComponentNumber);
+        Bool.Add("bool");
+        BoolVec.Add(Bool,ComponentNumber.Named("Size1"));
+        BoolMat.Add(BoolVec,Literal("x"),ComponentNumber.Named("Size2"));
         Uint.Add("uint","unsigned int", "dword");
-        UintVec.Add(Uint,ComponentNumber);
-        UintMat.Add(UintVec,"x",ComponentNumber);
-        Int = Literal("int");
-        IntVec.Add(Int,ComponentNumber);
-        IntMat.Add(IntVec,"x",ComponentNumber);
+        UintVec.Add(Uint,ComponentNumber.Named("Size1"));
+        UintMat.Add(UintVec,"x",ComponentNumber.Named("Size2"));
+        Int.Add("int");
+        IntVec.Add(Int,ComponentNumber.Named("Size1"));
+        IntMat.Add(IntVec,"x",ComponentNumber.Named("Size2"));
     
-        Half = Literal("half");
-        HalfVec.Add(Half, ComponentNumber);
-        HalfMat.Add(HalfVec, "x", ComponentNumber);
-        Float = Literal("float");
-        FloatVec.Add(Float,ComponentNumber);
-        FloatMat.Add(FloatVec,"x",ComponentNumber);
-        Double = Literal("double");
-        DoubleVec.Add(Double,ComponentNumber);
-        DoubleMat.Add(DoubleVec,"x",ComponentNumber);
+        Half.Add("half");
+        HalfVec.Add(Half, ComponentNumber.Named("Size1"));
+        HalfMat.Add(HalfVec, "x", ComponentNumber.Named("Size1"));
+        Float.Add("float");
+        FloatVec.Add(Float,ComponentNumber.Named("Size1"));
+        FloatMat.Add(FloatVec,"x",ComponentNumber.Named("Size2"));
+        Double.Add("double");
+        DoubleVec.Add(Double,ComponentNumber.Named("Size1"));
+        DoubleMat.Add(DoubleVec,"x",ComponentNumber.Named("Size2"));
         Buffer = Literal("Buffer");
         ByteAddressBuffer = Literal("ByteAddressBuffer");
         Break = Literal("break");
@@ -241,11 +241,11 @@ public partial class SDSLGrammar : Grammar
             Literal("TextureCube").Then(Literal("Array").Optional())
         );
         TextureTypes.Add(
-            (TextureBase & "<" & ValueTypes.Except(TextureTypes | BufferTypes) & ">").SeparatedBy(WhiteSpace.Repeat(0)),
+            (TextureBase & "<" & SimpleTypes.Except(TextureTypes | BufferTypes) & ">").SeparatedBy(WhiteSpace.Repeat(0)),
             TextureBase
         );
         BufferTypes.Add(
-            (Buffer & "<" & ValueTypes.Except(TextureTypes | BufferTypes) & ">").SeparatedBy(WhiteSpace.Repeat(0)),
+            (Buffer & "<" & SimpleTypes.Except(TextureTypes | BufferTypes) & ">").SeparatedBy(WhiteSpace.Repeat(0)),
             Buffer
         );
         Triangle = Literal("triangle");

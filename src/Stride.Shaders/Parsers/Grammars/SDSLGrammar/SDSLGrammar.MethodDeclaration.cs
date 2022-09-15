@@ -24,7 +24,7 @@ public partial class SDSLGrammar : Grammar
         var genericsList = new SequenceParser { Name = "ShaderGenerics", Separator = ws };
 
         var parameterGenericsValues = new AlternativeParser(
-            ValueTypes,
+            SimpleTypes,
             Identifier.Then(genericsList.Optional()).SeparatedBy(ws)
         )
         { Name = "ParameterGenericValue" };
@@ -36,7 +36,7 @@ public partial class SDSLGrammar : Grammar
         );
 
         ValueOrGeneric.Add(
-            ValueTypes | Identifier,
+            SimpleTypes | Identifier,
             genericsList.Optional()
         );
 
@@ -87,7 +87,7 @@ public partial class SDSLGrammar : Grammar
             Attribute.Repeat(0).SeparatedBy(ws),
             ~(Stage.Named("Stage") & WhiteSpace),
             ~((Literal("override").Named("Override") | Literal("static").Named("Static")) & ws1),
-            Identifier.Named("ReturnType") & ws1 & Identifier.Named("MethodName"),
+            ValueTypes.Named("ReturnType") & ws1 & Identifier.Named("MethodName"),
             ParameterList,
             LeftBrace,
             Statement.Repeat(0).SeparatedBy(ws).Until("}").Named("Statements"),

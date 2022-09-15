@@ -16,7 +16,7 @@ public partial class SDSLGrammar : Grammar
         var ws1 = WhiteSpace.Repeat(1);
 
         var valueDeclare = new SequenceParser(
-            ((ValueTypes | Identifier) & Identifier).SeparatedBy(ws1).Named("NewVariable")
+            ((SimpleTypes | Identifier) & Identifier).SeparatedBy(ws1).Named("NewVariable")
             | UnaryExpression.Named("ExistingVariable"),
             AssignOperators.Named("Operator"),
             PrimaryExpression
@@ -56,7 +56,7 @@ public partial class SDSLGrammar : Grammar
         ForEachLoop.Add(
             Literal("foreach"),
             LeftParen,
-            ((ValueTypes | Literal("var") | Identifier) & Identifier & In & PrimaryExpression).SeparatedBy(ws).Named("Declarator"),
+            ((SimpleTypes | Literal("var") | Identifier) & Identifier & In & PrimaryExpression).SeparatedBy(ws).Named("Declarator"),
             RightParen,
             Statement
         );

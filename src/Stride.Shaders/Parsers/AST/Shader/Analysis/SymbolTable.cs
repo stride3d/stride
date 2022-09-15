@@ -1,15 +1,11 @@
 namespace Stride.Shaders.Parsing.AST.Shader.Analysis;
 
-public class Symbol
-{
-    public string? Name {get;set;}
-    public ISymbolType? Type {get;set;}
-    public Declaration? Declaration {get;set;}
-}
+public interface ISymbol{}
 
-public partial class SymbolTable : Stack<Dictionary<string, Symbol>>
+
+public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
 {
-    public Dictionary<string,Symbol> CurrentScope => Peek();
+    public Dictionary<string,ISymbol> CurrentScope => Peek();
     public SymbolTable()
     {
         Push(new());
@@ -22,31 +18,49 @@ public partial class SymbolTable : Stack<Dictionary<string, Symbol>>
         foreach(var d in this)
             if(d.ContainsKey(a.VariableName))
                 throw new Exception("Variable already declared at " + a.Match);
-        a.Value.TypeCheck(this, a.TypeName ?? "");
-        CurrentScope.Add(a.VariableName, new Symbol{Declaration = a});
+        a.Value.TypeCheck(this, a.TypeName);
+        CurrentScope.Add(a.VariableName, new SymbolVariable{Declaration = a});
     }
-    public void PushStream()
+    public void PushStreamType(IEnumerable<ShaderVariableDeclaration> variables)
     {
-        CurrentScope["streams"] = new Symbol{Name = "streams", Type = "STREAM"};
+        CurrentScope["STREAM"] = new CompositeType("STREAM", variables.ToDictionary(v => v.Name, v => v.Type));
+    }
+    public void PushStreamVar()
+    {
+        if(TryGetType("streams", out var type))
+            CurrentScope["streams"] = new SymbolVariable(){Name = "streams", Type = type};
+    }
+    public ISymbolType PushType(string name, Eto.Parse.Match type)
+    {
+        if(!CurrentScope.ContainsKey(name))
+            CurrentScope[name] = Tokenize(type);
+        return (ISymbolType)CurrentScope[name];
     }
 
-    public void SetType(string variableName, string type)
+    public void SetType(string variableName, ISymbolType type)
     {
         foreach(var d in this)
             if(d.TryGetValue(variableName, out var v))
             {
-                v.Type = type;
-                if(v.Declaration is not null)
-                    v.Type = type;
+                if(v is SymbolVariable sv)
+                {
+                    sv.Type = type;
+                    if(sv.Declaration is not null)
+                        sv.Type = type;
+                }
             }
     }
-    public bool TryGetType(string variableName, out string? type)
+    public bool TryGetType(string variableName, out ISymbolType type)
     {
-        type = null;
+        type = ScalarType.VoidType;
         foreach(var d in this)
-            if(d.TryGetValue(variableName, out var v))
-                type = v.Type;
-            
+        {
+            if(d.TryGetValue(variableName, out var v) && v is ISymbolType sv)
+            {
+                type = sv;
+                return true;
+            }
+        }
         return false;
     }
     public void Analyse(Statement s)

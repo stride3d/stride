@@ -17,8 +17,8 @@ public class ExpressionParser
     {
         var match = Grammar.Match(expr);
         if (!match.Success)
-            throw new ArgumentOutOfRangeException("expr", string.Format("Invalid expr string: {0}", match.ErrorMessage));
-        return ShaderToken.GetToken(match.Matches.First());
+            throw new ArgumentOutOfRangeException(nameof(expr), string.Format("Invalid expr string: {0}", match.ErrorMessage));
+        return ShaderToken.Tokenize(match.Matches.First());
     }
 
 }   

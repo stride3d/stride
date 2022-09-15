@@ -13,18 +13,13 @@ namespace Stride.Shaders.Parsing.AST.Shader;
 
 public abstract class Expression : ShaderTokenTyped
 {
-    protected string? inferredType;
-    public override string InferredType
+    protected ISymbolType? inferredType;
+    public override ISymbolType InferredType
     {
         get => inferredType ?? throw new NotImplementedException();
         set => inferredType = value;
     }
-
-    public string GetInferredType()
-    {
-        return InferredType;
-    }
-    public override void TypeCheck(SymbolTable symbols, string expected = "") { }
+    public override void TypeCheck(SymbolTable symbols, ISymbolType expected) { }
 }
 
 public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
@@ -34,38 +29,38 @@ public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
     public ShaderTokenTyped Left { get; set; }
     public ShaderTokenTyped Right { get; set; }
 
-    public override async void TypeCheck(SymbolTable symbols, string expected = "")
+    public override async void TypeCheck(SymbolTable symbols, ISymbolType expected)
     {
 
-        if (expected != string.Empty)
-        {
-            Left.TypeCheck(symbols, expected);
-            Right.TypeCheck(symbols, expected);
-            if (Left.InferredType == Right.InferredType && Left.InferredType == expected)
-                InferredType = Left.InferredType;
-            else
+        // if (expected != string.Empty)
+        // {
+        //     Left.TypeCheck(symbols, expected);
+        //     Right.TypeCheck(symbols, expected);
+        //     if (Left.InferredType == Right.InferredType && Left.InferredType == expected)
+        //         InferredType = Left.InferredType;
+        //     else
                 throw new NotImplementedException();
-        }
-        else
-        {
-            Left.TypeCheck(symbols);
-            Right.TypeCheck(symbols);
-            if (Left.InferredType != Right.InferredType)
-            {
-                CheckImplicitCasting(Left, Right, expected);
-            }
-            else
-                InferredType = Left.InferredType;
-        }
+        // }
+        // else
+        // {
+        //     Left.TypeCheck(symbols);
+        //     Right.TypeCheck(symbols);
+        //     if (Left.InferredType != Right.InferredType)
+        //     {
+        //         CheckImplicitCasting(Left, Right, expected);
+        //     }
+        //     else
+        //         InferredType = Left.InferredType;
+        // }
     }
 
     public IEnumerable<string> GetUsedStream()
     {
         var result = Enumerable.Empty<string>();
         if (Left is IStreamCheck lsc)
-            result.Concat(lsc.GetUsedStream());
+            result = result.Concat(lsc.GetUsedStream());
         if (Right is IStreamCheck rsc)
-            result.Concat(rsc.GetUsedStream());
+            result = result.Concat(rsc.GetUsedStream());
         return result;
     }
     public IEnumerable<string> GetAssignedStream()
@@ -94,12 +89,12 @@ public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
     {
         InferredType = (l.InferredType, r.InferredType, expected) switch
         {
-            ("int","float", "int") => "int",
-            ("int","float", "float") => "float",
-            ("float","int", "int") => "int",
-            ("float","int", "float") => "float",
-            ("int","float", "") => "float",
-            ("float","int", "") => "float",
+            // ("int","float", "int") => "int",
+            // ("int","float", "float") => "float",
+            // ("float","int", "int") => "int",
+            // ("float","int", "float") => "float",
+            // ("int","float", "") => "float",
+            // ("float","int", "") => "float",
             _ => throw new Exception($"Cannot cast types")
         };
     }
@@ -108,14 +103,14 @@ public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
 
 public class MulExpression : Operation
 {
-    public static MulExpression Create(Match m)
+    public static MulExpression Create(Match m, SymbolTable s)
     {
         var first = new MulExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         MulExpression tmp = first;
@@ -126,7 +121,7 @@ public class MulExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -135,14 +130,14 @@ public class MulExpression : Operation
 
 public class SumExpression : Operation
 {
-    public static SumExpression Create(Match m)
+    public static SumExpression Create(Match m, SymbolTable s)
     {
         var first = new SumExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         SumExpression tmp = first;
@@ -153,7 +148,7 @@ public class SumExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -162,14 +157,14 @@ public class SumExpression : Operation
 
 public class ShiftExpression : Operation
 {
-    public static ShiftExpression Create(Match m)
+    public static ShiftExpression Create(Match m, SymbolTable s)
     {
         var first = new ShiftExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         ShiftExpression tmp = first;
@@ -180,7 +175,7 @@ public class ShiftExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -189,14 +184,14 @@ public class ShiftExpression : Operation
 
 public class AndExpression : Operation
 {
-    public static AndExpression Create(Match m)
+    public static AndExpression Create(Match m, SymbolTable s)
     {
         var first = new AndExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         AndExpression tmp = first;
@@ -207,7 +202,7 @@ public class AndExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -215,14 +210,14 @@ public class AndExpression : Operation
 }
 public class XorExpression : Operation
 {
-    public static XorExpression Create(Match m)
+    public static XorExpression Create(Match m, SymbolTable s)
     {
         var first = new XorExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         XorExpression tmp = first;
@@ -233,7 +228,7 @@ public class XorExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -241,14 +236,14 @@ public class XorExpression : Operation
 }
 public class OrExpression : Operation
 {
-    public static OrExpression Create(Match m)
+    public static OrExpression Create(Match m, SymbolTable s)
     {
         var first = new OrExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         OrExpression tmp = first;
@@ -259,7 +254,7 @@ public class OrExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -268,14 +263,14 @@ public class OrExpression : Operation
 
 public class TestExpression : Operation
 {
-    public static TestExpression Create(Match m)
+    public static TestExpression Create(Match m, SymbolTable s)
     {
         var first = new TestExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         TestExpression tmp = first;
@@ -286,7 +281,7 @@ public class TestExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -295,14 +290,14 @@ public class TestExpression : Operation
 
 public class EqualsExpression : Operation
 {
-    public static EqualsExpression Create(Match m)
+    public static EqualsExpression Create(Match m, SymbolTable s)
     {
         var first = new EqualsExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         EqualsExpression tmp = first;
@@ -313,7 +308,7 @@ public class EqualsExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -322,14 +317,14 @@ public class EqualsExpression : Operation
 
 public class LogicalAndExpression : Operation
 {
-    public static LogicalAndExpression Create(Match m)
+    public static LogicalAndExpression Create(Match m, SymbolTable s)
     {
         var first = new LogicalAndExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         LogicalAndExpression tmp = first;
@@ -340,7 +335,7 @@ public class LogicalAndExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -349,14 +344,14 @@ public class LogicalAndExpression : Operation
 }
 public class LogicalOrExpression : Operation
 {
-    public static LogicalOrExpression Create(Match m)
+    public static LogicalOrExpression Create(Match m, SymbolTable s)
     {
         var first = new LogicalOrExpression
         {
             Match = m,
             Op = m.Matches[1].StringValue.ToOperatorToken(),
-            Left = (ShaderTokenTyped)GetToken(m.Matches[0]),
-            Right = (ShaderTokenTyped)GetToken(m.Matches[2])
+            Left = (ShaderTokenTyped)GetToken(m.Matches[0], s),
+            Right = (ShaderTokenTyped)GetToken(m.Matches[2], s)
         };
 
         LogicalOrExpression tmp = first;
@@ -367,7 +362,7 @@ public class LogicalOrExpression : Operation
                 Match = m,
                 Op = m.Matches[i].StringValue.ToOperatorToken(),
                 Left = tmp,
-                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1])
+                Right = (ShaderTokenTyped)GetToken(m.Matches[i + 1], s)
             };
         }
         return tmp;
@@ -388,11 +383,11 @@ public class ConditionalExpression : Expression
         set => inferredType = value;
     }
 
-    public ConditionalExpression(Match m)
+    public ConditionalExpression(Match m, SymbolTable s)
     {
-        Condition = (ShaderTokenTyped)GetToken(m.Matches[0]);
-        TrueOutput = (ShaderTokenTyped)GetToken(m.Matches[1]);
-        FalseOutput = (ShaderTokenTyped)GetToken(m.Matches[2]);
+        Condition = (ShaderTokenTyped)GetToken(m.Matches[0], s);
+        TrueOutput = (ShaderTokenTyped)GetToken(m.Matches[1], s);
+        FalseOutput = (ShaderTokenTyped)GetToken(m.Matches[2], s);
     }
 }
 
@@ -402,10 +397,11 @@ public class MethodCall : Expression
     public string MethodName { get; set; }
     public IEnumerable<Expression> Parameters { get; set; }
 
-    public MethodCall(Match m)
+    public MethodCall(Match m, SymbolTable s)
     {
         Match = m;
         MethodName = m.Matches.First().StringValue;
-        Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(GetToken).Cast<Expression>().ToList();
+        throw new NotImplementedException();
+        // Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(GetToken).Cast<Expression>().ToList();
     }
 }

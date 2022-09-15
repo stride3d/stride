@@ -1,4 +1,5 @@
 ﻿using Eto.Parse;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 using Stride.Shaders.Parsing.Grammars.Expression;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,11 @@ public abstract class ShaderToken
 	};
 	public Match? Match { get; set; }
 
-	public static ShaderToken GetToken(Match match)
+	public static ShaderToken Tokenize(Match match)
+	{
+		return GetToken(match,new SymbolTable());
+	}
+	public static ShaderToken GetToken(Match match, SymbolTable symbols)
 	{
 		var tmp = match;
 		while (tmp.Matches.Count == 1 && !KeepValues.Contains(tmp.Name))
@@ -28,42 +33,44 @@ public abstract class ShaderToken
 
 		return tmp.Name switch
 		{
-			"Namespace" => GetToken(tmp.Matches.Last()),
-			"ShaderProgram" => new ShaderProgram(tmp),
-			"ResourceGroup" => new ResourceGroup(tmp),
-			"ConstantBuffer" => new ConstantBuffer(tmp),
-			"ShaderValueDeclaration" => new ShaderVariableDeclaration(tmp),
-			"Method" => ShaderMethod.Create(tmp),
-			"ControlFlow" => ControlFlow.Create(tmp),
-			"Block" => new BlockStatement(tmp),
-			"Return" => new ReturnStatement(tmp),
-			"AssignChain" => new AssignChain(tmp),
-			"DeclareAssign" => new DeclareAssign(tmp),
+			"Namespace" => GetToken(tmp.Matches.Last(),symbols),
+			"ShaderProgram" => new ShaderProgram(tmp,symbols),
+			"ResourceGroup" => new ResourceGroup(tmp,symbols),
+			"ConstantBuffer" => new ConstantBuffer(tmp,symbols),
+			"ShaderValueDeclaration" => new ShaderVariableDeclaration(tmp, symbols),
+			"Method" => ShaderMethod.Create(tmp, symbols),
+			"ControlFlow" => ControlFlow.Create(tmp, symbols),
+			"Block" => new BlockStatement(tmp, symbols),
+			"Return" => new ReturnStatement(tmp, symbols),
+			"AssignChain" => new AssignChain(tmp, symbols),
+			"DeclareAssign" => new DeclareAssign(tmp, symbols),
 			"SimpleDeclare" => throw new NotImplementedException(),
 			"EmptyStatement" => new EmptyStatement(),
-			"MethodCall" => new MethodCall(tmp),
-			"Ternary" => new ConditionalExpression(tmp),
-			"LogicalOrExpression" => LogicalOrExpression.Create(tmp),
-			"LogicalAndExpression" => LogicalAndExpression.Create(tmp),
-			"EqualsExpression" => EqualsExpression.Create(tmp),
-			"TestExpression" => TestExpression.Create(tmp),
-			"OrExpression" => OrExpression.Create(tmp),
-			"XorExpression" => XorExpression.Create(tmp),
-			"AndExpression" => AndExpression.Create(tmp),
-			"ShiftExpression" => ShiftExpression.Create(tmp),
-			"SumExpression" => SumExpression.Create(tmp),
-			"MulExpression" => MulExpression.Create(tmp),
-			"CastExpression" => new CastExpression(tmp),
+			"MethodCall" => new MethodCall(tmp, symbols),
+			"Ternary" => new ConditionalExpression(tmp, symbols),
+			"LogicalOrExpression" => LogicalOrExpression.Create(tmp, symbols),
+			"LogicalAndExpression" => LogicalAndExpression.Create(tmp, symbols),
+			"EqualsExpression" => EqualsExpression.Create(tmp, symbols),
+			"TestExpression" => TestExpression.Create(tmp, symbols),
+			"OrExpression" => OrExpression.Create(tmp, symbols),
+			"XorExpression" => XorExpression.Create(tmp, symbols),
+			"AndExpression" => AndExpression.Create(tmp, symbols),
+			"ShiftExpression" => ShiftExpression.Create(tmp, symbols),
+			"SumExpression" => SumExpression.Create(tmp, symbols),
+			"MulExpression" => MulExpression.Create(tmp, symbols),
+			"CastExpression" => new CastExpression(tmp, symbols),
 			"PrefixIncrement" => throw new NotImplementedException("prefix implement not implemented"),
-			"ChainAccessor" => new ChainAccessor(tmp),
-			"ArrayAccessor" => new ArrayAccessor(tmp),
-			"IntegerValue" or "FloatValue" or "FloatLiteral" => new NumberLiteral(tmp),
-			"VariableTerm" or "Identifier" => new VariableNameLiteral(tmp),
-			"ValueTypes" or "TypeName" => new TypeNameLiteral(tmp),
-			"Boolean" => new BoolLiteral(tmp),
+			"ChainAccessor" => new ChainAccessor(tmp, symbols),
+			"ArrayAccessor" => new ArrayAccessor(tmp, symbols),
+			"IntegerValue" or "FloatValue" or "FloatLiteral" => new NumberLiteral(tmp, symbols),
+			"VariableTerm" or "Identifier" => new VariableNameLiteral(tmp, symbols),
+			"ValueTypes" or "TypeName" => new TypeNameLiteral(tmp, symbols),
+			"Boolean" => new BoolLiteral(tmp, symbols),
 			_ => throw new NotImplementedException()
 		};
 	}
+
+	
 
 
 	// public IEnumerable<string> GetUsedStream()

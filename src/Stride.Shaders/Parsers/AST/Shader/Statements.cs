@@ -17,14 +17,9 @@ public abstract class Statement : ShaderTokenTyped
 {
 
     public IEnumerable<Register> LowCode { get; set; }
-    public override string InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public override ISymbolType InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-    public string GetInferredType()
-    {
-        return InferredType;
-    }
-
-    public override void TypeCheck(SymbolTable symbols, string expected = "")
+    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
     {
         throw new NotImplementedException();
     }
@@ -32,14 +27,14 @@ public abstract class Statement : ShaderTokenTyped
 
 public class EmptyStatement : Statement
 {
-    public override string InferredType => "void";
-    public override void TypeCheck(SymbolTable symbols, string expected = "") { }
+    public override ISymbolType InferredType => ScalarType.VoidType;
+    public override void TypeCheck(SymbolTable symbols, ISymbolType expected) { }
 }
 
 public abstract class Declaration : Statement
 {
-    public override string InferredType => "void";
-    public string? TypeName { get; set; }
+    public override ISymbolType InferredType => ScalarType.VoidType;
+    public ISymbolType? TypeName { get; set; }
     public string VariableName { get; set; }
     public ShaderTokenTyped Value { get; set; }
 
@@ -50,13 +45,13 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     public AssignOpToken AssignOp { get; set; }
 
     public DeclareAssign() { }
-    public DeclareAssign(Match m)
+    public DeclareAssign(Match m, SymbolTable s)
     {
         Match = m;
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
-        TypeName = m["Type"].StringValue;
+        TypeName = s.PushType(m["ValueTypes"].StringValue,m["ValueTypes"]);
         VariableName = m["Variable"].StringValue;
-        Value = (ShaderTokenTyped)GetToken(m["Value"]);
+        Value = (ShaderTokenTyped)GetToken(m["Value"],s);
     }
 
     public bool CheckStatic(SymbolTable s)
@@ -84,18 +79,18 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
 
 public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 {
-    public override string InferredType => "void";
+    public override ISymbolType InferredType => ScalarType.VoidType;
 
     public AssignOpToken AssignOp { get; set; }
     public bool StreamValue => AccessNames.Any() && AccessNames.First() == "streams";
     public IEnumerable<string> AccessNames { get; set; }
     public ShaderTokenTyped Value { get; set; }
-    public AssignChain(Match m)
+    public AssignChain(Match m, SymbolTable s)
     {
         Match = m;
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
         AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue);
-        Value = (ShaderTokenTyped)GetToken(m["PrimaryExpression"]);
+        Value = (ShaderTokenTyped)GetToken(m["PrimaryExpression"],s);
     }
 
     public bool CheckStream(SymbolTable s)
@@ -133,14 +128,15 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 
 public class ReturnStatement : Statement, IStreamCheck, IStaticCheck
 {
-    public override string InferredType => ReturnValue?.InferredType ?? "void";
+    public override ISymbolType InferredType => ReturnValue?.InferredType ?? ScalarType.VoidType;
 
     public ShaderTokenTyped? ReturnValue { get; set; }
-    public ReturnStatement(Match m)
+    public ReturnStatement(Match m, SymbolTable s)
     {
         Match = m;
-        if (m.HasMatches)
-            ReturnValue = (ShaderTokenTyped)GetToken(m["PrimaryExpression"]);
+        throw new NotImplementedException();
+        // if (m.HasMatches)
+        //     ReturnValue = (ShaderTokenTyped)GetToken(m["PrimaryExpression"]);
     }
 
     public bool CheckStream(SymbolTable s)
@@ -168,10 +164,11 @@ public class ReturnStatement : Statement, IStreamCheck, IStaticCheck
 public class BlockStatement : Statement, IStreamCheck, IStaticCheck
 {
     public IEnumerable<Statement> Statements { get; set; }
-    public BlockStatement(Match m)
+    public BlockStatement(Match m, SymbolTable s)
     {
         Match = m;
-        Statements = m.Matches.Select(GetToken).Cast<Statement>().ToList();
+        throw new NotImplementedException();
+        // Statements = m.Matches.Select(GetToken).Cast<Statement>().ToList();
     }
 
     public bool CheckStream(SymbolTable s)

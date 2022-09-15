@@ -23,7 +23,7 @@ public partial class SDSLGrammar : Grammar
 
         var declare = new SequenceParser();
         declare.Add(
-            ValueTypes | Identifier,
+            SimpleTypes | Identifier,
             ws1,
             Identifier,
             ws,
@@ -67,7 +67,7 @@ public partial class SDSLGrammar : Grammar
         valueDeclaration.Add(
             ~(staging & ws1),
             ~(StorageFlag & ws1),
-            (ValueTypes | Identifier).Named("TypeName"),
+            ValueTypes,
             ws1,
             Identifier
         );

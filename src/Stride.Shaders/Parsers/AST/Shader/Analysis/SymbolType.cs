@@ -2,7 +2,7 @@ using Eto.Parse;
 
 namespace Stride.Shaders.Parsing.AST.Shader.Analysis;
 
-public interface ISymbolType
+public interface ISymbolType : ISymbol, IEquatable<ISymbolType>
 {
     public bool IsAccessorValid(string accessor);
     public bool IsIndexingValid(string index);
@@ -11,6 +11,12 @@ public interface ISymbolType
 public class ArrayType : ISymbolType
 {
     public ISymbolType TypeName {get;set;}
+
+
+    public bool Equals(ISymbolType? other)
+    {
+        return other is ArrayType a && a.TypeName.Equals(TypeName);
+    }
 
     public bool IsAccessorValid(string accessor)
     {
@@ -25,7 +31,20 @@ public class ArrayType : ISymbolType
 
 public class CompositeType : ISymbolType
 {
+    public string Name {get;set;}
     public Dictionary<string,ISymbolType> Fields {get;set;} = new();
+
+    public CompositeType(string name, Dictionary<string,ISymbolType> fields)
+    {
+        Name = name;
+        Fields = fields;
+    }
+    
+    public bool Equals(ISymbolType? other)
+    {
+        return true;
+        // return other is CompositeType a && a.Fields.Keys.All(f => a.Fields[f].Equals());
+    }
 
     public bool IsAccessorValid(string accessor)
     {
@@ -41,8 +60,19 @@ public class CompositeType : ISymbolType
 public class VectorType : ISymbolType
 {
     public int Size{get;set;}
-    public string TypeName {get;set;}
+    public ISymbolType TypeName {get;set;}
     static string[] accessors = new string[]{"x","y","z","w"};
+
+    public VectorType(string size, ISymbolType type)
+    {
+        if(int.TryParse(size, out var s))
+        {
+            Size = s;
+            TypeName = type;
+        }
+        else throw new NotImplementedException();
+    }
+
     public bool IsAccessorValid(string accessor)
     {
         return accessor.All(accessor[0..Size].Contains);
@@ -51,6 +81,11 @@ public class VectorType : ISymbolType
     public bool IsIndexingValid(string index)
     {
         return false;
+    }
+
+    public bool Equals(ISymbolType? other)
+    {
+        throw new NotImplementedException();
     }
 }
 public class MatrixType : ISymbolType
@@ -75,10 +110,21 @@ public class MatrixType : ISymbolType
     {
         return false;
     }
+
+    public bool Equals(ISymbolType? other)
+    {
+        throw new NotImplementedException();
+    }
 }
 public class ScalarType : ISymbolType
 {
+    public static readonly ScalarType VoidType = new("void");
     public string TypeName {get;set;}
+
+    public ScalarType(string type)
+    {
+        TypeName = type;
+    }
 
     public bool IsAccessorValid(string accessor)
     {
@@ -88,5 +134,10 @@ public class ScalarType : ISymbolType
     public bool IsIndexingValid(string index)
     {
         return false;
+    }
+
+    public bool Equals(ISymbolType? other)
+    {
+        return other is ScalarType o && TypeName == o.TypeName;
     }
 }

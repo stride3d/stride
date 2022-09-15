@@ -108,7 +108,7 @@ public class ShaderMixinParser
         ParseTree = Grammar.Match(code);
         if (!ParseTree.Success)
             throw new Exception(ParseTree.ErrorMessage);
-        return (ShaderProgram)ShaderToken.GetToken(ParseTree);
+        return (ShaderProgram)ShaderToken.Tokenize(ParseTree);
         //return null;
     }
     List<string> ParseMixins(string shader)

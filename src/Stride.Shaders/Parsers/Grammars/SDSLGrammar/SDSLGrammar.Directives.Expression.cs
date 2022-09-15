@@ -50,7 +50,7 @@ public partial class SDSLGrammar : Grammar
 
         DirectiveTermExpression.Add(
             Literals,
-            ~(Plus | Minus & ws) & Identifier.Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen),
+            ~(Plus | Minus & ws) & Identifier.Except(Keywords | SimpleTypes).NotFollowedBy(ws & LeftParen),
             DirectivesMethodCall,
             Parenthesis(DirectiveExpression)
         );
@@ -102,7 +102,7 @@ public partial class SDSLGrammar : Grammar
         var cast = new SequenceParser();
         cast.Add(
             LeftParen,
-            ValueTypes | Identifier,
+            SimpleTypes | Identifier,
             RightParen,
             DirectiveUnaryExpression
         );

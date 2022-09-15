@@ -1,4 +1,5 @@
 using Eto.Parse;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,10 +24,12 @@ public class ShaderStruct : ShaderToken
 {
     public IEnumerable<ShaderToken> Fields {get;set;}
 
-    public ShaderStruct(Match m)
+    public ShaderStruct(Match m, SymbolTable s)
     {
         Match = m;
-        Fields = m["Fields"].Matches.Select(GetToken).ToList();
+        throw new NotImplementedException();
+
+        // Fields = m["Fields"].Matches.Select(GetToken).ToList();
         
     }
 }
@@ -35,10 +38,11 @@ public class ResourceGroup : ShaderToken
 {
     public IEnumerable<ShaderToken> Variables {get;set;}
 
-    public ResourceGroup(Match m)
+    public ResourceGroup(Match m, SymbolTable s)
     {
         Match = m;
-        Variables = m["Variables"].Matches.Select(GetToken).ToList();
+        throw new NotImplementedException();
+        // Variables = m["Variables"].Matches.Select(GetToken).ToList();
         
     }
 }
@@ -46,10 +50,11 @@ public class ConstantBuffer : ShaderToken
 {
     public IEnumerable<ShaderToken> Variables {get;set;}
 
-    public ConstantBuffer(Match m)
+    public ConstantBuffer(Match m, SymbolTable s)
     {
         Match = m;
-        Variables = m["Variables"].Matches.Select(GetToken).ToList();
+        throw new NotImplementedException();
+        // Variables = m["Variables"].Matches.Select(GetToken).ToList();
 
     }
 }
@@ -59,17 +64,17 @@ public class ShaderVariableDeclaration : ShaderToken
     public bool IsStream {get;set;}
     public bool IsStaged {get;set;}
     public string Name {get;set;}
-    public string Type {get;set;}
+    public ISymbolType Type {get;set;}
     public string? Semantic { get; set; }
     public ShaderToken Expression {get;set;}
 
-    public ShaderVariableDeclaration(Match m)
+    public ShaderVariableDeclaration(Match m, SymbolTable s)
     {
         Match = m;
         IsStream = m["Stream"].Success;
         IsStaged = m["Stage"].Success;
         Semantic = m["Semantic"].Success ? m["Semantic"].StringValue : null;
-        Type = m["TypeName"].StringValue;
+        Type = s.PushType(m["ValueTypes"].StringValue,m["ValueTypes"]);
         Name = m["Identifier"].StringValue;
     }
 }

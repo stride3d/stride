@@ -22,11 +22,13 @@ public class SimpleMixer
     public void SemanticChecks()
     {
         var sym = new SymbolTable();
-        sym.PushStream();
-        sym.AddScope();
+        sym.PushStreamType(program.Body.OfType<ShaderVariableDeclaration>());
+        
         foreach(var method in program.Body.OfType<MainMethod>())
         {
+            sym.AddScope();
             method.VariableChecking(sym);
+            sym.Pop();
         }
     }
     public Module EmitSpirv(EntryPoints entry)

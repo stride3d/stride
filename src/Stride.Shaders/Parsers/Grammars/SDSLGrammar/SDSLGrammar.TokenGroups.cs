@@ -23,6 +23,8 @@ public partial class SDSLGrammar : Grammar
 
     public AlternativeParser UintTypes = new();
 
+    public AlternativeParser SimpleTypes = new() { Name = "ValueTypes"};
+    public SequenceParser ArrayTypes = new() { Name = "ArrayTypes"};
     public AlternativeParser ValueTypes = new() { Name = "ValueTypes"};
     public AlternativeParser StorageFlag = new();
 
@@ -72,42 +74,42 @@ public partial class SDSLGrammar : Grammar
         );
 
         BoolTypes.Add(
-            Bool.NotFollowedBy(Set("1234")),
-            BoolVec.NotFollowedBy("x"),
-            BoolMat
+            Bool.NotFollowedBy(Set("1234")).Named("BoolScalar"),
+            BoolVec.NotFollowedBy("x").Named("BoolVec"),
+            BoolMat.Named("BoolMatrix")
         );
 
         HalfTypes.Add(
-            Half.NotFollowedBy(Set("1234")),
-            HalfVec.NotFollowedBy("x"),
-            HalfMat
+            Half.NotFollowedBy(Set("1234")).Named("HalfScalar"),
+            HalfVec.NotFollowedBy("x").Named("HalfVec"),
+            HalfMat.Named("HalfMatrix")
         );
 
         FloatTypes.Add(
-            Float.NotFollowedBy(Set("1234")),
-            FloatVec.NotFollowedBy("x"),
-            FloatMat
+            Float.NotFollowedBy(Set("1234")).Named("FloatScalar"),
+            FloatVec.NotFollowedBy("x").Named("FloatVec"),
+            FloatMat.Named("FloatMatrix")
         );
 
         DoubleTypes.Add(
-            Double.NotFollowedBy(Set("1234")),
-            DoubleVec.NotFollowedBy("x"),
-            DoubleMat
+            Double.NotFollowedBy(Set("1234")).Named("DoubleScalar"),
+            DoubleVec.NotFollowedBy("x").Named("DoubleVec"),
+            DoubleMat.Named("DoubleMatrix")
         );
 
         IntTypes.Add(
-            Int.NotFollowedBy(Set("1234")),
-            IntVec.NotFollowedBy("x"),
-            IntMat
+            Int.NotFollowedBy(Set("1234")).Named("IntScalar"),
+            IntVec.NotFollowedBy("x").Named("IntVec"),
+            IntMat.Named("IntMatrix")
         );
 
         UintTypes.Add(
-            Uint.NotFollowedBy(Set("1234")),
-            UintVec.NotFollowedBy("x"),
-            UintMat
+            Uint.NotFollowedBy(Set("1234")).Named("UintScalar"),
+            UintVec.NotFollowedBy("x").Named("UintVec"),
+            UintMat.Named("UintMatrix")
         );
 
-        ValueTypes.Add(
+        SimpleTypes.Add(
             BoolTypes,
             HalfTypes,
             FloatTypes,
@@ -115,8 +117,23 @@ public partial class SDSLGrammar : Grammar
             IntTypes,
             UintTypes,
             BufferTypes,
-            TextureTypes
+            TextureTypes,
+            Void,
+            Identifier.Named("UserDefined")
         );
+
+        ArrayTypes.Add(
+            SimpleTypes,
+            LeftBracket,
+            RightBracket
+        );
+        ArrayTypes.Separator = WhiteSpace.Repeat(0);
+
+        ValueTypes.Add(
+            ArrayTypes,
+            SimpleTypes
+        );
+
 
         Keywords.Add(
             AppendStructuredBuffer,
@@ -179,7 +196,7 @@ public partial class SDSLGrammar : Grammar
             TriangleAdj,
             TriangleStream,
             Uniform,
-            ValueTypes,
+            SimpleTypes,
             Vector,
             Volatile,
             Void,

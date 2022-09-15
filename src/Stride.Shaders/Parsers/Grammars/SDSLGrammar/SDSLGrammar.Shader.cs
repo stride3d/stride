@@ -52,8 +52,8 @@ public partial class SDSLGrammar : Grammar
         var shaderGenericValue = new AlternativeParser(
             Literal("TypeName").Named("TypeName").Then(Identifier).SeparatedBy(ws1).Named("GenericType"),
             Literal("Semantic").Named("Semantic").Then(Identifier).SeparatedBy(ws1).Named("Semantic"),
-            ValueTypes.Then(Identifier).SeparatedBy(ws1).Named("GenericValue"),
-            ValueTypes
+            SimpleTypes.Then(Identifier).SeparatedBy(ws1).Named("GenericValue"),
+            SimpleTypes
         ){ Name = "ShaderGeneric" }; 
 
         var shaderGenerics = new SequenceParser(
@@ -63,7 +63,7 @@ public partial class SDSLGrammar : Grammar
         ){ Name = "ShaderGenerics", Separator = ws };
 
         var inheritGenericsValues = new AlternativeParser(
-            ValueTypes,
+            SimpleTypes,
             Identifier,
             Literals
         );

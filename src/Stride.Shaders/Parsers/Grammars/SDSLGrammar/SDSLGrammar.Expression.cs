@@ -64,7 +64,7 @@ public partial class SDSLGrammar : Grammar
 
         TermExpression.Add(
             Literals,
-            Identifier.Named("VariableTerm").Except(Keywords | ValueTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
+            Identifier.Named("VariableTerm").Except(Keywords | SimpleTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
             MethodCall,
             Parenthesis(PrimaryExpression)
         );
@@ -116,7 +116,7 @@ public partial class SDSLGrammar : Grammar
 
         var cast = new SequenceParser(
             LeftParen,
-            ValueTypes | Identifier.Named("TypeName"),
+            SimpleTypes | Identifier.Named("TypeName"),
             RightParen,
             UnaryExpression
         )

@@ -25,29 +25,29 @@ public partial class SpirvEmitter
             _ => throw new NotImplementedException()
         };
 
-        var variables =
-            program.Body
-            .Where(x => x is ShaderVariableDeclaration svd && svd.IsStream)
-            .Cast<ShaderVariableDeclaration>()
-            .Select(x => (x.Name, SpvType: AsSpvType(x.Type)))
-            .ToList();
+        // var variables =
+        //     program.Body
+        //     .Where(x => x is ShaderVariableDeclaration svd && svd.IsStream)
+        //     .Cast<ShaderVariableDeclaration>()
+        //     .Select(x => (x.Name, SpvType: AsSpvType(x.Type)))
+        //     .ToList();
 
-        var likelyInputs = mainMethod.GetStreamValuesUsed();
-        IEnumerable<(string,Instruction)> inVars = variables.Where(x => likelyInputs.Contains(x.Name)) as IEnumerable<(string,Instruction)>;
+        // var likelyInputs = mainMethod.GetStreamValuesUsed();
+        // IEnumerable<(string,Instruction)> inVars = variables.Where(x => likelyInputs.Contains(x.Name)) as IEnumerable<(string,Instruction)>;
 
-        var likelyOutputs = mainMethod.GetStreamValuesAssigned();
-        IEnumerable<(string,Instruction)> outVars = variables.Where(x => likelyOutputs.Contains(x.Name)) as IEnumerable<(string,Instruction)>;
+        // var likelyOutputs = mainMethod.GetStreamValuesAssigned();
+        // IEnumerable<(string,Instruction)> outVars = variables.Where(x => likelyOutputs.Contains(x.Name)) as IEnumerable<(string,Instruction)>;
 
-        Stream = new Stream(entry, this, variables as IEnumerable<(string,Instruction)>);
-        StreamIn = new(entry, this, inVars);
-        StreamOut = new StreamOut(entry, this, outVars);
+        // Stream = new Stream(entry, this, variables as IEnumerable<(string,Instruction)>);
+        // StreamIn = new(entry, this, inVars);
+        // StreamOut = new StreamOut(entry, this, outVars);
 
-        // in-out
+        // // in-out
 
-        var streamInPtr = TypePointer(StorageClass.Input , StreamIn.SpvType);
-        var streamOutPtr = TypePointer(StorageClass.Output , StreamOut.SpvType);
-        Variables[StreamIn.Name] = Variable(streamInPtr, StorageClass.Input);
-        Variables[StreamOut.Name] = Variable(streamOutPtr, StorageClass.Output);
+        // var streamInPtr = TypePointer(StorageClass.Input , StreamIn.SpvType);
+        // var streamOutPtr = TypePointer(StorageClass.Output , StreamOut.SpvType);
+        // Variables[StreamIn.Name] = Variable(streamInPtr, StorageClass.Input);
+        // Variables[StreamOut.Name] = Variable(streamOutPtr, StorageClass.Output);
         
     }
 }

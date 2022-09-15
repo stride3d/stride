@@ -29,7 +29,7 @@ static void LoadShaders()
     mixer.SemanticChecks();
     
     var module = mixer.EmitSpirv(EntryPoints.VSMain);
-    var used = mixer.program.Body.OfType<VSMainMethod>().First().GetStreamValuesUsed().ToList();
+    var used = mixer.program.Body.OfType<VSMainMethod>().First().GetUsedStream().ToList();
     var x = 0;
 }
 
@@ -45,13 +45,13 @@ static void ThreeAddress()
         };
     
     var symbols = new SymbolTable();
-    var s = new DeclareAssign(){TypeName = "float", VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o};
+    var s = new DeclareAssign(){TypeName = new ScalarType("float"), VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o};
     symbols.PushVar(s);
     var o2 = 
         new Operation
         {
             Left = new VariableNameLiteral("dodo"),
-            Right = new NumberLiteral{Value = 6L, InferredType = "float"},
+            Right = new NumberLiteral{Value = 6L, InferredType = new ScalarType("float")},
             Op = OperatorToken.Plus
         };
     var s2 = new DeclareAssign(){VariableName = "dodo2", AssignOp = AssignOpToken.Equal, Value = o2};

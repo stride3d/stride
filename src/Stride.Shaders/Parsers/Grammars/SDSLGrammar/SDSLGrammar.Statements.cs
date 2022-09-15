@@ -64,13 +64,13 @@ public partial class SDSLGrammar : Grammar
 
 
         var declareAssign =
-            Identifier.Named("Type")
+            ValueTypes
             .Then(assignVar)
             .SeparatedBy(ws1);
 
         var simpleDeclare = 
-            ((ValueTypes | Identifier) & Identifier & arraySpecifier).SeparatedBy(ws)
-            | ((ValueTypes | Identifier) & Identifier).SeparatedBy(ws);
+            ((SimpleTypes | Identifier) & Identifier & arraySpecifier).SeparatedBy(ws)
+            | ((SimpleTypes | Identifier) & Identifier).SeparatedBy(ws);
 
         Statement.Add(
             Block,
