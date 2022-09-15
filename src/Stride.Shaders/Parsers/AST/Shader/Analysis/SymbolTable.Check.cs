@@ -10,6 +10,22 @@ public partial class SymbolTable
         if(s is IVariableCheck v)
             v.CheckVariables(this);
     }
+
+    public ISymbolType TokenizeScalar(string name)
+    {
+        return name switch
+        {
+            "byte" => new ScalarType("byte"),
+            "sbyte" => new ScalarType("byte"),
+            "short" => new ScalarType("short"),
+            "half" => new ScalarType("half"),
+            "int" => new ScalarType("int"),
+            "uint" => new ScalarType("uint"),
+            "float" => new ScalarType("float"),
+            "double" => new ScalarType("double"), 
+            _ => throw new NotImplementedException()
+        };
+    }
     public ISymbolType Tokenize(Match m)
     {
         return (m.Name, m.HasMatches) switch 

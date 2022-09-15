@@ -6,6 +6,7 @@ public interface ISymbol{}
 public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
 {
     public Dictionary<string,ISymbol> CurrentScope => Peek();
+    public Dictionary<string,ISymbol> GlobalScope => this.First();
     public SymbolTable()
     {
         Push(new());
@@ -32,9 +33,15 @@ public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
     }
     public ISymbolType PushType(string name, Eto.Parse.Match type)
     {
-        if(!CurrentScope.ContainsKey(name))
-            CurrentScope[name] = Tokenize(type);
-        return (ISymbolType)CurrentScope[name];
+        if(!GlobalScope.ContainsKey(name))
+            GlobalScope[name] = Tokenize(type);
+        return (ISymbolType)GlobalScope[name];
+    }
+    public ISymbolType PushScalarType(string name)
+    {
+        if(!GlobalScope.ContainsKey(name))
+            GlobalScope[name] = TokenizeScalar(name);
+        return (ISymbolType)GlobalScope[name];
     }
 
     public void SetType(string variableName, ISymbolType type)

@@ -33,6 +33,14 @@ public class NumberLiteral : ShaderLiteral
         if (!match.HasMatches)
         {
             Value = match.Value;
+            InferredType = Value switch
+            {
+                int => s.PushScalarType("int"),
+                long => s.PushScalarType("int"),
+                float => s.PushScalarType("float"),
+                double => s.PushScalarType("float"),
+                _ => throw new NotImplementedException()
+            };
         }
         else
         {
@@ -44,14 +52,34 @@ public class NumberLiteral : ShaderLiteral
             {
                 Value = match.Matches[0].Value;
                 Suffix = match["Suffix"].StringValue;
+                InferredType = Suffix switch
+                {
+                    "l" => s.PushScalarType("long"),
+                    "d" => s.PushScalarType("double"),
+                    "f" => s.PushScalarType("float"),
+                    "u" => s.PushScalarType("uint"),
+                    "L" => s.PushScalarType("long"),
+                    "D" => s.PushScalarType("double"),
+                    "F" => s.PushScalarType("float"),
+                    "U" => s.PushScalarType("uint"),
+                    _ => throw new NotImplementedException(),
+                };
             }
         }
     }
     public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
     {
-        throw new NotImplementedException();
-        if (Suffix is null)
+        if (!expected.Equals(inferredType))
         {
+            inferredType = (inferredType, expected) switch
+            {
+                (ScalarType{TypeName : "int"}, ScalarType{TypeName: "float"}) => expected,
+                (ScalarType{TypeName : "float"}, ScalarType{TypeName: "int"}) => expected,
+                _ => throw new NotImplementedException()
+            };
+        }
+        // if (Suffix is null)
+        // {
         //     if (expected != string.Empty)
         //     {
         //         inferredType = (Value, expected) switch
@@ -99,7 +127,7 @@ public class NumberLiteral : ShaderLiteral
         //             _ => throw new NotImplementedException()
         //         };
         //     }
-        }
+        // }
     }
 }
 public class HexLiteral : NumberLiteral
@@ -183,7 +211,7 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
 
     public void CheckVariables(SymbolTable s)
     {
-        if(!s.Any(x => x.ContainsKey(Name)))
+        if (!s.Any(x => x.ContainsKey(Name)))
             throw new Exception("Not a variable");
     }
     public override string ToString()
