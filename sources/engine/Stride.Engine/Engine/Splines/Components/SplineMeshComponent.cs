@@ -68,6 +68,7 @@ namespace Stride.Engine.Splines.Components
 
         private void InvokeMeshRequiresUpdate()
         {
+            SplineMesh.Loop = splineComponent != null && splineComponent.Spline != null && splineComponent.Spline.Loop == true ? true : false;
             OnMeshRequiresUpdate?.Invoke(this);
         }
 

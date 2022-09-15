@@ -2,11 +2,9 @@
 //// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
-using Stride.Core.Mathematics;
 using Stride.Engine.Splines.Components;
 using Stride.Engine.Splines.HierarchyTransformOperations;
 using Stride.Engine.Splines.Models;
-using Stride.Graphics;
 using Stride.Rendering;
 
 namespace Stride.Engine.Splines.Processors
@@ -66,11 +64,6 @@ namespace Stride.Engine.Splines.Processors
             public SplineMeshViewHierarchyTransformOperation TransformOperation;
         }
 
-        public struct TempMesh
-        {
-
-        }
-
         public override void Draw(RenderContext context)
         {
             foreach (var splineMeshComponent in splineMeshComponentsToUpdate)
@@ -104,7 +97,7 @@ namespace Stride.Engine.Splines.Processors
                     splineBezierPoints.AddRange(i == 0 ? bezierPoints : bezierPoints[1..]);
                 }
 
-                //Create a mode and generate its mesh
+                //Create a model and generate its mesh
                 var model = new Model();
                 splineMeshComponent.SplineMesh.bezierPoints = splineBezierPoints.ToArray();
                 splineMeshComponent.SplineMesh.Loop = splineMeshComponent.SplineComponent.Loop;
