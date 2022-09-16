@@ -34,9 +34,9 @@ namespace Stride.Engine.Splines.Models
         public Vector3 TargetWorldPosition { get; set; }
 
         #region Segments
-        private int segments = 2;
+        private int segments = 1;
         /// <summary>
-        /// A minimum of 2
+        /// A minimum of 1
         /// </summary>
         /// <userdoc>The amount of segments the curve exists out of</userdoc>
         [Display(1, "Segments")]
@@ -45,9 +45,9 @@ namespace Stride.Engine.Splines.Models
             get { return segments; }
             set
             {
-                if (value < 2)
+                if (value < 1)
                 {
-                    segments = 2;
+                    segments = 1;
                 }
                 else
                 {
@@ -220,22 +220,29 @@ namespace Stride.Engine.Splines.Models
             {
                 var estimatedExptedDistance = Length / (bezierPointCount - 1) * i;
                 parameterizedBezierPoints[i] = GetBezierPointForDistance(estimatedExptedDistance);
+
+                if (i > 0)
+                {
+
+                    parameterizedBezierPoints[i].DistanceToPreviousPoint = parameterizedBezierPoints[i].TotalLengthOnCurve - parameterizedBezierPoints[i - 1].TotalLengthOnCurve;
+                }
+
             }
 
             parameterizedBezierPoints[bezierPointCount - 1] = baseBezierPoints[baseBezierPointCount - 1];
         }
 
-        private BezierPoint GetBezierPointForDistance(float distance)
+        private BezierPoint GetBezierPointForDistance(float estimatedExptedDistance)
         {
             for (var j = 0; j < baseBezierPointCount; j++)
             {
                 var curPoint = baseBezierPoints[j];
-                if (curPoint.TotalLengthOnCurve >= distance)
+                if (curPoint.TotalLengthOnCurve >= estimatedExptedDistance)
                 {
                     return curPoint;
                 }
             }
-            return baseBezierPoints[baseBezierPoints.Length - 1];
+            return baseBezierPoints[^1];
         }
 
         private void CalculateRotation()
