@@ -6,11 +6,12 @@ public interface ISymbolType : ISymbol, IEquatable<ISymbolType>
 {
     public bool IsAccessorValid(string accessor);
     public bool IsIndexingValid(string index);
+    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed);
 }
 
 public class ArrayType : ISymbolType
 {
-    public ISymbolType TypeName {get;set;}
+    public ISymbolType TypeName { get; set; }
 
 
     public bool Equals(ISymbolType? other)
@@ -27,19 +28,30 @@ public class ArrayType : ISymbolType
     {
         return true;
     }
+
+    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+    {
+        typeOfAccessed = ScalarType.VoidType;
+        if (int.TryParse(accessor, out var _))
+        {
+            typeOfAccessed = TypeName;
+            return true;
+        }
+        return false;
+    }
 }
 
 public class CompositeType : ISymbolType
 {
-    public string Name {get;set;}
-    public Dictionary<string,ISymbolType> Fields {get;set;} = new();
+    public string Name { get; set; }
+    public Dictionary<string, ISymbolType> Fields { get; set; } = new();
 
-    public CompositeType(string name, Dictionary<string,ISymbolType> fields)
+    public CompositeType(string name, Dictionary<string, ISymbolType> fields)
     {
         Name = name;
         Fields = fields;
     }
-    
+
     public bool Equals(ISymbolType? other)
     {
         return true;
@@ -55,17 +67,23 @@ public class CompositeType : ISymbolType
     {
         return false;
     }
+    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+    {
+        var result = Fields.TryGetValue(accessor, out var tmp );
+        typeOfAccessed = tmp ?? ScalarType.VoidType;
+        return result;
+    }
 }
 
 public class VectorType : ISymbolType
 {
-    public int Size{get;set;}
-    public ISymbolType TypeName {get;set;}
-    static string[] accessors = new string[]{"x","y","z","w"};
+    public int Size { get; set; }
+    public ISymbolType TypeName { get; set; }
+    static string[] accessors = new string[] { "x", "y", "z", "w" };
 
     public VectorType(string size, ISymbolType type)
     {
-        if(int.TryParse(size, out var s))
+        if (int.TryParse(size, out var s))
         {
             Size = s;
             TypeName = type;
@@ -87,16 +105,26 @@ public class VectorType : ISymbolType
     {
         throw new NotImplementedException();
     }
+    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+    {
+        if(IsAccessorValid(accessor))
+        {
+            typeOfAccessed = TypeName;
+            return true;
+        }
+        typeOfAccessed = ScalarType.VoidType;
+        return false;
+    }
 }
 public class MatrixType : ISymbolType
 {
-    public int SizeX{get;set;}
-    public int SizeY{get;set;}
-    public string TypeName {get;set;}
+    public int SizeX { get; set; }
+    public int SizeY { get; set; }
+    public ISymbolType TypeName { get; set; }
 
     static readonly Grammar accessorGrammar = new(
       Terminals.Literal("_")
-      .Then("m" & Terminals.Set("0123") & Terminals.Set("0123"))  
+      .Then("m" & Terminals.Set("0123") & Terminals.Set("0123"))
       .Or(Terminals.Set("1234") & Terminals.Set("1234"))
       .WithName("accessor")
     );
@@ -115,11 +143,21 @@ public class MatrixType : ISymbolType
     {
         throw new NotImplementedException();
     }
+    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+    {
+        if(IsAccessorValid(accessor))
+        {
+            typeOfAccessed = TypeName;
+            return true;
+        }
+        typeOfAccessed = ScalarType.VoidType;
+        return false;
+    }
 }
 public class ScalarType : ISymbolType
 {
     public static readonly ScalarType VoidType = new("void");
-    public string TypeName {get;set;}
+    public string TypeName { get; set; }
 
     public ScalarType(string type)
     {
@@ -139,5 +177,10 @@ public class ScalarType : ISymbolType
     public bool Equals(ISymbolType? other)
     {
         return other is ScalarType o && TypeName == o.TypeName;
+    }
+    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+    {
+        typeOfAccessed = ScalarType.VoidType;
+        return false;
     }
 }

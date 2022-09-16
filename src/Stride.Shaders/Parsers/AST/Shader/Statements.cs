@@ -124,6 +124,22 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
             throw new Exception("Variable not exist");
         if(Value is IVariableCheck v) v.CheckVariables(s);
     }
+    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    {
+        ISymbolType chainType = ScalarType.VoidType;
+        foreach(var a in AccessNames)
+        {
+            if(a == AccessNames.First())
+            {
+                if(!symbols.TryGetVarType(a,out chainType))
+                    throw new Exception("wrong accessor");
+            }
+            else
+                if(!chainType.TryAccessType(a,out chainType))
+                        throw new Exception("wrong accessor");
+        }
+        Value.TypeCheck(symbols, chainType);
+    }
 }
 
 public class ReturnStatement : Statement, IStreamCheck, IStaticCheck

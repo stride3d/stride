@@ -8,7 +8,10 @@ public partial class SymbolTable
     public void CheckVar(Statement s)
     {
         if(s is IVariableCheck v)
+        {
             v.CheckVariables(this);
+        }
+        s.TypeCheck(this,ScalarType.VoidType);
     }
 
     public ISymbolType TokenizeScalar(string name)

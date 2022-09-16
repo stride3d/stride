@@ -202,7 +202,7 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
 
     public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
     {
-        if (symbols.TryGetType(Name, out var type))
+        if (symbols.TryGetVarType(Name, out var type))
         {
             this.inferredType = type;
         }
