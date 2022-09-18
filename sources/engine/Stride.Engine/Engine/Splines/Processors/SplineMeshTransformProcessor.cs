@@ -97,6 +97,14 @@ namespace Stride.Engine.Splines.Processors
                     splineBezierPoints.AddRange(i == 0 ? bezierPoints : bezierPoints[1..]);
                 }
 
+                if (splineMeshComponent.SplineMesh is SplineMeshSpline splineMeshSpline)
+                {
+                    if(splineMeshSpline.SplineComponent == null)
+                    {
+                        break;
+                    }
+                }
+
                 //Create a model and generate its mesh
                 var model = new Model();
                 splineMeshComponent.SplineMesh.bezierPoints = splineBezierPoints.ToArray();
