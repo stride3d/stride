@@ -25,6 +25,7 @@ public partial class SpirvEmitter
             _ => throw new NotImplementedException()
         };
 
+
         // var variables =
         //     program.Body
         //     .Where(x => x is ShaderVariableDeclaration svd && svd.IsStream)

@@ -24,6 +24,7 @@ public partial class SDSLGrammar : Grammar
     public AlternativeParser IncrementExpression = new() { Name = "IncrementExpression" };
     public AlternativeParser ParenExpression = new(){Name = "ParenExpression"};
     public AlternativeParser EqualsExpression = new(){Name = "EqualsExpression"};
+    public SequenceParser ValueTypesMethods = new(){Name = "ValueTypesMethods"};
     public SequenceParser MethodCall = new(){Name = "MethodCall"};
     public AlternativeParser PrimaryExpression = new(){Name = "PrimaryExpression"};
 
@@ -60,11 +61,19 @@ public partial class SDSLGrammar : Grammar
             PlusPlus,
             MinusMinus
         );
-                
+        
+        ValueTypesMethods.Add(
+            ValueTypes,
+            LeftParen,
+            PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws).Until(RightParen),
+            RightParen
+        );
+        ValueTypesMethods.Separator = ws;
 
         TermExpression.Add(
             Literals,
             Identifier.Named("VariableTerm").Except(Keywords | SimpleTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
+            ValueTypesMethods.Named("ValueTypesMethod"),
             MethodCall,
             Parenthesis(PrimaryExpression)
         );

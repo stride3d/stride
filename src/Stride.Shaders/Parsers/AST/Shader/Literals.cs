@@ -75,7 +75,7 @@ public class NumberLiteral : ShaderLiteral
             {
                 (ScalarType{TypeName : "int"}, ScalarType{TypeName: "float"}) => expected,
                 (ScalarType{TypeName : "float"}, ScalarType{TypeName: "int"}) => expected,
-                _ => throw new NotImplementedException()
+                _ => throw new Exception($"cannot implictely cast {inferredType} to {expected}")
             };
         }
         // if (Suffix is null)

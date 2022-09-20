@@ -43,8 +43,9 @@ public partial class SDSLGrammar : Grammar
         Attribute.Separator = ws;
 
         var arraySpecifier =
-            (LeftBracket & PrimaryExpression & RightBracket).SeparatedBy(ws);
+            (LeftBracket & PrimaryExpression.Named("Count") & RightBracket).SeparatedBy(ws);
 
+        arraySpecifier.Name = "ArraySpecifier";
         
 
         var assignVar =
@@ -69,8 +70,8 @@ public partial class SDSLGrammar : Grammar
             .SeparatedBy(ws1);
 
         var simpleDeclare = 
-            ((SimpleTypes | Identifier) & Identifier & arraySpecifier).SeparatedBy(ws)
-            | ((SimpleTypes | Identifier) & Identifier).SeparatedBy(ws);
+            ((SimpleTypes | Identifier) & Identifier.Named("Variable") & arraySpecifier).SeparatedBy(ws)
+            | ((SimpleTypes | Identifier) & Identifier.Named("Variable")).SeparatedBy(ws);
 
         Statement.Add(
             Block,

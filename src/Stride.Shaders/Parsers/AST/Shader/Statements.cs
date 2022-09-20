@@ -36,13 +36,14 @@ public abstract class Declaration : Statement
     public override ISymbolType InferredType => ScalarType.VoidType;
     public ISymbolType? TypeName { get; set; }
     public string VariableName { get; set; }
-    public ShaderTokenTyped Value { get; set; }
 
 }
 
 public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
 {
     public AssignOpToken AssignOp { get; set; }
+    public ShaderTokenTyped Value { get; set; }
+
 
     public DeclareAssign() { }
     public DeclareAssign(Match m, SymbolTable s)
@@ -75,6 +76,23 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     {
         return Enumerable.Empty<string>();
     }
+    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    {
+        Value.TypeCheck(symbols,TypeName);
+    }
+}
+
+public class SimpleDeclare : Declaration
+{
+    public SimpleDeclare() { }
+    public SimpleDeclare(Match m, SymbolTable s)
+    {
+        Match = m;
+        VariableName = m["Variable"].StringValue;
+        TypeName = s.PushType(m["ValueTypes"].StringValue,m["ValueTypes"]);
+
+    }
+    public override void TypeCheck(SymbolTable symbols, ISymbolType expected){}
 }
 
 public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck

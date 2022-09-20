@@ -405,3 +405,17 @@ public class MethodCall : Expression
         // Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(GetToken).Cast<Expression>().ToList();
     }
 }
+
+public class ValueMethodCall : Expression
+{
+    public string MethodName { get; set; }
+    public IEnumerable<Expression> Parameters { get; set; }
+
+    public ValueMethodCall(Match m, SymbolTable s)
+    {
+        Match = m;
+        MethodName = m.Matches.First().StringValue;
+        inferredType = s.Tokenize(m["ValueTypes"]);
+        Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(x => GetToken(x, s)).Cast<Expression>().ToList();
+    }
+}

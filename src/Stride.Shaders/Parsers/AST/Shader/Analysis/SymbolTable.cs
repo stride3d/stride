@@ -19,7 +19,7 @@ public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
         foreach(var d in this)
             if(d.ContainsKey(a.VariableName))
                 throw new Exception("Variable already declared at " + a.Match);
-        a.Value.TypeCheck(this, a.TypeName);
+        a.TypeCheck(this,ScalarType.VoidType);
         CurrentScope.Add(a.VariableName, new SymbolVariable{Declaration = a, Name = a.VariableName, Type = a.TypeName});
     }
     public void PushStreamType(IEnumerable<ShaderVariableDeclaration> variables)

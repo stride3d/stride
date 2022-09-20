@@ -39,6 +39,11 @@ public class ArrayType : ISymbolType
         }
         return false;
     }
+
+    public override string ToString()
+    {
+        return $"{TypeName}[]";
+    }
 }
 
 public class CompositeType : ISymbolType
@@ -72,6 +77,10 @@ public class CompositeType : ISymbolType
         var result = Fields.TryGetValue(accessor, out var tmp );
         typeOfAccessed = tmp ?? ScalarType.VoidType;
         return result;
+    }
+    public override string ToString()
+    {
+        return $"{Name}";
     }
 }
 
@@ -115,6 +124,10 @@ public class VectorType : ISymbolType
         typeOfAccessed = ScalarType.VoidType;
         return false;
     }
+    public override string ToString()
+    {
+        return $"{TypeName}{Size}";
+    }
 }
 public class MatrixType : ISymbolType
 {
@@ -153,6 +166,11 @@ public class MatrixType : ISymbolType
         typeOfAccessed = ScalarType.VoidType;
         return false;
     }
+
+    public override string ToString()
+    {
+        return $"{TypeName}{SizeX}x{SizeY}";
+    }
 }
 public class ScalarType : ISymbolType
 {
@@ -182,5 +200,9 @@ public class ScalarType : ISymbolType
     {
         typeOfAccessed = ScalarType.VoidType;
         return false;
+    }
+    public override string ToString()
+    {
+        return TypeName;
     }
 }

@@ -18,7 +18,6 @@ public partial class SpirvEmitter : Module
     public SpirvEmitter(uint version) : base(version)
     {
         ShaderTypes = new();
-        CreateStructTypes();
     }
 
     public void Initialize(EntryPoints entry)
