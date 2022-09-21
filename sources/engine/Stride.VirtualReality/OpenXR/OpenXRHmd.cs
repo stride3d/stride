@@ -25,6 +25,8 @@ namespace Stride.VirtualReality
         public SwapchainImageD3D11KHR[] images;
         public SharpDX.Direct3D11.RenderTargetView[] render_targets;
 #endif
+        // Public static variable to add extensions to the initialization of the openXR session
+        public static List<string> extensions = new List<string>();
         public ActionSet globalActionSet;
         public InteractionProfileState handProfileState;
         internal ulong leftHandPath;
@@ -52,7 +54,7 @@ namespace Stride.VirtualReality
         private unsafe delegate Result pfnCreateDebugUtilsMessengerEXT(Instance instance, DebugUtilsMessengerCreateInfoEXT* createInfo, DebugUtilsMessengerEXT* messenger);
         private unsafe delegate Result pfnDestroyDebugUtilsMessengerEXT(DebugUtilsMessengerEXT messenger);
 
-        private List<string> Extensions = new List<string>();
+
         internal bool begunFrame, swapImageCollected;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         internal uint swapchainPointer;
@@ -152,17 +154,14 @@ namespace Stride.VirtualReality
 
             Logger.Debug("Installing extensions");
 
-            Extensions.Clear();
+            var openXrExtensions = new List<String>();
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-            Extensions.Add("XR_KHR_D3D11_enable");
+            openXrExtensions.Add("XR_KHR_D3D11_enable");
 #endif
 #if DEBUG_OPENXR
-            Extensions.Add("XR_EXT_debug_utils");
+            openXrExtensions.Add("XR_EXT_debug_utils");
 #endif
-            //Extensions.Add("XR_EXT_hp_mixed_reality_controller");
-            //Extensions.Add("XR_HTC_vive_cosmos_controller_interaction");
-            //Extensions.Add("XR_MSFT_hand_interaction");
-            //Extensions.Add("XR_EXT_samsung_odyssey_controller");
+            openXrExtensions.AddRange(extensions);
 
             uint propCount = 0;
             Xr.EnumerateInstanceExtensionProperties((byte*)null, 0, &propCount, null);
@@ -187,13 +186,19 @@ namespace Stride.VirtualReality
                 }
             }
 
-            for (int i = 0; i < Extensions.Count; i++)
+            for (int i = 0; i < openXrExtensions.Count; i++)
             {
-                if (!AvailableExtensions.Contains(Extensions[i]))
+                if (!AvailableExtensions.Contains(openXrExtensions[i]))
                 {
-                    Extensions.RemoveAt(i);
+                    openXrExtensions.RemoveAt(i);
                     i--;
                 }
+            }
+
+            Logger.Debug("Available extensions of those enabled");
+            for (int i = 0; i < openXrExtensions.Count; i++)
+            {
+                Logger.Debug(openXrExtensions[i]);
             }
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
@@ -215,11 +220,11 @@ namespace Stride.VirtualReality
             SilkMarshal.StringIntoSpan(System.AppDomain.CurrentDomain.FriendlyName, appName);
             SilkMarshal.StringIntoSpan("Stride", engName);
 
-            var requestedExtensions = SilkMarshal.StringArrayToPtr(Extensions);
+            var requestedExtensions = SilkMarshal.StringArrayToPtr(openXrExtensions);
             InstanceCreateInfo instanceCreateInfo = new InstanceCreateInfo
             (
                 applicationInfo: appInfo,
-                enabledExtensionCount: (uint)Extensions.Count,
+                enabledExtensionCount: (uint)openXrExtensions.Count,
                 enabledExtensionNames: (byte**)requestedExtensions,
                 createFlags: 0,
                 enabledApiLayerCount: 0,
@@ -677,7 +682,8 @@ namespace Stride.VirtualReality
         public override void SetTrackingSpace(TrackingSpace space)
         {
             Logger.Debug("Changing tracking space to: " + space);
-            switch (space) {
+            switch (space)
+            {
                 case TrackingSpace.Seated:
                     play_space_type = ReferenceSpaceType.Local;
                     break;
