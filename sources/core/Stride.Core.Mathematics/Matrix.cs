@@ -622,43 +622,91 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Decomposes a rotation matrix with the specified yaw, pitch, roll
+        /// Decomposes a rotation matrix with the specified yaw, pitch, roll value (angles in radians).
         /// </summary>
-        /// <param name="yaw">The yaw.</param>
-        /// <param name="pitch">The pitch.</param>
-        /// <param name="roll">The roll.</param>
+        /// <param name="yaw">The yaw component in radians.</param>
+        /// <param name="pitch">The pitch component in radians.</param>
+        /// <param name="roll">The roll component in radians.</param>
+        /// <remarks>
+        /// This rotation matrix can be represented by <b>intrinsic</b> rotations in the order <paramref name="yaw"/>, <paramref name="pitch"/>, then <paramref name="roll"/>.
+        /// <br/>
+        /// Therefore the <b>extrinsic</b> rotations to achieve this matrix is the reversed order of operations,
+        /// ie. Matrix.RotationZ(roll) * Matrix.RotationX(pitch) * Matrix.RotationY(yaw)
+        /// </remarks>
         public void Decompose(out float yaw, out float pitch, out float roll)
         {
-            pitch = MathF.Asin(-M32);
-            if (MathF.Cos(pitch) > MathUtil.ZeroTolerance)
+            // Adapted from 'Euler Angle Formulas' by David Eberly - https://www.geometrictools.com/Documentation/EulerAngles.pdf
+            // 2.3 Factor as Ry Rx Rz
+            // License under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+            //
+            // Note the Stride's matrix row/column ordering is swapped, indices starts at one,
+            // and the if-statement ordering is written to minimize the number of operations to get to
+            // the common case, and made to handle the +/- 1 cases better due to low precision in floats
+            if (MathUtil.IsOne(Math.Abs(M32)))
             {
-                roll = MathF.Atan2(M12, M22);
-                yaw = MathF.Atan2(M31, M33);
+                if (M32 >= 0)
+                {
+                    // Edge case where M32 == +1
+                    pitch = -MathUtil.PiOverTwo;
+                    yaw = MathF.Atan2(-M21, M11);
+                    roll = 0;
+                }
+                else
+                {
+                    // Edge case where M32 == -1
+                    pitch = MathUtil.PiOverTwo;
+                    yaw = -MathF.Atan2(-M21, M11);
+                    roll = 0;
+                }
             }
             else
             {
-                roll = MathF.Atan2(-M21, M11);
-                yaw = 0.0f;
+                // Common case
+                pitch = MathF.Asin(-M32);
+                yaw = MathF.Atan2(M31, M33);
+                roll = MathF.Atan2(M12, M22);
             }
         }
 
         /// <summary>
-        /// Decomposes a rotation matrix with the specified X, Y and Z euler angles.
+        /// Decomposes a rotation matrix with the specified X, Y and Z euler angles in radians.
         /// Matrix.RotationX(rotation.X) * Matrix.RotationY(rotation.Y) * Matrix.RotationZ(rotation.Z) should represent the same rotation.
         /// </summary>
         /// <param name="rotation">The vector containing the 3 rotations angles to be applied in order.</param>
         public void DecomposeXYZ(out Vector3 rotation)
         {
-            rotation.Y = MathF.Asin(-M13);
-            if (MathF.Cos(rotation.Y) > MathUtil.ZeroTolerance)
+            // Adapted from 'Euler Angle Formulas' by David Eberly - https://www.geometrictools.com/Documentation/EulerAngles.pdf
+            // 2.6 Factor as Rz Ry Rx
+            // License under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+            //
+            // Note the Stride's matrix row/column ordering is swapped, indices starts at one,
+            // and the if-statement ordering is written to minimize the number of operations to get to
+            // the common case, and made to handle the +/- 1 cases better due to low precision in floats.
+            // The above documentation implies the *extrinsic* rotation order is X-Y-Z,
+            // so the *intrinsic* rotation is Z-Y-X which is the formula to use here
+            if (MathUtil.IsOne(Math.Abs(M13)))
             {
-                rotation.Z = MathF.Atan2(M12, M11);
-                rotation.X = MathF.Atan2(M23, M33);
+                if (M13 >= 0)
+                {
+                    // Edge case where M13 == +1
+                    rotation.Y = -MathUtil.PiOverTwo;
+                    rotation.Z = MathF.Atan2(-M32, M22);
+                    rotation.X = 0;
+                }
+                else
+                {
+                    // Edge case where M13 == -1
+                    rotation.Y = MathUtil.PiOverTwo;
+                    rotation.Z = -MathF.Atan2(-M32, M22);
+                    rotation.X = 0;
+                }
             }
             else
             {
-                rotation.Z = MathF.Atan2(-M21, M31);
-                rotation.X = 0.0f;
+                // Common case
+                rotation.Y = MathF.Asin(-M13);
+                rotation.Z = MathF.Atan2(M12, M11);
+                rotation.X = MathF.Atan2(M23, M33);
             }
         }
 
@@ -2782,7 +2830,7 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Creates a rotation matrix with a specified yaw, pitch, and roll.
+        /// Creates a rotation matrix with a specified yaw, pitch, and roll value (angles in radians).
         /// </summary>
         /// <param name="yaw">Yaw around the y-axis, in radians.</param>
         /// <param name="pitch">Pitch around the x-axis, in radians.</param>
@@ -2795,7 +2843,7 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Creates a rotation matrix with a specified yaw, pitch, and roll.
+        /// Creates a rotation matrix with a specified yaw, pitch, and roll value (angles in radians).
         /// </summary>
         /// <param name="yaw">Yaw around the y-axis, in radians.</param>
         /// <param name="pitch">Pitch around the x-axis, in radians.</param>
