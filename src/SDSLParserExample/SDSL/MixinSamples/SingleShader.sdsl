@@ -28,7 +28,7 @@ shader SingleShader {
     void VSMain() 
     {
         float3 a = float3(0);
-        streams.ShadingPosition2 = a;
-        streams.Depth = streams.ShadingPosition;
+        streams.ShadingPosition = a;
+        streams.Depth = streams.ShadingPosition.x;
     }
 };
