@@ -26,7 +26,7 @@ static void LoadShaders()
     manager.AddDirectory("./SDSL/MixinSamples");
 
     var mixer = new SimpleMixer("SingleShader",manager);
-    mixer.SemanticChecks();
+    var errors = mixer.SemanticChecks();
     
     var module = mixer.EmitSpirv(EntryPoints.VSMain);
     var used = mixer.program.Body.OfType<VSMainMethod>().First().GetUsedStream().ToList();

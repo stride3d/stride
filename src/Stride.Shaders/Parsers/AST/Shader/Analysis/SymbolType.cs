@@ -112,7 +112,9 @@ public class VectorType : ISymbolType
 
     public bool Equals(ISymbolType? other)
     {
-        throw new NotImplementedException();
+        return other is VectorType v 
+            && v.TypeName.Equals(TypeName)
+            && v.Size == Size;
     }
     public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
     {

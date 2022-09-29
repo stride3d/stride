@@ -5,6 +5,7 @@ public interface ISymbol{}
 
 public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
 {
+    public ErrorList Errors {get;set;} = new();
     public Dictionary<string,ISymbol> CurrentScope => Peek();
     public Dictionary<string,ISymbol> GlobalScope => this.First();
     public SymbolTable()
@@ -13,6 +14,8 @@ public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
     }
 
     public void AddScope() => Push(new());
+    public void AddError(Eto.Parse.Match match, string title) => Errors.Add(new(match, title));
+
 
     public void PushVar(Declaration a)
     {

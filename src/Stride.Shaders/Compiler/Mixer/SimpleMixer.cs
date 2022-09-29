@@ -19,7 +19,7 @@ public class SimpleMixer
         program = ShaderMixinParser.ParseShader(source.ShaderSourceCode);
         il = new();
     }
-    public void SemanticChecks()
+    public ErrorList SemanticChecks()
     {
         var sym = new SymbolTable();
         sym.PushStreamType(program.Body.OfType<ShaderVariableDeclaration>());
@@ -30,6 +30,7 @@ public class SimpleMixer
             method.VariableChecking(sym);
             sym.Pop();
         }
+        return sym.Errors;
     }
     public Module EmitSpirv(EntryPoints entry)
     {

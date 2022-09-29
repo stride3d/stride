@@ -18,18 +18,19 @@ public class ChainAccessor : UnaryExpression, IStreamCheck, IVariableCheck
 {
     public ShaderToken Value { get; set; }
     public IEnumerable<ShaderToken> Field { get; set; }
+    public override ISymbolType InferredType { get => inferredType; set => inferredType = value; }
 
     public ChainAccessor(Match m, SymbolTable s)
     {
         Match = m;
-        Value = GetToken(m.Matches["Identifier"],s);
-        Field = m.Matches.GetRange(1,m.Matches.Count-1).Select(x => GetToken(x,s));
+        Value = GetToken(m.Matches["Identifier"], s);
+        Field = m.Matches.GetRange(1, m.Matches.Count - 1).Select(x => GetToken(x, s));
     }
 
     public IEnumerable<string> GetUsedStream()
     {
-        if(Value is VariableNameLiteral vn && vn.Name == "streams")
-            return new List<string>{((VariableNameLiteral)Field.First()).Name};
+        if (Value is VariableNameLiteral vn && vn.Name == "streams")
+            return new List<string> { ((VariableNameLiteral)Field.First()).Name };
         return Enumerable.Empty<string>();
     }
     public IEnumerable<string> GetAssignedStream()
@@ -42,7 +43,27 @@ public class ChainAccessor : UnaryExpression, IStreamCheck, IVariableCheck
     }
     public void CheckVariables(SymbolTable s)
     {
-        if(Value is IVariableCheck n) n.CheckVariables(s);
+        if (Value is IVariableCheck n) n.CheckVariables(s);
+    }
+    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    {
+        if (Value is VariableNameLiteral vn && symbols.TryGetVarType(vn.Name, out var type))
+        {
+            ISymbolType current = type;
+
+            foreach (var a in Field)
+            {
+                var tmp = current;
+                if (a is VariableNameLiteral vna)
+                {
+                    if(!current.TryAccessType(vna.Name, out current))
+                    {
+                        symbols.AddError(Match, $"Accessor `{vna.Name}` does not exist for type `{tmp}`");
+                    }
+                }
+            }
+            inferredType = current;
+        }
     }
 }
 
@@ -50,17 +71,17 @@ public class ArrayAccessor : UnaryExpression, IVariableCheck
 {
     public ShaderToken Value { get; set; }
     public IEnumerable<ShaderToken> Accessors { get; set; }
-    
+
     public ArrayAccessor(Match m, SymbolTable s)
     {
         Match = m;
-        Value= GetToken(m.Matches[0],s);
+        Value = GetToken(m.Matches[0], s);
         throw new NotImplementedException();
         // Accessors = m.Matches.GetRange(1,m.Matches.Count-1).Select(GetToken);
     }
     public void CheckVariables(SymbolTable s)
     {
-        if(Value is IVariableCheck n) n.CheckVariables(s);
+        if (Value is IVariableCheck n) n.CheckVariables(s);
     }
 }
 
@@ -72,7 +93,7 @@ public class PostfixIncrement : UnaryExpression, IVariableCheck
     public PostfixIncrement(Match m, SymbolTable s)
     {
         Match = m;
-        Value = GetToken(m.Matches[0],s);
+        Value = GetToken(m.Matches[0], s);
         Operator = m.Matches[1].StringValue;
     }
 
@@ -82,7 +103,7 @@ public class PostfixIncrement : UnaryExpression, IVariableCheck
     }
     public void CheckVariables(SymbolTable s)
     {
-        if(Value is VariableNameLiteral n) n.CheckVariables(s);
+        if (Value is VariableNameLiteral n) n.CheckVariables(s);
     }
 }
 
@@ -94,7 +115,7 @@ public class PrefixIncrement : UnaryExpression
     {
         Match = m;
         Operator = m.Matches[0].StringValue;
-        Value = GetToken(m.Matches[1],s);
+        Value = GetToken(m.Matches[1], s);
     }
 }
 
@@ -104,7 +125,7 @@ public class CastExpression : UnaryExpression
     public ShaderToken From { get; set; }
     public CastExpression(Match m, SymbolTable s)
     {
-        Target = new TypeNameLiteral(m.Matches[0],s);
-        From = GetToken(m.Matches[1],s);
+        Target = new TypeNameLiteral(m.Matches[0], s);
+        From = GetToken(m.Matches[1], s);
     }
 }

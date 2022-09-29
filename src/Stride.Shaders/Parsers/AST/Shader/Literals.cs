@@ -204,7 +204,7 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
     {
         if (symbols.TryGetVarType(Name, out var type))
         {
-            this.inferredType = type;
+            inferredType = type;
         }
         else throw new NotImplementedException();
     }

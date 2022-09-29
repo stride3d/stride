@@ -50,9 +50,9 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     {
         Match = m;
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
-        TypeName = s.PushType(m["ValueTypes"].StringValue,m["ValueTypes"]);
+        TypeName = s.PushType(m["ValueTypes"].StringValue, m["ValueTypes"]);
         VariableName = m["Variable"].StringValue;
-        Value = (ShaderTokenTyped)GetToken(m["Value"],s);
+        Value = (ShaderTokenTyped)GetToken(m["Value"], s);
     }
 
     public bool CheckStatic(SymbolTable s)
@@ -78,7 +78,7 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     }
     public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
     {
-        Value.TypeCheck(symbols,TypeName);
+        Value.TypeCheck(symbols, TypeName);
     }
 }
 
@@ -89,10 +89,10 @@ public class SimpleDeclare : Declaration
     {
         Match = m;
         VariableName = m["Variable"].StringValue;
-        TypeName = s.PushType(m["ValueTypes"].StringValue,m["ValueTypes"]);
+        TypeName = s.PushType(m["ValueTypes"].StringValue, m["ValueTypes"]);
 
     }
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected){}
+    public override void TypeCheck(SymbolTable symbols, ISymbolType expected) { }
 }
 
 public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
@@ -108,7 +108,7 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
         Match = m;
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
         AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue);
-        Value = (ShaderTokenTyped)GetToken(m["PrimaryExpression"],s);
+        Value = (ShaderTokenTyped)GetToken(m["PrimaryExpression"], s);
     }
 
     public bool CheckStream(SymbolTable s)
@@ -138,25 +138,33 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 
     public void CheckVariables(SymbolTable s)
     {
-        if(!s.Any(x => x.ContainsKey(this.AccessNames.First())))
+        if (!s.Any(x => x.ContainsKey(this.AccessNames.First())))
             throw new Exception("Variable not exist");
-        if(Value is IVariableCheck v) v.CheckVariables(s);
+        if (Value is IVariableCheck v) v.CheckVariables(s);
     }
     public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
     {
         ISymbolType chainType = ScalarType.VoidType;
-        foreach(var a in AccessNames)
+        foreach (var a in AccessNames)
         {
-            if(a == AccessNames.First())
+            var tmp = chainType;
+            if (a == AccessNames.First())
             {
-                if(!symbols.TryGetVarType(a,out chainType))
-                    throw new Exception("wrong accessor");
+                if (!symbols.TryGetVarType(a, out chainType))
+                {
+                    symbols.AddError(Match, $"Field `{a}` doesn't exist in type `{tmp}`");
+                    return;
+                }
             }
-            else
-                if(!chainType.TryAccessType(a,out chainType))
-                        throw new Exception("wrong accessor");
+            else if (!chainType.TryAccessType(a, out chainType))
+            {
+                symbols.AddError(Match, $"Field `{a}` doesn't exist in type `{tmp}`");
+                return;
+            }
         }
-        Value.TypeCheck(symbols, chainType);
+        Value.TypeCheck(symbols, null); // Variable check ?
+        if (!chainType.Equals(Value.InferredType))
+            symbols.AddError(Match, $"Cannot cast `{chainType}` to `{Value.InferredType}`");
     }
 }
 
