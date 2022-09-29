@@ -7,7 +7,6 @@ namespace Stride.VirtualReality
         Oculus = 0,
         OpenVR = 1,
         WindowsMixedReality = 2,
-        OpenXR = 3,
         Dummy = 100,
         //Fove,
         //Google,
