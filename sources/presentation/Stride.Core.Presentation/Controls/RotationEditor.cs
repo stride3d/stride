@@ -58,9 +58,9 @@ namespace Stride.Core.Presentation.Controls
 
                 var rotationMatrix = Matrix.RotationQuaternion(value.Value);
                 rotationMatrix.Decompose(out decomposedRotation.Y, out decomposedRotation.X, out decomposedRotation.Z);
-                SetCurrentValue(XProperty, MathUtil.RadiansToDegrees(decomposedRotation.X));
-                SetCurrentValue(YProperty, MathUtil.RadiansToDegrees(decomposedRotation.Y));
-                SetCurrentValue(ZProperty, MathUtil.RadiansToDegrees(decomposedRotation.Z));
+                SetCurrentValue(XProperty, GetDisplayValue(decomposedRotation.X));
+                SetCurrentValue(YProperty, GetDisplayValue(decomposedRotation.Y));
+                SetCurrentValue(ZProperty, GetDisplayValue(decomposedRotation.Z));
             }
         }
 
@@ -96,6 +96,19 @@ namespace Stride.Core.Presentation.Controls
         private static Quaternion Recompose(ref Vector3 vector)
         {
             return Quaternion.RotationYawPitchRoll(vector.Y, vector.X, vector.Z);
+        }
+
+        private static float GetDisplayValue(float angleRadians)
+        {
+            var degrees = MathUtil.RadiansToDegrees(angleRadians);
+            if (degrees == 0 && float.IsNegative(degrees))
+            {
+                // Matrix.DecomposeXYZ can give -0 when MathF.Asin(-0) == -0,
+                // whereas previously Math.Asin(-0) == +0 (ie. did not respect the sign value at zero).
+                // This shows up in the editor but we don't want to see this.
+                degrees = 0;
+            }
+            return degrees;
         }
     }
 }
