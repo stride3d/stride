@@ -88,7 +88,8 @@ public class VectorType : ISymbolType
 {
     public int Size { get; set; }
     public ISymbolType TypeName { get; set; }
-    static string[] accessors = new string[] { "x", "y", "z", "w" };
+    static string swizzleX = "xyzw";
+    static string swizzleR = "rgba";
 
     public VectorType(string size, ISymbolType type)
     {
@@ -99,10 +100,20 @@ public class VectorType : ISymbolType
         }
         else throw new NotImplementedException();
     }
+    public VectorType(int size, ISymbolType type)
+    {
+        Size = size;
+        TypeName = type;
+    }
 
     public bool IsAccessorValid(string accessor)
     {
-        return accessor.All(accessor[0..Size].Contains);
+        return 
+            accessor.Length < 5 
+            && (
+                accessor.All(swizzleX.Contains) 
+                || accessor.All(swizzleR.Contains)
+            );
     }
 
     public bool IsIndexingValid(string index)
@@ -120,7 +131,7 @@ public class VectorType : ISymbolType
     {
         if(IsAccessorValid(accessor))
         {
-            typeOfAccessed = TypeName;
+            typeOfAccessed = accessor.Length > 1 ? new VectorType(accessor.Length,TypeName) : TypeName;
             return true;
         }
         typeOfAccessed = ScalarType.VoidType;
