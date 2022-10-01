@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Stride.Core.CompilerServices.Extensions;
 using Stride.Core.Serialization;
+using static Stride.Core.CompilerServices.Diagnostics;
 
 namespace Stride.Core.CompilerServices
 {
@@ -15,9 +17,9 @@ namespace Stride.Core.CompilerServices
         {
             private readonly INamedTypeSymbol enumSerializer;
             private readonly INamedTypeSymbol arraySerializer;
-            private readonly GeneratorExecutionContext context;
+            private readonly GeneratorContext context;
 
-            public Validator(GeneratorExecutionContext context)
+            public Validator(GeneratorContext context)
             {
                 this.context = context;
                 enumSerializer = context.Compilation.GetTypeByMetadataName("Stride.Core.Serialization.Serializers.EnumSerializer`1");
@@ -80,8 +82,8 @@ namespace Stride.Core.CompilerServices
                                 additionalLocations: null,
                                 properties: null,
                                 member.Name,
-                                member.Member.ContainingType.ToDisplayString(SimpleClassNameWithNestedInfo),
-                                member.Type.ToDisplayString(SimpleClassNameWithNestedInfo)));
+                                member.Member.ContainingType.ToStringSimpleClass(),
+                                member.Type.ToStringSimpleClass()));
 
                             /* TODO uncomment once we emit the factory attributes fully
                             typeSpec.Members.RemoveAt(i);
@@ -144,7 +146,7 @@ namespace Stride.Core.CompilerServices
                     }
                     return true;
                 }
-                else if (memberType.TypeKind == TypeKind.Interface || (memberType.TypeKind == TypeKind.Class && memberType.IsAbstract) || memberType.Equals(systemObjectSymbol, SymbolEqualityComparer.Default))
+                else if (memberType.TypeKind == TypeKind.Interface || (memberType.TypeKind == TypeKind.Class && memberType.IsAbstract) || memberType.Is(context.WellKnownReferences.SystemObject))
                 {
                     if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((memberType, DefaultProfile)) && !serializerSpec.DependencySerializerReference.ContainsKey((memberType, DefaultProfile)))
                     {
@@ -169,7 +171,7 @@ namespace Stride.Core.CompilerServices
             /// </summary>
             private bool ValidateBaseTypeChain(SerializerSpec serializerSpec, INamedTypeSymbol baseType)
             {
-                while (baseType != null && !baseType.Equals(systemObjectSymbol, SymbolEqualityComparer.Default))
+                while (baseType != null && !baseType.Is(context.WellKnownReferences.SystemObject))
                 {
                     var referencesDictionary = serializerSpec.GlobalSerializerRegistrationsToEmit;
                     bool? check = ValidateTypeInChain(serializerSpec, referencesDictionary, baseType);
@@ -283,7 +285,7 @@ namespace Stride.Core.CompilerServices
 
                 foreach (var attribute in type.GetAttributes())
                 {
-                    if (attribute.AttributeClass.ToDisplayString() != DataSerializerGlobalAttributeName)
+                    if (!attribute.AttributeClass.Is(context.WellKnownReferences.DataSerializerGlobalAttribute))
                     {
                         continue;
                     }

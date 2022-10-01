@@ -4,27 +4,15 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Stride.Core.CompilerServices.Extensions;
 using Stride.Core.Serialization;
+using static Stride.Core.CompilerServices.Diagnostics;
 
 namespace Stride.Core.CompilerServices
 {
     public partial class SerializerGenerator
     {
-        private const string DataContractAttributeName = "Stride.Core.DataContractAttribute";
-        private const string DataSerializerAttributeName = "Stride.Core.Serialization.DataSerializerAttribute";
-        private const string DataAliasAttributeName = "Stride.Core.DataAliasAttribute";
-        private const string DataMemberAttributeName = "Stride.Core.DataMemberAttribute";
-        private const string DataMemberIgnoreAttributeName = "Stride.Core.DataMemberIgnoreAttribute";
-        private const string DataSerializerGlobalAttributeName = "Stride.Core.Serialization.DataSerializerGlobalAttribute";
-        private const string StructLayoutAttributeName = "System.Runtime.InteropServices.StructLayoutAttribute";
-        private const string FieldOffsetAttributeName = "System.Runtime.InteropServices.FieldOffsetAttribute";
-        private const string DataSerializerName = "Stride.Core.Serialization.DataSerializer";
-
-        private static readonly SymbolDisplayFormat SimpleClassNameWithNestedInfo = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
-
-        internal static SerializerSpec GenerateSpec(GeneratorExecutionContext context)
+        internal static SerializerSpec GenerateSpec(GeneratorContext context)
         {
             var assembly = context.Compilation.Assembly;
             var allTypes = GetAllTypesForAssembly(assembly);
@@ -46,22 +34,19 @@ namespace Stride.Core.CompilerServices
                     continue;
                 }
 
-                if (CheckForDataContract(typeSymbol))
+                if (typeSymbol.TypeKind == TypeKind.Enum)
                 {
-                    if (typeSymbol.TypeKind == TypeKind.Enum)
+                    customSerializers.Add((typeSymbol, DefaultProfile), new GlobalSerializerRegistration
                     {
-                        customSerializers.Add((typeSymbol, DefaultProfile), new GlobalSerializerRegistration
-                        {
-                            DataType = typeSymbol,
-                            SerializerType = context.Compilation.GetTypeByMetadataName("Stride.Core.Serialization.Serializers.EnumSerializer`1").Construct(typeSymbol),
-                            Generated = false,
-                            Inherited = false,
-                            GenericMode = DataSerializerGenericMode.None,
-                        });
-
-                        goto endDataContractCheck;
-                    }
-
+                        DataType = typeSymbol,
+                        SerializerType = context.WellKnownReferences.EnumSerializer.Construct(typeSymbol),
+                        Generated = false,
+                        Inherited = false,
+                        GenericMode = DataSerializerGenericMode.None,
+                    });
+                }
+                else if (CheckForDataContract(context, typeSymbol))
+                {
                     if (!typeSymbol.IsValueType && !typeSymbol.IsAbstract && !typeSymbol.Constructors.Any(
                             ctor => !ctor.Parameters.Any() && ctor.DeclaredAccessibility == Accessibility.Public))
                     {
@@ -69,12 +54,11 @@ namespace Stride.Core.CompilerServices
                         context.ReportDiagnostic(Diagnostic.Create(
                             DataContractClassHasNoAccessibleParameterlessCtor,
                             typeSymbol.Locations.FirstOrDefault(),
-                            typeSymbol.ToDisplayString(SimpleClassNameWithNestedInfo)));
+                            typeSymbol.ToStringSimpleClass()));
                         continue;
                     }
 
-                    typeSpecs.Add(GenerateTypeSpec(context, typeSymbol));
-endDataContractCheck:;
+                    typeSpecs.Add(SerializerTypeSpecGenerator.GenerateTypeSpec(context, typeSymbol));
                 }
 
 
@@ -110,172 +94,13 @@ endDataContractCheck:;
             return types;
         }
 
-        private static SerializerTypeSpec GenerateTypeSpec(GeneratorExecutionContext context, INamedTypeSymbol type)
-        {
-            var typeAttributes = type.GetAttributes();
-            var dataContractAttribute = typeAttributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == DataContractAttributeName);
-            var dataAliasAttributes = typeAttributes.Where(static attr => attr.AttributeClass.ToDisplayString() == DataAliasAttributeName).ToList();
-
-            var members = new List<SerializerMemberSpec>();
-            foreach (var member in type.GetMembers())
-            {
-                // TODO: currently AssemblyProcessor takes static members to generate serializers for them (i.e. PropertyKey)
-                //       so we'd have to add a flag to remove it from member list after validating its type
-                if (member.IsStatic || member is IMethodSymbol)
-                    continue;
-
-                var attributes = member.GetAttributes();
-                var ignoreAttribute = attributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == DataMemberIgnoreAttributeName);
-                var dataMemberAttribute = attributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == DataMemberAttributeName);
-
-                if (ignoreAttribute != null)
-                {
-                    if (dataMemberAttribute != null)
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            DataContractMemberHasBothIncludeAndIgnoreAttr,
-                            member.Locations.FirstOrDefault(),
-                            member.Name,
-                            type.ToDisplayString(SimpleClassNameWithNestedInfo)));
-                    }
-
-                    // member was ignored
-                    continue;
-                }
-
-                if (member.DeclaredAccessibility != Accessibility.Public)
-                {
-                    if (!(member.DeclaredAccessibility == Accessibility.Internal && dataMemberAttribute != null))
-                    {
-                        // member is not public or internal with attribute 
-                        continue;
-                    }
-                }
-
-                ITypeSymbol memberType;
-                MemberAccessMode accessMode;
-
-                if (member is IPropertySymbol prop)
-                {
-                    if (prop.SetMethod == null && prop.Type.IsValueType)
-                    {
-                        // structs have to be assignable to properties
-                        continue;
-                    }
-
-                    if (prop.SetMethod != null && !(prop.SetMethod.DeclaredAccessibility == Accessibility.Public || prop.SetMethod.DeclaredAccessibility == Accessibility.Internal))
-                    {
-                        // setter is inaccessible
-                        continue;
-                    }
-
-                    if (prop.GetMethod == null)
-                    {
-                        // a serializable property has to have a get method
-                        continue;
-                    }
-
-                    if (prop.GetMethod.Parameters.Length > 0)
-                    {
-                        // Ignore properties with indexer
-                        continue;
-                    }
-
-                    memberType = prop.Type;
-
-                    accessMode = MemberAccessMode.ByLocalRef;
-                    if (prop.SetMethod != null)
-                    {
-                        accessMode |= MemberAccessMode.WithAssignment;
-                    }
-                }
-                else if (member is IFieldSymbol field)
-                {
-                    memberType = field.Type;
-                    accessMode = field.IsReadOnly ? MemberAccessMode.ByLocalRef : MemberAccessMode.ByRef;
-                }
-                else
-                {
-                    // member is neither a property or a field?
-                    continue;
-                }
-
-                int? order = GetOrderOfMember(typeAttributes, attributes, dataMemberAttribute);
-
-                members.Add(new SerializerMemberSpec(member, memberType, order, accessMode, dataMemberAttribute != null));
-            }
-
-            // Sort members by their order
-            members.Sort();
-
-            var typeSpec = new SerializerTypeSpec(type, members)
-            {
-                Inherited = dataContractAttribute == null || (dataContractAttribute.NamedArguments.FirstOrDefault(static kvp => kvp.Key == "Inherited").Value.Value?.Equals(true) ?? false),
-            };
-
-            // add aliases
-            {
-                if (dataContractAttribute != null && dataContractAttribute.ConstructorArguments.FirstOrDefault() is TypedConstant aliasWrapper && aliasWrapper.Value is string alias)
-                {
-                    typeSpec.Aliases.Add(alias);
-                }
-            }
-            foreach (var aliasAttr in dataAliasAttributes)
-            {
-                if (aliasAttr.ConstructorArguments.FirstOrDefault() is TypedConstant aliasWrapper && aliasWrapper.Value is string alias)
-                {
-                    typeSpec.Aliases.Add(alias);
-                }
-            }
-
-            // Check if there's a base type, which will be validated later
-            if (!type.BaseType.Equals(systemObjectSymbol, SymbolEqualityComparer.Default))
-            {
-                typeSpec.BaseType = type.BaseType;
-            }
-
-            return typeSpec;
-        }
-
-        private static int? GetOrderOfMember(ImmutableArray<AttributeData> typeAttributes, ImmutableArray<AttributeData> memberAttributes, AttributeData dataMemberAttribute)
-        {
-            var layoutAttribute = typeAttributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == StructLayoutAttributeName);
-            if (layoutAttribute != null)
-            {
-                LayoutKind layoutKind = (LayoutKind)layoutAttribute.ConstructorArguments[0].Value;
-
-                if (layoutKind == LayoutKind.Sequential)
-                {
-                    return null;
-                }
-                else if (layoutKind == LayoutKind.Explicit)
-                {
-                    var fieldOffsetAttribute = memberAttributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == FieldOffsetAttributeName);
-                    int offset = (int)fieldOffsetAttribute.ConstructorArguments[0].Value;
-                    return offset;
-                }
-            }
-
-            if (dataMemberAttribute != null)
-            {
-                if (dataMemberAttribute.AttributeConstructor.Parameters.FirstOrDefault() is IParameterSymbol parameter &&
-                    parameter.Type.Equals(systemInt32Symbol, SymbolEqualityComparer.Default))
-                {
-                    return (int)dataMemberAttribute.ConstructorArguments[0].Value;
-                }
-            }
-
-            return null;
-        }
-
-        internal static void CheckTypeForCustomSerializers(GeneratorExecutionContext context, ISymbol symbol, Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration> customSerializers)
+        internal static void CheckTypeForCustomSerializers(GeneratorContext context, ISymbol symbol, Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration> customSerializers)
         {
             var attributes = symbol.GetAttributes();
             foreach (var attribute in attributes)
             {
                 GlobalSerializerRegistration spec = null;
-                var attributeFullName = attribute.AttributeClass.ToDisplayString();
-                if (attributeFullName == DataSerializerAttributeName)
+                if (attribute.AttributeClass.Is(context.WellKnownReferences.DataSerializerAttribute))
                 {
                     var dataType = symbol as ITypeSymbol;
                     var serializerType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
@@ -305,7 +130,7 @@ endDataContractCheck:;
                         GenericMode = genericMode,
                     };
                 }
-                else if (attributeFullName == DataSerializerGlobalAttributeName)
+                else if (attribute.AttributeClass.Is(context.WellKnownReferences.DataSerializerGlobalAttribute))
                 {
                     var dataType = attribute.ConstructorArguments[1].Value as ITypeSymbol;
                     var serializerType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
@@ -325,7 +150,7 @@ endDataContractCheck:;
                         var baseType = serializerType.BaseType;
                         while (baseType != null)
                         {
-                            if (baseType.ToDisplayString(NamespaceWithTypeNameWithoutGenerics) == DataSerializerName && baseType.IsGenericType)
+                            if (baseType.IsGeneric(context.WellKnownReferences.DataSerializer))
                             {
                                 dataType = baseType.TypeArguments[0];
                                 break;
@@ -365,12 +190,12 @@ endDataContractCheck:;
                     // get the OriginalDefinition for this symbol to access base type info
                     // and validate it extends Stride.Core.Serialization.DataSerializer
                     if (spec.SerializerType != null &&
-                        !HasBaseTypesMatchingPredicate(spec.SerializerType, baseType => baseType.ToDisplayString() == DataSerializerName))
+                        !HasBaseTypesMatchingPredicate(spec.SerializerType, baseType => baseType.IsGeneric(context.WellKnownReferences.DataSerializer)))
                     {
                         context.ReportDiagnostic(Diagnostic.Create(
                             DataSerializerDoesNotExtendDataSerializerBaseClass,
                             Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span),
-                            spec.SerializerType.ToDisplayString(SimpleClassNameWithNestedInfo)));
+                            spec.SerializerType.ToStringSimpleClass()));
                         
                         continue;
                     }
@@ -391,7 +216,7 @@ endDataContractCheck:;
                         context.ReportDiagnostic(Diagnostic.Create(
                             DataSerializerGlobalDuplicateDeclarations,
                             Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span),
-                            spec.DataType.ToDisplayString(SimpleClassNameWithNestedInfo),
+                            spec.DataType.ToStringSimpleClass(),
                             spec.Profile));
                     }
                     else
@@ -412,33 +237,32 @@ endDataContractCheck:;
             return original;
         }
 
-        private static bool CheckForDataContract(INamedTypeSymbol typeSymbol)
+        private static bool CheckForDataContract(GeneratorContext context, INamedTypeSymbol typeSymbol)
         {
-            if (CheckSymbolClassAttributesForSpecificAttribute(typeSymbol, DataSerializerAttributeName))
+            if (CheckSymbolClassAttributesForSpecificAttribute(typeSymbol, context.WellKnownReferences.DataSerializerAttribute))
             {
                 // if a class has a custom serializer define we should not attempt to generate one for it from a DataContract
                 return false;
             }
             
             // check if class has [DataContract]
-            bool hasDataContract = CheckSymbolClassAttributesForSpecificAttribute(typeSymbol, DataContractAttributeName);
+            bool hasDataContract = CheckSymbolClassAttributesForSpecificAttribute(typeSymbol, context.WellKnownReferences.DataContractAttribute);
 
             // check if class inherits [DataContract]
             if (!hasDataContract)
             {
-                hasDataContract = CheckSymbolBaseClassesForInheritedDataContract(typeSymbol);
+                hasDataContract = CheckSymbolBaseClassesForInheritedDataContract(context, typeSymbol);
             }
 
             return hasDataContract;
         }
 
-        private static bool CheckSymbolClassAttributesForSpecificAttribute(INamedTypeSymbol classSymbol, string attributeClassName)
+        private static bool CheckSymbolClassAttributesForSpecificAttribute(INamedTypeSymbol classSymbol, INamedTypeSymbol attributeClass)
         {
             var attributes = classSymbol.GetAttributes();
             foreach (var attribute in attributes)
             {
-                var attributeFullName = attribute.AttributeClass.ToDisplayString();
-                if (attributeFullName == attributeClassName)
+                if (attribute.AttributeClass.Is(attributeClass))
                 {
                     return true;
                 }
@@ -463,7 +287,7 @@ endDataContractCheck:;
             return false;
         }
 
-        private static bool CheckSymbolBaseClassesForInheritedDataContract(INamedTypeSymbol classSymbol)
+        private static bool CheckSymbolBaseClassesForInheritedDataContract(GeneratorContext context, INamedTypeSymbol classSymbol)
         {
             var baseSymbol = classSymbol.BaseType;
             while (baseSymbol != null)
@@ -477,8 +301,7 @@ endDataContractCheck:;
 
                 foreach (var attribute in attributes)
                 {
-                    var attributeFullName = attribute.AttributeClass.ToDisplayString();
-                    if (attributeFullName == DataContractAttributeName)
+                    if (attribute.AttributeClass.Is(context.WellKnownReferences.DataContractAttribute))
                     {
                         foreach (var namedArgument in attribute.NamedArguments)
                         {

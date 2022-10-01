@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Stride.Core.CompilerServices.Extensions;
+using static Stride.Core.CompilerServices.Diagnostics;
 
 namespace Stride.Core.CompilerServices
 {
@@ -251,7 +253,7 @@ namespace Stride.Core.CompilerServices
                     context.ReportDiagnostic(Diagnostic.Create(
                         CompilerServicesExceptionDuringDataContractGeneration,
                         typeSpec.Type.Locations.FirstOrDefault(),
-                        typeSpec.Type.ToDisplayString(SimpleClassNameWithNestedInfo),
+                        typeSpec.Type.ToStringSimpleClass(),
                         ex.GetType().Name,
                         ex.ToString()));
                 }

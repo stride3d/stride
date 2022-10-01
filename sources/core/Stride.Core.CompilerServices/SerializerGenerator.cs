@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Stride.Core.CompilerServices.Diagnostics;
 
 namespace Stride.Core.CompilerServices
 {
     [Generator]
     public partial class SerializerGenerator : ISourceGenerator
     {
-        private static ITypeSymbol systemInt32Symbol;
-        private static ITypeSymbol systemObjectSymbol;
         public void Initialize(GeneratorInitializationContext context)
         {
 #if LAUNCH_DEBUGGER
@@ -26,10 +25,10 @@ namespace Stride.Core.CompilerServices
         {
             try
             {
-                InitStaticSymbols(context);
-                var spec = GenerateSpec(context);
+                var customContext = new GeneratorContext(context);
+                var spec = GenerateSpec(customContext);
 
-                var validator = new Validator(context);
+                var validator = new Validator(customContext);
                 validator.Validate(spec);
 
                 EmitCode(context, spec);
@@ -43,11 +42,7 @@ namespace Stride.Core.CompilerServices
                     ex.ToString()));
             }
         }
-
-        private static void InitStaticSymbols(GeneratorExecutionContext context)
-        {
-            systemInt32Symbol ??= context.Compilation.GetSpecialType(SpecialType.System_Int32);
-            systemObjectSymbol ??= context.Compilation.GetSpecialType(SpecialType.System_Object);
-        }
     }
+
+    // TODO: separate this into more classes such that they're more independent
 }
