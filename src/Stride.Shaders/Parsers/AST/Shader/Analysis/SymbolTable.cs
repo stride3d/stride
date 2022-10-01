@@ -29,6 +29,10 @@ public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
     {
         CurrentScope["STREAM"] = new CompositeType("STREAM", variables.ToDictionary(v => v.Name, v => v.Type));
     }
+    public void PushType(string name, StructDefinition structDef)
+    {
+        // CurrentScope[name] = new CompositeType(name, structDef.lds.);
+    }
     public void PushStreamVar()
     {
         if(TryGetType("STREAM", out var type))

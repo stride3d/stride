@@ -1,5 +1,11 @@
 shader SingleShader {
 
+    struct Position {
+        float x;
+        float y;
+        float z;
+    };
+
     stage stream float4 triInput;
 
     // Default SV_POSITION output for VS/GS shaders

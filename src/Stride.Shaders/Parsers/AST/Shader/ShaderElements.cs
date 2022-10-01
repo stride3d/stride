@@ -8,25 +8,33 @@ using System.Threading.Tasks;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
-public class ShaderStructField : ShaderToken
+public class StructField : ShaderToken
 {
-    public string Type {get;set;}
+    public ISymbolType Type {get;set;}
     public string Name {get;set;}
     
 
-    public ShaderStructField(Match m)
+    public StructField(Match m, SymbolTable s)
     {
-        Match = m;        
+        Match = m;
+        Type = s.Tokenize(m["ValueTypes"]);
+        Name = m["Name"].StringValue;
     }
 }
 
-public class ShaderStruct : ShaderToken
+public class StructDefinition : ShaderToken
 {
-    public IEnumerable<ShaderToken> Fields {get;set;}
+    public string StructName {get;set;}
+    public List<StructField> Fields {get;set;}
 
-    public ShaderStruct(Match m, SymbolTable s)
+    public CompositeType Type {get;set;}
+
+    public StructDefinition(Match m, SymbolTable s)
     {
         Match = m;
+        StructName = Match["StructName"].StringValue;
+        Fields = Match["Fields"].Matches.Select(x => new StructField(x,s)).ToList();
+        Type = new CompositeType(StructName, Fields.ToDictionary(x => x.Name, x => s.Tokenize(x.Match["ValueTypes"])));
         throw new NotImplementedException();
 
         // Fields = m["Fields"].Matches.Select(GetToken).ToList();

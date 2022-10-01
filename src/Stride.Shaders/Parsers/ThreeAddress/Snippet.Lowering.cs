@@ -12,9 +12,10 @@ public partial class Snippet
 
         return token switch
         {
-            // BlockStatement t => Lower(t),
-            // AssignChain t => Lower(t),
+            BlockStatement t => Lower(t),
+            AssignChain t => Lower(t),
             DeclareAssign t => Lower(t),
+            ValueMethodCall t => Lower(t),
             // ConditionalExpression t => Lower(t),
             Operation t => Lower(t),
             ArrayAccessor t => Lower(t, isHead),
@@ -24,10 +25,28 @@ public partial class Snippet
         };
     }
 
+    public IEnumerable<Register> Lower(BlockStatement b)
+    {
+        return b.Statements.SelectMany(x => LowerToken(x));
+    }
+    
+    public IEnumerable<Register> Lower(ValueMethodCall vm)
+    {
+        var values = vm.Parameters.SelectMany(x => LowerToken(x));
+        return values.Append(new CompositeConstant(values.Select(x => x.Name ?? "")));
+    }
+
     public IEnumerable<Register> Lower(DeclareAssign d)
     {
         var value = LowerToken(d.Value);
         var r = new Copy(value.Last().Name){Name = d.VariableName};
+        Add(r);
+        return value.Append(r);
+    }
+    public IEnumerable<Register> Lower(AssignChain a)
+    {
+        var value = LowerToken(a.Value);
+        var r = new ChainRegister(a.AccessNames);
         Add(r);
         return value.Append(r);
     }
@@ -51,7 +70,7 @@ public partial class Snippet
         else 
         {
             var accessors = ca.Field.SelectMany(x => LowerToken(x, false));
-            var r = new ChainAccessorRegister(){Accessors = accessors.Select(x => x.Name)};
+            var r = new ChainRegister(Enumerable.Empty<string>()){Accessors = accessors.Select(x => x.Name)};
             Add(r);
             return new List<Register>{r};
         }
@@ -65,7 +84,7 @@ public partial class Snippet
         else 
         {
             var accessors = aa.Accessors.SelectMany(x => LowerToken(x, false));
-            var r = new ChainAccessorRegister(){Accessors = accessors.Select(x => x.Name)};
+            var r = new ChainRegister(Enumerable.Empty<string>()){Accessors = accessors.Select(x => x.Name)};
             Add(r);
             return new List<Register>{r};
         }

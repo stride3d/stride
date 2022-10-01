@@ -41,17 +41,22 @@ public class Constant<T> : Constant
         Value = v;
     }
 }
-public class CompositeConstant<T> : Constant 
+public class CompositeConstant : Constant 
 {
-    public IEnumerable<T> Values;
+    public IEnumerable<string> Values;
 
-    public CompositeConstant(IEnumerable<T> v)
+    public CompositeConstant(IEnumerable<string> v)
     {
         Values = v;
     }
 }
 
-public class ChainAccessorRegister : Register
+public class ChainRegister : Register
 {
-    public IEnumerable<string?>? Accessors {get;set;} 
+    public IEnumerable<string> Accessors {get;set;} 
+    public ChainRegister(IEnumerable<string> accessors)
+    {
+        Accessors = accessors;
+    }
+
 }

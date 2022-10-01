@@ -23,9 +23,9 @@ public partial class SDSLGrammar : Grammar
 
         var declare = new SequenceParser();
         declare.Add(
-            SimpleTypes | Identifier,
+            ValueTypes,
             ws1,
-            Identifier,
+            Identifier.Named("Name"),
             ws,
             Semi
         );
@@ -94,9 +94,9 @@ public partial class SDSLGrammar : Grammar
         ConstantBufferValueDeclaration.Separator = ws;
 
         StructDefinition.Add(
-            Struct & ws1 & Identifier,
+            Struct & ws1 & Identifier.Named("StructName"),
             LeftBrace,
-            declare.Repeat(0).SeparatedBy(ws),
+            declare.Named("Declaration").Repeat(0).SeparatedBy(ws).Named("Fields"),
             RightBrace,
             Semi
         );

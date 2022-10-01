@@ -29,7 +29,9 @@ static void LoadShaders()
     var errors = mixer.SemanticChecks();
     
     var module = mixer.EmitSpirv(EntryPoints.VSMain);
-    var used = mixer.program.Body.OfType<VSMainMethod>().First().GetUsedStream().ToList();
+    var main = mixer.program.Body.OfType<VSMainMethod>().First();
+    var snip = new Snippet();
+    snip.Construct(main.Statements);
     var x = 0;
 }
 
