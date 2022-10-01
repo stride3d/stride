@@ -245,10 +245,10 @@ namespace Stride.Core.Storage
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T[] buffer, int offset, int count) where T : struct
         {
-            var ptr = (IntPtr)Interop.Fixed(buffer) + offset * Interop.SizeOf<T>();
-            Write((byte*)ptr, count * Interop.SizeOf<T>());
+            var ptr = (IntPtr)Interop.Fixed(buffer) + offset * Unsafe.SizeOf<T>();
+            Write((byte*)ptr, count * Unsafe.SizeOf<T>());
         }
-        
+
         /// <summary>
         /// Writes the specified buffer to this instance.
         /// </summary>
@@ -258,7 +258,7 @@ namespace Stride.Core.Storage
         public void Write<T>(ref T data) where T : struct
         {
             var ptr = (byte*)Interop.Fixed(ref data);
-            Write(ptr, Interop.SizeOf<T>());
+            Write(ptr, Unsafe.SizeOf<T>());
         }
 #endif
 

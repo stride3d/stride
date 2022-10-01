@@ -1335,7 +1335,7 @@ Enum: OldValue2
 
             public int Value { get; private set; }
 
-            protected bool Equals(MyClassImmutable other)
+            private bool Equals(MyClassImmutable other)
             {
                 return string.Equals(Name, other.Name) && Value == other.Value;
             }

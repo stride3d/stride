@@ -28,6 +28,7 @@
 */
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics
@@ -37,7 +38,7 @@ namespace Stride.Core.Mathematics
     /// </summary>
     [DataContract]
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable
+    public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable, IIntersectableWithRay, IIntersectableWithPlane
     {
         /// <summary>
         /// An empty bounding sphere (Center = 0 and Radius = 0).
@@ -194,7 +195,7 @@ namespace Stride.Core.Mathematics
             if (points == null) throw new ArgumentNullException("points");
             fixed (void* pointsPtr = points)
             {
-                FromPoints((IntPtr)pointsPtr, 0, points.Length, Utilities.SizeOf<Vector3>(), out result);
+                FromPoints((IntPtr)pointsPtr, 0, points.Length, Unsafe.SizeOf<Vector3>(), out result);
             }
         }
 

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Serialization.Serializers
@@ -319,7 +320,7 @@ namespace Stride.Core.Serialization.Serializers
         /// <inheritdoc/>
         public override void Initialize(SerializerSelector serializerSelector)
         {
-            elementSize = Interop.SizeOf<T>();
+            elementSize = Unsafe.SizeOf<T>();
         }
 
         /// <inheritdoc/>

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Internals;
@@ -95,10 +96,7 @@ namespace Stride.Animations
 
         /// <inheritdoc/>
         [DataMemberIgnore]
-        public override int ElementSize
-        {
-            get { return Utilities.UnsafeSizeOf<T>(); }
-        }
+        public override int ElementSize => Unsafe.SizeOf<T>();
 
         /// <inheritdoc/>
         [DataMemberIgnore]

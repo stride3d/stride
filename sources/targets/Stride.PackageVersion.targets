@@ -15,7 +15,7 @@
     <StrideNuGetVersion>$(StridePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
     
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(StrideNuGetVersion)</PackageVersion>
-    <PackageLicenseUrl>https://github.com/stride3d/stride/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://stride3d.net</PackageProjectUrl>
     <PackageIcon>nuget-icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>

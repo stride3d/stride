@@ -19,7 +19,7 @@ namespace Stride.LauncherApp.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -83,7 +83,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Would you like to install the latest version of the Visual Studio integration? This is highly recommended for programmers!.
+        ///   Looks up a localized string similar to Would you like to install the latest version of the Visual Studio {0} integration? This is highly recommended for programmers!.
         /// </summary>
         public static string AskInstallVSIX {
             get {
@@ -690,11 +690,11 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} Visual Studio plugin.
+        ///   Looks up a localized string similar to {0} Visual Studio extension.
         /// </summary>
-        public static string ToolTipVisualStudioPlugin {
+        public static string ToolTipVisualStudioExtension {
             get {
-                return ResourceManager.GetString("ToolTipVisualStudioPlugin", resourceCulture);
+                return ResourceManager.GetString("ToolTipVisualStudioExtension", resourceCulture);
             }
         }
         
@@ -717,6 +717,15 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (local update available).
+        /// </summary>
+        public static string VersionButtonLocalUpdateAvailable {
+            get {
+                return ResourceManager.GetString("VersionButtonLocalUpdateAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (not installed).
         /// </summary>
         public static string VersionButtonUninstalled {
@@ -735,20 +744,11 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to (local update available).
+        ///   Looks up a localized string similar to Visual Studio extension.
         /// </summary>
-        public static string VersionButtonLocalUpdateAvailable {
+        public static string VisualStudioExtension {
             get {
-                return ResourceManager.GetString("VersionButtonLocalUpdateAvailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Visual Studio plugin.
-        /// </summary>
-        public static string VisualStudioPlugin {
-            get {
-                return ResourceManager.GetString("VisualStudioPlugin", resourceCulture);
+                return ResourceManager.GetString("VisualStudioExtension", resourceCulture);
             }
         }
         

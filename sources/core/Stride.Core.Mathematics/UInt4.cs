@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Serialization;
 
@@ -37,7 +38,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         ///   The size of the <see cref = "UInt4" /> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<UInt4>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<UInt4>();
 
         /// <summary>
         ///   A <see cref = "UInt4" /> with all of its components set to zero.

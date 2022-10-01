@@ -130,7 +130,7 @@ namespace Stride.Extensions
                             else
                                 sourceBufferContent = CreateShortIndexBuffer(offset, meshDrawData.IndexBuffer.Count, sourceBufferContent, is32Bit);
                         }
-                        
+
                         fixed (byte* sourceBufferDataStart = &sourceBufferContent[0])
                         {
                             Utilities.CopyMemory((IntPtr)destBufferDataCurrent, (IntPtr)sourceBufferDataStart,
@@ -151,7 +151,7 @@ namespace Stride.Extensions
 
             return result;
         }
-        
+
         /// <summary>
         /// Group meshes that can be merged because they have the same vertex declaration.
         /// </summary>
@@ -199,7 +199,7 @@ namespace Stride.Extensions
         {
             if (meshDrawDatas.Count == 0)
                 return new List<List<MeshDraw>>();
-                
+
             if (meshDrawDatas.Count == 1)
                 return new List<List<MeshDraw>> { meshDrawDatas.ToList() };
 
@@ -252,6 +252,7 @@ namespace Stride.Extensions
         public static byte[] CreateShortIndexBuffer(int offset, int count, byte[] baseIndices = null, bool is32Bit = true)
         {
             var indices = new ushort[count];
+            var sizeOf = count * sizeof(ushort);
             if (baseIndices == null)
             {
                 for (var i = 0; i < count; ++i)
@@ -270,7 +271,6 @@ namespace Stride.Extensions
                 }
             }
 
-            var sizeOf = Utilities.SizeOf(indices);
             var buffer = new byte[sizeOf];
             Utilities.Write(buffer, indices, 0, indices.Length);
             return buffer;
@@ -287,6 +287,7 @@ namespace Stride.Extensions
         public static byte[] CreateIntIndexBuffer(int offset, int count, byte[] baseIndices = null, bool is32Bits = true)
         {
             var indices = new uint[count];
+            var sizeOf = count * sizeof(uint);
             if (baseIndices == null)
             {
                 for (var i = 0; i < count; ++i)
@@ -305,7 +306,6 @@ namespace Stride.Extensions
                 }
             }
 
-            var sizeOf = Utilities.SizeOf(indices);
             var buffer = new byte[sizeOf];
             Utilities.Write(buffer, indices, 0, indices.Length);
             return buffer;

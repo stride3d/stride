@@ -256,6 +256,51 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jrinker03",
+      "name": "James Rinker",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49572939?v=4",
+      "profile": "https://github.com/jrinker03",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "tristanmcpherson",
+      "name": "Tristan McPherson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/979937?v=4",
+      "profile": "https://github.com/tristanmcpherson",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ericwj",
+      "name": "Eric",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9473119?v=4",
+      "profile": "https://github.com/ericwj",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "gregsn",
+      "name": "Sebastian Gregor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/575557?v=4",
+      "profile": "https://github.com/gregsn",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "insomnyawolf",
+      "name": "insomnyawolf",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18150917?v=4",
+      "profile": "http://insomnyawolf.github.io",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

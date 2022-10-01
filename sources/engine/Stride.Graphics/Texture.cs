@@ -25,6 +25,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -670,7 +671,7 @@ namespace Stride.Graphics
             var widthOnMip = CalculateMipSize((int)Width, mipLevel);
             var rowStride = widthOnMip * Format.SizeInBytes();
 
-            var dataStrideInBytes = Utilities.SizeOf<TData>() * widthOnMip;
+            var dataStrideInBytes = Unsafe.SizeOf<TData>() * widthOnMip;
             var width = ((double)rowStride / dataStrideInBytes) * widthOnMip;
             if (Math.Abs(width - (int)width) > double.Epsilon)
                 throw new ArgumentException("sizeof(TData) / sizeof(Format) * Width is not an integer");
@@ -756,7 +757,7 @@ namespace Stride.Graphics
         /// </remarks>
         public unsafe bool GetData<TData>(CommandList commandList, Texture stagingTexture, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : struct
         {
-            return GetData(commandList, stagingTexture, new DataPointer((IntPtr)Interop.Fixed(toData), toData.Length * Utilities.SizeOf<TData>()), arraySlice, mipSlice, doNotWait);
+            return GetData(commandList, stagingTexture, new DataPointer((IntPtr)Interop.Fixed(toData), toData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, doNotWait);
         }
 
         /// <summary>
@@ -774,7 +775,7 @@ namespace Stride.Graphics
         /// </remarks>
         public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null) where TData : struct
         {
-            SetData(commandList, new DataPointer((IntPtr)Interop.Fixed(fromData), fromData.Length * Utilities.SizeOf<TData>()), arraySlice, mipSlice, region);
+            SetData(commandList, new DataPointer((IntPtr)Interop.Fixed(fromData), fromData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, region);
         }
 
         /// <summary>
@@ -1213,7 +1214,7 @@ namespace Stride.Graphics
             // Check that the textureData size is correct
             if (textureData == null) throw new ArgumentNullException("textureData");
             Image.ComputePitch(format, width, height, out var rowPitch, out var slicePitch, out _, out _);
-            if (Utilities.SizeOf(textureData) != (slicePitch * depth)) throw new ArgumentException("Invalid size for Image");
+            if (Unsafe.SizeOf<T>() * textureData.Length != (slicePitch * depth)) throw new ArgumentException("Invalid size for Image");
 
             return new DataBox(fixedPointer, rowPitch, slicePitch);
         }

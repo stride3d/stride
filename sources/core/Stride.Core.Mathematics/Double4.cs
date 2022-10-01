@@ -20,7 +20,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Double4"/> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<Double4>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<Double4>();
 
         /// <summary>
         /// A <see cref="Stride.Core.Mathematics.Double4"/> with all of its components set to zero.

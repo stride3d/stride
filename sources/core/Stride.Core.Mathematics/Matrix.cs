@@ -50,11 +50,11 @@ namespace Stride.Core.Mathematics
         /// Dotnet's <see cref="System.Numerics.Matrix4x4"/> are row major.
         /// </remarks>
         public const bool LayoutIsRowMajor = false;
-        
+
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Matrix"/> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<Matrix>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<Matrix>();
 
         /// <summary>
         /// A <see cref="Stride.Core.Mathematics.Matrix"/> with all of its components set to zero.
@@ -504,6 +504,7 @@ namespace Stride.Core.Mathematics
 
         /// <summary>
         /// Inverts the matrix.
+        /// If the matrix cannot be inverted (eg. Determinant was zero), then the matrix will be set equivalent to <see cref="Zero"/>.
         /// </summary>
         public void Invert()
         {
@@ -1352,6 +1353,7 @@ namespace Stride.Core.Mathematics
 
         /// <summary>
         /// Calculates the inverse of the specified matrix.
+        /// If the matrix cannot be inverted (eg. Determinant was zero), then <paramref name="result"/> will be <see cref="Zero"/>.
         /// </summary>
         /// <param name="value">The matrix whose inverse is to be calculated.</param>
         /// <param name="result">When the method completes, contains the inverse of the specified matrix.</param>
@@ -1359,11 +1361,15 @@ namespace Stride.Core.Mathematics
         {
             // Invert works the same in row and column major, no need to transpose
             Unsafe.SkipInit(out result);
-            MatrixDotnet.Invert(UnsafeRefAsDotNet(value), out UnsafeRefAsDotNet(result));
+            if (!MatrixDotnet.Invert(UnsafeRefAsDotNet(value), out UnsafeRefAsDotNet(result)))
+            {
+                result = Zero;
+            }
         }
 
         /// <summary>
         /// Calculates the inverse of the specified matrix.
+        /// If the matrix cannot be inverted (eg. Determinant was zero), then the returning matrix will be <see cref="Zero"/>.
         /// </summary>
         /// <param name="value">The matrix whose inverse is to be calculated.</param>
         /// <returns>The inverse of the specified matrix.</returns>
@@ -3080,7 +3086,7 @@ namespace Stride.Core.Mathematics
                 }
             }
         }
-        
+
         static ref MatrixDotnet UnsafeRefAsDotNet(in Matrix m) => ref Unsafe.As<Matrix, MatrixDotnet>(ref Unsafe.AsRef(in m));
         static ref Matrix UnsafeRefFromDotNet(in MatrixDotnet m) => ref Unsafe.As<MatrixDotnet, Matrix>(ref Unsafe.AsRef(in m));
 

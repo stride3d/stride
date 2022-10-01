@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Graphics.Data;
@@ -28,11 +29,11 @@ namespace Stride.Extensions
 
             int outputSize = expectedSize * count;
 
-            int checkSize = (int)(outputSize / Utilities.SizeOf<T>()) * Utilities.SizeOf<T>();
+            int checkSize = (int)(outputSize / Unsafe.SizeOf<T>()) * Unsafe.SizeOf<T>();
             if (checkSize != outputSize)
                 throw new ArgumentException(string.Format("Size of T is not a multiple of totalSize {0}", outputSize));
 
-            var output = new T[outputSize / Utilities.SizeOf<T>()];
+            var output = new T[outputSize / Unsafe.SizeOf<T>()];
 
             var handleOutput = GCHandle.Alloc(output, GCHandleType.Pinned);
             var ptrOutput = handleOutput.AddrOfPinnedObject();
