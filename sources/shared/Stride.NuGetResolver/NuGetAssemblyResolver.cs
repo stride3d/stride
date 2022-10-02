@@ -36,8 +36,15 @@ namespace Stride.Core.Assets
             assembliesResolved = true;
         }
 
-        internal static void SetupNuGet(string packageName, string packageVersion)
+        /// <summary>
+        /// Set up an Assembly resolver which on first missing Assembly runs Nuget resolver over <paramref name="packageName"/>.
+        /// </summary>
+        /// <param name="packageName">Name of the root package for NuGet resolution.</param>
+        /// <param name="packageVersion">Package version.</param>
+        /// <param name="metadataAssembly">Assembly for getting target framrwork and platform.</param>
+        internal static void SetupNuGet(string packageName, string packageVersion, Assembly metadataAssembly = null)
         {
+            metadataAssembly ??= Assembly.GetEntryAssembly();
             // Make sure our nuget local store is added to nuget config
             var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string strideFolder = null;
@@ -123,15 +130,14 @@ namespace Stride.Core.Assets
                             SynchronizationContext.SetSynchronizationContext(null);
 
                             // Determine current TFM
-                            var framework = Assembly
-                                .GetEntryAssembly()?
+                            var framework = metadataAssembly
                                 .GetCustomAttribute<TargetFrameworkAttribute>()?
                                 .FrameworkName ?? ".NETFramework,Version=v4.7.2";
                             var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
 
 #if NETCOREAPP
                             // Add TargetPlatform to net6.0 TFM (i.e. net6.0 to net6.0-windows7.0)
-                            var platform = Assembly.GetEntryAssembly()?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
+                            var platform = metadataAssembly?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
                             if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp) && platform != string.Empty)
                             {
                                 var platformParseResult = Regex.Match(platform, @"([a-zA-Z]+)(\d+.*)");
