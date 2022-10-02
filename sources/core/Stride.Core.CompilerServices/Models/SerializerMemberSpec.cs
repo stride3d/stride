@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 
-namespace Stride.Core.CompilerServices
+namespace Stride.Core.CompilerServices.Models
 {
     [Flags]
     internal enum MemberAccessMode
@@ -47,7 +47,7 @@ namespace Stride.Core.CompilerServices
 
         public int CompareTo(SerializerMemberSpec other)
         {
-            return Order == other.Order ? 0 : (Order < other.Order ? -1 : 1);
+            return Order == other.Order ? 0 : Order < other.Order ? -1 : 1;
         }
     }
 }

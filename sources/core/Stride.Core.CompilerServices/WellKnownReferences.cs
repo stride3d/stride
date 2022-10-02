@@ -9,6 +9,7 @@ namespace Stride.Core.CompilerServices
             SystemObject = compilation.GetSpecialType(SpecialType.System_Object);
             SystemInt32 = compilation.GetSpecialType(SpecialType.System_Int32);
 
+            AssemblySerializerFactoryAttribute = compilation.GetTypeByMetadataName("Stride.Core.Serialization.AssemblySerializerFactoryAttribute");
             EnumSerializer = compilation.GetTypeByMetadataName("Stride.Core.Serialization.Serializers.EnumSerializer`1");
             DataAliasAttribute = compilation.GetTypeByMetadataName("Stride.Core.DataAliasAttribute");
             DataContractAttribute = compilation.GetTypeByMetadataName("Stride.Core.DataContractAttribute");
@@ -22,19 +23,20 @@ namespace Stride.Core.CompilerServices
             InteropStructLayoutAttribute = compilation.GetTypeByMetadataName("System.Runtime.InteropServices.StructLayoutAttribute");
         }
 
-        public INamedTypeSymbol SystemInt32 { get; private set; }
-        public INamedTypeSymbol SystemObject { get; private set; }
+        public INamedTypeSymbol SystemInt32 { get; }
+        public INamedTypeSymbol SystemObject { get; }
 
-        public INamedTypeSymbol EnumSerializer { get; private set; }
-        public INamedTypeSymbol DataAliasAttribute { get; private set; }
-        public INamedTypeSymbol DataContractAttribute { get; private set; }
-        public INamedTypeSymbol DataMemberAttribute { get; private set; }
-        public INamedTypeSymbol DataMemberIgnoreAttribute { get; private set; }
-        public INamedTypeSymbol DataSerializer { get; private set; }
-        public INamedTypeSymbol DataSerializerAttribute { get; private set; }
-        public INamedTypeSymbol DataSerializerGlobalAttribute { get; private set; }
+        public INamedTypeSymbol AssemblySerializerFactoryAttribute { get; }
+        public INamedTypeSymbol EnumSerializer { get; }
+        public INamedTypeSymbol DataAliasAttribute { get; }
+        public INamedTypeSymbol DataContractAttribute { get; }
+        public INamedTypeSymbol DataMemberAttribute { get; }
+        public INamedTypeSymbol DataMemberIgnoreAttribute { get; }
+        public INamedTypeSymbol DataSerializer { get; }
+        public INamedTypeSymbol DataSerializerAttribute { get; }
+        public INamedTypeSymbol DataSerializerGlobalAttribute { get; }
 
-        public INamedTypeSymbol InteropFieldOffsetAttribute { get; private set; }
-        public INamedTypeSymbol InteropStructLayoutAttribute { get; private set; }
+        public INamedTypeSymbol InteropFieldOffsetAttribute { get; }
+        public INamedTypeSymbol InteropStructLayoutAttribute { get; }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Extensions;
+using Stride.Core.CompilerServices.Models;
 using Stride.Core.Serialization;
 using static Stride.Core.CompilerServices.Diagnostics;
 
@@ -80,10 +81,10 @@ namespace Stride.Core.CompilerServices
         private static List<INamedTypeSymbol> GetAllTypesForAssembly(IAssemblySymbol assembly)
         {
             var types = new List<INamedTypeSymbol>();
-            VisitTypes(assembly.GlobalNamespace, type =>
+            assembly.GlobalNamespace.VisitTypes(type =>
             {
                 types.Add(type);
-                VisitNestedTypes(type, t =>
+                type.VisitNestedTypes(t =>
                 {
                     if (t.DeclaredAccessibility == Accessibility.Public || t.DeclaredAccessibility == Accessibility.Internal)
                     {
@@ -317,27 +318,6 @@ namespace Stride.Core.CompilerServices
             }
 
             return false;
-        }
-
-        private static void VisitTypes(INamespaceSymbol @namespace, Action<INamedTypeSymbol> visitor)
-        {
-            foreach (var type in @namespace.GetTypeMembers())
-            {
-                visitor(type);
-            }
-            foreach (var namespaceSymbol in @namespace.GetNamespaceMembers())
-            {
-                VisitTypes(namespaceSymbol, visitor);
-            }
-        }
-
-        private static void VisitNestedTypes(INamedTypeSymbol type, Action<INamedTypeSymbol> visitor)
-        {
-            foreach (var nestedType in type.GetMembers().OfType<INamedTypeSymbol>().Cast<INamedTypeSymbol>())
-            {
-                visitor(nestedType);
-                VisitNestedTypes(nestedType, visitor);
-            }
         }
     }
 }

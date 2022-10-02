@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace Stride.Core.CompilerServices
+namespace Stride.Core.CompilerServices.Models
 {
     internal class SerializerSpec
     {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Extensions;
+using Stride.Core.CompilerServices.Models;
 using static Stride.Core.CompilerServices.Diagnostics;
 
 namespace Stride.Core.CompilerServices

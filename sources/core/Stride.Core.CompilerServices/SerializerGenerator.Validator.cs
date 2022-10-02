@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Extensions;
+using Stride.Core.CompilerServices.Models;
 using Stride.Core.Serialization;
 using static Stride.Core.CompilerServices.Diagnostics;
 
@@ -173,20 +174,10 @@ namespace Stride.Core.CompilerServices
             {
                 while (baseType != null && !baseType.Is(context.WellKnownReferences.SystemObject))
                 {
-                    var referencesDictionary = serializerSpec.GlobalSerializerRegistrationsToEmit;
-                    bool? check = ValidateTypeInChain(serializerSpec, referencesDictionary, baseType);
-                    if (check == true)
+                    bool? check = ValidateTypeInChain(serializerSpec, baseType);
+                    if (check != null)
                     {
-                        return true;
-                    }
-                    else if (check == false)
-                    {
-                        referencesDictionary = serializerSpec.DependencySerializerReference;
-                        check = ValidateTypeInChain(serializerSpec, referencesDictionary, baseType);
-                        if (check != null)
-                        {
-                            return check.Value;
-                        }
+                        return check.Value;
                     }
 
                     baseType = baseType.BaseType;
@@ -197,10 +188,11 @@ namespace Stride.Core.CompilerServices
             
             private bool? ValidateTypeInChain(
                 SerializerSpec serializerSpec,
-                Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration>  referencesDictionary,
                 INamedTypeSymbol type)
             {
-                if (referencesDictionary.ContainsKey((type, DefaultProfile)))
+                // if the type is already known
+                if (serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((type, DefaultProfile))
+                    || serializerSpec.DependencySerializerReference.ContainsKey((type, DefaultProfile)))
                 {
                     return true;
                 }
@@ -209,27 +201,50 @@ namespace Stride.Core.CompilerServices
                     // TODO: if base has a serializer with generic mode Type or TypeAndArguments
                     //       we need to copy it's serializer and instantiate it with this class.
 
-                    // If type is a closed generic type we need to add a registration for it
-
                     // TODO: support for EnumerateGenericInstantiations method detection...
                     //       so the way AssemblyProcessor detects if it needs to process generic type arguments
                     //       is by reading an EnumerateGenericInstantiations method and finding ldtoken opcodes
                     //       to resolve the types added to the `genericInstantiations` list and validate them
                     //       Honestly, I don't know if inspecting methods is possible from roslyn, so we may need to change this with some hacks
+
+                    // If type is a closed generic type we need to add a registration for it
+                    // We will check if we have a registrations for its open type
                     if (type.TypeParameters.Length > 0)
                     {
                         var baseTypeDefinition = type.ConstructUnboundGenericType();
-                        if (referencesDictionary.TryGetValue((baseTypeDefinition, DefaultProfile), out var registration))
+                        GlobalSerializerRegistration registration;
+                        if (serializerSpec.GlobalSerializerRegistrationsToEmit.TryGetValue((baseTypeDefinition, DefaultProfile), out registration)
+                            || serializerSpec.DependencySerializerReference.TryGetValue((baseTypeDefinition, DefaultProfile), out registration))
                         {
-                            if (type.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter) &&
-                                !serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((type, DefaultProfile)))
+                            // ensure the type is not partially open
+                            if (type.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter))
                             {
-                                // TODO: check the GenericMode as you may need to construct type with a different scheme (for Type/TypeAndArgs set Inherited=true)
+                                INamedTypeSymbol serializerType;
+                                switch (registration.GenericMode)
+                                {
+                                    case DataSerializerGenericMode.None:
+                                        // serializer is not generic, but type is generic
+                                        serializerType = registration.SerializerType;
+                                        break;
+                                    case DataSerializerGenericMode.Type:
+                                        // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
+                                        serializerType = registration.SerializerType?.ConstructedFrom.Construct(type);
+                                        break;
+                                    case DataSerializerGenericMode.GenericArguments:
+                                        // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
+                                        serializerType = registration.SerializerType?.ConstructedFrom.Construct(type.TypeArguments, type.TypeArgumentNullableAnnotations);
+                                        break;
+                                    case DataSerializerGenericMode.TypeAndGenericArguments:
+                                        // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
+                                        serializerType = registration.SerializerType?.ConstructedFrom.Construct(new[] {type}.Concat(type.TypeArguments).ToArray());
+                                        break;
+                                    default:
+                                        return false; // default case for compiler complaining about uninitialized var, should not happen
+                                }
                                 serializerSpec.GlobalSerializerRegistrationsToEmit.Add((type, DefaultProfile), new GlobalSerializerRegistration
                                 {
                                     DataType = type,
-                                    // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
-                                    SerializerType = registration.SerializerType?.ConstructedFrom.Construct(type.TypeArguments, type.TypeArgumentNullableAnnotations),
+                                    SerializerType = serializerType,
                                     Generated = registration.Generated,
                                     Inherited = false,
                                     GenericMode = DataSerializerGenericMode.None,
@@ -266,22 +281,25 @@ namespace Stride.Core.CompilerServices
                 foreach (var assembly in assemblies)
                 {
                     // We only care about assemblies that have been processed by Stride's processor
-                    // TODO: remove hack when emitting attribute
-                    if (!assembly.Name.Contains("Stride") && assembly.GetTypeByMetadataName(AssemblyProcessedAttribute) == null)
+                    var serializerFactoryAttribute = assembly.GetAttributes().FirstOrDefault(attr => attr.AttributeClass.Is(context.WellKnownReferences.AssemblySerializerFactoryAttribute));
+                    if (serializerFactoryAttribute == null)
                     {
                         continue;
                     }
 
-                    CollectSerializableTypesFromNamespaceRecursive(assembly.GlobalNamespace, serializerSpec);
+                    CollectSerializableTypesFromSerializerFactory(serializerFactoryAttribute, serializerSpec);
                 }
             }
 
-            private void CollectSerializableTypesFromNamespaceRecursive(INamespaceSymbol @namespace, SerializerSpec serializerSpec) => VisitTypes(@namespace, type =>
+            private void CollectSerializableTypesFromSerializerFactory(AttributeData serializerFactoryAttribute, SerializerSpec serializerSpec)
             {
-                if (!type.IsStatic)
+                if (serializerFactoryAttribute.NamedArguments.Length == 0)
                 {
+                    // malformed attribute
                     return;
                 }
+
+                var type = serializerFactoryAttribute.NamedArguments[0].Value.Value as ITypeSymbol;
 
                 foreach (var attribute in type.GetAttributes())
                 {
@@ -316,7 +334,7 @@ namespace Stride.Core.CompilerServices
                         });
                     }
                 }
-            });
+            }
         }
     }
 }

@@ -8,7 +8,8 @@ namespace Stride.Core.Serialization
     /// <summary>
     /// Used internally by assembly processor when generating serializer factories.
     /// </summary>
-    public class AssemblySerializerFactoryAttribute
+    [AttributeUsage(AttributeTargets.Assembly)]
+    public class AssemblySerializerFactoryAttribute : Attribute
     {
         /// <summary>
         /// The type of the serializer factory.

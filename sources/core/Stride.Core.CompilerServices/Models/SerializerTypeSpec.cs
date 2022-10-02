@@ -4,7 +4,7 @@ using System.Text;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 
-namespace Stride.Core.CompilerServices
+namespace Stride.Core.CompilerServices.Models
 {
     [DebuggerDisplay("Type={Type}, Members: {Members.Count}")]
     internal class SerializerTypeSpec
