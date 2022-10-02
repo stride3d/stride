@@ -8,6 +8,17 @@ public abstract class Register
     public string? Name { get; set; }
 }
 
+public class Declare : Register
+{
+
+    public Declare(){}
+
+    public override string ToString()
+    {
+        return new StringBuilder().Append(Name).ToString();
+    }
+}
+
 
 public class Copy : Register
 {

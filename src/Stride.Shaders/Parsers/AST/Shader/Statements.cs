@@ -101,13 +101,13 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 
     public AssignOpToken AssignOp { get; set; }
     public bool StreamValue => AccessNames.Any() && AccessNames.First() == "streams";
-    public IEnumerable<string> AccessNames { get; set; }
+    public List<string> AccessNames { get; set; }
     public ShaderTokenTyped Value { get; set; }
     public AssignChain(Match m, SymbolTable s)
     {
         Match = m;
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
-        AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue);
+        AccessNames = m.Matches.Where(x => x.Name == "Identifier").Select(x => x.StringValue).ToList();
         Value = (ShaderTokenTyped)GetToken(m["PrimaryExpression"], s);
     }
 

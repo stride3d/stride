@@ -22,8 +22,12 @@ public partial class TAC
         else
         {
             r.Name ??= $"%{IntermediateCode.Count}";
-            LookUp[r.Name] = IntermediateCode.Count;
-            IntermediateCode.Add(r);
+            if (!LookUp.ContainsKey(r.Name))
+            {
+                LookUp[r.Name] = IntermediateCode.Count;
+                IntermediateCode.Add(r);
+            }
+            
         }
     }
     public void Add(Assign r)

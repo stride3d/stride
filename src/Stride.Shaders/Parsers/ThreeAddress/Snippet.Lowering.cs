@@ -69,9 +69,9 @@ public partial class TAC
                 tmp.TryAccessType(current, out tmp);
             }
         }
-        var r = new ChainRegister(accessors);
+        var r = new ChainRegister(accessors) { Name = string.Join(".",a.AccessNames) };
         Add(r);
-        var assign = new Copy(value.Last().Name, false) { Name = r.Name };
+        var assign = new Copy(value[^1].Name, false) { Name = r.Name };
         Add(assign);
         value.Add(r);
         value.Add(assign);
@@ -110,7 +110,7 @@ public partial class TAC
                 }
                 else throw new Exception();
             }
-            var r = new ChainRegister(accessors);
+            var r = new ChainRegister(accessors) { Name = string.Join(".", Enumerable.Empty<ShaderToken>().Append(ca.Value).Concat(ca.Field).Cast<VariableNameLiteral>().Select(x => x.Name)) };
             Add(r);
             return new List<Register>{r};
         }

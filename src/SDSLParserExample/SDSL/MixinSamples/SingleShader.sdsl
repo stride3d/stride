@@ -35,6 +35,6 @@ shader SingleShader {
     {
         float4 a = float4(0);
         streams.ShadingPosition = a;
-        streams.Depth = streams.ShadingPosition.x;
+        streams.ColorTarget = streams.ShadingPosition;
     }
 };
