@@ -213,6 +213,8 @@ namespace Stride.Graphics
             {
                 genericInstantiations.Add(typeof(VertexElement[]));
             }
+
+            private void _DataSerializerDependencies(VertexElement[] x0) { }
         }
     }
 }

@@ -97,5 +97,7 @@ namespace Stride.Core.Assets
             genericInstantiations.Add(typeof(Guid));
             genericInstantiations.Add(typeof(TAssetPartDesign));
         }
+
+        private void _DataSerializerDependencies(Guid x0, TAssetPartDesign x1) { }
     }
 }

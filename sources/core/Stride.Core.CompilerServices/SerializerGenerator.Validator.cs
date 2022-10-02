@@ -13,6 +13,7 @@ namespace Stride.Core.CompilerServices
     public partial class SerializerGenerator
     {
         private const string DefaultProfile = "Default";
+        private const string TypeDependencySpecialMethodName = "_DataSerializerDependencies";
         private const string AssemblyProcessedAttribute = "Stride.Core.AssemblyProcessedAttribute";
         internal class Validator
         {
@@ -251,15 +252,6 @@ namespace Stride.Core.CompilerServices
                 }
                 else
                 {
-                    // TODO: if base has a serializer with generic mode Type or TypeAndArguments
-                    //       we need to copy it's serializer and instantiate it with this class.
-
-                    // TODO: support for EnumerateGenericInstantiations method detection...
-                    //       so the way AssemblyProcessor detects if it needs to process generic type arguments
-                    //       is by reading an EnumerateGenericInstantiations method and finding ldtoken opcodes
-                    //       to resolve the types added to the `genericInstantiations` list and validate them
-                    //       Honestly, I don't know if inspecting methods is possible from roslyn, so we may need to change this with some hacks
-
                     // If type is a closed generic type we need to add a registration for it
                     // We will check if we have a registrations for its open type
                     if (type.TypeParameters.Length > 0)
@@ -272,7 +264,8 @@ namespace Stride.Core.CompilerServices
                             // ensure the type is not partially open
                             if (type.IsGenericInstance())
                             {
-                                return GenerateDerivedSerializer(serializerSpec, type, registration);
+                                if (ValidateGenericDependencies(serializerSpec, type))
+                                    return GenerateDerivedSerializer(serializerSpec, type, registration);
                             }
 
                             // a serializer has a at least one unbound type parameter
@@ -291,6 +284,32 @@ namespace Stride.Core.CompilerServices
                         return false;
                     }
                 }
+            }
+
+            /// <summary>
+            /// When setting up serializers for generic types we cannot validate typw parameters for being serializable.
+            /// In order to be able to do it we define a special method:
+            ///     private void _DataSerializerDependencies(T0 x0, T1 x1, ...) { }
+            /// In this method we will read those arguments (it's only called for closed types) and validate they can be serialized.
+            /// </summary>
+            private bool ValidateGenericDependencies(SerializerSpec serializerSpec, INamedTypeSymbol type)
+            {
+                var typeDependencyMethod = type.GetMembers()
+                                        .Where(m => m.Kind == SymbolKind.Method && m.Name == TypeDependencySpecialMethodName)
+                                        .FirstOrDefault() as IMethodSymbol;
+
+                if (typeDependencyMethod != null)
+                {
+                    foreach (var arg in typeDependencyMethod.Parameters)
+                    {
+                        if (!CheckTypeReference(serializerSpec, arg.Type))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
             }
 
             /// <summary>

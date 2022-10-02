@@ -66,6 +66,8 @@ namespace Stride.Core.Serialization.Serializers
         {
             genericInstantiations.Add(typeof(T));
         }
+
+        private void _DataSerializerDependencies(T x0) { }
     }
 
     /// <summary>
@@ -124,6 +126,8 @@ namespace Stride.Core.Serialization.Serializers
         {
             genericInstantiations.Add(typeof(T));
         }
+
+        private void _DataSerializerDependencies(T x0) { }
     }
 
     /// <summary>
@@ -191,6 +195,8 @@ namespace Stride.Core.Serialization.Serializers
             genericInstantiations.Add(typeof(TKey));
             genericInstantiations.Add(typeof(TValue));
         }
+
+        private void _DataSerializerDependencies(TKey x0, TValue x1) { }
     }
 
     /// <summary>
@@ -251,6 +257,8 @@ namespace Stride.Core.Serialization.Serializers
             // Force concrete type to be implemented (that's what will likely be used with this interface)
             genericInstantiations.Add(typeof(List<T>));
         }
+
+        private void _DataSerializerDependencies(T x0, List<T> x1) { }
     }
 
     /// <summary>
@@ -307,6 +315,8 @@ namespace Stride.Core.Serialization.Serializers
         {
             genericInstantiations.Add(typeof(T));
         }
+
+        private void _DataSerializerDependencies(T x0) { }
     }
 
     /// <summary>
@@ -382,6 +392,8 @@ namespace Stride.Core.Serialization.Serializers
             genericInstantiations.Add(typeof(TKey));
             genericInstantiations.Add(typeof(TValue));
         }
+
+        private void _DataSerializerDependencies(TKey x0, TValue x1) { }
     }
 
     /// <summary>
@@ -449,6 +461,8 @@ namespace Stride.Core.Serialization.Serializers
             genericInstantiations.Add(typeof(TKey));
             genericInstantiations.Add(typeof(TValue));
         }
+
+        private void _DataSerializerDependencies(TKey x0, TValue x1) { }
     }
 
     public class DictionaryAllSerializer<TDictionary, TKey, TValue> : DataSerializer<TDictionary>, IDataSerializerGenericInstantiation where TDictionary : IDictionary<TKey, TValue>
@@ -511,6 +525,8 @@ namespace Stride.Core.Serialization.Serializers
             genericInstantiations.Add(typeof(TKey));
             genericInstantiations.Add(typeof(TValue));
         }
+
+        private void _DataSerializerDependencies(TKey x0, TValue x1) { }
     }
 
     /// <summary>
@@ -581,5 +597,7 @@ namespace Stride.Core.Serialization.Serializers
             // Force concrete type to be implemented (that's what will likely be used with this interface)
             genericInstantiations.Add(typeof(Dictionary<TKey, TValue>));
         }
+
+        private void _DataSerializerDependencies(TKey x0, TValue x1, Dictionary<TKey, TValue> x2) { }
     }
 }
