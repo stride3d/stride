@@ -12,16 +12,33 @@ public class ShaderProgram : ShaderToken
 {
     public SymbolTable Symbols {get;set;}
     public string Name {get;set;}
-    public IEnumerable<ShaderGenerics> Generics { get; set; }
+    public IEnumerable<ShaderGenerics>? Generics { get; set; }
     public IEnumerable<MixinToken> Mixins { get; set; }
     public IEnumerable<ShaderToken> Body { get; set; }
 
-    public ShaderProgram(Match m, SymbolTable symbols)
+    public ShaderProgram(Match m)
     {
         Match = m;
-        Symbols = symbols;
+        Symbols = new();
         Name = m["ShaderName"].StringValue;
-        Body = m["Body"].Matches.Select(x => GetToken(x,symbols)).ToList();
+        Body = m["Body"].Matches.Select(x => GetToken(x,Symbols)).ToList();
         Mixins = m["Mixins"].Matches.Select(x => new MixinToken(x)).ToList();
+    }
+
+    public ErrorList SemanticChecks<T>() where T : MainMethod
+    {
+        var method = Body.OfType<T>().First();
+        Symbols.PushStreamType(Body.OfType<ShaderVariableDeclaration>());
+        method.CreateInOutStream(Symbols);        
+        foreach( var s in Body.OfType<StructDefinition>())
+            Symbols.PushType(s.StructName, s.Type);
+        Symbols.AddScope();
+        //method.VariableChecking(Symbols);
+        method.GenerateIl(Symbols);
+        Symbols.Pop();
+
+        
+        
+        return Symbols.Errors;
     }
 }

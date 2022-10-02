@@ -17,14 +17,14 @@ public class UnaryExpression : Expression
 public class ChainAccessor : UnaryExpression, IStreamCheck, IVariableCheck
 {
     public ShaderToken Value { get; set; }
-    public IEnumerable<ShaderToken> Field { get; set; }
+    public List<ShaderToken> Field { get; set; }
     public override ISymbolType InferredType { get => inferredType; set => inferredType = value; }
 
     public ChainAccessor(Match m, SymbolTable s)
     {
         Match = m;
         Value = GetToken(m.Matches["Identifier"], s);
-        Field = m.Matches.GetRange(1, m.Matches.Count - 1).Select(x => GetToken(x, s));
+        Field = m.Matches.GetRange(1, m.Matches.Count - 1).Select(x => GetToken(x, s)).ToList();
     }
 
     public IEnumerable<string> GetUsedStream()

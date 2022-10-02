@@ -14,6 +14,8 @@ using Stride.Shaders.ThreeAddress;
 using Stride.Shaders;
 using Stride.Shaders.Parsing.AST.Shader.Analysis;
 
+Directory.SetCurrentDirectory("../../../");
+
 var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
 
 // ShaderCompiling(shaderf);
@@ -26,12 +28,10 @@ static void LoadShaders()
     manager.AddDirectory("./SDSL/MixinSamples");
 
     var mixer = new SimpleMixer("SingleShader",manager);
-    var errors = mixer.SemanticChecks();
+    var errors = mixer.SemanticChecks<VSMainMethod>();
     
     var module = mixer.EmitSpirv(EntryPoints.VSMain);
     var main = mixer.program.Body.OfType<VSMainMethod>().First();
-    var snip = new Snippet();
-    snip.Construct(main.Statements);
     var x = 0;
 }
 
@@ -59,7 +59,7 @@ static void ThreeAddress()
     var s2 = new DeclareAssign(){VariableName = "dodo2", AssignOp = AssignOpToken.Equal, Value = o2};
     symbols.PushVar(s2);
     
-    var snip = new Snippet();
+    var snip = new TAC(symbols);
     snip.Construct(s);
     var x = 0;
 }

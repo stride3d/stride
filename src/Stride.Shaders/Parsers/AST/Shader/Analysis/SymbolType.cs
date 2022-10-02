@@ -49,9 +49,9 @@ public class ArrayType : ISymbolType
 public class CompositeType : ISymbolType
 {
     public string Name { get; set; }
-    public Dictionary<string, ISymbolType> Fields { get; set; } = new();
+    public SortedList<string, ISymbolType> Fields { get; set; } = new();
 
-    public CompositeType(string name, Dictionary<string, ISymbolType> fields)
+    public CompositeType(string name, SortedList<string, ISymbolType> fields)
     {
         Name = name;
         Fields = fields;
@@ -78,6 +78,15 @@ public class CompositeType : ISymbolType
         typeOfAccessed = tmp ?? ScalarType.VoidType;
         return result;
     }
+
+    public CompositeType SubType(string name, IEnumerable<string> filter)
+    {
+        return new CompositeType(
+            name,
+            new(Fields.Where(x => filter.Contains(x.Key)).ToDictionary(x => x.Key, x=> x.Value))
+        );
+    }
+
     public override string ToString()
     {
         return $"{Name}";

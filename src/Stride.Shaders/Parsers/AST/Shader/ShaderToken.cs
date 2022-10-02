@@ -23,7 +23,7 @@ public abstract class ShaderToken
 
 	public static ShaderToken Tokenize(Match match)
 	{
-		return GetToken(match,new SymbolTable());
+		return GetToken(match,SymbolTable.Empty);
 	}
 	public static ShaderToken GetToken(Match match, SymbolTable symbols)
 	{
@@ -34,7 +34,7 @@ public abstract class ShaderToken
 		return tmp.Name switch
 		{
 			"Namespace" => GetToken(tmp.Matches.Last(),symbols),
-			"ShaderProgram" => new ShaderProgram(tmp,symbols),
+			"ShaderProgram" => new ShaderProgram(tmp),
 			"ResourceGroup" => new ResourceGroup(tmp,symbols),
 			"ConstantBuffer" => new ConstantBuffer(tmp,symbols),
 			"ShaderValueDeclaration" => new ShaderVariableDeclaration(tmp, symbols),

@@ -78,56 +78,22 @@ public class NumberLiteral : ShaderLiteral
                 _ => throw new Exception($"cannot implictely cast {inferredType} to {expected}")
             };
         }
-        // if (Suffix is null)
-        // {
-        //     if (expected != string.Empty)
-        //     {
-        //         inferredType = (Value, expected) switch
-        //         {
-        //             (_, "double") => "double",
-        //             (_, "float") => "float",
-        //             (_, "half") => "half",
-        //             (long l, "long") => "long",
-        //             (long l, "int") => "int",
-        //             (long l, "uint") => "uint",
-        //             (long l, "short") => "short",
-        //             (long l, "byte") => "byte",
-        //             (long l, "sbyte") => "sbyte",
-        //             _ => throw new NotImplementedException()
-        //         };
-        //     }
-        //     else
-        //     {
-        //         inferredType = "int";
-        //     }
-        // }
-        // else
-        // {
-        //     if (expected != string.Empty)
-        //     {
-        //         inferredType = Suffix switch
-        //         {
-        //             "l" => "long",
-        //             "u" => "uint",
-        //             "f" => "float",
-        //             "d" => "double",
-        //             _ => throw new NotImplementedException()
-        //         };
-        //         if (expected != inferredType)
-        //             throw new NotImplementedException();
-        //     }
-        //     else
-        //     {
-        //         inferredType = Suffix switch
-        //         {
-        //             "l" => "long",
-        //             "u" => "uint",
-        //             "f" => "float",
-        //             "d" => "double",
-        //             _ => throw new NotImplementedException()
-        //         };
-        //     }
-        // }
+    }
+    public override string ToString()
+    {
+        return new StringBuilder().Append(InferredType.ToString()).Append('(').Append(Value.ToString()).Append(')').ToString();
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is NumberLiteral literal &&
+               EqualityComparer<ISymbolType?>.Default.Equals(inferredType, literal.inferredType) &&
+               EqualityComparer<object>.Default.Equals(Value, literal.Value);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(inferredType, Value);
     }
 }
 public class HexLiteral : NumberLiteral

@@ -1,5 +1,6 @@
 using Eto.Parse;
 using Stride.Shaders.Parsing.AST.Shader.Analysis;
+using Stride.Shaders.ThreeAddress;
 
 namespace Stride.Shaders.Parsing.AST.Shader;
 
@@ -45,7 +46,14 @@ public class ShaderMethod : ShaderToken
 
 public abstract class MainMethod : ShaderMethod, IStreamCheck
 {
-    public MainMethod(Match m, SymbolTable s) : base(m, s) { }
+    protected string prefix;
+    protected TAC snippet;
+
+    public MainMethod(Match m, SymbolTable s) : base(m, s) 
+    { 
+        prefix = "NONE";
+        snippet = new(s);
+    }
 
     public bool CheckStream(SymbolTable s)
     {
@@ -65,11 +73,31 @@ public abstract class MainMethod : ShaderMethod, IStreamCheck
     public void VariableChecking(SymbolTable sym)
     {
         if(CheckStream(sym))
-            sym.PushStreamVar();
+            sym.PushVar("streams","STREAM");
         foreach (var s in Statements)
             sym.Analyse(s);
     }
+    public void CreateInOutStream(SymbolTable sym)
+    {
+        if(sym.TryGetType("STREAM", out var t))
+        {
+            var used = GetUsedStream();
+            var assigned = GetAssignedStream();
+            var i = ((CompositeType)t).SubType(prefix + "_STREAM_IN",used);
+            var o = ((CompositeType)t).SubType(prefix + "_STREAM_OUT",assigned);
+            sym.PushType(i.Name, i);
+            sym.PushType(o.Name, o);
+        }
+    }
 
+    internal void GenerateIl(SymbolTable symbols)
+    {
+        CreateInOutStream(symbols);
+        symbols.PushVar("streams", "STREAM");
+        symbols.PushVar("streams_in", prefix + "_STREAM_IN");
+        symbols.PushVar("streams_out", prefix + "_STREAM_OUT");
+        snippet.Construct(Statements);
+    }
 }
 
 
@@ -77,41 +105,41 @@ public class VSMainMethod : MainMethod
 {
     public VSMainMethod(Match m, SymbolTable s) : base(m, s)
     {
-
+        prefix = "VS";
     }
 }
 public class PSMainMethod : MainMethod
 {
     public PSMainMethod(Match m, SymbolTable s) : base(m, s)
     {
-
+        prefix = "PS";
     }
 }
 public class GSMainMethod : MainMethod
 {
     public GSMainMethod(Match m, SymbolTable s) : base(m, s)
     {
-
+        prefix = "GS";
     }
 }
 public class CSMainMethod : MainMethod
 {
     public CSMainMethod(Match m, SymbolTable s) : base(m, s)
     {
-
+        prefix = "CS";
     }
 }
 public class DSMainMethod : MainMethod
 {
     public DSMainMethod(Match m, SymbolTable s) : base(m, s)
     {
-
+        prefix = "DS";
     }
 }
 public class HSMainMethod : MainMethod
 {
     public HSMainMethod(Match m, SymbolTable s) : base(m, s)
     {
-
+        prefix = "HS";
     }
 }

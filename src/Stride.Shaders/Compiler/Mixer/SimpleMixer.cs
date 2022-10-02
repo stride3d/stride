@@ -11,26 +11,17 @@ public class SimpleMixer
 {
     ShaderClassString source;
     public ShaderProgram program;
-    List<Register> il;
 
     public SimpleMixer(string className, ShaderSourceManager manager)
     {
         source = new(manager.GetShaderSource(className));
         program = ShaderMixinParser.ParseShader(source.ShaderSourceCode);
-        il = new();
     }
-    public ErrorList SemanticChecks()
+    public ErrorList SemanticChecks<T>() where T : MainMethod
     {
-        var sym = new SymbolTable();
-        sym.PushStreamType(program.Body.OfType<ShaderVariableDeclaration>());
+        var errors = program.SemanticChecks<T>();
         
-        foreach(var method in program.Body.OfType<MainMethod>())
-        {
-            sym.AddScope();
-            method.VariableChecking(sym);
-            sym.Pop();
-        }
-        return sym.Errors;
+        return errors;
     }
     public Module EmitSpirv(EntryPoints entry)
     {

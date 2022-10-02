@@ -1,15 +1,20 @@
+using Stride.Core.Extensions;
 using Stride.Shaders.Parsing.AST.Shader;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.ThreeAddress;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Stride.Shaders.ThreeAddress;
 
-public partial class Snippet
+public partial class TAC
 {
 
-    public IEnumerable<Register> LowerToken(ShaderToken token, bool isHead = true)
+    public List<Register> LowerToken(ShaderToken token, bool isHead = true)
     {
-
+        if (token is Declaration d) symbols.PushVar(d);
+        else if (token is BlockStatement) symbols.AddScope();
+        else if (token is Statement s) symbols.CheckVar(s);
         return token switch
         {
             BlockStatement t => Lower(t),
@@ -25,80 +30,120 @@ public partial class Snippet
         };
     }
 
-    public IEnumerable<Register> Lower(BlockStatement b)
+    public List<Register> Lower(BlockStatement b)
     {
-        return b.Statements.SelectMany(x => LowerToken(x));
+        return b.Statements.SelectMany(x => LowerToken(x)).ToList();
     }
     
-    public IEnumerable<Register> Lower(ValueMethodCall vm)
+    public List<Register> Lower(ValueMethodCall vm)
     {
-        var values = vm.Parameters.SelectMany(x => LowerToken(x));
-        return values.Append(new CompositeConstant(values.Select(x => x.Name ?? "")));
+        var values = vm.Parameters.SelectMany(x => LowerToken(x)).ToList();
+        var r = new CompositeConstant(values.Select(x => x.Name ?? ""));
+        Add(r);
+        values.Add(r);
+        return values;
     }
 
-    public IEnumerable<Register> Lower(DeclareAssign d)
+    public List<Register> Lower(DeclareAssign d)
     {
-        var value = LowerToken(d.Value);
+        var value = LowerToken(d.Value).ToList();
         var r = new Copy(value.Last().Name){Name = d.VariableName};
         Add(r);
-        return value.Append(r);
+        value.Add(r);
+        return value;
     }
-    public IEnumerable<Register> Lower(AssignChain a)
+    public List<Register> Lower(AssignChain a)
     {
         var value = LowerToken(a.Value);
-        var r = new ChainRegister(a.AccessNames);
+        ISymbolType tmp = ScalarType.VoidType;
+        var accessors = new List<int>(a.AccessNames.Count());
+        for (int i = 0; i < a.AccessNames.Count(); i++)
+        {
+            var current = a.AccessNames.ElementAt(i);
+            if (i == 0)
+                symbols.TryGetVarType(current, out tmp);
+            else
+            {
+                if (tmp is CompositeType ct)
+                    accessors.Add(ct.Fields.IndexOfKey(current));
+                tmp.TryAccessType(current, out tmp);
+            }
+        }
+        var r = new ChainRegister(accessors);
         Add(r);
-        return value.Append(r);
+        var assign = new Copy(value.Last().Name, false) { Name = r.Name };
+        Add(assign);
+        value.Add(r);
+        value.Add(assign);
+        return value;
     }
 
 
-    public IEnumerable<Register> Lower(Operation o)
+    public List<Register> Lower(Operation o)
     {
         var left = LowerToken(o.Left);
         var right = LowerToken(o.Right);
         var r = new Assign(left.Last().Name, (Operator)o.Op, right.Last().Name);
         Add(r);
-        return left.Concat(right).Append(r);
+        left.AddRange(right);
+        left.Add(r);
+        return left;
     }
 
-    public IEnumerable<Register> Lower(ChainAccessor ca, bool isHead = true)
+    public List<Register> Lower(ChainAccessor ca, bool isHead = true)
     {
         if(!isHead)
         {
-            return ca.Field.SelectMany(x => LowerToken(x,false));
+            return ca.Field.SelectMany(x => LowerToken(x,false)).ToList();
         }
         else 
         {
-            var accessors = ca.Field.SelectMany(x => LowerToken(x, false));
-            var r = new ChainRegister(Enumerable.Empty<string>()){Accessors = accessors.Select(x => x.Name)};
+            var accessors = new List<int>(ca.Field.Count());
+            symbols.TryGetVarType(((VariableNameLiteral)ca.Value).Name, out var tmp);
+            for (int i = 0; i < ca.Field.Count; i++)
+            {
+                if (ca.Field[i] is VariableNameLiteral fvn)
+                {
+                    if (tmp is CompositeType ct)
+                        accessors.Add(ct.Fields.IndexOfKey(fvn.Name));
+                    tmp.TryAccessType(fvn.Name, out tmp);
+                }
+                else throw new Exception();
+            }
+            var r = new ChainRegister(accessors);
             Add(r);
             return new List<Register>{r};
         }
     }
-    public IEnumerable<Register> Lower(ArrayAccessor aa, bool isHead = true)
+    public List<Register> Lower(ArrayAccessor aa, bool isHead = true)
     {
         if(!isHead)
         {
-            return aa.Accessors.SelectMany(x => LowerToken(x,false));
+            return aa.Accessors.SelectMany(x => LowerToken(x,false)).ToList();
         }
         else 
         {
             var accessors = aa.Accessors.SelectMany(x => LowerToken(x, false));
-            var r = new ChainRegister(Enumerable.Empty<string>()){Accessors = accessors.Select(x => x.Name)};
+            var r = new ChainRegister(new()){};
             Add(r);
             return new List<Register>{r};
         }
     }
 
-    public IEnumerable<Register> Lower(ShaderLiteral l)
+    public List<Register> Lower(ShaderLiteral l)
     {
-        var result = l switch {
-            NumberLiteral n => new List<Register>{new Constant<NumberLiteral>(n)},
-            VariableNameLiteral n => new List<Register>{new Constant<VariableNameLiteral>(n){Name = n.Name}},
-            _ => throw new NotImplementedException()
-        };
-        foreach(var e in result) Add(e);
-        return result;
+        var result = new List<Register>();
+        if (l is NumberLiteral n)
+        {
+            var c = AddConst(new Constant<NumberLiteral>(n));
+            return new List<Register> { c };
+        }
+        else if (l is VariableNameLiteral vn)
+        {
+            return new List<Register> { IntermediateCode[LookUp[vn.Name]] };
+        }
+        else
+            throw new NotImplementedException();
     }
 
     
