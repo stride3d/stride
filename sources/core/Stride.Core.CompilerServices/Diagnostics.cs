@@ -81,5 +81,13 @@ namespace Stride.Core.CompilerServices
             DataContractDiagnosticCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
+
+        public static DiagnosticDescriptor DataSerializerNullSerializerAndCouldNotValidate = new DiagnosticDescriptor(
+            string.Format(DataContractDiagnosticIdFormat, 14),
+            "No serializer could be found for DataSerializerGlobal attribute with null value",
+            "No serializer could be found for [DataSerializerGlobal] declaration with 'null' serializer and data type {0}.",
+            DataContractDiagnosticCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
     }
 }

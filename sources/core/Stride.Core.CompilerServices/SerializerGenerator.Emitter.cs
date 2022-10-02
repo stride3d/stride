@@ -37,7 +37,6 @@ namespace Stride.Core.CompilerServices
             builder.AppendLine("using Stride.Core.Serialization;");
             builder.AppendLine();
             
-            // TODO: uncomment later to start using V2 code instead of V1
             builder.Append("[assembly:AssemblySerializerFactoryAttribute(Type = typeof(")
                 .Append(TargetNameSpace).Append(".").Append(serializerFactoryName).Append("))]").AppendLine().AppendLine();
             

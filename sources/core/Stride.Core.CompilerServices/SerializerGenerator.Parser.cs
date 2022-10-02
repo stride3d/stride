@@ -119,7 +119,7 @@ namespace Stride.Core.CompilerServices
                         // the compiler should have complained as attribute has a [NotNull] on the serializer type
                         context.ReportDiagnostic(Diagnostic.Create(
                             DataSerializerNoTypeInformation,
-                            Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span)));
+                            attribute.ApplicationSyntaxReference.ToLocation()));
 
                         continue;
                     }
@@ -138,7 +138,8 @@ namespace Stride.Core.CompilerServices
                         GenericMode = genericMode,
                         Inherited = genericMode == DataSerializerGenericMode.Type
                             || (genericMode == DataSerializerGenericMode.TypeAndGenericArguments
-                                && dataType is INamedTypeSymbol named && named.IsGenericInstance())
+                                && dataType is INamedTypeSymbol named && named.IsGenericInstance()),
+                        AttributeLocation = attribute.ApplicationSyntaxReference.ToLocation(),
                     };
                 }
                 else if (attribute.AttributeClass.Is(context.WellKnownReferences.DataSerializerGlobalAttribute))
@@ -177,6 +178,7 @@ namespace Stride.Core.CompilerServices
                         SerializerType = serializerType,
                         GenericMode = genericMode,
                         Inherited = inherited,
+                        AttributeLocation = attribute.ApplicationSyntaxReference.ToLocation(),
                     };
 
                     if (profile != null)

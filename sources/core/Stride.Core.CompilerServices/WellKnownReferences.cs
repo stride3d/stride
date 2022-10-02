@@ -6,8 +6,9 @@ namespace Stride.Core.CompilerServices
     {
         public WellKnownReferences(Compilation compilation)
         {
-            SystemObject = compilation.GetSpecialType(SpecialType.System_Object);
+            SystemEnum = compilation.GetSpecialType(SpecialType.System_Enum);
             SystemInt32 = compilation.GetSpecialType(SpecialType.System_Int32);
+            SystemObject = compilation.GetSpecialType(SpecialType.System_Object);
             SystemValueType = compilation.GetSpecialType(SpecialType.System_ValueType);
 
             AssemblySerializerFactoryAttribute = compilation.GetTypeByMetadataName("Stride.Core.Serialization.AssemblySerializerFactoryAttribute");
@@ -24,6 +25,7 @@ namespace Stride.Core.CompilerServices
             InteropStructLayoutAttribute = compilation.GetTypeByMetadataName("System.Runtime.InteropServices.StructLayoutAttribute");
         }
 
+        public INamedTypeSymbol SystemEnum { get; }
         public INamedTypeSymbol SystemInt32 { get; }
         public INamedTypeSymbol SystemObject { get; }
         public INamedTypeSymbol SystemValueType { get; }

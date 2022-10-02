@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Extensions;
@@ -20,6 +21,7 @@ namespace Stride.Core.CompilerServices
             private readonly INamedTypeSymbol enumSerializer;
             private readonly INamedTypeSymbol arraySerializer;
             private readonly GeneratorContext context;
+            private readonly HashSet<ITypeSymbol> abstractTypes = new HashSet<ITypeSymbol>();
 
             public Validator(GeneratorContext context)
             {
@@ -59,7 +61,11 @@ namespace Stride.Core.CompilerServices
                     {
                         if (!CheckTypeReference(serializerSpec, registration.DataType))
                         {
-                            // TODO: complain - no serializer could be found for data type
+                            // complain - no serializer could be found for data type
+                            context.ReportDiagnostic(Diagnostic.Create(
+                               DataSerializerNullSerializerAndCouldNotValidate,
+                               registration.AttributeLocation,
+                               registration.DataType));
                         }
                     }
                 }
@@ -104,6 +110,9 @@ namespace Stride.Core.CompilerServices
                 {
                     CheckCustomInheritedSerializersRecursive(type.GetFullTypeInfo(), serializerSpec, seen);
                 }
+
+                // process abstract types gathered over time
+                ProcessAbstractClasses(serializerSpec);
             }
 
             private void CheckCustomInheritedSerializersRecursive(INamedTypeSymbol type, SerializerSpec serializerSpec, HashSet<INamedTypeSymbol> seen)
@@ -127,6 +136,12 @@ namespace Stride.Core.CompilerServices
                 if (type.IsGenericType)
                 {
                     type = type.ConstructUnboundGenericType();
+                }
+
+                if (serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey(type))
+                {
+                    // this type already has a serializer overriden
+                    return;
                 }
 
                 GlobalSerializerRegistration registration;
@@ -205,14 +220,7 @@ namespace Stride.Core.CompilerServices
                 {
                     if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey(memberType, DefaultProfile) && !serializerSpec.DependencySerializerReference.ContainsKey(memberType, DefaultProfile))
                     {
-                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add(memberType, new GlobalSerializerRegistration
-                        {
-                            DataType = memberType,
-                            SerializerType = null, // special case for abstract/interface types or System.Object
-                            Generated = false,
-                            Inherited = false,
-                            GenericMode = DataSerializerGenericMode.None,
-                        });
+                        abstractTypes.Add((memberType as INamedTypeSymbol).GetFullTypeInfo());
                     }
                     return true;
                 }
@@ -226,7 +234,8 @@ namespace Stride.Core.CompilerServices
             /// </summary>
             private bool ValidateBaseTypeChain(SerializerSpec serializerSpec, INamedTypeSymbol baseType)
             {
-                while (baseType != null && !baseType.Is(context.WellKnownReferences.SystemObject) && !baseType.Is(context.WellKnownReferences.SystemValueType))
+                while (baseType != null && !baseType.Is(context.WellKnownReferences.SystemObject)
+                    && !baseType.Is(context.WellKnownReferences.SystemValueType) && !baseType.Is(context.WellKnownReferences.SystemValueType))
                 {
                     bool? check = ValidateTypeInChain(serializerSpec, baseType);
                     if (check != null)
@@ -349,6 +358,24 @@ namespace Stride.Core.CompilerServices
                 });
 
                 return null;
+            }
+
+            private void ProcessAbstractClasses(SerializerSpec serializerSpec)
+            {
+                foreach (var type in abstractTypes)
+                {
+                    if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey(type) && !serializerSpec.DependencySerializerReference.ContainsKey(type))
+                    {
+                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add(type, new GlobalSerializerRegistration
+                        {
+                            DataType = type,
+                            SerializerType = null, // special case for abstract/interface types or System.Object
+                            Generated = false,
+                            Inherited = false,
+                            GenericMode = DataSerializerGenericMode.None,
+                        });
+                    }
+                }
             }
 
             /// <summary>

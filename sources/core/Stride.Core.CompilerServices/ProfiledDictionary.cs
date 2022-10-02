@@ -62,6 +62,21 @@ namespace Stride.Core.CompilerServices
             return store.TryGetValue(key, out var profiledDictionary) && profiledDictionary.TryGetValue(profile, out value);
         }
 
+        public V this[K key, string profile]
+        {
+            get
+            {
+                return TryGetValue(key, profile, out var value) ? value : throw new KeyNotFoundException($"{key} {profile}");
+            }
+            set
+            {
+                if (store.TryGetValue(key, out var profiledDictionary))
+                {
+                    profiledDictionary[profile] = value;
+                }
+            }
+        }
+
         public IEnumerable<V> Values => store.SelectMany(s => s.Value.Values);
 
         IEnumerator<KeyValuePair<(K, string), V>> IEnumerable<KeyValuePair<(K, string), V>>.GetEnumerator()

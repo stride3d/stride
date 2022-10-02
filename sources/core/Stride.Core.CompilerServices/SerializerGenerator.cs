@@ -51,4 +51,7 @@ namespace Stride.Core.CompilerServices
     }
 
     // TODO: separate this into more classes such that they're more independent
+    // TODO: handle DataMemberCustomSerializerAttribute
+    // TODO: bug - open generic type wrapped in a list is emmited and shouldn't
+    // TODO: bug - open generic type interface is emmited with <T> instead of <>
 }

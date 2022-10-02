@@ -23,5 +23,10 @@ namespace Stride.Core.CompilerServices.Models
         public bool Generated { get; set; }
 
         public string Profile { get; set; } = "Default";
+
+        /// <summary>
+        /// Optional location of where the attribute was in code (for validation time diagnostic messages).
+        /// </summary>
+        public Location AttributeLocation { get; set; }
     }
 }
