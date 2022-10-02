@@ -8,6 +8,7 @@ namespace Stride.Core.CompilerServices
         {
             SystemObject = compilation.GetSpecialType(SpecialType.System_Object);
             SystemInt32 = compilation.GetSpecialType(SpecialType.System_Int32);
+            SystemValueType = compilation.GetSpecialType(SpecialType.System_ValueType);
 
             AssemblySerializerFactoryAttribute = compilation.GetTypeByMetadataName("Stride.Core.Serialization.AssemblySerializerFactoryAttribute");
             EnumSerializer = compilation.GetTypeByMetadataName("Stride.Core.Serialization.Serializers.EnumSerializer`1");
@@ -25,6 +26,7 @@ namespace Stride.Core.CompilerServices
 
         public INamedTypeSymbol SystemInt32 { get; }
         public INamedTypeSymbol SystemObject { get; }
+        public INamedTypeSymbol SystemValueType { get; }
 
         public INamedTypeSymbol AssemblySerializerFactoryAttribute { get; }
         public INamedTypeSymbol EnumSerializer { get; }

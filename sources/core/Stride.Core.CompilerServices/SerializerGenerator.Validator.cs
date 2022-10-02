@@ -40,7 +40,7 @@ namespace Stride.Core.CompilerServices
                 foreach (var typeSpec in serializerSpec.DataContractTypes)
                 {
                     var dataType = typeSpec.Type.IsGenericType ? typeSpec.Type.ConstructUnboundGenericType() : typeSpec.Type;
-                    serializerSpec.GlobalSerializerRegistrationsToEmit.Add((dataType, DefaultProfile), new GlobalSerializerRegistration
+                    serializerSpec.GlobalSerializerRegistrationsToEmit.Add(dataType, new GlobalSerializerRegistration
                     {
                         DataType = dataType,
                         SerializerType = null,
@@ -74,6 +74,7 @@ namespace Stride.Core.CompilerServices
                     {
                         var member = typeSpec.Members[i];
                         // TODO: verify what happens if member is of interface type
+                        // TODO: bug - KeyValuePair<int,int> gets null serializer instead of KeyValuePairSerializer<int, int>
                         // For each member validate it's serializable and for local generic instantiations add concrete serializer
                         if (!CheckTypeReference(serializerSpec, member.Type))
                         {
@@ -128,22 +129,23 @@ namespace Stride.Core.CompilerServices
                 }
 
                 GlobalSerializerRegistration registration;
-                if (!serializerSpec.GlobalSerializerRegistrationsToEmit.TryGetValue((baseTypeDefinition, DefaultProfile), out registration)
-                    && !serializerSpec.DependencySerializerReference.TryGetValue((baseTypeDefinition, DefaultProfile), out registration))
+                if (!serializerSpec.GlobalSerializerRegistrationsToEmit.TryGetValue(baseTypeDefinition, out registration)
+                    && !serializerSpec.DependencySerializerReference.TryGetValue(baseTypeDefinition, out registration))
                 {
                     // this should not happen!
                     return;
                 }
 
                 // TODO: validation that this is legal? For example if B<C,U> : A<C> [A<>, S<>, Args] we will throw exeption here
-                serializerSpec.GlobalSerializerRegistrationsToEmit.Add((type, DefaultProfile), new GlobalSerializerRegistration
+                serializerSpec.GlobalSerializerRegistrationsToEmit.Add(type, new GlobalSerializerRegistration
                 {
                     DataType = type,
                     SerializerType = registration.SerializerType,
                     Generated = registration.Generated,
                     Inherited = true,
                     GenericMode = registration.GenericMode,
-                });
+                    Profile = registration.Profile,
+                }, registration.Profile);
                 serializerSpec.InheritedCustomSerializableTypes.Add(type);
             }
 
@@ -169,9 +171,9 @@ namespace Stride.Core.CompilerServices
             {
                 if (memberType.TypeKind == TypeKind.Enum)
                 {
-                    if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((memberType, DefaultProfile)) && !serializerSpec.DependencySerializerReference.ContainsKey((memberType, DefaultProfile)))
+                    if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey(memberType, DefaultProfile) && !serializerSpec.DependencySerializerReference.ContainsKey(memberType, DefaultProfile))
                     {
-                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add((memberType, DefaultProfile), new GlobalSerializerRegistration
+                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add(memberType, new GlobalSerializerRegistration
                         {
                             DataType = memberType,
                             SerializerType = enumSerializer.Construct(memberType),
@@ -184,9 +186,10 @@ namespace Stride.Core.CompilerServices
                 }
                 else if (memberType.TypeKind == TypeKind.Array)
                 {
-                    if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((memberType, DefaultProfile)) && !serializerSpec.DependencySerializerReference.ContainsKey((memberType, DefaultProfile)))
+                    if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey(memberType, DefaultProfile) && !serializerSpec.DependencySerializerReference.ContainsKey(memberType, DefaultProfile)
+                        && memberType is IArrayTypeSymbol arr && arr.ElementType.Kind != SymbolKind.TypeParameter) // skip emitting array serializer if we're passed a typeParam element type
                     {
-                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add((memberType, DefaultProfile), new GlobalSerializerRegistration
+                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add(memberType, new GlobalSerializerRegistration
                         {
                             DataType = memberType,
                             SerializerType = arraySerializer.Construct((memberType as IArrayTypeSymbol).ElementType),
@@ -199,9 +202,9 @@ namespace Stride.Core.CompilerServices
                 }
                 else if (memberType.TypeKind == TypeKind.Interface || (memberType.TypeKind == TypeKind.Class && memberType.IsAbstract) || memberType.Is(context.WellKnownReferences.SystemObject))
                 {
-                    if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((memberType, DefaultProfile)) && !serializerSpec.DependencySerializerReference.ContainsKey((memberType, DefaultProfile)))
+                    if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey(memberType, DefaultProfile) && !serializerSpec.DependencySerializerReference.ContainsKey(memberType, DefaultProfile))
                     {
-                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add((memberType, DefaultProfile), new GlobalSerializerRegistration
+                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add(memberType, new GlobalSerializerRegistration
                         {
                             DataType = memberType,
                             SerializerType = null, // special case for abstract/interface types or System.Object
@@ -222,7 +225,7 @@ namespace Stride.Core.CompilerServices
             /// </summary>
             private bool ValidateBaseTypeChain(SerializerSpec serializerSpec, INamedTypeSymbol baseType)
             {
-                while (baseType != null && !baseType.Is(context.WellKnownReferences.SystemObject))
+                while (baseType != null && !baseType.Is(context.WellKnownReferences.SystemObject) && !baseType.Is(context.WellKnownReferences.SystemValueType))
                 {
                     bool? check = ValidateTypeInChain(serializerSpec, baseType);
                     if (check != null)
@@ -241,8 +244,8 @@ namespace Stride.Core.CompilerServices
                 INamedTypeSymbol type)
             {
                 // if the type is already known
-                if (serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((type, DefaultProfile))
-                    || serializerSpec.DependencySerializerReference.ContainsKey((type, DefaultProfile)))
+                if (serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey(type)
+                    || serializerSpec.DependencySerializerReference.ContainsKey(type))
                 {
                     return true;
                 }
@@ -263,8 +266,8 @@ namespace Stride.Core.CompilerServices
                     {
                         var baseTypeDefinition = type.ConstructUnboundGenericType();
                         GlobalSerializerRegistration registration;
-                        if (serializerSpec.GlobalSerializerRegistrationsToEmit.TryGetValue((baseTypeDefinition, DefaultProfile), out registration)
-                            || serializerSpec.DependencySerializerReference.TryGetValue((baseTypeDefinition, DefaultProfile), out registration))
+                        if (serializerSpec.GlobalSerializerRegistrationsToEmit.TryGetValue(baseTypeDefinition, out registration)
+                            || serializerSpec.DependencySerializerReference.TryGetValue(baseTypeDefinition, out registration))
                         {
                             // ensure the type is not partially open
                             if (type.IsGenericInstance())
@@ -317,7 +320,7 @@ namespace Stride.Core.CompilerServices
                     default:
                         return false; // default case for compiler complaining about uninitialized var, should not happen
                 }
-                serializerSpec.GlobalSerializerRegistrationsToEmit.Add((type, DefaultProfile), new GlobalSerializerRegistration
+                serializerSpec.GlobalSerializerRegistrationsToEmit.Add(type, new GlobalSerializerRegistration
                 {
                     DataType = type,
                     SerializerType = serializerType,
@@ -382,9 +385,9 @@ namespace Stride.Core.CompilerServices
                     var generated = (bool)attribute.ConstructorArguments[4].Value;
                     var profile = (string)attribute.NamedArguments[0].Value.Value;
 
-                    if (!serializerSpec.DependencySerializerReference.ContainsKey((dataType, profile)))
+                    if (!serializerSpec.DependencySerializerReference.ContainsKey(dataType, profile))
                     {
-                        serializerSpec.DependencySerializerReference.Add((dataType, profile), new GlobalSerializerRegistration
+                        serializerSpec.DependencySerializerReference.Add(dataType, new GlobalSerializerRegistration
                         {
                             DataType = dataType,
                             SerializerType = serializerType,
@@ -392,7 +395,7 @@ namespace Stride.Core.CompilerServices
                             Inherited = inherited,
                             GenericMode = genericMode,
                             Profile = profile,
-                        });
+                        }, profile);
                     }
                 }
             }

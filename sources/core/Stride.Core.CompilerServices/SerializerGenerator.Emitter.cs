@@ -38,8 +38,8 @@ namespace Stride.Core.CompilerServices
             builder.AppendLine();
             
             // TODO: uncomment later to start using V2 code instead of V1
-            //builder.Append("[assembly:AssemblySerializerFactoryAttribute(Type = typeof(")
-            //    .Append(TargetNameSpace).Append(".").Append(serializerFactoryName).Append("))]").AppendLine().AppendLine();
+            builder.Append("[assembly:AssemblySerializerFactoryAttribute(Type = typeof(")
+                .Append(TargetNameSpace).Append(".").Append(serializerFactoryName).Append("))]").AppendLine().AppendLine();
             
             builder.AppendFormat("namespace {0};", TargetNameSpace).AppendLine();
             builder.AppendLine();
@@ -47,7 +47,7 @@ namespace Stride.Core.CompilerServices
             foreach (var registration in serializerSpec.GlobalSerializerRegistrationsToEmit)
             {
 
-                builder.Append("// [DataSerializerGlobal(");
+                builder.Append("[DataSerializerGlobal(");
                 
                 if (registration.Value.SerializerType == null && !registration.Value.Generated)
                 {
@@ -68,6 +68,7 @@ namespace Stride.Core.CompilerServices
                 else
                 {
                     var dataTypeString = GetTypeNameForTypeOf(registration.Value.DataType);
+                    if (dataTypeString == "T?<>") dataTypeString = "System.Nullable<>"; // HACK: I don't know where this could be configured to render properly
                     builder.Append("typeof(").Append(dataTypeString).Append("), ");
                 }
 
@@ -159,7 +160,7 @@ namespace Stride.Core.CompilerServices
 
                         builder.Append(" : ");
 
-                        if (typeSpec.Type.IsValueType || typeSpec.Type.IsAbstract)
+                        if (typeSpec.Type.IsValueType || typeSpec.Type.IsAbstract || typeSpec.HasInternalContructor)
                         {
                             builder.Append("DataSerializer");
                         }
@@ -211,6 +212,11 @@ namespace Stride.Core.CompilerServices
                     builder.Append("        ArchiveMode mode,").AppendLine();
                     builder.Append("        SerializationStream stream)").AppendLine();
                     builder.AppendLine("    {");
+
+                    if (typeSpec.HasInternalContructor && !typeSpec.Type.IsAbstract)
+                    {
+                        builder.Append("        if (obj == null) obj = new ").Append(typeName).Append("();").AppendLine();
+                    }
 
                     // emit serialization of the parent
                     if (typeSpec.BaseType != null)

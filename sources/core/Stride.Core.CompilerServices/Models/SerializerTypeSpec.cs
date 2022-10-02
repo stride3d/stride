@@ -24,6 +24,8 @@ namespace Stride.Core.CompilerServices.Models
         /// </summary>
         public bool Inherited { get; set; }
 
+        public bool HasInternalContructor { get; set; }
+
         public List<string> Aliases { get; } = new List<string>();
 
         public SerializerTypeSpec(INamedTypeSymbol type, List<SerializerMemberSpec> members)

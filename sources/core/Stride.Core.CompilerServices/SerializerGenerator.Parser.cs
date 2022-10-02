@@ -19,7 +19,7 @@ namespace Stride.Core.CompilerServices
             var allTypes = GetAllTypesForAssembly(assembly);
 
             var typeSpecs = new HashSet<SerializerTypeSpec>(new SerializerTypeSpec.EqualityComparer());
-            var customSerializers = new Dictionary<(ITypeSymbol, string), GlobalSerializerRegistration>();
+            var customSerializers = new ProfiledDictionary<ITypeSymbol, GlobalSerializerRegistration>();
             var inheritedCustomSerializableTypes = new HashSet<ITypeSymbol>();
             foreach (var typeSymbol in allTypes)
             {
@@ -38,7 +38,7 @@ namespace Stride.Core.CompilerServices
 
                 if (typeSymbol.TypeKind == TypeKind.Enum)
                 {
-                    customSerializers.Add((typeSymbol, DefaultProfile), new GlobalSerializerRegistration
+                    customSerializers.Add(typeSymbol, new GlobalSerializerRegistration
                     {
                         DataType = typeSymbol,
                         SerializerType = context.WellKnownReferences.EnumSerializer.Construct(typeSymbol),
@@ -49,8 +49,9 @@ namespace Stride.Core.CompilerServices
                 }
                 else if (CheckForDataContract(context, typeSymbol))
                 {
-                    if (!typeSymbol.IsValueType && !typeSymbol.IsAbstract && !typeSymbol.Constructors.Any(
-                            ctor => !ctor.Parameters.Any() && ctor.DeclaredAccessibility == Accessibility.Public))
+                    var ctor = typeSymbol.Constructors.FirstOrDefault(ctor => !ctor.Parameters.Any()
+                        && (ctor.DeclaredAccessibility == Accessibility.Public || ctor.DeclaredAccessibility == Accessibility.Internal));
+                    if (!typeSymbol.IsValueType && !typeSymbol.IsAbstract && ctor == null)
                     {
                         // DataContract classes should have a public parameterless constructor to satisfy a generic new() constraint
                         context.ReportDiagnostic(Diagnostic.Create(
@@ -60,7 +61,10 @@ namespace Stride.Core.CompilerServices
                         continue;
                     }
 
-                    typeSpecs.Add(SerializerTypeSpecGenerator.GenerateTypeSpec(context, typeSymbol));
+                    var spec = SerializerTypeSpecGenerator.GenerateTypeSpec(context, typeSymbol);
+                    spec.HasInternalContructor = ctor?.DeclaredAccessibility == Accessibility.Internal;
+
+                    typeSpecs.Add(spec);
                 }
 
 
@@ -76,7 +80,7 @@ namespace Stride.Core.CompilerServices
                 Assembly = context.Compilation.Assembly,
                 AllTypes = allTypes,
                 GlobalSerializerRegistrationsToEmit = customSerializers,
-                DependencySerializerReference = new Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration>(),
+                DependencySerializerReference = new ProfiledDictionary<ITypeSymbol, GlobalSerializerRegistration>(),
                 InheritedCustomSerializableTypes = inheritedCustomSerializableTypes,
             };
         }
@@ -98,7 +102,7 @@ namespace Stride.Core.CompilerServices
             return types;
         }
 
-        internal static void CheckTypeForCustomSerializers(GeneratorContext context, ISymbol symbol, Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration> customSerializers, HashSet<ITypeSymbol> inheritedCustomSerializableTypes)
+        internal static void CheckTypeForCustomSerializers(GeneratorContext context, ISymbol symbol, ProfiledDictionary<ITypeSymbol, GlobalSerializerRegistration> customSerializers, HashSet<ITypeSymbol> inheritedCustomSerializableTypes)
         {
             var attributes = symbol.GetAttributes();
             foreach (var attribute in attributes)
@@ -220,7 +224,7 @@ namespace Stride.Core.CompilerServices
                         spec.DataType = namedDataType.ConstructUnboundGenericType();
                     }
 
-                    if (customSerializers.ContainsKey((spec.DataType, spec.Profile)))
+                    if (customSerializers.ContainsKey(spec.DataType, spec.Profile))
                     {
                         context.ReportDiagnostic(Diagnostic.Create(
                             DataSerializerGlobalDuplicateDeclarations,
@@ -230,7 +234,7 @@ namespace Stride.Core.CompilerServices
                     }
                     else
                     {
-                        customSerializers.Add((spec.DataType, spec.Profile), spec);
+                        customSerializers.Add(spec.DataType, spec, spec.Profile);
 
                         if (spec.Inherited)
                         {
