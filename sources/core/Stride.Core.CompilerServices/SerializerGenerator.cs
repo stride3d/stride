@@ -26,6 +26,12 @@ namespace Stride.Core.CompilerServices
             try
             {
                 var customContext = new GeneratorContext(context);
+                if (customContext.WellKnownReferences.EnumSerializer is null)
+                {
+                    // Stride.Core is not available in the compilation unit
+                    return;
+                }
+
                 var spec = GenerateSpec(customContext);
 
                 var validator = new Validator(customContext);

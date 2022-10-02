@@ -18,8 +18,9 @@ namespace Stride.Core.CompilerServices
             var assembly = context.Compilation.Assembly;
             var allTypes = GetAllTypesForAssembly(assembly);
 
-            HashSet<SerializerTypeSpec> typeSpecs = new HashSet<SerializerTypeSpec>(new SerializerTypeSpec.EqualityComparer());
-            Dictionary<(ITypeSymbol, string), GlobalSerializerRegistration> customSerializers = new Dictionary<(ITypeSymbol, string), GlobalSerializerRegistration>();
+            var typeSpecs = new HashSet<SerializerTypeSpec>(new SerializerTypeSpec.EqualityComparer());
+            var customSerializers = new Dictionary<(ITypeSymbol, string), GlobalSerializerRegistration>();
+            var inheritedCustomSerializableTypes = new HashSet<ITypeSymbol>();
             foreach (var typeSymbol in allTypes)
             {
                 if (typeSymbol.DeclaredAccessibility != Accessibility.Public && typeSymbol.DeclaredAccessibility != Accessibility.Internal)
@@ -63,18 +64,20 @@ namespace Stride.Core.CompilerServices
                 }
 
 
-                CheckTypeForCustomSerializers(context, typeSymbol, customSerializers);
+                CheckTypeForCustomSerializers(context, typeSymbol, customSerializers, inheritedCustomSerializableTypes);
             }
 
             // look for assembly scoped global serializers
-            CheckTypeForCustomSerializers(context, assembly, customSerializers);
+            CheckTypeForCustomSerializers(context, assembly, customSerializers, inheritedCustomSerializableTypes);
 
             return new SerializerSpec
             {
                 DataContractTypes = typeSpecs,
                 Assembly = context.Compilation.Assembly,
+                AllTypes = allTypes,
                 GlobalSerializerRegistrationsToEmit = customSerializers,
                 DependencySerializerReference = new Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration>(),
+                InheritedCustomSerializableTypes = inheritedCustomSerializableTypes,
             };
         }
 
@@ -95,7 +98,7 @@ namespace Stride.Core.CompilerServices
             return types;
         }
 
-        internal static void CheckTypeForCustomSerializers(GeneratorContext context, ISymbol symbol, Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration> customSerializers)
+        internal static void CheckTypeForCustomSerializers(GeneratorContext context, ISymbol symbol, Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration> customSerializers, HashSet<ITypeSymbol> inheritedCustomSerializableTypes)
         {
             var attributes = symbol.GetAttributes();
             foreach (var attribute in attributes)
@@ -121,7 +124,7 @@ namespace Stride.Core.CompilerServices
                     // so we're reapplying them here to have a full type.
                     if (serializerType.BaseType == null)
                     {
-                        serializerType = GetFullTypeInfoFrom(serializerType);
+                        serializerType = serializerType.GetFullTypeInfo();
                     }
 
                     spec = new GlobalSerializerRegistration
@@ -129,6 +132,9 @@ namespace Stride.Core.CompilerServices
                         DataType = dataType,
                         SerializerType = serializerType,
                         GenericMode = genericMode,
+                        Inherited = genericMode == DataSerializerGenericMode.Type
+                            || (genericMode == DataSerializerGenericMode.TypeAndGenericArguments
+                                && dataType is INamedTypeSymbol named && named.IsGenericInstance())
                     };
                 }
                 else if (attribute.AttributeClass.Is(context.WellKnownReferences.DataSerializerGlobalAttribute))
@@ -136,13 +142,14 @@ namespace Stride.Core.CompilerServices
                     var dataType = attribute.ConstructorArguments[1].Value as ITypeSymbol;
                     var serializerType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
                     var genericMode = (DataSerializerGenericMode)(int)attribute.ConstructorArguments[2].Value;
+                    var inherited = (bool)attribute.ConstructorArguments[3].Value;
                     var profile = attribute.NamedArguments.Length > 0 ? (string)attribute.NamedArguments[0].Value.Value : null;
                     
                     // if basetype is null we need to access the original definition, but this makes us loose generic arguments
                     // so we're reapplying them here to have a full type.
                     if (serializerType != null && serializerType.BaseType == null)
                     {
-                        serializerType = GetFullTypeInfoFrom(serializerType);
+                        serializerType = serializerType.GetFullTypeInfo();
                     }
 
                     if (dataType == null && serializerType != null)
@@ -165,6 +172,7 @@ namespace Stride.Core.CompilerServices
                         DataType = dataType,
                         SerializerType = serializerType,
                         GenericMode = genericMode,
+                        Inherited = inherited,
                     };
 
                     if (profile != null)
@@ -223,19 +231,14 @@ namespace Stride.Core.CompilerServices
                     else
                     {
                         customSerializers.Add((spec.DataType, spec.Profile), spec);
+
+                        if (spec.Inherited)
+                        {
+                            inheritedCustomSerializableTypes.Add(spec.DataType as INamedTypeSymbol);
+                        }
                     }
                 }
             }
-        }
-
-        private static INamedTypeSymbol GetFullTypeInfoFrom(INamedTypeSymbol serializerType)
-        {
-            var original = serializerType.OriginalDefinition;
-            if (serializerType.IsGenericType && !serializerType.IsUnboundGenericType && serializerType.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter))
-            {
-                return original.ConstructedFrom.Construct(serializerType.TypeArguments, serializerType.TypeArgumentNullableAnnotations);
-            }
-            return original;
         }
 
         private static bool CheckForDataContract(GeneratorContext context, INamedTypeSymbol typeSymbol)

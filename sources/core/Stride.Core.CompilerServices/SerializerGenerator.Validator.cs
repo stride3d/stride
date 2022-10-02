@@ -73,6 +73,7 @@ namespace Stride.Core.CompilerServices
                     for (var i = 0; i < typeSpec.Members.Count; i++)
                     {
                         var member = typeSpec.Members[i];
+                        // TODO: verify what happens if member is of interface type
                         // For each member validate it's serializable and for local generic instantiations add concrete serializer
                         if (!CheckTypeReference(serializerSpec, member.Type))
                         {
@@ -94,7 +95,56 @@ namespace Stride.Core.CompilerServices
                     }
                 }
 
-                serializerSpec.GlobalSerializerRegistrationsToEmit = serializerSpec.GlobalSerializerRegistrationsToEmit;
+                // process other types in the assembly that have a parent in the chain with a custom inheritable serializer
+                serializerSpec.InheritedCustomSerializableTypes.UnionWith(serializerSpec.DependencySerializerReference.Values.Where(r => r.Inherited && !r.Generated).Select(r => r.DataType));
+                var seen = new HashSet<INamedTypeSymbol>();
+                foreach (var type in serializerSpec.AllTypes)
+                {
+                    CheckCustomInheritedSerializersRecursive(type.GetFullTypeInfo(), serializerSpec, seen);
+                }
+            }
+
+            private void CheckCustomInheritedSerializersRecursive(INamedTypeSymbol type, SerializerSpec serializerSpec, HashSet<INamedTypeSymbol> seen)
+            {
+                if (seen.Contains(type)) return;
+                seen.Add(type);
+
+                if (type.IsStatic || type.TypeKind == TypeKind.Interface || type.Is(context.WellKnownReferences.SystemObject))
+                    return;
+
+                if (type.BaseType == null)
+                {
+                    type = type.GetFullTypeInfo();
+                }
+                var baseTypeDefinition = type.BaseType.GetFullTypeInfo();
+                CheckCustomInheritedSerializersRecursive(baseTypeDefinition, serializerSpec, seen);
+
+                if (!serializerSpec.InheritedCustomSerializableTypes.Contains(baseTypeDefinition))
+                    return;
+
+                if (type.IsGenericType)
+                {
+                    type = type.ConstructUnboundGenericType();
+                }
+
+                GlobalSerializerRegistration registration;
+                if (!serializerSpec.GlobalSerializerRegistrationsToEmit.TryGetValue((baseTypeDefinition, DefaultProfile), out registration)
+                    && !serializerSpec.DependencySerializerReference.TryGetValue((baseTypeDefinition, DefaultProfile), out registration))
+                {
+                    // this should not happen!
+                    return;
+                }
+
+                // TODO: validation that this is legal? For example if B<C,U> : A<C> [A<>, S<>, Args] we will throw exeption here
+                serializerSpec.GlobalSerializerRegistrationsToEmit.Add((type, DefaultProfile), new GlobalSerializerRegistration
+                {
+                    DataType = type,
+                    SerializerType = registration.SerializerType,
+                    Generated = registration.Generated,
+                    Inherited = true,
+                    GenericMode = registration.GenericMode,
+                });
+                serializerSpec.InheritedCustomSerializableTypes.Add(type);
             }
 
             private bool CheckTypeReference(SerializerSpec serializerSpec, ITypeSymbol typeSymbol)
@@ -217,41 +267,13 @@ namespace Stride.Core.CompilerServices
                             || serializerSpec.DependencySerializerReference.TryGetValue((baseTypeDefinition, DefaultProfile), out registration))
                         {
                             // ensure the type is not partially open
-                            if (type.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter))
+                            if (type.IsGenericInstance())
                             {
-                                INamedTypeSymbol serializerType;
-                                switch (registration.GenericMode)
-                                {
-                                    case DataSerializerGenericMode.None:
-                                        // serializer is not generic, but type is generic
-                                        serializerType = registration.SerializerType;
-                                        break;
-                                    case DataSerializerGenericMode.Type:
-                                        // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
-                                        serializerType = registration.SerializerType?.ConstructedFrom.Construct(type);
-                                        break;
-                                    case DataSerializerGenericMode.GenericArguments:
-                                        // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
-                                        serializerType = registration.SerializerType?.ConstructedFrom.Construct(type.TypeArguments, type.TypeArgumentNullableAnnotations);
-                                        break;
-                                    case DataSerializerGenericMode.TypeAndGenericArguments:
-                                        // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
-                                        serializerType = registration.SerializerType?.ConstructedFrom.Construct(new[] {type}.Concat(type.TypeArguments).ToArray());
-                                        break;
-                                    default:
-                                        return false; // default case for compiler complaining about uninitialized var, should not happen
-                                }
-                                serializerSpec.GlobalSerializerRegistrationsToEmit.Add((type, DefaultProfile), new GlobalSerializerRegistration
-                                {
-                                    DataType = type,
-                                    SerializerType = serializerType,
-                                    Generated = registration.Generated,
-                                    Inherited = false,
-                                    GenericMode = DataSerializerGenericMode.None,
-                                });
+                                return GenerateDerivedSerializer(serializerSpec, type, registration);
                             }
 
-                            // a serializer has been added or type has a mix of bound and unbound type parameters, anyways continue looking through the base chain
+                            // a serializer has a at least one unbound type parameter
+                            // TODO: understand when this happens and figure out what should we do here
                             return null;
                         }
                         else
@@ -266,6 +288,45 @@ namespace Stride.Core.CompilerServices
                         return false;
                     }
                 }
+            }
+
+            /// <summary>
+            /// Create a new serializer for <paramref name="type"/> using <paramref name="registration"/> and add it to be emmitted.
+            /// </summary>
+            private static bool? GenerateDerivedSerializer(SerializerSpec serializerSpec, INamedTypeSymbol type, GlobalSerializerRegistration registration)
+            {
+                INamedTypeSymbol serializerType;
+                switch (registration.GenericMode)
+                {
+                    case DataSerializerGenericMode.None:
+                        // serializer is not generic, but type is generic
+                        serializerType = registration.SerializerType;
+                        break;
+                    case DataSerializerGenericMode.Type:
+                        // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
+                        serializerType = registration.SerializerType?.ConstructedFrom.Construct(type);
+                        break;
+                    case DataSerializerGenericMode.GenericArguments:
+                        // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
+                        serializerType = registration.SerializerType?.ConstructedFrom.Construct(type.TypeArguments, type.TypeArgumentNullableAnnotations);
+                        break;
+                    case DataSerializerGenericMode.TypeAndGenericArguments:
+                        // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
+                        serializerType = registration.SerializerType?.ConstructedFrom.Construct(new[] { type }.Concat(type.TypeArguments).ToArray());
+                        break;
+                    default:
+                        return false; // default case for compiler complaining about uninitialized var, should not happen
+                }
+                serializerSpec.GlobalSerializerRegistrationsToEmit.Add((type, DefaultProfile), new GlobalSerializerRegistration
+                {
+                    DataType = type,
+                    SerializerType = serializerType,
+                    Generated = registration.Generated,
+                    Inherited = false,
+                    GenericMode = DataSerializerGenericMode.None,
+                });
+
+                return null;
             }
 
             /// <summary>
