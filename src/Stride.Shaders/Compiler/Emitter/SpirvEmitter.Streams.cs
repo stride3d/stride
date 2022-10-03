@@ -1,6 +1,7 @@
 using Spv.Generator;
 using Stride.Shaders.Mixer;
 using Stride.Shaders.Parsing.AST.Shader;
+using Stride.Shaders.Parsing.AST.Shader.Analysis;
 using static Spv.Specification;
 
 namespace Stride.Shaders.Spirv;
@@ -8,8 +9,6 @@ namespace Stride.Shaders.Spirv;
 public partial class SpirvEmitter
 {
     public Stream Stream { get; set; }
-    public StreamIn StreamIn { get; set; }
-    public StreamOut StreamOut { get; set; }
 
 
     public void CreateStreamStructs(ShaderProgram program, EntryPoints entry)
@@ -24,31 +23,13 @@ public partial class SpirvEmitter
             EntryPoints.HSMain => (MainMethod)program.Body.First(x => x is HSMainMethod),
             _ => throw new NotImplementedException()
         };
+        var structs = program.Symbols.GetAllStructTypes();
+        program.Symbols.TryGetType("STREAM", out var streamType);
+        //var fields = ((CompositeType)streamType).Fields.Select(x => x.Field)
+        var x = 0;
 
 
-        // var variables =
-        //     program.Body
-        //     .Where(x => x is ShaderVariableDeclaration svd && svd.IsStream)
-        //     .Cast<ShaderVariableDeclaration>()
-        //     .Select(x => (x.Name, SpvType: AsSpvType(x.Type)))
-        //     .ToList();
-
-        // var likelyInputs = mainMethod.GetStreamValuesUsed();
-        // IEnumerable<(string,Instruction)> inVars = variables.Where(x => likelyInputs.Contains(x.Name)) as IEnumerable<(string,Instruction)>;
-
-        // var likelyOutputs = mainMethod.GetStreamValuesAssigned();
-        // IEnumerable<(string,Instruction)> outVars = variables.Where(x => likelyOutputs.Contains(x.Name)) as IEnumerable<(string,Instruction)>;
-
-        // Stream = new Stream(entry, this, variables as IEnumerable<(string,Instruction)>);
-        // StreamIn = new(entry, this, inVars);
-        // StreamOut = new StreamOut(entry, this, outVars);
-
-        // // in-out
-
-        // var streamInPtr = TypePointer(StorageClass.Input , StreamIn.SpvType);
-        // var streamOutPtr = TypePointer(StorageClass.Output , StreamOut.SpvType);
-        // Variables[StreamIn.Name] = Variable(streamInPtr, StorageClass.Input);
-        // Variables[StreamOut.Name] = Variable(streamOutPtr, StorageClass.Output);
+        
         
     }
 }

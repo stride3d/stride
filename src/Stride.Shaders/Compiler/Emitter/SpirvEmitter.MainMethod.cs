@@ -29,30 +29,35 @@ public partial class SpirvEmitter : Module
     {
         var typefunc = TypeFunction(TypeVoid());
         var func = Function(TypeVoid(), FunctionControlMask.MaskNone, typefunc);
-        Label();
-        foreach(var s in ((VSMainMethod)p.Body.First(x => x is VSMainMethod)).Statements)
-        {
-            
-        }
+        AddLabel(Label());
+        // foreach(var s in ((VSMainMethod)p.Body.First(x => x is VSMainMethod)).Statements)
+        // {
+
+        // }
+        Return();
+        FunctionEnd();
+        AddEntryPoint(ExecutionModel.Vertex, func, "VSMain", input,output);
+
+        // AddExecutionMode(func, ExecutionMode.OriginLowerLeft);
     }
     public void PSMethod(ShaderProgram p)
     {
-        
+
     }
     public void GSMethod(ShaderProgram p)
     {
-        
+
     }
     public void CSMethod(ShaderProgram p)
     {
-        
+
     }
     public void HSMethod(ShaderProgram p)
     {
-        
+
     }
     public void DSMethod(ShaderProgram p)
     {
-        
+
     }
 }

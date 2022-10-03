@@ -14,7 +14,7 @@ using Stride.Shaders.ThreeAddress;
 using Stride.Shaders;
 using Stride.Shaders.Parsing.AST.Shader.Analysis;
 
-Directory.SetCurrentDirectory("../../../");
+// Directory.SetCurrentDirectory("../../../");
 
 var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
 
@@ -31,7 +31,7 @@ static void LoadShaders()
     var errors = mixer.SemanticChecks<VSMainMethod>();
     
     var module = mixer.EmitSpirv(EntryPoints.VSMain);
-    var main = mixer.program.Body.OfType<VSMainMethod>().First();
+    File.WriteAllBytes("./shader.spv",module.Generate());
     var x = 0;
 }
 

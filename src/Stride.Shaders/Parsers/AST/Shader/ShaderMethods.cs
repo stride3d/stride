@@ -47,12 +47,12 @@ public class ShaderMethod : ShaderToken
 public abstract class MainMethod : ShaderMethod, IStreamCheck
 {
     protected string prefix;
-    protected TAC snippet;
+    public TAC IL { get; set; }
 
     public MainMethod(Match m, SymbolTable s) : base(m, s) 
     { 
         prefix = "NONE";
-        snippet = new(s);
+        IL = new(s);
     }
 
     public bool CheckStream(SymbolTable s)
@@ -96,7 +96,7 @@ public abstract class MainMethod : ShaderMethod, IStreamCheck
         symbols.PushVar("streams", "STREAM");
         symbols.PushVar("streams_in", prefix + "_STREAM_IN");
         symbols.PushVar("streams_out", prefix + "_STREAM_OUT");
-        snippet.Construct(Statements);
+        IL.Construct(Statements);
     }
 }
 

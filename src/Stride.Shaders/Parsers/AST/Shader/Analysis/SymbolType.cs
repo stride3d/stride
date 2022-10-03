@@ -96,7 +96,7 @@ public class CompositeType : ISymbolType
 public class VectorType : ISymbolType
 {
     public int Size { get; set; }
-    public ISymbolType TypeName { get; set; }
+    public ScalarType TypeName { get; set; }
     static string swizzleX = "xyzw";
     static string swizzleR = "rgba";
 
@@ -105,14 +105,14 @@ public class VectorType : ISymbolType
         if (int.TryParse(size, out var s))
         {
             Size = s;
-            TypeName = type;
+            TypeName = (ScalarType)type;
         }
         else throw new NotImplementedException();
     }
     public VectorType(int size, ISymbolType type)
     {
         Size = size;
-        TypeName = type;
+        TypeName = (ScalarType)type;
     }
 
     public bool IsAccessorValid(string accessor)
@@ -155,7 +155,7 @@ public class MatrixType : ISymbolType
 {
     public int SizeX { get; set; }
     public int SizeY { get; set; }
-    public ISymbolType TypeName { get; set; }
+    public ScalarType TypeName { get; set; }
 
     static readonly Grammar accessorGrammar = new(
       Terminals.Literal("_")

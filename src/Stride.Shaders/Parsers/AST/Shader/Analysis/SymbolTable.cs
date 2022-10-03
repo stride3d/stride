@@ -20,6 +20,9 @@ public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
     public void AddError(Eto.Parse.Match match, string title) => Errors.Add(new(match, title));
 
 
+    public IEnumerable<ISymbolType> GetAllStructTypes() => this.SelectMany(x => x.Select(y => y.Value).OfType<CompositeType>());
+
+
     public void PushVar(Declaration a)
     {
         foreach (var d in this)

@@ -28,10 +28,10 @@ public class ShaderProgram : ShaderToken
     public ErrorList SemanticChecks<T>() where T : MainMethod
     {
         var method = Body.OfType<T>().First();
-        Symbols.PushStreamType(Body.OfType<ShaderVariableDeclaration>());
-        method.CreateInOutStream(Symbols);        
-        foreach( var s in Body.OfType<StructDefinition>())
+        foreach (var s in Body.OfType<StructDefinition>())
             Symbols.PushType(s.StructName, s.Type);
+        Symbols.PushStreamType(Body.OfType<ShaderVariableDeclaration>());
+        method.CreateInOutStream(Symbols);
         Symbols.AddScope();
         //method.VariableChecking(Symbols);
         method.GenerateIl(Symbols);

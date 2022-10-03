@@ -1,0 +1,70 @@
+; SPIR-V
+; Version: 1.0
+; Generator: Khronos Glslang Reference Front End; 10
+; Bound: 79
+; Schema: 0
+               OpCapability Shader
+               OpExtension "SPV_GOOGLE_hlsl_functionality1"
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %VSMain "VSMain" %vPosition %_entryPointOutput_Pos %_entryPointOutput_Pshade
+               OpSource HLSL 500
+               OpName %VSMain "VSMain"
+               OpName %_Global "$Global"
+               OpMemberName %_Global 0 "view_proj_matrix"
+               OpMemberName %_Global 1 "texture_matrix0"
+               OpName %_ ""
+               OpName %vPosition "vPosition"
+               OpName %_entryPointOutput_Pos "@entryPointOutput.Pos"
+               OpName %_entryPointOutput_Pshade "@entryPointOutput.Pshade"
+               OpMemberDecorate %_Global 0 RowMajor
+               OpMemberDecorate %_Global 0 Offset 0
+               OpMemberDecorate %_Global 0 MatrixStride 16
+               OpMemberDecorate %_Global 1 RowMajor
+               OpMemberDecorate %_Global 1 Offset 64
+               OpMemberDecorate %_Global 1 MatrixStride 16
+               OpDecorate %_Global Block
+               OpDecorate %_ DescriptorSet 0
+               OpDecorate %_ Binding 0
+               OpDecorate %vPosition Location 0
+               OpDecorateString %vPosition UserSemantic "POSITION"
+               OpDecorate %_entryPointOutput_Pos Location 0
+               OpDecorateString %_entryPointOutput_Pos UserSemantic "POSITION"
+               OpDecorate %_entryPointOutput_Pshade Location 1
+               OpDecorateString %_entryPointOutput_Pshade UserSemantic "TEXCOORD0"
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+    %v3float = OpTypeVector %float 3
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%mat4v4float = OpTypeMatrix %v4float 4
+    %_Global = OpTypeStruct %mat4v4float %mat4v4float
+%_ptr_Uniform__Global = OpTypePointer Uniform %_Global
+          %_ = OpVariable %_ptr_Uniform__Global Uniform
+%_ptr_Uniform_mat4v4float = OpTypePointer Uniform %mat4v4float
+      %int_1 = OpConstant %int 1
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+  %vPosition = OpVariable %_ptr_Input_v4float Input
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%_entryPointOutput_Pos = OpVariable %_ptr_Output_v4float Output
+%_ptr_Output_v3float = OpTypePointer Output %v3float
+%_entryPointOutput_Pshade = OpVariable %_ptr_Output_v3float Output
+     %VSMain = OpFunction %void None %3
+          %5 = OpLabel
+         %50 = OpLoad %v4float %vPosition
+         %67 = OpAccessChain %_ptr_Uniform_mat4v4float %_ %int_0
+         %68 = OpLoad %mat4v4float %67
+         %69 = OpVectorTimesMatrix %v4float %50 %68
+         %72 = OpAccessChain %_ptr_Uniform_mat4v4float %_ %int_1
+         %73 = OpLoad %mat4v4float %72
+         %74 = OpVectorTimesMatrix %v4float %50 %73
+         %75 = OpCompositeExtract %float %74 0
+         %76 = OpCompositeExtract %float %74 1
+         %77 = OpCompositeExtract %float %74 2
+         %78 = OpCompositeConstruct %v3float %75 %76 %77
+               OpStore %_entryPointOutput_Pos %69
+               OpStore %_entryPointOutput_Pshade %78
+               OpReturn
+               OpFunctionEnd

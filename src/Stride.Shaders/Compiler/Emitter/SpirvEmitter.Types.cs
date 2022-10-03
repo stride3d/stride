@@ -13,7 +13,7 @@ namespace Stride.Shaders.Spirv;
 public partial class SpirvEmitter : Module
 {
 
-    public Instruction? AsSpvType(string n)
+    public Instruction AsSpvType(string n)
     {
         var match = NativeTypeGrammar.ParseNativeType(n);
         if (!match.HasMatches) return TryGetUserDefined(n);
