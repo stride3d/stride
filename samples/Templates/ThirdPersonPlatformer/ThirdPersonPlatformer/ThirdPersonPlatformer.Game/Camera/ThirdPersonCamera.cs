@@ -121,22 +121,20 @@ namespace ThirdPersonPlatformer.Camera
         /// </summary>
         private void UpdateCameraOrientation()
         {
-            var dt = this.GetSimulation().FixedTimeStep;
-
             // Camera movement from player input
             Vector2 cameraMovement;
             cameraDirectionEvent.TryReceive(out cameraMovement);
 
             if (InvertY) cameraMovement.Y *= -1;
-            targetRotationXYZ.X += cameraMovement.Y * dt * VerticalSpeed;
+            targetRotationXYZ.X += cameraMovement.Y * VerticalSpeed;
             targetRotationXYZ.X = Math.Max(targetRotationXYZ.X, -MaxVerticalAngle);
             targetRotationXYZ.X = Math.Min(targetRotationXYZ.X, -MinVerticalAngle);
 
             if (InvertX) cameraMovement.X *= -1;
-            targetRotationXYZ.Y -= cameraMovement.X * dt * RotationSpeed;
+            targetRotationXYZ.Y -= cameraMovement.X * RotationSpeed;
 
             // Very simple lerp to allow smoother transition of the camera towards its desired destination. You can change this behavior with a different one, better suited for your game.
-            cameraRotationXYZ = Vector3.Lerp(cameraRotationXYZ, targetRotationXYZ, 0.15f);
+            cameraRotationXYZ = Vector3.Lerp(cameraRotationXYZ, targetRotationXYZ, 0.25f);
             Entity.GetParent().Transform.RotationEulerXYZ = new Vector3(MathUtil.DegreesToRadians(cameraRotationXYZ.X), MathUtil.DegreesToRadians(cameraRotationXYZ.Y), 0);
         }
 
