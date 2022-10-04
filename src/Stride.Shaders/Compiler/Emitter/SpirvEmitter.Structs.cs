@@ -42,11 +42,9 @@ public partial class SpirvEmitter : Module
             foreach (var f in s.Fields)
             {
                 var spv = GetSpvType(f.Value);
-                if (s.HasSemantics && s.Semantics.TryGetValue(f.Key, out var semantic))
+                if (s.HasSemantics && s.Semantics.TryGetValue(f.Key, out var semantic) && semantic != null)
                 {
-                    var builtin = ConvertBuiltin(semantic);
-                    if (builtin > -1)
-                        Decorate(spv, Decoration.BuiltIn, (LiteralInteger)builtin);
+                    Decorate(spv, Decoration.Location, (LiteralInteger)Semantics[semantic]);
                 }
                 fields.Add(spv);
 
