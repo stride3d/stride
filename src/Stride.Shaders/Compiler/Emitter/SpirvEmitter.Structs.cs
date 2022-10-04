@@ -24,25 +24,45 @@ public partial class SpirvEmitter : Module
             _ => throw new NotImplementedException()
         };
     }
+    int ConvertBuiltin(string? semantic)
+    {
+        return semantic?.ToUpper() switch
+        {
+            "POSITION" => (int)BuiltIn.Position,
+            "TEXCOORD" => (int)BuiltIn.FragCoord,
+            "SV_DEPTH" => (int)BuiltIn.FragDepth,
+            _ => -1
+        };
+    }
     void CreateStructs(ShaderProgram program)
     {
         foreach (var s in program.Symbols.GetAllStructTypes().Cast<CompositeType>())
         {
-            var fields = s.Fields.Values.Select(x => GetSpvType(x)).ToArray();
-            foreach(var f in fields)
-                Decorate(f,Decoration.HlslSemanticGOOGLE,new LiteralString("POSITION"));
-            ShaderTypes[s.Name] = 
+            var fields = new List<Instruction>(s.Fields.Count);
+            foreach (var f in s.Fields)
+            {
+                var spv = GetSpvType(f.Value);
+                if (s.HasSemantics && s.Semantics.TryGetValue(f.Key, out var semantic))
+                {
+                    var builtin = ConvertBuiltin(semantic);
+                    if (builtin > -1)
+                        Decorate(spv, Decoration.BuiltIn, (LiteralInteger)builtin);
+                }
+                fields.Add(spv);
+
+            }
+            ShaderTypes[s.Name] =
                 new SpvStruct(
                     TypeStruct(
                         true,
-                        fields
+                        fields.ToArray()
                     ),
                     s
                 );
-            Name(ShaderTypes[s.Name].SpvType,s.Name);
+            Name(ShaderTypes[s.Name].SpvType, s.Name);
             for (int i = 0; i < s.Fields.Count; i++)
             {
-                MemberName(ShaderTypes[s.Name].SpvType,i,s.Fields.Keys[i]);
+                MemberName(ShaderTypes[s.Name].SpvType, i, s.Fields.Keys[i]);
             }
         }
     }

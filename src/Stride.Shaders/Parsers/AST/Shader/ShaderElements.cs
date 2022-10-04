@@ -34,7 +34,7 @@ public class StructDefinition : ShaderToken
         Match = m;
         StructName = Match["StructName"].StringValue;
         Fields = Match["Fields"].Matches.Select(x => new StructField(x,s)).ToList();
-        Type = new CompositeType(StructName, new(Fields.ToDictionary(x => x.Name, x => s.Tokenize(x.Match["ValueTypes"]))));
+        Type = new CompositeType(StructName, new(Fields.ToDictionary(x => x.Name, x => s.Tokenize(x.Match["ValueTypes"]))),new());
     }
 }
 

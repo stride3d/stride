@@ -33,7 +33,7 @@ public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
     }
     public void PushStreamType(IEnumerable<ShaderVariableDeclaration> variables)
     {
-        CurrentScope["STREAM"] = new CompositeType("STREAM", new(variables.ToDictionary(v => v.Name, v => v.Type)));
+        CurrentScope["STREAM"] = new CompositeType("STREAM", new(variables.ToDictionary(v => v.Name, v => v.Type)), new(variables.ToDictionary(v => v.Name, v => v.Semantic)));
     }
     public void PushType(string name, CompositeType structDef)
     {

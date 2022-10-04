@@ -51,10 +51,15 @@ public class CompositeType : ISymbolType
     public string Name { get; set; }
     public SortedList<string, ISymbolType> Fields { get; set; } = new();
 
-    public CompositeType(string name, SortedList<string, ISymbolType> fields)
+    public bool HasSemantics {get;private set;}
+    public SortedList<string,string?> Semantics {get;private set;}
+
+    public CompositeType(string name, SortedList<string, ISymbolType> fields, SortedList<string,string?> semantics)
     {
         Name = name;
         Fields = fields;
+        HasSemantics = semantics.Count > 0;
+        Semantics = semantics;
     }
 
     public bool Equals(ISymbolType? other)
@@ -83,7 +88,8 @@ public class CompositeType : ISymbolType
     {
         return new CompositeType(
             name,
-            new(Fields.Where(x => filter.Contains(x.Key)).ToDictionary(x => x.Key, x=> x.Value))
+            new(Fields.Where(x => filter.Contains(x.Key)).ToDictionary(x => x.Key, x=> x.Value)),
+            Semantics
         );
     }
 

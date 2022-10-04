@@ -31,8 +31,8 @@ public partial class SpirvEmitter : Module
             _ => Capability.Shader,
         };
         AddCapability(capability);
-        AddExtension("SPV_GOOGLE_decorate_string");
-        AddExtension("SPV_GOOGLE_hlsl_functionality1");
+        // AddExtension("SPV_GOOGLE_decorate_string");
+        // AddExtension("SPV_GOOGLE_hlsl_functionality1");
         SetMemoryModel(AddressingModel.Logical, MemoryModel.Simple);
     }
 
