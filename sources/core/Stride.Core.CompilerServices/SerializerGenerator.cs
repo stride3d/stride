@@ -54,4 +54,5 @@ namespace Stride.Core.CompilerServices
     // TODO: handle DataMemberCustomSerializerAttribute
     // TODO: bug - open generic type wrapped in a list is emmited and shouldn't
     // TODO: bug - open generic type interface is emmited with <T> instead of <>
+    // TODO: bug - No serializer member should be emitted for parent for System.ValueType, same as System.Object
 }
