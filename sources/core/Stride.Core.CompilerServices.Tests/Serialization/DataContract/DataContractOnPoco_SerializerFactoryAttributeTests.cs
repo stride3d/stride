@@ -1,19 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using System.Reflection;
-using static Stride.Core.CompilerServices.Tests.Serialization.SerializerGeneratorCompilationUtils;
 using Stride.Core.Serialization;
 
 namespace Stride.Core.CompilerServices.Tests.Serialization.DataContract
 {
-    public class DataContractSourceCodeTests
+    public class DataContractOnPoco_SerializerFactoryAttributeTests
     {
         [Fact]
         public void PocoClass_WithPrimitiveMembers_GetsEmittedCorrectly()
@@ -151,7 +142,96 @@ namespace Stride.Core.CompilerServices.Tests.Serialization.DataContract
                     Assert.Contains($"Member {"C"} of class {"PocoWithClassMember"} is of type {"SecondClass"} that cannot be serialized.", diag.ToString());
                 });
         }
-    }
 
-    
+        [Fact]
+        public void PocoClass_WithSerializableParentAndInheritedFalse_IsNotSerializable()
+        {
+            const string sourceCode = """
+                namespace UserCode
+                {
+                    using System;
+                    using Stride.Core;
+
+                    [DataContract]
+                    public class Parent
+                    {
+                        public string A { get; set; }
+                    }
+
+                    public class PocoWithSerializableParent : Parent
+                    {
+                        public string B { get; set; }
+                    }
+                }
+                """;
+
+            var (compilation, diagnostics) = CompilerUtils.CompileWithGenerator<SerializerGenerator>("PocoWithSerializableParent", sourceCode);
+
+            Assert.Empty(diagnostics);
+
+            var serializerFactory = compilation.GetSerializationFactory();
+            var serializerGlobalAttributes = serializerFactory.GetAttributes(compilation, "Stride.Core.Serialization.DataSerializerGlobalAttribute");
+
+            Assert.NotNull(compilation.GetTypeByMetadataName("Stride.Core.DataSerializers.V2.UserCode_ParentSerializer"));
+            Assert.Null(compilation.GetTypeByMetadataName("Stride.Core.DataSerializers.V2.UserCode_PocoWithSerializableParentSerializer"));
+
+            Assert.Collection(serializerGlobalAttributes,
+                // global attribute from DataContract for Parent
+                attr => attr.AssertDataSerializerGlobal(
+                    compilation.GetTypeByMetadataName("Stride.Core.DataSerializers.V2.UserCode_ParentSerializer"),
+                    compilation.GetTypeByMetadataName("UserCode.Parent"),
+                    DataSerializerGenericMode.None,
+                    false,
+                    true));
+        }
+
+        [Fact]
+        public void PocoClass_WithSerializableParentAndInheritedTrue_IsSerializable()
+        {
+            const string sourceCode = """
+                namespace UserCode
+                {
+                    using System;
+                    using Stride.Core;
+
+                    [DataContract(Inherited = true)]
+                    public class Parent
+                    {
+                        public string A { get; set; }
+                    }
+
+                    public class PocoWithSerializableParent : Parent
+                    {
+                        public string B { get; set; }
+                    }
+                }
+                """;
+
+            var (compilation, diagnostics) = CompilerUtils.CompileWithGenerator<SerializerGenerator>("PocoWithSerializableParent", sourceCode);
+
+            Assert.Empty(diagnostics);
+
+            var serializerFactory = compilation.GetSerializationFactory();
+            var serializerGlobalAttributes = serializerFactory.GetAttributes(compilation, "Stride.Core.Serialization.DataSerializerGlobalAttribute");
+
+            Assert.NotNull(compilation.GetTypeByMetadataName("Stride.Core.DataSerializers.V2.UserCode_ParentSerializer"));
+            Assert.NotNull(compilation.GetTypeByMetadataName("Stride.Core.DataSerializers.V2.UserCode_PocoWithSerializableParentSerializer"));
+
+            Assert.Collection(serializerGlobalAttributes,
+                // global attribute from DataContract for Parent
+                attr => attr.AssertDataSerializerGlobal(
+                    compilation.GetTypeByMetadataName("Stride.Core.DataSerializers.V2.UserCode_ParentSerializer"),
+                    compilation.GetTypeByMetadataName("UserCode.Parent"),
+                    DataSerializerGenericMode.None,
+                    true,
+                    true),
+                // global attribute from DataContract for PocoWithClassMember
+                attr => attr.AssertDataSerializerGlobal(
+                    compilation.GetTypeByMetadataName("Stride.Core.DataSerializers.V2.UserCode_PocoWithSerializableParentSerializer"),
+                    compilation.GetTypeByMetadataName("UserCode.PocoWithSerializableParent"),
+                    DataSerializerGenericMode.None,
+                    true,
+                    true));
+        }
+    }
 }
