@@ -36,7 +36,7 @@ public partial class SpirvEmitter : Module
         // }
         Return();
         FunctionEnd();
-        AddEntryPoint(ExecutionModel.Vertex, func, "VSMain", input,output);
+        AddEntryPoint(ExecutionModel.Vertex, func, "VSMain", input.Concat(output).ToArray());
 
         // AddExecutionMode(func, ExecutionMode.OriginLowerLeft);
     }

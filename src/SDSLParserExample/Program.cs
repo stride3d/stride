@@ -24,8 +24,8 @@ var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
 
 // ShaderCompiling(shaderf);
 // ThreeAddress();
-// LoadShaders();
-TestModuleCreation();
+LoadShaders();
+// TestModuleCreation();
 
 static void TestModuleCreation()
 {

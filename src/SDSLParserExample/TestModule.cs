@@ -31,6 +31,8 @@ public class TestModule : Module
                 Decorate(sv_pos, Decoration.BuiltIn, (LiteralInteger)0);
 
                 Instruction outputColor = Variable(vec4OutputPtrType, StorageClass.Output);
+                // Decorate(outputColor, Decoration.);
+                Decorate(outputColor, Decoration.Location, (LiteralInteger)111);
 
                 Name(inputPos, "pos");
                 Name(sv_pos, "svpos");

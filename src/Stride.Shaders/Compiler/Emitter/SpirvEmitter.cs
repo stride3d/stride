@@ -12,12 +12,13 @@ namespace Stride.Shaders.Spirv;
 
 public partial class SpirvEmitter : Module
 {
-    private Instruction input;
-    private Instruction output;
+    private List<Instruction> input = new();
+    private List<Instruction> output = new();
 
     public Dictionary<string,SpvStruct> ShaderTypes {get;set;}
     public Dictionary<string,Instruction> ShaderFunctionTypes {get;set;}
     public Dictionary<string,Instruction> Variables {get;set;} = new();
+    public SortedList<string,int> Semantics {get;set;}
     public SpirvEmitter(uint version) : base(version)
     {
         ShaderTypes = new();
@@ -31,41 +32,36 @@ public partial class SpirvEmitter : Module
             _ => Capability.Shader,
         };
         AddCapability(capability);
-        // AddExtension("SPV_GOOGLE_decorate_string");
-        // AddExtension("SPV_GOOGLE_hlsl_functionality1");
         SetMemoryModel(AddressingModel.Logical, MemoryModel.Simple);
     }
-
+    public void CreateSemantics(ShaderProgram program)
+    {
+        Semantics = new(program.Body.OfType<ShaderVariableDeclaration>().Where(x => x.Semantic!=null).Select((x,i) => (x,i)).ToDictionary(v=> v.x.Semantic ?? "", v => v.i));
+    }
     public void Construct(ShaderProgram program, EntryPoints entry)
     {
         
         Initialize(entry);
         // Create all user defined types
+        CreateSemantics(program);
         CreateStructs(program);
         // Create stream in out
-        // foreach(var f in ShaderTypes["VS_STREAM_IN"].Definition.Fields)
-        // {
-        //     var ptr = TypePointer(StorageClass.Input, GetSpvType(f.Value));
-        //     var v = Variable(ptr,StorageClass.Input);
-        //     Name(v,f.Key);
-        //     input.Add(v);
-        //     AddGlobalVariable(v);
-        //     Decorate(v,Decoration.HlslSemanticGOOGLE, new LiteralString("POSITION"));
-        // }
-        // foreach(var f in ShaderTypes["VS_STREAM_OUT"].Definition.Fields)
-        // {
-        //     var ptr = TypePointer(StorageClass.Output, GetSpvType(f.Value));
-        //     var v = Variable(ptr,StorageClass.Output);
-        //     Name(v,f.Key);
-        //     input.Add(v);
-        //     AddGlobalVariable(v);
-        // }
-        var pInput = TypePointer(StorageClass.Input,ShaderTypes["VS_STREAM_IN"].SpvType);
-        var pOutput = TypePointer(StorageClass.Output,ShaderTypes["VS_STREAM_OUT"].SpvType);
-        input = Variable(pInput,StorageClass.Input);
-        output = Variable(pOutput,StorageClass.Output);
-        AddGlobalVariable(input);
-        AddGlobalVariable(output);
+        foreach(var f in ShaderTypes["VS_STREAM_IN"].Definition.Fields)
+        {
+            var ptr = TypePointer(StorageClass.Input, GetSpvType(f.Value));
+            var v = Variable(ptr,StorageClass.Input);
+            Name(v,f.Key);
+            input.Add(v);
+            AddGlobalVariable(v);
+        }
+        foreach(var f in ShaderTypes["VS_STREAM_OUT"].Definition.Fields)
+        {
+            var ptr = TypePointer(StorageClass.Output, GetSpvType(f.Value));
+            var v = Variable(ptr,StorageClass.Output);
+            Name(v,f.Key);
+            input.Add(v);
+            AddGlobalVariable(v);
+        }
         // Generate methods()
         
 
