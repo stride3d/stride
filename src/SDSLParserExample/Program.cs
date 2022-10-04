@@ -48,6 +48,7 @@ static void LoadShaders()
     var bytes = module.Generate();
     File.WriteAllBytes("./shader.spv", bytes);
     ToGlsl(bytes);
+    ToHlsl(bytes);
     var x = 0;
 }
 

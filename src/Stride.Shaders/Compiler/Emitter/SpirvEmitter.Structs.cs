@@ -26,9 +26,9 @@ public partial class SpirvEmitter : Module
     }
     int ConvertBuiltin(string? semantic)
     {
-        return semantic?.ToUpper() switch
+        return semantic switch
         {
-            "POSITION" => (int)BuiltIn.Position,
+            "SV_Position" => (int)BuiltIn.Position,
             "TEXCOORD" => (int)BuiltIn.FragCoord,
             "SV_DEPTH" => (int)BuiltIn.FragDepth,
             _ => -1
@@ -44,7 +44,11 @@ public partial class SpirvEmitter : Module
                 var spv = GetSpvType(f.Value);
                 if (s.HasSemantics && s.Semantics.TryGetValue(f.Key, out var semantic) && semantic != null)
                 {
-                    Decorate(spv, Decoration.Location, (LiteralInteger)Semantics[semantic]);
+                    var possible = ConvertBuiltin(semantic);
+                    if(possible > -1)
+                        Decorate(spv, Decoration.BuiltIn, (LiteralInteger)possible);
+                    else
+                        Decorate(spv, Decoration.Location, (LiteralInteger)Semantics[semantic]);
                 }
                 fields.Add(spv);
 

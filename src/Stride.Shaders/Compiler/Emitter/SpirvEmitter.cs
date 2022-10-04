@@ -50,6 +50,16 @@ public partial class SpirvEmitter : Module
         {
             var ptr = TypePointer(StorageClass.Input, GetSpvType(f.Value));
             var v = Variable(ptr,StorageClass.Input);
+
+            if(ShaderTypes["VS_STREAM_IN"].Definition.Semantics.TryGetValue(f.Key,out var semantic) && semantic !=null)
+            {
+                var possible = ConvertBuiltin(semantic);
+                if(possible > -1)
+                    Decorate(v, Decoration.BuiltIn, (LiteralInteger)possible);
+                else
+                    Decorate(v, Decoration.Location, (LiteralInteger)Semantics[semantic]);
+            }
+
             Name(v,f.Key);
             input.Add(v);
             AddGlobalVariable(v);
@@ -58,6 +68,15 @@ public partial class SpirvEmitter : Module
         {
             var ptr = TypePointer(StorageClass.Output, GetSpvType(f.Value));
             var v = Variable(ptr,StorageClass.Output);
+
+            if(ShaderTypes["VS_STREAM_OUT"].Definition.Semantics.TryGetValue(f.Key,out var semantic) && semantic !=null)
+            {
+                var possible = ConvertBuiltin(semantic);
+                if(possible > -1)
+                    Decorate(v, Decoration.BuiltIn, (LiteralInteger)possible);
+                else
+                    Decorate(v, Decoration.Location, (LiteralInteger)Semantics[semantic]);
+            }
             Name(v,f.Key);
             input.Add(v);
             AddGlobalVariable(v);

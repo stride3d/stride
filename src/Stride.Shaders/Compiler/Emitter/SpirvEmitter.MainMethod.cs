@@ -30,6 +30,7 @@ public partial class SpirvEmitter : Module
         var typefunc = TypeFunction(TypeVoid());
         var func = Function(TypeVoid(), FunctionControlMask.MaskNone, typefunc);
         AddLabel(Label());
+        
         // foreach(var s in ((VSMainMethod)p.Body.First(x => x is VSMainMethod)).Statements)
         // {
 
