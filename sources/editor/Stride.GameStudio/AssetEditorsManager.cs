@@ -28,6 +28,7 @@ namespace Stride.GameStudio
 {
     internal sealed class AssetEditorsManager : IAssetEditorsManager, IDestroyable
     {
+        private readonly ConditionalWeakTable<IMultipleAssetEditorViewModel, NotifyCollectionChangedEventHandler> registeredHandlers = new();
         private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = new Dictionary<IAssetEditorViewModel, LayoutAnchorable>();
         private readonly HashSet<AssetViewModel> openedAssets = new HashSet<AssetViewModel>();
         // TODO have a base interface for all editors and factorize to make curve editor not be a special case anymore
@@ -333,8 +334,7 @@ namespace Stride.GameStudio
                     {
                         assetEditors[viewModel] = editorPane;
                         openedAssets.Add(asset);
-                        var multiEditor = viewModel as IMultipleAssetEditorViewModel;
-                        if (multiEditor != null)
+                        if (viewModel is IMultipleAssetEditorViewModel multiEditor)
                         {
                             foreach (var item in multiEditor.OpenedAssets)
                             {
@@ -345,7 +345,9 @@ namespace Stride.GameStudio
                                 }
                                 item.Editor = viewModel;
                             }
-                            multiEditor.OpenedAssets.CollectionChanged += (_, e) => MultiEditorOpenAssetsChanged(multiEditor, e);
+                            NotifyCollectionChangedEventHandler handler = (_, e) => MultiEditorOpenAssetsChanged(multiEditor, e);
+                            registeredHandlers.Add(multiEditor, handler);
+                            multiEditor.OpenedAssets.CollectionChanged += handler;
                         }
                         else
                         {
@@ -438,10 +440,18 @@ namespace Stride.GameStudio
             LayoutAnchorable editorPane;
             assetEditors.TryGetValue(editor, out editorPane);
 
-            var multiEditor = editor as IMultipleAssetEditorViewModel;
-            if (multiEditor != null)
+            if (editor is IMultipleAssetEditorViewModel multiEditor)
             {
-                multiEditor.OpenedAssets.CollectionChanged -= (_, e) => MultiEditorOpenAssetsChanged(multiEditor, e);
+                if (registeredHandlers.TryGetValue(multiEditor, out var handler))
+                {
+                    multiEditor.OpenedAssets.CollectionChanged -= handler;
+                    registeredHandlers.Remove(multiEditor);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Expected {multiEditor} to have a handler set up");
+                }
+
                 // Clean asset view models
                 foreach (var item in multiEditor.OpenedAssets)
                 {

@@ -104,7 +104,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
                     // Setup material filter
                     materialFilterRenderFeature.MaterialFilter =
-                        (materialFilterRenderFeature != null && renderMode.Mode == GameEditor.RenderMode.SingleStream)
+                        renderMode.Mode == GameEditor.RenderMode.SingleStream
                         ? renderMode.StreamDescriptor.Filter
                         : null;
 
