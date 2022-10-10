@@ -149,7 +149,7 @@ namespace Stride.Core.IO
             url = Regex.Escape(url);
             searchPattern = Regex.Escape(searchPattern).Replace(@"\*", "[^/]*").Replace(@"\?", "[^/]");
             string recursivePattern = searchOption == VirtualSearchOption.AllDirectories ? "(.*/)*" : "/?";
-            return new Regex("^" + url + recursivePattern + searchPattern + "$");
+            return new Regex($"^{url}{recursivePattern}{searchPattern}$");
         }
 
         private abstract class DatabaseFileStream : VirtualFileStream, IDatabaseStream
