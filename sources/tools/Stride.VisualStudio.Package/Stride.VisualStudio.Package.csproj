@@ -34,7 +34,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Commands" Version="6.0.0" />
+    <PackageReference Include="NuGet.Commands" Version="6.2.2" />
 
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Design" />
