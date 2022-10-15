@@ -20,7 +20,7 @@ Example of use:
     <StrideBuildPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == ''">true</StrideBuildPrerequisitesInstaller>
   </PropertyGroup>
 
-  <UsingTask TaskName="Stride.GitVersioning.GenerateVersionFile" AssemblyFile="$(StrideRoot)deps\Stride.GitVersioning\bin\Debug\net472\Stride.GitVersioning.dll" />
+  <UsingTask TaskName="Stride.GitVersioning.GenerateVersionFile" AssemblyFile="$(StrideRoot)deps\Stride.GitVersioning\bin\Debug\net6.0\Stride.GitVersioning.dll" />
   
   <Target Name="Help">
     <Message Importance="high" Text="TODO"/>
