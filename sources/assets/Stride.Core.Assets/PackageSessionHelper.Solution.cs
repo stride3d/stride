@@ -1,13 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NuGet.ProjectModel;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
-using Stride.Core;
+using NuGet.ProjectModel;
 using Stride.Core.Extensions;
 using Stride.Core.VisualStudio;
 
@@ -18,7 +15,10 @@ namespace Stride.Core.Assets
         // Not used since Xenko 3.1 anymore, so doesn't apply to Stride
         private static readonly string[] SolutionPackageIdentifier = new[] { "XenkoPackage", "SiliconStudioPackage" };
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        // Because of conditional code, we'll just suppress for now.
         public static async Task<PackageVersion> GetPackageVersion(string fullPath)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             try
             {

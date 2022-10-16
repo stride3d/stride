@@ -87,11 +87,11 @@ namespace Stride.EffectCompilerServer
                     }
 
                     // Forward to game studio
-                    gameStudio.Send(packet);
+                    gameStudio.Send(packet).Wait();
                 });
             }
 
-            Task.Run(() => socketMessageLayer.MessageLoop());
+            _ = Task.Run(() => socketMessageLayer.MessageLoop());
         }
 
         private static async Task ShaderCompilerRequestHandler(SocketMessageLayer socketMessageLayer, EffectCompiler effectCompiler, RemoteEffectCompilerEffectRequest remoteEffectCompilerEffectRequest)

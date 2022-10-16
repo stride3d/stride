@@ -82,7 +82,7 @@ namespace Stride.Shaders.Compiler
             // Register network VFS
             NetworkVirtualFileProvider.RegisterServer(socketMessageLayer);
 
-            Task.Run(() => socketMessageLayer.MessageLoop());
+            _ = Task.Run(() => socketMessageLayer.MessageLoop());
 
             return socketMessageLayer;
         }

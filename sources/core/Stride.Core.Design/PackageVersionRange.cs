@@ -405,5 +405,11 @@ namespace Stride.Core
             if (ReferenceEquals(obj, this)) return true;
             return Equals(obj as PackageVersionRange);
         }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(MinVersion, MaxVersion, IsMinInclusive, IsMaxInclusive);
+        }
     }
 }

@@ -292,7 +292,7 @@ namespace Stride.Assets.Presentation.ViewModel
                         if (diskContent != Asset.Text)
                         {
                             // Prompt for reload from source file
-                            Dispatcher.Invoke(() => UpdateAssetFromSource(new LoggerResult()));
+                           Dispatcher.Invoke(() => UpdateAssetFromSource(new LoggerResult()).Wait());
                         }
                     }
                     catch (Exception)

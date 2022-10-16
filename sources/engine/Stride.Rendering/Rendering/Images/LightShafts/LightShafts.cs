@@ -481,7 +481,11 @@ namespace Stride.Rendering.Images
         {
             public LightGroupRendererDynamic GroupRenderer;
             public LightShaderGroupDynamic ShaderGroup;
+#pragma warning disable CS0649
+            // Field 'LightShafts.LightShaftRenderData.Light' is never assigned to, and will always have its default value null
+            // Note that a null Light results in quite a bit of code in LightShafts becoming unused.
             public IDirectLight Light;
+#pragma warning restore CS0649
             public FastList<RenderView> RenderViews = new FastList<RenderView>(new RenderView[1]);
             public LightShadowType ShadowType;
             public ILightShadowMapRenderer ShadowMapRenderer;

@@ -87,16 +87,16 @@ namespace Stride.Engine.Network
                 switch (ConnectionMode)
                 {
                     case RouterConnectionMode.Connect:
-                        socketContext.StartClient(serverAddress, DefaultPort);
+                        await socketContext.StartClient(serverAddress, DefaultPort);
                         break;
                     case RouterConnectionMode.Listen:
-                        socketContext.StartServer(DefaultListenPort, true, 10);
+                        await socketContext.StartServer(DefaultListenPort, true, 10);
                         break;
                     case RouterConnectionMode.ConnectThenListen:
                         bool clientException = false;
                         try
                         {
-                            socketContext.StartClient(serverAddress, DefaultPort);
+                            await socketContext.StartClient(serverAddress, DefaultPort);
                         }
                         catch (Exception) // Ideally we should filter SocketException, but not available on some platforms (maybe it should be wrapped in a type available on all paltforms?)
                         {
@@ -104,7 +104,7 @@ namespace Stride.Engine.Network
                         }
                         if (clientException)
                         {
-                            socketContext.StartServer(DefaultListenPort, true, 10);
+                            await socketContext.StartServer(DefaultListenPort, true, 10);
                         }
                         break;
                     default:

@@ -636,7 +636,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 // Temporary code while we don't have an integrated text editor.
                 if (Editor.TextAssetTypes.Contains(asset.AssetType.Name))
                 {
-                    OpenWithTextEditor(asset, EditorSettings.ShaderEditor.GetValue());
+                    _ = OpenWithTextEditor(asset, EditorSettings.ShaderEditor.GetValue());
                     return;
                 }
 
@@ -1356,7 +1356,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 foreach (var package in packagePicker.SelectedPackages)
                 {
-                    selectedPackage.AddDependency(package);
+                    await selectedPackage.AddDependency(package);
                 }
             }
         }
@@ -1821,7 +1821,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public List<PackageName> SuggestedPackages { get; } = new List<PackageName>();
 
-        public async Task<IEnumerable<PickablePackageViewModel>> SuggestPackagesToAdd()
+        public IEnumerable<PickablePackageViewModel> SuggestPackagesToAdd()
         {
             var packages = new List<PickablePackageViewModel>();
             packages.AddRange(LocalPackages.Select(x => new LoadedPickablePackageViewModel(x)));

@@ -300,7 +300,7 @@ namespace Stride.Core.MicroThreading
         }
 
         // TODO: We will need a better API than exposing PriorityQueueNode<SchedulerEntry> before we can make this public.
-        internal PriorityQueueNode<SchedulerEntry> Add(Action simpleAction, int priority = 0, object token = null, ProfilingKey profilingKey = null)
+        internal PriorityQueueNode<SchedulerEntry> Add(Action simpleAction, long priority = 0, object token = null, ProfilingKey profilingKey = null)
         {
             var schedulerEntryNode = new PriorityQueueNode<SchedulerEntry>(new SchedulerEntry(simpleAction, priority) { Token = token, ProfilingKey = profilingKey });
             Schedule(schedulerEntryNode, ScheduleMode.Last);
