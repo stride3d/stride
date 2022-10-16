@@ -39,6 +39,10 @@ namespace Stride.Core.Shaders.Visitor
         {
             return DefaultVisit(memberName);
         }
+        public virtual TResult Visit(Stride.Core.Shaders.Ast.Stride.TypeName typeName)
+        {
+            return DefaultVisit(typeName);
+        }
         public virtual TResult Visit(Stride.Core.Shaders.Ast.Stride.MixinStatement mixinStatement)
         {
             return DefaultVisit(mixinStatement);
@@ -444,6 +448,17 @@ namespace Stride.Core.Shaders.Visitor
             if (!ReferenceEquals(qualifiersTemp, memberName.Qualifiers))
                 memberName.Qualifiers = qualifiersTemp;
             return base.Visit(memberName);
+        }
+        public override Node Visit(Stride.Core.Shaders.Ast.Stride.TypeName typeName)
+        {
+            VisitList(typeName.Attributes);
+            var nameTemp = (Stride.Core.Shaders.Ast.Identifier)VisitDynamic(typeName.Name);
+            if (!ReferenceEquals(nameTemp, typeName.Name))
+                typeName.Name = nameTemp;
+            var qualifiersTemp = (Stride.Core.Shaders.Ast.Qualifier)VisitDynamic(typeName.Qualifiers);
+            if (!ReferenceEquals(qualifiersTemp, typeName.Qualifiers))
+                typeName.Qualifiers = qualifiersTemp;
+            return base.Visit(typeName);
         }
         public override Node Visit(Stride.Core.Shaders.Ast.Stride.MixinStatement mixinStatement)
         {
@@ -1337,6 +1352,20 @@ namespace Stride.Core.Shaders.Visitor
                 Name = memberName.Name,
                 Qualifiers = memberName.Qualifiers,
                 IsBuiltIn = memberName.IsBuiltIn,
+            };
+        }
+        public override Node Visit(Stride.Core.Shaders.Ast.Stride.TypeName typeName)
+        {
+            typeName = (Stride.Core.Shaders.Ast.Stride.TypeName)base.Visit(typeName);
+            return new Stride.Core.Shaders.Ast.Stride.TypeName
+            {
+                Span = typeName.Span,
+                Tags = typeName.Tags,
+                Attributes = typeName.Attributes,
+                TypeInference = typeName.TypeInference,
+                Name = typeName.Name,
+                Qualifiers = typeName.Qualifiers,
+                IsBuiltIn = typeName.IsBuiltIn,
             };
         }
         public override Node Visit(Stride.Core.Shaders.Ast.Stride.MixinStatement mixinStatement)
@@ -2457,6 +2486,10 @@ namespace Stride.Core.Shaders.Visitor
         {
             DefaultVisit(memberName);
         }
+        public virtual void Visit(Stride.Core.Shaders.Ast.Stride.TypeName typeName)
+        {
+            DefaultVisit(typeName);
+        }
         public virtual void Visit(Stride.Core.Shaders.Ast.Stride.MixinStatement mixinStatement)
         {
             DefaultVisit(mixinStatement);
@@ -3479,6 +3512,20 @@ namespace Stride.Core.Shaders.Ast.Stride
 namespace Stride.Core.Shaders.Ast.Stride
 {
     public partial class MemberName
+    {
+        public override void Accept(ShaderVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+        public override TResult Accept<TResult>(ShaderVisitor<TResult> visitor)
+        {
+            return visitor.Visit(this);
+        }
+    }
+}
+namespace Stride.Core.Shaders.Ast.Stride
+{
+    public partial class TypeName
     {
         public override void Accept(ShaderVisitor visitor)
         {
