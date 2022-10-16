@@ -19,9 +19,5 @@
 #define DLL_EXPORT_API
 #endif
 
-typedef void(*CnPrintDebugFunc)(const char* string);
-
-DLL_EXPORT_API CnPrintDebugFunc cnDebugPrintLine;
-
 #endif
 

@@ -46,7 +46,10 @@ namespace Stride.Core
                         cpu = "x64";
                         break;
                     case Architecture.Arm:
-                        cpu = "ARM";
+                        cpu = "arm";
+                        break;
+                    case Architecture.Arm64:
+                        cpu = "arm64";
                         break;
                     default:
                         throw new PlatformNotSupportedException();

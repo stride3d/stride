@@ -78,10 +78,14 @@
     <!-- If StrideCompilerTargetsEnable is set to false, override LanguageTargets to an empty one -->
     <LanguageTargets Condition="'$(StrideCompilerTargetsEnable)' == 'false'">$(MSBuildThisFileDirectory)Stride.Core.DisableBuild.targets</LanguageTargets>
 
+    <TempFolder>$(TEMP)</TempFolder>
+    <TempFolder Condition="'$(TempFolder)' == ''">$(TMPDIR)</TempFolder>
+    <TempFolder Condition="'$(TempFolder)' == ''">/tmp</TempFolder>
+
     <StrideAssemblyProcessorFramework>netstandard2.0</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorExt>.dll</StrideAssemblyProcessorExt>
     <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt).hash'))</StrideAssemblyProcessorHash>
-    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TempFolder)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorTempBasePath>
     <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
 

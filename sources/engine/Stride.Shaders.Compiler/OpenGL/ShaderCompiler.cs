@@ -125,6 +125,9 @@ namespace Stride.Shaders.Compiler.OpenGL
                     case PlatformType.Linux:
                         filename = @"linux-x64/glslangValidator.bin";
                         break;
+                    case PlatformType.macOS when RuntimeInformation.ProcessArchitecture == Architecture.Arm64:
+                        filename = @"osx-arm64/glslangValidator.bin";
+                        break;
                     case PlatformType.macOS:
                         filename = @"osx-x64/glslangValidator.bin";
                         break;

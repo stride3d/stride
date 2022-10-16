@@ -97,7 +97,7 @@ namespace Stride.Assets
             uwpPlatform.Configurations["Testing"].Properties.Add("<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>");
             uwpPlatform.Configurations["AppStore"].Properties.Add("<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>");
 
-            foreach (var cpu in new[] { "x86", "x64", "ARM" })
+            foreach (var cpu in new[] { "x86", "x64", "arm" })
             {
                 var uwpPlatformCpu = new SolutionPlatformPart(uwpPlatform.Name + "-" + cpu)
                 {
@@ -133,9 +133,24 @@ namespace Stride.Assets
                 Name = PlatformType.macOS.ToString(),
                 IsAvailable = true,
                 TargetFramework = "net6.0",
-                RuntimeIdentifier = "osx-x64",
-                Type = PlatformType.macOS,
+                Type = PlatformType.macOS
             };
+
+            foreach (var cpu in new[] { "x64", "arm64" })
+            {
+                var macOSPlatformCpu = new SolutionPlatformPart(macOSPlatform.Name + "-" + cpu)
+                {
+                    LibraryProjectName = macOSPlatform.Name,
+                    ExecutableProjectName = cpu,
+                    Cpu = cpu,
+                    InheritConfigurations = true
+                };
+                macOSPlatformCpu.Configurations.Clear();
+                macOSPlatformCpu.Configurations.AddRange(macOSPlatform.Configurations);
+
+                macOSPlatform.PlatformsPart.Add(macOSPlatformCpu);
+            }
+
             solutionPlatforms.Add(macOSPlatform);
 
             // Android
@@ -182,7 +197,7 @@ namespace Stride.Assets
                 {
                     "<ConsolePause>false</ConsolePause>",
                     "<MtouchUseSGen>True</MtouchUseSGen>",
-                    "<MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>"
+                    "<MtouchArch>armv7, armv7s, arm64</MtouchArch>"
                 };
 
             iphonePlatform.Configurations["Debug"].Properties.AddRange(iPhoneCommonProperties);
