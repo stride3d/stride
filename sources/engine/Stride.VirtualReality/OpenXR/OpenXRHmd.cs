@@ -56,9 +56,7 @@ namespace Stride.VirtualReality
 
 
         internal bool begunFrame, swapImageCollected;
-#if STRIDE_GRAPHICS_API_DIRECT3D11
         internal uint swapchainPointer;
-#endif
 
         // array of view_count containers for submitting swapchains with rendered VR frames
         CompositionLayerProjectionView[] projection_views;
@@ -318,6 +316,7 @@ namespace Stride.VirtualReality
             renderSize.Width = (int)Math.Round(viewconfig_views[0].RecommendedImageRectWidth * RenderFrameScaling) * 2; // 2 views in one frame
             renderSize.Height = (int)Math.Round(viewconfig_views[0].RecommendedImageRectHeight * RenderFrameScaling);
 
+            SessionCreateInfo session_create_info;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
             Logger.Debug(
                 "Initializing DX11 graphics device: "
@@ -344,7 +343,7 @@ namespace Stride.VirtualReality
                 Device = baseDevice.NativeDevice.NativePointer.ToPointer(),
                 Next = null,
             };
-            SessionCreateInfo session_create_info = new SessionCreateInfo()
+            session_create_info = new SessionCreateInfo()
             {
                 Type = StructureType.TypeSessionCreateInfo,
                 Next = &graphics_binding_dx11,
@@ -391,13 +390,12 @@ namespace Stride.VirtualReality
                 images[i].Type = StructureType.TypeSwapchainImageD3D11Khr;
                 images[i].Next = null;
             }
-#endif
+
             fixed (void* sibhp = &images[0])
             {
                 CheckResult(Xr.EnumerateSwapchainImages(swapchain, img_count, ref img_count, (SwapchainImageBaseHeader*)sibhp), "EnumerateSwapchainImages");
             }
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11
             render_targets = new SharpDX.Direct3D11.RenderTargetView[img_count];
             for (var i = 0; i < img_count; ++i)
             {
@@ -612,6 +610,11 @@ namespace Stride.VirtualReality
             }
 
             return swapchainIndex;
+        }
+#else
+        public unsafe uint GetSwapchainImage()
+        {
+            throw new InvalidOperationException($"OpenXR error! Current implementation doesn't support directX 11");
         }
 #endif
 
@@ -1051,10 +1054,12 @@ namespace Stride.VirtualReality
 
         public override void Dispose()
         {
-            foreach(var render_target in render_targets)
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+            foreach (var render_target in render_targets)
             {
                 render_target.Dispose();
             }
+#endif
 
             CheckResult(Xr.DestroySpace(globalPlaySpace), "DestroySpace");
             CheckResult(Xr.DestroyActionSet(globalActionSet), "DestroyActionSet");
