@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Stride.Core.Annotations;
 using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Threading
 {
@@ -22,6 +23,8 @@ namespace Stride.Core.Threading
 #else
         public static int MaxDegreeOfParallelism = Environment.ProcessorCount;
 #endif
+
+        private static readonly ProfilingKey DispatcherSortKey = new ProfilingKey("Dispatcher.Sort");
 
         public delegate void ValueAction<T>(ref T obj);
 
@@ -527,6 +530,8 @@ namespace Stride.Core.Threading
 
         public static void Sort<T>(T[] collection, int index, int length, IComparer<T> comparer)
         {
+            using var _ = Profiler.Begin(DispatcherSortKey);
+
             if (length <= 0)
                 return;
 

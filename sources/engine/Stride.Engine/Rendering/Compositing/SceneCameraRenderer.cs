@@ -37,6 +37,8 @@ namespace Stride.Rendering.Compositing
         private bool cameraSlotResolutionFailed;
         private bool cameraResolutionFailed;
 
+        private static readonly ProfilingKey CollectInnerKey = new ProfilingKey("SceneCameraRenderer.CollectInner");
+
         protected override void CollectCore(RenderContext context)
         {
             base.CollectCore(context);
@@ -94,6 +96,8 @@ namespace Stride.Rendering.Compositing
 
         protected virtual void CollectInner(RenderContext renderContext)
         {
+            using var _ = Profiler.Begin(CollectInnerKey);
+
             RenderView.CullingMask = RenderMask;
 
             Child?.Collect(renderContext);

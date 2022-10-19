@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Rendering.Compositing;
@@ -32,6 +33,8 @@ namespace Stride.Rendering
         private int usageCounter = 0;
 
         private HashSet<RenderView> updatedViews = new HashSet<RenderView>();
+        
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("MeshVelocityRenderFeature.PrepareEffectPermutations");
 
         protected override void InitializeCore()
         {
@@ -51,6 +54,7 @@ namespace Stride.Rendering
 
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareEffectPermutationsKey);
             base.PrepareEffectPermutations(context);
 
             var rootEffectRenderFeature = ((RootEffectRenderFeature)RootRenderFeature);

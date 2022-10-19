@@ -3,6 +3,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Rendering.Compositing
 {
@@ -11,6 +12,8 @@ namespace Stride.Rendering.Compositing
     /// </summary>
     public partial class SceneRendererCollection : SceneRendererBase, IEnumerable<ISceneRenderer>
     {
+        private static readonly ProfilingKey DrawChildKey = new ProfilingKey("SceneRendererCollection.DrawChild");
+
         [Display(Expand = ExpandRule.Always)]
         public List<ISceneRenderer> Children { get; } = new List<ISceneRenderer>();
 
@@ -25,7 +28,12 @@ namespace Stride.Rendering.Compositing
         protected override void DrawCore(RenderContext context, RenderDrawContext drawContext)
         {
             foreach (var child in Children)
-                child.Draw(drawContext);
+            {
+                using (Profiler.Begin(DrawChildKey, $"{child.GetType().Name}.Draw"))
+                {
+                    child.Draw(drawContext);
+                }
+            }
         }
 
         public void Add(ISceneRenderer child)
