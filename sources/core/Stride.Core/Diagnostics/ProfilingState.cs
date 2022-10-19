@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
-using System.Linq;
+using System.Threading;
 
 namespace Stride.Core.Diagnostics
 {
@@ -19,6 +19,7 @@ namespace Stride.Core.Diagnostics
         private TimeSpan startTime;
         private ProfilingEventMessage? beginMessage;
         private ProfilingEventType eventType;
+        private int threadId;
         private long tickFrequency = Stopwatch.Frequency;
 
         internal ProfilingState(int profilingId, ProfilingKey profilingKey, bool isEnabled)
@@ -29,6 +30,7 @@ namespace Stride.Core.Diagnostics
             beginMessage = null;
             startTime = new TimeSpan();
             eventType = ProfilingEventType.CpuProfilingEvent;
+            threadId = Thread.CurrentThread.ManagedThreadId;
         }
 
         /// <summary>
@@ -111,6 +113,8 @@ namespace Stride.Core.Diagnostics
             if (!isEnabled) return;
 
             eventType = ProfilingEventType.GpuProfilingEvent;
+            //TODO: Map GPU queues to thread ids
+            threadId = Profiler.GpuThreadId;
             EmitEventCore(ProfilingMessageType.Begin, TimeSpanFromTimeStamp(timeStamp));
         }
 
@@ -194,8 +198,11 @@ namespace Stride.Core.Diagnostics
                 isEnabled = false;
             }
 
+            //Offset start time by profiling start time
+            var offsetStartTime = startTime - ((eventType == ProfilingEventType.CpuProfilingEvent) ? Profiler.StartTime : Profiler.GpuStartTime);
+
             // Create profiler event
-            var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, timeStamp, deltaTime, message, Attributes);
+            var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, offsetStartTime, deltaTime, threadId, message, Attributes);
 
             // Send profiler event to Profiler
             Profiler.ProcessEvent(ref profilerEvent, eventType);
@@ -212,7 +219,7 @@ namespace Stride.Core.Diagnostics
 
         private TimeSpan TimeSpanFromTimeStamp(long timeStamp)
         {
-            return new TimeSpan(timeStamp * 10000000 / tickFrequency);
+            return new TimeSpan((long)(timeStamp * ((double)10_000_000 / tickFrequency)));
         }
     }
 }

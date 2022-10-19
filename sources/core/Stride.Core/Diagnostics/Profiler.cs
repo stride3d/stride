@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using Stride.Core.Annotations;
-using Stride.Core.Collections;
 
 namespace Stride.Core.Diagnostics
 {
@@ -56,37 +58,119 @@ namespace Stride.Core.Diagnostics
     /// </remarks>
     public static class Profiler
     {
-        private class RollingBuffer
+        internal class ProfilingEventChannel
         {
-            private const int RollingBufferCount = 2;
-            private readonly List<FastList<ProfilingEvent>> rollingBuffers = new List<FastList<ProfilingEvent>>(RollingBufferCount);
-            private int currentBufferIndex;
-
-            public RollingBuffer()
+            internal static ProfilingEventChannel Create(UnboundedChannelOptions options)
             {
-                for (int i = 0; i < RollingBufferCount; i++)
-                    rollingBuffers.Add(new FastList<ProfilingEvent>());
+                var channel = Channel.CreateUnbounded<ProfilingEvent>(options);
+
+                return new ProfilingEventChannel { _channel = channel };
             }
 
-            public FastList<ProfilingEvent> GetBuffer()
+            private Channel<ProfilingEvent> _channel;
+
+            internal ChannelWriter<ProfilingEvent> Writer => _channel.Writer;
+            internal ChannelReader<ProfilingEvent> Reader => _channel.Reader;
+        }
+
+        private class ThreadEventCollection
+        {
+            //TODO (perf): Use an SPSC queue instead.
+            private ProfilingEventChannel channel = ProfilingEventChannel.Create(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+
+            internal ThreadEventCollection()
             {
-                return rollingBuffers[currentBufferIndex];
+                Profiler.AddThread(this);
             }
 
-            public void MoveToNextBuffer()
+            internal void Add(ProfilingEvent e)
             {
-                currentBufferIndex = (currentBufferIndex + 1) % RollingBufferCount;
-                rollingBuffers[currentBufferIndex].Clear();
+                if (subscriberChannels.Count > 0)
+                    channel.Writer.TryWrite(e);
+            }
+
+            internal IAsyncEnumerable<ProfilingEvent> ReadEvents()
+            {
+                return channel.Reader.ReadAllAsync();
             }
         }
 
+        //TODO: Hack. No guaranteees this won't collide with a CPU thread id.
+        //      Fix when taking another look at GPU profiling.
+        internal const int GpuThreadId = -1;
+
         internal static Logger Logger = GlobalLogger.GetLogger("Profiler"); // Global logger for all profiling
-        
-        private static readonly RollingBuffer CpuEvents = new RollingBuffer();
-        private static readonly RollingBuffer GpuEvents = new RollingBuffer();
+        internal static TimeSpan StartTime = TimeSpanFromTimeStamp(Stopwatch.GetTimestamp());
+        internal static TimeSpan GpuStartTime = TimeSpan.Zero;
+
         private static readonly object Locker = new object();
         private static bool enableAll;
         private static int profileId;
+        private static ThreadLocal<ThreadEventCollection> events = new(() => new ThreadEventCollection(), true);
+        private static ProfilingEventChannel collectorChannel = ProfilingEventChannel.Create(new UnboundedChannelOptions { SingleReader = true });
+        private static SemaphoreSlim subscriberChannelLock = new SemaphoreSlim(1, 1);
+        private static List<Channel<ProfilingEvent>> subscriberChannels = new();
+        private static Task collectorTask = null;
+
+        //TODO: Use TicksPerMicrosecond once .NET7 is available
+        public static TimeSpan MinimumProfileDuration { get; set; } = new TimeSpan(TimeSpan.TicksPerMillisecond / 1000);
+
+        public static void Init()
+        {
+            //TODO: Use TicksPerMicrosecond once .NET7 is available
+            Init(new TimeSpan(TimeSpan.TicksPerMillisecond / 1000));
+        }
+
+        public static void Init(TimeSpan minimumProfileDuration)
+        {
+            MinimumProfileDuration = minimumProfileDuration;
+
+            if (collectorTask == null || collectorTask.IsCompleted)
+            {
+                collectorTask = Task.Run(async () =>
+                {
+                    await foreach (var item in collectorChannel.Reader.ReadAllAsync())
+                    {
+                        await subscriberChannelLock.WaitAsync();
+                        try
+                        {
+                            foreach (var subscriber in subscriberChannels)
+                            {
+                                await subscriber.Writer.WriteAsync(item);
+                            }
+                        }
+                        finally { subscriberChannelLock.Release(); }
+                    }
+                });
+            }
+        }
+
+        public static ChannelReader<ProfilingEvent> Subscribe()
+        {
+            var channel = Channel.CreateUnbounded<ProfilingEvent>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+            subscriberChannelLock.Wait();
+            try
+            {
+                subscriberChannels.Add(channel);
+            }
+            finally { subscriberChannelLock.Release(); }
+            return channel;
+        }
+
+        public static void Unsubscribe(ChannelReader<ProfilingEvent> eventReader)
+        {
+            subscriberChannelLock.Wait();
+            try
+            {
+                var channel = subscriberChannels.Find((c) => c.Reader == eventReader);
+                if (channel != null)
+                {
+                    subscriberChannels.Remove(channel);
+                    channel.Writer.Complete();
+                }
+            }
+            finally { subscriberChannelLock.Release(); }
+        }
 
         /// <summary>
         /// Enables all profilers.
@@ -156,7 +240,7 @@ namespace Stride.Core.Diagnostics
                 }
             }
         }
-        
+
         /// <summary>
         /// Creates a profiler with the specified name. The returned object must be disposed at the end of the section
         /// being profiled. See remarks.
@@ -222,11 +306,18 @@ namespace Stride.Core.Diagnostics
 
         public static void ProcessEvent(ref ProfilingEvent profilingEvent, ProfilingEventType eventType)
         {
-            // Add event
-            lock (Locker)
+            if (eventType == ProfilingEventType.GpuProfilingEvent && GpuStartTime == TimeSpan.Zero)
             {
-                var list = eventType == ProfilingEventType.CpuProfilingEvent ? CpuEvents.GetBuffer() : GpuEvents.GetBuffer();
-                list.Add(profilingEvent);
+                GpuStartTime = profilingEvent.TimeStamp - (TimeSpanFromTimeStamp(Stopwatch.GetTimestamp()) - StartTime);
+            }
+
+            if (profilingEvent.Type == ProfilingMessageType.End)
+            {
+                EndProfile(profilingEvent);
+            }
+            else if (profilingEvent.Type == ProfilingMessageType.Mark)
+            {
+                CreateMark(profilingEvent);
             }
 
             // Log it
@@ -234,29 +325,31 @@ namespace Stride.Core.Diagnostics
                 Logger.Log(new ProfilingMessage(profilingEvent.Id, profilingEvent.Key, profilingEvent.Type, profilingEvent.Message) { Attributes = profilingEvent.Attributes, ElapsedTime = profilingEvent.ElapsedTime });
         }
 
-        /// <summary>
-        /// Retrieve the selected type of events and returns the number of elapsed frames.
-        /// </summary>
-        /// <param name="eventType">The type of events to retrieve</param>
-        /// <param name="clearOtherEventTypes">if true, also clears the event types to avoid event over-accumulation.</param>
-        /// <returns>The profiling events.</returns>
-        public static FastList<ProfilingEvent> GetEvents(ProfilingEventType eventType, bool clearOtherEventTypes = true)
+        private static void AddThread(ThreadEventCollection eventCollection)
         {
-            lock (Locker)
+            Task.Run(async () =>
             {
-                var returnValue = eventType == ProfilingEventType.CpuProfilingEvent ? CpuEvents.GetBuffer() : GpuEvents.GetBuffer();
-
-                if (eventType == ProfilingEventType.CpuProfilingEvent || clearOtherEventTypes)
+                await foreach (var item in eventCollection.ReadEvents())
                 {
-                    CpuEvents.MoveToNextBuffer();
+                    if (subscriberChannels.Count == 1)
+                        subscriberChannels[0].Writer.TryWrite(item);
+                    if (subscriberChannels.Count > 1)
+                        collectorChannel.Writer.TryWrite(item);
                 }
-                if (eventType == ProfilingEventType.GpuProfilingEvent || clearOtherEventTypes)
-                {
-                    GpuEvents.MoveToNextBuffer();
-                }
+            });
+        }
 
-                return returnValue;
+        static void EndProfile(ProfilingEvent e)
+        {
+            if (e.ElapsedTime >= MinimumProfileDuration)
+            {
+                events.Value!.Add(e);
             }
+        }
+
+        static void CreateMark(ProfilingEvent e)
+        {
+            events.Value!.Add(e);
         }
 
         /// <summary>
@@ -284,6 +377,11 @@ namespace Stride.Core.Diagnostics
             {
                 builder.AppendFormat("{0:000.000}ms", accumulatedTimeSpan.TotalMilliseconds);
             }
+        }
+
+        private static TimeSpan TimeSpanFromTimeStamp(long timeStamp)
+        {
+            return new TimeSpan((long)(timeStamp * ((double)10_000_000 / Stopwatch.Frequency)));
         }
     }
 }
