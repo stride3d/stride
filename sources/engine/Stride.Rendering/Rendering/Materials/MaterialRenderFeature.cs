@@ -136,11 +136,12 @@ namespace Stride.Rendering.Materials
                         var oldMeshDraw = renderMesh.ActiveMeshDraw;
                         tessellationMeshDraw = new MeshDraw
                         {
-                            VertexBuffers = oldMeshDraw.VertexBuffers,
-                            IndexBuffer = oldMeshDraw.IndexBuffer,
+                            PrimitiveType = tessellationState.Method.GetPrimitiveType(),
                             DrawCount = oldMeshDraw.DrawCount,
                             StartLocation = oldMeshDraw.StartLocation,
-                            PrimitiveType = tessellationState.Method.GetPrimitiveType(),
+                            VertexBuffers = oldMeshDraw.VertexBuffers,
+                            IndexBuffer = oldMeshDraw.IndexBuffer,
+                            IndirectDrawing = oldMeshDraw.IndirectDrawing,
                         };
 
                         // adapt the primitive type and index buffer to the tessellation used

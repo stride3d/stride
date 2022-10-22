@@ -19,5 +19,8 @@ namespace Stride.Rendering
         public VertexBufferBinding[] VertexBuffers;
 
         public IndexBufferBinding IndexBuffer;
+
+        [DataMemberIgnore]
+        public IndirectDrawingArgs IndirectDrawing;
     }
 }
