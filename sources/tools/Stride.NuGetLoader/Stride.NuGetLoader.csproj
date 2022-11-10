@@ -19,7 +19,7 @@
   <ItemGroup>
     <PackageReference Include="NuGet.PackageManagement" Version="6.0.0" />
     <PackageReference Include="NuGet.Resolver" Version="6.0.0" />
-		<PackageReference Include="NuGet.Commands" Version="6.0.0" />
+		<PackageReference Include="NuGet.Commands" Version="6.2.2" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
