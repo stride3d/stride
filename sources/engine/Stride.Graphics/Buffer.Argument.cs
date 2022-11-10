@@ -49,7 +49,7 @@ namespace Stride.Graphics
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <param name="usage">The usage.</param>
             /// <returns>A Argument buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
                 return Buffer.New<T>(device, 1, BufferFlags.ArgumentBuffer, usage);
             }
@@ -62,7 +62,7 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the Argument buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Argument buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
                 return Buffer.New(device, ref value, BufferFlags.ArgumentBuffer, usage);
             }

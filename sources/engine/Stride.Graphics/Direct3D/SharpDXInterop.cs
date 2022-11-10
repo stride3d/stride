@@ -3,6 +3,7 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
 
+using System.Runtime.CompilerServices;
 using SharpDX;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using SharpDX.Direct3D11;
@@ -14,6 +15,11 @@ namespace Stride.Graphics
 {
     public static class SharpDXInterop
     {
+        public static ref SharpDX.DataBox AsSharpDX(ref this DataBox @this) => ref Unsafe.As<DataBox, SharpDX.DataBox>(ref @this);
+        public static ref SharpDX.Direct3D11.ResourceRegion AsSharpDX(ref this ResourceRegion @this) => ref Unsafe.As<ResourceRegion, SharpDX.Direct3D11.ResourceRegion>(ref @this);
+        public static ref DataBox AsStride(ref this SharpDX.DataBox @this) => ref Unsafe.As<SharpDX.DataBox, DataBox>(ref @this);
+        public static ref ResourceRegion AsStride(ref this SharpDX.Direct3D11.ResourceRegion @this) => ref Unsafe.As<SharpDX.Direct3D11.ResourceRegion, ResourceRegion>(ref @this);
+
         /// <summary>
         /// Gets the native device (DX11/DX12)
         /// </summary>

@@ -193,6 +193,7 @@ namespace Stride.Core.Mathematics
         public static unsafe void FromPoints(Vector3[] points, out BoundingSphere result)
         {
             if (points == null) throw new ArgumentNullException("points");
+            if (points.Length == 0) throw new ArgumentException("Array cannot be empty or null.", nameof(points));
             fixed (void* pointsPtr = points)
             {
                 FromPoints((IntPtr)pointsPtr, 0, points.Length, Unsafe.SizeOf<Vector3>(), out result);

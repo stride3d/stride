@@ -2,20 +2,24 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Core.IO
 {
     /// <summary>
     /// A <see cref="Stream"/> with additional methods for native read and write operations using <see cref="IntPtr"/>.
     /// </summary>
+    [Obsolete]
     public abstract class NativeStream : Stream
     {
         protected const int NativeStreamBufferSize = 1024;
 
         // Helper buffer for classes needing it.
         // If null, it should be initialized with NativeStreamBufferSize constant.
+        [Obsolete("Let the caller provide a buffer.")]
         protected byte[] nativeStreamBuffer;
 
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public virtual unsafe ushort ReadUInt16()
         {
             var temporaryBuffer = nativeStreamBuffer;
@@ -32,6 +36,7 @@ namespace Stride.Core.IO
             }
         }
 
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public virtual unsafe uint ReadUInt32()
         {
             var temporaryBuffer = nativeStreamBuffer;
@@ -47,7 +52,8 @@ namespace Stride.Core.IO
                 return *((uint*)temporaryBufferStart);
             }
         }
-        
+
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public virtual unsafe ulong ReadUInt64()
         {
             var temporaryBuffer = nativeStreamBuffer;
@@ -64,6 +70,7 @@ namespace Stride.Core.IO
             }
         }
 
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public virtual unsafe void Write(ushort i)
         {
             var temporaryBuffer = nativeStreamBuffer;
@@ -75,7 +82,8 @@ namespace Stride.Core.IO
 
             Write(temporaryBuffer, 0, sizeof(ushort));
         }
-        
+
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public virtual unsafe void Write(uint i)
         {
             var temporaryBuffer = nativeStreamBuffer;
@@ -88,6 +96,7 @@ namespace Stride.Core.IO
             Write(temporaryBuffer, 0, sizeof(uint));
         }
 
+        [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
         public virtual unsafe void Write(ulong i)
         {
             var temporaryBuffer = nativeStreamBuffer;
@@ -107,28 +116,30 @@ namespace Stride.Core.IO
         /// <param name="count">The maximum number of bytes to read. </param>
         /// <exception cref="ArgumentNullException">array is null. </exception>
         /// <returns>The total number of bytes read into the buffer. This might be less than the number of bytes requested if that number of bytes are not currently available, or zero if the end of the stream is reached.</returns>
-        public virtual int Read(IntPtr buffer, int count)
+        [Obsolete("Use Stream.Read(Span<byte>).")]
+        public virtual unsafe int Read(nint buffer, int count)
         {
             var temporaryBuffer = nativeStreamBuffer;
             if (temporaryBuffer == null)
                 temporaryBuffer = nativeStreamBuffer = new byte[NativeStreamBufferSize];
 
             var readSize = 0;
+            fixed (byte* temporaryBufferStart = temporaryBuffer) {
+                for (var offset = 0; offset < count; offset += NativeStreamBufferSize, buffer += NativeStreamBufferSize)
+                {
+                    // Compute missing bytes in this block
+                    var blockSize = count - offset;
+                    if (blockSize > NativeStreamBufferSize)
+                        blockSize = NativeStreamBufferSize;
 
-            for (var offset = 0; offset < count; offset += NativeStreamBufferSize, buffer += NativeStreamBufferSize)
-            {
-                // Compute missing bytes in this block
-                var blockSize = count - offset;
-                if (blockSize > NativeStreamBufferSize)
-                    blockSize = NativeStreamBufferSize;
+                    var currentReadSize = Read(temporaryBuffer, 0, blockSize);
+                    readSize += currentReadSize;
+                    Unsafe.CopyBlockUnaligned((void*)buffer, temporaryBufferStart, (uint)currentReadSize);
 
-                var currentReadSize = Read(temporaryBuffer, 0, blockSize);
-                readSize += currentReadSize;
-                Utilities.Write(buffer, temporaryBuffer, 0, currentReadSize);
-
-                // Reached end of stream?
-                if (currentReadSize < blockSize)
-                    break;
+                    // Reached end of stream?
+                    if (currentReadSize < blockSize)
+                        break;
+                }
             }
 
             return readSize;
@@ -139,23 +150,25 @@ namespace Stride.Core.IO
         /// </summary>
         /// <param name="buffer">The buffer containing data to write to the stream.</param>
         /// <param name="count">The number of bytes to be written to the current stream. </param>
-        public virtual unsafe void Write(IntPtr buffer, int count)
+        [Obsolete("Use Stream.Write(ReadOnlySpan<byte>).")]
+        public virtual unsafe void Write(nint buffer, int count)
         {
             var temporaryBuffer = nativeStreamBuffer;
             if (temporaryBuffer == null)
                 temporaryBuffer = nativeStreamBuffer = new byte[NativeStreamBufferSize];
 
-            for (var offset = 0; offset < count; offset += NativeStreamBufferSize, buffer += NativeStreamBufferSize)
-            {
-                // Compute missing bytes in this block
-                var blockSize = count - offset;
-                if (blockSize > NativeStreamBufferSize)
-                    blockSize = NativeStreamBufferSize;
+            fixed (byte* temporaryBufferStart = temporaryBuffer) {
+                for (var offset = 0; offset < count; offset += NativeStreamBufferSize, buffer += NativeStreamBufferSize)
+                {
+                    // Compute missing bytes in this block
+                    var blockSize = count - offset;
+                    if (blockSize > NativeStreamBufferSize)
+                        blockSize = NativeStreamBufferSize;
 
-                fixed (byte* temporaryBufferStart = temporaryBuffer)
-                    Utilities.CopyMemory((IntPtr)temporaryBufferStart, buffer, blockSize);
+                        Unsafe.CopyBlockUnaligned(temporaryBufferStart, (void*)buffer, (uint)blockSize);
 
-                Write(temporaryBuffer, 0, blockSize);
+                    Write(temporaryBuffer, 0, blockSize);
+                }
             }
         }
     }

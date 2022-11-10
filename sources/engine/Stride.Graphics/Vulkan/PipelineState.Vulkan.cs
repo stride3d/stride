@@ -47,6 +47,12 @@ namespace Stride.Graphics
 
         private unsafe void Recreate()
         {
+            // Note: important to pin this so that stages[x].Name is valid during this whole function
+            fixed (void* defaultEntryPointData = defaultEntryPoint) // null if array is empty or null
+                RecreateInner();
+        }
+        private unsafe void RecreateInner()
+        {
             if (Description.RootSignature == null)
                 return;
 
@@ -55,11 +61,7 @@ namespace Stride.Graphics
             CreatePipelineLayout(Description);
 
             // Create shader stages
-            Dictionary<int, string> inputAttributeNames;
-
-            // Note: important to pin this so that stages[x].Name is valid during this whole function
-            void* defaultEntryPointData = Core.Interop.Fixed(defaultEntryPoint);
-            var stages = CreateShaderStages(Description, out inputAttributeNames);
+            var stages = CreateShaderStages(Description, out var inputAttributeNames);
 
             var inputAttributes = new VkVertexInputAttributeDescription[Description.InputElements.Length];
             int inputAttributeCount = 0;
@@ -76,10 +78,7 @@ namespace Stride.Graphics
                     throw new NotImplementedException();
                 }
 
-                VkFormat format;
-                int size;
-                bool isCompressed;
-                VulkanConvertExtensions.ConvertPixelFormat(inputElement.Format, out format, out size, out isCompressed);
+                VulkanConvertExtensions.ConvertPixelFormat(inputElement.Format, out var format, out var size, out var isCompressed);
 
                 var location = inputAttributeNames.FirstOrDefault(x => x.Value == inputElement.SemanticName && inputElement.SemanticIndex == 0 || x.Value == inputElement.SemanticName + inputElement.SemanticIndex);
                 if (location.Value != null)
@@ -158,22 +157,27 @@ namespace Stride.Graphics
                 viewportCount = 1,
             };
 
-            fixed (VkDynamicState* dynamicStatesPointer = &dynamicStates[0])
+            // fixed yields null if array is empty or null
+            fixed (VkDynamicState* dynamicStatesPointer = dynamicStates)
+            fixed (VkVertexInputAttributeDescription* fInputAttributes = inputAttributes)
+            fixed (VkVertexInputBindingDescription* fInputBindings = inputBindings)
+            fixed (VkPipelineColorBlendAttachmentState* fColorBlendAttachments = colorBlendAttachments)
+            fixed (VkPipelineShaderStageCreateInfo* fStages = stages)
             {
                 var vertexInputState = new VkPipelineVertexInputStateCreateInfo
                 {
                     sType = VkStructureType.PipelineVertexInputStateCreateInfo,
                     vertexAttributeDescriptionCount = (uint)inputAttributeCount,
-                    pVertexAttributeDescriptions = inputAttributes.Length > 0 ? (VkVertexInputAttributeDescription*)Core.Interop.Fixed(inputAttributes) : null,
+                    pVertexAttributeDescriptions = fInputAttributes,
                     vertexBindingDescriptionCount = (uint)inputBindingCount,
-                    pVertexBindingDescriptions = inputBindings.Length > 0 ? (VkVertexInputBindingDescription*)Core.Interop.Fixed(inputBindings) : null,
+                    pVertexBindingDescriptions = fInputBindings,
                 };
 
                 var colorBlendState = new VkPipelineColorBlendStateCreateInfo
                 {
                     sType = VkStructureType.PipelineColorBlendStateCreateInfo,
                     attachmentCount = (uint)renderTargetCount,
-                    pAttachments = colorBlendAttachments.Length > 0 ? (VkPipelineColorBlendAttachmentState*)Core.Interop.Fixed(colorBlendAttachments) : null,
+                    pAttachments = fColorBlendAttachments,
                 };
 
                 var dynamicState = new VkPipelineDynamicStateCreateInfo
@@ -188,7 +192,7 @@ namespace Stride.Graphics
                     sType = VkStructureType.GraphicsPipelineCreateInfo,
                     layout = NativeLayout,
                     stageCount = (uint)stages.Length,
-                    pStages = stages.Length > 0 ? (VkPipelineShaderStageCreateInfo*)Core.Interop.Fixed(stages) : null,
+                    pStages = stages.Length > 0 ? fStages : null,
                     //tessellationState = &tessellationState,
                     pVertexInputState = &vertexInputState,
                     pInputAssemblyState = &inputAssemblyState,
@@ -274,29 +278,33 @@ namespace Stride.Graphics
                 };
             }
 
-            var depthAttachmentReference = new VkAttachmentReference
-            {
-                attachment = (uint)attachments.Length - 1,
-                layout = VkImageLayout.DepthStencilAttachmentOptimal,
-            };
+            // fixed yields null if array is empty or null
+            fixed (VkAttachmentReference* fColorAttachmentReferences = colorAttachmentReferences)
+            fixed (VkAttachmentDescription* fAttachments = attachments) {
+                var depthAttachmentReference = new VkAttachmentReference
+                {
+                    attachment = (uint)attachments.Length - 1,
+                    layout = VkImageLayout.DepthStencilAttachmentOptimal,
+                };
 
-            var subpass = new VkSubpassDescription
-            {
-                pipelineBindPoint = VkPipelineBindPoint.Graphics,
-                colorAttachmentCount = (uint)renderTargetCount,
-                pColorAttachments = colorAttachmentReferences.Length > 0 ? (VkAttachmentReference*)Core.Interop.Fixed(colorAttachmentReferences) : null,
-                pDepthStencilAttachment = hasDepthStencilAttachment ? &depthAttachmentReference : null,
-            };
+                var subpass = new VkSubpassDescription
+                {
+                    pipelineBindPoint = VkPipelineBindPoint.Graphics,
+                    colorAttachmentCount = (uint)renderTargetCount,
+                    pColorAttachments = fColorAttachmentReferences,
+                    pDepthStencilAttachment = hasDepthStencilAttachment ? &depthAttachmentReference : null,
+                };
 
-            var renderPassCreateInfo = new VkRenderPassCreateInfo
-            {
-                sType = VkStructureType.RenderPassCreateInfo,
-                attachmentCount = (uint)attachmentCount,
-                pAttachments = attachments.Length > 0 ? (VkAttachmentDescription*)Core.Interop.Fixed(attachments) : null,
-                subpassCount = 1,
-                pSubpasses = &subpass,
-            };
-            vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, null, out NativeRenderPass);
+                var renderPassCreateInfo = new VkRenderPassCreateInfo
+                {
+                    sType = VkStructureType.RenderPassCreateInfo,
+                    attachmentCount = (uint)attachmentCount,
+                    pAttachments = fAttachments,
+                    subpassCount = 1,
+                    pSubpasses = &subpass,
+                };
+                vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, null, out NativeRenderPass);
+            }
         }
 
         /// <inheritdoc/>
@@ -333,7 +341,7 @@ namespace Stride.Graphics
             ResourceGroupCount = resourceGroups.Count;
 
             var layouts = pipelineStateDescription.RootSignature.EffectDescriptorSetReflection.Layouts;
-            
+
             // Get binding indices used by the shader
             var destinationBindings = pipelineStateDescription.EffectBytecode.Stages
                 .SelectMany(x => BinarySerialization.Read<ShaderInputBytecode>(x.Data).ResourceBindings)
@@ -360,8 +368,7 @@ namespace Stride.Graphics
                 {
                     var sourceEntry = sourceEntries[sourceBinding];
 
-                    int destinationBinding;
-                    if (destinationBindings.TryGetValue(sourceEntry.Key.Name, out destinationBinding))
+                    if (destinationBindings.TryGetValue(sourceEntry.Key.Name, out var destinationBinding))
                     {
                         destinationEntries[destinationBinding] = sourceEntry;
 

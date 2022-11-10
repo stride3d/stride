@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 
 namespace Stride.Particles
@@ -32,13 +33,13 @@ namespace Stride.Particles
         /// <summary>
         /// Pointer to the particle data block
         /// </summary>
-        public readonly IntPtr Pointer;
+        public readonly nint Pointer;
 
         /// <summary>
         /// Creates a particle from a raw pointer, assuming the pointer references valid particle data block
         /// </summary>
         /// <param name="pointer"></param>
-        public Particle(IntPtr pointer)
+        public Particle(nint pointer)
         {
             Pointer = pointer;
         }
@@ -47,9 +48,9 @@ namespace Stride.Particles
         /// Creates an invalid <see cref="Particle"/>. Accessing the invalid <see cref="Particle"/> is not resticted by the engine.
         /// </summary>
         /// <returns></returns>
-        static internal Particle Invalid()
+        internal static Particle Invalid()
         {
-            return new Particle(IntPtr.Zero);
+            return new Particle(0);
         }
 #endif
 
@@ -61,12 +62,12 @@ namespace Stride.Particles
         /// <typeparam name="T">The field type.</typeparam>
         /// <param name="accessor">The field accessor</param>
         /// <returns>The field value.</returns>
-        public T Get<T>(ParticleFieldAccessor<T> accessor) where T : struct
+        public unsafe T Get<T>(ParticleFieldAccessor<T> accessor) where T : struct
         {
 #if PARTICLES_SOA
-            return Utilities.Read<T>(accessor[Index]);
+            return Unsafe.ReadUnaligned<T>((byte*)accessor[Index]);
 #else
-            return Utilities.Read<T>(Pointer + accessor);
+            return Unsafe.ReadUnaligned<T>((byte*)Pointer + accessor);
 #endif
         }
 
@@ -76,12 +77,12 @@ namespace Stride.Particles
         /// <typeparam name="T">The field type.</typeparam>
         /// <param name="accessor">The field accessor</param>
         /// <param name="value">The value to set</param>
-        public void Set<T>(ParticleFieldAccessor<T> accessor, ref T value) where T : struct
+        public unsafe void Set<T>(ParticleFieldAccessor<T> accessor, ref T value) where T : struct
         {
 #if PARTICLES_SOA
-            Utilities.Write(accessor[Index], ref value);
+            Unsafe.WriteUnaligned((byte*)accessor[Index], value);
 #else
-            Utilities.Write(Pointer + accessor, ref value);
+            Unsafe.WriteUnaligned((byte*)Pointer + accessor, value);
 #endif
         }
 
@@ -91,25 +92,24 @@ namespace Stride.Particles
         /// <typeparam name="T">The field type.</typeparam>
         /// <param name="accessor">The field accessor</param>
         /// <param name="value">The value to set</param>
-        public void Set<T>(ParticleFieldAccessor<T> accessor, T value) where T : struct
+        public unsafe void Set<T>(ParticleFieldAccessor<T> accessor, T value) where T : struct
         {
 #if PARTICLES_SOA
-            Utilities.Write(accessor[Index], ref value);
+            Unsafe.WriteUnaligned((byte*)accessor[Index], value);
 #else
-            Utilities.Write(Pointer + accessor, ref value);
+            Unsafe.WriteUnaligned((byte*)Pointer + accessor, value);
 #endif
         }
 
         #endregion
 
 #if PARTICLES_SOA
-        public IntPtr this[ParticleFieldAccessor accessor] => accessor[Index];
+        public nint this[ParticleFieldAccessor accessor] => accessor[Index];
 
         public static implicit operator int(Particle particle) => particle.Index;
 #else
-        public static implicit operator IntPtr(Particle particle) => particle.Pointer;
 
-        public IntPtr this[ParticleFieldAccessor accessor] => Pointer + accessor;
+        public nint this[ParticleFieldAccessor accessor] => Pointer + (int)accessor;
 #endif
 
 
@@ -146,10 +146,7 @@ namespace Stride.Particles
         public static bool operator ==(Particle particleLeft, Particle particleRight) => (particleLeft.Pointer == particleRight.Pointer);
         public static bool operator !=(Particle particleLeft, Particle particleRight) => (particleLeft.Pointer != particleRight.Pointer);
 
-        public override int GetHashCode()
-        {
-            return Pointer.ToInt32();
-        }
+        public override int GetHashCode() => Pointer.GetHashCode();
 #endif
     }
 }

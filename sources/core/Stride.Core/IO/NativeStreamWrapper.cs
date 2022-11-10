@@ -8,9 +8,10 @@ using System.Threading.Tasks;
 
 namespace Stride.Core.IO
 {
+    [Obsolete]
     public class NativeStreamWrapper : NativeStream
     {
-        private Stream stream;
+        private readonly Stream stream;
 
         public NativeStreamWrapper(Stream stream)
         {
@@ -36,10 +37,18 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+            => stream.ReadAsync(buffer, cancellationToken);
+
+        /// <inheritdoc/>
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             return stream.ReadAsync(buffer, offset, count, cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+            => stream.WriteAsync(buffer, cancellationToken);
 
         /// <inheritdoc/>
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -60,6 +69,9 @@ namespace Stride.Core.IO
         }
 
         /// <inheritdoc/>
+        public override int Read(Span<byte> buffer) => stream.Read(buffer);
+
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             return stream.Read(buffer, offset, count);
@@ -70,6 +82,9 @@ namespace Stride.Core.IO
         {
             return stream.ReadByte();
         }
+
+        /// <inheritdoc/>
+        public override void Write(ReadOnlySpan<byte> buffer) => stream.Write(buffer);
 
         /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
