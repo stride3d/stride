@@ -8,11 +8,6 @@
 extern "C" {
 #endif
 
-	DLL_EXPORT_API void cnSleep(int milliseconds)
-	{
-		npThreadSleep(milliseconds);
-	}
-
 	DLL_EXPORT_API void cnSetup(void* printDebugPtr)
 	{
 		cnDebugPrintLine = (CnPrintDebugFunc)printDebugPtr;

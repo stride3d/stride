@@ -89,7 +89,7 @@
 //            Assert.Equal(SoundPlayState.Playing, monoSoundEffect.PlayState);
 //            Assert.Equal(SoundPlayState.Playing, stereoSoundEffect.PlayState);
 //            Assert.Equal(SoundPlayState.Playing, continousMonoSoundEffect.PlayState);
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //
 //            //////////////////////////////////////////////////////////////////////////////////
 //            // 2. Check that two or more instances of a same sound effect cannot play together
@@ -104,9 +104,9 @@
 //            Assert.Equal(SoundPlayState.Stopped, inst1.PlayState);
 //            Assert.Equal(SoundPlayState.Playing, inst2.PlayState);
 //            Assert.Equal(SoundPlayState.Stopped, inst3.PlayState);
-//            Utilities.Sleep(1000); // wait a little bit for hearing checking
+//            Thread.Sleep(1000); // wait a little bit for hearing checking
 //            inst3.Play();
-//            Utilities.Sleep(1000); // wait a little bit for hearing checking
+//            Thread.Sleep(1000); // wait a little bit for hearing checking
 //            Assert.Equal(SoundPlayState.Stopped, inst1.PlayState);
 //            Assert.Equal(SoundPlayState.Stopped, inst2.PlayState);
 //            Assert.Equal(SoundPlayState.Playing, inst3.PlayState);
@@ -139,7 +139,7 @@
 //                instances[i] = monoSoundEffect.CreateInstance();
 //                instances[i].Play();
 //            }
-//            Utilities.Sleep(2000);
+//            Thread.Sleep(2000);
 //            foreach (var instance in instances)
 //                instance.Dispose();
 //
@@ -148,7 +148,7 @@
 //            for (int i = 0; i < 100; ++i)
 //            {
 //                monoSoundEffect.Play();
-//                Utilities.Sleep(1); // SourceVoice.SubmitBuffer crashes in native code after the 64th successive iteration if this line is not here
+//                Thread.Sleep(1); // SourceVoice.SubmitBuffer crashes in native code after the 64th successive iteration if this line is not here
 //                monoSoundEffect.Stop();
 //            }
 //        }
@@ -179,7 +179,7 @@
 //            // 5. Check that there is not crash when disposing an instance while it is playing
 //            var otherInst = monoSoundEffect.CreateInstance();
 //            otherInst.Play();
-//            Utilities.Sleep(100); // wait for commit
+//            Thread.Sleep(100); // wait for commit
 //            Assert.DoesNotThrow(otherInst.Dispose, "Call to SoundEffectInstance.Dispose after Play crashed throwing an exception");
 //        }
 //
@@ -199,7 +199,7 @@
 //
 //            ////////////////////////////////////////////
 //            // 3. Listen that the played sound is valid
-//            Utilities.Sleep(1500);
+//            Thread.Sleep(1500);
 //
 //            //////////////////////////////////////////////////////////////////
 //            // 4. Check that there is no crash when restarting the sound 
@@ -207,24 +207,24 @@
 //
 //            //////////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 5. Check  that there is no crash when playing after pausing the sound and that play flow is correct
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            laugherMono.Pause();
-//            Utilities.Sleep(500);
+//            Thread.Sleep(500);
 //            Assert.DoesNotThrow(laugherMono.Play, "Restarting the audio sound after pausing it crashed throwing an exception.");
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            laugherMono.Stop();
 //
 //            //////////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 6. Check that there is no crash when playing after stopping a sound and that the play flow restart
 //            laugherMono.Play();
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            laugherMono.Stop();
-//            Utilities.Sleep(500);
+//            Thread.Sleep(500);
 //            Assert.DoesNotThrow(laugherMono.Play, "Restarting the audio sound after stopping it crashed throwing an exception.");
 //            var countDown = 12000;
 //            while (laugherMono.PlayState == SoundPlayState.Playing)
 //            {
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //                countDown -= 10;
 //
 //                if (countDown<0)
@@ -234,7 +234,7 @@
 //            ////////////////////////////////////////////////////////////////
 //            // 7. Play a stereo file a listen that the played sound is valid
 //            stereoInstance.Play();
-//            Utilities.Sleep(2500);
+//            Thread.Sleep(2500);
 //
 //            //////////////////////////////////////////////////////////////////////////////////
 //            // 8. Check that Playing an Disposed instance throw the 'ObjectDisposedException'
@@ -262,11 +262,11 @@
 //            //////////////////////////////////////////////////////////////////////////////////////////
 //            // 3. Check that Pause does not crash and has the correct effect when called after playing
 //            laugherMono.Play();
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            Assert.DoesNotThrow(laugherMono.Pause, "Call to SoundEffectInstance.Pause crashed throwing an exception.");
-//            Utilities.Sleep(500);
+//            Thread.Sleep(500);
 //            laugherMono.Play();
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            laugherMono.Stop();
 //
 //            ////////////////////////////////////////////////////////////////////
@@ -295,21 +295,21 @@
 //            //////////////////////////////////////////////////////////////////////////////////////////
 //            // 3. Check that Stop does not crash and has the correct effect when called during playing
 //            laugherMono.Play();
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            Assert.DoesNotThrow(laugherMono.Stop, "Call to SoundEffectInstance.Stop crashed throwing an exception.");
-//            Utilities.Sleep(500);
+//            Thread.Sleep(500);
 //            laugherMono.Play();
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            laugherMono.Stop();
 //
 //            ///////////////////////////////////////////////////////////////////////////
 //            // 4. Check that a call to stop  does not crash when paused reset the sound
 //            laugherMono.Play();
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            laugherMono.Pause();
 //            Assert.DoesNotThrow(laugherMono.Stop, "Call to SoundEffectInstance.Stop while paused crashed throwing an exception.");
 //            laugherMono.Play();
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            laugherMono.Stop();
 //        }
 //
@@ -334,25 +334,25 @@
 //            var loopedInst = monoSoundEffect.CreateInstance();
 //            loopedInst.IsLooped = true;
 //            loopedInst.Play();
-//            Utilities.Sleep(10); // Play need to be commited
+//            Thread.Sleep(10); // Play need to be commited
 //            Assert.DoesNotThrow(loopedInst.ExitLoop, "Call to SoundEffectInstance.ExitLoop crashed throwing an exception.");
-//            Utilities.Sleep(2000);
+//            Thread.Sleep(2000);
 //            Assert.True(loopedInst.PlayState == SoundPlayState.Stopped, "SoundEffectInstance.ExitLoop has not properly stopped the looping proccess");
 //
 //            ////////////////////////////////////////////////////////////////////////////////
 //            // 4. Check that a call to ExitLoop does not crash when the sound is not looping
 //            monoInstance.Play();
-//            Utilities.Sleep(10); // Play need to be commited
+//            Thread.Sleep(10); // Play need to be commited
 //            Assert.DoesNotThrow(monoInstance.ExitLoop, "Call to SoundEffectInstance.ExitLoop with a non-looping sound crashed throwing an exception.");
-//            Utilities.Sleep(1250);
+//            Thread.Sleep(1250);
 //
 //            ////////////////////////////////////////////////////////////////
 //            // 5. Check that 2 consecutive calls to ExitLoop does not crash 
 //            loopedInst.Play();
 //            loopedInst.ExitLoop();
-//            Utilities.Sleep(10); // Play need to be commited
+//            Thread.Sleep(10); // Play need to be commited
 //            Assert.DoesNotThrow(loopedInst.ExitLoop, "A consecutive second call to SoundEffectInstance.ExitLoop crashed throwing an exception.");
-//            Utilities.Sleep(2000);
+//            Thread.Sleep(2000);
 //
 //            ////////////////////////////////////////////////////////////////
 //            // 6. Check that ExitLoop does not modify the value of IsLooped 
@@ -399,7 +399,7 @@
 //                Assert.DoesNotThrow(() => vol = contInst.Volume, "SoundEffectInstance.Volume { get } crashed.");
 //                Assert.Equal(MathUtil.Clamp(currentVol, 0, 1), vol, "The volume value is not what is supposed to be.");
 //
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //                if (currentVol > 1.5)
 //                    sign = -1;
 //
@@ -426,9 +426,9 @@
 //            //////////////////////////////////////////////////////////////////////////////////
 //            // 2. Check that set IsLooped for a playing instance throw the 'InvalidOperationException'
 //            monoInstance.Play();
-//            Utilities.Sleep(10);  // play commit time
+//            Thread.Sleep(10);  // play commit time
 //            Assert.Throws<InvalidOperationException>(() => monoInstance.IsLooped = true, "SoundEffectInstance.IsLooped { set } did not throw the 'InvalidOperationException' when called from a playing sound.");
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //
 //            /////////////////////////////////////////////////
 //            // 3. Check that IsLooped default value is false
@@ -446,7 +446,7 @@
 //            var loopedInst = monoSoundEffect.CreateInstance();
 //            loopedInst.IsLooped = true;
 //            loopedInst.Play();
-//            Utilities.Sleep(1500);
+//            Thread.Sleep(1500);
 //            Assert.True(loopedInst.PlayState == SoundPlayState.Playing, "Sound does not loop when Islooped is set to true.");
 //            loopedInst.Stop();
 //            loopedInst.Dispose();
@@ -456,7 +456,7 @@
 //            var contInst = continousMonoSoundEffect.CreateInstance();
 //            contInst.IsLooped = true;
 //            contInst.Play();
-//            Utilities.Sleep(3000);
+//            Thread.Sleep(3000);
 //            Assert.True(contInst.PlayState == SoundPlayState.Playing, "Sound does not loop when Islooped is set to true.");
 //            contInst.Stop();
 //            contInst.Dispose();
@@ -508,7 +508,7 @@
 //            //////////////////////////////////////////////////////////////////////////////////////////
 //            // 7. Check that PlayState value is SoundPlayState.Stopped when the sound stops by itself.
 //            monoInstance.Play();
-//            Utilities.Sleep(1500);
+//            Thread.Sleep(1500);
 //            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "Value of SoundEffectInstance.PlayState is not SoundPlayState.Stopped when we reach the sound end");
 //        }
 //
@@ -555,7 +555,7 @@
 //                if (currentPan > BornValue)
 //                    sign = -1f;
 //
-//                Utilities.Sleep(20);
+//                Thread.Sleep(20);
 //            }
 //            monoContInst.Stop();
 //
@@ -565,15 +565,15 @@
 //            var emit = new AudioEmitter { Position = new Vector3(7, 0, 0) };
 //            monoContInst.Apply3D(list, emit);
 //            monoContInst.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoContInst.Pan = 0;
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoContInst.Stop();
 //            monoContInst.Dispose();
 //
 //            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 5. Check that stereo sound is Panning correctly (should listen => sound comming from left -> going to right -> going back to left)
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            var stereoContInst = continousStereoSoundEffect.CreateInstance();
 //            stereoContInst.IsLooped = true;
 //            stereoContInst.Play();
@@ -589,11 +589,11 @@
 //                if (currentPan > BornValue)
 //                    sign = -1f;
 //
-//                Utilities.Sleep(20);
+//                Thread.Sleep(20);
 //            }
 //            stereoContInst.Stop();
 //            stereoContInst.Dispose();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //        }
 //
 //        /// <summary>
@@ -623,11 +623,11 @@
 //            /////////////////////////////////////////////////////////////////////////////////////////////
 //            // 3. Check that the sound is not modified when applying 3D at same position with mono sound
 //            monoInst.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoInst.Apply3D(list, emit);
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoInst.Stop();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            
 //            ///////////////////////////////////////////////////////////////////////////////////
 //            // 4. Check that Apply3D throws InvalidOperationException when used on stereo sound
@@ -644,10 +644,10 @@
 //
 //                currentDist += 0.01f;
 //
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //            monoInst.Stop();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            
 //            ////////////////////////////////////////////////////////////////////////////////
 //            // 6. Check that signal do not attenuate when we move both emitter and listener
@@ -661,10 +661,10 @@
 //            
 //                currentDist += 0.01f;
 //            
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //            monoInst.Stop();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            
 //            //////////////////////////////////////////////////////////////////////////////////////
 //            // 7. Check that attenuation increase/decrease when modifying DistaceScale parameter
@@ -679,10 +679,10 @@
 //            
 //                currentScale -= 0.005f;
 //            
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //            monoInst.Stop();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            
 //            ////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 8. Check that mono the localization works properly by turning the emiter around the listener
@@ -699,10 +699,10 @@
 //            
 //                angle -= 0.005f;
 //            
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //            monoInst.Stop();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            
 //            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 9. Check that the sound frequency is modified properly when object move away and goes back to the listener (doppler effect)
@@ -725,10 +725,10 @@
 //                    speed = 0;
 //                }
 //            
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //            monoInst.Stop();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            
 //            /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 10. Check that the sound frequency is not modified when both objects move away at same speed (doppler effect)
@@ -743,10 +743,10 @@
 //            
 //                speed += 0.005f * SpeedLimit;
 //                
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //            monoInst.Stop();
-//            Utilities.Sleep(600);
+//            Thread.Sleep(600);
 //            
 //            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 11. Check the doppler effect influence is modified properly when DopplerScale changes (should increase)
@@ -763,10 +763,10 @@
 //            
 //                dopplerScale *= 1.01f;
 //            
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //            monoInst.Stop();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            emit.DopplerScale = 1;
 //
 //            /////////////////////////////////////////////////////////
@@ -787,19 +787,19 @@
 //                if (volume < 0)
 //                    sign = 1f;
 //
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //            contInst.Stop();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //
 //            ////////////////////////////////////////////////
 //            // 13. Check that Apply3D reset the Pan value.
 //            contInst.Play();
 //            contInst.Pan = 1;
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            contInst.Apply3D(new AudioListener(), new AudioEmitter { Position = new Vector3(-1,0,0)});
 //            Assert.Equal(0, contInst.Pan, "The Pan value has not been reset.");
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            contInst.Stop();
 //
 //            contInst.Dispose();
@@ -820,11 +820,11 @@
 //            emit.Velocity = new Vector3(500,0,0);
 //            monoInst.Apply3D(list, emit);
 //            monoInst.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoInst.Reset3D();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoInst.Stop();
-//            Utilities.Sleep(500);
+//            Thread.Sleep(500);
 //
 //            ///////////////////////////
 //            // Check that Pan is reset
@@ -832,34 +832,34 @@
 //            emit.Velocity = new Vector3(0, 0, 0);
 //            monoInst.Apply3D(list, emit);
 //            monoInst.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoInst.Reset3D();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoInst.Stop();
-//            Utilities.Sleep(500);
+//            Thread.Sleep(500);
 //
 //            ////////////////////////////////////////////
 //            // Check that effect on the Volume is reset
 //            emit.Position = new Vector3(0, 0, 10);
 //            monoInst.Apply3D(list, emit);
 //            monoInst.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoInst.Reset3D();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoInst.Stop();
-//            Utilities.Sleep(500);
+//            Thread.Sleep(500);
 //
 //            /////////////////////////////////
 //            // Check that Volume is not reset
 //            monoInst.Volume = 0.5f;
 //            monoInst.Reset3D();
 //            monoInst.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            Assert.Equal(0.5f, monoInst.Volume, "Reset3D has modified the music Volume");
 //            monoInst.Volume = 1f;
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            monoInst.Stop();
-//            Utilities.Sleep(500);
+//            Thread.Sleep(500);
 //
 //            monoInst.Dispose();
 //        }
