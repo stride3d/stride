@@ -57,7 +57,7 @@
 //                Assert.DoesNotThrow(()=>oneSound.Play());
 //                ++count;
 //
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //
 //            oneSound.Stop();
@@ -81,7 +81,7 @@
 //                Assert.DoesNotThrow(() => sayuriPart.Play());
 //                engine.Update();
 //
-//                Utilities.Sleep(10);
+//                Thread.Sleep(10);
 //            }
 //
 //            sayuriPart.Stop();

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -419,7 +420,7 @@ namespace Stride.Audio
                 }
 
                 if (!buffersShouldBeFill) // avoid active looping when no work is needed
-                    Utilities.Sleep(10);
+                    Thread.Sleep(10);
             }
         }
     }

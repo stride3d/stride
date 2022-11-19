@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Stride.Core
 {
@@ -198,7 +199,7 @@ namespace Stride.Core
                     if (Type == ThrottlerType.PreciseAuto)
                     {
                         var sleepStart = Stopwatch.GetTimestamp();
-                        Utilities.Sleep(1);
+                        Thread.Sleep(1);
                         // Include excessive time sleep took on top of the time we specified
                         spinwaitWindow += Stopwatch.GetTimestamp() - sleepStart - oneMs;
                         // Average to account for general system responsiveness
@@ -206,11 +207,11 @@ namespace Stride.Core
                     }
                     else if (Type == ThrottlerType.PreciseManual)
                     {
-                        Utilities.Sleep(1);
+                        Thread.Sleep(1);
                     }
                     else
                     {
-                        Utilities.Sleep((int)(idleDuration / oneMs));
+                        Thread.Sleep((int)(idleDuration / oneMs));
                         return true; // Don't let standard spinwait
                     }
                 }
