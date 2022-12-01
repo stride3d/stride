@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
@@ -63,7 +63,7 @@
     <None Include="Fove\Fove.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Silk.NET.OpenXR" Version="2.16.0" />
+    <PackageReference Include="Silk.NET.OpenXR" Version="2.10.1" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 
