@@ -134,9 +134,6 @@ namespace Stride.Core.Quantum.References
                 if (targetValue != null && !type.IsInstanceOfType(targetValue))
                     throw new InvalidOperationException(@"The type of the retrieved node content does not match the type of this reference");
 
-                if (targetValue != null && !type.IsInstanceOfType(targetValue))
-                    throw new InvalidOperationException("TargetNode type does not match the reference type.");
-
                 TargetNode = targetNode;
                 TargetGuid = targetNode.Guid;
             }

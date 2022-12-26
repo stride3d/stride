@@ -424,10 +424,11 @@ namespace Stride.Core.Presentation.Controls
             {
                 for (var i = 0; i < itemsControl.Items.Count; i++)
                 {
-                    var child = itemsControl.ItemContainerGenerator.ContainerFromIndex(i) as UIElement;
-
-                    child?.Arrange(new Rect(-HorizontalOffset, currentY - VerticalOffset, finalSize.Width, child.DesiredSize.Height));
-                    currentY += child.DesiredSize.Height;
+                    if (itemsControl.ItemContainerGenerator.ContainerFromIndex(i) is UIElement child)
+                    {
+                        child.Arrange(new Rect(-HorizontalOffset, currentY - VerticalOffset, finalSize.Width, child.DesiredSize.Height));
+                        currentY += child.DesiredSize.Height;
+                    }
                 }
             }
 
