@@ -176,106 +176,117 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             });
         }
 
-        private int UpdateGrid(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit, int gridIndex)
+        private List<int> UpdateGrids(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
         {
+            List<int> viewAxisIndices = new List<int>();
             var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
             if (cameraService == null)
-                return -1;
+                return viewAxisIndices;
 
-            // update the grid color
-            GridMaterials[gridIndex].Passes[0].Parameters.Set(GridColorKey, Color4.PremultiplyAlpha(new Color4(gridColor, alpha)));
-
-            // Determine the up vector depending on view matrix and projection mode
-            // -> When orthographic, if we are looking along a coordinate axis, place the grid perpendicular to that axis.
-            // -> Place the grid perpendicular to its default axis otherwise.
-            var viewAxisIndex = gridAxisIndex;
-            var upVector = new Vector3(0) { [gridAxisIndex] = 1 };
-            var viewInvert = Matrix.Invert(cameraService.ViewMatrix);
-            if (cameraService.IsOrthographic)
+            int gridIndex = 0;
+            // Iterate over X, Y, Z axes.
+            for (int axisIndex = 0; axisIndex < 3; axisIndex++, gridAxisIndex >>= 1)
             {
-                for (var i = 0; i < 3; i++)
-                {
-                    var coordinateAxis = new Vector3 { [i] = 1.0f };
-                    var dotProduct = Vector3.Dot(viewInvert.Forward, coordinateAxis);
+                if ((gridAxisIndex & 1) == 0)
+                    continue;
 
-                    if (MathF.Abs(dotProduct) > 0.99f)
+                // Update the grid color
+                GridMaterials[gridIndex].Passes[0].Parameters.Set(GridColorKey, Color4.PremultiplyAlpha(new Color4(gridColor, alpha)));
+
+                // Determine the up vector depending on view matrix and projection mode
+                // -> When orthographic, if we are looking along a coordinate axis, place the grid perpendicular to that axis.
+                // -> Place the grid perpendicular to its default axis otherwise.
+                var viewAxisIndex = axisIndex;
+                var upVector = new Vector3(0) { [axisIndex] = 1 };
+                var viewInvert = Matrix.Invert(cameraService.ViewMatrix);
+                if (cameraService.IsOrthographic)
+                {
+                    for (var i = 0; i < 3; i++)
                     {
-                        upVector = coordinateAxis;
-                        viewAxisIndex = i;
+                        var coordinateAxis = new Vector3 { [i] = 1.0f };
+                        var dotProduct = Vector3.Dot(viewInvert.Forward, coordinateAxis);
+
+                        if (MathF.Abs(dotProduct) > 0.99f)
+                        {
+                            upVector = coordinateAxis;
+                            viewAxisIndex = i;
+                        }
                     }
                 }
+
+                // Check if the inverted View Matrix is valid (since it will be use for mouse picking, check the translation vector only)
+                if (float.IsNaN(viewInvert.TranslationVector.X)
+                    || float.IsNaN(viewInvert.TranslationVector.Y)
+                    || float.IsNaN(viewInvert.TranslationVector.Z))
+                    continue;
+
+                // The position of the grid and the origin in the scene
+                var snappedPosition = Vector3.Zero;
+                var originPosition = Vector3.Zero;
+
+                // Add a small offset along the Up axis to avoid depth-fight with objects positioned at height=0
+                snappedPosition[viewAxisIndex] = MathF.Sign(viewInvert[3, viewAxisIndex]) * GridVerticalOffset * sceneUnit;
+
+                // Move the grid origin in slightly in front the grid to have it in the foreground
+                originPosition[viewAxisIndex] = snappedPosition[viewAxisIndex] + MathF.Sign(viewInvert[3, viewAxisIndex]) * 0.001f * sceneUnit;
+
+                // Determine the intersection point of the center of the vieport with the grid plane
+                var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, new Vector2(0.5f), viewInvert);
+                var plane = new Plane(Vector3.Zero, upVector);
+                var intersection = EditorGameHelper.ProjectOnPlaneWithLimitAngle(ray, plane, MaximumViewAngle);
+
+                // Detemine the scale of the grid depending of the distance of the camera to the grid plane
+                // For orthographic projections, use a distance close to the one, at which the perspective projection would map to the viewport area.
+                var gridScale = sceneUnit;
+                var distanceToGrid = cameraService.IsOrthographic ? cameraService.Component.OrthographicSize * 1.5f : (viewInvert.TranslationVector - intersection).Length();
+                if (distanceToGrid < 1.5f * sceneUnit)
+                    gridScale = 0.1f * sceneUnit;
+                if (distanceToGrid > 40f * sceneUnit)
+                    gridScale = 10f * sceneUnit;
+                if (distanceToGrid > 400f * sceneUnit)
+                    gridScale = 100f * sceneUnit;
+
+                // Snap the grid the closest possible to the intersection point
+                var gridStringLineUnit = gridScale;
+                for (var i = 0; i < 3; i++)
+                {
+                    if (viewAxisIndex != i)
+                        snappedPosition[i] += MathF.Round(intersection[i] / gridStringLineUnit) * gridStringLineUnit;
+                }
+
+                var grid = grids[gridIndex];
+                // Make the grid visible
+                grid.Get<ModelComponent>().Enabled = true;
+
+                // Apply positions
+                grid.Transform.Position = snappedPosition;
+                originAxis.TransformValue.Position = originPosition;
+                for (int axis = 0; axis < 3; axis++)
+                    originAxes[axis].TransformValue.Position[axis] = snappedPosition[axis];
+
+                // Apply the scale (Note: scale cannot be applied at root or sub-position is scaled too)
+                grid.Transform.Scale = new Vector3(gridScale);
+                for (int axis = 0; axis < 3; axis++)
+                    originAxes[axis].TransformValue.Scale = new Vector3(gridScale);
+
+                // Determine and apply the rotation to the grid and origin axis entities
+                SetPlaneEntityRotation(2, upVector, grid);
+                for (var axis = 0; axis < 3; axis++)
+                    SetPlaneEntityRotation((axis + 2) % 3, upVector, originAxes[axis]);
+
+                // Update the color of the origin axes and hide the grid axis
+                for (int axis = 0; axis < 3; axis++)
+                {
+                    // Make the axes alpha higher than the grid alpha so they are visible
+                    float axesAlpha = alpha * 4;
+                    var color = Color4.PremultiplyAlpha(new Color4(GetAxisDefaultColor(axis), axesAlpha));
+                    originAxes[axis].GetChild(0).Get<ModelComponent>().GetMaterial(0).Passes[0].Parameters.Set(GridColorKey, color);
+                }
+
+                viewAxisIndices.Add(axisIndex);
+                gridIndex++;
             }
-
-            // Check if the inverted View Matrix is valid (since it will be use for mouse picking, check the translation vector only)
-            if (float.IsNaN(viewInvert.TranslationVector.X)
-                || float.IsNaN(viewInvert.TranslationVector.Y)
-                || float.IsNaN(viewInvert.TranslationVector.Z))
-            {
-                return -1;
-            }
-
-            // The position of the grid and the origin in the scene
-            var snappedPosition = Vector3.Zero;
-            var originPosition = Vector3.Zero;
-
-            // Add a small offset along the Up axis to avoid depth-fight with objects positioned at height=0
-            snappedPosition[viewAxisIndex] = MathF.Sign(viewInvert[3, viewAxisIndex]) * GridVerticalOffset * sceneUnit;
-
-            // Move the grid origin in slightly in front the grid to have it in the foreground
-            originPosition[viewAxisIndex] = snappedPosition[viewAxisIndex] + MathF.Sign(viewInvert[3, viewAxisIndex]) * 0.001f * sceneUnit;
-
-            // Determine the intersection point of the center of the vieport with the grid plane
-            var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, new Vector2(0.5f), viewInvert);
-            var plane = new Plane(Vector3.Zero, upVector);
-            var intersection = EditorGameHelper.ProjectOnPlaneWithLimitAngle(ray, plane, MaximumViewAngle);
-
-            // Detemine the scale of the grid depending of the distance of the camera to the grid plane
-            // For orthographic projections, use a distance close to the one, at which the perspective projection would map to the viewport area.
-            var gridScale = sceneUnit;
-            var distanceToGrid = cameraService.IsOrthographic ? cameraService.Component.OrthographicSize * 1.5f : (viewInvert.TranslationVector - intersection).Length();
-            if (distanceToGrid < 1.5f * sceneUnit)
-                gridScale = 0.1f * sceneUnit;
-            if (distanceToGrid > 40f * sceneUnit)
-                gridScale = 10f * sceneUnit;
-            if (distanceToGrid > 400f * sceneUnit)
-                gridScale = 100f * sceneUnit;
-
-            // Snap the grid the closest possible to the intersection point
-            var gridStringLineUnit = gridScale;
-            for (var i = 0; i < 3; i++)
-            {
-                if (viewAxisIndex != i)
-                    snappedPosition[i] += MathF.Round(intersection[i] / gridStringLineUnit) * gridStringLineUnit;
-            }
-
-            // Make the grid visible
-            grids[gridIndex].Get<ModelComponent>().Enabled = true;
-
-            // Apply positions
-            grids[gridIndex].Transform.Position = snappedPosition;
-            originAxis.TransformValue.Position = originPosition;
-            for (int axis = 0; axis < 3; axis++)
-                originAxes[axis].TransformValue.Position[axis] = snappedPosition[axis];
-
-            // Apply the scale (Note: scale cannot be applied at root or sub-position is scaled too)
-            grids[gridIndex].Transform.Scale = new Vector3(gridScale);
-            for (int axis = 0; axis < 3; axis++)
-                originAxes[axis].TransformValue.Scale = new Vector3(gridScale);
-
-            // Determine and apply the rotation to the grid and origin axis entities
-            SetPlaneEntityRotation(2, upVector, grids[gridIndex]);
-            for (var axis = 0; axis < 3; axis++)
-                SetPlaneEntityRotation((axis + 2) % 3, upVector, originAxes[axis]);
-
-            // Update the color of the origin axes and hide the grid axis
-            for (int axis = 0; axis < 3; axis++)
-            {
-                // Make the axes alpha higher than the grid alpha so they are visible
-                float axesAlpha = alpha * 4;
-                var color = Color4.PremultiplyAlpha(new Color4(GetAxisDefaultColor(axis), axesAlpha));
-                originAxes[axis].GetChild(0).Get<ModelComponent>().GetMaterial(0).Passes[0].Parameters.Set(GridColorKey, color);
-            }
-            return viewAxisIndex;
+            return viewAxisIndices;
         }
 
         private void UpdateOriginAxes(List<int> invisibleAxes)
@@ -297,37 +308,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 grids[i].Get<ModelComponent>().Enabled = false;
                 originAxes[i].GetChild(0).Get<ModelComponent>().Enabled = false;
             }
-            List<int> invisibleAxes = new List<int>();
-            switch (gridAxisIndex)
-            {
-                // X, Y or Z axis
-                case < 3:
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, gridAxisIndex, sceneUnit, 0));
-                    break;
-                // X and Y axis
-                case 3:
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 0, sceneUnit, 0));
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 1, sceneUnit, 1));
-                    break;
-                // X and Z axis
-                case 4:
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 0, sceneUnit, 0));
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 2, sceneUnit, 1));
-                    break;
-                // Y and Z axis
-                case 5:
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 1, sceneUnit, 0));
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 2, sceneUnit, 1));
-                    break;
-                // X, Y, and Z axis
-                case 6:
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 0, sceneUnit, 0));
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 1, sceneUnit, 1));
-                    invisibleAxes.Add(UpdateGrid(gridColor, alpha, 2, sceneUnit, 2));
-                    break;
-            }
+            List<int> invisibleAxes = UpdateGrids(gridColor, alpha, gridAxisIndex, sceneUnit);
             // Make the grid axes invisible
-            UpdateOriginAxes(invisibleAxes.FindAll(axis => axis > -1));
+            UpdateOriginAxes(invisibleAxes);
         }
 
         private static void SetPlaneEntityRotation(int modelUpAxis, Vector3 upVector, Entity entity)

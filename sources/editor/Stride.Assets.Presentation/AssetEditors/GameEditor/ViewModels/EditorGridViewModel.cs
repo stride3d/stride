@@ -10,6 +10,14 @@ using Stride.Core.Presentation.ViewModel;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
+    [Flags]
+    public enum ViewportGridAxis
+    {
+        X = 1,
+        Y = 2,
+        Z = 4,
+    }
+
     /// <summary>
     /// A view model controlling a grid in an editor game.
     /// </summary>
@@ -53,19 +61,47 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         /// <summary>
         /// Gets or sets whether the X axis of the grid is currently visible.
         /// </summary>
-        public bool IsXAxisVisible { get => Convert.ToBoolean(AxisSelection & 0b001); set => AxisSelection = Convert.ToInt16(value) ^ (AxisSelection & 0b110); }
+        public bool IsXAxisVisible
+        {
+            get => Convert.ToBoolean(AxisIndex & (int)ViewportGridAxis.X);
+            set
+            {
+                if (value)
+                    AxisIndex |= (int)ViewportGridAxis.X;
+                else
+                    AxisIndex &= ~(int)ViewportGridAxis.X;
+            }
+        }
 
         /// <summary>
         /// Gets or sets whether the Y axis of the grid is currently visible.
         /// </summary>
-        public bool IsYAxisVisible { get => Convert.ToBoolean(AxisSelection & 0b010); set => AxisSelection = (Convert.ToInt16(value) << 1) ^ (AxisSelection & 0b101); }
+        public bool IsYAxisVisible
+        {
+            get => Convert.ToBoolean(AxisIndex & (int)ViewportGridAxis.Y);
+            set
+            {
+                if (value)
+                    AxisIndex |= (int)ViewportGridAxis.Y;
+                else
+                    AxisIndex &= ~(int)ViewportGridAxis.Y;
+            }
+        }
 
         /// <summary>
         /// Gets or sets whether the Z axis of the grid is currently visible.
         /// </summary>
-        public bool IsZAxisVisible { get => Convert.ToBoolean(AxisSelection & 0b100); set => AxisSelection = (Convert.ToInt16(value) << 2) ^ (AxisSelection & 0b011); }
-
-        private int AxisSelection { get => ConvertAxisIndexToSelection(AxisIndex); set => AxisIndex = ConvertAxisSelectionToIndex(value); }
+        public bool IsZAxisVisible
+        {
+            get => Convert.ToBoolean(AxisIndex & (int)ViewportGridAxis.Z);
+            set
+            {
+                if (value)
+                    AxisIndex |= (int)ViewportGridAxis.Z;
+                else
+                    AxisIndex &= ~(int)ViewportGridAxis.Z;
+            }
+        }
 
         /// <summary>
         /// Gets a command that will toggle the visibility of the grid.
@@ -74,43 +110,12 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 
         private IEditorGameGridViewModelService Service => controller.GetService<IEditorGameGridViewModelService>();
 
-        private int ConvertAxisIndexToSelection(int index)
-        {
-            switch (index)
-            {
-                case 0: return 0b001;
-                case 1: return 0b010;
-                case 2: return 0b100;
-                case 3: return 0b011;
-                case 4: return 0b101;
-                case 5: return 0b110;
-                case 6: return 0b111;
-            }
-            return 0b000;
-        }
-
-        private int ConvertAxisSelectionToIndex(int selection)
-        {
-            switch (selection)
-            {
-                case 0b001: return 0;
-                case 0b010: return 1;
-                case 0b100: return 2;
-                case 0b011: return 3;
-                case 0b101: return 4;
-                case 0b110: return 5;
-                case 0b111: return 6;
-            }
-            return 7;
-        }
-
         public void LoadSettings([NotNull] SceneSettingsData sceneSettings)
         {
             IsVisible = sceneSettings.GridVisible;
             Color = sceneSettings.GridColor;
             Alpha = sceneSettings.GridOpacity;
             AxisIndex = sceneSettings.GridAxisIndex;
-            AxisSelection = ConvertAxisIndexToSelection(sceneSettings.GridAxisIndex);
         }
 
         public void SaveSettings([NotNull] SceneSettingsData sceneSettings)
