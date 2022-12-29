@@ -768,13 +768,13 @@ namespace Stride.Core.Threading
             }
         }
 
+#if PROFILING_SCOPES
         private class DispatcherNode
         {
             public MethodBase Caller;
             public int Count;
             public TimeSpan TotalTime;
         }
-#if PROFILING_SCOPES
         private static ConcurrentDictionary<MethodInfo, DispatcherNode> nodes = new ConcurrentDictionary<MethodInfo, DispatcherNode>();
 #endif
         private struct ProfilingScope : IDisposable

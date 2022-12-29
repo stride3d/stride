@@ -30,7 +30,7 @@ namespace ThirdPersonPlatformer.Player
         /// <summary>
         /// Multiplies move movement by this amount to apply aim rotations
         /// </summary>
-        public float MouseSensitivity = 100.0f;
+        public float MouseSensitivity = 1f;
 
         public List<Keys> KeysLeft { get; } = new List<Keys>();
 
@@ -97,6 +97,11 @@ namespace ThirdPersonPlatformer.Player
                     cameraDirection = Vector2.Zero;
                 else
                     cameraDirection.Normalize();
+                
+                // Contrary to a mouse, driving camera rotation from a stick must be scaled by delta time.
+                // The amount of camera rotation with a stick is constant over time based on the tilt of the stick,
+                // Whereas mouse driven rotation is already constrained by time, it is driven by the difference in position from last *time* to this *time*.
+                cameraDirection *= (float)this.Game.UpdateTime.Elapsed.TotalSeconds;
 
                 // Mouse-based camera rotation. Only enabled after you click the screen to lock your cursor, pressing escape cancels this
                 if (Input.IsMouseButtonDown(MouseButton.Left))

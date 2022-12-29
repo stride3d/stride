@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -13,8 +15,8 @@ namespace Stride.Navigation.Processors
     /// </summary>
     public unsafe class RecastNavigationMesh : IDisposable
     {
-        private IntPtr navmesh;
-        private HashSet<Point> tileCoordinates = new HashSet<Point>();
+        private readonly Navigation.NavMeshHandle navmesh;
+        private readonly HashSet<Point> tileCoordinates = new();
 
         public RecastNavigationMesh(NavigationMesh navigationMesh)
         {
@@ -34,6 +36,7 @@ namespace Stride.Navigation.Processors
         {
             fixed (byte* dataPtr = data)
             {
+                Debug.Assert(Unsafe.SizeOf<Navigation.TileHeader>() <= (data?.Length ?? 0));
                 Navigation.TileHeader* header = (Navigation.TileHeader*)dataPtr;
                 var coord = new Point(header->X, header->Y);
 
@@ -41,7 +44,7 @@ namespace Stride.Navigation.Processors
                 RemoveTile(coord);
 
                 tileCoordinates.Add(coord);
-                return Navigation.AddTile(navmesh, new IntPtr(dataPtr), data.Length);
+                return Navigation.AddTile(navmesh, dataPtr, data.Length);
             }
         }
 
@@ -67,22 +70,23 @@ namespace Stride.Navigation.Processors
         /// <returns>The found raycast hit if <see cref="NavigationRaycastResult.Hit"/> is true</returns>
         public NavigationRaycastResult Raycast(Vector3 start, Vector3 end, NavigationQuerySettings querySettings)
         {
-            NavigationRaycastResult result = new NavigationRaycastResult { Hit = false };
-            
-            Navigation.RaycastQuery query;
-            query.Source = start;
-            query.Target = end;
-            query.MaxPathPoints = querySettings.MaxPathPoints;
-            query.FindNearestPolyExtent = querySettings.FindNearestPolyExtent;
-            Navigation.RaycastResult queryResult;
-            Navigation.DoRaycastQuery(navmesh, query, new IntPtr(&queryResult));
+            Navigation.RaycastQuery query = new()
+            {
+                Source = start,
+                Target = end,
+                MaxPathPoints = querySettings.MaxPathPoints,
+                FindNearestPolyExtent = querySettings.FindNearestPolyExtent
+            };
+            Navigation.DoRaycastQuery(navmesh, query, out var queryResult);
             if (!queryResult.Hit)
-                return result;
+                return new() { Hit = false };
 
-            result.Hit = true;
-            result.Position = queryResult.Position;
-            result.Normal = queryResult.Normal;
-            return result;
+            return new()
+            {
+                Hit = true,
+                Position = queryResult.Position,
+                Normal = queryResult.Normal
+            };
         }
 
         /// <summary>
@@ -97,7 +101,7 @@ namespace Stride.Navigation.Processors
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
-            if (navmesh == IntPtr.Zero)
+            if (navmesh == default)
                 return false;
 
             Navigation.PathFindQuery query;
@@ -105,12 +109,12 @@ namespace Stride.Navigation.Processors
             query.Target = end;
             query.MaxPathPoints = querySettings.MaxPathPoints;
             query.FindNearestPolyExtent = querySettings.FindNearestPolyExtent;
-            Navigation.PathFindResult queryResult;
+            Navigation.PathFindResult queryResult = default;
             Vector3[] generatedPathPoints = new Vector3[querySettings.MaxPathPoints];
             fixed (Vector3* generatedPathPointsPtr = generatedPathPoints)
             {
-                queryResult.PathPoints = new IntPtr(generatedPathPointsPtr);
-                Navigation.DoPathFindQuery(navmesh, query, new IntPtr(&queryResult));
+                queryResult.PathPoints = (nint)generatedPathPointsPtr;
+                Navigation.DoPathFindQuery(navmesh, query, ref queryResult);
                 if (!queryResult.PathFound)
                     return false;
             }

@@ -143,9 +143,9 @@
 //            var inst1 = soundEffect2.CreateInstance();
 //            var inst2 = soundEffect2.CreateInstance();
 //            inst1.Play();
-//            Utilities.Sleep(100);
+//            Thread.Sleep(100);
 //            inst2.Play();
-//            Utilities.Sleep(100);
+//            Thread.Sleep(100);
 //            Assert.DoesNotThrow(soundEffect2.Dispose, "SoundEffect.Disposed have crashed throwing an exception when called with several subjacent instances playing.");
 //            Assert.True(inst1.PlayState == SoundPlayState.Stopped && inst2.PlayState == SoundPlayState.Stopped, "SoundEffect subjacent instances have not been stopped correctly during soundEffect.Dispose");
 //            Assert.True(inst1.IsDisposed && inst2.IsDisposed, "SoundEffect subjacent instances have not been disposed correctly during soundEffect.Dispose");
@@ -173,36 +173,36 @@
 //            soundEffect.IsLooped = true;
 //            soundEffect.Play();
 //            Assert.Equal(SoundPlayState.Playing, soundEffect.PlayState, "SoundEffect.PlayState is not Playing.");
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Pause();
 //            Assert.Equal(SoundPlayState.Paused, soundEffect.PlayState, "SoundEffect.PlayState is not Paused.");
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Play();
-//            Utilities.Sleep(50);
+//            Thread.Sleep(50);
 //            soundEffect.ExitLoop();
-//            Utilities.Sleep(1500);
+//            Thread.Sleep(1500);
 //            Assert.Equal(SoundPlayState.Stopped, soundEffect.PlayState, "SoundEffect.PlayState is not Stopped after exitLoop.");
 //
 //            ////////////////////////
 //            // 3. Volume and stop
 //            soundEffect.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Volume = 0.5f;
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Stop();
 //            Assert.Equal(SoundPlayState.Stopped, soundEffect.PlayState, "SoundEffect.PlayState is not Stopped.");
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Volume = 1f;
 //
 //            /////////////////////
 //            // 4. Pan
 //            soundEffect.Pan = -1f;
 //            soundEffect.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Pan = 1f;
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Stop();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Pan = 0;
 //            
 //            ///////////////////////////////////////////////////////////
@@ -210,11 +210,11 @@
 //            soundEffect.Pan = 1;
 //            soundEffect.Apply3D(new AudioListener(), new AudioEmitter());
 //            soundEffect.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Stop();
 //            soundEffect.Apply3D(new AudioListener { Position = new Vector3(100,0,0)}, new AudioEmitter());
 //            soundEffect.Play();
-//            Utilities.Sleep(1000);
+//            Thread.Sleep(1000);
 //            soundEffect.Stop();
 //        }
 //    }

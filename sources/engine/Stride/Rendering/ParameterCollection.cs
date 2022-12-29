@@ -21,16 +21,18 @@ namespace Stride.Rendering
     [DebuggerTypeProxy(typeof(ParameterCollection.DebugView))]
     public class ParameterCollection
     {
-        private static readonly byte[] EmptyData = new byte[0];
+        // Important! Alignment must be a power of 2
+        private const int Alignment = 16;
+        private const int AlignmentMask = Alignment - 1;
 
         private ParameterCollectionLayout layout;
 
         // TODO: Switch to FastListStruct (for serialization)
-        private FastList<ParameterKeyInfo> parameterKeyInfos = new FastList<ParameterKeyInfo>(4);
+        private FastList<ParameterKeyInfo> parameterKeyInfos = new(4);
 
         // Constants and resources
         [DataMemberIgnore]
-        public byte[] DataValues = EmptyData;
+        public byte[] DataValues = Array.Empty<byte>();
         [DataMemberIgnore]
         public object[] ObjectValues;
 
@@ -75,13 +77,37 @@ namespace Stride.Rendering
             // Copy data
             if (parameterCollection.DataValues != null)
             {
-                DataValues = new byte[parameterCollection.DataValues.Length];
-                fixed (byte* dataValuesSources = parameterCollection.DataValues)
-                fixed (byte* dataValuesDest = DataValues)
-                {
-                    Utilities.CopyMemory((IntPtr)dataValuesDest, (IntPtr)dataValuesSources, DataValues.Length);
+                if (parameterCollection.DataValues.Length == 0)
+                    DataValues = Array.Empty<byte>();
+                else {
+                    DataValues = new byte[parameterCollection.DataValues.Length];
+                    fixed (byte* dataValuesSources = parameterCollection.DataValues)
+                    fixed (byte* dataValuesDest = DataValues)
+                    {
+                        Unsafe.CopyBlockUnaligned(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
+                    }
                 }
             }
+        }
+
+        /// <summary>Increases <paramref name="value"/> to the next multiple of <see cref="Alignment"/>,
+        /// if it is not already a multiple.
+        /// <para>It is blindly assumed <see cref="Alignment"/> is a power of 2.</para></summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int Align(int value) => (value + AlignmentMask) & ~AlignmentMask;
+        /// <summary>Computes the buffer size required for a single parameter value
+        /// or an array of parameters of the same type.
+        /// <para>This is an incremental size for buffers that contain
+        /// more than one type of parameter.</para></summary>
+        /// <returns>The size of a buffer required to store <paramref name="elementCount"/>
+        /// elements of size <paramref name="elementSize"/>, including padding to
+        /// <see cref="Alignment"/> for all but the last element.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int ComputeAlignedSizeMinusTrailingPadding(int elementSize, int elementCount)
+        {
+            var result = elementSize;
+            if (--elementCount != 0) result += Align(elementSize) * elementCount;
+            return result;
         }
 
         public override string ToString()
@@ -154,23 +180,20 @@ namespace Stride.Rendering
             }
 
             // Compute size
-            var elementSize = parameterKey.Size;
-            var totalSize = elementSize;
-            if (elementCount > 1)
-                totalSize += (elementSize + 15) / 16 * 16 * (elementCount - 1);
+            var additionalSize = ComputeAlignedSizeMinusTrailingPadding(parameterKey.Size, elementCount);
 
             // Create offset entry
             var memberOffset = DataValues.Length;
             parameterKeyInfos.Add(new ParameterKeyInfo(parameterKey, memberOffset, elementCount));
 
             // We append at the end; resize array to accomodate new data
-            Array.Resize(ref DataValues, DataValues.Length + totalSize);
+            Array.Resize(ref DataValues, DataValues.Length + additionalSize);
 
             // Initialize default value
             if (parameterKey.DefaultValueMetadata != null)
             {
                 fixed (byte* dataValues = DataValues)
-                    parameterKey.DefaultValueMetadata.WriteBuffer((IntPtr)dataValues + memberOffset, 16);
+                    parameterKey.DefaultValueMetadata.WriteBuffer((IntPtr)dataValues + memberOffset, Alignment);
             }
 
             return new Accessor(memberOffset, elementCount);
@@ -236,7 +259,7 @@ namespace Stride.Rendering
         /// <param name="value"></param>
         public void Set<T>(ValueParameterKey<T> parameter, T value) where T : struct
         {
-            Set(GetAccessor(parameter), ref value);
+            Set(GetAccessor(parameter), value);
         }
 
         /// <summary>
@@ -294,21 +317,17 @@ namespace Stride.Rendering
             var parameter = GetAccessor(key);
 
             // Align to float4
-            var stride = (Unsafe.SizeOf<T>() + 15) / 16 * 16;
+            var stride = Align(Unsafe.SizeOf<T>());
             var values = new T[parameter.Count];
 
-            fixed (byte* dataValues = DataValues)
+            ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(DataValues), parameter.Offset);
+            for (int i = 0; i < values.Length; ++i)
             {
-                var dataPtr = (IntPtr)dataValues + parameter.Offset;
-
-                for (int i = 0; i < values.Length; ++i)
-                {
-                    Utilities.Read(dataPtr, ref values[i]);
-                    dataPtr += stride;
-                }
-
-                return values;
+                values[i] = Unsafe.ReadUnaligned<T>(ref data);
+                data = ref Unsafe.Add(ref data, stride);
             }
+
+            return values;
         }
 
         /// <summary>
@@ -328,15 +347,18 @@ namespace Stride.Rendering
             }
 
             // Align to float4
-            var stride = (Unsafe.SizeOf<T>() + 15) / 16 * 16;
-            var sizeInBytes = sourceParameter.Count * stride;
-
+            var sizeInBytes = ComputeAlignedSizeMinusTrailingPadding(Unsafe.SizeOf<T>(), sourceParameter.Count);
+            Debug.Assert(
+                (destParameter.Offset | sourceParameter.Offset | sizeInBytes) >= 0 &&
+                (uint)sourceParameter.Offset + (uint)sizeInBytes <= (uint)(DataValues?.Length ?? 0) &&
+                (uint)destParameter.Offset + (uint)sizeInBytes <= (uint)(destination.DataValues?.Length ?? 0));
             fixed (byte* sourceDataValues = DataValues)
             fixed (byte* destDataValues = destination.DataValues)
             {
-                var sourcePtr = (IntPtr)sourceDataValues + sourceParameter.Offset;
-                var destPtr = (IntPtr)destDataValues + destParameter.Offset;
-                Utilities.CopyMemory(destPtr, sourcePtr, sizeInBytes);
+                Unsafe.CopyBlockUnaligned(
+                    destination: destDataValues + destParameter.Offset,
+                    source: sourceDataValues + sourceParameter.Offset,
+                    (uint)sizeInBytes);
             }
         }
 
@@ -347,10 +369,7 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameter<T> parameter, T value) where T : struct
-        {
-            fixed (byte* dataValues = DataValues)
-                Utilities.Write((IntPtr)dataValues + parameter.Offset, ref value);
-        }
+            => Unsafe.WriteUnaligned(ref DataValues[parameter.Offset], value);
 
         /// <summary>
         /// Sets a blittable value.
@@ -359,10 +378,7 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameter<T> parameter, ref T value) where T : struct
-        {
-            fixed (byte* dataValues = DataValues)
-                Utilities.Write((IntPtr)dataValues + parameter.Offset, ref value);
-        }
+            => Unsafe.WriteUnaligned(ref DataValues[parameter.Offset], value);
 
         /// <summary>
         /// Sets blittable values.
@@ -374,25 +390,18 @@ namespace Stride.Rendering
         public unsafe void Set<T>(ValueParameter<T> parameter, int count, ref T firstValue) where T : struct
         {
             // Align to float4
-            var stride = (Unsafe.SizeOf<T>() + 15) / 16 * 16;
+            var stride = Align(Unsafe.SizeOf<T>());
             var elementCount = parameter.Count;
             if (count > elementCount)
             {
                 throw new IndexOutOfRangeException();
             }
 
-            fixed (byte* dataValues = DataValues)
+            ref var data = ref DataValues[parameter.Offset];
+            for (var i = 0; i < count; i++)
             {
-                var dataPtr = (IntPtr)dataValues + parameter.Offset;
-
-                var value = Interop.Pin(ref firstValue);
-                for (int i = 0; i < count; ++i)
-                {
-                    Utilities.Write(dataPtr, ref value);
-                    dataPtr += stride;
-
-                    value = Interop.IncrementPinned(value);
-                }
+                Unsafe.WriteUnaligned(ref data, Unsafe.Add(ref firstValue, i));
+                data = ref Unsafe.Add(ref data, stride);
             }
         }
 
@@ -435,10 +444,7 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <returns></returns>
         public unsafe T Get<T>(ValueParameter<T> parameter) where T : struct
-        {
-            fixed (byte* dataValues = DataValues)
-                return Utilities.Read<T>((IntPtr)dataValues + parameter.Offset);
-        }
+            => Unsafe.ReadUnaligned<T>(ref DataValues[parameter.Offset]);
 
         /// <summary>
         /// Gets a permutation.
@@ -511,7 +517,7 @@ namespace Stride.Rendering
         /// </summary>
         public void Clear()
         {
-            DataValues = EmptyData;
+            DataValues = Array.Empty<byte>();
             ObjectValues = null;
             layout = null;
             parameterKeyInfos.Clear();
@@ -587,10 +593,10 @@ namespace Stride.Rendering
                     // It's data
                     newParameterKeyInfos.Items[i].Offset = bufferSize;
 
-                    var elementSize = newParameterKeyInfos.Items[i].Key.Size;
-                    var elementCount = newParameterKeyInfos.Items[i].Count;
-                    var totalSize = elementSize + (elementSize + 15) / 16 * 16 * (elementCount - 1);
-                    bufferSize += totalSize;
+                    var additionalSize = ComputeAlignedSizeMinusTrailingPadding(
+                        elementSize: newParameterKeyInfos.Items[i].Key.Size,
+                        newParameterKeyInfos.Items[i].Count);
+                    bufferSize += additionalSize;
                 }
                 else if (parameterKeyInfo.BindingSlot != -1)
                 {
@@ -603,18 +609,19 @@ namespace Stride.Rendering
             var newResourceValues = new object[resourceCount];
 
             // Update default values
-            var bufferOffset = 0;
-            foreach (var layoutParameterKeyInfo in layoutParameterKeyInfos)
-            {
-                if (layoutParameterKeyInfo.Offset != -1)
+            fixed (byte* newDataValuesPtr = newDataValues) {
+                foreach (var layoutParameterKeyInfo in layoutParameterKeyInfos)
                 {
-                    // It's data
-                    // TODO: Set default value
-                    var defaultValueMetadata = layoutParameterKeyInfo.Key?.DefaultValueMetadata;
-                    if (defaultValueMetadata != null)
+                    if (layoutParameterKeyInfo.Offset != -1)
                     {
-                        fixed (byte* newDataValuesPtr = newDataValues)
-                            defaultValueMetadata.WriteBuffer((IntPtr)newDataValuesPtr + bufferOffset + layoutParameterKeyInfo.Offset, 16);
+                        // It's data
+                        // TODO: Set default value
+                        var defaultValueMetadata = layoutParameterKeyInfo.Key?.DefaultValueMetadata;
+                        if (defaultValueMetadata != null)
+                        {
+                            Debug.Assert((uint)layoutParameterKeyInfo.Offset <= (uint)newDataValues.Length);
+                            defaultValueMetadata.WriteBuffer((nint)newDataValuesPtr + layoutParameterKeyInfo.Offset, Alignment);
+                        }
                     }
                 }
             }
@@ -622,24 +629,51 @@ namespace Stride.Rendering
             // Second pass to copy existing data at new offsets/slots
             for (int i = 0; i < parameterKeyInfos.Count; ++i)
             {
-                var parameterKeyInfo = parameterKeyInfos[i];
+                var oldParameterKeyInfo = parameterKeyInfos[i];
                 var newParameterKeyInfo = newParameterKeyInfos[i];
 
                 if (newParameterKeyInfo.Offset != -1)
                 {
-                    var elementSize = newParameterKeyInfos.Items[i].Key.Size;
-                    var newTotalSize = elementSize + (elementSize + 15) / 16 * 16 * (newParameterKeyInfo.Count - 1);
-                    var totalSize = elementSize + (elementSize + 15) / 16 * 16 * (parameterKeyInfo.Count - 1);
+                    var newTotalSize = ComputeAlignedSizeMinusTrailingPadding(
+                        elementSize: newParameterKeyInfo.Key.Size,
+                        elementCount: newParameterKeyInfo.Count);
+                    var oldTotalSize = ComputeAlignedSizeMinusTrailingPadding(
+                        elementSize: oldParameterKeyInfo.Key.Size,
+                        elementCount: oldParameterKeyInfo.Count);
+                    var oldSpan = DataValues.AsSpan(oldParameterKeyInfo.Offset, oldTotalSize);
+                    var newSpan = newDataValues.AsSpan(newParameterKeyInfo.Offset, newTotalSize);
 
-                    // It's data
-                    fixed (byte* dataValues = DataValues)
-                    fixed (byte* newDataValuesPtr = newDataValues)
-                        Utilities.CopyMemory((IntPtr)newDataValuesPtr + newParameterKeyInfo.Offset, (IntPtr)dataValues + parameterKeyInfo.Offset, Math.Min(newTotalSize, totalSize));
+                    if (oldParameterKeyInfo.Key.Size == newParameterKeyInfo.Key.Size)
+                    {
+                        var minTotalSize = Math.Min(oldTotalSize, newTotalSize);
+                        oldSpan[..minTotalSize].CopyTo(newSpan);
+                        if (newTotalSize > oldTotalSize) newSpan[minTotalSize..].Fill(0);
+                    }
+                    else
+                    {
+                        #warning Partially copying parameter values and leaving remaining bytes zero may cause undesired side effects such as e.g. Color4.Alpha becoming zero.
+                        var minCount = Math.Min(oldParameterKeyInfo.Count, newParameterKeyInfo.Count);
+                        var oldSize = oldParameterKeyInfo.Key.Size;
+                        var newSize = newParameterKeyInfo.Key.Size;
+                        var minElementSize = Math.Min(oldSize, newSize);
+                        var oldAlign = Align(oldSize);
+                        var newAlign = Align(newSize);
+                        for (var e = 0; e < minCount; e++)
+                        {
+                            oldSpan[..minElementSize].CopyTo(newSpan);
+                            // don't slice for the last element, since there is no alignment padding after it
+                            var f = e + 1;
+                            if (f < minCount)
+                                oldSpan = oldSpan[oldAlign..];
+                            if (f < newParameterKeyInfo.Count)
+                                newSpan = newSpan[newAlign..];
+                        }
+                    }
                 }
                 else if (newParameterKeyInfo.BindingSlot != -1)
                 {
                     // It's a resource
-                    newResourceValues[newParameterKeyInfo.BindingSlot] = ObjectValues[parameterKeyInfo.BindingSlot];
+                    newResourceValues[newParameterKeyInfo.BindingSlot] = ObjectValues[oldParameterKeyInfo.BindingSlot];
                 }
             }
 
@@ -709,10 +743,10 @@ namespace Stride.Rendering
         public struct Copier
         {
             private CopyRange[] ranges;
-            private ParameterCollection destination;
-            private ParameterCollection source;
+            private readonly ParameterCollection destination;
+            private readonly ParameterCollection source;
             private int sourceLayoutCounter;
-            private string subKey;
+            private readonly string subKey;
 
             public Copier(ParameterCollection destination, ParameterCollection source, string subKey = null)
             {
@@ -764,7 +798,10 @@ namespace Stride.Rendering
                         {
                             fixed (byte* destDataValues = destination.DataValues)
                             fixed (byte* sourceDataValues = source.DataValues)
-                                Utilities.CopyMemory((IntPtr)destDataValues + range.DestStart, (IntPtr)sourceDataValues + range.SourceStart, range.Size);
+                                Unsafe.CopyBlockUnaligned(
+                                    destination: destDataValues + range.DestStart,
+                                    source: sourceDataValues + range.SourceStart,
+                                    byteCount: (uint)range.Size);
                         }
                     }
                 }
@@ -774,7 +811,7 @@ namespace Stride.Rendering
             {
                 fixed (byte* destPtr = destination.DataValues)
                 fixed (byte* sourcePtr = source.DataValues)
-                    Utilities.CopyMemory((IntPtr)destPtr, (IntPtr)sourcePtr, destinationLayout.BufferSize);
+                    Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
 
                 var resourceCount = destinationLayout.ResourceCount;
                 for (int i = 0; i < resourceCount; ++i)
@@ -812,9 +849,9 @@ namespace Stride.Rendering
                     {
                         var sourceAccessor = source.GetValueAccessorHelper(sourceKey, parameterKeyInfo.Count);
                         var destAccessor = destination.GetValueAccessorHelper(parameterKeyInfo.Key, parameterKeyInfo.Count);
-                        var elementCount = Math.Min(sourceAccessor.Count, destAccessor.Count);
-                        var elementSize = parameterKeyInfo.Key.Size;
-                        var size = (elementSize + 15) / 16 * 16 * (elementCount - 1) + elementSize;
+                        var size = ComputeAlignedSizeMinusTrailingPadding(
+                            elementSize: parameterKeyInfo.Key.Size,
+                            elementCount: Math.Min(sourceAccessor.Count, destAccessor.Count));
                         rangesList.Add(new CopyRange { IsData = true, SourceStart = sourceAccessor.Offset, DestStart = destAccessor.Offset, Size = size });
                     }
                     else
@@ -905,11 +942,13 @@ namespace Stride.Rendering
                             // Might be some empty space (padding)
                             currentDataRange.Size = parameterKeyInfo.Offset - currentDataRange.DestStart;
 
-                            sourceLayout.LayoutParameterKeyInfos.Add(new ParameterKeyInfo(subkey, currentDataRange.SourceStart + currentDataRange.Size, parameterKeyInfo.Count));
+                            var offset = currentDataRange.SourceStart + currentDataRange.Size;
+                            var pki = new ParameterKeyInfo(subkey, offset, parameterKeyInfo.Count);
+                            sourceLayout.LayoutParameterKeyInfos.Add(pki);
 
-                            var elementCount = parameterKeyInfo.Count;
-                            var elementSize = parameterKeyInfo.Key.Size;
-                            var size = (elementSize + 15) / 16 * 16 * (elementCount - 1) + elementSize;
+                            var size = ComputeAlignedSizeMinusTrailingPadding(
+                                elementSize: parameterKeyInfo.Key.Size,
+                                elementCount: parameterKeyInfo.Count);
 
                             currentDataRange.Size += size;
                         }
@@ -1007,7 +1046,7 @@ namespace Stride.Rendering
                             if (x.Key.Type == ParameterKeyType.Value)
                             {
                                 // Values
-                                var stride = (x.Key.Size + 15) / 16 * 16;
+                                var stride = Align(x.Key.Size);
                                 var values = new object[x.Count];
                                 fixed (byte* dataValuesStart = collection.DataValues)
                                 {

@@ -73,7 +73,7 @@ namespace Stride.Updater
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void SetBlittable(IntPtr obj, IntPtr data)
         {
-            Interop.memcpy((void*)obj, (void*)data, Size);
+            Unsafe.CopyBlockUnaligned((void*)obj, (void*)data, (uint)Size);
         }
 
         /// <summary>

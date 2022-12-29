@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using SharpDX.Direct3D12;
 using SharpDX.Mathematics.Interop;
 using Stride.Core;
@@ -605,15 +606,12 @@ namespace Stride.Graphics
             return result;
         }
 
-        internal static unsafe SharpDX.DataBox[] ConvertDataBoxes(DataBox[] dataBoxes)
+        internal static SharpDX.DataBox[] ConvertDataBoxes(DataBox[] dataBoxes)
         {
             if (dataBoxes == null || dataBoxes.Length == 0)
                 return null;
-
             var sharpDXDataBoxes = new SharpDX.DataBox[dataBoxes.Length];
-            fixed (void* pDataBoxes = sharpDXDataBoxes)
-                Utilities.Write((IntPtr)pDataBoxes, dataBoxes, 0, dataBoxes.Length);
-
+            dataBoxes.AsSpan().CopyTo(Unsafe.As<DataBox[]>(sharpDXDataBoxes));
             return sharpDXDataBoxes;
         }
 

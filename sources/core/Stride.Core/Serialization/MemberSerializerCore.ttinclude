@@ -17,16 +17,16 @@
 <# if (supportsGenerics) { #>
             if (isValueType)
 <# } else { #>
-            if (objType.GetTypeInfo().IsValueType)
+            if (objType.IsValueType)
 <# } #>
             {
 <# if (supportsNullDataSerializer) { #>
-                if (dataSerializer == null)
+                if (dataSerializer is null)
                 {
                     dataSerializer = <#= serializerCastExpr #>context.SerializerSelector.GetSerializer(<#= typeExpr #>);
 
                     // If we still have no serializer, throw an exception
-                    if (dataSerializer == null)
+                    if (dataSerializer is null)
                         throw new ArgumentException("No serializer available for type " + <#= typeExpr #>.FullName);
                 }
 <# } // supportsNullDataSerializer #>
@@ -61,7 +61,7 @@
 
             if (mode == ArchiveMode.Serialize)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                 {
                     // Null contentRef
                     stream.Write((byte)SerializeClassFlags.IsNull);
@@ -75,9 +75,8 @@
 <# if (supportsExternalIdentifiableAsGuid) { #>
                     if (externalIdentifiableAsGuid)
                     {
-                        var identifiable = obj as IIdentifiable;
                         var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
-                        if (identifiable != null && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
+                        if (obj is IIdentifiable identifiable && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
                         {
                             flags |= SerializeClassFlags.IsExternalIdentifiable;
                             stream.Write((byte)flags);
@@ -109,7 +108,7 @@
 <# if (supportsNonSealed) { #>
                     // If real type is not expected type, we need to store type info as well.
                     var expectedType = <#= typeExpr #>;
-                    type = <# if (supportsGenerics) { #>isSealed<# } else { #>objType.GetTypeInfo().IsSealed<# } #> ? expectedType : obj.GetType();
+                    type = <# if (supportsGenerics) { #>isSealed<# } else { #>objType.IsSealed<# } #> ? expectedType : obj.GetType();
                     hasTypeInfo = type != expectedType;
                     objectDataSerializer = null;
                     if (hasTypeInfo)
@@ -117,7 +116,7 @@
                         // Find matching serializer (always required w/ typeinfo, since type was different than expected)
                         objectDataSerializer = context.SerializerSelector.GetSerializer(type);
 
-                        if (objectDataSerializer == null)
+                        if (objectDataSerializer is null)
                             throw new ArgumentException("No serializer available for type " + type.FullName);
 
                         // Update expected type
@@ -156,8 +155,7 @@
                     if (hasTypeInfo)
                     {
                         // Serialize type info
-                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
-                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+                        stream.Serialize(ref objectDataSerializer.SerializationTypeId);
 
                         // Serialize object
 <# if (supportsGenerics) { #>
@@ -173,12 +171,12 @@
 <# } // supportsNonSealed #>
                     {
 <# if (supportsNullDataSerializer) { #>
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = <#= serializerCastExpr #>context.SerializerSelector.GetSerializer(<# if (supportsNonSealed) { #>expectedType<# } else { #><#= typeExpr #><# } #>);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + <# if (supportsNonSealed) { #>expectedType<# } else { #><#= typeExpr #><# } #>.FullName);
                         }
 
@@ -194,19 +192,19 @@
 
 <# if (supportsNonSealed || supportsReuseReferences) { #>
                 flags = (SerializeClassFlags)stream.ReadByte();
-                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != (flags & SerializeClassFlags.IsNull);
 <# } else { // optimized version where flags is only used for isNull: optimize locals #>
-                var isNull = ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+                var isNull = 0 != ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull);
 <# } #>
 <# if (supportsReuseReferences) { #>
                 var objectReferences = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeReferences) : null;
                 var referenceCallback = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeCallback) : null;
-                var isReference = (flags & SerializeClassFlags.IsReference) == SerializeClassFlags.IsReference;
-                var isExternalIdentifiable = (flags & SerializeClassFlags.IsExternalIdentifiable) == SerializeClassFlags.IsExternalIdentifiable;
+                var isReference = 0 != (flags & SerializeClassFlags.IsReference);
+                var isExternalIdentifiable = 0 != (flags & SerializeClassFlags.IsExternalIdentifiable);
                 index = reuseReferences && !isNull && !isExternalIdentifiable ? stream.ReadInt32() : -1;
 <# } #>
 <# if (supportsNonSealed) { #>
-                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+                hasTypeInfo = 0 != (flags & SerializeClassFlags.IsTypeInfo);
 <# } // supportsNonSealed #>
 
                 if (isNull)
@@ -242,11 +240,11 @@
 <# if (supportsNonSealed) { #>
                     if (hasTypeInfo)
                     {
-                        ObjectId serializationTypeId;
-                        stream.Serialize((IntPtr)Interop.FixedOut(out serializationTypeId), ObjectId.HashSize);
+                        Unsafe.SkipInit(out ObjectId serializationTypeId);
+                        stream.Serialize(ref serializationTypeId);
 
                         objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer == null)
+						if (objectDataSerializer is null)
 						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + <#= typeExpr #>.FullName);
 
 <# if (supportsGenerics) { #>
@@ -271,12 +269,12 @@
 <# } // supportsNonSealed #>
                     {
 <# if (supportsNullDataSerializer) { #>
-                        if (dataSerializer == null)
+                        if (dataSerializer is null)
                         {
                             dataSerializer = <#= serializerCastExpr #>context.SerializerSelector.GetSerializer(<#= typeExpr #>);
 
                             // If we still have no serializer, throw an exception
-                            if (dataSerializer == null)
+                            if (dataSerializer is null)
                                 throw new ArgumentException("No serializer available for type " + <#= typeExpr #>.FullName);
                         }
 

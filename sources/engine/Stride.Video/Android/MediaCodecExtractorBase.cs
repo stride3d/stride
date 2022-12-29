@@ -367,7 +367,7 @@ namespace Stride.Video
                 {
                     // sleep required time to avoid active looping
                     // Note: do not sleep more than 'waitDefaultTime' to continue processing play commands
-                    Utilities.Sleep(TimeSpanExtensions.Min(waitDefaultTime, waitTime)); 
+                    Thread.Sleep(TimeSpanExtensions.Min(waitDefaultTime, waitTime)); 
                 }
             }
         }

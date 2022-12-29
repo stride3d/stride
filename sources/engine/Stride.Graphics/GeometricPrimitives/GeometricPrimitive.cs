@@ -31,7 +31,7 @@ namespace Stride.Graphics.GeometricPrimitives
     /// <summary>
     /// A geometric primitive used to draw a simple model built from a set of vertices and indices.
     /// </summary>
-    public class GeometricPrimitive<T> : ComponentBase where T : struct, IVertex
+    public class GeometricPrimitive<T> : ComponentBase where T : unmanaged, IVertex
     {
         /// <summary>
         /// The pipeline state.

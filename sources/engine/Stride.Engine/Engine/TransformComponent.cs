@@ -145,28 +145,52 @@ namespace Stride.Engine
                 float yz = rotation.Y * rotation.Z;
                 float xw = rotation.X * rotation.W;
 
-                rotationEuler.Y = MathF.Asin(2.0f * (yw - zx));
-                if (MathF.Cos(rotationEuler.Y) > MathUtil.ZeroTolerance)
+                float M11 = 1.0f - (2.0f * (yy + zz));
+                float M12 = 2.0f * (xy + zw);
+                float M13 = 2.0f * (zx - yw);
+                //float M21 = 2.0f * (xy - zw);
+                float M22 = 1.0f - (2.0f * (zz + xx));
+                float M23 = 2.0f * (yz + xw);
+                //float M31 = 2.0f * (zx + yw);
+                float M32 = 2.0f * (yz - xw);
+                float M33 = 1.0f - (2.0f * (yy + xx));
+
+                /*** Refer to Matrix.DecomposeXYZ(out Vector3 rotation) for code and license ***/
+                if (MathUtil.IsOne(Math.Abs(M13)))
                 {
-                    rotationEuler.Z = MathF.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (yy + zz)));
-                    rotationEuler.X = MathF.Atan2(2.0f * (yz + xw), 1.0f - (2.0f * (yy + xx)));
+                    if (M13 >= 0)
+                    {
+                        // Edge case where M13 == +1
+                        rotationEuler.Y = -MathUtil.PiOverTwo;
+                        rotationEuler.Z = MathF.Atan2(-M32, M22);
+                        rotationEuler.X = 0;
+                    }
+                    else
+                    {
+                        // Edge case where M13 == -1
+                        rotationEuler.Y = MathUtil.PiOverTwo;
+                        rotationEuler.Z = -MathF.Atan2(-M32, M22);
+                        rotationEuler.X = 0;
+                    }
                 }
                 else
                 {
-                    rotationEuler.Z = MathF.Atan2(2.0f * (zw - xy), 2.0f * (zx + yw));
-                    rotationEuler.X = 0.0f;
+                    // Common case
+                    rotationEuler.Y = MathF.Asin(-M13);
+                    rotationEuler.Z = MathF.Atan2(M12, M11);
+                    rotationEuler.X = MathF.Atan2(M23, M33);
                 }
                 return rotationEuler;
             }
             set
             {
-                // Equilvalent to:
+                // Equivalent to:
                 //  Quaternion quatX, quatY, quatZ;
-                //  
+                //
                 //  Quaternion.RotationX(value.X, out quatX);
                 //  Quaternion.RotationY(value.Y, out quatY);
                 //  Quaternion.RotationZ(value.Z, out quatZ);
-                //  
+                //
                 //  rotation = quatX * quatY * quatZ;
 
                 var halfAngles = value * 0.5f;
@@ -203,7 +227,7 @@ namespace Stride.Engine
                 var oldParent = Parent;
                 if (oldParent == value)
                     return;
-                
+
                 // SceneValue must be null if we have a parent
                 if( Entity.SceneValue != null )
                     Entity.Scene = null;
@@ -349,7 +373,7 @@ namespace Stride.Engine
                 Entity?.EntityManager?.OnHierarchyChanged(item.Entity);
                 Entity?.EntityManager?.GetProcessor<TransformProcessor>().NotifyChildrenCollectionChanged(item, false);
             }
-            
+
             /// <inheritdoc/>
             protected override void InsertItem(int index, TransformComponent item)
             {

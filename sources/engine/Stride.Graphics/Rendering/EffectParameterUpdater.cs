@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Graphics;
 using Stride.Shaders;
@@ -73,7 +74,10 @@ namespace Stride.Rendering
                 if (parameters.DataValues != null && resourceGroup.ConstantBuffer.Size > 0)
                 {
                     fixed (byte* dataValues = parameters.DataValues)
-                        Utilities.CopyMemory(resourceGroup.ConstantBuffer.Data, (IntPtr)dataValues + bufferStartOffset, resourceGroup.ConstantBuffer.Size);
+                        Unsafe.CopyBlockUnaligned(
+                            destination: (void*)resourceGroup.ConstantBuffer.Data,
+                            source: dataValues + bufferStartOffset,
+                            byteCount: (uint)resourceGroup.ConstantBuffer.Size);
                     bufferStartOffset += resourceGroup.ConstantBuffer.Size;
                 }
             }

@@ -627,8 +627,7 @@ namespace Stride.Graphics
             *(uint*)(pDestination) = DDS.MagicHeader;
 
             var header = (DDS.Header*)((byte*)(pDestination) + sizeof (int));
-
-            Utilities.ClearMemory((IntPtr)header, 0, Unsafe.SizeOf<DDS.Header>());
+            *header = default;
             header->Size = Unsafe.SizeOf<DDS.Header>();
             header->Flags = DDS.HeaderFlags.Texture;
             header->SurfaceFlags = DDS.SurfaceFlags.Texture;
@@ -693,8 +692,7 @@ namespace Stride.Graphics
                 header->PixelFormat = DDS.DDSPixelFormat.DX10;
 
                 var ext = (DDS.HeaderDXT10*)((byte*)(header) + Unsafe.SizeOf<DDS.Header>());
-
-                Utilities.ClearMemory((IntPtr) ext, 0, Unsafe.SizeOf<DDS.HeaderDXT10>());
+                *ext = default;
 
                 ext->DXGIFormat = description.Format;
                 switch (description.Dimension)
@@ -1063,20 +1061,23 @@ namespace Stride.Graphics
             int index = 0;
             for (int item = 0; item < metadata.ArraySize; ++item)
             {
-                int d = metadata.Depth;
+                int depth = metadata.Depth;
 
                 for (int level = 0; level < metadata.MipLevels; ++level)
                 {
-                    for (int slice = 0; slice < d; ++slice)
+                    for (int slice = 0; slice < depth; ++slice)
                     {
                         int pixsize = pixelBuffers[index].BufferStride;
-                        Utilities.Read(pixelBuffers[index].DataPointer, buffer, 0, pixsize);
+                        Debug.Assert((uint)pixsize <= buffer.Length);
+                        fixed (byte* pinned = buffer) {
+                            Unsafe.CopyBlockUnaligned(pinned, source: (void*)pixelBuffers[index].DataPointer, (uint)pixsize);
+                        }
                         stream.Write(buffer, 0, pixsize);
                         ++index;
                     }
 
-                    if (d > 1)
-                        d >>= 1;
+                    if (depth > 1)
+                        depth >>= 1;
                 }
             }
         }
@@ -1145,7 +1146,7 @@ namespace Stride.Graphics
 
                         if (metadata.Format.IsCompressed())
                         {
-                            Utilities.CopyMemory(pDest, pSrc, Math.Min(images[index].BufferStride, imagesDst[index].BufferStride));
+                            Unsafe.CopyBlockUnaligned((void*)pDest, (void*)pSrc, (uint)Math.Min(images[index].BufferStride, imagesDst[index].BufferStride));
                         }
                         else
                         {
@@ -1478,7 +1479,7 @@ namespace Stride.Graphics
 
                     //-----------------------------------------------------------------------------
                     case PixelFormat.A8_UNorm:
-                        Utilities.ClearMemory(pDestination, 0xff, outSize);
+                        Unsafe.InitBlock((void*)pDestination, 0xff, (uint)outSize);
                         return;
 
 #if DIRECTX11_1
@@ -1514,7 +1515,7 @@ namespace Stride.Graphics
             if (pDestination == pSource)
                 return;
 
-            Utilities.CopyMemory(pDestination, pSource, Math.Min(outSize, inSize));
+            Unsafe.CopyBlockUnaligned((void*)pDestination, source: (void*)pSource, (uint)Math.Min(outSize, inSize));
         }
 
         /// <summary>
@@ -1627,7 +1628,7 @@ namespace Stride.Graphics
             if (pDestination == pSource)
                 return;
 
-            Utilities.CopyMemory(pDestination, pSource, Math.Min(outSize, inSize));
+            Unsafe.CopyBlockUnaligned((void*)pDestination, source: (void*)pSource, (uint)Math.Min(outSize, inSize));
         }
 
     }
