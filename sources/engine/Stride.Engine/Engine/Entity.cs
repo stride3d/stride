@@ -49,15 +49,17 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Create a new <see cref="Entity" /> instance having the provided name and initial position.
+        /// Create a new <see cref="Entity" /> instance having the provided name, initial position, rotation and scale.
         /// </summary>
-        /// <param name="position">The initial position of the entity</param>
         /// <param name="name">The name to give to the entity</param>
-        public Entity(Vector3 position, string name = null)
+        /// <param name="position">The initial position of the entity</param>
+        /// <param name="rotation">The initial rotation of the entity</param>
+        /// <param name="rotation">The initial scale of the entity</param>
+        public Entity(string name = null, Vector3 position = default, Quaternion? rotation = null, Vector3? scale = null)
             : this(name, false)
         {
             Id = Guid.NewGuid();
-            TransformValue = new TransformComponent { Position = position };
+            TransformValue = new TransformComponent { Position = position, Rotation = rotation ?? Quaternion.Identity, Scale = scale ?? Vector3.One };
             Components.Add(TransformValue);
         }
 
