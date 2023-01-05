@@ -44,7 +44,7 @@ namespace Stride.Engine
         /// </summary>
         /// <param name="name">The name to give to the entity</param>
         public Entity(string name)
-            : this(Vector3.Zero, name)
+            : this(name, Vector3.Zero)
         {
         }
 
