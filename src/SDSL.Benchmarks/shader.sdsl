@@ -1,0 +1,38 @@
+shader SingleShader {
+
+    struct Position {
+        float x;
+        float y;
+        float z;
+    };
+
+    stage stream float4 triInput;
+
+    stage stream float4 ShadingPosition : SV_Position;
+
+    stage stream bool IsFrontFace : SV_IsFrontFace;
+    
+    stage stream float4 ColorTarget : SV_Target0;
+    stage stream float4 ColorTarget1 : SV_Target1;
+    stage stream float4 ColorTarget2 : SV_Target2;
+    stage stream float4 ColorTarget3 : SV_Target3;
+    stage stream float4 ColorTarget4 : SV_Target4;
+    stage stream float4 ColorTarget5 : SV_Target5;
+    stage stream float4 ColorTarget6 : SV_Target6;
+    stage stream float4 ColorTarget7 : SV_Target7;
+
+    // Default DEPTH output for PS shader
+    stage stream float Depth : SV_Depth;
+    stage stream float DepthGreater : SV_DepthGreater; // Special output after PS
+    stage stream float DepthLessEqual : SV_DepthLessEqual; // Special output after PS
+
+    stage stream uint InstanceID : SV_InstanceID;
+
+
+    void VSMain() 
+    {
+        float4 a = float4(0);
+        streams.ShadingPosition = a;
+        streams.ColorTarget = float3(0);
+    }
+};
