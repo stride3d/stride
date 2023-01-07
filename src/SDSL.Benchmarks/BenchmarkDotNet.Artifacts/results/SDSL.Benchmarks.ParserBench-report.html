@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>SDSL.Benchmarks.ParserBench-20230107-181725</title>
+<title>SDSL.Benchmarks.ParserBench-20230107-232203</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -16,16 +16,17 @@
 BenchmarkDotNet=v0.13.3, OS=Windows 11 (10.0.22621.963)
 AMD Ryzen 5 3500U with Radeon Vega Mobile Gfx, 1 CPU, 8 logical and 4 physical cores
 .NET SDK=7.0.101
-  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
-  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+  [Host] : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
 </code></pre>
-<pre><code></code></pre>
+<pre><code>Job=MediumRun  Toolchain=InProcessNoEmitToolchain  IterationCount=15  
+LaunchCount=2  WarmupCount=10  
+</code></pre>
 
 <table>
 <thead><tr><th>Method</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Gen0</th><th>Gen1</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>StrideParse</td><td>416.2 &mu;s</td><td>13.24 &mu;s</td><td>38.19 &mu;s</td><td>88.8672</td><td>26.8555</td><td>246.9 KB</td>
-</tr><tr><td>EtoParse</td><td>418.3 &mu;s</td><td>11.48 &mu;s</td><td>33.13 &mu;s</td><td>79.5898</td><td>-</td><td>163.28 KB</td>
+</thead><tbody><tr><td>StrideParse</td><td>535.8 &mu;s</td><td>48.59 &mu;s</td><td>69.68 &mu;s</td><td>102.0508</td><td>33.6914</td><td>306.85 KB</td>
+</tr><tr><td>EtoParse</td><td>430.2 &mu;s</td><td>18.54 &mu;s</td><td>27.17 &mu;s</td><td>78.1250</td><td>-</td><td>161.17 KB</td>
 </tr></tbody></table>
 </body>
 </html>

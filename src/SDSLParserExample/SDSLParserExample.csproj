@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Eto.Parse\Eto.Parse\Eto.Parse.csproj" />
-    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <ProjectReference Include="..\SDSL\SDSL.csproj" />
   </ItemGroup>
 
   <ItemGroup>

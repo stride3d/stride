@@ -5,11 +5,24 @@ using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using Stride.Core.Shaders.Grammar.Stride;
 using Stride.Core.Shaders.Parser;
 
 namespace SDSL.Benchmarks;
 
+public class AntiVirusFriendlyConfig : ManualConfig
+{
+    public AntiVirusFriendlyConfig()
+    {
+        AddJob(Job.MediumRun
+            .WithToolchain(InProcessNoEmitToolchain.Instance));
+    }
+}
+
+[Config(typeof(AntiVirusFriendlyConfig))]
 [MemoryDiagnoser]
 public class ParserBench
 {
@@ -20,7 +33,7 @@ public class ParserBench
     [Benchmark]
     public void StrideParse()
     {
-        strideParser.Parse(shaderText, "");
+        strideParser.PreProcessAndParse(shaderText, "");
     }
     [Benchmark]
     public void EtoParse()
