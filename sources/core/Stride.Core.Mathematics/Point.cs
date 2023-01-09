@@ -142,5 +142,17 @@ namespace Stride.Core.Mathematics
         {
             return new Vector2(value.X, value.Y);
         }
+
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="x">The X component</param>
+        /// <param name="y">The Y component</param>
+        public void Deconstruct(out int x, out int y)
+        {
+            x = X;
+            y = Y;
+        }
+
    }
 }

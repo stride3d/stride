@@ -996,6 +996,22 @@ namespace Stride.Core.Mathematics
                 return false;
 
             return Equals((Color4)value);
+        }           
+        
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="r">The R component</param>
+        /// <param name="g">The G component</param>
+        /// <param name="b">The B component</param>
+        /// <param name="a">The A component</param>
+        public void Deconstruct(out float r, out float g, out float b, out float a)
+        {
+            r = R;
+            g = G;
+            b = B;
+            a = A;
         }
+
     }
 }

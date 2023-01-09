@@ -1387,6 +1387,21 @@ namespace Stride.Core.Mathematics
 
             return Equals((Double4)value);
         }
+                
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="x">The X component</param>
+        /// <param name="y">The Y component</param>
+        /// <param name="z">The Z component</param>
+        /// <param name="w">The W component</param>
+        public void Deconstruct(out double x, out double y, out double z, out double w)
+        {
+            x = X;
+            y = Y;
+            z = Z;
+            w = W;
+        }
 
 #if WPFInterop
         /// <summary>
