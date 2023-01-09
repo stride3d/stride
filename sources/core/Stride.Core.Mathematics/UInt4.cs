@@ -651,6 +651,5 @@ namespace Stride.Core.Mathematics
             z = Z;
             w = W;
         }
-
     }
 }

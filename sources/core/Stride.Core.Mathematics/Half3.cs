@@ -254,7 +254,7 @@ namespace Stride.Core.Mathematics
         /// <param name="x">The X component</param>
         /// <param name="y">The Y component</param>
         /// <param name="z">The Z component</param>
-        public void Deconstruct(out float x, out float y, out float z)
+        public void Deconstruct(out Half x, out Half y, out Half z)
         {
             x = X;
             y = Y;

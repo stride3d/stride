@@ -236,13 +236,13 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Deconstructs the vector's components into named variables.
         /// </summary>
-        /// <param name="height">The Height component</param>
         /// <param name="width">The Width component</param>
+        /// <param name="height">The Height component</param>
         /// <param name="depth">The Depth component</param>
-        public void Deconstruct(out int height, out int width, out int depth)
+        public void Deconstruct(out int width, out int height, out int depth)
         {
-            height = Height;
             width = Width;
+            height = Height;
             depth = Depth;
         }
     }
