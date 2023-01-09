@@ -126,6 +126,17 @@ namespace Stride.Core.Mathematics
         public override string ToString()
         {
             return string.Format("({0},{1})", Width, Height);
+        }                
+
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="height">The Height component</param>
+        /// <param name="width">The Width component</param>
+        public void Deconstruct(out float height, out float width)
+        {
+            height = Height;
+            width = Width;
         }
     }
 }

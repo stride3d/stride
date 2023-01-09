@@ -247,5 +247,18 @@ namespace Stride.Core.Mathematics
             }
             return this.Equals((Half3)obj);
         }
+                        
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="x">The X component</param>
+        /// <param name="y">The Y component</param>
+        /// <param name="z">The Z component</param>
+        public void Deconstruct(out float x, out float y, out float z)
+        {
+            x = X;
+            y = Y;
+            z = Z;
+        }
     }
 }
