@@ -175,19 +175,19 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             });
         }
 
-        private int? UpdateGrids(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
+        private AxisToHide UpdateGrids(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
         {
             var gridAxisIndexForDeterminingHiddenAxes = gridAxisIndex;
             var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
             if (cameraService == null)
-                return null;
+                return AxisToHide.All;
 
             var viewInvert = Matrix.Invert(cameraService.ViewMatrix);
             // Check if the inverted View Matrix is valid (since it will be use for mouse picking, check the translation vector only)
             if (float.IsNaN(viewInvert.TranslationVector.X)
                 || float.IsNaN(viewInvert.TranslationVector.Y)
                 || float.IsNaN(viewInvert.TranslationVector.Z))
-                return null;
+                return AxisToHide.All;
 
             // Iterate over X, Y, Z axes.
             for (int axisIndex = 0; axisIndex < 3; axisIndex++, gridAxisIndex >>= 1)
@@ -286,29 +286,29 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             // 3 - when 2 or more grids are drawn
             if (gridAxisIndexForDeterminingHiddenAxes == 0)
             {
-                return null; // hide all
+                return AxisToHide.All;
             }
             else if (System.Numerics.BitOperations.PopCount((uint)gridAxisIndexForDeterminingHiddenAxes) == 1) /* single axis */
             {
                 for (int axisIndex = 0; axisIndex < 3; axisIndex++, gridAxisIndexForDeterminingHiddenAxes >>= 1)
                 {
                     if ((gridAxisIndexForDeterminingHiddenAxes & 1) == 1)
-                        return axisIndex; // hide 1 axes
+                        return (AxisToHide)axisIndex; // hide 1 axes
                 }
             }
 
-            return -1; // show all axes
+            return AxisToHide.None; // show all axes
         }
 
-        private void UpdateOriginAxes(int? invisibleAxes)
+        private void UpdateOriginAxes(AxisToHide invisibleAxes)
         {
             // show no axes
-            if (invisibleAxes == null)
+            if (invisibleAxes == AxisToHide.All)
                 return;
 
-            // show axes except the invisible one or show all if it equals -1
+            // show axes except the invisible one or show all if it equals AxisToHide.None
             for (int axis = 0; axis < 3; axis++)
-                originAxes[axis].GetChild(0).Get<ModelComponent>().Enabled = axis != invisibleAxes;
+                originAxes[axis].GetChild(0).Get<ModelComponent>().Enabled = axis != (int)invisibleAxes;
         }
 
         protected override void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
@@ -319,7 +319,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 grids[i].Get<ModelComponent>().Enabled = false;
                 originAxes[i].GetChild(0).Get<ModelComponent>().Enabled = false;
             }
-            int? invisibleAxes = UpdateGrids(gridColor, alpha, gridAxisIndex, sceneUnit);
+            var invisibleAxes = UpdateGrids(gridColor, alpha, gridAxisIndex, sceneUnit);
             // Make the grid axes invisible
             UpdateOriginAxes(invisibleAxes);
         }
@@ -402,6 +402,15 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             // It calculates the number of bright pixels vs the number total of pixels
             return 2.0 * size / (size * size);
+        }
+
+        private enum AxisToHide
+        {
+            X = 0,
+            Y = 1,
+            Z = 2,
+            All = 4,
+            None = -1,
         }
     }
 }
