@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Extensions;
@@ -176,14 +175,20 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             });
         }
 
-        private List<int> UpdateGrids(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
+        private int? UpdateGrids(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
         {
-            List<int> viewAxisIndices = new List<int>();
+            var gridAxisIndexForDeterminingHiddenAxes = gridAxisIndex;
             var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
             if (cameraService == null)
-                return viewAxisIndices;
+                return null;
 
-            int gridIndex = 0;
+            var viewInvert = Matrix.Invert(cameraService.ViewMatrix);
+            // Check if the inverted View Matrix is valid (since it will be use for mouse picking, check the translation vector only)
+            if (float.IsNaN(viewInvert.TranslationVector.X)
+                || float.IsNaN(viewInvert.TranslationVector.Y)
+                || float.IsNaN(viewInvert.TranslationVector.Z))
+                return null;
+
             // Iterate over X, Y, Z axes.
             for (int axisIndex = 0; axisIndex < 3; axisIndex++, gridAxisIndex >>= 1)
             {
@@ -191,14 +196,13 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     continue;
 
                 // Update the grid color
-                GridMaterials[gridIndex].Passes[0].Parameters.Set(GridColorKey, Color4.PremultiplyAlpha(new Color4(gridColor, alpha)));
+                GridMaterials[axisIndex].Passes[0].Parameters.Set(GridColorKey, Color4.PremultiplyAlpha(new Color4(gridColor, alpha)));
 
                 // Determine the up vector depending on view matrix and projection mode
                 // -> When orthographic, if we are looking along a coordinate axis, place the grid perpendicular to that axis.
                 // -> Place the grid perpendicular to its default axis otherwise.
                 var viewAxisIndex = axisIndex;
                 var upVector = new Vector3(0) { [axisIndex] = 1 };
-                var viewInvert = Matrix.Invert(cameraService.ViewMatrix);
                 if (cameraService.IsOrthographic)
                 {
                     for (var i = 0; i < 3; i++)
@@ -213,12 +217,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                         }
                     }
                 }
-
-                // Check if the inverted View Matrix is valid (since it will be use for mouse picking, check the translation vector only)
-                if (float.IsNaN(viewInvert.TranslationVector.X)
-                    || float.IsNaN(viewInvert.TranslationVector.Y)
-                    || float.IsNaN(viewInvert.TranslationVector.Z))
-                    continue;
 
                 // The position of the grid and the origin in the scene
                 var snappedPosition = Vector3.Zero;
@@ -254,7 +252,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                         snappedPosition[i] += MathF.Round(intersection[i] / gridStringLineUnit) * gridStringLineUnit;
                 }
 
-                var grid = grids[gridIndex];
+                var grid = grids[axisIndex];
                 // Make the grid visible
                 grid.Get<ModelComponent>().Enabled = true;
 
@@ -269,35 +267,48 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 for (int axis = 0; axis < 3; axis++)
                     originAxes[axis].TransformValue.Scale = new Vector3(gridScale);
 
-                // Determine and apply the rotation to the grid and origin axis entities
+                // Determine and apply the rotation to the grid
                 SetPlaneEntityRotation(2, upVector, grid);
-                for (var axis = 0; axis < 3; axis++)
-                    SetPlaneEntityRotation((axis + 2) % 3, upVector, originAxes[axis]);
-
-                // Update the color of the origin axes and hide the grid axis
-                for (int axis = 0; axis < 3; axis++)
-                {
-                    // Make the axes alpha higher than the grid alpha so they are visible
-                    float axesAlpha = alpha * 4;
-                    var color = Color4.PremultiplyAlpha(new Color4(GetAxisDefaultColor(axis), axesAlpha));
-                    originAxes[axis].GetChild(0).Get<ModelComponent>().GetMaterial(0).Passes[0].Parameters.Set(GridColorKey, color);
-                }
-
-                viewAxisIndices.Add(axisIndex);
-                gridIndex++;
             }
-            return viewAxisIndices;
+
+            // Update the color of the origin axes and hide the grid axis
+            for (int axis = 0; axis < 3; axis++)
+            {
+                // Make the axes alpha higher than the grid alpha so they are visible
+                float axesAlpha = alpha * 4;
+                var color = Color4.PremultiplyAlpha(new Color4(GetAxisDefaultColor(axis), axesAlpha));
+                originAxes[axis].GetChild(0).Get<ModelComponent>().GetMaterial(0).Passes[0].Parameters.Set(GridColorKey, color);
+            }
+
+            // Determine which axes should be shown
+            // 0 - when no grid is shown
+            // 2 - on the plane of the single grid
+            // 3 - when 2 or more grids are drawn
+            if (gridAxisIndexForDeterminingHiddenAxes == 0)
+            {
+                return null; // hide all
+            }
+            else if (System.Numerics.BitOperations.PopCount((uint)gridAxisIndexForDeterminingHiddenAxes) == 1) /* single axis */
+            {
+                for (int axisIndex = 0; axisIndex < 3; axisIndex++, gridAxisIndexForDeterminingHiddenAxes >>= 1)
+                {
+                    if ((gridAxisIndexForDeterminingHiddenAxes & 1) == 1)
+                        return axisIndex; // hide 1 axes
+                }
+            }
+
+            return -1; // show all axes
         }
 
-        private void UpdateOriginAxes(List<int> invisibleAxes)
+        private void UpdateOriginAxes(int? invisibleAxes)
         {
-            if (invisibleAxes.IsNullOrEmpty())
+            // show no axes
+            if (invisibleAxes == null)
                 return;
 
+            // show axes except the invisible one or show all if it equals -1
             for (int axis = 0; axis < 3; axis++)
-                originAxes[axis].GetChild(0).Get<ModelComponent>().Enabled = true;
-            foreach (var axis in invisibleAxes)
-                originAxes[axis].GetChild(0).Get<ModelComponent>().Enabled = false;
+                originAxes[axis].GetChild(0).Get<ModelComponent>().Enabled = axis != invisibleAxes;
         }
 
         protected override void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
@@ -308,7 +319,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 grids[i].Get<ModelComponent>().Enabled = false;
                 originAxes[i].GetChild(0).Get<ModelComponent>().Enabled = false;
             }
-            List<int> invisibleAxes = UpdateGrids(gridColor, alpha, gridAxisIndex, sceneUnit);
+            int? invisibleAxes = UpdateGrids(gridColor, alpha, gridAxisIndex, sceneUnit);
             // Make the grid axes invisible
             UpdateOriginAxes(invisibleAxes);
         }
