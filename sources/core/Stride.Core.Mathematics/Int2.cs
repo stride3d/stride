@@ -34,7 +34,7 @@ using System.Runtime.InteropServices;
 namespace Stride.Core.Mathematics
 {
     /// <summary>
-    /// Represents a three dimensional mathematical vector.
+    /// Represents a two dimensional mathematical vector.
     /// </summary>
     [DataContract("Int2")]
     [DataStyle(DataStyle.Compact)]
