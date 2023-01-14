@@ -97,6 +97,11 @@ x64Release
 screenshots
 samplesGenerated
 
+# VS Code files
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+
 # Xcode
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
