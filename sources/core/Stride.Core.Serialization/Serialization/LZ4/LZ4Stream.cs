@@ -28,6 +28,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
+using K4os.Compression.LZ4;
 
 namespace Stride.Core.LZ4
 {
@@ -234,9 +235,8 @@ namespace Stride.Core.LZ4
             if (bufferOffset <= 0) return;
 
             var compressed = new byte[bufferOffset];
-            var compressedLength = highCompression
-                ? LZ4Codec.EncodeHC(dataBuffer, 0, bufferOffset, compressed, 0, bufferOffset)
-                : LZ4Codec.Encode(dataBuffer, 0, bufferOffset, compressed, 0, bufferOffset);
+            LZ4Level level = (highCompression ? LZ4Level.L09_HC : LZ4Level.L00_FAST);
+            var compressedLength = LZ4Codec.Encode(dataBuffer, 0, bufferOffset, compressed, 0, bufferOffset, level);
 
             if (compressedLength <= 0 || compressedLength >= bufferOffset)
             {
@@ -296,7 +296,7 @@ namespace Stride.Core.LZ4
                     var passes = (int)flags >> 2;
                     if (passes != 0)
                         throw new NotSupportedException("Chunks with multiple passes are not supported.");
-                    LZ4Codec.Decode(compressedDataBuffer, 0, compressedLength, dataBuffer, 0, originalLength, true);
+                    LZ4Codec.Decode(compressedDataBuffer, 0, compressedLength, dataBuffer, 0, originalLength);
                     bufferLength = originalLength;
                 }
 
