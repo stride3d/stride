@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
@@ -31,6 +31,11 @@
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
+        <StrideNativeLib Include="..\..\..\deps\OpenXR\openxr_loader.dll">
+          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </StrideNativeLib>
       </ItemGroup>
     </When>
   </Choose>
@@ -56,6 +61,9 @@
     <None Include="GoogleVR\GoogleVR.cpp" />
     <None Include="OculusOVR\OculusOVR.cpp" />
     <None Include="Fove\Fove.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.OpenXR" Version="2.10.1" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 
