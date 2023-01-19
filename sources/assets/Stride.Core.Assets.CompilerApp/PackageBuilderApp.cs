@@ -50,15 +50,6 @@ namespace Stride.Core.Assets.CompilerApp
             RuntimeHelpers.RunModuleConstructor(typeof(ModelAsset).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(SpriteStudioAnimationAsset).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(ParticleSystem).Module.ModuleHandle);
-            //var project = new Package();
-            //project.Save("test.sdpkg");
-
-            //Thread.Sleep(10000);
-            //var spriteFontAsset = StaticFontAsset.New();
-            //Content.Save("test.sdfnt", spriteFontAsset);
-            //project.Refresh();
-
-            //args = new string[] { "test.sdpkg", "-o:app_data", "-b:tmp", "-t:1" };
 
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
@@ -145,22 +136,6 @@ namespace Stride.Core.Assets.CompilerApp
                         }
                     }
                 }
-                },
-                {
-                    "reattach-debugger=", "Reattach to a Visual Studio debugger", v =>
-                    {
-                        int debuggerProcessId;
-                        if (!string.IsNullOrEmpty(v) && int.TryParse(v, out debuggerProcessId))
-                        {
-                            if (!Debugger.IsAttached)
-                            {
-                                using (var debugger = VisualStudioDebugger.GetByProcess(debuggerProcessId))
-                                {
-                                    debugger?.Attach();
-                                }
-                            }
-                        }
-                    }
                 },
             };
 

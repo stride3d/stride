@@ -110,7 +110,6 @@
     <None Include="AssetPackage\Resources\StrideDebugSpriteFont.png" />
     <None Include="AssetPackage\Resources\StrideDefaultSplashScreen.png" />
   </ItemGroup>
-  <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
 
   <PropertyGroup>

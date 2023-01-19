@@ -212,8 +212,6 @@
       <MenuItem Header="{sd:Localize Project, Context=Menu}" IsEnabled="{Binding Session, Converter={sd:ObjectToBool}}">
         <MenuItem Header="{sd:Localize Build project, Context=Menu}" Command="{Binding Debugging.BuildProjectCommand}" Icon="{sd:Image {StaticResource ImageBuildProject}}" InputGestureText="{x:Static strings:KeyGestures.BuildProject}"/>
         <MenuItem Header="{sd:Localize Start project, Context=Menu}" Command="{Binding Debugging.StartProjectCommand}" Icon="{sd:Image {StaticResource ImageStartProject}}" InputGestureText="{x:Static strings:KeyGestures.StartProject}"/>
-        <!-- Disable live-scripting commands until it is working -->
-        <MenuItem Header="{sd:Localize Start live-scripting, Context=Menu}" Command="{Binding Debugging.LivePlayProjectCommand}" Icon="{sd:Image {StaticResource ImageLiveScripting}}" Visibility="Collapsed"/>
         <MenuItem Header="{sd:Localize Cancel build, Context=Menu}" Command="{Binding Debugging.CancelBuildCommand}" Icon="{sd:Image {StaticResource ImageStopBuild}}" InputGestureText="{x:Static strings:KeyGestures.CancelBuild}"/>
         <MenuItem Header="{sd:Localize Folder, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
         <MenuItem Header="{sd:Localize Create folder, Context=Menu}" Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{sd:Image {StaticResource ImageNewFolder}}"/>
@@ -407,13 +405,6 @@
           <Button Command="{Binding Debugging.StartProjectCommand}"
                   ToolTip="{sd:ToolTip {sd:Localize Build the project and start the game, Context=ToolTip}, {x:Static strings:KeyGestures.StartProject}}" sd:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageStartProject}"/>
-          </Button>
-          <!-- Live Scripting -->
-          <!-- FIXME live scripting is disabled (XK-4309) -->
-          <Button Command="{Binding Debugging.LivePlayProjectCommand}"
-                  ToolTip="{sd:Localize Start project in live-scripting mode, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True"
-                  Visibility="Collapsed">
-            <Image Source="{StaticResource ImageLiveScripting}"/>
           </Button>
           <Button Command="{Binding Debugging.CancelBuildCommand}"
                   ToolTip="{sd:ToolTip {sd:Localize Cancel the current build, Context=ToolTip}, {x:Static strings:KeyGestures.CancelBuild}}" sd:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">

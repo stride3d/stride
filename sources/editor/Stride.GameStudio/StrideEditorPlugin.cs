@@ -82,11 +82,7 @@ namespace Stride.GameStudio
             var thumbnailService = new GameStudioThumbnailService(session, settingsProvider, builderService);
             session.ServiceProvider.RegisterService(thumbnailService);
 
-            var strideDebugService = new StrideDebugService(session.ServiceProvider);
-            session.ServiceProvider.RegisterService(strideDebugService);
-
             GameStudioViewModel.GameStudio.Preview = new PreviewViewModel(session);
-            GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, strideDebugService);
         }
     }
 }

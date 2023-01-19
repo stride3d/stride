@@ -8,23 +8,19 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-
+using Stride.Assets.Presentation;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -35,8 +31,6 @@ using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
-using Stride.Core.VisualStudio;
-using Stride.Assets.Presentation;
 using Stride.Editor.Build;
 using Stride.Editor.Engine;
 using Stride.Editor.Preview;
@@ -114,18 +108,6 @@ namespace Stride.GameStudio
                             GameStudioPreviewService.DisablePreview = true;
                             renderDocManager = new RenderDocManager();
                             renderDocManager.Initialize();
-                        }
-                        else if (args[i] == "/Reattach")
-                        {
-                            var debuggerProcessId = int.Parse(args[++i]);
-
-                            if (!System.Diagnostics.Debugger.IsAttached)
-                            {
-                                using (var debugger = VisualStudioDebugger.GetByProcess(debuggerProcessId))
-                                {
-                                    debugger?.Attach();
-                                }
-                            }
                         }
                         else if (args[i] == "/RecordEffects")
                         {
@@ -221,7 +203,6 @@ namespace Stride.GameStudio
         }
 
         [SecurityCritical]
-        [HandleProcessCorruptedStateExceptions]
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             if (e.IsTerminating)
