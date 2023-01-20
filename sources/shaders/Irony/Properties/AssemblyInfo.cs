@@ -19,12 +19,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-#if !SILVERLIGHT
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("44015759-db10-4a6f-8251-d1d18599b60f")]
-#else
-[assembly: Guid("B83C8EBA-E4E5-4761-9C38-F662F56D63D7")]
-#endif
 [assembly: CLSCompliant(true)]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

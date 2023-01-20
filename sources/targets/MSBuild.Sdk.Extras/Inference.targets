@@ -13,7 +13,6 @@
     <TargetFramework Condition="'$(TargetFramework)' == 'netmf'">netmf44</TargetFramework>
     <TargetFramework Condition="'$(TargetFramework)' == 'net'">net45</TargetFramework>
     <TargetFramework Condition="'$(TargetFramework)' == 'win'">win8</TargetFramework>
-    <TargetFramework Condition="'$(TargetFramework)' == 'sl'">sl5</TargetFramework>
   </PropertyGroup>
 
   <!--
@@ -54,7 +53,6 @@
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'portable'">.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'netmf'">.NETMicroFramework</TargetFrameworkIdentifier>
 
-    <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'sl'">Silverlight</TargetFrameworkIdentifier>
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'win'">.NETCore</TargetFrameworkIdentifier>
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'uap'">.NETCore</TargetFrameworkIdentifier>
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'netcore'">.NETCore</TargetFrameworkIdentifier> 
