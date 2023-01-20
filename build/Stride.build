@@ -182,11 +182,6 @@ Example of use:
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=iOS;StrideSolution=$(StrideSolution).iOS"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).iOS.sln" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
-  
-  <Target Name="BuildWindowsStore">
-    <!-- Only a warning since build servers might still call this target for old branches -->
-    <Warning Text="Windows Store doesn't exist anymore"/>
-  </Target>
 
   <Target Name="BuildWindows10" DependsOnTargets="BuildUWP" />
 
