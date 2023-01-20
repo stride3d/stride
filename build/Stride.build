@@ -199,11 +199,6 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
   
-  <Target Name="BuildWindowsPhone">
-    <!-- Only a warning since build servers might still call this target for old branches -->
-    <Warning Text="Windows Phone doesn't exist anymore"/>
-  </Target>
-  
   <Target Name="BuildWindowsVulkan">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=Vulkan"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>

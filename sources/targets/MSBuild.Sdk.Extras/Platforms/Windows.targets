@@ -32,16 +32,6 @@
     <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">WINDOWS8_1</ImplicitFrameworkDefine>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'wpa' OR '$(TargetFramework)' == 'wpa81'">
-    <TargetPlatformVersion>8.1</TargetPlatformVersion>
-    <TargetPlatformMinVersion>8.1</TargetPlatformMinVersion>
-    <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
-    <TargetPlatformIdentifier>WindowsPhoneApp</TargetPlatformIdentifier>
-
-    <!-- Need to override the built-in implicit defines for wpa81 or it'll be WINDOWSPHONEAPP8_1 -->
-    <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">WINDOWS_PHONE_APP</ImplicitFrameworkDefine>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(_SdkShortFrameworkIdentifier)' == 'uap'">
     <TargetFrameworkVersion>v6.0</TargetFrameworkVersion>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
