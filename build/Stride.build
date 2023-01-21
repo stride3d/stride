@@ -182,9 +182,7 @@ Example of use:
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=iOS;StrideSolution=$(StrideSolution).iOS"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).iOS.sln" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
-
-  <Target Name="BuildWindows10" DependsOnTargets="BuildUWP" />
-
+  
   <Target Name="BuildUWP">
     <PropertyGroup>
       <StrideSolution>$(StrideSolution).Runtime</StrideSolution>

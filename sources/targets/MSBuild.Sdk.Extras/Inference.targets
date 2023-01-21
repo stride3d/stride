@@ -12,7 +12,6 @@
     <TargetFramework Condition="'$(TargetFramework)' == 'net-cf'">net35-cf</TargetFramework>
     <TargetFramework Condition="'$(TargetFramework)' == 'netmf'">netmf44</TargetFramework>
     <TargetFramework Condition="'$(TargetFramework)' == 'net'">net45</TargetFramework>
-    <TargetFramework Condition="'$(TargetFramework)' == 'win'">win8</TargetFramework>
   </PropertyGroup>
 
   <!--
