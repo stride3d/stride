@@ -7,7 +7,6 @@
   <PropertyGroup>
     <_SdkPlatformName>$(TargetFrameworkIdentifier)</_SdkPlatformName>
     <_SdkPlatformName Condition="'$(TargetFrameworkIdentifier)' == '.NETCore'">Windows</_SdkPlatformName>
-    <_SdkPlatformName Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">Portable</_SdkPlatformName>
     <_SdkPlatformName Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">NETFramework</_SdkPlatformName>
     <_SdkPlatformName Condition="$(TargetFrameworkIdentifier.StartsWith('Xamarin'))">Xamarin</_SdkPlatformName>
     <_SdkPlatformName Condition="'$(TargetFrameworkIdentifier)' == 'MonoAndroid' OR '$(TargetFrameworkIdentifier)' == 'MonoTouch' OR '$(TargetFrameworkIdentifier)' == 'MonoMac'">Xamarin</_SdkPlatformName>

@@ -8,9 +8,6 @@
     <!-- Convert 'TargetFramework' to lower case -->
     <TargetFramework>$(TargetFramework.ToLowerInvariant())</TargetFramework>
     <!-- if version-less framework-profile is specified then default to the highest supported version of that framework-profile -->
-    <TargetFramework Condition="'$(TargetFramework)' == 'net-client'">net40-client</TargetFramework>
-    <TargetFramework Condition="'$(TargetFramework)' == 'net-cf'">net35-cf</TargetFramework>
-    <TargetFramework Condition="'$(TargetFramework)' == 'netmf'">netmf44</TargetFramework>
     <TargetFramework Condition="'$(TargetFramework)' == 'net'">net45</TargetFramework>
   </PropertyGroup>
 
@@ -49,8 +46,6 @@
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'net'">.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'netstandard'">.NETStandard</TargetFrameworkIdentifier>
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'netcoreapp' OR ('$(_SdkShortFrameworkIdentifier)' == 'net' AND $(_SdkShortFrameworkVersion[0]) >= 5)">.NETCoreApp</TargetFrameworkIdentifier>
-    <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'portable'">.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'netmf'">.NETMicroFramework</TargetFrameworkIdentifier>
 
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'win'">.NETCore</TargetFrameworkIdentifier>
     <TargetFrameworkIdentifier Condition="'$(_SdkShortFrameworkIdentifier)' == 'uap'">.NETCore</TargetFrameworkIdentifier>
@@ -89,11 +84,6 @@
   </Choose>
 
   <Import Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" Project="$(MSBuildThisFileDirectory)FrameworkResolvers\NETFramework.targets"/>
-
-  <!-- Support for resolving portable framework profiles -->
-  <ImportGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
-    <Import Project="$(MSBuildThisFileDirectory)FrameworkResolvers\NETPortable.v*.targets"/>
-  </ImportGroup>
 
   <PropertyGroup>
     <_SdkTargetFrameworkVersionWithoutV>$(TargetFrameworkVersion)</_SdkTargetFrameworkVersionWithoutV>
