@@ -260,5 +260,11 @@ namespace Stride.Core.Mathematics
             y = Y;
             z = Z;
         }
+
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Half3((Half X, Half Y, Half Z) values) => new Half3(values.X, values.Y, values.Z);
     }
 }

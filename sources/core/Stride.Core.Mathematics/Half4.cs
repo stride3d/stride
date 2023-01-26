@@ -280,5 +280,11 @@ namespace Stride.Core.Mathematics
             z = Z;
             w = W;
         }
+        
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Half4((Half X, Half Y, Half Z, Half W) values) => new Half4(values.X, values.Y, values.Z, values.W);
     }
 }

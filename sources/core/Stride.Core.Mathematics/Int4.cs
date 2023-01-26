@@ -709,6 +709,5 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="values"></param>
         public static implicit operator Int4((int X, int Y, int Z, int W) values) => new Int4(values.X, values.Y, values.Z, values.W);
-
     }
 }
