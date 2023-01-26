@@ -771,6 +771,12 @@ namespace Stride.Core.Mathematics
             y = Y;
             z = Z;
         }
+                        
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Int3((int X, int Y, int Z) values) => new Int3(values.X, values.Y, values.Z);
 
 #if WPFInterop
         /// <summary>

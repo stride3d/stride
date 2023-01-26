@@ -1012,6 +1012,12 @@ namespace Stride.Core.Mathematics
             b = B;
             a = A;
         }
+        
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Color4((float R, float G, float B, float A) values) => new Color4(values.R, values.G, values.B, values.A);
 
     }
 }

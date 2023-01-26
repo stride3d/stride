@@ -1399,6 +1399,12 @@ namespace Stride.Core.Mathematics
             z = Z;
             w = W;
         }
+        
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Vector4((float X, float Y, float Z, float W) values) => new Vector4(values.X, values.Y, values.Z, values.W);
 
 #if WPFInterop
         /// <summary>

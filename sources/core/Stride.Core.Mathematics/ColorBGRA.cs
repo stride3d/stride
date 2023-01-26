@@ -1109,6 +1109,5 @@ namespace Stride.Core.Mathematics
             b = B;
             a = A;
         }
-
     }
 }

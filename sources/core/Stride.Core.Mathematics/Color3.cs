@@ -831,6 +831,13 @@ namespace Stride.Core.Mathematics
             b = B;
         }
 
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Color3((float R, float G, float B) values) => new Color3(values.R, values.G, values.B);
+
+
 #if SlimDX1xInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Color3"/> to <see cref="SlimDX.Color3"/>.

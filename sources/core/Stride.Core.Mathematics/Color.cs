@@ -1125,5 +1125,12 @@ namespace Stride.Core.Mathematics
             var value = (int)(component * 255.0f);
             return (byte)(value < 0 ? 0 : value > 255 ? 255 : value);
         }
+
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Color((byte R, byte G, byte B, byte A) values) => new Color(values.R, values.G, values.B, values.A);
+
     }
 }

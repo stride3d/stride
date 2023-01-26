@@ -153,6 +153,11 @@ namespace Stride.Core.Mathematics
             x = X;
             y = Y;
         }
-
+                
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Point((int X, int Y) values) => new Point(values.X, values.Y);
    }
 }

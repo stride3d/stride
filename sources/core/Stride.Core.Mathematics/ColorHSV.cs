@@ -214,5 +214,10 @@ namespace Stride.Core.Mathematics
             a = A;
         }
 
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator ColorHSV((float H, float S, float V, float A) values) => new ColorHSV(values.H, values.S, values.V, values.A);
     }
 }

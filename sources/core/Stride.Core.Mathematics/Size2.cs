@@ -138,5 +138,11 @@ namespace Stride.Core.Mathematics
             width = Width;
             height = Height;
         }
+                        
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Size2((int Width, int Height) values) => new Size2(values.Width, values.Height);
     }
 }

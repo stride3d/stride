@@ -1775,6 +1775,12 @@ namespace Stride.Core.Mathematics
             z = Z;
         }
 
+        /// <summary>
+        /// Implicitly convert equivalent ValueTuple.
+        /// </summary>
+        /// <param name="values"></param>
+        public static implicit operator Vector3((float X, float Y, float Z) values) => new Vector3(values.X, values.Y, values.Z);
+
 #if WPFInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector3"/> to <see cref="System.Windows.Media.Media3D.Vector3D"/>.
