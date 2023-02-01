@@ -30,6 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\buildengine\Stride.Core.BuildEngine.Common\Stride.Core.BuildEngine.Common.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
     <ProjectReference Include="..\Stride.Core.Packages\Stride.Core.Packages.csproj" />
   </ItemGroup>
   <ItemGroup>

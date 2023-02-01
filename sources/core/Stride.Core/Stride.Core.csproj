@@ -19,6 +19,14 @@
     <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
   </PropertyGroup>
   
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0|AnyCPU'">
+    <WarningLevel>7</WarningLevel>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0|AnyCPU'">
+    <WarningLevel>7</WarningLevel>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="ServiceWire" Version="5.3.4" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
