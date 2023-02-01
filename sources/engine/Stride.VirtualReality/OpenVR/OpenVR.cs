@@ -24,8 +24,11 @@ namespace Stride.VirtualReality
         /// <remarks>Take care to ensure that the struct has been initialized appropriately, otherwise the struct's fields could contain uninitialized data from the stack.</remarks>
         private static ref T SkipInit<T>(out T value)
         {
-            Unsafe.SkipInit(out value);
-            return ref value;
+            unsafe
+            {
+                Unsafe.SkipInit(out value);
+                return ref value;
+            }
         }
 
         public class Controller
