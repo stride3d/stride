@@ -380,26 +380,30 @@ namespace Stride.Graphics
 
         private SwapChain CreateSwapChainForDesktop(IntPtr handle)
         {
-            bufferCount = 1;
-            var backbufferFormat = Description.BackBufferFormat;
 #if STRIDE_GRAPHICS_API_DIRECT3D12
-            // TODO D3D12 (check if this setting make sense on D3D11 too?)
-            backbufferFormat = backbufferFormat.ToNonSRgb();
-            // TODO D3D12 Can we make it work with something else after?
-            bufferCount = 2;
+            var useFlipModel = true;
+#else
+            // https://devblogs.microsoft.com/directx/dxgi-flip-model/#what-do-i-have-to-do-to-use-flip-model
+            var useFlipModel = Description.MultisampleCount == MultisampleCount.None && IsFlipModelSupported();
 #endif
+
+            var backbufferFormat = Description.BackBufferFormat;
+            bufferCount = 1;
+
+            if (useFlipModel)
+            {
+                backbufferFormat = backbufferFormat.ToNonSRgb();
+                bufferCount = 2;
+            }
+            
             var description = new SwapChainDescription
                 {
                     ModeDescription = new ModeDescription(Description.BackBufferWidth, Description.BackBufferHeight, Description.RefreshRate.ToSharpDX(), (SharpDX.DXGI.Format)backbufferFormat), 
                     BufferCount = bufferCount, // TODO: Do we really need this to be configurable by the user?
                     OutputHandle = handle,
                     SampleDescription = new SampleDescription((int)Description.MultisampleCount, 0),
-#if STRIDE_GRAPHICS_API_DIRECT3D11
-                    SwapEffect = SwapEffect.Discard,
-#elif STRIDE_GRAPHICS_API_DIRECT3D12
-                    SwapEffect = SwapEffect.FlipDiscard,
-#endif
-                    Usage = SharpDX.DXGI.Usage.BackBuffer | SharpDX.DXGI.Usage.RenderTargetOutput,
+                    SwapEffect = useFlipModel ? SwapEffect.FlipDiscard : SwapEffect.Discard,
+                    Usage = Usage.BackBuffer | SharpDX.DXGI.Usage.RenderTargetOutput,
                     IsWindowed = true,
                     Flags = Description.IsFullScreen ? SwapChainFlags.AllowModeSwitch : SwapChainFlags.None, 
                 };
@@ -422,12 +426,21 @@ namespace Stride.Graphics
                 newSwapChain.IsFullScreen = true;
 
                 // This is really important to call ResizeBuffers AFTER switching to IsFullScreen 
-                newSwapChain.ResizeBuffers(bufferCount, Description.BackBufferWidth, Description.BackBufferHeight, (SharpDX.DXGI.Format)Description.BackBufferFormat, SwapChainFlags.AllowModeSwitch);
+                newSwapChain.ResizeBuffers(bufferCount, Description.BackBufferWidth, Description.BackBufferHeight, newFormat: default, SwapChainFlags.AllowModeSwitch);
             }
 
             return newSwapChain;
+
+            bool IsFlipModelSupported()
+            {
+                // From https://github.com/walbourn/directx-vs-templates/blob/main/d3d11game_win32_dr/DeviceResources.cpp#L138
+                using var dxgiDevice = GraphicsDevice.NativeDevice.QueryInterface<SharpDX.DXGI.Device>();
+                using var dxgiAdapter = dxgiDevice.Adapter;
+                using var dxgiFactory = dxgiAdapter.GetParent<SharpDX.DXGI.Factory4>();
+                return dxgiFactory != null;
+            }
         }
 #endif
+        }
     }
-}
 #endif
