@@ -6,10 +6,10 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Stride.LauncherApp.Resources;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
+using Stride.LauncherApp.Resources;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -75,35 +75,36 @@ namespace Stride.LauncherApp.ViewModels
             string urlData;
             try
             {
-                using (var response = await httpClient.GetAsync(string.Format(Urls.GettingStarted, version)))
-                {
-                    response.EnsureSuccessStatusCode();
-                    urlData = await response.Content.ReadAsStringAsync();
+                using var response = await httpClient.GetAsync(string.Format(Urls.GettingStarted, version));
+                response.EnsureSuccessStatusCode();
+                urlData = await response.Content.ReadAsStringAsync();
 
-                    if (urlData != null)
-                    {
-                        var urls = urlData.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var url in urls)
-                        {
-                            var match = ParsingRegex.Match(url);
-                            if (match.Success && match.Groups.Count == 4)
-                            {
-                                var link = match.Groups[3].Value;
-                                if (link.StartsWith(DocPageScheme))
-                                {
-                                    link = GetDocumentationPageUrl(version, link.Substring(DocPageScheme.Length));
-                                }
-                                var page = new DocumentationPageViewModel(serviceProvider, version)
-                                {
-                                    Title = match.Groups[1].Value.Trim(),
-                                    Description = match.Groups[2].Value.Trim(),
-                                    Url = link.Trim()
-                                };
-                                result.Add(page);
-                            }
-                        }
-                    }
+                if (urlData == null)
+                {
+                    return result;
                 }
+                var urls = urlData.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var url in urls)
+                {
+                    var match = ParsingRegex.Match(url);
+                    if (!match.Success || match.Groups.Count != 4)
+                    {
+                        continue;
+                    }
+                    var link = match.Groups[3].Value;
+                    if (link.StartsWith(DocPageScheme))
+                    {
+                        link = GetDocumentationPageUrl(version, link.Substring(DocPageScheme.Length));
+                    }
+                    var page = new DocumentationPageViewModel(serviceProvider, version)
+                    {
+                        Title = match.Groups[1].Value.Trim(),
+                        Description = match.Groups[2].Value.Trim(),
+                        Url = link.Trim()
+                    };
+                    result.Add(page);
+                }
+                return result;
             }
             catch (Exception)
             {

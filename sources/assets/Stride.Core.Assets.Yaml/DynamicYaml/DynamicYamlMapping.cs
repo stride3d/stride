@@ -263,7 +263,7 @@ namespace Stride.Core.Yaml
             var newMemberName = type == OverrideType.Base
                 ? key
                 : $"{key}{type.ToText()}";
-            
+
             keyMapping[key] = newMemberName;
             overrides[key] = type;
 
@@ -301,7 +301,7 @@ namespace Stride.Core.Yaml
                 keyMapping[key] = key;
             }
         }
-        
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return node.Children.Select(x => new KeyValuePair<dynamic, dynamic>(ConvertToDynamic(x.Key), ConvertToDynamic(x.Value))).ToArray().GetEnumerator();

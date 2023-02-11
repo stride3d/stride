@@ -7,6 +7,6 @@ namespace Stride.Core.Yaml
     /// </summary>
     public class DynamicYamlEmpty : DynamicYamlObject
     {
-        public static readonly DynamicYamlEmpty Default = new DynamicYamlEmpty();    
+        public static readonly DynamicYamlEmpty Default = new DynamicYamlEmpty();
     }
 }
