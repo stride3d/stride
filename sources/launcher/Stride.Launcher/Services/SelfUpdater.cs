@@ -87,98 +87,99 @@ namespace Stride.LauncherApp.Services
             var package = (packages.FirstOrDefault(x => x.Version > version && x.Version.SpecialVersion == "req") ?? packages.LastOrDefault());
 
             // Check to see if an update is needed
-            if (package != null && version < new PackageVersion(package.Version.Version, package.Version.SpecialVersion))
+            if (package == null || version >= new PackageVersion(package.Version.Version, package.Version.SpecialVersion))
             {
-                var windowCreated = new TaskCompletionSource<SelfUpdateWindow>();
-                var mainWindow = dispatcher.Invoke(() => Application.Current.MainWindow as LauncherWindow);
-                if (mainWindow == null)
-                    throw new ApplicationException("Update requested without a Launcher Window. Cannot continue!");
+                return;
+            }
+            var windowCreated = new TaskCompletionSource<SelfUpdateWindow>();
+            var mainWindow = dispatcher.Invoke(() => Application.Current.MainWindow as LauncherWindow);
+            if (mainWindow == null)
+                throw new ApplicationException("Update requested without a Launcher Window. Cannot continue!");
 
-                dispatcher.InvokeAsync(() =>
+            dispatcher.InvokeAsync(() =>
+            {
+                selfUpdateWindow = new SelfUpdateWindow { Owner = mainWindow };
+                windowCreated.SetResult(selfUpdateWindow);
+                selfUpdateWindow.ShowDialog();
+            }).Forget();
+
+            var movedFiles = new List<string>();
+
+            // Download package
+            var installedPackage = await store.InstallPackage(package.Id, package.Version, package.TargetFrameworks, null);
+
+            // Copy files from tools\ to the current directory
+            var inputFiles = installedPackage.GetFiles();
+
+            var window = windowCreated.Task.Result;
+            dispatcher.Invoke(window.LockWindow);
+
+            // TODO: We should get list of previous files from nuspec (store it as a resource and open it with NuGet API maybe?)
+            // TODO: For now, we deal only with the App.config file since we won't be able to fix it afterward.
+            var exeLocation = Launcher.GetExecutablePath();
+            var exeDirectory = Path.GetDirectoryName(exeLocation);
+            const string directoryRoot = "tools/"; // Important!: this is matching where files are store in the nuspec
+            try
+            {
+                if (File.Exists(exeLocation))
                 {
-                    selfUpdateWindow = new SelfUpdateWindow { Owner = mainWindow };
-                    windowCreated.SetResult(selfUpdateWindow);
-                    selfUpdateWindow.ShowDialog();
-                }).Forget();
+                    Move(exeLocation, exeLocation + ".old");
+                    movedFiles.Add(exeLocation);
+                }
+                var configLocation = exeLocation + ".config";
+                if (File.Exists(configLocation))
+                {
+                    Move(configLocation, configLocation + ".old");
+                    movedFiles.Add(configLocation);
+                }
+                foreach (var file in inputFiles.Where(file => file.Path.StartsWith(directoryRoot) && !file.Path.EndsWith("/")))
+                {
+                    var fileName = Path.Combine(exeDirectory, file.Path.Substring(directoryRoot.Length));
 
-                var movedFiles = new List<string>();
+                    // Move previous files to .old
+                    if (File.Exists(fileName))
+                    {
+                        Move(fileName, fileName + ".old");
+                        movedFiles.Add(fileName);
+                    }
 
-                // Download package
-                var installedPackage = await store.InstallPackage(package.Id, package.Version, package.TargetFrameworks, null);
+                    // Update the file
+                    UpdateFile(fileName, file);
+                }
+            }
+            catch (Exception)
+            {
+                // Revert all olds files if a file didn't work well
+                foreach (var oldFile in movedFiles)
+                {
+                    Move(oldFile + ".old", oldFile);
+                }
+                throw;
+            }
 
-                // Copy files from tools\ to the current directory
-                var inputFiles = installedPackage.GetFiles();
 
-                var window = windowCreated.Task.Result;
-                dispatcher.Invoke(window.LockWindow);
-
-                // TODO: We should get list of previous files from nuspec (store it as a resource and open it with NuGet API maybe?)
-                // TODO: For now, we deal only with the App.config file since we won't be able to fix it afterward.
-                var exeLocation = Launcher.GetExecutablePath();
-                var exeDirectory = Path.GetDirectoryName(exeLocation);
-                const string directoryRoot = "tools/"; // Important!: this is matching where files are store in the nuspec
+            // Remove .old files
+            foreach (var oldFile in movedFiles)
+            {
                 try
                 {
-                    if (File.Exists(exeLocation))
-                    {
-                        Move(exeLocation, exeLocation + ".old");
-                        movedFiles.Add(exeLocation);
-                    }
-                    var configLocation = exeLocation + ".config";
-                    if (File.Exists(configLocation))
-                    {
-                        Move(configLocation, configLocation + ".old");
-                        movedFiles.Add(configLocation);
-                    }
-                    foreach (var file in inputFiles.Where(file => file.Path.StartsWith(directoryRoot) && !file.Path.EndsWith("/")))
-                    {
-                        var fileName = Path.Combine(exeDirectory, file.Path.Substring(directoryRoot.Length));
+                    var renamedPath = oldFile + ".old";
 
-                        // Move previous files to .old
-                        if (File.Exists(fileName))
-                        {
-                            Move(fileName, fileName + ".old");
-                            movedFiles.Add(fileName);
-                        }
-
-                        // Update the file
-                        UpdateFile(fileName, file);
+                    if (File.Exists(renamedPath))
+                    {
+                        File.Delete(renamedPath);
                     }
                 }
                 catch (Exception)
                 {
-                    // Revert all olds files if a file didn't work well
-                    foreach (var oldFile in movedFiles)
-                    {
-                        Move(oldFile + ".old", oldFile);
-                    }
-                    throw;
+                    // All the files have been replaced, we let it go even if we cannot remove all the old files.
                 }
-
-
-                // Remove .old files
-                foreach (var oldFile in movedFiles)
-                {
-                    try
-                    {
-                        var renamedPath = oldFile + ".old";
-
-                        if (File.Exists(renamedPath))
-                        {
-                            File.Delete(renamedPath);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        // All the files have been replaced, we let it go even if we cannot remove all the old files.
-                    }
-                }
-
-                // Clean cache from files obtain via package.GetFiles above.
-                store.PurgeCache();
-
-                dispatcher.Invoke(RestartApplication);
             }
+
+            // Clean cache from files obtain via package.GetFiles above.
+            store.PurgeCache();
+
+            dispatcher.Invoke(RestartApplication);
         }
 
         private static void Move(string oldPath, string newPath)
@@ -238,10 +239,7 @@ namespace Stride.LauncherApp.Services
             {
                 await dispatcher.InvokeAsync(() =>
                 {
-                    if (selfUpdateWindow != null)
-                    {
-                        selfUpdateWindow.ForceClose();
-                    }
+                    selfUpdateWindow?.ForceClose();
                 });
 
                 await dialogService.MessageBox(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
@@ -261,10 +259,8 @@ namespace Stride.LauncherApp.Services
         private static void UpdateFile(string newFilePath, PackageFile file)
         {
             EnsureDirectory(newFilePath);
-            using (Stream fromStream = file.GetStream(), toStream = File.Create(newFilePath))
-            {
-                fromStream.CopyTo(toStream);
-            }
+            using Stream fromStream = file.GetStream(), toStream = File.Create(newFilePath);
+            fromStream.CopyTo(toStream);
         }
 
         public static void RestartApplication()

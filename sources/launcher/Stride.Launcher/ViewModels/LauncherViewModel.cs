@@ -38,7 +38,7 @@ namespace Stride.LauncherApp.ViewModels
         private bool isOffline;
         private bool isSynchronizing = true;
         private string currentToolTip;
-        private List<(DateTime Time, MessageLevel Level, string Message)> logMessages = new List<(DateTime, MessageLevel, string)>();
+        private List<(DateTime Time, MessageLevel Level, string Message)> logMessages = new();
         private bool autoCloseLauncher = LauncherSettings.CloseLauncherAutomatically;
         private bool lastActiveVersionRestored;
         private AnnouncementViewModel announcement;
@@ -48,9 +48,8 @@ namespace Stride.LauncherApp.ViewModels
         internal LauncherViewModel(IViewModelServiceProvider serviceProvider, NugetStore store)
             : base(serviceProvider)
         {
-            if (store == null) throw new ArgumentNullException(nameof(store));
             DependentProperties.Add("ActiveVersion", new[] { "ActiveDocumentationPages" });
-            this.store = store;
+            this.store = store ?? throw new ArgumentNullException(nameof(store));
             store.Logger = this;
 
             DisplayReleaseAnnouncement();
@@ -70,16 +69,17 @@ namespace Stride.LauncherApp.ViewModels
             CheckDeprecatedSourcesCommand = new AnonymousTaskCommand(ServiceProvider, async () =>
             {
                 var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
-                if (!NugetStore.CheckPackageSource(settings, "Stride"))
+                if (NugetStore.CheckPackageSource(settings, "Stride"))
                 {
-                    // Add Stride package store (still used for Xenko up to 3.0)
-                    if (await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskAddNugetDeprecatedSource, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                    {
-                        NugetStore.UpdatePackageSource(settings, "Stride", "https://packages.stride3d.net/nuget");
-                        settings.SaveToDisk();
+                    return;
+                }
+                // Add Stride package store (still used for Xenko up to 3.0)
+                if (await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskAddNugetDeprecatedSource, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    NugetStore.UpdatePackageSource(settings, "Stride", "https://packages.stride3d.net/nuget");
+                    settings.SaveToDisk();
 
-                        SelfUpdater.RestartApplication();
-                    }
+                    SelfUpdater.RestartApplication();
                 }
             });
 
@@ -233,7 +233,7 @@ namespace Stride.LauncherApp.ViewModels
                 => (obj.Id.GetHashCode() ^ obj.Version.ToString().GetHashCode());
         }
 
-        private HashSet<NugetLocalPackage> referencedPackages = new HashSet<NugetLocalPackage>(ReferencedPackageEqualityComparer.Instance);
+        private HashSet<NugetLocalPackage> referencedPackages = new(ReferencedPackageEqualityComparer.Instance);
 
         private async Task RemoveUnusedPackages(IEnumerable<NugetLocalPackage> mainPackages)
         {
@@ -254,15 +254,17 @@ namespace Stride.LauncherApp.ViewModels
             foreach (var dependency in package.Dependencies)
             {
                 string prefix = dependency.Item1.Split('.', 2)[0];
-                if ((prefix == "Stride") || (prefix == "Xenko"))
+                if (prefix is not "Stride" and not "Xenko")
                 {
-                    NugetLocalPackage dependencyPackage = store.FindLocalPackage(dependency.Item1, dependency.Item2);
-                    if ((dependencyPackage != null) && (!referencedPackages.Contains(dependencyPackage)))
-                    {
-                        referencedPackages.Add(dependencyPackage);
-                        await FindReferencedPackages(dependencyPackage);
-                    }
+                    continue;
                 }
+                NugetLocalPackage dependencyPackage = store.FindLocalPackage(dependency.Item1, dependency.Item2);
+                if (dependencyPackage == null || referencedPackages.Contains(dependencyPackage))
+                {
+                    continue;
+                }
+                referencedPackages.Add(dependencyPackage);
+                await FindReferencedPackages(dependencyPackage);
             }
         }
 
@@ -324,7 +326,7 @@ namespace Stride.LauncherApp.ViewModels
                     Dispatcher.Invoke(() =>
                     {
                         foreach (var strideUninstalledVersion in strideVersions.OfType<StrideStoreVersionViewModel>().Where(x => !updatedLocalPackages.Contains(x)))
-                            strideUninstalledVersion.UpdateLocalPackage(null, new NugetLocalPackage[0]);
+                            strideUninstalledVersion.UpdateLocalPackage(null, Array.Empty<NugetLocalPackage>());
                     });
 
                     // Update the active version if it is now invalid.
@@ -380,8 +382,7 @@ namespace Stride.LauncherApp.ViewModels
                             if (version is StrideDevVersionViewModel)
                                 project.CompatibleVersions.Add(version);
 
-                            var storeVersion = version as StrideStoreVersionViewModel;
-                            if (storeVersion != null && storeVersion.CanDelete)
+                            if (version is StrideStoreVersionViewModel storeVersion && storeVersion.CanDelete)
                             {
                                 // Discard the version that matches the recent project version
                                 if (project.StrideVersion == new Version(storeVersion.Version.Version.Major, storeVersion.Version.Version.Minor))
@@ -403,7 +404,12 @@ namespace Stride.LauncherApp.ViewModels
         {
             try
             {
-                var serverPackages = await RunLockTask(() => store.FindSourcePackages(store.MainPackageIds, CancellationToken.None).Result.FilterStrideMainPackages().Where(p => !store.IsDevRedirectPackage(p)).OrderByDescending(p => p.Version).ToList());
+                var serverPackages = await RunLockTask(() => store
+                    .FindSourcePackages(store.MainPackageIds, CancellationToken.None).Result
+                    .FilterStrideMainPackages()
+                    .Where(p => !store.IsDevRedirectPackage(p))
+                    .OrderByDescending(p => p.Version)
+                    .ToList());
 
                 // Check if we could connect to the server
                 var wasOffline = IsOffline;
@@ -567,8 +573,7 @@ namespace Stride.LauncherApp.ViewModels
                 var mainExecutable = ActiveVersion.LocateMainExecutable();
 
                 // If version is older than 1.2.0, than we need to log the usage of older version
-                var activeStoreVersion = ActiveVersion as StrideStoreVersionViewModel;
-                if (activeStoreVersion != null && activeStoreVersion.Version.Version < new Version(1, 2, 0, 0))
+                if (ActiveVersion is StrideStoreVersionViewModel activeStoreVersion && activeStoreVersion.Version.Version < new Version(1, 2, 0, 0))
                 {
                     metricsForEditorBefore120 = new MetricsClient(CommonApps.StrideEditorAppId, versionOverride: activeStoreVersion.Version.ToString());
                 }
