@@ -8,15 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Reflection;
-using Stride.Core.Presentation.Services;
-using Stride.Assets.Presentation.AssetEditors;
-using Stride.Assets.Presentation.ViewModel;
-using Stride.Assets.Scripts;
 using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors
@@ -75,9 +70,9 @@ namespace Stride.Assets.Presentation.AssetEditors
             LatestCompilation = gameProjectCompilation;
             LatestCompilationChanged?.Invoke(this, EventArgs.Empty);
 
-            var assemblyFullName = gameProjectCompilation.Assembly.Identity.GetDisplayName();
+            var assemblyFullName = gameProjectCompilation.Assembly.Name;
 
-            var strideScriptType = gameProjectCompilation.GetTypeByMetadataName(typeof(ScriptComponent).FullName);
+            var strideScriptType = typeof(ScriptComponent);
 
             var symbols = gameProjectCompilation.GetSymbolsWithName(x => true, SymbolFilter.Type).Cast<ITypeSymbol>().ToList();
             if (!symbols.Any())
@@ -85,7 +80,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 return;
             }
 
-            var assembly = AssemblyRegistry.FindAll()?.FirstOrDefault(x => x.FullName == assemblyFullName);
+            var assembly = AssemblyRegistry.FindAll()?.FirstOrDefault(x => x.GetName().Name == assemblyFullName);
             if (assembly == null)
             {
                 return;
@@ -97,21 +92,6 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             foreach (var symbol in symbols)
             {
-                //recurse basetypes up to finding Script type
-                var baseType = symbol.BaseType;
-                var scriptType = false;
-                while (baseType != null)
-                {
-                    if (baseType == strideScriptType)
-                    {
-                        scriptType = true;
-                        break;
-                    }
-                    baseType = baseType.BaseType;
-                }
-
-                if (!scriptType) continue;
-
                 //find the script paths, (could be multiple in the case of partial)
                 foreach (var location in symbol.Locations)
                 {
@@ -119,6 +99,8 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                     //find the real type, and add to the dictionary
                     var realType = types.FirstOrDefault(x => x.Name == symbol.Name && x.Namespace == symbol.GetFullNamespace());
+                    if (!strideScriptType.IsAssignableFrom(realType))
+                        continue;
 
                     if (!typesDict.ContainsKey(csPath))
                     {
