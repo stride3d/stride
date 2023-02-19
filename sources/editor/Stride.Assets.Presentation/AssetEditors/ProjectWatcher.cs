@@ -22,6 +22,7 @@ using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Project = Microsoft.CodeAnalysis.Project;
+using System.Diagnostics;
 
 namespace Stride.Assets.Presentation.AssetEditors
 {
@@ -354,8 +355,6 @@ namespace Stride.Assets.Presentation.AssetEditors
         {
             if (msbuildWorkspace == null)
             {
-                // Only load workspace for C# assemblies (default includes VB but not added as a NuGet package)
-                //var csharpWorkspaceAssemblies = new[] { Assembly.Load("Microsoft.CodeAnalysis.Workspaces"), Assembly.Load("Microsoft.CodeAnalysis.CSharp.Workspaces"), Assembly.Load("Microsoft.CodeAnalysis.Workspaces.Desktop") };
                 var host = await RoslynHost;
                 msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
             }
@@ -370,43 +369,13 @@ namespace Stride.Assets.Presentation.AssetEditors
                 {
                     var project = await msbuildWorkspace.OpenProjectAsync(projectPath.ToWindowsPath());
 
-                    // Change the default CSharp language version to match the supported version for a specific visual studio version or MSBuild version
-                    //  this is because roslyn  will always resolve Default to Latest which might not match the 
-                    //  latest version supported by the build tools installed on the machine
-                    var csharpParseOptions = project.ParseOptions as CSharpParseOptions;
-                    if (csharpParseOptions != null)
+                    if (msbuildWorkspace.Diagnostics.Count > 0)
                     {
-                        if (csharpParseOptions.SpecifiedLanguageVersion == LanguageVersion.Default || csharpParseOptions.SpecifiedLanguageVersion == LanguageVersion.Latest)
-                        {
-                            LanguageVersion targetLanguageVersion = csharpParseOptions.SpecifiedLanguageVersion;
-
-                            // Check the visual studio version inside the solution first, which is what visual studio uses to decide which version to open
-                            //  this should not be confused with the toolsVersion below, since this is the MSBuild version (they might be different)
-                            Version visualStudioVersion = session.CurrentProject?.Package.Session.VisualStudioVersion;
-                            if (visualStudioVersion != null)
-                            {
-                                if (visualStudioVersion.Major <= 14)
-                                {
-                                    targetLanguageVersion = LanguageVersion.CSharp6;
-                                }
-
-                            }
-                            else 
-                            {
-                                // Fallback to checking the tools version on the csproj 
-                                //  this happens when you open an sdpkg instead of a sln file as a project
-                                ProjectRootElement xml = ProjectRootElement.Open(projectPath);
-                                Version toolsVersion;
-                                if (Version.TryParse(xml.ToolsVersion, out toolsVersion))
-                                {
-                                    if (toolsVersion.Major <= 14)
-                                    {
-                                        targetLanguageVersion = LanguageVersion.CSharp6;
-                                    }
-                                }
-                            }
-                            project = project.WithParseOptions(csharpParseOptions.WithLanguageVersion(targetLanguageVersion));
-                        }
+                        // There was an issue compiling the project
+                        // at the moment there's no mechanism to surface those errors to the UI, so leaving this in here:
+                        //if (Debugger.IsAttached) Debugger.Break();
+                        foreach (var diagnostic in msbuildWorkspace.Diagnostics)
+                            Debug.WriteLine(diagnostic.Message, category: nameof(ProjectWatcher));
                     }
                     return project;
                 }
