@@ -136,7 +136,7 @@ namespace Stride.Core.Assets
                             var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
 
 #if NETCOREAPP
-                            // Add TargetPlatform to net7.0 TFM (i.e. net7.0 to net7.0-windows7.0)
+                            // Add TargetPlatform to net8.0 TFM (i.e. net8.0 to net8.0-windows7.0)
                             var platform = metadataAssembly?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
                             if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp) && platform != string.Empty)
                             {

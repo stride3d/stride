@@ -337,7 +337,7 @@ namespace Stride.Core.Packages
 
                         // In case it's a package without any TFM (i.e. Visual Studio plugin), we still need to specify one
                         if (!targetFrameworks.Any())
-                            targetFrameworks = new string[] { "net7.0" };
+                            targetFrameworks = new string[] { "net8.0" };
 
                         // Old version expects to be installed in GamePackages
                         if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)

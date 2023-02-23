@@ -2,7 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <StrideEditorTargetFramework>net7.0-windows7.0</StrideEditorTargetFramework>
+    <StrideEditorTargetFramework>net8.0-windows7.0</StrideEditorTargetFramework>
   </PropertyGroup>
 
 </Project>

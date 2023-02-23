@@ -6,6 +6,6 @@
     <!-- Defines the platform used by Stride - Values are Windows/Android/iOS...etc. -->
     <StridePlatform Condition=" '$(StridePlatform)' == '' ">Windows</StridePlatform>
 
-    <StrideEditorTargetFrameworks>net7.0-windows7.0</StrideEditorTargetFrameworks>
+    <StrideEditorTargetFrameworks>net8.0-windows7.0</StrideEditorTargetFrameworks>
   </PropertyGroup>
 </Project>

@@ -9,10 +9,10 @@
 
   <!-- Setup StridePlatform according to current TargetFramework -->
   <PropertyGroup>
-    <StrideFramework>net7.0</StrideFramework>
-    <StrideFrameworkWindows>net7.0-windows7.0</StrideFrameworkWindows>
-    <StrideFrameworkAndroid>net7.0-android</StrideFrameworkAndroid>
-    <StrideFrameworkiOS>net7.0-ios</StrideFrameworkiOS>
+    <StrideFramework>net8.0</StrideFramework>
+    <StrideFrameworkWindows>net8.0-windows7.0</StrideFrameworkWindows>
+    <StrideFrameworkAndroid>net8.0-android</StrideFrameworkAndroid>
+    <StrideFrameworkiOS>net8.0-ios</StrideFrameworkiOS>
     <StrideFrameworkUWP>uap10.0.16299</StrideFrameworkUWP>
 
     <!-- Default values -->
@@ -44,7 +44,7 @@
     Settings StridePlatform specific
   -->
   <PropertyGroup>
-    <!-- Using C# version 11.0 which targets net7.0 -->
+    <!-- Using C# version 11.0 which targets net8.0 -->
     <LangVersion>11.0</LangVersion>
     <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
 
@@ -63,12 +63,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
-    <!-- Add net7.0 no matter what (needed for references) -->
-    <StrideRuntimeTargetFrameworks>net7.0</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet6)' == 'true'">$(StrideRuntimeTargetFrameworks);net7.0-windows7.0</StrideRuntimeTargetFrameworks>
+    <!-- Add net8.0 no matter what (needed for references) -->
+    <StrideRuntimeTargetFrameworks>net8.0</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet6)' == 'true'">$(StrideRuntimeTargetFrameworks);net8.0-windows7.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);net7.0-android</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);net7.0-ios</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);net8.0-android</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);net8.0-ios</StrideRuntimeTargetFrameworks>
 
     <StrideRuntimeTargetFrameworks>$([MSBuild]::Unescape($(StrideRuntimeTargetFrameworks.Trim(';'))))</StrideRuntimeTargetFrameworks>
 
