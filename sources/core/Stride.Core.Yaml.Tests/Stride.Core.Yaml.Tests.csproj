@@ -3,7 +3,7 @@
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>

@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <OutputType Condition="'$(OutputType)' == ''">Exe</OutputType>
-    <TargetFramework>net6.0-windows7.0</TargetFramework>
+    <TargetFramework>net7.0-windows7.0</TargetFramework>
     <UseWpf>true</UseWpf>
     <UseWindowsForms>true</UseWindowsForms>
     <IntermediateOutputPath>obj\$(Configuration)\$(StrideApplicationName)</IntermediateOutputPath>

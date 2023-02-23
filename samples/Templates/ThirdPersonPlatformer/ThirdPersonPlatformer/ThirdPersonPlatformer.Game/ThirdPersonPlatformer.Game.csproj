@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>net7.0</TargetFrameworks>
     <RootNamespace>ThirdPersonPlatformer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>

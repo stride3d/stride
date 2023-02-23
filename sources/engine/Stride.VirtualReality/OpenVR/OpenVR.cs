@@ -22,7 +22,7 @@ namespace Stride.VirtualReality
         /// <param name="value">The reference whose initialization should be skipped.</param>
         /// <returns>The reference to <paramref name="value"/>.</returns>
         /// <remarks>Take care to ensure that the struct has been initialized appropriately, otherwise the struct's fields could contain uninitialized data from the stack.</remarks>
-        private static ref T SkipInit<T>(out T value)
+        private static unsafe ref T SkipInit<T>(out T value)
         {
             Unsafe.SkipInit(out value);
             return ref value;

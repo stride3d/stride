@@ -62,7 +62,7 @@ namespace Stride.Assets
             {
                 Name = PlatformType.Windows.ToString(),
                 IsAvailable = true,
-                TargetFramework = "net6.0-windows",
+                TargetFramework = "net7.0-windows",
                 RuntimeIdentifier = "win-x64",
                 Type = PlatformType.Windows
             };
