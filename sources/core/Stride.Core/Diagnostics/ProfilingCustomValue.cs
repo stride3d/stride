@@ -23,6 +23,15 @@ namespace Stride.Core.Diagnostics
         [FieldOffset(8)]
         public Type ValueType;
 
+        public object ToObject()
+        {
+            if (ValueType == typeof(int)) return IntValue;
+            else if (ValueType == typeof(float)) return FloatValue;
+            else if (ValueType == typeof(long)) return LongValue;
+            else if (ValueType == typeof(double)) return DoubleValue;
+            else throw new InvalidOperationException($"{nameof(ValueType)} is not one of the expected types.");
+        }
+
         public static implicit operator ProfilingCustomValue(int value)
         {
             return new ProfilingCustomValue { IntValue = value, ValueType = typeof(int) };

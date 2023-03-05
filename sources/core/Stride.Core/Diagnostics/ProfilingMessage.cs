@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Stride.Core.Annotations;
 
@@ -29,14 +29,15 @@ namespace Stride.Core.Diagnostics
         /// <param name="profilingKey">The profile key.</param>
         /// <param name="profilingType">Type of the profile.</param>
         /// <param name="text">The text.</param>
-        public ProfilingMessage(int profileId, [NotNull] ProfilingKey profilingKey, ProfilingMessageType profilingType, string text)
-            : base("Profiler", LogMessageType.Info, text)
+        public ProfilingMessage(int profileId, [NotNull] ProfilingKey profilingKey, ProfilingMessageType profilingType, ProfilingEventMessage? message)
+            : base("Profiler", LogMessageType.Info, null)
         {
             if (profilingKey == null) throw new ArgumentNullException(nameof(profilingKey));
 
             Id = profileId;
             Key = profilingKey;
             ProfilingType = profilingType;
+            Message = message;
         }
 
         /// <summary>
@@ -56,7 +57,24 @@ namespace Stride.Core.Diagnostics
         /// </summary>
         /// <value>The type of the profile.</value>
         public ProfilingMessageType ProfilingType { get; }
- 
+
+        /// <summary>
+        /// Event message.
+        /// </summary>
+        public ProfilingEventMessage? Message { get; }
+
+        /// <summary>
+        /// Text of the log.
+        /// </summary>
+        public override string Text
+        {
+            get => Message?.ToString();
+            set
+            {
+                if (value != null) throw new NotSupportedException("Set Message instead.");
+            }
+        }
+
         /// <summary>
         /// Gets or sets the time elapsed for this particular profile.
         /// </summary>
@@ -67,11 +85,16 @@ namespace Stride.Core.Diagnostics
         /// Gets attributes attached to this message. May be null.
         /// </summary>
         /// <value>The properties.</value>
-        public Dictionary<object, object> Attributes { get; set; }
+        public TagList Attributes { get; set; }
 
         public override string ToString()
         {
-            var builder = new StringBuilder(Text != null ? $": {Text}" : string.Empty);
+            // initializing a large builder to not have to waste time slowly increasing the space for the string
+            var builder = new StringBuilder(128);
+            
+            builder.Append(": ");
+            Message?.ToString(builder);
+
             var hasElapsed = false;
             if (ProfilingType != ProfilingMessageType.Begin)
             {
@@ -92,7 +115,7 @@ namespace Stride.Core.Diagnostics
                 hasElapsed = true;
             }
 
-            if (Attributes != null && Attributes.Count > 0)
+            if (Attributes.Count > 0)
             {
                 if (!hasElapsed)
                 {

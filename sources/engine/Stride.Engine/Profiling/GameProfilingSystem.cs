@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using Stride.Core;
@@ -26,11 +25,9 @@ namespace Stride.Profiling
 
         private readonly StringBuilder gcMemoryStringBuilder = new StringBuilder();
         private string gcMemoryString = string.Empty;
-        private readonly string gcMemoryStringBase;
 
         private readonly StringBuilder gcCollectionsStringBuilder = new StringBuilder();
         private string gcCollectionsString = string.Empty;
-        private readonly string gcCollectionsStringBase;
 
         private readonly StringBuilder fpsStatStringBuilder = new StringBuilder();
         private string fpsStatString = string.Empty;
@@ -76,11 +73,6 @@ namespace Stride.Profiling
             public int MarkCount;
             public ProfilingEvent? Event;
 
-            public ProfilingCustomValue? Custom0;
-            public ProfilingCustomValue? Custom1;
-            public ProfilingCustomValue? Custom2;
-            public ProfilingCustomValue? Custom3;
-
             public int Compare(ProfilingResult x, ProfilingResult y)
             {
                 return Math.Sign(x.AccumulatedTime - y.AccumulatedTime);
@@ -99,9 +91,6 @@ namespace Stride.Profiling
             DrawOrder = 0xfffffe;
 
             gcProfiler = new GcProfiling();
-
-            gcMemoryStringBase = "Allocated memory> Total: {0:0.00}MB Peak: {1:0.00}MB Allocations: {2:0.00}KB";
-            gcCollectionsStringBase = "Garbage collections> Gen0: {0}, Gen1: {1}, Gen2: {2}";
         }
 
         private readonly Stopwatch dumpTiming = Stopwatch.StartNew();
@@ -152,17 +141,17 @@ namespace Stride.Profiling
                 foreach (var e in events)
                 {
                     //gc profiling is a special case
-                    if (e.Key == GcProfiling.GcMemoryKey && e.Custom0.HasValue && e.Custom1.HasValue && e.Custom2.HasValue)
+                    if (e.Key == GcProfiling.GcMemoryKey)
                     {
                         gcMemoryStringBuilder.Clear();
-                        gcMemoryStringBuilder.AppendFormat(gcMemoryStringBase, e.Custom0.Value.LongValue / mb, e.Custom2.Value.LongValue / mb, e.Custom1.Value.LongValue / kb);
+                        e.Message?.ToString(gcMemoryStringBuilder);
                         continue;
                     }
 
-                    if (e.Key == GcProfiling.GcCollectionCountKey && e.Custom0.HasValue && e.Custom1.HasValue && e.Custom2.HasValue)
+                    if (e.Key == GcProfiling.GcCollectionCountKey)
                     {
                         gcCollectionsStringBuilder.Clear();
-                        gcCollectionsStringBuilder.AppendFormat(gcCollectionsStringBase, e.Custom0.Value.IntValue, e.Custom1.Value.IntValue, e.Custom2.Value.IntValue);
+                        e.Message?.ToString(gcCollectionsStringBuilder);
                         continue;
                     }
 
@@ -191,23 +180,6 @@ namespace Stride.Profiling
                     {
                         profilingResult.MarkCount++;
                         containsMarks = true;
-                    }
-
-                    if (e.Custom0.HasValue)
-                    {
-                        profilingResult.Custom0 = e.Custom0.Value;
-                    }
-                    if (e.Custom1.HasValue)
-                    {
-                        profilingResult.Custom1 = e.Custom1.Value;
-                    }
-                    if (e.Custom2.HasValue)
-                    {
-                        profilingResult.Custom2 = e.Custom2.Value;
-                    }
-                    if (e.Custom3.HasValue)
-                    {
-                        profilingResult.Custom3 = e.Custom3.Value;
                     }
 
                     profilingResultsDictionary[e.Key] = profilingResult;
@@ -299,37 +271,13 @@ namespace Stride.Profiling
             profilersStringBuilder.Append(profilingEvent.Key);
             // ReSharper disable once ReplaceWithStringIsNullOrEmpty
             // This was creating memory allocation (GetEnumerable())
-            if (profilingEvent.Text != null && profilingEvent.Text != string.Empty)
+            if (profilingEvent.Message != null)
             {
                 profilersStringBuilder.Append(" / ");
-                profilersStringBuilder.AppendFormat(profilingEvent.Text, GetValue(profilingResult.Custom0), GetValue(profilingResult.Custom1), GetValue(profilingResult.Custom2), GetValue(profilingResult.Custom3));
+                profilingEvent.Message?.ToString(profilersStringBuilder);
             }
 
             profilersStringBuilder.Append("\n");
-        }
-
-        private static string GetValue(ProfilingCustomValue? value)
-        {
-            if (!value.HasValue) return string.Empty;
-
-            if (value.Value.ValueType == typeof(int))
-            {
-                return value.Value.IntValue.ToString();
-            }
-            if (value.Value.ValueType == typeof(float))
-            {
-                return value.Value.FloatValue.ToString(CultureInfo.InvariantCulture);
-            }
-            if (value.Value.ValueType == typeof(long))
-            {
-                return value.Value.LongValue.ToString();
-            }
-            if (value.Value.ValueType == typeof(double))
-            {
-                return value.Value.DoubleValue.ToString(CultureInfo.InvariantCulture);
-            }
-
-            return string.Empty;
         }
 
         /// <inheritdoc/>

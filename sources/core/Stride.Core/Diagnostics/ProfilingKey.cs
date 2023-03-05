@@ -21,9 +21,8 @@ namespace Stride.Core.Diagnostics
         /// <param name="name">The name.</param>
         public ProfilingKey([NotNull] string name, ProfilingKeyFlags flags = ProfilingKeyFlags.None)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
+            Name = ValidateNameNotEmpty(name);
             Children = new List<ProfilingKey>();
-            Name = name;
             Flags = flags;
 
             lock (AllKeys)
@@ -39,21 +38,11 @@ namespace Stride.Core.Diagnostics
         /// <param name="name">The name.</param>
         /// <exception cref="System.ArgumentNullException">parent</exception>
         public ProfilingKey([NotNull] ProfilingKey parent, [NotNull] string name, ProfilingKeyFlags flags = ProfilingKeyFlags.None)
+            : this($"{parent ?? throw new ArgumentNullException(nameof(parent))}.{ValidateNameNotEmpty(name)}", flags)
         {
-            if (parent == null) throw new ArgumentNullException(nameof(parent));
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            Children = new List<ProfilingKey>();
             Parent = parent;
-            Name = $"{Parent}.{name}";
-            Flags = flags;
-
-            lock (AllKeys)
-            {
-                // Register ourself in parent's children.
-                parent.Children?.Add(this);
-
-                AllKeys.Add(this);
-            }
+            // Register ourself in parent's children.
+            parent.Children?.Add(this);
         }
 
         /// <summary>
@@ -80,5 +69,8 @@ namespace Stride.Core.Diagnostics
         {
             return Name;
         }
+
+        private static string ValidateNameNotEmpty(string name) =>
+            !string.IsNullOrWhiteSpace(name) ? name : throw new ArgumentException("Name cannot be empty", nameof(name));
     }
 }

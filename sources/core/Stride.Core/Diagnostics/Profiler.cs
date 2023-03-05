@@ -186,27 +186,10 @@ namespace Stride.Core.Diagnostics
         /// <returns>A profiler state.</returns>
         /// <remarks>It is recommended to call this method with <c>using (var profile = Profiler.Profile(...))</c> in order to make sure that the Dispose() method will be called on the
         /// <see cref="ProfilingState" /> returned object.</remarks>
-        public static ProfilingState Begin([NotNull] ProfilingKey profilingKey, string text = null)
+        public static ProfilingState Begin([NotNull] ProfilingKey profilingKey)
         {
             var profiler = New(profilingKey);
-            profiler.Begin(text);
-            return profiler;
-        }
-
-        /// <summary>
-        /// Creates a profiler with the specified key. The returned object must be disposed at the end of the section
-        /// being profiled. See remarks.
-        /// </summary>
-        /// <param name="profilingKey">The profile key.</param>
-        /// <param name="textFormat">The text to format.</param>
-        /// <param name="textFormatArguments">The text format arguments.</param>
-        /// <returns>A profiler state.</returns>
-        /// <remarks>It is recommended to call this method with <c>using (var profile = Profiler.Profile(...))</c> in order to make sure that the Dispose() method will be called on the
-        /// <see cref="ProfilingState" /> returned object.</remarks>
-        public static ProfilingState Begin([NotNull] ProfilingKey profilingKey, string textFormat, params object[] textFormatArguments)
-        {
-            var profiler = New(profilingKey);
-            profiler.Begin(textFormat, textFormatArguments);
+            profiler.Begin();
             return profiler;
         }
 
@@ -223,31 +206,10 @@ namespace Stride.Core.Diagnostics
         /// <returns>A profiler state.</returns>
         /// <remarks>It is recommended to call this method with <c>using (var profile = Profiler.Profile(...))</c> in order to make sure that the Dispose() method will be called on the
         /// <see cref="ProfilingState" /> returned object.</remarks>
-        public static ProfilingState Begin([NotNull] ProfilingKey profilingKey, string textFormat, ProfilingCustomValue value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
+        public static ProfilingState Begin([NotNull] ProfilingKey profilingKey, string textFormat, ProfilingCustomValue? value0 = null, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
             var profiler = New(profilingKey);
-            if (value1.HasValue)
-            {
-                if (value2.HasValue)
-                {
-                    if (value3.HasValue)
-                    {
-                        profiler.Begin(textFormat, value0, value1.Value, value2.Value, value3.Value);
-                    }
-                    else
-                    {
-                        profiler.Begin(textFormat, value0, value1.Value, value2.Value);
-                    }
-                }
-                else
-                {
-                    profiler.Begin(textFormat, value0, value1.Value);
-                }
-            }
-            else
-            {
-                profiler.Begin(textFormat, value0);
-            }
+            profiler.Begin(textFormat, value0, value1, value2, value3);
             return profiler;
         }
 
@@ -271,7 +233,7 @@ namespace Stride.Core.Diagnostics
 
             // Log it
             if ((profilingEvent.Key.Flags & ProfilingKeyFlags.Log) != 0)
-                Logger.Log(new ProfilingMessage(profilingEvent.Id, profilingEvent.Key, profilingEvent.Type) { Attributes = profilingEvent.Attributes, ElapsedTime = new TimeSpan((profilingEvent.ElapsedTime * 10000000) / Stopwatch.Frequency), Text = profilingEvent.Text });
+                Logger.Log(new ProfilingMessage(profilingEvent.Id, profilingEvent.Key, profilingEvent.Type, profilingEvent.Message) { Attributes = profilingEvent.Attributes, ElapsedTime = new TimeSpan((profilingEvent.ElapsedTime * 10000000) / Stopwatch.Frequency) });
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Stride.Core.Diagnostics
 {
@@ -36,19 +36,14 @@ namespace Stride.Core.Diagnostics
         public readonly long ElapsedTime;
 
         /// <summary>
-        /// The text.
+        /// The message.
         /// </summary>
-        public readonly string Text;
+        public readonly ProfilingEventMessage? Message;
 
         /// <summary>
         /// The attributes
         /// </summary>
-        public readonly Dictionary<object, object> Attributes;
-
-        public readonly ProfilingCustomValue? Custom0;
-        public readonly ProfilingCustomValue? Custom1;
-        public readonly ProfilingCustomValue? Custom2;
-        public readonly ProfilingCustomValue? Custom3;
+        public readonly TagList Attributes;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfilingEvent" /> struct.
@@ -58,36 +53,24 @@ namespace Stride.Core.Diagnostics
         /// <param name="profilingType">Type of the profiling.</param>
         /// <param name="timeStamp"></param>
         /// <param name="elapsedTime">The elapsed time.</param>
-        /// <param name="text">The text.</param>
+        /// <param name="Message">The message.</param>
         /// <param name="attributes">The attributes.</param>
-        /// <param name="value0"></param>
-        /// <param name="value1"></param>
-        /// <param name="value2"></param>
-        /// <param name="value3"></param>
         public ProfilingEvent(
             int profileId, 
             ProfilingKey profilingKey, 
             ProfilingMessageType profilingType, 
             long timeStamp, 
             long elapsedTime, 
-            string text, 
-            Dictionary<object, object> attributes,
-            ProfilingCustomValue? value0 = null,
-            ProfilingCustomValue? value1 = null,
-            ProfilingCustomValue? value2 = null,
-            ProfilingCustomValue? value3 = null)
+            ProfilingEventMessage? message,
+            TagList attributes)
         {
             Id = profileId;
             Key = profilingKey;
             Type = profilingType;
             TimeStamp = timeStamp;
             ElapsedTime = elapsedTime;
-            Text = text;
+            Message = message;
             Attributes = attributes;
-            Custom0 = value0;
-            Custom1 = value1;
-            Custom2 = value2;
-            Custom3 = value3;
         }
     }
 }
