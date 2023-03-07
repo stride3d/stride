@@ -243,6 +243,9 @@ namespace Stride.Assets.Textures
                                             default:
                                                 throw new ArgumentOutOfRangeException();
                                         }
+
+                                        // Workaround ETC2 formats don't work
+                                        outputFormat = alphaMode == AlphaFormat.None && !parameters.IsSRgb ? PixelFormat.ETC1 : parameters.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
                                         break;
                                     default:
                                         throw new ArgumentOutOfRangeException("GraphicsProfile");

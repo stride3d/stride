@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL 
 using System;
+using static Android.Hardware.Camera;
 
 namespace Stride.Graphics
 {

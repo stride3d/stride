@@ -764,11 +764,14 @@ namespace Stride.TextureConverter.TexLibraries
                 case Stride.Graphics.PixelFormat.B8G8R8A8_UNorm:
 
                 case Stride.Graphics.PixelFormat.ETC1:
+                    // Don't work on android
+                    /*
                 case Stride.Graphics.PixelFormat.ETC2_RGB:
                 case Stride.Graphics.PixelFormat.ETC2_RGB_SRgb:
                 case Stride.Graphics.PixelFormat.ETC2_RGBA:
                 case Stride.Graphics.PixelFormat.ETC2_RGBA_SRgb:
                 case Stride.Graphics.PixelFormat.ETC2_RGB_A1:
+                    */
                 case Stride.Graphics.PixelFormat.EAC_R11_Unsigned:
                 case Stride.Graphics.PixelFormat.EAC_R11_Signed:
                 case Stride.Graphics.PixelFormat.EAC_RG11_Unsigned:

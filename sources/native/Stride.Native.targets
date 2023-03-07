@@ -39,18 +39,18 @@
   
   <!-- Define default CPU architectures -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
-    <StrideNativeCPU Include="win-x64;win-x86" LibraryExtension=".dll" LibraryRuntime="win" />
+    <StrideNativeCPU Include="win-x64" LibraryExtension=".dll" LibraryRuntime="win" />
     <StrideNativeCPU Include="linux-x64"  LibraryExtension=".so" LibraryRuntime="linux" />
     <StrideNativeCPU Include="osx-x64"  LibraryExtension=".dylib" LibraryRuntime="osx" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
-    <StrideNativeCPU Include="arm64-v8a;armeabi-v7a;x86;x86_64" LibraryExtension=".so" />
+    <StrideNativeCPU Include="arm64-v8a;x86_64" LibraryExtension=".so" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
     <StrideNativeCPU Include="top" LibraryExtension=".a" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
-    <StrideNativeCPU Include="x86;x64;ARM" LibraryExtension=".dll" />
+    <StrideNativeCPU Include="x64;ARM" LibraryExtension=".dll" />
   </ItemGroup>
   <ItemGroup>
     <StrideNativeCPU Update="@(StrideNativeCPU)">
@@ -204,20 +204,10 @@
     <Error Condition="'$(StrideNativeAndroidNdkVersion)' == ''" Text="Could not figure out Android NDK version from $(AndroidNdkDirectory). There should be a source.properties file with Pkg.Revision properly set." />
     <Error Condition="$([System.Version]::Parse('$(StrideNativeAndroidNdkVersionMinimum)').CompareTo($([System.Version]::Parse('$(StrideNativeAndroidNdkVersion)')))) >= 0" Text="The Android NDK version is too old. Found: $(StrideNativeAndroidNdkVersion), Expected: $(StrideNativeAndroidNdkVersionMinimum), Location: $(AndroidNdkDirectory)" />
 
-    <MakeDir Directories="$(StrideNativeOutputPath)\armeabi-v7a"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=armv7-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=armv7-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)\armeabi-v7a\$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armeabi-v7a.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-arm&quot; @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\armeabi-v7a\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\armeabi-v7a\libNativePath.a&quot; $(StrideNativeAndroidClang) --target=armv7-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-
     <MakeDir Directories="$(StrideNativeOutputPath)\arm64-v8a"/>
     <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=aarch64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
     <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=aarch64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
     <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)\arm64-v8a\$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_arm64-v8a.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-21\arch-arm64&quot; @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\arm64-v8a\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\arm64-v8a\libNativePath.a&quot; $(StrideNativeAndroidClang) --target=aarch64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
-
-    <MakeDir Directories="$(StrideNativeOutputPath)\x86"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_x86.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=i386-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_x86.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=i386-linux-android$(StrideNativeAndroidPlatformVersion32)" />
-    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe&quot; $(StrideNativeToolingDebug) -shared -o &quot;$(StrideNativeOutputPath)\x86\$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-x86&quot; @(StrideNativePathLibsAndroid->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\x86\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\Android\x86\libNativePath.a&quot; $(StrideNativeAndroidClang) --target=i386-linux-android$(StrideNativeAndroidPlatformVersion32)" />
     
     <MakeDir Directories="$(StrideNativeOutputPath)\x86_64"/>
     <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\%(StrideNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=x86_64-linux-android$(StrideNativeAndroidPlatformVersion64)" />
