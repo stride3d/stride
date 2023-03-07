@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.352
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 16.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10-CoreRuntime", "10-CoreRuntime", "{2E93E2B5-4500-4E47-9B65-E705218AB578}"
 EndProject
@@ -141,12 +141,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Rendering", "..\sources\engine\Stride.Rendering\Stride.Rendering.csproj", "{AD4FDC24-B64D-4ED7-91AA-62C9EDA12FA4}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 5
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 5
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{fb06c76a-6bb7-40be-9afa-fec13b045fb5}*SharedItemsImports = 5
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Android = Debug|Android
 		Release|Android = Release|Android
@@ -160,15 +154,15 @@ Global
 		{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}.Debug|Android.Build.0 = Debug|Any CPU
 		{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}.Release|Android.ActiveCfg = Release|Any CPU
 		{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}.Release|Android.Build.0 = Release|Any CPU
-		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}.Debug|Android.ActiveCfg = Debug|Android
-		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}.Debug|Android.Build.0 = Debug|Android
-		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}.Debug|Android.Deploy.0 = Debug|Android
+		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}.Debug|Android.ActiveCfg = Debug|Any CPU
+		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}.Debug|Android.Build.0 = Debug|Any CPU
+		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}.Debug|Android.Deploy.0 = Debug|Any CPU
 		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}.Release|Android.ActiveCfg = Release|Android
 		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}.Release|Android.Build.0 = Release|Android
 		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}.Release|Android.Deploy.0 = Release|Android
-		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Debug|Android.ActiveCfg = Debug|Android
-		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Debug|Android.Build.0 = Debug|Android
-		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Debug|Android.Deploy.0 = Debug|Android
+		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Debug|Android.ActiveCfg = Debug|Any CPU
+		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Debug|Android.Build.0 = Debug|Any CPU
+		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Debug|Android.Deploy.0 = Debug|Any CPU
 		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Release|Android.ActiveCfg = Release|Android
 		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Release|Android.Build.0 = Release|Android
 		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Release|Android.Deploy.0 = Release|Android
@@ -293,5 +287,11 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 5
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 5
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{fb06c76a-6bb7-40be-9afa-fec13b045fb5}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

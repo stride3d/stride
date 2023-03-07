@@ -1,3 +1,4 @@
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <resources>
     <string name="app_name"><#= Properties.PackageGameDisplayName #></string>
 </resources>
