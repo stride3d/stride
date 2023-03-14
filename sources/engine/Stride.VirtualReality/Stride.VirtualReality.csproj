@@ -27,8 +27,8 @@
     <When Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' ">
       <ItemGroup>
         <StrideNativeLib Include="..\..\..\deps\OpenVR\$(StridePlatformDeps)\**\openvr_api.*">
-          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+          <RelativePath>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
         <StrideNativeLib Include="..\..\..\deps\OpenXR\openxr_loader.dll">

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
@@ -181,8 +181,8 @@
   </ItemGroup>
   <ItemGroup>
     <StrideNativeLib Include="$(FbxSdkDir)\lib\$(FbxLibVersionDir)x64\debug\libfbxsdk.dll">
-      <Link>x64\%(Filename)%(Extension)</Link>
-      <RelativePath>x64\%(Filename)%(Extension)</RelativePath>
+      <Link>runtimes\win-x64\native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\win-x64\native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>

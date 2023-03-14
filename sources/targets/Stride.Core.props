@@ -165,6 +165,8 @@
     <DesignTimeBuild Condition="'$(DesignTimeBuild)' == ''">False</DesignTimeBuild>
     <!-- Use AssemblyName rather than RootNamespace for Resource class otherwise it might clash between some assemblies (i.e. Stride and Stride.Engine) -->
     <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
+    <!-- Needs to be set to 21 as long as generated entry point projects are - otherwise user gets a lot of build warnings -->
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(OutputType)' == 'Exe' ">
     <AndroidApplication>true</AndroidApplication>
