@@ -47,6 +47,10 @@ namespace Stride.Graphics
 
         private int bufferCount;
 
+        private readonly bool flipModelSupport;
+
+        private readonly bool tearingSupport;
+
 #if STRIDE_GRAPHICS_API_DIRECT3D12
         private int bufferSwapIndex;
 #endif
@@ -56,6 +60,9 @@ namespace Stride.Graphics
         {
             PresentInterval = presentationParameters.PresentationInterval;
 
+            flipModelSupport = CheckFlipModelSupport(device);
+            tearingSupport = CheckTearingSupport(device);
+
             // Initialize the swap chain
             swapChain = CreateSwapChain();
 
@@ -63,6 +70,29 @@ namespace Stride.Graphics
 
             // Reload should get backbuffer from swapchain as well
             //backBufferTexture.Reload = graphicsResource => ((Texture)graphicsResource).Recreate(swapChain.GetBackBuffer<SharpDX.Direct3D11.Texture>(0));
+
+            static bool CheckFlipModelSupport(GraphicsDevice device)
+            {
+                // From https://github.com/walbourn/directx-vs-templates/blob/main/d3d11game_win32_dr/DeviceResources.cpp#L138
+                using var dxgiDevice = device.NativeDevice.QueryInterface<SharpDX.DXGI.Device>();
+                using var dxgiAdapter = dxgiDevice.Adapter;
+                using var dxgiFactory = dxgiAdapter.GetParent<SharpDX.DXGI.Factory4>();
+                return dxgiFactory != null;
+            }
+
+            static unsafe bool CheckTearingSupport(GraphicsDevice device)
+            {
+                // From https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
+                using var dxgiDevice = device.NativeDevice.QueryInterface<SharpDX.DXGI.Device>();
+                using var dxgiAdapter = dxgiDevice.Adapter;
+                using var dxgiFactory = dxgiAdapter.GetParent<SharpDX.DXGI.Factory5>();
+                if (dxgiFactory is null)
+                    return false;
+
+                int allowTearing = 0;
+                dxgiFactory.CheckFeatureSupport(Feature.PresentAllowTearing, new IntPtr(&allowTearing), sizeof(int));
+                return allowTearing != 0;
+            }
         }
 
         public override Texture BackBuffer => backBuffer;
@@ -152,7 +182,16 @@ namespace Stride.Graphics
             try
             {
                 var presentInterval = GraphicsDevice.Tags.Get(ForcedPresentInterval) ?? PresentInterval;
-                swapChain.Present((int)presentInterval, PresentFlags.None);
+
+                // From https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
+                // DXGI_PRESENT_ALLOW_TEARING can only be used with sync interval 0. It is recommended to always pass this
+                // tearing flag when using sync interval 0 if CheckFeatureSupport reports that tearing is supported and the
+                // app is in a windowed mode - including border-less fullscreen mode.
+                var presentFlags = tearingSupport && presentInterval == PresentInterval.Immediate && !Description.IsFullScreen
+                    ? PresentFlags.AllowTearing 
+                    : PresentFlags.None;
+
+                swapChain.Present((int)presentInterval, presentFlags);
 #if STRIDE_GRAPHICS_API_DIRECT3D12
                 // Manually swap back buffer
                 backBuffer.NativeResource.Dispose();
@@ -229,7 +268,7 @@ namespace Stride.Graphics
             if (format == backBuffer.Format)
                 format = PixelFormat.None;
 
-            swapChain.ResizeBuffers(bufferCount, width, height, (SharpDX.DXGI.Format)format, SwapChainFlags.None);
+            swapChain.ResizeBuffers(bufferCount, width, height, (SharpDX.DXGI.Format)format, GetSwapChainFlags());
 
             // Get newly created native texture
             var backBufferTexture = swapChain.GetBackBuffer<BackBufferResourceType>(0);
@@ -384,7 +423,7 @@ namespace Stride.Graphics
             var useFlipModel = true;
 #else
             // https://devblogs.microsoft.com/directx/dxgi-flip-model/#what-do-i-have-to-do-to-use-flip-model
-            var useFlipModel = Description.MultisampleCount == MultisampleCount.None && IsFlipModelSupported();
+            var useFlipModel = Description.MultisampleCount == MultisampleCount.None && flipModelSupport;
 #endif
 
             var backbufferFormat = Description.BackBufferFormat;
@@ -395,18 +434,18 @@ namespace Stride.Graphics
                 backbufferFormat = backbufferFormat.ToNonSRgb();
                 bufferCount = 2;
             }
-            
+
             var description = new SwapChainDescription
-                {
-                    ModeDescription = new ModeDescription(Description.BackBufferWidth, Description.BackBufferHeight, Description.RefreshRate.ToSharpDX(), (SharpDX.DXGI.Format)backbufferFormat), 
-                    BufferCount = bufferCount, // TODO: Do we really need this to be configurable by the user?
-                    OutputHandle = handle,
-                    SampleDescription = new SampleDescription((int)Description.MultisampleCount, 0),
-                    SwapEffect = useFlipModel ? SwapEffect.FlipDiscard : SwapEffect.Discard,
-                    Usage = Usage.BackBuffer | SharpDX.DXGI.Usage.RenderTargetOutput,
-                    IsWindowed = true,
-                    Flags = Description.IsFullScreen ? SwapChainFlags.AllowModeSwitch : SwapChainFlags.None, 
-                };
+            {
+                ModeDescription = new ModeDescription(Description.BackBufferWidth, Description.BackBufferHeight, Description.RefreshRate.ToSharpDX(), (SharpDX.DXGI.Format)backbufferFormat), 
+                BufferCount = bufferCount, // TODO: Do we really need this to be configurable by the user?
+                OutputHandle = handle,
+                SampleDescription = new SampleDescription((int)Description.MultisampleCount, 0),
+                SwapEffect = useFlipModel ? SwapEffect.FlipDiscard : SwapEffect.Discard,
+                Usage = Usage.BackBuffer | SharpDX.DXGI.Usage.RenderTargetOutput,
+                IsWindowed = true,
+                Flags = GetSwapChainFlags(), 
+            };
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
             var newSwapChain = new SwapChain(GraphicsAdapterFactory.NativeFactory, GraphicsDevice.NativeDevice, description);
@@ -426,21 +465,26 @@ namespace Stride.Graphics
                 newSwapChain.IsFullScreen = true;
 
                 // This is really important to call ResizeBuffers AFTER switching to IsFullScreen 
-                newSwapChain.ResizeBuffers(bufferCount, Description.BackBufferWidth, Description.BackBufferHeight, newFormat: default, SwapChainFlags.AllowModeSwitch);
+                newSwapChain.ResizeBuffers(bufferCount, Description.BackBufferWidth, Description.BackBufferHeight, newFormat: default, description.Flags);
             }
 
             return newSwapChain;
+        }
 
-            bool IsFlipModelSupported()
-            {
-                // From https://github.com/walbourn/directx-vs-templates/blob/main/d3d11game_win32_dr/DeviceResources.cpp#L138
-                using var dxgiDevice = GraphicsDevice.NativeDevice.QueryInterface<SharpDX.DXGI.Device>();
-                using var dxgiAdapter = dxgiDevice.Adapter;
-                using var dxgiFactory = dxgiAdapter.GetParent<SharpDX.DXGI.Factory4>();
-                return dxgiFactory != null;
-            }
+        private SwapChainFlags GetSwapChainFlags()
+        {
+            var flags = SwapChainFlags.None;
+            if (Description.IsFullScreen)
+                flags |= SwapChainFlags.AllowModeSwitch;
+
+            // From https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
+            // It is recommended to always use the tearing flag when it is supported.
+            if (tearingSupport)
+                flags |= SwapChainFlags.AllowTearing;
+
+            return flags;
         }
 #endif
-        }
     }
+}
 #endif
