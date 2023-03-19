@@ -73,25 +73,41 @@ namespace Stride.Graphics
 
             static bool CheckFlipModelSupport(GraphicsDevice device)
             {
-                // From https://github.com/walbourn/directx-vs-templates/blob/main/d3d11game_win32_dr/DeviceResources.cpp#L138
-                using var dxgiDevice = device.NativeDevice.QueryInterface<SharpDX.DXGI.Device>();
-                using var dxgiAdapter = dxgiDevice.Adapter;
-                using var dxgiFactory = dxgiAdapter.GetParent<SharpDX.DXGI.Factory4>();
-                return dxgiFactory != null;
+                try
+                {
+                    // From https://github.com/walbourn/directx-vs-templates/blob/main/d3d11game_win32_dr/DeviceResources.cpp#L138
+                    using var dxgiDevice = device.NativeDevice.QueryInterface<SharpDX.DXGI.Device>();
+                    using var dxgiAdapter = dxgiDevice.Adapter;
+                    using var dxgiFactory = dxgiAdapter.GetParent<SharpDX.DXGI.Factory4>();
+                    return dxgiFactory != null;
+                }
+                catch
+                {
+                    // The requested interfaces need at least Windows 8
+                    return false;
+                }
             }
 
             static unsafe bool CheckTearingSupport(GraphicsDevice device)
             {
-                // From https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
-                using var dxgiDevice = device.NativeDevice.QueryInterface<SharpDX.DXGI.Device>();
-                using var dxgiAdapter = dxgiDevice.Adapter;
-                using var dxgiFactory = dxgiAdapter.GetParent<SharpDX.DXGI.Factory5>();
-                if (dxgiFactory is null)
-                    return false;
+                try
+                {
+                    // From https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
+                    using var dxgiDevice = device.NativeDevice.QueryInterface<SharpDX.DXGI.Device>();
+                    using var dxgiAdapter = dxgiDevice.Adapter;
+                    using var dxgiFactory = dxgiAdapter.GetParent<SharpDX.DXGI.Factory5>();
+                    if (dxgiFactory is null)
+                        return false;
 
-                int allowTearing = 0;
-                dxgiFactory.CheckFeatureSupport(Feature.PresentAllowTearing, new IntPtr(&allowTearing), sizeof(int));
-                return allowTearing != 0;
+                    int allowTearing = 0;
+                    dxgiFactory.CheckFeatureSupport(Feature.PresentAllowTearing, new IntPtr(&allowTearing), sizeof(int));
+                    return allowTearing != 0;
+                }
+                catch
+                {
+                    // The requested interfaces need at least Windows 10
+                    return false;
+                }
             }
         }
 
