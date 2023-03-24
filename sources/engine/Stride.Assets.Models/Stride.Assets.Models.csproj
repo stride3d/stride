@@ -27,8 +27,9 @@
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
-
+    <TargetsForTfmSpecificContentInPackage>_StrideIncludeNativeLibs;$(TargetsForTfmSpecificContentInPackage)</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
+  
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
       <!-- Needed by .NET Core runtime to be able to load C++/CLI assemblies -->
@@ -40,8 +41,13 @@
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Common.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)x64\assimp-vc140-mt.dll" TargetPath="x64\assimp-vc140-mt.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)x64\libfbxsdk.dll" TargetPath="x64\libfbxsdk.dll" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_StrideIncludeNativeLibs">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\assimp-vc140-mt.dll" PackagePath="runtimes\win-x64\native\assimp-vc140-mt.dll" />
+      <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\libfbxsdk.dll" PackagePath="runtimes\win-x64\native\libfbxsdk.dll" />
     </ItemGroup>
   </Target>
 </Project>
