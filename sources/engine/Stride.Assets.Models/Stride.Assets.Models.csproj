@@ -41,9 +41,7 @@
 
   <Target Name="_StrideIncludeNativeLibs">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\assimp-vc140-mt.dll" PackagePath="runtimes\win-x64\native\assimp-vc140-mt.dll" />
       <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\libfbxsdk.dll" PackagePath="runtimes\win-x64\native\libfbxsdk.dll" />
     </ItemGroup>
-  </Target>
   </Target>
 </Project>
