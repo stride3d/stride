@@ -41,15 +41,17 @@ namespace Stride.Graphics
     /// </summary>
     public class SwapChainGraphicsPresenter : GraphicsPresenter
     {
-        private SwapChain swapChain;
-
         private readonly Texture backBuffer;
-
-        private int bufferCount;
 
         private readonly bool flipModelSupport;
 
         private readonly bool tearingSupport;
+
+        private SwapChain swapChain;
+
+        private int bufferCount;
+
+        private bool useFlipModel;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
         private int bufferSwapIndex;
@@ -203,7 +205,7 @@ namespace Stride.Graphics
                 // DXGI_PRESENT_ALLOW_TEARING can only be used with sync interval 0. It is recommended to always pass this
                 // tearing flag when using sync interval 0 if CheckFeatureSupport reports that tearing is supported and the
                 // app is in a windowed mode - including border-less fullscreen mode.
-                var presentFlags = tearingSupport && presentInterval == PresentInterval.Immediate && !Description.IsFullScreen
+                var presentFlags = useFlipModel && tearingSupport && presentInterval == PresentInterval.Immediate && !Description.IsFullScreen
                     ? PresentFlags.AllowTearing 
                     : PresentFlags.None;
 
@@ -436,10 +438,10 @@ namespace Stride.Graphics
         private SwapChain CreateSwapChainForDesktop(IntPtr handle)
         {
 #if STRIDE_GRAPHICS_API_DIRECT3D12
-            var useFlipModel = true;
+            useFlipModel = true;
 #else
             // https://devblogs.microsoft.com/directx/dxgi-flip-model/#what-do-i-have-to-do-to-use-flip-model
-            var useFlipModel = Description.MultisampleCount == MultisampleCount.None && flipModelSupport;
+            useFlipModel = Description.MultisampleCount == MultisampleCount.None && flipModelSupport;
 #endif
 
             var backbufferFormat = Description.BackBufferFormat;
@@ -495,7 +497,7 @@ namespace Stride.Graphics
 
             // From https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
             // It is recommended to always use the tearing flag when it is supported.
-            if (tearingSupport)
+            if (useFlipModel && tearingSupport)
                 flags |= SwapChainFlags.AllowTearing;
 
             return flags;
