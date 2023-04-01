@@ -41,13 +41,19 @@ namespace Stride.Core.Assets
                     ? x.DiscoveryType == DiscoveryType.DotNetSdk && x.Version.Major >= 3
                     : (x.DiscoveryType == DiscoveryType.VisualStudioSetup || x.DiscoveryType == DiscoveryType.DeveloperConsole) && x.Version.Major >= 16);
 
+                if (MSBuildInstance == null)
+                {
+                    throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later) " +
+                        "Please ensure you have the .NET 6 SDK installed from Microsofts Website");
+                }
+
                 // Make sure it is not already loaded (otherwise MSBuildLocator.RegisterDefaults() throws an exception)
-                if (MSBuildInstance != null && !AppDomain.CurrentDomain.GetAssemblies().Any(IsMSBuildAssembly))
+                if (!AppDomain.CurrentDomain.GetAssemblies().Any(IsMSBuildAssembly))
                 {
                     // We can't use directly RegisterInstance because we want to avoid NuGet verison conflicts (between MSBuild/dotnet one and ours).
                     // More details at https://github.com/microsoft/MSBuildLocator/issues/127
                     // This code should be equivalent to MSBuildLocator.RegisterInstance(MSBuildInstance);
-                    //  except that we load everything in another context.
+                    // except that we load everything in another context.
 
                     ApplyDotNetSdkEnvironmentVariables(MSBuildInstance.MSBuildPath);
 
@@ -65,9 +71,6 @@ namespace Stride.Core.Assets
                     };
                 }
             }
-
-            if (MSBuildInstance == null)
-                throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later)");
 
             SetupMSBuildCurrentHostForOutOfProc(MSBuildInstance.MSBuildPath);
             CheckMSBuildToolset();
