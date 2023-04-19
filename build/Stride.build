@@ -183,13 +183,6 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideSolution).iOS.sln" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
   
-  <Target Name="BuildWindowsStore">
-    <!-- Only a warning since build servers might still call this target for old branches -->
-    <Warning Text="Windows Store doesn't exist anymore"/>
-  </Target>
-
-  <Target Name="BuildWindows10" DependsOnTargets="BuildUWP" />
-
   <Target Name="BuildUWP">
     <PropertyGroup>
       <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
@@ -197,11 +190,6 @@ Example of use:
     </PropertyGroup>
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution)"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-  
-  <Target Name="BuildWindowsPhone">
-    <!-- Only a warning since build servers might still call this target for old branches -->
-    <Warning Text="Windows Phone doesn't exist anymore"/>
   </Target>
   
   <Target Name="BuildWindowsVulkan">
