@@ -24,6 +24,10 @@ public class MetricDbContext : DbContext
 
     public DbSet<MetricMarkerGroup> MarkerGroups { get; set; }
 
+    public DbSet<MetricCache> MetricCache { get; set; }
+
+    public DbSet<MetricEventDefinition> MetricEventDefinitions { get; set; }
+
     public static int AppEditorId { get; private set; }
 
     public static int AppLauncherId { get; private set; }
@@ -52,7 +56,7 @@ public class MetricDbContext : DbContext
 
         modelBuilder.Entity<MetricEvent>()
             .HasKey(m => new { m.Timestamp, m.AppId, m.InstallId, m.SessionId, m.MetricId });
-
+        
         modelBuilder.Entity<MetricEvent>()
             .Property(m => m.Timestamp)
             .HasColumnType("datetime2");
@@ -62,9 +66,6 @@ public class MetricDbContext : DbContext
     {
         using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<MetricDbContext>();
-
-        // Apply pending migrations
-        dbContext.Database.Migrate();
 
         // Register pre-defined applications
         foreach (var metricAppField in typeof(CommonApps).GetFields()

@@ -4,8 +4,12 @@ using Stride.Metrics.ServerApp.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add SQL Server database 
-builder.Services.AddDbContext<MetricDbContext>(opt => {
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+builder.Services.AddDbContext<MetricDbContext>(opt =>
+{
+    if (builder.Environment.IsDevelopment())
+        opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    if (builder.Environment.IsProduction())
+        opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 // Add services to the container.
 builder.Services.AddControllersWithViews();

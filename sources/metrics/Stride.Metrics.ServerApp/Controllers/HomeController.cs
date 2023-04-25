@@ -4,16 +4,21 @@ using Stride.Metrics.ServerApp.Models;
 
 namespace Stride.Metrics.ServerApp.Controllers;
 
-public class HomeController : MetricsControllerBase
+public class HomeController : Controller
 {
+    private readonly ILogger<HomeController> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
     public HomeController(ILogger<HomeController> logger, IHttpContextAccessor httpContextAccessor)
-        : base(logger, httpContextAccessor)
     {
+        _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public IActionResult Index()
     {
-        _logger.LogInformation($"Metrics dashboard view from {GetIPAddress()}");
+        var ipAddress = _httpContextAccessor.GetIPAddress();
+        _logger.LogInformation($"Metrics dashboard view from {ipAddress}");
         return View();
     }
 

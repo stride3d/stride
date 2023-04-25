@@ -1,4 +1,4 @@
-﻿namespace Stride.Metrics.ServerApp.Models.Agregate;
+namespace Stride.Metrics.ServerApp.Dtos.Agregate;
 
 /// <summary>
 /// Aggregate data to store metrics results per day.

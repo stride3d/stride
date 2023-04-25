@@ -1,4 +1,4 @@
-﻿namespace Stride.Metrics.ServerApp.Models.Agregate;
+namespace Stride.Metrics.ServerApp.Dtos.Agregate;
 
 public class AggregationPerPlatforms : AggregateBase
 {
