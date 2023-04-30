@@ -315,6 +315,12 @@ namespace Stride {
 					const float framerate = static_cast<float>(FbxTime::GetFrameRate(scene->GetGlobalSettings().GetTimeMode()));
 					auto oneFrame = FbxTime::GetOneFrameValue(scene->GetGlobalSettings().GetTimeMode());
 
+					//FIX: If scene->GetGlobalSettings().GetTimeMode() returns FbxTime::eFrames30Drop then oneFrame is going to be 0.
+					// This is (propably) undesired since time will increment by 0 in the next second loop, resulting in a infinite loop 
+					// that finally leads to a out-of-memory exception.
+					if (oneFrame == 0)
+						oneFrame = FbxTime::GetOneFrameValue(FbxTime::eFrames1000); // See https://github.com/stride3d/stride/issues/1567 why this was chosen.
+
 					// Step1: Pregenerate curve with discontinuities
 					int currentKeyIndices[4];
 					int currentEvaluationIndices[4];
