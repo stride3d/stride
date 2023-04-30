@@ -87,16 +87,8 @@ public static class MetricDbContextExtensions
             throw new InvalidOperationException($"Invalid ApplicationId {newMetric.ApplicationId} from {ipAddress}");
         }
 
-        //Debug.WriteLine("Save - ApplicationId {0}ms", clock.ElapsedMilliseconds);
-        //clock.Restart();
-
         var installId = dbContext.GetOrCreateInstallId(newMetric.InstallId);
-        //Debug.WriteLine("Save - InstallId {0}ms", clock.ElapsedMilliseconds);
-        //clock.Restart();
-
         var metricId = dbContext.GetMetricId(newMetric.MetricId);
-        //Debug.WriteLine("Save - MetricId {0}ms", clock.ElapsedMilliseconds);
-        //clock.Restart();
 
         var metricEvent = new MetricEvent
         {

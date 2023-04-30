@@ -10,43 +10,43 @@
 
     <div class="col-md-6">
         <h1>Total Installs</h1>
-        <canvas class="chart-line" data-labelname="# Of Installs"data-action="installs-per-month"></canvas>
+        <canvas id="installs-trend" data-charttype="line" data-labelname="# Of Installs"></canvas>
         <p>Total incremental count of Stride installations.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Installs Per Month</h1>
-        <canvas class="chart-line" data-labelname="# Of Installs" data-action="installs-per-month"></canvas>
+        <canvas id="installs-per-month" data-charttype="line" data-labelname="# Of Installs"></canvas>
         <p>Total number of installations per month.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Installs Last 30 Days</h1>
-        <canvas class="chart-line" data-labelname="# Of Installs" data-action="installs-per-month"></canvas>
+        <canvas id="installs-last-days" data-charttype="line" data-labelname="# Of Installs"></canvas>
         <p>Total number of installations per day.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Quits Per Month</h1>
-        <canvas class="chart-line" data-labelname="# Of Quits" data-action="installs-per-month"></canvas>
+        <canvas id="quitting-count" data-charttype="line" data-labelname="# Of Quits"></canvas>
         <p>Total number of installations that never opened the Game Studio per month.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Retain percentage</h1>
-        <canvas class="chart-line" data-labelname="# Of Retain" data-action="installs-per-month"></canvas>
+        <canvas id="retain-percentage" data-charttype="line" data-labelname="% Of Retain"></canvas>
         <p>Total percent of users not quitting Stride per month.</p>
     </div>
     
     <div class="col-md-6">
         <h1>Stride downloads per Month</h1>
-        <canvas class="chart-line" data-labelname="# Of Downloads" data-action="installs-per-month"></canvas>
+        <canvas id="stride-downloads" data-charttype="line" data-labelname="# Of Downloads"></canvas>
         <p>Total number of completed downloads of Stride in a month.</p>
     </div>
     
     <div class="col-md-6">
         <h1>VS plug-in downloads per Month</h1>
-        <canvas class="chart-line" data-labelname="# Of Downloads" data-action="installs-per-month"></canvas>
+        <canvas id="vsx-downloads" data-charttype="line" data-labelname="# Of Downloads"></canvas>
         <p>Total number of completed downloads of the Stride VS plug-in in a month.</p>
     </div>
 
@@ -58,25 +58,25 @@
 
     <div class="col-md-6">
         <h1>Total Users Per Country</h1>
-        <canvas class="chart-bar" data-action="installs-per-month"></canvas>
+        <canvas id="total-users-per-country" data-charttype="bar" data-labelname="# Of Users"></canvas>
         <p>Total users per country since forever, top 20.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Users Per Country</h1>
-        <canvas class="chart-bar" data-action="installs-per-month"></canvas>
+        <canvas id="users-per-country" data-charttype="bar" data-labelname="# Of Users"></canvas>
         <p>Total users per country since 30 days, top 20.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Total Users Per Month</h1>
-        <canvas class="chart-line" data-action="installs-per-month"></canvas>
+        <canvas id="total-users-per-month" data-charttype="line" data-labelname="# Of Users"></canvas>
         <p>Total number of users that opened the Game Studio at least once in a month.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Total Users Per Day</h1>
-        <canvas class="chart-line" data-action="installs-per-month"></canvas>
+        <canvas id="total-users-per-day" data-charttype="line" data-labelname="# Of Users"></canvas>
         <p>Total number of users that opened the Game Studio at least once in the plotted day in the last 30 days.</p>
     </div>
 
@@ -88,46 +88,46 @@
 
     <div class="col-md-6">
         <h1>Active Users Per Month</h1>
-        <canvas class="chart-line" data-action="installs-per-month"></canvas>
+        <canvas id="active-users-per-month/5" data-charttype="line" data-labelname="# Of Users"></canvas>
         <p>Total number of users that opened the Game Studio more than 5 times in a month.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Activity per day</h1>
-        <canvas class="chart-bar" data-action="installs-per-month"></canvas>
+        <canvas id="active-users" data-charttype="bar" data-labelname="# Of Users"></canvas>
         <p>Game Studio activity in a month divided by the number of days of the month, resulting in an average value per day.</p>
     </div>
 
     <div class="col-md-6">
         <h1>High Usage Per Month</h1>
-        <canvas class="chart-line" data-action="installs-per-month"></canvas>
+        <canvas id="high-usage" data-charttype="line" data-labelname="# Of Users"></canvas>
         <p>Total number of users that opened the Game Studio at least once for 10 different days in a month.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Team Activity</h1>
-        <canvas class="chart-bar" data-action="installs-per-month"></canvas>
+        <canvas id="projects-users" data-charttype="bar" data-labelname="# Of Users"></canvas>
         <p>The number of different projects that were open by multiple users</p>
     </div>
 
     <div class="col-md-6">
         <h1>Usage Per Version</h1>
-        <canvas class="chart-bar" data-action="installs-per-month"></canvas>
+        <canvas id="usage-per-version" data-charttype="bar" data-labelname="# Of Users"></canvas>
         <p>Stride version usage per month in the last 30 days.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Crashes Per Hour</h1>
-        <canvas class="chart-bar" data-action="installs-per-month"></canvas>
+        <canvas id="crashes-per-version" data-charttype="bar" data-labelname="# Of Users"></canvas>
         <p>Average of crashes per hour partitioned by version.</p>
     </div>
 
     <div class="col-md-6">
         <h1>Platforms Usage Last 30 Days</h1>
-        <canvas class="chart-bar" data-action="installs-per-month"></canvas>
+        <canvas id="platforms-usage" data-charttype="bar" data-labelname="# Of Users"></canvas>
         <p>Number of session/projects opened with the given platforms.</p>
     </div>
 </div>
-
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/chartjs/chart.js"></script>
 <script type="text/javascript" src="~/js/main.js"></script>

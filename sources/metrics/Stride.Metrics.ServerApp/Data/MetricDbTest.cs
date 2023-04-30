@@ -191,7 +191,6 @@ namespace Stride.Metrics.ServerApp.Data
                 IPAddress = RandomIpGenerator.GetRandomIp();
             }
 
-
             public readonly MetricInstall MetricInstall;
 
             public readonly PseudoMetricEventGenerator EventGenerator;

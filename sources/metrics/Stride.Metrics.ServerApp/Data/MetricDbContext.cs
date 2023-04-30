@@ -27,6 +27,7 @@ public class MetricDbContext : DbContext
     public DbSet<MetricCache> MetricCache { get; set; }
 
     public DbSet<MetricEventDefinition> MetricEventDefinitions { get; set; }
+    public DbSet<IpToLocations> IpToLocations { get; set; }
 
     public static int AppEditorId { get; private set; }
 
@@ -41,6 +42,9 @@ public class MetricDbContext : DbContext
         modelBuilder.Entity<MetricApp>()
             .HasIndex(a => a.AppGuid)
             .IsUnique();
+        
+        modelBuilder.Entity<MetricApp>()
+            .ToTable("MetricApps");
 
         modelBuilder.Entity<MetricEventDefinition>()
            .HasIndex(a => a.MetricGuid)
@@ -50,9 +54,18 @@ public class MetricDbContext : DbContext
            .HasIndex(a => a.MetricName)
            .IsUnique();
 
+        modelBuilder.Entity<MetricEventDefinition>()
+           .ToTable("MetricEventDefinitions");
+
         modelBuilder.Entity<MetricInstall>()
            .HasIndex(a => a.InstallGuid)
            .IsUnique();
+        
+        modelBuilder.Entity<MetricInstall>()
+           .ToTable("MetricMarkerGroups");
+        
+        modelBuilder.Entity<MetricMarker>()
+           .ToTable("MetricMarkers");
 
         modelBuilder.Entity<MetricEvent>()
             .HasKey(m => new { m.Timestamp, m.AppId, m.InstallId, m.SessionId, m.MetricId });
@@ -60,6 +73,17 @@ public class MetricDbContext : DbContext
         modelBuilder.Entity<MetricEvent>()
             .Property(m => m.Timestamp)
             .HasColumnType("datetime2");
+        
+        modelBuilder.Entity<MetricEvent>()
+            .ToTable("MetricEvents");
+        
+        modelBuilder.Entity<IpToLocations>()
+            .HasIndex(a => a.IpFrom)
+            .IsUnique();
+
+        modelBuilder.Entity<IpToLocations>()
+            .HasIndex(a => a.IpTo)
+            .IsUnique();
     }
 
     internal static void Initialize(IServiceProvider serviceProvider)

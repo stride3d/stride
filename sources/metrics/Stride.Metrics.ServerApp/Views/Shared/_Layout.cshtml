@@ -11,7 +11,7 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="~/img/logo.svg" alt="" height="32" class="me-3">
+                    <img src="~/img/logo.svg" alt="" height="32">
                     <strong>Stride Metrics v3</strong>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -37,11 +37,9 @@
     <footer class="border-top footer text-muted">
         <div class="container">
             &copy; @DateTime.Now.Year - Stride Game Engine
-            This site or product includes IP2Location LITE data available from http://www.ip2location.com.
+            <p>This site or product includes IP2Location LITE data available from http://www.ip2location.com.</p>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

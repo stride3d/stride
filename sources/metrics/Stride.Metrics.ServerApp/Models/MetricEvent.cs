@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Stride.Metrics.ServerApp.Models.MetricCreated;
 
 namespace Stride.Metrics.ServerApp.Models;
@@ -56,6 +57,7 @@ public class MetricEvent
     /// Gets or sets the metric identifier <see cref="MetricEventDefinition"/>
     /// </summary>
     /// <value>The metric identifier.</value>
+    [ForeignKey("MetricEventDefinition")]
     public int MetricId { get; set; }
 
     /// <summary>
