@@ -13,19 +13,6 @@ namespace Stride.Core.Serialization
     {
         protected const int BufferTLSSize = 1024;
 
-        // Helper buffer for classes needing it.
-        // If null, it should be initialized with BufferTLSSize constant.
-        [Obsolete("Let the caller provide a buffer.")]
-        protected static byte[] bufferTLS;
-
-        /// <summary>
-        /// The <see cref="Stream"/> from which this serializer reads or to which it writes.
-        /// </summary>
-        [Obsolete("Use UnderlyingStream instead.")]
-        public Stream NativeStream {
-            get => UnderlyingStream;
-            protected set => UnderlyingStream = value;
-        }
         /// <summary>
         /// The <see cref="Stream"/> from which this serializer reads or to which it writes.
         /// </summary>

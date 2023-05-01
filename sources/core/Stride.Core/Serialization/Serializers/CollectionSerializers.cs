@@ -326,9 +326,9 @@ namespace Stride.Core.Serialization.Serializers
         {
             var span = MemoryMarshal.Cast<T, byte>(array.AsSpan());
             if (mode == ArchiveMode.Deserialize)
-                stream.NativeStream.Read(span);
+                stream.UnderlyingStream.Read(span);
             else if (mode == ArchiveMode.Serialize)
-                stream.NativeStream.Write(span);
+                stream.UnderlyingStream.Write(span);
         }
     }
 
