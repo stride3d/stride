@@ -319,7 +319,7 @@ namespace Stride {
 					// This is (propably) undesired since time will increment by 0 in the next second loop, resulting in a infinite loop 
 					// that finally leads to a out-of-memory exception.
 
-					if (oneFrame == 0) 
+					if (oneFrame <= 0) 
 						oneFrame = FbxTime::GetOneFrameValue(FbxTime::eNTSCDropFrame); // FbxTime::eNTSCDropFrame is equivalent to FbxTime::eFrames30Drop.
 					//Source: (FBX Docs : http://docs.autodesk.com/FBX/2014/ENU/FBX-SDK-Documentation/index.html?url=cpp_ref/class_fbx_time.html,topicNumber=cpp_ref_class_fbx_time_html29087af6-8c2c-4e9d-aede-7dc5a1c2436c)
 					//Refer to: enum EMode
