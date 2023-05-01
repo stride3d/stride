@@ -318,8 +318,11 @@ namespace Stride {
 					//FIX: If scene->GetGlobalSettings().GetTimeMode() returns FbxTime::eFrames30Drop then oneFrame is going to be 0.
 					// This is (propably) undesired since time will increment by 0 in the next second loop, resulting in a infinite loop 
 					// that finally leads to a out-of-memory exception.
-					if (oneFrame == 0)
-						oneFrame = FbxTime::GetOneFrameValue(FbxTime::eFrames1000); // See https://github.com/stride3d/stride/issues/1567 why this was chosen.
+
+					if (oneFrame == 0) 
+						oneFrame = FbxTime::GetOneFrameValue(FbxTime::eNTSCDropFrame); // FbxTime::eNTSCDropFrame is equivalent to FbxTime::eFrames30Drop.
+					//Source: (FBX Docs : http://docs.autodesk.com/FBX/2014/ENU/FBX-SDK-Documentation/index.html?url=cpp_ref/class_fbx_time.html,topicNumber=cpp_ref_class_fbx_time_html29087af6-8c2c-4e9d-aede-7dc5a1c2436c)
+					//Refer to: enum EMode
 
 					// Step1: Pregenerate curve with discontinuities
 					int currentKeyIndices[4];
