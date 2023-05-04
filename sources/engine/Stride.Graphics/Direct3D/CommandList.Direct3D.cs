@@ -81,7 +81,7 @@ namespace Stride.Graphics
 
         private void ClearStateImpl()
         {
-            NativeDeviceContext.ClearState();
+            NativeDeviceContext?.ClearState();
 
             for (int i = 0; i < samplerStates.Length; ++i)
                 samplerStates[i] = null;
