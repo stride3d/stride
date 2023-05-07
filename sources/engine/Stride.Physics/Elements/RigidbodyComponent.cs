@@ -365,7 +365,7 @@ namespace Stride.Physics
             LinkedConstraints.Clear();
             //~Remove constraints
 
-            Simulation.RemoveRigidBody(this);
+            Simulation?.RemoveRigidBody(this);
 
             InternalRigidBody = null;
 
