@@ -26,7 +26,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                logger.Warning("Jump called on a CharacterComponent that is not attached to a PhysicsSystem");
+                return;
             }
             BulletSharp.Math.Vector3 bV3 = jumpDirection;
             KinematicCharacter.Jump(ref bV3);
@@ -39,7 +40,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                logger.Warning("Jump called on a CharacterComponent that is not attached to a PhysicsSystem");
+                return;
             }
             KinematicCharacter.Jump();
         }
@@ -209,7 +211,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                logger.Warning("Teleport called on a CharacterComponent that is not attached to a PhysicsSystem");
+                return;
             }
 
             //we assume that the user wants to teleport in world/entity space
@@ -230,7 +233,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                logger.Warning("Move called on a CharacterComponent that is not attached to a PhysicsSystem");
+                return;
             }
 
             KinematicCharacter.SetWalkDirection(movement);
@@ -246,7 +250,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is available only when the Entity has been already added to the Scene.");
+                logger.Warning("SetVelocity called on a CharacterComponent that is not attached to a PhysicsSystem");
+                return;
             }
 
             KinematicCharacter.SetWalkDirection(velocity * Simulation.FixedTimeStep);
