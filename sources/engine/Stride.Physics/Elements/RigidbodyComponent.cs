@@ -341,8 +341,11 @@ namespace Stride.Physics
 
         protected override void OnDetach()
         {
-            MotionState.Dispose();
-            MotionState.Clear();
+            if (MotionState != null)
+            {
+                MotionState.Dispose();
+                MotionState.Clear();
+            }
 
             if (NativeCollisionObject == null)
                 return;
