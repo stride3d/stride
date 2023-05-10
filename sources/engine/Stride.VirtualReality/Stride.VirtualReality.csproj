@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
@@ -32,8 +32,8 @@
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
         <StrideNativeLib Include="..\..\..\deps\OpenXR\openxr_loader.dll">
-          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <Link>runtimes\win-x64\native\%(RecursiveDir)%(Filename)%(Extension)</Link>
+          <RelativePath>runtimes\win-x64\native\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
       </ItemGroup>
@@ -63,7 +63,7 @@
     <None Include="Fove\Fove.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Silk.NET.OpenXR" Version="2.10.1" />
+    <PackageReference Include="Silk.NET.OpenXR" Version="2.15.0" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 
