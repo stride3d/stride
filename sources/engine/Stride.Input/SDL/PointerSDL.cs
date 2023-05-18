@@ -21,8 +21,6 @@ namespace Stride.Input
         private static Sdl SDL = Window.SDL;
 
         private readonly Window uiControl;
-        private readonly Dictionary<(long touchId, long fingerId), int> touchFingerIndexMap = new Dictionary<(long touchId, long fingerId), int>();
-        private int touchCounter;
 
         public PointerSDL(InputSourceSDL source, Window uiControl)
         {
@@ -60,37 +58,6 @@ namespace Stride.Input
         private void OnSizeChanged(WindowEvent eventArgs)
         {
             SetSurfaceSize(new Vector2(uiControl.ClientSize.Width, uiControl.ClientSize.Height));
-        }
-
-        private int GetFingerId(long touchId, long fingerId, PointerEventType type)
-        {
-            // Assign finger index (starting at 0) to touch ID
-            int touchFingerIndex = 0;
-            var key = (touchId, fingerId);
-            if (type == PointerEventType.Pressed)
-            {
-                touchFingerIndex = touchCounter++;
-                touchFingerIndexMap[key] = touchFingerIndex;
-            }
-            else
-            {
-                touchFingerIndexMap.TryGetValue(key, out touchFingerIndex);
-            }
-
-            // Remove index
-            if (type == PointerEventType.Released && touchFingerIndexMap.Remove(key))
-            {
-                touchCounter = 0; // Reset touch counter
-
-                // Recalculate next finger index
-                if (touchFingerIndexMap.Count > 0)
-                {
-                    touchFingerIndexMap.ForEach(pair => touchCounter = Math.Max(touchCounter, pair.Value));
-                    touchCounter++; // next
-                }
-            }
-
-            return touchFingerIndex;
         }
 
         private void HandleFingerEvent(TouchFingerEvent e, PointerEventType type)
