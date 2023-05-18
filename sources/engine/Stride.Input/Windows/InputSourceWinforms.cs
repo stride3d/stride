@@ -25,6 +25,7 @@ namespace Stride.Input
         
         private KeyboardWinforms keyboard;
         private MouseWinforms mouse;
+        private PointerWinforms pointer;
 
         private IntPtr defaultWndProc;
         private Win32Native.WndProc inputWndProc;
@@ -63,6 +64,9 @@ namespace Stride.Input
 
             mouse = new MouseWinforms(this, uiControl);
             RegisterDevice(mouse);
+
+            pointer = new PointerWinforms(this, uiControl);
+            RegisterDevice(pointer);
         }
 
         /// <summary>
