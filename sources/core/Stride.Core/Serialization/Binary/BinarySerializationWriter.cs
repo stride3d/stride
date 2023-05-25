@@ -20,7 +20,7 @@ namespace Stride.Core.Serialization
         public BinarySerializationWriter([NotNull] Stream outputStream)
         {
             Writer = new BinaryWriter(outputStream);
-            NativeStream = outputStream;
+            UnderlyingStream = outputStream;
         }
 
         private BinaryWriter Writer { get; }
@@ -28,56 +28,56 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref bool value)
         {
-            NativeStream.WriteByte(value ? (byte)1 : (byte)0);
+            UnderlyingStream.WriteByte(value ? (byte)1 : (byte)0);
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete
         /// <inheritdoc />
         public override unsafe void Serialize(ref float value)
         {
-            NativeStream.Write(Unsafe.As<float, uint>(ref value));
+            UnderlyingStream.Write(Unsafe.As<float, uint>(ref value));
         }
 
         /// <inheritdoc />
         public override unsafe void Serialize(ref double value)
         {
-            NativeStream.Write(Unsafe.As<double, ulong>(ref value));
+            UnderlyingStream.Write(Unsafe.As<double, ulong>(ref value));
         }
 
         /// <inheritdoc />
         public override void Serialize(ref short value)
         {
-            NativeStream.Write((ushort)value);
+            UnderlyingStream.Write((ushort)value);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref int value)
         {
-            NativeStream.Write((uint)value);
+            UnderlyingStream.Write((uint)value);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref long value)
         {
-            NativeStream.Write((ulong)value);
+            UnderlyingStream.Write((ulong)value);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref ushort value)
         {
-            NativeStream.Write(value);
+            UnderlyingStream.Write(value);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref uint value)
         {
-            NativeStream.Write(value);
+            UnderlyingStream.Write(value);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref ulong value)
         {
-            NativeStream.Write(value);
+            UnderlyingStream.Write(value);
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
@@ -96,28 +96,28 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref byte value)
         {
-            NativeStream.WriteByte(value);
+            UnderlyingStream.WriteByte(value);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref sbyte value)
         {
-            NativeStream.WriteByte((byte)value);
+            UnderlyingStream.WriteByte((byte)value);
         }
 
         /// <inheritdoc />
         public override void Serialize([NotNull] byte[] values, int offset, int count)
         {
-            NativeStream.Write(values, offset, count);
+            UnderlyingStream.Write(values, offset, count);
         }
 
         /// <inheritdoc />
-        public override void Serialize(Span<byte> buffer) => NativeStream.Write(buffer);
+        public override void Serialize(Span<byte> buffer) => UnderlyingStream.Write(buffer);
 
         /// <inheritdoc />
         public override void Flush()
         {
-            NativeStream.Flush();
+            UnderlyingStream.Flush();
         }
     }
 }

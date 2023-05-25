@@ -313,7 +313,7 @@ namespace Stride.Core.Assets.CompilerApp
                         if (header.OffsetToReferences != -1)
                         {
                             // Seek to where references are stored and deserialize them
-                            streamReader.NativeStream.Seek(header.OffsetToReferences, SeekOrigin.Begin);
+                            streamReader.UnderlyingStream.Seek(header.OffsetToReferences, SeekOrigin.Begin);
 
                             List<ChunkReference> chunkReferences = null;
                             streamReader.Serialize(ref chunkReferences, ArchiveMode.Deserialize);

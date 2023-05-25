@@ -13,20 +13,6 @@ namespace Stride.Core
         /// </summary>
         /// <typeparam name="T">Type of the interface contract of the service</typeparam>
         /// <param name="registry">The registry.</param>
-        /// <returns>An instance of the requested service registered to this registry.</returns>
-        [CanBeNull]
-        [Obsolete("Use the generic overload of IServiceRegistry.GetService instead")]
-        public static T GetServiceAs<T>([NotNull] this IServiceRegistry registry)
-            where T : class
-        {
-            return registry.GetService<T>();
-        }
-
-        /// <summary>
-        /// Gets a service instance from a specified interface contract.
-        /// </summary>
-        /// <typeparam name="T">Type of the interface contract of the service</typeparam>
-        /// <param name="registry">The registry.</param>
         /// <exception cref="ServiceNotFoundException">If the service was not found</exception>
         /// <returns>An instance of the requested service registered to this registry.</returns>
         [NotNull]
