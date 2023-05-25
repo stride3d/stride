@@ -75,7 +75,7 @@ namespace Stride.Metrics.ServerApp.Data
                                 };
 
                             // Save the install to the database
-                            db.Installs.Add(pseudoInstall.MetricInstall);
+                            db.MetricInstalls.Add(pseudoInstall.MetricInstall);
 
                             // Add our new pseudo install
                             userInstalls.Add(pseudoInstall);

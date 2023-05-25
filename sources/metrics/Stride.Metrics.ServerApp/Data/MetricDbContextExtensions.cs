@@ -25,7 +25,7 @@ public static class MetricDbContextExtensions
             if (!AppIds.TryGetValue(appGuid, out id))
             {
                 id = -1;
-                var app = context.Apps.FirstOrDefault(t => t.AppGuid == appGuid);
+                var app = context.MetricApps.FirstOrDefault(t => t.AppGuid == appGuid);
                 if (app != null)
                 {
                     id = app.AppId;
@@ -44,12 +44,12 @@ public static class MetricDbContextExtensions
             if (!InstallIds.TryGetValue(installGuid, out id))
             {
                 // Create automatically install id on first encounter
-                var install = context.Installs.FirstOrDefault(t => t.InstallGuid == installGuid);
+                var install = context.MetricInstalls.FirstOrDefault(t => t.InstallGuid == installGuid);
 
                 if (install == null)
                 {
                     install = new MetricInstall(installGuid);
-                    context.Installs.Add(install);
+                    context.MetricInstalls.Add(install);
                     context.SaveChanges();
                 }
 
@@ -68,7 +68,7 @@ public static class MetricDbContextExtensions
             if (!MetricIds.TryGetValue(metricGuid, out id))
             {
                 id = -1;
-                var metricDef = context.MetricDefinitions.FirstOrDefault(t => t.MetricGuid == metricGuid);
+                var metricDef = context.MetricEventDefinitions.FirstOrDefault(t => t.MetricGuid == metricGuid);
                 if (metricDef != null)
                 {
                     id = metricDef.MetricId;
@@ -112,7 +112,7 @@ public static class MetricDbContextExtensions
         // If element valid, use the MetricEvent for loggin from here
         metricAsJson = JsonConvert.SerializeObject(metricEvent);
 
-        var newMetricEvent = dbContext.Metrics.Add(metricEvent);
+        var newMetricEvent = dbContext.MetricEvents.Add(metricEvent);
         if (!disableSave)
         {
             try

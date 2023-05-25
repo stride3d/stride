@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -6,13 +7,16 @@ using Stride.Metrics.ServerApp.Data;
 using Stride.Metrics.ServerApp.Dto;
 using Stride.Metrics.ServerApp.Dtos;
 using Stride.Metrics.ServerApp.Dtos.Agregate;
+using Stride.Metrics.ServerApp.Extensions;
+using Stride.Metrics.ServerApp.Helpers;
 using Stride.Metrics.ServerApp.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Stride.Metrics.ServerApp.Controllers;
 
 [ApiController()]
 [Route("api")]
-public partial class MetricApiController : ControllerBase
+public class MetricApiController : ControllerBase
 {
 
     /// <summary>
@@ -40,14 +44,15 @@ public partial class MetricApiController : ControllerBase
     /// <returns>The installs count.</returns>
 
     [HttpGet("installs-count")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<List<int>> GetInstallsCount()
     {
-        int totalInstalls = await _metricDbContext.Installs.CountAsync();
-        int installsLast30Days = await _metricDbContext.Installs
-            .Where(a => a.Created < DateTime.UtcNow.AddDays(-30))
+        int totalInstalls = await _metricDbContext.MetricInstalls.CountAsync();
+        int installsLast30Days = await _metricDbContext.MetricInstalls
+            .Where(a => a.Created < DateTimeHelpers.NthDaysAgo(30))
             .CountAsync();
 
-        return new List<int> { totalInstalls, installsLast30Days };
+        return new() { totalInstalls, installsLast30Days };
     }
 
     /// <summary>
@@ -56,33 +61,29 @@ public partial class MetricApiController : ControllerBase
     /// <returns>The number of active users in the last 30 days.</returns>
     /// <remarks>An active user is a user launching at least more than 5 times the Editor.</remarks>
 
-    [HttpGet("active-users-last-days")]
+    [HttpGet("active-users-last-days")]//not sure where is used
     public async Task<List<int>> GetActiveUsersLastDays()
     {
-        DateTime daysAgo30 = DateTime.UtcNow.AddDays(-30);
-        DateTime daysAgo60 = DateTime.UtcNow.AddDays(-60);
+        int editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        int editorAppId = MetricDbContext.AppEditorId;
-        string metricName = "OpenApplication";
-
-        var activeUsersLast30Days = await _metricDbContext.Metrics
+        var activeUsersLast30Days = await _metricDbContext.MetricEvents
             .Where(a => a.AppId == editorAppId &&
-                        a.MetricEventDefinition.MetricName == metricName &&
-                        a.Timestamp > daysAgo30)
+                        a.MetricEventDefinition.MetricName == "OpenApplication" &&
+                        a.Timestamp > DateTimeHelpers.NthDaysAgo(30))
             .GroupBy(a => a.InstallId)
             .Where(g => g.Count() > 5)
             .CountAsync();
 
-        var activeUsersLast60To30Days = await _metricDbContext.Metrics
+        var activeUsersLast60To30Days = await _metricDbContext.MetricEvents
             .Where(a => a.AppId == editorAppId &&
-                        a.MetricEventDefinition.MetricName == metricName &&
-                        a.Timestamp > daysAgo60 &&
-                        a.Timestamp <= daysAgo30)
+                        a.MetricEventDefinition.MetricName == "OpenApplication" &&
+                        a.Timestamp > DateTimeHelpers.NthDaysAgo(60) &&
+                        a.Timestamp <= DateTimeHelpers.NthDaysAgo(30))
             .GroupBy(a => a.InstallId)
             .Where(g => g.Count() > 5)
             .CountAsync();
 
-        return new List<int> { activeUsersLast30Days, activeUsersLast60To30Days };
+        return new() { activeUsersLast30Days, activeUsersLast60To30Days };
     }
 
     /// <summary>
@@ -94,30 +95,9 @@ public partial class MetricApiController : ControllerBase
     [HttpGet("active-users")]
     public async Task<List<ActiveUsersView>> GetActiveUsers()
     {
-        var cache = await _metricDbContext.MetricCache
-        .Where(m => m.Type == "get-active-users-job")
-        .Select(m => new CachedResult(m.JsonData))
-        .FirstOrDefaultAsync();
+        return null;
 
-        return JsonConvert.DeserializeObject<List<ActiveUsersView>>(cache.JsonData);
-    }
 
-    /// <summary>
-    /// Gets the number of active users in the last 30 days. See remarks.
-    /// </summary>
-    /// <returns>The number of active users in the last 30 days.</returns>
-    /// <remarks>An active user is a user launching at least more than 5 times the Editor.</remarks>
-
-    [HttpGet("active-users-job")]
-    public async Task<string> GetActiveUsersJob()
-    {
-        var result = await _metricDbContext.SqlToList<ActiveUsersView>(SQLRawQueries.getActiveUsers);
-
-        var cacheQuery = "UPDATE [MetricCache] SET JsonData = '" + JsonConvert.SerializeObject(result) + "' WHERE Type = 'get-active-users-job'";
-
-        await _metricDbContext.Database.ExecuteSqlRawAsync(cacheQuery);
-
-        return "Done";
     }
 
     /// <summary>
@@ -128,20 +108,15 @@ public partial class MetricApiController : ControllerBase
     public async Task<List<AggregationPerMonth>> GetInstallsPerMonth()
     {
         // Get installations per month
-        var installsPerMonth = await _metricDbContext.Installs
+        var installsPerMonth = await _metricDbContext.MetricInstalls
             .GroupBy(a => new
             {
                 a.Created.Year,
                 a.Created.Month
             })
-            .Select(g => new AggregationPerMonth
-            {
-                Year = g.Key.Year,
-                Month = g.Key.Month,
-                Count = g.Count()
-            })
+            .Select(g => new AggregationPerMonth { Year = g.Key.Year, Month = g.Key.Month, Count = g.Count() })
             .OrderBy(a => a.Year)
-            .ThenBy(a => a.Month)
+                .ThenBy(a => a.Month)
             .ToListAsync();
 
         return installsPerMonth;
@@ -155,8 +130,8 @@ public partial class MetricApiController : ControllerBase
     [HttpGet("installs-trend")]
     public async Task<List<YearProjection>> GetInstallsTrend()
     {
-        var installsPerMonth = await _metricDbContext.Installs
-        .GroupBy(mi => new { Year = mi.Created.Year })
+        var installsPerMonth = await _metricDbContext.MetricInstalls
+        .GroupBy(mi => new { mi.Created.Year })
         .Select(g => new YearProjection
         {
             Year = g.Key.Year,
@@ -177,6 +152,24 @@ public partial class MetricApiController : ControllerBase
         .OrderBy(y => y.Year)
         .ToListAsync();
 
+        var pastCount = 0;
+        foreach (var yearProjection in installsPerMonth)
+        {
+            yearProjection.January += pastCount;
+            yearProjection.February += yearProjection.January;
+            yearProjection.March += yearProjection.February;
+            yearProjection.April += yearProjection.March;
+            yearProjection.May += yearProjection.April;
+            yearProjection.June += yearProjection.May;
+            yearProjection.July += yearProjection.June;
+            yearProjection.August += yearProjection.July;
+            yearProjection.September += yearProjection.August;
+            yearProjection.October += yearProjection.September;
+            yearProjection.November += yearProjection.October;
+            yearProjection.December += yearProjection.November;
+            pastCount += yearProjection.Count;
+        }
+
         return installsPerMonth;
 
     }
@@ -189,16 +182,10 @@ public partial class MetricApiController : ControllerBase
     [HttpGet("installs-last-days")]
     public async Task<List<AggregationPerDay>> GetInstallLastDays()
     {
-        DateTime date30DaysAgo = DateTime.UtcNow.AddDays(-30);
-
-        var installsLast30Days = await _metricDbContext.Installs
-            .Where(a => a.Created > date30DaysAgo)
+        var installsLast30Days = await _metricDbContext.MetricInstalls
+            .Where(a => a.Created > DateTimeHelpers.NthDaysAgo(30))
             .GroupBy(a => a.Created.Date)
-            .Select(g => new AggregationPerDay
-            {
-                Date = g.Key,
-                Count = g.Count()
-            })
+            .Select(g => new AggregationPerDay { Date = g.Key, Count = g.Count() })
             .OrderBy(aggregation => aggregation.Date)
             .ToListAsync();
 
@@ -211,47 +198,79 @@ public partial class MetricApiController : ControllerBase
     /// <returns>The active users per month.</returns>
 
     [HttpGet("active-users-per-month/{minNumberOfLaunch}")]
-    public async Task<List<AggregationPerMonth>> GetActiveUsersPerMonth(int minNumberOfLaunch)
+    public List<AggregationPerMonth> GetActiveUsersPerMonth(int minNumberOfLaunch)
     {
-        int editorAppId = MetricDbContext.AppEditorId;
-        string metricName = "OpenApplication";
+        int editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        var activeUsersPerMonth = await _metricDbContext.Metrics
-            .Where(a => a.AppId == editorAppId &&
-                        a.MetricEventDefinition.MetricName == metricName)
-            .GroupBy(a => new
+        var query = (
+            from a in _metricDbContext.MetricEvents
+            join b in _metricDbContext.MetricEventDefinitions on a.MetricId equals b.MetricId
+            where b.MetricName == "OpenApplication" &&
+                  a.AppId == editorAppId &&
+                  EF.Functions.DateDiffDay(a.Timestamp, DateTime.Now) < 31
+            group a by new
             {
-                a.Timestamp.Year,
-                a.Timestamp.Month,
+                Year = a.Timestamp.Year,
+                Month = a.Timestamp.Month,
                 a.InstallId
+            } into g
+            select new
+            {
+                g.Key.Year,
+                g.Key.Month,
+                g.Key.InstallId
             })
+            .ToList();
+
+        var result = query
+            .GroupBy(x => new { x.Year, x.Month })
             .Where(g => g.Count() > minNumberOfLaunch)
-            .GroupBy(g => new { g.Key.Year, g.Key.Month })
             .Select(g => new AggregationPerMonth
             {
                 Year = g.Key.Year,
                 Month = g.Key.Month,
                 Count = g.Count()
             })
-            .OrderBy(aggregation => aggregation.Year)
-            .ThenBy(aggregation => aggregation.Month)
-            .ToListAsync();
+            .OrderBy(r => r.Year)
+            .ThenBy(r => r.Month)
+            .ToList();
 
-        return activeUsersPerMonth;
+        return result;
     }
 
     /// <summary>
-    /// Gets the active users per month.
+    /// Gets the users quits per month.
     /// </summary>
-    /// <returns>The active users per month.</returns>
+    /// <returns>The users quits per month.</returns>
 
-    [HttpGet("quitting-count-job")]
-    public async Task<string> GetQuittingCountJob()
+    [HttpGet("quitting-count")]
+    public IEnumerable<AggregationPerMonth> GetQuittingCount()
     {
-        var installations = await _metricDbContext.SqlToList<AggregationPerInstall>(SQLRawQueries.getActiveUsersPerMonth, MetricDbContext.AppEditorId);
-        var installationsCopy = installations.ToList();
+        int editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
+
+        var installs = (
+            from a in _metricDbContext.MetricEvents
+            join b in _metricDbContext.MetricEventDefinitions on a.MetricId equals b.MetricId
+            where b.MetricName == "OpenApplication" &&
+                  a.AppId == editorAppId &&
+                  EF.Functions.DateDiffDay(a.Timestamp, DateTime.Now) < 31
+            group a by new
+            {
+                Year = a.Timestamp.Year,
+                Month = a.Timestamp.Month,
+                a.InstallId
+            } into g
+            select new AggregationPerInstall
+            (
+                g.Key.Year,
+                g.Key.Month,
+                g.Key.InstallId
+            ))
+            .ToList();
+
         var result = new List<AggregationPerMonth>();
-        foreach (var aggregationPerInstall in installations)
+        var installsCopy = installs.ToList();
+        foreach (var aggregationPerInstall in installs)
         {
             var date = new DateTime(aggregationPerInstall.Year, aggregationPerInstall.Month, 1);
             if (result.Count == 0)
@@ -270,7 +289,7 @@ public partial class MetricApiController : ControllerBase
                 continue;
             }
 
-            var persists = installationsCopy.Any(
+            var persists = installsCopy.Any(
                 x => aggregationPerInstall.InstallId == x.InstallId && new DateTime(x.Year, x.Month, 1) == future);
             if (persists) continue;
             {
@@ -288,103 +307,83 @@ public partial class MetricApiController : ControllerBase
                 resultMonth.Count++;
             }
         }
+        return result;
 
-        var cacheQuery = "UPDATE [MetricCache] SET JsonData = '" + JsonConvert.SerializeObject(result) + $"' WHERE Type = 'get-quitting-count-job'";
-
-        await _metricDbContext.Database.ExecuteSqlRawAsync(cacheQuery);
-
-        return "Done";
     }
 
     /// <summary>
-    /// Gets the active users per month.
+    /// Gets the number of users per Country
     /// </summary>
-    /// <returns>The active users per month.</returns>
-
-    [HttpGet("quitting-count")]
-    public async Task<List<AggregationPerMonth>> GetQuittingCount()
-    {
-        var cache = await _metricDbContext.MetricCache
-        .Where(m => m.Type == "get-quitting-count-job")
-        .Select(m => new CachedResult(m.JsonData))
-        .FirstOrDefaultAsync();
-
-        return JsonConvert.DeserializeObject<List<AggregationPerMonth>>(cache.JsonData);
-    }
-
-    /// <summary>
-    /// Gets the active users per month.
-    /// </summary>
-    /// <returns>The active users per month.</returns>
+    /// <returns>The number of users from the top 20 countries</returns>
 
     [HttpGet("countries/{daysInPast}")]
-    public async Task<List<AggregationPerValue>> GetCountries(int daysInPast)
+    public IEnumerable<AggregationPerValue> GetCountries(int daysInPast)
     {
-        var cache = await _metricDbContext.MetricCache
-        .Where(m => m.Type == $"get-countries-job/{daysInPast}")
-        .Select(m => new CachedResult(m.JsonData))
-        .FirstOrDefaultAsync();
+        int editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        return JsonConvert.DeserializeObject<List<AggregationPerValue>>(cache.JsonData);
+        var q = _metricDbContext.MetricEvents
+                .Include(e => e.MetricEventDefinition)
+                .Where(e => e.MetricEventDefinition.MetricName == "OpenApplication")
+                .Where(e => e.AppId == editorAppId)
+                .Where(e => daysInPast != 0 ? EF.Functions.DateDiffDay(e.Timestamp, DateTime.Now) < daysInPast : true)
+                .GroupBy(e => new { e.InstallId, e.IPAddress })
+                .Select(g => new { Value = _metricDbContext.IPAddressToCountry(g.Key.IPAddress) });
 
+        var countries = q
+                .Where(e => e.Value != "-")
+                .GroupBy(e => new { Value = e.Value })
+                .Where(g => g.Count() > 5)
+                .OrderByDescending(g => g.Count())
+                    .ThenBy(g => g.Key.Value)
+                .Take(20)
+                .Select(g => new AggregationPerValue
+                {
+                    Count = g.Count(),
+                    Value = g.Key.Value
+                });
+
+        return countries;
     }
 
     /// <summary>
-    /// Gets the active users per month.
+    /// Gets the active users per day.
     /// </summary>
-    /// <returns>The active users per month.</returns>
-
-    [HttpGet("countries-job/{daysInPast}")]
-    public async Task<string> GetCountriesJob(int daysInPast)
-    {
-        var query = daysInPast == 0 ? SQLRawQueries.getUsersCountriesTotal : SQLRawQueries.getUsersCountriesLastMonth;
-        var res = await _metricDbContext.SqlToList<AggregationPerValue>(query, MetricDbContext.AppEditorId, daysInPast);
-
-        var cacheQuery = "UPDATE [MetricCache] SET JsonData = '" + JsonConvert.SerializeObject(res) + $"' WHERE Type = 'get-countries-job/{daysInPast}'";
-
-        await _metricDbContext.Database.ExecuteSqlRawAsync(cacheQuery);
-
-        return "Done";
-    }
-
-    /// <summary>
-    /// Gets the active users per month.
-    /// </summary>
-    /// <returns>The active users per month.</returns>
+    /// <returns>The active users per day.</returns>
 
     [HttpGet("active-users-per-day/{minNumberOfLaunch}")]
-    public async Task<List<AggregationPerDays>> GetActiveUsersPerDay(int minNumberOfLaunch)
+    public async Task<List<AggregationPerDays>> GetActiveUsersPerDay(uint minNumberOfLaunch)
     {
-        int editorAppId = MetricDbContext.AppEditorId;
-        string metricName = "OpenApplication";
-        DateTime date31DaysAgo = DateTime.UtcNow.AddDays(-31);
+        int editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        var activeUsersPerDay = await _metricDbContext.Metrics
-            .Where(a => a.AppId == editorAppId &&
-                        a.MetricEventDefinition.MetricName == metricName &&
-                        a.Timestamp >= date31DaysAgo)
-            .GroupBy(a => new
-            {
-                a.Timestamp.Year,
-                a.Timestamp.Month,
-                a.Timestamp.Day,
-                a.InstallId
-            })
-            .Where(g => g.Count() > minNumberOfLaunch)
-            .GroupBy(g => new { g.Key.Year, g.Key.Month, g.Key.Day })
-            .Select(g => new AggregationPerDays
-            {
-                Year = g.Key.Year,
-                Month = g.Key.Month,
-                Day = g.Key.Day,
-                Count = g.Count()
-            })
-            .OrderBy(aggregation => aggregation.Year)
-            .ThenBy(aggregation => aggregation.Month)
-            .ThenBy(aggregation => aggregation.Day)
-            .ToListAsync();
+        var result = await (
+    from a in _metricDbContext.MetricEvents
+    join b in _metricDbContext.MetricEventDefinitions on a.MetricId equals b.MetricId
+    where b.MetricName == "OpenApplication" &&
+          a.AppId == editorAppId
+    group a by new
+    {
+        Year = a.Timestamp.Year,
+        Month = a.Timestamp.Month,
+        a.InstallId
+    } into g
+    where g.Count() > minNumberOfLaunch
+    orderby g.Key.Year, g.Key.Month
+    select new
+    {
+        g.Key.Year,
+        g.Key.Month,
+        Count = g.Count()
+    })
+    .ToListAsync();
 
-        return activeUsersPerDay;
+        var finalResult = result.Select(r => new AggregationPerDays
+        {
+            Year = r.Year,
+            Month = r.Month,
+            Count = r.Count
+        }).ToList();
+
+        return finalResult;
     }
 
     /// <summary>
@@ -395,14 +394,12 @@ public partial class MetricApiController : ControllerBase
     [HttpGet("usage-per-version")]
     public async Task<List<AggregationPerVersion>> GetUsagePerVersion()
     {
-        int editorAppId = MetricDbContext.AppEditorId;
-        string metricName = "OpenApplication";
-        DateTime date30DaysAgo = DateTime.UtcNow.AddDays(-30);
+        int editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        var usagePerVersion = await _metricDbContext.Metrics
+        var usagePerVersion = await _metricDbContext.MetricEvents
             .Where(a => a.AppId == editorAppId &&
-                        a.MetricEventDefinition.MetricName == metricName &&
-                        a.Timestamp >= date30DaysAgo)
+                        a.MetricEventDefinition.MetricName == "OpenApplication" &&
+                        a.Timestamp >= DateTimeHelpers.NthDaysAgo(30))
             .GroupBy(a => a.MetricValue)
             .Select(g => new AggregationPerVersion
             {
@@ -421,45 +418,109 @@ public partial class MetricApiController : ControllerBase
     /// <returns>The usage count per version in the last 30 days.</returns>
 
     [HttpGet("high-usage")]
-    public async Task<List<AggregationPerMonth>> GetHighUsage()
+    public List<AggregationPerMonth> GetHighUsage()
     {
-        var cache = await _metricDbContext.MetricCache
-        .Where(m => m.Type == "get-high-usage-job")
-        .Select(m => new CachedResult(m.JsonData))
-        .FirstOrDefaultAsync();
+        //var cache = await _metricDbContext.MetricCache
+        //.Where(m => m.Type == "get-high-usage-job")
+        //.Select(m => new CachedResult(m.JsonData))
+        //.FirstOrDefaultAsync();
 
-        return JsonConvert.DeserializeObject<List<AggregationPerMonth>>(cache.JsonData);
+        //return JsonConvert.DeserializeObject<List<AggregationPerMonth>>(cache.JsonData);
+
+        return null;
     }
 
     /// <summary>
-    /// Gets the usage count per version in the last 30 days.
+    /// Gets the number of Stride downloads
     /// </summary>
-    /// <returns>The usage count per version in the last 30 days.</returns>
-
-    [HttpGet("high-usage-job/{gauge}")]
-    public async Task<string> GetHighUsageJob(int gauge)
-    {
-        var result = await _metricDbContext.SqlToList<AggregationPerMonth>(SQLRawQueries.getUsagePerVersion, MetricDbContext.AppEditorId, gauge);
-
-        var cacheQuery = "UPDATE [MetricCache] SET JsonData = '" + JsonConvert.SerializeObject(result) + "' WHERE Type = 'get-high-usage-job'";
-
-        await _metricDbContext.Database.ExecuteSqlRawAsync(cacheQuery);
-
-        return "Done";
-    }
-
+    /// <returns>The number of Stride downloads per month.</returns>
 
     [HttpGet("stride-downloads")]
-    public async Task<List<AggregationPerMonth>> GetStrideDownloads()
+    public IEnumerable<AggregationPerMonth> GetStrideDownloads()
     {
-        return await _metricDbContext.SqlToList<AggregationPerMonth>(SQLRawQueries.getActiveUsersOfStrideVersionPerMonth, MetricDbContext.AppLauncherId);
+        var strideDownloads = (
+            from a in _metricDbContext.MetricEvents
+            join b in _metricDbContext.MetricEventDefinitions on a.MetricId equals b.MetricId
+            where b.MetricName == "DownloadPackage" &&
+                a.MetricValue.Contains("Stride") &&
+                a.MetricValue.Contains("DownloadCompleted")
+            group a by new
+            {
+                Year = a.Timestamp.Year,
+                Month = a.Timestamp.Month,
+                a.InstallId
+            } into g
+            select new
+            {
+                g.Key.Year,
+                g.Key.Month,
+                g.Key.InstallId
+            })
+            .AsEnumerable()
+            .GroupBy(g => new
+            {
+                g.Year,
+                g.Month
+            })
+            .Select(g => new AggregationPerMonth
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                Count = g.Count()
+            })
+            .OrderBy(r => r.Year)
+            .ThenBy(r => r.Month)
+            .ToList();
+
+        return strideDownloads;
+
     }
 
+    /// <summary>
+    /// Gets the number of downloads of Stride3D's Visual Studio plugin
+    /// </summary>
+    /// <returns>The number of Visual Studio plugin downloads per month.</returns>
 
     [HttpGet("vsx-downloads")]
-    public async Task<List<AggregationPerMonth>> GetVsxDownloads()
+    public IEnumerable<AggregationPerMonth> GetVsxDownloads()
     {
-        return await _metricDbContext.SqlToList<AggregationPerMonth>(SQLRawQueries.getActiveUsersOfVSXVersionPerMonth, MetricDbContext.AppLauncherId);
+        int editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
+
+        var vsxDownloads = (
+            from a in _metricDbContext.MetricEvents
+            join b in _metricDbContext.MetricEventDefinitions on a.MetricId equals b.MetricId
+            where b.MetricName == "DownloadPackage" &&
+                a.MetricValue.Contains("VisualStudio") &&
+                a.MetricValue.Contains("DownloadCompleted")
+            group a by new
+            {
+                Year = a.Timestamp.Year,
+                Month = a.Timestamp.Month,
+                a.InstallId
+            } into g
+            select new
+            {
+                g.Key.Year,
+                g.Key.Month,
+                g.Key.InstallId
+            })
+            .AsEnumerable()
+            .GroupBy(g => new
+            {
+                g.Year,
+                g.Month
+            })
+            .Select(g => new AggregationPerMonth
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                Count = g.Count()
+            })
+            .OrderBy(r => r.Year)
+            .ThenBy(r => r.Month)
+            .ToList();
+
+        return vsxDownloads;
     }
 
     /// <summary>
@@ -468,28 +529,43 @@ public partial class MetricApiController : ControllerBase
     /// <returns>The crashes count per version</returns>
 
     [HttpGet("crashes-per-version")]
-    public async Task<List<CrashAggregationResult>> GetCrashesPerVersion()
+    public List<CrashAggregationResult> GetCrashesPerVersion()
     {
-        var cache = await _metricDbContext.MetricCache
-        .Where(m => m.Type == $"get-crashes-per-version-job")
-        .Select(m => new CachedResult(m.JsonData))
-        .FirstOrDefaultAsync();
+        int editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        return JsonConvert.DeserializeObject<List<CrashAggregationResult>>(cache.JsonData);
+        var crashesPerVersion = _metricDbContext.MetricEvents
+            .Join(
+                _metricDbContext.MetricEventDefinitions,
+                a => a.MetricId,
+                b => b.MetricId,
+                (a, b) => new { a, b }
+            )
+            .Join(
+                _metricDbContext.MetricEvents
+                    .Where(a => a.MetricId == _metricDbContext.MetricEventDefinitions
+                        .Where(b => b.MetricName == "CrashedSession")
+                        .Select(b => b.MetricId)
+                        .FirstOrDefault()
+                    )
+                    .Select(a => new { a.InstallId, a.SessionId, MetricSent = a.MetricValue }),
+                ab => new { ab.a.InstallId, ab.a.SessionId },
+                sq => new { sq.InstallId, sq.SessionId },
+                (ab, sq) => new { ab.a, ab.b, sq }
+            )
+            .Where(ab => ab.a.MetricId == ab.b.MetricId && ab.b.MetricName == "OpenApplication" && ab.sq.InstallId == ab.a.InstallId && ab.sq.SessionId == ab.a.SessionId && ab.a.AppId == editorAppId && (DateTime.Now - ab.a.Timestamp).Days < 30)
+            .GroupBy(ab => new { ab.sq.InstallId, ab.sq.SessionId, ab.a.MetricValue, ab.sq.MetricSent })
+            .OrderBy(ab => ab.Key.MetricValue)
+            .Select(ab => new
+            {
+                ab.Key.InstallId,
+                ab.Key.SessionId,
+                ab.Key.MetricSent,
+                Version = ab.Key.MetricValue
+            })
+            .ToList();
 
-    }
-
-    /// <summary>
-    /// Gets the crashes count per version in the last 30 days.
-    /// </summary>
-    /// <returns>The crashes count per version</returns>
-
-    [HttpGet("crashes-per-version-job")]
-    public async Task<string> GetCrashesPerVersionJob()
-    {
         var versionAndCrashes = new Dictionary<string, int>();
-        var mining = await _metricDbContext.SqlToList<CrashAggregation>(SQLRawQueries.getCrashesPerVersion, MetricDbContext.AppEditorId);
-        foreach (var crashAggregation in mining)
+        foreach (var crashAggregation in crashesPerVersion)
         {
             if (crashAggregation.Version.StartsWith("1.20")) continue;
             if (crashAggregation.Version.Contains("alpha")) continue;
@@ -505,27 +581,23 @@ public partial class MetricApiController : ControllerBase
         }
 
         var versionActivity = new Dictionary<string, decimal>();
-        var activity = await _metricDbContext.SqlToList<ActivityData>(SQLRawQueries.getActivityData, MetricDbContext.AppEditorId);
-        foreach (var activityData in activity)
-        {
-            versionActivity.Add(activityData.Version, activityData.Time);
-        }
+        // foreach (var activityData in activity)
+        // {
+        //     versionActivity.Add(activityData.Version, activityData.Time);
+        // }
 
         var res = new List<CrashAggregationResult>();
         foreach (var versionAndCrash in versionAndCrashes)
         {
-            if (versionActivity.TryGetValue(versionAndCrash.Key, out var time))
+            decimal time;
+            if (versionActivity.TryGetValue(versionAndCrash.Key, out time))
             {
                 var ratio = versionAndCrash.Value / ((double)time / 60.0 / 60.0);
                 res.Add(new CrashAggregationResult(versionAndCrash.Key, ratio));
             }
         }
 
-        var cacheQuery = "UPDATE [MetricCache] SET JsonData = '" + JsonConvert.SerializeObject(res) + "' WHERE Type = 'get-crashes-per-version-job'";
-
-        await _metricDbContext.Database.ExecuteSqlRawAsync(cacheQuery);
-
-        return "Done";
+        return res;
     }
 
     /// <summary>
@@ -534,16 +606,16 @@ public partial class MetricApiController : ControllerBase
     /// <returns>The crashes count per version in the last 30 days.</returns>
 
     [HttpGet("platforms-usage")]
-    public async Task<List<AggregationPerPlatforms>> GetPlatformsUsage()
+    public List<AggregationPerPlatforms> GetPlatformsUsage()
     {
         // Get active users of version per month
 
-        var result = _metricDbContext.Metrics
+        var result = _metricDbContext.MetricEvents
             .Join(_metricDbContext.MetricEventDefinitions,
                 me => me.MetricId,
                 med => med.MetricId,
                 (me, med) => new { me, med })
-            .Where(x => x.med.MetricName == "OpenSession2" && x.me.Timestamp >= DateTime.Now.AddDays(-31))
+            .Where(x => x.med.MetricName == "OpenSession2" && x.me.Timestamp >= DateTimeHelpers.NthDaysAgo(31))
             .Select(x => x.me.MetricValue)
             .ToList();
 
@@ -581,32 +653,41 @@ public partial class MetricApiController : ControllerBase
     /// </summary>
     /// <returns>The usage count per version in the last 30 days.</returns>
 
-    [HttpGet("projects-users-job")]
-    public async Task<string> GetProjectsUsersJob()
-    {
-        var res = await _metricDbContext.SqlToList<ProjectsUsersAggregation>(SQLRawQueries.projectsUsersScraper);
-
-        var cacheQuery = "UPDATE [MetricCache] SET JsonData = '" + JsonConvert.SerializeObject(res) + "' WHERE Type = 'get-projects-users-job'";
-
-        await _metricDbContext.Database.ExecuteSqlRawAsync(cacheQuery);
-
-        return "Done";
-    }
-
-    /// <summary>
-    /// Gets the usage count per version in the last 30 days.
-    /// </summary>
-    /// <returns>The usage count per version in the last 30 days.</returns>
-
     [HttpGet("projects-users")]
-    public async Task<List<ProjectsUsersAggregation>> GetProjectsUsers()
+    public IEnumerable<ProjectsUsersAggregation> GetProjectsUsers()
     {
-        var cache = await _metricDbContext.MetricCache
-        .Where(m => m.Type == "get-projects-users-job")
-        .Select(m => new CachedResult(m.JsonData))
-        .FirstOrDefaultAsync();
-
-        return JsonConvert.DeserializeObject<List<ProjectsUsersAggregation>>(cache.JsonData);
+        var result = _metricDbContext.MetricEvents
+            .Where(a => a.MetricId == 19)
+            .Select(a => new
+            {
+                ProjectUUID = a.MetricValue.Substring(12, 36),
+                a.InstallId,
+                a.MetricValue,
+                Year = a.Timestamp.Year,
+                Month = a.Timestamp.Month
+            })
+            .Where(n => n.ProjectUUID != Guid.Empty.ToString())
+            .GroupBy(n => new { n.Month, n.Year, n.ProjectUUID, n.MetricValue })
+            .Where(g => g.Count() > 1)
+            .Select(g => new
+            {
+                Count = g.Count(),
+                g.Key.ProjectUUID,
+                g.Key.MetricValue,
+                g.Key.Month,
+                g.Key.Year
+            })
+            .GroupBy(m => new { m.Month, m.Year })
+            .Select(g => new ProjectsUsersAggregation
+            (
+                g.Key.Year,
+                g.Key.Month,
+                g.Sum(x => x.Count > 1 ? 1 : 0),
+                g.Sum(x => x.Count > 3 ? 1 : 0),
+                g.Sum(x => x.Count > 5 ? 1 : 0)
+            ))
+            .ToList();
+        return result;
     }
 
     /// <summary>

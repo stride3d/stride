@@ -1,4 +1,4 @@
-namespace Stride.Metrics.ServerApp.Models;
+namespace Stride.Metrics.ServerApp.Extensions;
 
 public static class IHttpContextAccessorExtensions
 {

@@ -12,21 +12,19 @@ public class MetricDbContext : DbContext
     {
     }
 
-    public DbSet<MetricEvent> Metrics { get; set; }
+    public DbSet<MetricEvent> MetricEvents { get; set; }
 
-    public DbSet<MetricApp> Apps { get; set; }
-
-    public DbSet<MetricEventDefinition> MetricDefinitions { get; set; }
-
-    public DbSet<MetricInstall> Installs { get; set; }
-
-    public DbSet<MetricMarker> Markers { get; set; }
-
-    public DbSet<MetricMarkerGroup> MarkerGroups { get; set; }
-
-    public DbSet<MetricCache> MetricCache { get; set; }
+    public DbSet<MetricApp> MetricApps { get; set; }
 
     public DbSet<MetricEventDefinition> MetricEventDefinitions { get; set; }
+
+    public DbSet<MetricInstall> MetricInstalls { get; set; }
+
+    public DbSet<MetricMarker> MetricMarkers { get; set; }
+
+    public DbSet<MetricMarkerGroup> MetricMarkerGroups { get; set; }
+
+    public DbSet<MetricCache> MetricCache { get; set; }//to delete
     public DbSet<IpToLocations> IpToLocations { get; set; }
 
     public static int AppEditorId { get; private set; }
@@ -42,9 +40,6 @@ public class MetricDbContext : DbContext
         modelBuilder.Entity<MetricApp>()
             .HasIndex(a => a.AppGuid)
             .IsUnique();
-        
-        modelBuilder.Entity<MetricApp>()
-            .ToTable("MetricApps");
 
         modelBuilder.Entity<MetricEventDefinition>()
            .HasIndex(a => a.MetricGuid)
@@ -54,29 +49,17 @@ public class MetricDbContext : DbContext
            .HasIndex(a => a.MetricName)
            .IsUnique();
 
-        modelBuilder.Entity<MetricEventDefinition>()
-           .ToTable("MetricEventDefinitions");
-
         modelBuilder.Entity<MetricInstall>()
            .HasIndex(a => a.InstallGuid)
            .IsUnique();
-        
-        modelBuilder.Entity<MetricInstall>()
-           .ToTable("MetricMarkerGroups");
-        
-        modelBuilder.Entity<MetricMarker>()
-           .ToTable("MetricMarkers");
 
         modelBuilder.Entity<MetricEvent>()
             .HasKey(m => new { m.Timestamp, m.AppId, m.InstallId, m.SessionId, m.MetricId });
-        
+
         modelBuilder.Entity<MetricEvent>()
             .Property(m => m.Timestamp)
             .HasColumnType("datetime2");
-        
-        modelBuilder.Entity<MetricEvent>()
-            .ToTable("MetricEvents");
-        
+
         modelBuilder.Entity<IpToLocations>()
             .HasIndex(a => a.IpFrom)
             .IsUnique();
@@ -84,6 +67,15 @@ public class MetricDbContext : DbContext
         modelBuilder.Entity<IpToLocations>()
             .HasIndex(a => a.IpTo)
             .IsUnique();
+
+        modelBuilder.HasDbFunction(
+            typeof(MetricDbContext).GetMethod(nameof(IPAddressToCountry), 
+            new[] { typeof(string) }))
+            .HasName("IPAddressToCountry");
+    }
+    public string IPAddressToCountry(string IPAddress)
+    {
+        throw new NotImplementedException();
     }
 
     internal static void Initialize(IServiceProvider serviceProvider)
@@ -96,8 +88,8 @@ public class MetricDbContext : DbContext
             .Where(field => field.IsStatic && typeof(MetricAppId).IsAssignableFrom(field.FieldType)))
         {
             var metricAppId = (MetricAppId)metricAppField.GetValue(null);
-            if (dbContext.Apps.Any(x => x.AppGuid == metricAppId.Guid)) continue;
-            dbContext.Apps.Add(new MetricApp(metricAppId.Guid, metricAppId.Name));
+            if (dbContext.MetricApps.Any(x => x.AppGuid == metricAppId.Guid)) continue;
+            dbContext.MetricApps.Add(new MetricApp(metricAppId.Guid, metricAppId.Name));
         }
         dbContext.SaveChanges();
 
@@ -106,8 +98,8 @@ public class MetricDbContext : DbContext
             .Where(field => typeof(MetricKey).IsAssignableFrom(field.FieldType)))
         {
             var metricKey = (MetricKey)metricField.GetValue(null);
-            if (dbContext.MetricDefinitions.Any(x => x.MetricGuid == metricKey.Guid)) continue;
-            dbContext.MetricDefinitions.Add(new MetricEventDefinition(metricKey.Guid, metricKey.Name));
+            if (dbContext.MetricEventDefinitions.Any(x => x.MetricGuid == metricKey.Guid)) continue;
+            dbContext.MetricEventDefinitions.Add(new MetricEventDefinition(metricKey.Guid, metricKey.Name));
         }
         dbContext.SaveChanges();
 

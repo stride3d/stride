@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Stride.Metrics.ServerApp.Extensions;
 using Stride.Metrics.ServerApp.Models;
 
 namespace Stride.Metrics.ServerApp.Controllers;

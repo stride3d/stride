@@ -9,12 +9,3 @@ public class AggregationPerMonth : AggregateBase
 
     public int Month { get; set; }
 }
-
-public class AggregationPerDays : AggregateBase
-{
-    public int Year { get; set; }
-
-    public int Month { get; set; }
-
-    public int Day { get; set; }
-}

@@ -10,7 +10,7 @@ public class IpToLocations
 
     [Required, MaxLength(2)]
     public string CountryCode { get; set; }
-    
+
     [Required, MaxLength(64)]
     public string CountryName { get; set; }
 }

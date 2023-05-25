@@ -6,15 +6,15 @@ const plotData = [
   {id:'retain-percentage', route:'quitting-count', getData: getRetainPercentage, getLabel: getMonthYearLabel},
   {id:'stride-downloads', getData: getCount, getLabel: getMonthYearLabel},
   {id:'vsx-downloads', getData: getCount, getLabel: getMonthYearLabel},
-  {id:'total-users-per-country',route: 'get-countries/0', getData: getData_Countries, getLabel: getLabel_Countries},
-  {id:'users-per-country',route: 'get-countries/31', getData: getData_Countries, getLabel: getLabel_Countries},
+  {id:'total-users-per-country',route: 'countries/0', getData: getData_Countries, getLabel: getLabel_Countries},
+  {id:'users-per-country',route: 'countries/31', getData: getData_Countries, getLabel: getLabel_Countries},
   {id:'total-users-per-month',route: 'active-users-per-month/0', getData: getCount, getLabel: getMonthYearLabel},
   {id:'total-users-per-day',route: 'active-users-per-day/0', getData: getCount, getLabel: getDayMonthYearLabel},
   {id:'active-users-per-month',route: 'active-users-per-month/5', getData: getCount, getLabel: getMonthYearLabel},
   {id:'active-users', getData: getData_ActiveUsers, getLabel: getLabel_ActiveUsers},
   {id:'high-usage', getData: getData_HighUsage, getLabel: getLabel_HighUsage},
   {id:'projects-users', getData: getData_ProjectUsers, getLabel: getLabel_ProjectUsers},
-  {id:'usage-per-version', getData: getData_UsagePerVersion, getLabel: getLabel_UsagePerVersion},
+  {id:'usage-per-version', getData: getCount, getLabel: getLabel_UsagePerVersion},
   {id:'crashes-per-version', getData: getData_CrashesPerVersion, getLabel: getLabel_CrashesPerVersion},
   {id:'platforms-usage', getData: getCount, getLabel: getLabel_PlatformsUsage},
 ];
@@ -66,7 +66,7 @@ function getLabel_ProjectUsers(response) {
   return null;
 }
 function getLabel_UsagePerVersion(response) {
-  return null;
+  return response.flatMap(({ version }) => version );
 }
 function getLabel_CrashesPerVersion(response) {
   return null;
