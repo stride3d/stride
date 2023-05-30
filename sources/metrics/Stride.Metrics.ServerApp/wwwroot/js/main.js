@@ -11,7 +11,6 @@ const plotData = [
   {id:'total-users-per-month',route: 'active-users-per-month/0', getData: getCount, getLabel: getMonthYearLabel},
   {id:'total-users-per-day',route: 'active-users-per-day/0', getData: getCount, getLabel: getDayMonthYearLabel},
   {id:'active-users-per-month',route: 'active-users-per-month/5', getData: getCount, getLabel: getMonthYearLabel},
-  {id:'active-users', getData: getData_ActiveUsers, getLabel: getLabel_ActiveUsers},
   {id:'high-usage', getData: getData_HighUsage, getLabel: getLabel_HighUsage},
   {id:'projects-users', getData: getData_ProjectUsers, getLabel: getLabel_ProjectUsers},
   {id:'usage-per-version', getData: getCount, getLabel: getLabel_UsagePerVersion},

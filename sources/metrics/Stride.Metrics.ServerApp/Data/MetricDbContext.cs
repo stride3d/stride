@@ -73,6 +73,12 @@ public class MetricDbContext : DbContext
             new[] { typeof(string) }))
             .HasName("IPAddressToCountry");
     }
+
+    /// <summary>
+    ///  SQL Function representation, if is not available will throw NotImplementedException
+    /// </summary>
+    /// <param name="IPAddress"></param>
+    /// <returns></returns>
     public string IPAddressToCountry(string IPAddress)
     {
         throw new NotImplementedException();

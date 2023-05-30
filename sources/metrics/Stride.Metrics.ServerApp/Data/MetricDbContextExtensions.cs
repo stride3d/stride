@@ -12,11 +12,6 @@ public static class MetricDbContextExtensions
     private static readonly Dictionary<Guid, int> InstallIds = new();
     private static readonly Dictionary<Guid, int> MetricIds = new();
 
-    public static async Task<List<T>> SqlToList<T>(this MetricDbContext dbContext, string sqlQuery, params object[] parameters)
-    {
-        return await dbContext.Database.SqlQueryRaw<T>(sqlQuery, parameters).ToListAsync();
-    }
-
     public static int GetApplicationId(this MetricDbContext context, Guid appGuid)
     {
         int id;
