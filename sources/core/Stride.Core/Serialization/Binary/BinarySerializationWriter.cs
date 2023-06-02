@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Stride.Core.Annotations;
@@ -77,7 +78,9 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref ulong value)
         {
-            UnderlyingStream.Write(value);
+            var buffer = new byte[sizeof(ulong)];
+            BinaryPrimitives.WriteUInt64LittleEndian(buffer, value);
+            UnderlyingStream.Write(buffer, 0, buffer.Length);
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
