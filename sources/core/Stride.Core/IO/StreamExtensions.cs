@@ -19,12 +19,7 @@ public static class StreamExtensions
             throw new EndOfStreamException();
         return result;
     }
-    [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-    private static unsafe void Write<T>(this Stream @this, T value) where T : unmanaged
-    {
-        var span = new Span<byte>(&value, Unsafe.SizeOf<T>());
-        @this.Write(span);
-    }
+
     /// <summary>A temporary replacement for <see cref="NativeStream.ReadUInt16"/></summary>
     [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
     public static ushort ReadUInt16(this Stream @this) => @this.Read<ushort>();
@@ -34,13 +29,4 @@ public static class StreamExtensions
     /// <summary>A temporary replacement for <see cref="NativeStream.ReadUInt64"/></summary>
     [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
     public static ulong  ReadUInt64(this Stream @this) => @this.Read<ulong >();
-    /// <summary>A temporary replacement for <see cref="NativeStream.Write(ushort)"/></summary>
-    [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-    public static void Write(this Stream @this, ushort value) => @this.Write<ushort>(value);
-    /// <summary>A temporary replacement for <see cref="NativeStream.Write(uint)"/></summary>
-    [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-    public static void Write(this Stream @this, uint   value) => @this.Write<uint  >(value);
-    /// <summary>A temporary replacement for <see cref="NativeStream.Write(ulong)"/></summary>
-    [Obsolete("Consider using System.Buffers.Binary.BinaryPrimitives or Unsafe.ReadUnaligned.")]
-    public static void Write(this Stream @this, ulong  value) => @this.Write<ulong >(value);
 }
