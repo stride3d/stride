@@ -32,7 +32,6 @@ namespace Stride.Core.Serialization
             UnderlyingStream.WriteByte(value ? (byte)1 : (byte)0);
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         /// <inheritdoc />
         public override unsafe void Serialize(ref float value)
         {
