@@ -46,10 +46,14 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc />
-        public override unsafe void Serialize(ref double value)
+        public override void Serialize(ref double value)
         {
-            fixed (double* valuePtr = &value)
-                *((ulong*)valuePtr) = UnderlyingStream.ReadUInt64();
+            var buffer = new byte[sizeof(float)];
+            var read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            if (read != sizeof(double))
+                throw new EndOfStreamException();
+            ulong bits = BitConverter.ToUInt32(buffer, 0);
+            value = BitConverter.UInt64BitsToDouble(bits);
         }
 
         /// <inheritdoc />
