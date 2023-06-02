@@ -48,7 +48,9 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref short value)
         {
-            UnderlyingStream.Write((ushort)value);
+            var buffer = new byte[sizeof(short)];
+            BinaryPrimitives.WriteInt16LittleEndian(buffer, value);
+            UnderlyingStream.Write(buffer, 0, buffer.Length);
         }
 
         /// <inheritdoc />
