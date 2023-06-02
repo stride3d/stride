@@ -42,7 +42,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override unsafe void Serialize(ref double value)
         {
-            UnderlyingStream.Write(Unsafe.As<double, ulong>(ref value));
+            Serialize(ref Unsafe.As<double, ulong>(ref value));
         }
 
         /// <inheritdoc />
