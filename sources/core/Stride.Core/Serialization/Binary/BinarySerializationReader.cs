@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Buffers.Binary;
 using System.IO;
 using Stride.Core.Annotations;
 using Stride.Core.IO;
@@ -69,7 +70,11 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref ushort value)
         {
-            value = UnderlyingStream.ReadUInt16();
+            byte[] buffer = new byte[sizeof(ushort)];
+            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            if (read != sizeof(ushort))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadUInt16LittleEndian(buffer);
         }
 
         /// <inheritdoc />
