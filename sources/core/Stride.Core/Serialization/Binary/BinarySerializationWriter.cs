@@ -72,7 +72,9 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref uint value)
         {
-            UnderlyingStream.Write(value);
+            var buffer = new byte[sizeof(ulong)];
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer, value);
+            UnderlyingStream.Write(buffer, 0, buffer.Length);
         }
 
         /// <inheritdoc />
