@@ -91,7 +91,6 @@ namespace Stride.Core.Serialization
             BinaryPrimitives.WriteUInt64LittleEndian(buffer, value);
             UnderlyingStream.Write(buffer, 0, buffer.Length);
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <inheritdoc />
         public override void Serialize(ref string value)
