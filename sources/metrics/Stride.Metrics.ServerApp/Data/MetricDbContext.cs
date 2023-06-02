@@ -24,13 +24,12 @@ public class MetricDbContext : DbContext
     public DbSet<MetricMarker> MetricMarkers { get; set; }
 
     public DbSet<MetricMarkerGroup> MetricMarkerGroups { get; set; }
-
-    public DbSet<MetricCache> MetricCache { get; set; }//to delete
+    
     public DbSet<IpToLocations> IpToLocations { get; set; }
 
-    public static int AppEditorId { get; private set; }
+    public static int AppEditorId { get; set; }
 
-    public static int AppLauncherId { get; private set; }
+    public static int AppLauncherId { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,37 +83,4 @@ public class MetricDbContext : DbContext
     {
         throw new NotImplementedException();
     }
-
-    internal static void Initialize(IServiceProvider serviceProvider)
-    {
-        using var scope = serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<MetricDbContext>();
-
-        // Register pre-defined applications
-        foreach (var metricAppField in typeof(CommonApps).GetFields()
-            .Where(field => field.IsStatic && typeof(MetricAppId).IsAssignableFrom(field.FieldType)))
-        {
-            var metricAppId = (MetricAppId)metricAppField.GetValue(null);
-            if (dbContext.MetricApps.Any(x => x.AppGuid == metricAppId.Guid)) continue;
-            dbContext.MetricApps.Add(new MetricApp(metricAppId.Guid, metricAppId.Name));
-        }
-        dbContext.SaveChanges();
-
-        // Register pre-defined metrics
-        foreach (var metricField in typeof(CommonMetrics).GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(field => typeof(MetricKey).IsAssignableFrom(field.FieldType)))
-        {
-            var metricKey = (MetricKey)metricField.GetValue(null);
-            if (dbContext.MetricEventDefinitions.Any(x => x.MetricGuid == metricKey.Guid)) continue;
-            dbContext.MetricEventDefinitions.Add(new MetricEventDefinition(metricKey.Guid, metricKey.Name));
-        }
-        dbContext.SaveChanges();
-
-        AppEditorId = dbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
-        AppLauncherId = dbContext.GetApplicationId(CommonApps.StrideLauncherAppId.Guid);
-
-        // TODO: comment this for production, only valid for testing the metrics, just run once. Note this is VERY SLOW
-        // MetricDbTest.Fill(dbContext);
-    }
-
 }

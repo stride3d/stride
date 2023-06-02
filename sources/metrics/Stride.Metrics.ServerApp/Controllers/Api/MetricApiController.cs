@@ -5,7 +5,7 @@ using Stride.Metrics.ServerApp.Data;
 using Stride.Metrics.ServerApp.Extensions;
 
 namespace Stride.Metrics.ServerApp.Controllers.Api;
-
+///<summary>Includes metrics not related to any category</summary>
 [ApiController()]
 [Route("api")]
 public class MetricApiController : ControllerBase
@@ -20,6 +20,7 @@ public class MetricApiController : ControllerBase
     private readonly ILogger<HomeController> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
+    ///<summary>Includes metrics not related to any category</summary>
     public MetricApiController(
         MetricDbContext metricDbContext,
         ILogger<HomeController> logger,

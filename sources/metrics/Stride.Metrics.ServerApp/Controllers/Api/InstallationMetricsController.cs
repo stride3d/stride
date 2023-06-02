@@ -9,12 +9,13 @@ using Stride.Metrics.ServerApp.Helpers;
 
 namespace Stride.Metrics.ServerApp.Controllers.Api;
 
+///<summary>Includes Install related eps</summary>
 [ApiController()]
 [Route("api")]
 public class InstallationMetricsController
 {
     private readonly MetricDbContext _metricDbContext;
-
+    ///<summary>Includes Install related eps</summary>
     public InstallationMetricsController(MetricDbContext metricDbContext)
     {
         _metricDbContext = metricDbContext;

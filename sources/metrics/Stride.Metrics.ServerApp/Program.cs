@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Stride.Metrics.ServerApp.Data;
+using Stride.Metrics.ServerApp.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,17 +22,16 @@ builder.Services.AddSwaggerGen(c => {
 
     c.IncludeXmlComments(xmlPath);
 });
-
+builder.Services.AddDatabaseSeeder();
 
 var app = builder.Build();
 
 // Apply migrations and seed data
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
     app.UseSwagger();
     app.UseSwaggerUI();
-    //MetricDbContext.Initialize(scope.ServiceProvider);
+    app.UseDatabaseSeeder();
 }
 
 // Configure the HTTP request pipeline.
@@ -46,8 +46,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
-app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",

@@ -6,12 +6,13 @@ using Stride.Metrics.ServerApp.Extensions;
 
 namespace Stride.Metrics.ServerApp.Controllers.Api;
 
+///<summary>Includes user related actions</summary>
 [ApiController()]
 [Route("api")]
 public class UserMetricsController
 {
     private readonly MetricDbContext _metricDbContext;
-
+    ///<summary>Includes user related actions</summary>
     public UserMetricsController(MetricDbContext metricDbContext)
     {
         _metricDbContext = metricDbContext;
@@ -100,7 +101,7 @@ public class UserMetricsController
     {
         var editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        var activeUsers = _metricDbContext.MetricEvents
+        var activeUsers = await _metricDbContext.MetricEvents
            .Where(ev => ev.MetricEventDefinition.MetricName == "OpenApplication"
                && ev.AppId == editorAppId)
            .GroupBy(ev => new
@@ -128,7 +129,7 @@ public class UserMetricsController
            })
            .OrderBy(r => r.Year)
                .ThenBy(r => r.Month)
-           .ToList();
+           .ToListAsync();
 
         return activeUsers;
     }
