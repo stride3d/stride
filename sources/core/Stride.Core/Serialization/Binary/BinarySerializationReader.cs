@@ -34,12 +34,15 @@ namespace Stride.Core.Serialization
             value = result != 0;
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         /// <inheritdoc />
         public override unsafe void Serialize(ref float value)
         {
-            fixed (float* valuePtr = &value)
-                *((uint*)valuePtr) = UnderlyingStream.ReadUInt32();
+            var buffer = new byte[sizeof(float)];
+            var read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            if (read != sizeof(float))
+                throw new EndOfStreamException();
+            uint bits = BitConverter.ToUInt32(buffer, 0);
+            value = BitConverter.UInt32BitsToSingle(bits);
         }
 
         /// <inheritdoc />
