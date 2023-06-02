@@ -5,7 +5,6 @@ using System.Buffers.Binary;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Stride.Core.Annotations;
-using Stride.Core.IO;
 
 namespace Stride.Core.Serialization
 {
