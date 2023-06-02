@@ -88,13 +88,21 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref uint value)
         {
-            value = UnderlyingStream.ReadUInt32();
+            byte[] buffer = new byte[sizeof(uint)];
+            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            if (read != sizeof(uint))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadUInt32LittleEndian(buffer);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref ulong value)
         {
-            value = UnderlyingStream.ReadUInt64();
+             byte[] buffer = new byte[sizeof(ulong)];
+            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            if (read != sizeof(ulong))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadUInt64LittleEndian(buffer);
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
