@@ -31,9 +31,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDatabaseSeeder();
+    if(Environment.GetCommandLineArgs().Any(a => a == "--SeedMetricsData"))
+        app.UseDatabaseSeeder();
 }
-
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
