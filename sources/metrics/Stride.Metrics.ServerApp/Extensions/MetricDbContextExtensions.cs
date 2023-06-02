@@ -1,10 +1,11 @@
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Stride.Metrics.ServerApp.Data;
 using Stride.Metrics.ServerApp.Models;
 using Stride.Metrics.ServerApp.Models.MetricCreated;
 
-namespace Stride.Metrics.ServerApp.Data;
+namespace Stride.Metrics.ServerApp.Extensions;
 
 public static class MetricDbContextExtensions
 {

@@ -1,14 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stride.Metrics.ServerApp.Data;
 using Stride.Metrics.ServerApp.Dtos;
 using Stride.Metrics.ServerApp.Dtos.Agregate;
+using Stride.Metrics.ServerApp.Extensions;
 using Stride.Metrics.ServerApp.Helpers;
+using Stride.Metrics.ServerApp.Models;
 
 namespace Stride.Metrics.ServerApp.Controllers.Api;
 
@@ -24,21 +21,51 @@ public class ActivityMetricsController
     }
 
     /// <summary>
-    /// Gets the usage count per version in the last 30 days.
+    /// xyz
     /// </summary>
-    /// <returns>The usage count per version in the last 30 days.</returns>
+    /// <returns>uzs.</returns>
 
     [HttpGet("high-usage")]
     public List<AggregationPerMonth> GetHighUsage()
     {
-        //var cache = await _metricDbContext.MetricCache
-        //.Where(m => m.Type == "get-high-usage-job")
-        //.Select(m => new CachedResult(m.JsonData))
-        //.FirstOrDefaultAsync();
+        var editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        //return JsonConvert.DeserializeObject<List<AggregationPerMonth>>(cache.JsonData);
+        var result = _metricDbContext.MetricEvents
+                     .Where(ev => ev.MetricEventDefinition.MetricName == "OpenApplication" && ev.AppId == editorAppId)
+                     .GroupBy(ev => new
+                     {
+                         ev.InstallId,
+                         ev.Timestamp.Year,
+                         ev.Timestamp.Month,
+                     })
+                     .Select(g => new
+                     {
+                         g.Key.InstallId,
+                         g.Key.Year,
+                         g.Key.Month,
+                         Total = g.Count()
+                     })
+                     .GroupBy(g => new { g.Year, g.Month, g.InstallId })
+                     .Where(g => g.Sum(m => m.Total) >= 10)
+                     .Select(g => new
+                     {
+                         g.Key.Year,
+                         g.Key.Month,
+                         Count = g.Sum(m => m.Total),
+                         g.Key.InstallId
+                     })
+                     .GroupBy(g => new { g.Year, g.Month })
+                     .OrderBy(g => g.Key.Year)
+                        .ThenBy(g => g.Key.Month)
+                     .Select(g => new AggregationPerMonth
+                     {
+                         Month = g.Key.Month,
+                         Year = g.Key.Year,
+                         Count = g.Count()
+                     }).ToList();
 
-        return null;
+
+        return result;
     }
 
     /// <summary>
@@ -171,13 +198,63 @@ public class ActivityMetricsController
                 versionAndCrashes.Add(crashAggregation.Version, 1);
             }
         }
+        var query = _metricDbContext.MetricEvents.Join(
+                _metricDbContext.MetricEventDefinitions,
+                a => a.MetricId,
+                b => b.MetricId,
+                (a, b) => new { a, b })
+                .Join(
+                    (from a in _metricDbContext.MetricEvents
+                     join b in _metricDbContext.MetricEventDefinitions on a.MetricId equals b.MetricId
+                     where (b.MetricName == "SessionHeartbeat2" || b.MetricName == "CloseSession2")
+                           && EF.Functions.DateDiffDay(a.Timestamp, DateTime.Now) < 30
+                     select new
+                     {
+                         a.InstallId,
+                         a.SessionId,
+                         a.Timestamp.Month,
+                         a.Timestamp.Year,
+                         SessionTime = Convert.ToDecimal(a.MetricValue),
+                         N = SqlFunctions.RowNumber().Over(
+                             PartitionBy(a.InstallId, a.SessionId)
+                                 .OrderByDesc(SqlFunctions.TryCast(a.MetricValue, typeof(decimal?)))
+                                 .ThenBy(a.EventId))
+                     }),
+                    x => new { x.a.InstallId, x.a.SessionId },
+                    y => new { y.InstallId, y.SessionId },
+                    (x, y) => new { x, y })
+                .Where(z => z.y.N == 1 && z.y.SessionTime > 0)
+                .GroupBy(z => new { z.y.Month, z.y.Year, z.y.InstallId, z.y.SessionId })
+                .Select(g => new
+                {
+                    Version = g.Key,
+                    Time = g.Sum(x => x.y.SessionTime)
+                })
+                .Join(
+                    MetricEvents.Join(
+                        MetricEventDefinitions,
+                        a => a.MetricId,
+                        b => b.MetricId,
+                        (a, b) => new { a, b })
+                        .Where(z => z.b.MetricName == "OpenApplication" && z.a.AppId == 0),
+                    x => new { x.Version.InstallId, x.Version.SessionId },
+                    y => new { y.a.InstallId, y.a.SessionId },
+                    (x, y) => new { x, y })
+                .Where(z => z.x.y.SessionId == z.y.a.SessionId && z.x.y.InstallId == z.y.a.InstallId)
+                .GroupBy(z => z.x.Version)
+                .OrderBy(g => g.Key)
+                .Select(g => new
+                {
+                    Version = g.Key,
+                    Time = g.Sum(x => x.x.Time)
+                });
 
 
         var versionActivity = new Dictionary<string, decimal>();
-        foreach (var activityData in activity)
-        {
-            versionActivity.Add(activityData.Version, activityData.Time);
-        }
+        //foreach (var activityData in activity)
+        //{
+        //    versionActivity.Add(activityData.Version, activityData.Time);
+        //}
 
         var res = new List<CrashAggregationResult>();
         foreach (var versionAndCrash in versionAndCrashes)

@@ -1,7 +1,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Stride.Metrics.ServerApp.Data;
-using Stride.Metrics.ServerApp.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 

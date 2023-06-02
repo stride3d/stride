@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
+using Stride.Metrics.ServerApp.Extensions;
 using Stride.Metrics.ServerApp.Models.MetricCreated;
 
 namespace Stride.Metrics.ServerApp.Data

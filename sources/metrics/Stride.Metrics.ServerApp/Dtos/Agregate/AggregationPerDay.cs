@@ -5,5 +5,9 @@ namespace Stride.Metrics.ServerApp.Dtos.Agregate;
 /// </summary>
 public class AggregationPerDay : AggregateBase
 {
-    public DateTime Date { get; set; }
+    public int Year { get; set; }
+
+    public int Month { get; set; }
+
+    public int Day { get; set; }
 }

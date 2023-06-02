@@ -4,10 +4,13 @@ using Stride.Metrics.ServerApp.Data;
 using Stride.Metrics.ServerApp.Dto;
 using Stride.Metrics.ServerApp.Dtos;
 using Stride.Metrics.ServerApp.Dtos.Agregate;
+using Stride.Metrics.ServerApp.Extensions;
 using Stride.Metrics.ServerApp.Helpers;
 
 namespace Stride.Metrics.ServerApp.Controllers.Api;
 
+[ApiController()]
+[Route("api")]
 public class InstallationMetricsController
 {
     private readonly MetricDbContext _metricDbContext;
@@ -97,14 +100,14 @@ public class InstallationMetricsController
     /// <returns>The installs count in the last 30 days per day</returns>
     [HttpGet]
     [Route("installs-last-days")]
-    public List<AggregationPerDay> GetInstallLastDays()
+    public List<AggregationPerDate> GetInstallLastDays()
     {
         // Get installations per day in the last 30 days
         var installsLast30Days = _metricDbContext.MetricInstalls
                     .Where(mi => mi.Created > DateTimeHelpers.NthDaysAgo(30))
                     .GroupBy(mi => mi.Created)
                     .OrderBy(mi => mi.Key)
-                    .Select(mi => new AggregationPerDay() { Count = mi.Count(), Date = mi.Key })
+                    .Select(mi => new AggregationPerDate { Count = mi.Count(), Date = mi.Key })
                     .ToList();
 
         return installsLast30Days;
@@ -120,19 +123,19 @@ public class InstallationMetricsController
     {
         int editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        var installs = (
-            from a in _metricDbContext.MetricEvents
-            join b in _metricDbContext.MetricEventDefinitions on a.MetricId equals b.MetricId
-            where b.MetricName == "OpenApplication" &&
-                  a.AppId == editorAppId &&
-                  EF.Functions.DateDiffDay(a.Timestamp, DateTime.Now) < 31
-            group a by new
+        var installs = _metricDbContext.MetricEvents
+            .Where(ev => ev.MetricEventDefinition.MetricName == "OpenApplication" 
+                    && ev.AppId == editorAppId)
+            .GroupBy(ev => new
             {
-                Year = a.Timestamp.Year,
-                Month = a.Timestamp.Month,
-                a.InstallId
-            } into g
-            select new AggregationPerInstall
+                ev.Timestamp.Year,
+                ev.Timestamp.Month,
+                ev.InstallId
+            })
+            .Where(g => g.Count() > 0)
+            .OrderBy(g => g.Key.Year)
+                .ThenBy(g => g.Key.Month)
+            .Select(g => new AggregationPerInstall
             (
                 g.Key.Year,
                 g.Key.Month,
@@ -190,19 +193,17 @@ public class InstallationMetricsController
     [HttpGet("stride-downloads")]
     public IEnumerable<AggregationPerMonth> GetStrideDownloads()
     {
-        var strideDownloads = (
-            from a in _metricDbContext.MetricEvents
-            join b in _metricDbContext.MetricEventDefinitions on a.MetricId equals b.MetricId
-            where b.MetricName == "DownloadPackage" &&
-                a.MetricValue.Contains("Stride") &&
-                a.MetricValue.Contains("DownloadCompleted")
-            group a by new
+        var strideDownloads = _metricDbContext.MetricEvents
+            .Where(ev => ev.MetricEventDefinition.MetricName == "DownloadPackage" &&
+                ev.MetricValue.Contains("Stride") &&
+                ev.MetricValue.Contains("DownloadCompleted"))
+            .GroupBy(ev => new
             {
-                Year = a.Timestamp.Year,
-                Month = a.Timestamp.Month,
-                a.InstallId
-            } into g
-            select new
+                ev.Timestamp.Year,
+                ev.Timestamp.Month,
+                ev.InstallId
+            })
+            .Select(g => new
             {
                 g.Key.Year,
                 g.Key.Month,
@@ -221,7 +222,7 @@ public class InstallationMetricsController
                 Count = g.Count()
             })
             .OrderBy(r => r.Year)
-            .ThenBy(r => r.Month)
+                .ThenBy(r => r.Month)
             .ToList();
 
         return strideDownloads;
