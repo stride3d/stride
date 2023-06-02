@@ -52,7 +52,11 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref short value)
         {
-            value = (short)UnderlyingStream.ReadUInt16();
+            byte[] buffer = new byte[sizeof(short)];
+            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            if (read != sizeof(short))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadInt16LittleEndian(buffer);
         }
 
         /// <inheritdoc />
