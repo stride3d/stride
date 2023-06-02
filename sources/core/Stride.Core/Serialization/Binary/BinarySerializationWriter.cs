@@ -60,7 +60,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref long value)
         {
-            var buffer = new byte[sizeof(ulong)];
+            var buffer = new byte[sizeof(long)];
             BinaryPrimitives.WriteInt64BigEndian(buffer, value);
             UnderlyingStream.Write(buffer, 0, buffer.Length);
         }
@@ -68,7 +68,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref ushort value)
         {
-            var buffer = new byte[sizeof(ulong)];
+            var buffer = new byte[sizeof(ushort)];
             BinaryPrimitives.WriteUInt16LittleEndian(buffer, value);
             UnderlyingStream.Write(buffer, 0, buffer.Length);
         }
@@ -76,7 +76,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref uint value)
         {
-            var buffer = new byte[sizeof(ulong)];
+            var buffer = new byte[sizeof(uint)];
             BinaryPrimitives.WriteUInt32LittleEndian(buffer, value);
             UnderlyingStream.Write(buffer, 0, buffer.Length);
         }
