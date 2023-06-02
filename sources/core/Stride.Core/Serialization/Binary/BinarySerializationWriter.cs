@@ -36,7 +36,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override unsafe void Serialize(ref float value)
         {
-            UnderlyingStream.Write(Unsafe.As<float, uint>(ref value));
+            Serialize(ref Unsafe.As<float, uint>(ref value));
         }
 
         /// <inheritdoc />
