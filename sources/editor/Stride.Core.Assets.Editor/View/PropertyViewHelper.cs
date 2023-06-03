@@ -67,12 +67,6 @@ namespace Stride.Core.Assets.Editor.View
             return (bool)target.GetValue(IsExpandedProperty);
         }
 
-        [Obsolete("Use the DisplayAttribute on the properties")]
-        public static void SetIsExpanded(DependencyObject target, bool value)
-        {
-            target.SetValue(IsExpandedProperty, value);
-        }
-
         private static void OnPropertyChanged(DependencyObject d, DependencyProperty property, object newValue)
         {
             if (newValue == null)
