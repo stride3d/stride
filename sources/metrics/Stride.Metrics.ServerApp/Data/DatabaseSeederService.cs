@@ -14,17 +14,48 @@ public class DatabaseSeederService
     }
     public void SeedDatabase()
     {
-        IEnumerable<FieldInfo> commonAppsGuids = typeof(CommonApps).GetFields()
-            .Where(field => field.IsStatic && typeof(MetricAppId).IsAssignableFrom(field.FieldType));
+        MetricDbContext.AppEditorId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
+        MetricDbContext.AppLauncherId = _metricDbContext.GetApplicationId(CommonApps.StrideLauncherAppId.Guid);
+        
+        FillMetricsApps();
+        FillMetricEventDefinitions();
+        FillMetricEvents();
+        FillMetricInstall();
+        FillMetricMarker();
+        FillMetricMarkerGroup();
+        FillIpToLocations();        
 
-        // Register pre-defined applications
-        var metricsApps = commonAppsGuids
-            .Select(c => (MetricAppId)c.GetValue(null))
-            .Where(m => !_metricDbContext.MetricApps.Any(x => x.AppGuid == m.Guid))
-            .Select(m => new MetricApp(m.Guid, m.Name));
+        _metricDbContext.SaveChanges();
 
-        _metricDbContext.MetricApps.AddRange(metricsApps);
+    }
 
+    private void FillMetricEvents()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void FillMetricInstall()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void FillMetricMarker()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void FillMetricMarkerGroup()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void FillIpToLocations()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void FillMetricEventDefinitions()
+    {
         IEnumerable<FieldInfo> metricKeys = typeof(CommonMetrics).GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
             .Where(field => typeof(MetricKey).IsAssignableFrom(field.FieldType));
 
@@ -35,10 +66,19 @@ public class DatabaseSeederService
             .Select(m => new MetricEventDefinition(m.Guid, m.Name));
 
         _metricDbContext.MetricEventDefinitions.AddRange(metricEventDefinitions);
+    }
 
-        _metricDbContext.SaveChanges();
+    private void FillMetricsApps()
+    {
+        IEnumerable<FieldInfo> commonAppsGuids = typeof(CommonApps).GetFields()
+                    .Where(field => field.IsStatic && typeof(MetricAppId).IsAssignableFrom(field.FieldType));
 
-        MetricDbContext.AppEditorId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
-        MetricDbContext.AppLauncherId = _metricDbContext.GetApplicationId(CommonApps.StrideLauncherAppId.Guid);
+        // Register pre-defined applications
+        var metricsApps = commonAppsGuids
+            .Select(c => (MetricAppId)c.GetValue(null))
+            .Where(m => !_metricDbContext.MetricApps.Any(x => x.AppGuid == m.Guid))
+            .Select(m => new MetricApp(m.Guid, m.Name));
+
+        _metricDbContext.MetricApps.AddRange(metricsApps);
     }
 }
