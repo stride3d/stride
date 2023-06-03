@@ -1833,18 +1833,6 @@ namespace FreeImageAPI
 
 		#region Rotation and flipping
 
-		/// <summary>
-		/// This function rotates a 1-, 8-bit greyscale or a 24-, 32-bit color image by means of 3 shears.
-		/// 1-bit images rotation is limited to integer multiple of 90°.
-		/// <c>null</c> is returned for other values.
-		/// </summary>
-		/// <param name="dib">Handle to a FreeImage bitmap.</param>
-		/// <param name="angle">The angle of rotation.</param>
-		/// <returns>Handle to a FreeImage bitmap.</returns>
-		[DllImport(FreeImageLibrary, EntryPoint = "FreeImage_RotateClassic")]
-		[Obsolete("RotateClassic is deprecated (use Rotate instead).")]
-		public static extern FIBITMAP RotateClassic(FIBITMAP dib, double angle);
-
 		[DllImport(FreeImageLibrary, EntryPoint = "FreeImage_Rotate")]
 		internal static extern FIBITMAP Rotate(FIBITMAP dib, double angle, IntPtr backgroundColor);
 
