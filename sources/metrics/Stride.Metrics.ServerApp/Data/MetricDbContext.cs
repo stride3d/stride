@@ -1,6 +1,4 @@
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Stride.Metrics.ServerApp.Extensions;
 using Stride.Metrics.ServerApp.Models;
 using Stride.Metrics.ServerApp.Models.MetricCreated;
 

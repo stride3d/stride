@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 using Stride.Metrics.ServerApp.Data;
 using Stride.Metrics.ServerApp.Dtos;
 using Stride.Metrics.ServerApp.Dtos.Agregate;
 using Stride.Metrics.ServerApp.Extensions;
 using Stride.Metrics.ServerApp.Helpers;
-using Stride.Metrics.ServerApp.Models;
 
 namespace Stride.Metrics.ServerApp.Controllers.Api;
 ///<summary>Activity Install related eps</summary>
@@ -21,7 +21,7 @@ public class ActivityMetricsController
     }
 
     /// <summary>
-    /// xyz
+    /// Gets
     /// </summary>
     /// <returns>uzs.</returns>
 
@@ -146,7 +146,7 @@ public class ActivityMetricsController
     public List<CrashAggregationResult> GetCrashesPerVersion()
     {
         var editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
-        //check:
+
         var crashesPerVersion = _metricDbContext.MetricEvents
             .Join(
                 _metricDbContext.MetricEventDefinitions,
@@ -198,71 +198,66 @@ public class ActivityMetricsController
                 versionAndCrashes.Add(crashAggregation.Version, 1);
             }
         }
-        var query = _metricDbContext.MetricEvents;
-                // .Join(
-                //     (from a in _metricDbContext.MetricEvents
-                //      join b in _metricDbContext.MetricEventDefinitions on a.MetricId equals b.MetricId
-                //      where (b.MetricName == "SessionHeartbeat2" || b.MetricName == "CloseSession2")
-                //            && EF.Functions.DateDiffDay(a.Timestamp, DateTime.Now) < 30
-                //      select new
-                //      {
-                //          a.InstallId,
-                //          a.SessionId,
-                //          a.Timestamp.Month,
-                //          a.Timestamp.Year,
-                //          SessionTime = Convert.ToDecimal(a.MetricValue),
-                //          N = SqlFunctions.RowNumber().Over(
-                //              PartitionBy(a.InstallId, a.SessionId)
-                //                  .OrderByDesc(SqlFunctions.TryCast(a.MetricValue, typeof(decimal?)))
-                //                  .ThenBy(a.EventId))
-                //      }),
-                //     x => new { x.a.InstallId, x.a.SessionId },
-                //     y => new { y.InstallId, y.SessionId },
-                //     (x, y) => new { x, y })
-                // .Where(z => z.y.N == 1 && z.y.SessionTime > 0)
-                // .GroupBy(z => new { z.y.Month, z.y.Year, z.y.InstallId, z.y.SessionId })
-                // .Select(g => new
-                // {
-                //     Version = g.Key,
-                //     Time = g.Sum(x => x.y.SessionTime)
-                // })
-                // .Join(
-                //     MetricEvents.Join(
-                //         MetricEventDefinitions,
-                //         a => a.MetricId,
-                //         b => b.MetricId,
-                //         (a, b) => new { a, b })
-                //         .Where(z => z.b.MetricName == "OpenApplication" && z.a.AppId == 0),
-                //     x => new { x.Version.InstallId, x.Version.SessionId },
-                //     y => new { y.a.InstallId, y.a.SessionId },
-                //     (x, y) => new { x, y })
-                // .Where(z => z.x.y.SessionId == z.y.a.SessionId && z.x.y.InstallId == z.y.a.InstallId)
-                // .GroupBy(z => z.x.Version)
-                // .OrderBy(g => g.Key)
-                // .Select(g => new
-                // {
-                //     Version = g.Key,
-                //     Time = g.Sum(x => x.x.Time)
-                // });
 
+        var activity = _metricDbContext.MetricEvents
+    .Join(
+        _metricDbContext.MetricEventDefinitions,
+        a => a.MetricId,
+        b => b.MetricId,
+        (a, b) => new { a, b })
+    .Where(ab => (ab.b.MetricName == "SessionHeartbeat2" || ab.b.MetricName == "CloseSession2") &&
+        (DateTime.Now - ab.a.Timestamp).Days < 30)
+    .Select(ab => new
+    {
+        ab.a.InstallId,
+        ab.a.SessionId,
+        SessionTime = (decimal?)decimal.Parse(ab.a.MetricValue) ?? null,
+        ab.a.Timestamp,
+        Rank = (decimal?)decimal.Parse(ab.a.MetricValue) ?? null
+    })
+    .Where(x => x.Rank == 1 && x.SessionTime > 0)
+    .GroupBy(x => new { x.Timestamp.Month, x.Timestamp.Year, x.InstallId, x.SessionId })
+    .Select(g => new
+    {
+        Key = g.Key,
+        Time = g.Sum(x => x.SessionTime)
+    })
+    .Join(
+        _metricDbContext.MetricEvents,
+        activity => new { activity.Key.InstallId, activity.Key.SessionId },
+        a => new { a.InstallId, a.SessionId },
+        (activity, a) => new { activity, a })
+    .Join(
+        _metricDbContext.MetricEventDefinitions,
+        ab => ab.a.MetricId,
+        b => b.MetricId,
+        (ab, b) => new { ab.a, ab.activity, b })
+    .Where(ab => ab.b.MetricName == "OpenApplication" && ab.activity.Key.SessionId == ab.a.SessionId && ab.activity.Key.InstallId == ab.a.InstallId && ab.a.AppId == 0)
+    .GroupBy(ab => ab.a.MetricValue)
+    .OrderBy(g => g.Key)
+    .Select(g => new
+    {
+        Version = g.Key,
+        Time = g.Sum(x => x.activity.Time)
+    });
 
-        var versionActivity = new Dictionary<string, decimal>();
-        //foreach (var activityData in activity)
-        //{
-        //    versionActivity.Add(activityData.Version, activityData.Time);
-        //}
+var versionActivity = new Dictionary<string, decimal?>();
+foreach (var activityData in activity)
+{
+   versionActivity.Add(activityData.Version, activityData.Time);
+}
 
-        var res = new List<CrashAggregationResult>();
-        foreach (var versionAndCrash in versionAndCrashes)
-        {
-            if (versionActivity.TryGetValue(versionAndCrash.Key, out var time))
-            {
-                var ratio = versionAndCrash.Value / ((double)time / 60.0 / 60.0);
-                res.Add(new CrashAggregationResult(versionAndCrash.Key, ratio));
-            }
-        }
+var res = new List<CrashAggregationResult>();
+foreach (var versionAndCrash in versionAndCrashes)
+{
+    if (versionActivity.TryGetValue(versionAndCrash.Key, out var time))
+    {
+        var ratio = versionAndCrash.Value / ((double)time / 60.0 / 60.0);
+        res.Add(new CrashAggregationResult(versionAndCrash.Key, ratio));
+    }
+}
 
-        return res;
+return res;
     }
 
     /// <summary>
@@ -271,45 +266,45 @@ public class ActivityMetricsController
     /// <returns>The crashes count per version in the last 30 days.</returns>
 
     [HttpGet("platforms-usage")]
-    public List<AggregationPerPlatforms> GetPlatformsUsage()
+public List<AggregationPerPlatforms> GetPlatformsUsage()
+{
+    // Get active users of version per month
+
+    var result = _metricDbContext.MetricEvents
+        .Join(_metricDbContext.MetricEventDefinitions,
+            me => me.MetricId,
+            med => med.MetricId,
+            (me, med) => new { me, med })
+        .Where(x => x.med.MetricName == "OpenSession2" && EF.Functions.DateDiffDay(x.me.Timestamp, DateTime.Now) < 31)
+        .Select(x => x.me.MetricValue)
+        .ToList();
+
+    var dict = new Dictionary<string, int>();
+    foreach (var val in result)
     {
-        // Get active users of version per month
-
-        var result = _metricDbContext.MetricEvents
-            .Join(_metricDbContext.MetricEventDefinitions,
-                me => me.MetricId,
-                med => med.MetricId,
-                (me, med) => new { me, med })
-            .Where(x => x.med.MetricName == "OpenSession2" && EF.Functions.DateDiffDay(x.me.Timestamp, DateTime.Now) < 31)
-            .Select(x => x.me.MetricValue)
-            .ToList();
-
-        var dict = new Dictionary<string, int>();
-        foreach (var val in result)
+        var split = val.Split('|', '&');
+        foreach (var v in split.Where(v => v.StartsWith("#platform:")))
         {
-            var split = val.Split('|', '&');
-            foreach (var v in split.Where(v => v.StartsWith("#platform:")))
+            var platform = v.Substring(10);
+            //rename None to Package for better understanding
+            if (platform == "None")
             {
-                var platform = v.Substring(10);
-                //rename None to Package for better understanding
-                if (platform == "None")
-                {
-                    platform = "Package";
-                }
+                platform = "Package";
+            }
 
-                if (dict.ContainsKey(platform))
-                {
-                    dict[platform] += 1;
-                }
-                else
-                {
-                    dict.Add(platform, 1);
-                }
+            if (dict.ContainsKey(platform))
+            {
+                dict[platform] += 1;
+            }
+            else
+            {
+                dict.Add(platform, 1);
             }
         }
-
-        var sortedValues = dict.OrderBy(x => x.Value).ToDictionary(x => x.Key, y => y.Value);
-
-        return sortedValues.Keys.Select(key => new AggregationPerPlatforms { Platform = key, Count = dict[key] }).ToList();
     }
+
+    var sortedValues = dict.OrderBy(x => x.Value).ToDictionary(x => x.Key, y => y.Value);
+
+    return sortedValues.Keys.Select(key => new AggregationPerPlatforms { Platform = key, Count = dict[key] }).ToList();
+}
 }

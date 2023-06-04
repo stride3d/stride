@@ -6,7 +6,7 @@ using Stride.Metrics.ServerApp.Extensions;
 
 namespace Stride.Metrics.ServerApp.Controllers.Api;
 
-///<summary>Includes user related actions</summary>
+///<summary>Includes User related actions</summary>
 [ApiController()]
 [Route("api")]
 public class UserMetricsController
