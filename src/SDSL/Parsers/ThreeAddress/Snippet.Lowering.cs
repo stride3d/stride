@@ -1,7 +1,6 @@
 using Stride.Core.Extensions;
 using SDSL.Parsing.AST.Shader;
 using SDSL.Parsing.AST.Shader.Analysis;
-using SDSL.Spirv;
 using SDSL.ThreeAddress;
 using System.Reflection.Metadata.Ecma335;
 
