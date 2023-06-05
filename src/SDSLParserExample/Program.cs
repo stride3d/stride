@@ -15,8 +15,6 @@ using SDSL.Parsing.AST.Shader.Analysis;
 using System.Text;
 using SPIRVCross;
 using static SPIRVCross.SPIRV;
-using SDSLParserExample;
-
 // Directory.SetCurrentDirectory("../../../");
 
 var shaderf = File.ReadAllText("./SDSL/shader2.sdsl");
