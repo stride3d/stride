@@ -47,7 +47,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref double value)
         {
-            var buffer = new byte[sizeof(float)];
+            var buffer = new byte[sizeof(double)];
             var read = UnderlyingStream.Read(buffer, 0, buffer.Length);
             if (read != sizeof(double))
                 throw new EndOfStreamException();
