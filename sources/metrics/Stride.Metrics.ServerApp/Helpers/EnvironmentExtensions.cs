@@ -7,6 +7,6 @@ public static class EnvironmentHelpers
     ///</summary>
     public static bool IsSeedingEnabled()
     {
-        return Environment.GetCommandLineArgs().Any(a => a == "--SeedMetricsData");
+        return Environment.GetCommandLineArgs().Any(a => a == "--seed-metrics");
     }
 }
