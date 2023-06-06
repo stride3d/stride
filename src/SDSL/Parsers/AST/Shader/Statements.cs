@@ -13,11 +13,9 @@ namespace SDSL.Parsing.AST.Shader;
 
 public abstract class Statement : ShaderTokenTyped
 {
+    public override SymbolType? InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-    public IEnumerable<Register> LowCode { get; set; }
-    public override ISymbolType InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, SymbolType? expected)
     {
         throw new NotImplementedException();
     }
@@ -25,14 +23,14 @@ public abstract class Statement : ShaderTokenTyped
 
 public class EmptyStatement : Statement
 {
-    public override ISymbolType InferredType => ScalarType.VoidType;
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected) { }
+    public override SymbolType? InferredType => ScalarType.VoidType;
+    public override void TypeCheck(SymbolTable symbols, SymbolType expected) { }
 }
 
 public abstract class Declaration : Statement
 {
-    public override ISymbolType InferredType => ScalarType.VoidType;
-    public ISymbolType? TypeName { get; set; }
+    public override SymbolType InferredType => ScalarType.VoidType;
+    public SymbolType? TypeName { get; set; }
     public string VariableName { get; set; }
 
 }
@@ -74,9 +72,9 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     {
         return Enumerable.Empty<string>();
     }
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, SymbolType expected)
     {
-        Value.TypeCheck(symbols, TypeName);
+        Value.TypeCheck(symbols, expected);
     }
 }
 
@@ -90,12 +88,12 @@ public class SimpleDeclare : Declaration
         TypeName = s.PushType(m["ValueTypes"].StringValue, m["ValueTypes"]);
 
     }
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected) { }
+    public override void TypeCheck(SymbolTable symbols, SymbolType expected) { }
 }
 
 public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 {
-    public override ISymbolType InferredType => ScalarType.VoidType;
+    public override SymbolType InferredType => ScalarType.VoidType;
 
     public AssignOpToken AssignOp { get; set; }
     public bool StreamValue => AccessNames.Any() && AccessNames.First() == "streams";
@@ -140,9 +138,9 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
             throw new Exception("Variable not exist");
         if (Value is IVariableCheck v) v.CheckVariables(s);
     }
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, SymbolType expected)
     {
-        ISymbolType chainType = ScalarType.VoidType;
+        SymbolType chainType = ScalarType.VoidType;
         foreach (var a in AccessNames)
         {
             var tmp = chainType;
@@ -168,7 +166,7 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 
 public class ReturnStatement : Statement, IStreamCheck, IStaticCheck
 {
-    public override ISymbolType InferredType => ReturnValue?.InferredType ?? ScalarType.VoidType;
+    public override SymbolType InferredType => ReturnValue?.InferredType ?? ScalarType.VoidType;
 
     public ShaderTokenTyped? ReturnValue { get; set; }
     public ReturnStatement(Match m, SymbolTable s)

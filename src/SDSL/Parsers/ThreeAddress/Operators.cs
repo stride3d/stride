@@ -1,6 +1,6 @@
 namespace SDSL.ThreeAddress;
 
-public enum AssignOperator : byte
+public enum TACOperator
 {
     Equal,
     MulEqual,
@@ -12,11 +12,7 @@ public enum AssignOperator : byte
     RightShiftEqual,
     AndEqual,
     OrEqual,
-    XorEqual
-}
-
-public enum Operator : byte
-{
+    XorEqual,
     Mul,
     Div,
     Mod,
@@ -31,8 +27,14 @@ public enum Operator : byte
     Greater,
     LessEqual,
     GreaterEqual,
-    Equals,
-    NotEquals,
+    EqualEqual,
+    NotEqual,
     LogicalAnd,
-    LogicalOr
+    LogicalOr,
+    Block,
+    Goto,
+    Label,
+    PushParam,
+    LCall,
+    PopParams
 }

@@ -13,13 +13,13 @@ namespace SDSL.Parsing.AST.Shader;
 
 public abstract class Expression : ShaderTokenTyped
 {
-    protected ISymbolType? inferredType;
-    public override ISymbolType InferredType
+    protected SymbolType? inferredType;
+    public override SymbolType? InferredType
     {
         get => inferredType ?? throw new NotImplementedException();
         set => inferredType = value;
     }
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected) { }
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected) { }
 }
 
 public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
@@ -29,29 +29,29 @@ public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
     public ShaderTokenTyped Left { get; set; }
     public ShaderTokenTyped Right { get; set; }
 
-    public override async void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
 
-        // if (expected != string.Empty)
-        // {
-        //     Left.TypeCheck(symbols, expected);
-        //     Right.TypeCheck(symbols, expected);
-        //     if (Left.InferredType == Right.InferredType && Left.InferredType == expected)
-        //         InferredType = Left.InferredType;
-        //     else
+        if (expected != null)
+        {
+            Left.TypeCheck(symbols, expected);
+            Right.TypeCheck(symbols, expected);
+            if (Left.InferredType.Equals(Right.InferredType) && Left.InferredType.Equals(expected))
+                InferredType = Left.InferredType;
+            else
                 throw new NotImplementedException();
-        // }
-        // else
-        // {
-        //     Left.TypeCheck(symbols);
-        //     Right.TypeCheck(symbols);
-        //     if (Left.InferredType != Right.InferredType)
-        //     {
-        //         CheckImplicitCasting(Left, Right, expected);
-        //     }
-        //     else
-        //         InferredType = Left.InferredType;
-        // }
+        }
+        else
+        {
+            Left.TypeCheck(symbols,expected);
+            Right.TypeCheck(symbols,expected);
+            if (Left.InferredType != Right.InferredType)
+            {
+                // CheckImplicitCasting(Left, Right, expected);
+            }
+            else
+                InferredType = Left.InferredType;
+        }
     }
 
     public IEnumerable<string> GetUsedStream()

@@ -11,7 +11,7 @@ namespace SDSL.Parsing.AST.Shader;
 
 public class ShaderLiteral : Expression
 {
-    public override ISymbolType InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public override SymbolType? InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     public object Value { get; set; }
 }
 
@@ -69,9 +69,9 @@ public class NumberLiteral : ShaderLiteral
     }
     public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
     {
-        if (!expected.Equals(inferredType))
+        if (!expected.Equals(InferredType))
         {
-            inferredType = (inferredType, expected) switch
+            inferredType = (InferredType, expected) switch
             {
                 (ScalarType{TypeName : "int"}, ScalarType{TypeName: "float"}) => expected,
                 (ScalarType{TypeName : "float"}, ScalarType{TypeName: "int"}) => expected,

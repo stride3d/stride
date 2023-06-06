@@ -1,236 +1,238 @@
-using Eto.Parse;
+// using System.Numerics;
+// using Eto.Parse;
 
-namespace SDSL.Parsing.AST.Shader.Analysis;
-
-public interface ISymbolType : ISymbol, IEquatable<ISymbolType>
-{
-    public bool IsAccessorValid(string accessor);
-    public bool IsIndexingValid(string index);
-    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed);
-}
-
-public class ArrayType : ISymbolType
-{
-    public ISymbolType TypeName { get; set; }
+// namespace SDSL.Parsing.AST.Shader.Analysis;
 
 
-    public bool Equals(ISymbolType? other)
-    {
-        return other is ArrayType a && a.TypeName.Equals(TypeName);
-    }
+// public interface ISymbolType : ISymbol, IEquatable<ISymbolType>
+// {
+//     public bool IsAccessorValid(string accessor);
+//     public bool IsIndexingValid(string index);
+//     public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed);
+// }
 
-    public bool IsAccessorValid(string accessor)
-    {
-        return false;
-    }
+// public class ArrayType : ISymbolType
+// {
+//     public ISymbolType TypeName { get; set; }
 
-    public bool IsIndexingValid(string index)
-    {
-        return true;
-    }
 
-    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
-    {
-        typeOfAccessed = ScalarType.VoidType;
-        if (int.TryParse(accessor, out var _))
-        {
-            typeOfAccessed = TypeName;
-            return true;
-        }
-        return false;
-    }
+//     public bool Equals(ISymbolType? other)
+//     {
+//         return other is ArrayType a && a.TypeName.Equals(TypeName);
+//     }
 
-    public override string ToString()
-    {
-        return $"{TypeName}[]";
-    }
-}
+//     public bool IsAccessorValid(string accessor)
+//     {
+//         return false;
+//     }
 
-public class CompositeType : ISymbolType
-{
-    public string Name { get; set; }
-    public SortedList<string, ISymbolType> Fields { get; set; } = new();
+//     public bool IsIndexingValid(string index)
+//     {
+//         return true;
+//     }
 
-    public bool HasSemantics {get;private set;}
-    public SortedList<string,string?> Semantics {get;private set;}
+//     public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+//     {
+//         typeOfAccessed = ScalarType.VoidType;
+//         if (int.TryParse(accessor, out var _))
+//         {
+//             typeOfAccessed = TypeName;
+//             return true;
+//         }
+//         return false;
+//     }
 
-    public CompositeType(string name, SortedList<string, ISymbolType> fields, SortedList<string,string?> semantics)
-    {
-        Name = name;
-        Fields = fields;
-        HasSemantics = semantics.Count > 0;
-        Semantics = semantics;
-    }
+//     public override string ToString()
+//     {
+//         return $"{TypeName}[]";
+//     }
+// }
 
-    public bool Equals(ISymbolType? other)
-    {
-        return true;
-        // return other is CompositeType a && a.Fields.Keys.All(f => a.Fields[f].Equals());
-    }
+// public class CompositeType : ISymbolType
+// {
+//     public string Name { get; set; }
+//     public SortedList<string, ISymbolType> Fields { get; set; } = new();
 
-    public bool IsAccessorValid(string accessor)
-    {
-        return Fields.ContainsKey(accessor);
-    }
+//     public bool HasSemantics { get; private set; }
+//     public SortedList<string, string?> Semantics { get; private set; }
 
-    public bool IsIndexingValid(string index)
-    {
-        return false;
-    }
-    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
-    {
-        var result = Fields.TryGetValue(accessor, out var tmp );
-        typeOfAccessed = tmp ?? ScalarType.VoidType;
-        return result;
-    }
+//     public CompositeType(string name, SortedList<string, ISymbolType> fields, SortedList<string, string?> semantics)
+//     {
+//         Name = name;
+//         Fields = fields;
+//         HasSemantics = semantics.Count > 0;
+//         Semantics = semantics;
+//     }
 
-    public CompositeType SubType(string name, IEnumerable<string> filter)
-    {
-        return new CompositeType(
-            name,
-            new(Fields.Where(x => filter.Contains(x.Key)).ToDictionary(x => x.Key, x=> x.Value)),
-            Semantics
-        );
-    }
+//     public bool Equals(ISymbolType? other)
+//     {
+//         return true;
+//         // return other is CompositeType a && a.Fields.Keys.All(f => a.Fields[f].Equals());
+//     }
 
-    public override string ToString()
-    {
-        return $"{Name}";
-    }
-}
+//     public bool IsAccessorValid(string accessor)
+//     {
+//         return Fields.ContainsKey(accessor);
+//     }
 
-public class VectorType : ISymbolType
-{
-    public int Size { get; set; }
-    public ScalarType TypeName { get; set; }
-    static string swizzleX = "xyzw";
-    static string swizzleR = "rgba";
+//     public bool IsIndexingValid(string index)
+//     {
+//         return false;
+//     }
+//     public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+//     {
+//         var result = Fields.TryGetValue(accessor, out var tmp);
+//         typeOfAccessed = tmp ?? ScalarType.VoidType;
+//         return result;
+//     }
 
-    public VectorType(string size, ISymbolType type)
-    {
-        if (int.TryParse(size, out var s))
-        {
-            Size = s;
-            TypeName = (ScalarType)type;
-        }
-        else throw new NotImplementedException();
-    }
-    public VectorType(int size, ISymbolType type)
-    {
-        Size = size;
-        TypeName = (ScalarType)type;
-    }
+//     public CompositeType SubType(string name, IEnumerable<string> filter)
+//     {
+//         return new CompositeType(
+//             name,
+//             new(Fields.Where(x => filter.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value)),
+//             Semantics
+//         );
+//     }
 
-    public bool IsAccessorValid(string accessor)
-    {
-        return 
-            accessor.Length < 5 
-            && (
-                accessor.All(swizzleX.Contains) 
-                || accessor.All(swizzleR.Contains)
-            );
-    }
+//     public override string ToString()
+//     {
+//         return $"{Name}";
+//     }
+// }
 
-    public bool IsIndexingValid(string index)
-    {
-        return false;
-    }
+// public class VectorType : ISymbolType
+// {
+//     public int Size { get; set; }
+//     public ScalarType TypeName { get; set; }
+//     static string swizzleX = "xyzw";
+//     static string swizzleR = "rgba";
 
-    public bool Equals(ISymbolType? other)
-    {
-        return other is VectorType v 
-            && v.TypeName.Equals(TypeName)
-            && v.Size == Size;
-    }
-    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
-    {
-        if(IsAccessorValid(accessor))
-        {
-            typeOfAccessed = accessor.Length > 1 ? new VectorType(accessor.Length,TypeName) : TypeName;
-            return true;
-        }
-        typeOfAccessed = ScalarType.VoidType;
-        return false;
-    }
-    public override string ToString()
-    {
-        return $"{TypeName}{Size}";
-    }
-}
-public class MatrixType : ISymbolType
-{
-    public int SizeX { get; set; }
-    public int SizeY { get; set; }
-    public ScalarType TypeName { get; set; }
+//     public VectorType(string size, ISymbolType type)
+//     {
+//         if (int.TryParse(size, out var s))
+//         {
+//             Size = s;
+//             TypeName = (ScalarType)type;
+//         }
+//         else throw new NotImplementedException();
+//     }
+//     public VectorType(int size, ISymbolType type)
+//     {
+//         Size = size;
+//         TypeName = (ScalarType)type;
+//     }
 
-    static readonly Grammar accessorGrammar = new(
-      Terminals.Literal("_")
-      .Then("m" & Terminals.Set("0123") & Terminals.Set("0123"))
-      .Or(Terminals.Set("1234") & Terminals.Set("1234"))
-      .WithName("accessor")
-    );
+//     public bool IsAccessorValid(string accessor)
+//     {
+//         return
+//             accessor.Length < 5
+//             && (
+//                 accessor.All(swizzleX.Contains)
+//                 || accessor.All(swizzleR.Contains)
+//             );
+//     }
 
-    public bool IsAccessorValid(string accessor)
-    {
-        return accessorGrammar.Match(accessor).Success;
-    }
+//     public bool IsIndexingValid(string index)
+//     {
+//         return false;
+//     }
 
-    public bool IsIndexingValid(string index)
-    {
-        return false;
-    }
+//     public bool Equals(ISymbolType? other)
+//     {
+//         return other is VectorType v
+//             && v.TypeName.Equals(TypeName)
+//             && v.Size == Size;
+//     }
+//     public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+//     {
+//         if (IsAccessorValid(accessor))
+//         {
+//             typeOfAccessed = accessor.Length > 1 ? new VectorType(accessor.Length, TypeName) : TypeName;
+//             return true;
+//         }
+//         typeOfAccessed = ScalarType.VoidType;
+//         return false;
+//     }
+//     public override string ToString()
+//     {
+//         return $"{TypeName}{Size}";
+//     }
+// }
+// public class MatrixType : ISymbolType
+// {
+//     public int SizeX { get; set; }
+//     public int SizeY { get; set; }
+//     public ScalarType TypeName { get; set; }
 
-    public bool Equals(ISymbolType? other)
-    {
-        throw new NotImplementedException();
-    }
-    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
-    {
-        if(IsAccessorValid(accessor))
-        {
-            typeOfAccessed = TypeName;
-            return true;
-        }
-        typeOfAccessed = ScalarType.VoidType;
-        return false;
-    }
+//     static readonly Grammar accessorGrammar = new(
+//       Terminals.Literal("_")
+//       .Then("m" & Terminals.Set("0123") & Terminals.Set("0123"))
+//       .Or(Terminals.Set("1234") & Terminals.Set("1234"))
+//       .WithName("accessor")
+//     );
 
-    public override string ToString()
-    {
-        return $"{TypeName}{SizeX}x{SizeY}";
-    }
-}
-public class ScalarType : ISymbolType
-{
-    public static readonly ScalarType VoidType = new("void");
-    public string TypeName { get; set; }
+//     public bool IsAccessorValid(string accessor)
+//     {
+//         return accessorGrammar.Match(accessor).Success;
+//     }
 
-    public ScalarType(string type)
-    {
-        TypeName = type;
-    }
+//     public bool IsIndexingValid(string index)
+//     {
+//         return false;
+//     }
 
-    public bool IsAccessorValid(string accessor)
-    {
-        return false;
-    }
+//     public bool Equals(ISymbolType? other)
+//     {
+//         throw new NotImplementedException();
+//     }
+//     public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+//     {
+//         if (IsAccessorValid(accessor))
+//         {
+//             typeOfAccessed = TypeName;
+//             return true;
+//         }
+//         typeOfAccessed = ScalarType.VoidType;
+//         return false;
+//     }
 
-    public bool IsIndexingValid(string index)
-    {
-        return false;
-    }
+//     public override string ToString()
+//     {
+//         return $"{TypeName}{SizeX}x{SizeY}";
+//     }
+// }
+// public class ScalarType : ISymbolType
+// {
+//     public static readonly ScalarType VoidType = new("void");
+//     public string TypeName { get; set; }
 
-    public bool Equals(ISymbolType? other)
-    {
-        return other is ScalarType o && TypeName == o.TypeName;
-    }
-    public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
-    {
-        typeOfAccessed = ScalarType.VoidType;
-        return false;
-    }
-    public override string ToString()
-    {
-        return TypeName;
-    }
-}
+//     public ScalarType(string type)
+//     {
+//         TypeName = type;
+//     }
+
+//     public bool IsAccessorValid(string accessor)
+//     {
+//         return false;
+//     }
+
+//     public bool IsIndexingValid(string index)
+//     {
+//         return false;
+//     }
+
+//     public bool Equals(ISymbolType? other)
+//     {
+//         return other is ScalarType o && TypeName == o.TypeName;
+//     }
+//     public bool TryAccessType(string accessor, out ISymbolType typeOfAccessed)
+//     {
+//         typeOfAccessed = ScalarType.VoidType;
+//         return false;
+//     }
+//     public override string ToString()
+//     {
+//         return TypeName;
+//     }
+// }
