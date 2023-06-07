@@ -11,16 +11,16 @@ const plotData = [
   {id:'total-users-per-month',route: 'active-users-per-month/0', getData: getCount, getLabel: getMonthYearLabel},
   {id:'total-users-per-day',route: 'active-users-per-day/0', getData: getCount, getLabel: getDayMonthYearLabel},
   {id:'active-users-per-month',route: 'active-users-per-month/5', getData: getCount, getLabel: getMonthYearLabel},
-  {id:'high-usage', getData: getData_HighUsage, getLabel: getLabel_HighUsage},
-  {id:'projects-users', getData: getData_ProjectUsers, getLabel: getLabel_ProjectUsers},
+  {id:'high-usage', getData: getCount, getLabel: getMonthYearLabel},
+  {id:'projects-users', getData: getData_ProjectUsers, getLabel: getMonthYearLabel},
   {id:'usage-per-version', getData: getCount, getLabel: getLabel_UsagePerVersion},
   {id:'crashes-per-version', getData: getData_CrashesPerVersion, getLabel: getLabel_CrashesPerVersion},
   {id:'platforms-usage', getData: getCount, getLabel: getLabel_PlatformsUsage},
 ];
 
-plotData.forEach(pd =>
-  initChart(pd.id, pd.getLabel, pd.getData, pd.route ?? pd.id )
-);
+await Promise.all(plotData.map(async (pd) => {
+  await initChart(pd.id, pd.getLabel, pd.getData, pd.route ?? pd.id);
+}));
 
 function getData_Countries(response) {
   return null;
@@ -113,7 +113,7 @@ function getLabel_InstallTrend(response) {
   );
 }
 
-function initChart(actionName, getLabelStrategy, getDataStrategy, endpoint) {
+async function initChart(actionName, getLabelStrategy, getDataStrategy, endpoint) {
   const canvas = $(`#${actionName}`)[0];
 
   let labels = [];

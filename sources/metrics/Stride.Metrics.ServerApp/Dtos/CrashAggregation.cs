@@ -1,3 +1,3 @@
 namespace Stride.Metrics.ServerApp.Dtos;
 
-public record CrashAggregation(int VersionId, int SessionId, string MetricSent, string Version, int Appid);
+public record CrashAggregation(int SessionId, int InstallId, string MetricSent, string Version);

@@ -2,7 +2,6 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Stride.Metrics.ServerApp.Data;
 using Stride.Metrics.ServerApp.Extensions;
-using Stride.Metrics.ServerApp.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +31,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDatabaseSeeder();
+    //app.UseDatabaseSeeder();
 }
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

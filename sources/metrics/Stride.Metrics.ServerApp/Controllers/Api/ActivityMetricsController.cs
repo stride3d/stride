@@ -26,44 +26,11 @@ public class ActivityMetricsController
     /// <returns>uzs.</returns>
 
     [HttpGet("high-usage")]
-    public List<AggregationPerMonth> GetHighUsage()
+    public IEnumerable<AggregationPerMonth> GetHighUsage()
     {
         var editorAppId = _metricDbContext.GetApplicationId(CommonApps.StrideEditorAppId.Guid);
 
-        var result = _metricDbContext.MetricEvents
-                     .Where(ev => ev.MetricEventDefinition.MetricName == "OpenApplication" && ev.AppId == editorAppId)
-                     .GroupBy(ev => new
-                     {
-                         ev.InstallId,
-                         ev.Timestamp.Year,
-                         ev.Timestamp.Month,
-                     })
-                     .Select(g => new
-                     {
-                         g.Key.InstallId,
-                         g.Key.Year,
-                         g.Key.Month,
-                         Total = g.Count()
-                     })
-                     .GroupBy(g => new { g.Year, g.Month, g.InstallId })
-                     .Where(g => g.Sum(m => m.Total) >= 10)
-                     .Select(g => new
-                     {
-                         g.Key.Year,
-                         g.Key.Month,
-                         Count = g.Sum(m => m.Total),
-                         g.Key.InstallId
-                     })
-                     .GroupBy(g => new { g.Year, g.Month })
-                     .OrderBy(g => g.Key.Year)
-                        .ThenBy(g => g.Key.Month)
-                     .Select(g => new AggregationPerMonth
-                     {
-                         Month = g.Key.Month,
-                         Year = g.Key.Year,
-                         Count = g.Count()
-                     }).ToList();
-
+        var result = _metricDbContext.GetHighUsage(editorAppId);
 
         return result;
     }
@@ -174,13 +141,13 @@ public class ActivityMetricsController
                     && EF.Functions.DateDiffDay(ab.a.Timestamp, DateTime.Now) < 30)
             .GroupBy(ab => new { ab.sq.InstallId, ab.sq.SessionId, ab.a.MetricValue, ab.sq.MetricSent })
             .OrderBy(ab => ab.Key.MetricValue)
-            .Select(ab => new
-            {
-                ab.Key.InstallId,
+            .Select(ab => new CrashAggregation
+            (
                 ab.Key.SessionId,
+                ab.Key.InstallId,
                 ab.Key.MetricSent,
-                Version = ab.Key.MetricValue
-            })
+                ab.Key.MetricValue
+            ))
             .ToList();
 
         var versionAndCrashes = new Dictionary<string, int>();
@@ -199,65 +166,25 @@ public class ActivityMetricsController
             }
         }
 
-        var activity = _metricDbContext.MetricEvents
-    .Join(
-        _metricDbContext.MetricEventDefinitions,
-        a => a.MetricId,
-        b => b.MetricId,
-        (a, b) => new { a, b })
-    .Where(ab => (ab.b.MetricName == "SessionHeartbeat2" || ab.b.MetricName == "CloseSession2") &&
-        (DateTime.Now - ab.a.Timestamp).Days < 30)
-    .Select(ab => new
-    {
-        ab.a.InstallId,
-        ab.a.SessionId,
-        SessionTime = (decimal?)decimal.Parse(ab.a.MetricValue) ?? null,
-        ab.a.Timestamp,
-        Rank = (decimal?)decimal.Parse(ab.a.MetricValue) ?? null
-    })
-    .Where(x => x.Rank == 1 && x.SessionTime > 0)
-    .GroupBy(x => new { x.Timestamp.Month, x.Timestamp.Year, x.InstallId, x.SessionId })
-    .Select(g => new
-    {
-        Key = g.Key,
-        Time = g.Sum(x => x.SessionTime)
-    })
-    .Join(
-        _metricDbContext.MetricEvents,
-        activity => new { activity.Key.InstallId, activity.Key.SessionId },
-        a => new { a.InstallId, a.SessionId },
-        (activity, a) => new { activity, a })
-    .Join(
-        _metricDbContext.MetricEventDefinitions,
-        ab => ab.a.MetricId,
-        b => b.MetricId,
-        (ab, b) => new { ab.a, ab.activity, b })
-    .Where(ab => ab.b.MetricName == "OpenApplication" && ab.activity.Key.SessionId == ab.a.SessionId && ab.activity.Key.InstallId == ab.a.InstallId && ab.a.AppId == 0)
-    .GroupBy(ab => ab.a.MetricValue)
-    .OrderBy(g => g.Key)
-    .Select(g => new
-    {
-        Version = g.Key,
-        Time = g.Sum(x => x.activity.Time)
-    });
+        var activity = _metricDbContext.GetActivityData(editorAppId);
 
-var versionActivity = new Dictionary<string, decimal?>();
-foreach (var activityData in activity)
-{
-   versionActivity.Add(activityData.Version, activityData.Time);
-}
+        var versionActivity = new Dictionary<string, decimal?>();
+        foreach (var activityData in activity)
+        {
+            versionActivity.Add(activityData.Version, activityData.Time);
+        }
 
-var res = new List<CrashAggregationResult>();
-foreach (var versionAndCrash in versionAndCrashes)
-{
-    if (versionActivity.TryGetValue(versionAndCrash.Key, out var time))
-    {
-        var ratio = versionAndCrash.Value / ((double)time / 60.0 / 60.0);
-        res.Add(new CrashAggregationResult(versionAndCrash.Key, ratio));
-    }
-}
+        var res = new List<CrashAggregationResult>();
+        foreach (var versionAndCrash in versionAndCrashes)
+        {
+            if (versionActivity.TryGetValue(versionAndCrash.Key, out var time))
+            {
+                var ratio = versionAndCrash.Value / ((double)time / 60.0 / 60.0);
+                res.Add(new CrashAggregationResult(versionAndCrash.Key, ratio));
+            }
+        }
 
-return res;
+        return res;
     }
 
     /// <summary>
@@ -266,45 +193,45 @@ return res;
     /// <returns>The crashes count per version in the last 30 days.</returns>
 
     [HttpGet("platforms-usage")]
-public List<AggregationPerPlatforms> GetPlatformsUsage()
-{
-    // Get active users of version per month
-
-    var result = _metricDbContext.MetricEvents
-        .Join(_metricDbContext.MetricEventDefinitions,
-            me => me.MetricId,
-            med => med.MetricId,
-            (me, med) => new { me, med })
-        .Where(x => x.med.MetricName == "OpenSession2" && EF.Functions.DateDiffDay(x.me.Timestamp, DateTime.Now) < 31)
-        .Select(x => x.me.MetricValue)
-        .ToList();
-
-    var dict = new Dictionary<string, int>();
-    foreach (var val in result)
+    public List<AggregationPerPlatforms> GetPlatformsUsage()
     {
-        var split = val.Split('|', '&');
-        foreach (var v in split.Where(v => v.StartsWith("#platform:")))
-        {
-            var platform = v.Substring(10);
-            //rename None to Package for better understanding
-            if (platform == "None")
-            {
-                platform = "Package";
-            }
+        // Get active users of version per month
 
-            if (dict.ContainsKey(platform))
+        var result = _metricDbContext.MetricEvents
+            .Join(_metricDbContext.MetricEventDefinitions,
+                me => me.MetricId,
+                med => med.MetricId,
+                (me, med) => new { me, med })
+            .Where(x => x.med.MetricName == "OpenSession2" && EF.Functions.DateDiffDay(x.me.Timestamp, DateTime.Now) < 31)
+            .Select(x => x.me.MetricValue)
+            .ToList();
+
+        var dict = new Dictionary<string, int>();
+        foreach (var val in result)
+        {
+            var split = val.Split('|', '&');
+            foreach (var v in split.Where(v => v.StartsWith("#platform:")))
             {
-                dict[platform] += 1;
-            }
-            else
-            {
-                dict.Add(platform, 1);
+                var platform = v.Substring(10);
+                //rename None to Package for better understanding
+                if (platform == "None")
+                {
+                    platform = "Package";
+                }
+
+                if (dict.ContainsKey(platform))
+                {
+                    dict[platform] += 1;
+                }
+                else
+                {
+                    dict.Add(platform, 1);
+                }
             }
         }
+
+        var sortedValues = dict.OrderBy(x => x.Value).ToDictionary(x => x.Key, y => y.Value);
+
+        return sortedValues.Keys.Select(key => new AggregationPerPlatforms { Platform = key, Count = dict[key] }).ToList();
     }
-
-    var sortedValues = dict.OrderBy(x => x.Value).ToDictionary(x => x.Key, y => y.Value);
-
-    return sortedValues.Keys.Select(key => new AggregationPerPlatforms { Platform = key, Count = dict[key] }).ToList();
-}
 }
