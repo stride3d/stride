@@ -19,7 +19,7 @@ public class NumberLiteral : ShaderLiteral
 {
     public bool Negative { get; set; } = false;
     public string? Suffix { get; set; }
-    public override ISymbolType InferredType
+    public override SymbolType? InferredType
     {
         get => inferredType ?? throw new NotImplementedException();
         set => inferredType = value;
@@ -67,14 +67,14 @@ public class NumberLiteral : ShaderLiteral
             }
         }
     }
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
         if (!expected.Equals(InferredType))
         {
             inferredType = (InferredType, expected) switch
             {
-                (ScalarType{TypeName : "int"}, ScalarType{TypeName: "float"}) => expected,
-                (ScalarType{TypeName : "float"}, ScalarType{TypeName: "int"}) => expected,
+                (SymbolType{Name : "int", Quantifier : SymbolQuantifier.Scalar}, SymbolType{Name: "float", Quantifier : SymbolQuantifier.Scalar}) => expected,
+                (SymbolType{Name : "float", Quantifier : SymbolQuantifier.Scalar}, SymbolType{Name: "int", Quantifier : SymbolQuantifier.Scalar}) => expected,
                 _ => throw new Exception($"cannot implictely cast {inferredType} to {expected}")
             };
         }
@@ -87,7 +87,7 @@ public class NumberLiteral : ShaderLiteral
     public override bool Equals(object? obj)
     {
         return obj is NumberLiteral literal &&
-               EqualityComparer<ISymbolType?>.Default.Equals(inferredType, literal.inferredType) &&
+               EqualityComparer<SymbolType?>.Default.Equals(inferredType, literal.inferredType) &&
                EqualityComparer<object>.Default.Equals(Value, literal.Value);
     }
 
@@ -98,7 +98,7 @@ public class NumberLiteral : ShaderLiteral
 }
 public class HexLiteral : NumberLiteral
 {
-    public override ISymbolType InferredType
+    public override SymbolType? InferredType
     {
         get => inferredType;
         set => inferredType = value;
@@ -115,7 +115,7 @@ public class HexLiteral : NumberLiteral
 }
 public class StringLiteral : ShaderLiteral
 {
-    public override ISymbolType InferredType { get => new ScalarType("string"); set => throw new NotImplementedException(); }
+    public override SymbolType? InferredType { get => new SymbolType(null, "string",SymbolQuantifier.Scalar); set => throw new NotImplementedException(); }
 
     public StringLiteral() { }
 
@@ -128,7 +128,7 @@ public class StringLiteral : ShaderLiteral
 
 public class BoolLiteral : ShaderLiteral
 {
-    public override ISymbolType InferredType { get => new ScalarType("bool"); set => throw new NotImplementedException(); }
+    public override SymbolType? InferredType { get => new SymbolType(null, "bool", SymbolQuantifier.Scalar); set => throw new NotImplementedException(); }
 
     public BoolLiteral() { }
 
@@ -154,7 +154,7 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
 {
     public string Name { get; set; }
 
-    public override ISymbolType InferredType { get => inferredType ?? throw new NotImplementedException(); set => inferredType = value; }
+    public override SymbolType? InferredType { get => inferredType ?? throw new NotImplementedException(); set => inferredType = value; }
 
     public VariableNameLiteral(string name)
     {
@@ -166,9 +166,9 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
         Name = m.StringValue;
     }
 
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        if (symbols.TryGetVarType(Name, out var type))
+        if (symbols.TryGet(Name, out var type))
         {
             inferredType = type;
         }
@@ -177,7 +177,7 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
 
     public void CheckVariables(SymbolTable s)
     {
-        if (!s.Any(x => x.ContainsKey(Name)))
+        if (!s.SymbolTypes.ContainsKey(Name))
             throw new Exception("Not a variable");
     }
     public override string ToString()

@@ -23,7 +23,8 @@ public abstract class ShaderToken
 
 	public static ShaderToken Tokenize(Match match)
 	{
-		return GetToken(match,SymbolTable.Empty);
+		// return GetToken(match,SymbolTable.Empty);
+		return GetToken(match, null);
 	}
 	public static ShaderToken GetToken(Match match, SymbolTable symbols)
 	{

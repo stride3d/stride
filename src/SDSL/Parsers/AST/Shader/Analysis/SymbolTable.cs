@@ -1,111 +1,92 @@
-// namespace SDSL.Parsing.AST.Shader.Analysis;
+using System.Numerics;
+using Eto.Parse;
 
+namespace SDSL.Parsing.AST.Shader.Analysis;
 
+public enum SymbolQuantifier
+{
+    Void,
+    Scalar,
+    Vector,
+    Matrix,
+    Struct,
+    Array,
+}
 
-// public partial class SymbolTable : Stack<Dictionary<string, ISymbol>>
-// {
-//     static readonly SymbolTable empty = new();
-//     public static SymbolTable Empty { get => empty; }
+public record struct SymbolType(SymbolTable TypeTable, string Name, SymbolQuantifier Quantifier, Vector3? Size = null, SortedList<string, string>? Fields = null, SortedList<string, string>? Semantics = null)
+{
 
-//     public ErrorList Errors { get; set; } = new();
-//     public Dictionary<string, ISymbol> CurrentScope => Peek();
-//     public Dictionary<string, ISymbol> GlobalScope => this.First();
-//     public SymbolTable()
-//     {
-//         Push(new());
-//     }
+    public static SymbolType Void => new(null, "void", SymbolQuantifier.Void);
 
-//     public void AddScope() => Push(new());
-//     public void AddError(Eto.Parse.Match match, string title) => Errors.Add(new(match, title));
+    public bool IsAccessorValid(string accessor)
+    {
+        return
+            Quantifier == SymbolQuantifier.Struct && Fields != null && Fields.ContainsKey(accessor)
+            || Quantifier == SymbolQuantifier.Vector && accessor.IsVectorSwizzling()
+            || Quantifier == SymbolQuantifier.Matrix && accessor.IsMatrixSwizzling();
+    }
+    public bool IsIndexingValid(string index)
+    {
+        return Quantifier == SymbolQuantifier.Array && int.TryParse(index, out var v) && v > 0;
+    }
+    public bool TryAccessType(string accessor, out SymbolType typeOfAccessed)
+    {
+        typeOfAccessed = new(TypeTable, "void", SymbolQuantifier.Void);
+        return Fields != null && TypeTable.TryGet(Fields[accessor], out typeOfAccessed);
+    }
+}
 
+public record struct VariableSymbol(SymbolTable Table, string Name, string TypeName);
+public record struct MethodSymbol(SymbolTable Table, string Name, string TypeName);
 
-//     public IEnumerable<ISymbolType> GetAllStructTypes() => this.SelectMany(x => x.Select(y => y.Value).OfType<CompositeType>());
+public partial class SymbolTable
+{
+    public Dictionary<string, SymbolType> SymbolTypes;
+    public VariableScope Variables;
+    public Dictionary<string, MethodSymbol> Methods;
 
+    public SymbolType this[string index]
+    {
+        get => SymbolTypes[index];
+        set => SymbolTypes[index] = value;
+    }
 
-//     public void PushVar(Declaration a)
-//     {
-//         foreach (var d in this)
-//             if (d.ContainsKey(a.VariableName))
-//                 throw new Exception("Variable already declared at " + a.Match);
-//         a.TypeCheck(this, ScalarType.VoidType);
-//         CurrentScope.Add(a.VariableName, new SymbolVariable { Declaration = a, Name = a.VariableName, Type = a.TypeName });
-//     }
-//     public void PushStreamType(IEnumerable<ShaderVariableDeclaration> variables)
-//     {
-//         CurrentScope["STREAM"] = new CompositeType("STREAM", new(variables.ToDictionary(v => v.Name, v => v.Type)), new(variables.ToDictionary(v => v.Name, v => v.Semantic)));
-//     }
-//     public void PushType(string name, CompositeType structDef)
-//     {
-//         CurrentScope[name] = structDef;
-//     }
-//     public void PushVar(string name, string type)
-//     {
-//         if (TryGetType(type, out var t))
-//             CurrentScope[name] = new SymbolVariable() { Name = name, Type = t };
-//     }
-//     public ISymbolType PushType(string name, Eto.Parse.Match type)
-//     {
-//         if (!GlobalScope.ContainsKey(name))
-//             GlobalScope[name] = Tokenize(type);
-//         return (ISymbolType)GlobalScope[name];
-//     }
-//     public ISymbolType PushScalarType(string name)
-//     {
-//         if (!GlobalScope.ContainsKey(name))
-//             GlobalScope[name] = TokenizeScalar(name);
-//         return (ISymbolType)GlobalScope[name];
-//     }
+    public SymbolTable()
+    {
+        SymbolTypes = new();
+        Variables = new(this);
+        Methods = new();
+    }
 
-//     public void SetType(string variableName, ISymbolType type)
-//     {
-//         foreach (var d in this)
-//             if (d.TryGetValue(variableName, out var v))
-//             {
-//                 if (v is SymbolVariable sv)
-//                 {
-//                     sv.Type = type;
-//                     if (sv.Declaration is not null)
-//                         sv.Type = type;
-//                 }
-//             }
-//     }
-//     public bool TryGetType(string variableName, out ISymbolType type)
-//     {
-//         type = ScalarType.VoidType;
-//         foreach (var d in this)
-//         {
-//             if (d.TryGetValue(variableName, out var v) && v is ISymbolType sv)
-//             {
-//                 type = sv;
-//                 return true;
-//             }
-//         }
-//         return false;
-//     }
-//     public bool TryGetVarType(string variableName, out ISymbolType type)
-//     {
-//         foreach (var scope in this)
-//         {
-//             if (scope.TryGetValue(variableName, out var t))
-//             {
-//                 type = ((SymbolVariable)t).Type;
-//                 return true;
-//             }
-//         }
-//         type = ScalarType.VoidType;
-//         return false;
-//     }
-//     public void Analyse(Statement s)
-//     {
-//         if (s is Declaration d)
-//             PushVar(d);
-//         else if (s is BlockStatement b)
-//         {
-//             AddScope();
-//             foreach (var bs in b.Statements)
-//                 Analyse(bs);
-//             Pop();
-//         }
-//         else CheckVar(s);
-//     }
-// }
+    public bool TryGet(string index, out SymbolType t)
+    {
+        return SymbolTypes.TryGetValue(index, out t);
+    }
+
+    public SymbolType PushScalarType(string name)
+    {
+        SymbolTypes.Add(name, new SymbolType(this, name, SymbolQuantifier.Scalar));
+        return SymbolTypes[name];
+    }
+    public SymbolType PushType(string name, Eto.Parse.Match type)
+    {
+        SymbolTypes[name] = Tokenize(type);
+        return SymbolTypes[name];
+    }
+}
+
+internal static class StringAccessorExtensions
+{
+    public static bool IsVectorSwizzling(this string s)
+    {
+        Span<char> swizzles = stackalloc char[] { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a' };
+        // foreach(var e in s)
+        //     if(!swizzles.Contains(e));
+        return s.Length == 1 && swizzles.Contains(s[0]);
+    }
+    public static bool IsMatrixSwizzling(this string s)
+    {
+        return s.Length == 3 && s[0] == '_' && char.IsDigit(s[1]) && char.IsDigit(s[2]);
+    }
+}
+

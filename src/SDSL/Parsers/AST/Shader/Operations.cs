@@ -418,9 +418,9 @@ public class ValueMethodCall : Expression
         inferredType = s.Tokenize(m["ValueTypes"]);
         Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(x => GetToken(x, s)).Cast<Expression>().ToList();
     }
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        if(!inferredType.Equals(expected))
-            symbols.AddError(Match, $"cannot cast {inferredType} to {expected}");
+        // if(!inferredType.Equals(expected))
+        //     symbols.AddError(Match, $"cannot cast {inferredType} to {expected}");
     }
 }

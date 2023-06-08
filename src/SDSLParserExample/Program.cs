@@ -56,27 +56,27 @@ var x = 0;
 
 static void ThreeAddress()
 {
+    var symb = new SymbolTable();
+    var flt = symb.PushScalarType("float");
 
     var o =
         new Operation
         {
-            Left = new NumberLiteral { Value = 5f , InferredType = new ScalarType("float")},
-            Right = new NumberLiteral { Value = 6f, InferredType = new ScalarType("float")},
+            Left = new NumberLiteral { Value = 5f, InferredType = flt },
+            Right = new NumberLiteral { Value = 6f, InferredType = flt },
             Op = OperatorToken.Plus
         };
 
-    var symbols = new SymbolTable();
-    var s = new DeclareAssign() { TypeName = new ScalarType("float"), VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o };
-    symbols.PushVar(s);
+    var s = new DeclareAssign() { TypeName = flt, VariableName = "dodo", AssignOp = AssignOpToken.Equal, Value = o };
+
     var o2 =
         new Operation
         {
             Left = new VariableNameLiteral("dodo"),
-            Right = new NumberLiteral { Value = 6L, InferredType = new ScalarType("float") },
+            Right = new NumberLiteral { Value = 6L, InferredType = flt },
             Op = OperatorToken.Plus
         };
     var s2 = new DeclareAssign() { VariableName = "dodo2", AssignOp = AssignOpToken.Equal, Value = o2 };
-    symbols.PushVar(s2);
 
     var x = 0;
 }

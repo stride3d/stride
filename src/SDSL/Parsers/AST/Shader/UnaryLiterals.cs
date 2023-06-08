@@ -11,14 +11,14 @@ namespace SDSL.Parsing.AST.Shader;
 
 public class UnaryExpression : Expression
 {
-    public override ISymbolType InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public override SymbolType? InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 }
 
 public class ChainAccessor : UnaryExpression, IStreamCheck, IVariableCheck
 {
     public ShaderToken Value { get; set; }
     public List<ShaderToken> Field { get; set; }
-    public override ISymbolType InferredType { get => inferredType; set => inferredType = value; }
+    public override SymbolType? InferredType { get => inferredType; set => inferredType = value; }
 
     public ChainAccessor(Match m, SymbolTable s)
     {
@@ -45,11 +45,11 @@ public class ChainAccessor : UnaryExpression, IStreamCheck, IVariableCheck
     {
         if (Value is IVariableCheck n) n.CheckVariables(s);
     }
-    public override void TypeCheck(SymbolTable symbols, ISymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        if (Value is VariableNameLiteral vn && symbols.TryGetVarType(vn.Name, out var type))
+        if (Value is VariableNameLiteral vn && symbols.TryGet(vn.Name, out var type))
         {
-            ISymbolType current = type;
+            SymbolType current = type;
 
             foreach (var a in Field)
             {
@@ -58,7 +58,7 @@ public class ChainAccessor : UnaryExpression, IStreamCheck, IVariableCheck
                 {
                     if(!current.TryAccessType(vna.Name, out current))
                     {
-                        symbols.AddError(Match, $"Accessor `{vna.Name}` does not exist for type `{tmp}`");
+                        // symbols.AddError(Match, $"Accessor `{vna.Name}` does not exist for type `{tmp}`");
                     }
                 }
             }

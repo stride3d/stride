@@ -14,7 +14,7 @@ public class ShaderMethod : ShaderToken
 
 
     public string Name { get; set; }
-    public ISymbolType ReturnType { get; set; }
+    public SymbolType ReturnType { get; set; }
     public IEnumerable<ShaderToken> ParameterList { get; set; }
     public IEnumerable<Statement> Statements { get; set; }
 
@@ -72,30 +72,33 @@ public abstract class MainMethod : ShaderMethod, IStreamCheck
 
     public void VariableChecking(SymbolTable sym)
     {
-        if(CheckStream(sym))
-            sym.PushVar("streams","STREAM");
-        foreach (var s in Statements)
-            sym.Analyse(s);
+        // if(CheckStream(sym))
+        //     sym.PushVar("streams","STREAM");
+        // foreach (var s in Statements)
+        //     sym.Analyse(s);
+        throw new NotImplementedException();
     }
     public void CreateInOutStream(SymbolTable sym)
     {
-        if(sym.TryGetType("STREAM", out var t))
-        {
-            var used = GetUsedStream();
-            var assigned = GetAssignedStream();
-            var i = ((CompositeType)t).SubType(prefix + "_STREAM_IN",used);
-            var o = ((CompositeType)t).SubType(prefix + "_STREAM_OUT",assigned);
-            sym.PushType(i.Name, i);
-            sym.PushType(o.Name, o);
-        }
+        // if(sym.TryGetType("STREAM", out var t))
+        // {
+        //     var used = GetUsedStream();
+        //     var assigned = GetAssignedStream();
+        //     var i = ((CompositeType)t).SubType(prefix + "_STREAM_IN",used);
+        //     var o = ((CompositeType)t).SubType(prefix + "_STREAM_OUT",assigned);
+        //     sym.PushType(i.Name, i);
+        //     sym.PushType(o.Name, o);
+        // }
+        throw new NotImplementedException();
     }
 
     internal void GenerateIl(SymbolTable symbols)
     {
         CreateInOutStream(symbols);
-        symbols.PushVar("streams", "STREAM");
-        symbols.PushVar("streams_in", prefix + "_STREAM_IN");
-        symbols.PushVar("streams_out", prefix + "_STREAM_OUT");
+        throw new NotImplementedException();
+        // symbols.PushVar("streams", "STREAM");
+        // symbols.PushVar("streams_in", prefix + "_STREAM_IN");
+        // symbols.PushVar("streams_out", prefix + "_STREAM_OUT");
         // IL.Construct(Statements);
     }
 }

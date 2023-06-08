@@ -10,7 +10,7 @@ namespace SDSL.Parsing.AST.Shader;
 
 public class StructField : ShaderToken
 {
-    public ISymbolType Type {get;set;}
+    public SymbolType Type {get;set;}
     public string Name {get;set;}
     
 
@@ -27,14 +27,14 @@ public class StructDefinition : ShaderToken
     public string StructName {get;set;}
     public List<StructField> Fields {get;set;}
 
-    public CompositeType Type {get;set;}
+    public SymbolType Type {get;set;}
 
     public StructDefinition(Match m, SymbolTable s)
     {
         Match = m;
         StructName = Match["StructName"].StringValue;
         Fields = Match["Fields"].Matches.Select(x => new StructField(x,s)).ToList();
-        Type = new CompositeType(StructName, new(Fields.ToDictionary(x => x.Name, x => s.Tokenize(x.Match["ValueTypes"]))),new());
+        Type = new SymbolType(s, StructName, SymbolQuantifier.Struct, null, new(Fields.ToDictionary(x => x.Name, x => s.Tokenize(x.Match["ValueTypes"]).Name),null));
     }
 }
 
@@ -68,7 +68,7 @@ public class ShaderVariableDeclaration : ShaderToken
     public bool IsStream {get;set;}
     public bool IsStaged {get;set;}
     public string Name {get;set;}
-    public ISymbolType Type {get;set;}
+    public SymbolType Type {get;set;}
     public string? Semantic { get; set; }
     public ShaderToken Expression {get;set;}
 

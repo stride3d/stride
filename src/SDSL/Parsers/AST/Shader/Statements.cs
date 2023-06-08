@@ -15,7 +15,7 @@ public abstract class Statement : ShaderTokenTyped
 {
     public override SymbolType? InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-    public override void TypeCheck(SymbolTable symbols, SymbolType? expected)
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
         throw new NotImplementedException();
     }
@@ -23,13 +23,13 @@ public abstract class Statement : ShaderTokenTyped
 
 public class EmptyStatement : Statement
 {
-    public override SymbolType? InferredType => ScalarType.VoidType;
-    public override void TypeCheck(SymbolTable symbols, SymbolType expected) { }
+    public override SymbolType? InferredType => SymbolType.Void;
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected) { }
 }
 
 public abstract class Declaration : Statement
 {
-    public override SymbolType InferredType => ScalarType.VoidType;
+    public override SymbolType? InferredType => SymbolType.Void;
     public SymbolType? TypeName { get; set; }
     public string VariableName { get; set; }
 
@@ -72,7 +72,7 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     {
         return Enumerable.Empty<string>();
     }
-    public override void TypeCheck(SymbolTable symbols, SymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
         Value.TypeCheck(symbols, expected);
     }
@@ -88,12 +88,12 @@ public class SimpleDeclare : Declaration
         TypeName = s.PushType(m["ValueTypes"].StringValue, m["ValueTypes"]);
 
     }
-    public override void TypeCheck(SymbolTable symbols, SymbolType expected) { }
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected) { }
 }
 
 public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 {
-    public override SymbolType InferredType => ScalarType.VoidType;
+    public override SymbolType? InferredType => SymbolType.Void;
 
     public AssignOpToken AssignOp { get; set; }
     public bool StreamValue => AccessNames.Any() && AccessNames.First() == "streams";
@@ -134,39 +134,39 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 
     public void CheckVariables(SymbolTable s)
     {
-        if (!s.Any(x => x.ContainsKey(this.AccessNames.First())))
+        if (!s.SymbolTypes.ContainsKey(this.AccessNames.First()))
             throw new Exception("Variable not exist");
         if (Value is IVariableCheck v) v.CheckVariables(s);
     }
-    public override void TypeCheck(SymbolTable symbols, SymbolType expected)
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        SymbolType chainType = ScalarType.VoidType;
+        SymbolType chainType = SymbolType.Void;
         foreach (var a in AccessNames)
         {
             var tmp = chainType;
             if (a == AccessNames.First())
             {
-                if (!symbols.TryGetVarType(a, out chainType))
+                if (!symbols.TryGet(a, out chainType))
                 {
-                    symbols.AddError(Match, $"Field `{a}` doesn't exist in type `{tmp}`");
+                    // symbols.AddError(Match, $"Field `{a}` doesn't exist in type `{tmp}`");
                     return;
                 }
             }
             else if (!chainType.TryAccessType(a, out chainType))
             {
-                symbols.AddError(Match, $"Field `{a}` doesn't exist in type `{tmp}`");
+                // symbols.AddError(Match, $"Field `{a}` doesn't exist in type `{tmp}`");
                 return;
             }
         }
         Value.TypeCheck(symbols, null); // Variable check ?
-        if (!chainType.Equals(Value.InferredType))
-            symbols.AddError(Match, $"Cannot cast `{chainType}` to `{Value.InferredType}`");
+        // if (!chainType.Equals(Value.InferredType))
+        //     symbols.AddError(Match, $"Cannot cast `{chainType}` to `{Value.InferredType}`");
     }
 }
 
 public class ReturnStatement : Statement, IStreamCheck, IStaticCheck
 {
-    public override SymbolType InferredType => ReturnValue?.InferredType ?? ScalarType.VoidType;
+    public override SymbolType? InferredType => ReturnValue?.InferredType ?? SymbolType.Void;
 
     public ShaderTokenTyped? ReturnValue { get; set; }
     public ReturnStatement(Match m, SymbolTable s)
