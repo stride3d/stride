@@ -3,7 +3,7 @@ namespace SDSL.Parsing.AST.Shader.Analysis;
 using Eto.Parse;
 
 
-public class ErrorInfo 
+public struct ErrorInfo 
 {
     public Match Match {get;set;}
     public string Message {get;set;}
