@@ -15,28 +15,41 @@ namespace Stride.Rendering.SubsurfaceScattering
     public class SubsurfaceScatteringBlur : ImageEffect, IImageEffectRenderer, ISharedRenderer
     {
         /// <summary>
-        // Changes the render mode of the post-process for debugging purposes.
+        /// Changes the render mode of the post-process for debugging purposes.
         /// </summary>
         public enum RenderMode
         {
+            /// <summary>
+            /// Renders the scene as usual.
+            /// </summary>
             /// <userdoc>
             /// Renders the scene as usual.
             /// </userdoc>
             [Display("Default")]
             Default = 0,
 
+            /// <summary>
+            /// Shows all scattering objects in white and all other objects in black.
+            /// </summary>
             /// <userdoc>
             /// Shows all scattering objects in white and all other objects in black.
             /// </userdoc>
             [Display("Show scattering objects")]
             ShowScatteringObjects = 1,
 
+            /// <summary>
+            /// Shows the material index of scattering objects as a color.
+            /// </summary>
             /// <userdoc>
             /// Shows the material index of scattering objects as a color.
             /// </userdoc>
             [Display("Show material index")]
             ShowMaterialIndex = 2,
 
+            /// <summary>
+            /// Shows the width of the scattering kernel as a brightness value (High values will be wrapped around).
+            /// Use this to debug if each material gets its own scattering width and doesn't fluctuate.
+            /// </summary>
             /// <userdoc>
             /// Shows the width of the scattering kernel as a brightness value (High values will be wrapped around).
             /// Use this to debug if each material gets its own scattering width and doesn't fluctuate.
@@ -263,7 +276,12 @@ namespace Stride.Rendering.SubsurfaceScattering
 
             scatteringKernel.CopyTo(materialScatteringKernels, (int)materialIndex * SubsurfaceScatteringSettings.SamplesPerScatteringKernel2);   // Insert into the global scattering kernel array.
         }
-
+        
+        /// <summary>
+        /// If active, the the light won't scatter across large depth differences.
+        /// The depth falloff can be configured using "Depth falloff strength".
+        /// Attention: Enabling this increases the performance hit of the effect.
+        /// </summary>
         /// <userdoc>
         /// If active, the the light won't scatter across large depth differences.
         /// The depth falloff can be configured using "Depth falloff strength".
@@ -274,6 +292,10 @@ namespace Stride.Rendering.SubsurfaceScattering
         [Display("Follow surface")]
         public bool FollowSurface { get; set; } = true;
 
+        /// <summary>
+        /// Specifies the number of times the blur should be executed.
+        /// The higher the number of passes, the smoother the final result (less noise & banding).
+        /// </summary>
         /// <userdoc>
         /// Specifies the number of times the blur should be executed.
         /// The higher the number of passes, the smoother the final result (less noise & banding).
@@ -283,7 +305,12 @@ namespace Stride.Rendering.SubsurfaceScattering
         [DataMemberRange(1, 10, 1, 1, 0)]
         [Display("Number of passes")]
         public int NumberOfPasses { get; set; } = 1;
-
+        
+        /// <summary>
+        // This reduces the banding artifacts caused by undersampling (visible on closeups) by introducing a bit of noise.
+        // This might create a less mathematically correct falloff, since it messes with the sample offsets.
+        // But the difference is barely noticeable.
+        /// </summary>
         /// <userdoc>
         // This reduces the banding artifacts caused by undersampling (visible on closeups) by introducing a bit of noise.
         // This might create a less mathematically correct falloff, since it messes with the sample offsets.
@@ -294,6 +321,9 @@ namespace Stride.Rendering.SubsurfaceScattering
         [Display("Jitter Kernel Size")]
         public bool JitterKernelSize { get; set; } = false;
 
+        /// <summary>
+        // Changes the render mode of the post-process for debugging purposes.
+        /// </summary>
         /// <userdoc>
         // Changes the render mode of the post-process for debugging purposes.
         /// </userdoc>
