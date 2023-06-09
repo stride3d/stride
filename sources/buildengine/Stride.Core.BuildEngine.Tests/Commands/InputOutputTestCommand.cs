@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,11 +22,9 @@ namespace Stride.Core.BuildEngine.Tests.Commands
 
         public static DataContainer Load(Stream stream)
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                stream.CopyTo(ms);
-                return new DataContainer { Data = ms.ToArray() };
-            }
+            byte[] dataArray = new byte[stream.Length];
+            stream.Read(dataArray);
+            return new DataContainer { Data = dataArray };
         }
 
         public DataContainer Alterate()
