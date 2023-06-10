@@ -750,7 +750,7 @@ namespace Stride.Graphics
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
         /// <param name="mipSlice">The mip slice index.</param>
         /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <see cref="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
+        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <paramref name="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
         /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
@@ -789,7 +789,7 @@ namespace Stride.Graphics
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
         /// <param name="mipSlice">The mip slice index.</param>
         /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <see cref="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
+        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <paramref name="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
         /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
