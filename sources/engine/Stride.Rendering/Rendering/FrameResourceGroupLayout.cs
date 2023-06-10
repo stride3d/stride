@@ -4,7 +4,7 @@
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Implementation of <see cref="ResourceGroupLayout"/> specifically for PerFrame cbuffer of <see cref="RenderSystem"/>.
+    /// Implementation of <see cref="RenderSystemResourceGroupLayout"/> specifically for PerFrame cbuffer of <see cref="RenderSystem"/>.
     /// </summary>
     public class FrameResourceGroupLayout : RenderSystemResourceGroupLayout
     {
