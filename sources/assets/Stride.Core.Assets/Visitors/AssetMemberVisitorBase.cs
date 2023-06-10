@@ -13,7 +13,7 @@ namespace Stride.Core.Assets.Visitors
         /// <summary>
         /// Gets the <see cref="Core.Reflection.MemberPath"/> that will be checked against when visiting.
         /// </summary>
-        /// <seealso cref="AssetVisitorBase.CurrentPath"/>
+        /// <seealso cref="DataVisitorBase.CurrentPath"/>
         protected MemberPath MemberPath { get; set; }
 
         /// <inheritdoc/>
