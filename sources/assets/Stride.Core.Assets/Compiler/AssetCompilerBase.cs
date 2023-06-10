@@ -80,8 +80,8 @@ namespace Stride.Core.Assets.Compiler
         /// </summary>
         /// <param name="assetItem">The asset on which is based the relative path.</param>
         /// <param name="relativePath">The path relative to the asset path that must be converted to an absolute path.</param>
-        /// <returns>The absolute path on the disk of the <see cref="relativePath"/> argument.</returns>
-        /// <exception cref="ArgumentException">The <see cref="relativePath"/> argument is a null or empty <see cref="UFile"/>.</exception>
+        /// <returns>The absolute path on the disk of the <paramref name="relativePath"/> argument.</returns>
+        /// <exception cref="ArgumentException">The <paramref name="relativePath"/> argument is a null or empty <see cref="UFile"/>.</exception>
         protected static UFile GetAbsolutePath(AssetItem assetItem, UFile relativePath)
         {
             if (string.IsNullOrEmpty(relativePath)) throw new ArgumentException("The relativePath argument is null or empty");
