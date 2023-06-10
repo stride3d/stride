@@ -139,14 +139,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref string value)
         {
-            unsafe
-            {
-                fixed (char* ptr = value)
-                {
-                    var span = new Span<char>(ptr, value.Length);
-                    Writer.Write(span);
-                }
-            }
+            Writer.Write(value.AsSpan());
         }
 
         /// <inheritdoc />
