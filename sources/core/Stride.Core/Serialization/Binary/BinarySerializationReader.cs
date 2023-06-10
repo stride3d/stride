@@ -3,6 +3,7 @@
 using System;
 using System.Buffers.Binary;
 using System.IO;
+using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Serialization
@@ -21,7 +22,7 @@ namespace Stride.Core.Serialization
             Reader = new BinaryReader(inputStream);
             UnderlyingStream = inputStream;
         }
-
+        Stream UnderlyingStream;
         private BinaryReader Reader { get; }
 
         /// <inheritdoc />
@@ -36,30 +37,28 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override unsafe void Serialize(ref float value)
         {
-            var buffer = new byte[sizeof(float)];
-            var read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            Span<byte> buffer = MemoryMarshal.Cast<float, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = (uint)UnderlyingStream.Read(buffer);
             if (read != sizeof(float))
                 throw new EndOfStreamException();
-            uint bits = BitConverter.ToUInt32(buffer, 0);
-            value = BitConverter.UInt32BitsToSingle(bits);
+            value = BitConverter.UInt32BitsToSingle(read);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref double value)
         {
-            var buffer = new byte[sizeof(double)];
-            var read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            Span<byte> buffer = MemoryMarshal.Cast<double, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = (ulong)UnderlyingStream.Read(buffer);
             if (read != sizeof(double))
                 throw new EndOfStreamException();
-            ulong bits = BitConverter.ToUInt32(buffer, 0);
-            value = BitConverter.UInt64BitsToDouble(bits);
+            value = BitConverter.UInt64BitsToDouble(read);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref short value)
         {
-            byte[] buffer = new byte[sizeof(short)];
-            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            Span<byte> buffer = MemoryMarshal.Cast<short, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
             if (read != sizeof(short))
                 throw new EndOfStreamException();
             value = BinaryPrimitives.ReadInt16LittleEndian(buffer);
@@ -68,8 +67,8 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref int value)
         {
-            byte[] buffer = new byte[sizeof(int)];
-            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            Span<byte> buffer = MemoryMarshal.Cast<int, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
             if (read != sizeof(int))
                 throw new EndOfStreamException();
             value = BinaryPrimitives.ReadInt32LittleEndian(buffer);
@@ -78,8 +77,8 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref long value)
         {
-            byte[] buffer = new byte[sizeof(long)];
-            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            Span<byte> buffer = MemoryMarshal.Cast<long, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
             if (read != sizeof(long))
                 throw new EndOfStreamException();
             value = BinaryPrimitives.ReadInt64LittleEndian(buffer);
@@ -88,8 +87,8 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref ushort value)
         {
-            byte[] buffer = new byte[sizeof(ushort)];
-            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            Span<byte> buffer = MemoryMarshal.Cast<ushort, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
             if (read != sizeof(ushort))
                 throw new EndOfStreamException();
             value = BinaryPrimitives.ReadUInt16LittleEndian(buffer);
@@ -98,8 +97,8 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref uint value)
         {
-            byte[] buffer = new byte[sizeof(uint)];
-            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            Span<byte> buffer = MemoryMarshal.Cast<uint, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
             if (read != sizeof(uint))
                 throw new EndOfStreamException();
             value = BinaryPrimitives.ReadUInt32LittleEndian(buffer);
@@ -108,13 +107,12 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref ulong value)
         {
-            byte[] buffer = new byte[sizeof(ulong)];
-            int read = UnderlyingStream.Read(buffer, 0, buffer.Length);
+            Span<byte> buffer = MemoryMarshal.Cast<ulong, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
             if (read != sizeof(ulong))
                 throw new EndOfStreamException();
             value = BinaryPrimitives.ReadUInt64LittleEndian(buffer);
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <inheritdoc />
         public override void Serialize([NotNull] ref string value)
@@ -131,19 +129,21 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref byte value)
         {
-            var result = UnderlyingStream.ReadByte();
-            if (result == -1)
+            Span<byte> buffer = MemoryMarshal.CreateSpan(ref value, 1);
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(byte))
                 throw new EndOfStreamException();
-            value = (byte)result;
+            value = buffer[0];
         }
 
         /// <inheritdoc />
         public override void Serialize(ref sbyte value)
         {
-            var result = UnderlyingStream.ReadByte();
-            if (result == -1)
+            Span<byte> buffer = MemoryMarshal.Cast<sbyte, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(sbyte))
                 throw new EndOfStreamException();
-            value = (sbyte)(byte)result;
+            value = Convert.ToSByte(read);
         }
 
         /// <inheritdoc />
@@ -157,6 +157,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Flush()
         {
+            UnderlyingStream.Flush();
         }
     }
 }
