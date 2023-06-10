@@ -86,7 +86,7 @@ namespace Stride.Core.Assets.Visitors
         }
 
         /// <summary>
-        /// Called when <see cref="AssetVisitorBase.CurrentPath"/> matches the <see cref="MemberPath"/> given when creating this instance.
+        /// Called when <see cref="DataVisitorBase.CurrentPath"/> matches the <see cref="MemberPath"/> given when creating this instance.
         /// </summary>
         /// <param name="value"></param>
         /// <param name="descriptor"></param>
