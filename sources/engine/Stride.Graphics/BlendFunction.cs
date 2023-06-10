@@ -8,7 +8,7 @@ namespace Stride.Graphics
     /// RGB or alpha blending operation.
     /// </summary>
     /// <remarks>
-    /// The runtime implements RGB blending and alpha blending separately. Therefore, blend state requires separate blend operations for RGB data and alpha data. These blend operations are specified in a <see cref="BlendState"/>.
+    /// The runtime implements RGB blending and alpha blending separately. Therefore, blend state requires separate blend operations for RGB data and alpha data. These blend operations are specified in a <see cref="BlendStateDescription"/>.
     /// </remarks>
     [DataContract]
     public enum BlendFunction
