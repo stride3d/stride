@@ -73,7 +73,7 @@ namespace Stride.Rendering.ComputeEffect
         }
 
         /// <summary>
-        /// Updates the effect <see cref="ComputeEffectShader.Parameters" /> from properties defined in this instance. See remarks.
+        /// Updates the effect <see cref="DrawEffect.Parameters" /> from properties defined in this instance. See remarks.
         /// </summary>
         protected virtual void UpdateParameters()
         {
