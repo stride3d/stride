@@ -78,12 +78,9 @@ namespace Stride.Particles
         public int NextFreeIndex => nextFreeIndex;
 
         /// <summary>
-        /// Returns the size of a single particle.
-#if PARTICLES_SOA
-        /// The size of the <see cref="Particle"/> equals the sum of all fields' strides.
-#else
-        /// The size of the <see cref="Particle"/> equals the pool's stride.
-#endif
+        /// Returns the size of a single <see cref="Particle"/>.
+        /// If PARTICLES_SOA is defined, the size of the <see cref="Particle"/> is the sum of all field strides.
+        /// Otherwise, the size of the <see cref="Particle"/> is the pool's stride.
         /// </summary>
         public int ParticleSize { get; private set; }
 

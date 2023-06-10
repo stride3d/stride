@@ -115,18 +115,6 @@ namespace Stride.GameStudio
                             renderDocManager = new RenderDocManager();
                             renderDocManager.Initialize();
                         }
-                        else if (args[i] == "/Reattach")
-                        {
-                            var debuggerProcessId = int.Parse(args[++i]);
-
-                            if (!System.Diagnostics.Debugger.IsAttached)
-                            {
-                                using (var debugger = VisualStudioDebugger.GetByProcess(debuggerProcessId))
-                                {
-                                    debugger?.Attach();
-                                }
-                            }
-                        }
                         else if (args[i] == "/RecordEffects")
                         {
                             GameStudioBuilderService.GlobalEffectLogPath = args[++i];

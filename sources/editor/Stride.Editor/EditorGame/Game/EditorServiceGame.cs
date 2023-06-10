@@ -154,7 +154,7 @@ namespace Stride.Editor.EditorGame.Game
             Physics.Simulation.DisableSimulation = true;
         }
 
-        // <inheritdoc />
+        /// <inheritdoc />
         protected override void Update(GameTime gameTime)
         {
             // Keep going only if last exception has been "resolved"

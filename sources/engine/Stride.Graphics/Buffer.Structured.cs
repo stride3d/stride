@@ -31,7 +31,7 @@ namespace Stride.Graphics
         /// Structured buffer helper methods.
         /// </summary>
         /// <remarks>
-        /// Example in HLSL: StructuredBuffer&lt;float4&gt; or RWStructuredBuffer&lt;float4&gt for structured buffers supporting unordered access.
+        /// Example in HLSL: StructuredBuffer&lt;float4&gt; or RWStructuredBuffer&lt;float4&gt; for structured buffers supporting unordered access.
         /// </remarks>
         public static class Structured
         {
@@ -112,7 +112,7 @@ namespace Stride.Graphics
         /// StructuredAppend buffer helper methods.
         /// </summary>
         /// <remarks>
-        /// Example in HLSL: AppendStructuredBuffer&lt;float4&gt; or ConsumeStructuredBuffer&lt;float4&gt.
+        /// Example in HLSL: AppendStructuredBuffer&lt;float4&gt; or ConsumeStructuredBuffer&lt;float4&gt;.
         /// </remarks>
         public static class StructuredAppend
         {
@@ -173,7 +173,7 @@ namespace Stride.Graphics
         /// StructuredCounter buffer helper methods.
         /// </summary>
         /// <remarks>
-        /// Example in HLSL: StructuredBuffer&lt;float4&gt; or RWStructuredBuffer&lt;float4&gt for structured buffers supporting unordered access.
+        /// Example in HLSL: StructuredBuffer&lt;float4&gt; or RWStructuredBuffer&lt;float4&gt; for structured buffers supporting unordered access.
         /// </remarks>
         public static class StructuredCounter
         {
