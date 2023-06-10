@@ -499,11 +499,11 @@ namespace Stride.Graphics
         /// <summary>
         /// Loads an image from an unmanaged memory pointer.
         /// </summary>
-        /// <param name="dataBuffer">Pointer to an unmanaged memory. If <see cref="makeACopy"/> is false, this buffer must be allocated with <see cref="Utilities.AllocateMemory"/>.</param>
+        /// <param name="dataBuffer">Pointer to an unmanaged memory. If <paramref name="makeACopy"/> is false, this buffer must be allocated with <see cref="Utilities.AllocateMemory"/>.</param>
         /// <param name="makeACopy">True to copy the content of the buffer to a new allocated buffer, false otherwise.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <returns>An new image.</returns>
-        /// <remarks>If <see cref="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
+        /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
         public static Image Load(DataPointer dataBuffer, bool makeACopy = false, bool loadAsSRGB = false)
         {
             return Load(dataBuffer.Pointer, dataBuffer.Size, makeACopy, loadAsSRGB);
