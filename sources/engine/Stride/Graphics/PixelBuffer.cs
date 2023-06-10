@@ -315,8 +315,8 @@ namespace Stride.Graphics
         /// <typeparam name="T">Type of the pixel data</typeparam>
         /// <param name="sourcePixels">Source pixel buffer</param>
         /// <param name="yOffset">The y line offset.</param>
-        /// <param name="pixelIndex">Offset into the source <see cref="sourcePixels"/> buffer.</param>
-        /// <param name="pixelCount">Number of pixels to write into the source <see cref="sourcePixels"/> buffer.</param>
+        /// <param name="pixelIndex">Offset into the source <paramref name="sourcePixels"/> buffer.</param>
+        /// <param name="pixelCount">Number of pixels to write into the source <paramref name="sourcePixels"/> buffer.</param>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
         /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
