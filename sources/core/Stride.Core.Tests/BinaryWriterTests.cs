@@ -17,7 +17,8 @@ namespace StrideSource
                 BinarySerializationWriter writer = new BinarySerializationWriter(ms);
                 var temp = "Hello, world!&§\"%!?)(€@";
                 writer.Serialize(ref temp);
-                string result = Encoding.UTF8.GetString(ms.ToArray());
+                ms.Seek(0, SeekOrigin.Begin);
+                string result = new BinaryReader(ms).ReadString();
                 Assert.Equal(result, temp);
             }
         }
@@ -29,7 +30,8 @@ namespace StrideSource
                 BinarySerializationWriter writer = new BinarySerializationWriter(ms);
                 string temp = "";
                 writer.Serialize(ref temp);
-                string result = Encoding.UTF8.GetString(ms.ToArray());
+                ms.Seek(0, SeekOrigin.Begin);
+                string result = new BinaryReader(ms).ReadString();
                 Assert.Equal(result, temp);
             }
         }
