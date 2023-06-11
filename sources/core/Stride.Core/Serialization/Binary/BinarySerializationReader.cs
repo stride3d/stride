@@ -22,7 +22,7 @@ namespace Stride.Core.Serialization
             Reader = new BinaryReader(inputStream);
             UnderlyingStream = inputStream;
         }
-        Stream UnderlyingStream;
+
         private BinaryReader Reader { get; }
 
         /// <inheritdoc />
@@ -38,10 +38,10 @@ namespace Stride.Core.Serialization
         public override unsafe void Serialize(ref float value)
         {
             Span<byte> buffer = MemoryMarshal.Cast<float, byte>(MemoryMarshal.CreateSpan(ref value, 1));
-            var read = (uint)UnderlyingStream.Read(buffer);
+            var read = UnderlyingStream.Read(buffer);
             if (read != sizeof(float))
                 throw new EndOfStreamException();
-            value = BitConverter.UInt32BitsToSingle(read);
+            value = BinaryPrimitives.ReadSingleLittleEndian(buffer);
         }
 
         /// <inheritdoc />
@@ -51,7 +51,7 @@ namespace Stride.Core.Serialization
             var read = (ulong)UnderlyingStream.Read(buffer);
             if (read != sizeof(double))
                 throw new EndOfStreamException();
-            value = BitConverter.UInt64BitsToDouble(read);
+            value = BinaryPrimitives.ReadDoubleLittleEndian(buffer);
         }
 
         /// <inheritdoc />
@@ -143,7 +143,7 @@ namespace Stride.Core.Serialization
             var read = UnderlyingStream.Read(buffer);
             if (read != sizeof(sbyte))
                 throw new EndOfStreamException();
-            value = Convert.ToSByte(read);
+            value = (sbyte)buffer[0];
         }
 
         /// <inheritdoc />
