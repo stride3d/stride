@@ -58,5 +58,7 @@ namespace Stride.Graphics.Font
             genericInstantiations.Add(typeof(Dictionary<char, Glyph>));
             genericInstantiations.Add(typeof(List<Texture>));
         }
+
+        private void _DataSerializerDependencies(Dictionary<char, Glyph> x0, List<Texture> x1) { }
     }
 }

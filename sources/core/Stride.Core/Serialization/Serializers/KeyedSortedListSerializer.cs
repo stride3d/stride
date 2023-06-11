@@ -56,5 +56,7 @@ namespace Stride.Core.Serialization.Serializers
         {
             genericInstantiations.Add(typeof(T));
         }
+
+        private void _DataSerializerDependencies(T x0) { }
     }
 }

@@ -1,0 +1,29 @@
+<Project>
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>Windows;Android;iOS</StrideBuildTags>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.4.2-pre.12" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" ReferenceOutputAssembly="false" CopyToOutputDirectory="Always" />
+    <ProjectReference Include="..\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj" />
+
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit " Version="1.1.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
+  </ItemGroup>
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
+</Project>

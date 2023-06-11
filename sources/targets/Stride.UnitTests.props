@@ -25,5 +25,8 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
+  <!-- Include Stride analyzer/code generator -->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.CompilerServices.props"/>
+
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 </Project>

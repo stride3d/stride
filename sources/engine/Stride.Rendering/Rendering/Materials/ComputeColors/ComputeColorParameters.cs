@@ -199,6 +199,8 @@ namespace Stride.Rendering.Materials.ComputeColors
             {
                 genericInstantiations.Add(typeof(KeyValuePair<string, IComputeColorParameter>));
             }
+
+            private void _DataSerializerDependencies(KeyValuePair<string, IComputeColorParameter> x0) { }
         }
     }
 }

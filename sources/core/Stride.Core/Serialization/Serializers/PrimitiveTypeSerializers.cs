@@ -7,6 +7,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Reflection;
 
+// Register System.Object serializer as null as it has specialized handling
+[assembly:Stride.Core.Serialization.DataSerializerGlobal(null, typeof(object))]
+
 namespace Stride.Core.Serialization.Serializers
 {
     /// <summary>

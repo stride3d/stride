@@ -11,13 +11,16 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
 		..\store.config = ..\store.config
+		..\sources\targets\Stride.Core.CompilerServices.props = ..\sources\targets\Stride.Core.CompilerServices.props
 		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
 		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
 		..\sources\targets\Stride.Core.Sign.targets = ..\sources\targets\Stride.Core.Sign.targets
+		..\sources\targets\Stride.Core.TargetFrameworks.Editor.props = ..\sources\targets\Stride.Core.TargetFrameworks.Editor.props
 		..\sources\targets\Stride.Core.targets = ..\sources\targets\Stride.Core.targets
 		..\sources\targets\Stride.GraphicsApi.Dev.targets = ..\sources\targets\Stride.GraphicsApi.Dev.targets
 		..\sources\targets\Stride.GraphicsApi.PackageReference.targets = ..\sources\targets\Stride.GraphicsApi.PackageReference.targets
 		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
+		..\sources\targets\Stride.PackageVersion.targets = ..\sources\targets\Stride.PackageVersion.targets
 		..\sources\targets\Stride.props = ..\sources\targets\Stride.props
 		..\sources\targets\Stride.targets = ..\sources\targets\Stride.targets
 		..\sources\targets\Stride.UnitTests.CrossTargeting.targets = ..\sources\targets\Stride.UnitTests.CrossTargeting.targets
@@ -332,6 +335,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Commands.Interfaces", "..\sources\tools\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj", "{83E4E436-659A-4D82-90DD-0DC67BE38D17}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.NoAssets.Tests.Windows", "..\sources\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.Windows.csproj", "{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.CompilerServices", "..\sources\core\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj", "{D62BBD65-AB1C-41C7-8EC3-88949993C71E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.CompilerServices.Tests", "..\sources\core\Stride.Core.CompilerServices.Tests\Stride.Core.CompilerServices.Tests.csproj", "{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1490,6 +1497,30 @@ Global
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Release|Win32.ActiveCfg = Release|Any CPU
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Release|Win32.Build.0 = Release|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Debug|Win32.Build.0 = Debug|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Release|Win32.ActiveCfg = Release|Any CPU
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E}.Release|Win32.Build.0 = Release|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Debug|Win32.Build.0 = Debug|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Release|Win32.ActiveCfg = Release|Any CPU
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1616,6 +1647,8 @@ Global
 		{7FA381C8-8EBE-4515-969D-01369CC47D0E} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{83E4E436-659A-4D82-90DD-0DC67BE38D17} = {E4508D15-6503-4A29-ADC4-27B3A5E99545}
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
+		{D62BBD65-AB1C-41C7-8EC3-88949993C71E} = {2E93E2B5-4500-4E47-9B65-E705218AB578}
+		{BACD76E5-35D0-4389-9BB9-8743AC4D89DE} = {22ADD4CD-092E-4ADC-A21E-64CF42230152}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

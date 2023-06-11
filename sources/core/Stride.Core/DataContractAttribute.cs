@@ -7,7 +7,7 @@ namespace Stride.Core
     /// <summary>
     /// Indicates that a class can be serialized.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Delegate | AttributeTargets.Enum | AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Enum | AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public class DataContractAttribute : Attribute
     {
         private readonly string alias;
