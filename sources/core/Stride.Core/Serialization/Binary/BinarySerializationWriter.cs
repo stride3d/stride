@@ -139,7 +139,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref string value)
         {
-            Writer.Write(value.AsSpan());
+            Writer.Write(value);
         }
 
         /// <inheritdoc />
