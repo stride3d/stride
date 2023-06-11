@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Eto.Parse\Eto.Parse\Eto.Parse.csproj" />
-    <ProjectReference Include="..\SDSL\SDSL.csproj" />
+    <ProjectReference Include="../Eto.Parse/Eto.Parse/Eto.Parse.csproj" />
+    <ProjectReference Include="../SDSL/SDSL.csproj" />
   </ItemGroup>
 
   <ItemGroup>
