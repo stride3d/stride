@@ -43,7 +43,7 @@ namespace Stride.Native
         [ModuleInitializer]
         public static void Initialize()
         {
-            Core.Native.NativeInvoke.Setup();
+            
         }
     }
 }
