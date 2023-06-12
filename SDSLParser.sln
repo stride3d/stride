@@ -5,31 +5,30 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6C34518F-B5D8-42FC-9829-639353525AC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDSL", "src\SDSL\SDSL.csproj", "{706261F0-8DAB-4985-AD0F-A2ABB139BB6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDSL", "src\SDSL\SDSL.csproj", "{706261F0-8DAB-4985-AD0F-A2ABB139BB6B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Eto.Parse", "Eto.Parse", "{7C019933-36A7-414C-B44F-0DF3E83EF1C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eto.Parse", "src\Eto.Parse\Eto.Parse\Eto.Parse.csproj", "{522AE034-9CC2-434E-9904-F7714B9A0FFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eto.Parse", "src\Eto.Parse\Eto.Parse\Eto.Parse.csproj", "{522AE034-9CC2-434E-9904-F7714B9A0FFC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDSLParserExample", "src\SDSLParserExample\SDSLParserExample.csproj", "{B6775E90-4C27-4D07-9B65-2F653D29908B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDSLParserExample", "src\SDSLParserExample\SDSLParserExample.csproj", "{B6775E90-4C27-4D07-9B65-2F653D29908B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SoftTouch.Spirv", "SoftTouch.Spirv", "{D962F06D-18A2-496E-94B1-4A591DF0543B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7D992A0D-31F2-42A1-BDA9-3F2D31C6DBE2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoftTouch.Spirv", "src\SoftTouch.Spirv\src\SoftTouch.Spirv\SoftTouch.Spirv.csproj", "{D883080C-FFC3-45B8-8BFF-2D518E584E6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftTouch.Spirv", "src\SoftTouch.Spirv\src\SoftTouch.Spirv\SoftTouch.Spirv.csproj", "{D883080C-FFC3-45B8-8BFF-2D518E584E6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoftTouch.Spirv.Generators", "src\SoftTouch.Spirv\src\SoftTouch.Spirv.Generators\SoftTouch.Spirv.Generators.csproj", "{B4DC25CC-8571-4D20-BE6A-DF0E1B507AD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftTouch.Spirv.Generators", "src\SoftTouch.Spirv\src\SoftTouch.Spirv.Generators\SoftTouch.Spirv.Generators.csproj", "{B4DC25CC-8571-4D20-BE6A-DF0E1B507AD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoftTouch.Spirv.Core", "src\SoftTouch.Spirv\src\SoftTouch.Spirv.Core\SoftTouch.Spirv.Core.csproj", "{76F85253-0EA9-4A05-ACCB-DE908A3AEB8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftTouch.Spirv.Core", "src\SoftTouch.Spirv\src\SoftTouch.Spirv.Core\SoftTouch.Spirv.Core.csproj", "{76F85253-0EA9-4A05-ACCB-DE908A3AEB8C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftTouch.Spirv.Experiments", "src\SoftTouch.Spirv\src\SoftTouch.Spirv.Experiments\SoftTouch.Spirv.Experiments.csproj", "{C91364F9-6EEE-46E7-99F6-E864678763E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{706261F0-8DAB-4985-AD0F-A2ABB139BB6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -56,6 +55,13 @@ Global
 		{76F85253-0EA9-4A05-ACCB-DE908A3AEB8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76F85253-0EA9-4A05-ACCB-DE908A3AEB8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76F85253-0EA9-4A05-ACCB-DE908A3AEB8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C91364F9-6EEE-46E7-99F6-E864678763E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C91364F9-6EEE-46E7-99F6-E864678763E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C91364F9-6EEE-46E7-99F6-E864678763E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C91364F9-6EEE-46E7-99F6-E864678763E0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{706261F0-8DAB-4985-AD0F-A2ABB139BB6B} = {6C34518F-B5D8-42FC-9829-639353525AC4}
@@ -67,5 +73,9 @@ Global
 		{D883080C-FFC3-45B8-8BFF-2D518E584E6F} = {7D992A0D-31F2-42A1-BDA9-3F2D31C6DBE2}
 		{B4DC25CC-8571-4D20-BE6A-DF0E1B507AD1} = {7D992A0D-31F2-42A1-BDA9-3F2D31C6DBE2}
 		{76F85253-0EA9-4A05-ACCB-DE908A3AEB8C} = {7D992A0D-31F2-42A1-BDA9-3F2D31C6DBE2}
+		{C91364F9-6EEE-46E7-99F6-E864678763E0} = {7D992A0D-31F2-42A1-BDA9-3F2D31C6DBE2}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A585C758-CCD8-43FB-8834-1F1330C2CA32}
 	EndGlobalSection
 EndGlobal
