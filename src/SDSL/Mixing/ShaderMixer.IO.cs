@@ -6,7 +6,7 @@ public partial class ShaderMixer
 {
     public ShaderMixer With(VariableData variable)
     {
-        return variable.TypeInfo.Scope switch 
+        return variable.Scope switch 
         {
             VariableScope.Input => (ShaderMixer)WithInput(variable),
             VariableScope.Output => (ShaderMixer)WithOutput(variable),
