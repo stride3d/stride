@@ -9,7 +9,7 @@ using Stride.Core.Shaders;
 using Stride.Core.Shaders.Parser;
 using Stride.Core.Shaders.Grammar.Stride;
 using SDSL.Parsing.AST.Shader;
-using SDSL.Mixer;
+using SDSL.Mixing;
 using SDSL.ThreeAddress;
 using SDSL.Parsing.AST.Shader.Analysis;
 using System.Text;
