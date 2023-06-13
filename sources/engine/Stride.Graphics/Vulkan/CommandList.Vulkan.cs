@@ -9,6 +9,7 @@ using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Graphics
 {
@@ -1205,7 +1206,7 @@ namespace Stride.Graphics
             var uploadMemory = GraphicsDevice.AllocateUploadBuffer(lengthInBytes + alignmentMask, out uploadResource, out uploadOffset);
             var alignment = ((uploadOffset + alignmentMask) & ~alignmentMask) - uploadOffset;
 
-            Utilities.CopyMemory(uploadMemory + alignment, databox.DataPointer, lengthInBytes);
+            Unsafe.CopyBlockUnaligned((void*)(uploadMemory + alignment), (void*)databox.DataPointer, (uint)lengthInBytes);
 
             var uploadBufferMemoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong)(uploadOffset + alignment), (ulong)lengthInBytes);
 

@@ -11,6 +11,7 @@ using Stride.Core.Collections;
 using Stride.Core.Serialization;
 using Stride.Shaders;
 using Encoding = System.Text.Encoding;
+using System.IO;
 
 namespace Stride.Graphics
 {
@@ -344,7 +345,7 @@ namespace Stride.Graphics
 
             // Get binding indices used by the shader
             var destinationBindings = pipelineStateDescription.EffectBytecode.Stages
-                .SelectMany(x => BinarySerialization.Read<ShaderInputBytecode>(x.Data).ResourceBindings)
+                .SelectMany(x => new BinarySerializationReader(new MemoryStream(x.Data)).Read<ShaderInputBytecode>().ResourceBindings)
                 .GroupBy(x => x.Key, x => x.Value)
                 .ToDictionary(x => x.Key, x => x.First());
 
@@ -422,7 +423,8 @@ namespace Stride.Graphics
 
             for (int i = 0; i < stages.Length; i++)
             {
-                var shaderBytecode = BinarySerialization.Read<ShaderInputBytecode>(stages[i].Data);
+                var reader = new BinarySerializationReader(new MemoryStream(stages[i].Data));
+                var shaderBytecode = reader.Read<ShaderInputBytecode>();
                 if (stages[i].Stage == ShaderStage.Vertex)
                     inputAttributeNames = shaderBytecode.InputAttributeNames;
 

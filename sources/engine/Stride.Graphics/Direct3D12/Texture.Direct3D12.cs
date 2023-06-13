@@ -160,7 +160,11 @@ namespace Stride.Graphics
                                 var dataPointerCurrent = databox.DataPointer;
                                 for (int rowIndex = 0; rowIndex < mipHeight; rowIndex++)
                                 {
-                                    Utilities.CopyMemory(uploadMemoryCurrent, dataPointerCurrent, mipRowPitch);
+                                    unsafe
+                                    {
+                                        Unsafe.CopyBlockUnaligned((void*)uploadMemoryCurrent, (void*)dataPointerCurrent, (uint)mipRowPitch);
+                                    }
+                                    
                                     uploadMemoryCurrent += mipRowPitch;
                                     dataPointerCurrent += databox.RowPitch;
                                 }
@@ -221,7 +225,11 @@ namespace Stride.Graphics
                             var dataPointerCurrent = dataPointer + z * databox.SlicePitch;
                             for (int y = 0; y < rowCount; ++y)
                             {
-                                Utilities.CopyMemory(uploadMemoryCurrent, dataPointerCurrent, rowSize);
+                                unsafe
+                                {
+                                    Unsafe.CopyBlockUnaligned((void*)uploadMemoryCurrent, (void*)dataPointerCurrent, (uint)rowSize);
+                                }
+                                
                                 uploadMemoryCurrent += destRowPitch;
                                 dataPointerCurrent += databox.RowPitch;
                             }

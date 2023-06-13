@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -615,7 +616,7 @@ namespace Stride.Graphics
 
                         if (data != IntPtr.Zero)
                         {
-                            Utilities.CopyMemory(bufferData + offset, data, width * height * depth * TexturePixelSize);
+                            Unsafe.CopyBlockUnaligned((void*)(bufferData + offset), (void*)data, (uint)(width * height * depth * TexturePixelSize));
                         }
 
                         offset += width*height*TexturePixelSize;

@@ -3,6 +3,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using SharpDX;
 using SharpDX.Direct3D12;
@@ -780,8 +781,11 @@ namespace Stride.Graphics
                         var size = destinationTexture.ComputeBufferTotalSize();
                         var destinationMapped = destinationTexture.NativeResource.Map(0);
                         var sourceMapped = sourceTexture.NativeResource.Map(0, new SharpDX.Direct3D12.Range { Begin = 0, End = size });
-
-                        Utilities.CopyMemory(destinationMapped, sourceMapped, size);
+                        unsafe
+                        {
+                            Unsafe.CopyBlockUnaligned((void*)destinationMapped, (void*)sourceMapped, (uint)size);
+                        }
+                        
 
                         sourceTexture.NativeResource.Unmap(0);
                         destinationTexture.NativeResource.Unmap(0);
@@ -981,15 +985,15 @@ namespace Stride.Graphics
             }
             else
             {
-                var buffer = resource as Buffer;
-                if (buffer != null)
+                if (resource is Buffer buffer)
                 {
-                    Resource uploadResource;
-                    int uploadOffset;
                     var uploadSize = region.Right - region.Left;
-                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(region.Right - region.Left, out uploadResource, out uploadOffset);
+                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(region.Right - region.Left, out var uploadResource, out var uploadOffset);
 
-                    Utilities.CopyMemory(uploadMemory, databox.DataPointer, uploadSize);
+                    unsafe
+                    {
+                        Unsafe.CopyBlockUnaligned((void*)uploadMemory, (void*)databox.DataPointer, (uint)uploadSize);
+                    }
 
                     ResourceBarrierTransition(resource, GraphicsResourceState.CopyDestination);
                     FlushResourceBarriers();

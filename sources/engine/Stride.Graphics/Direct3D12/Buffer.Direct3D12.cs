@@ -8,6 +8,7 @@ using SharpDX;
 using SharpDX.DXGI;
 using SharpDX.Direct3D12;
 using Stride.Core.Mathematics;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Graphics
 {
@@ -43,10 +44,7 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
-            if (GraphicsDevice != null)
-            {
-                GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
-            }
+            GraphicsDevice?.RegisterBufferMemoryUsage(-SizeInBytes);
 
             base.OnDestroyed();
         }
@@ -121,7 +119,10 @@ namespace Stride.Graphics
                 if (heapType == HeapType.Upload)
                 {
                     var uploadMemory = NativeResource.Map(0);
-                    Utilities.CopyMemory(uploadMemory, dataPointer, SizeInBytes);
+                    unsafe
+                    {
+                       Unsafe.CopyBlockUnaligned((void*)uploadMemory, (void*)dataPointer, (uint)SizeInBytes);
+                    }
                     NativeResource.Unmap(0);
                 }
                 else
@@ -130,9 +131,11 @@ namespace Stride.Graphics
                     // TODO D3D12 move that to a shared upload heap
                     SharpDX.Direct3D12.Resource uploadResource;
                     int uploadOffset;
-                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out uploadResource, out uploadOffset);
-                    Utilities.CopyMemory(uploadMemory, dataPointer, SizeInBytes);
-
+                    nint uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out uploadResource, out uploadOffset);
+                    unsafe
+                    {
+                        Unsafe.CopyBlockUnaligned((void*)uploadMemory, (void*)dataPointer, (uint)SizeInBytes);
+                    }
                     // TODO D3D12 lock NativeCopyCommandList usages
                     var commandList = GraphicsDevice.NativeCopyCommandList;
                     commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, null);

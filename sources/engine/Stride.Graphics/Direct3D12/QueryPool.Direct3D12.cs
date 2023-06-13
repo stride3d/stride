@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 using System;
+using System.Runtime.CompilerServices;
 using SharpDX.Direct3D12;
 using Stride.Core;
 
@@ -26,7 +27,7 @@ namespace Stride.Graphics
                 var mappedData = readbackBuffer.Map(0);
                 fixed (long* dataPointer = &dataArray[0])
                 {
-                    Utilities.CopyMemory(new IntPtr(dataPointer), mappedData, QueryCount * 8);
+                    Unsafe.CopyBlockUnaligned((void*)(new IntPtr(dataPointer)), (void*)mappedData, (uint)(QueryCount * 8));
                 }
                 readbackBuffer.Unmap(0);
                 return true;
@@ -47,18 +48,15 @@ namespace Stride.Graphics
 
         private void Recreate()
         {
-            var description = new QueryHeapDescription { Count = QueryCount };
-
-            switch (QueryType)
+            var description = new QueryHeapDescription
             {
-                case QueryType.Timestamp:
-                    description.Type = QueryHeapType.Timestamp;
-                    break;
-
-                default:
-                    throw new NotImplementedException();
-            }
-           
+                Count = QueryCount,
+                Type = QueryType switch
+                {
+                    QueryType.Timestamp => QueryHeapType.Timestamp,
+                    _ => throw new NotImplementedException(),
+                }
+            };
             NativeQueryHeap = NativeDevice.CreateQueryHeap(description);
             readbackBuffer = NativeDevice.CreateCommittedResource(new HeapProperties(HeapType.Readback), HeapFlags.None, ResourceDescription.Buffer(QueryCount * 8), ResourceStates.CopyDestination);
             readbackFence = NativeDevice.CreateFence(0, FenceFlags.None);

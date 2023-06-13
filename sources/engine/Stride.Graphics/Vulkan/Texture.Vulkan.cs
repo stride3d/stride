@@ -7,6 +7,7 @@ using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Graphics
 {
@@ -344,7 +345,7 @@ namespace Stride.Graphics
                     uploadMemory += alignment;
                     uploadOffset += alignment;
 
-                    Utilities.CopyMemory(uploadMemory, dataBoxes[i].DataPointer, slicePitch);
+                    Unsafe.CopyBlockUnaligned((void*)uploadMemory,(void*)dataBoxes[i].DataPointer, (uint)slicePitch);
 
                     if (Usage == GraphicsResourceUsage.Staging)
                     {

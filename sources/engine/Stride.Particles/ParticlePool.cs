@@ -240,7 +240,7 @@ namespace Stride.Particles
             foreach (var field in fields.Values)
             {
                 var accessor = new ParticleFieldAccessor(field);
-                Utilities.CopyMemory(dstParticle[accessor], srcParticle[accessor], field.Size);
+                Unsafe.CopyBlockUnaligned((void*)dstParticle[accessor], (void*)srcParticle[accessor], (uint)field.Size);
             }
 #else
             Unsafe.CopyBlockUnaligned((void*)dstParticle.Pointer, (void*)srcParticle.Pointer, (uint)ParticleSize);
@@ -392,8 +392,8 @@ namespace Stride.Particles
 
 #if PARTICLES_SOA
             // Easy case - the new field is added to the end. Copy the existing memory block into the new one
-            Utilities.CopyMemory(newPool, oldPool, oldSize * oldCapacity);
-            Utilities.ClearMemory(newPool + oldSize * oldCapacity, 0, (newSize - oldSize) * oldCapacity);
+            Unsafe.CopyBlockUnaligned((void*)newPool, (void*)oldPool, (uint)(oldSize * oldCapacity));
+            Unsafe.InitBlockUnaligned((void*)(newPool + oldSize * oldCapacity), 0, (uint)((newSize - oldSize) * oldCapacity));
 #else
             // Clear the memory first instead of once per particle
             Unsafe.InitBlockUnaligned((void*)newPool, 0, (uint)(newSize * newCapacity));
@@ -430,7 +430,7 @@ namespace Stride.Particles
 
 #if PARTICLES_SOA
             // Clear the memory first instead of once per particle
-            Utilities.ClearMemory(newPool, 0, newSize * newCapacity);
+            Unsafe.InitBlockUnaligned((void*)newPool, 0, (uint)(newSize * newCapacity));
 
             var oldOffset = 0;
             var newOffset = 0;
@@ -439,7 +439,7 @@ namespace Stride.Particles
             foreach (var field in fields.Values)
             {
                 var copySize = Math.Min(oldCapacity, newCapacity) * field.Size;
-                Utilities.CopyMemory(newPool + newOffset, oldPool + oldOffset, copySize);
+                Unsafe.CopyBlockUnaligned((void*)(newPool + newOffset), (void*)(oldPool + oldOffset), (uint)copySize);
 
                 oldOffset += (field.Size * oldCapacity);
                 newOffset += (field.Size * newCapacity);

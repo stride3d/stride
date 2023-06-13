@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Graphics
 {
@@ -185,7 +187,8 @@ namespace Stride.Graphics
                     {
                         void* uploadMemory;
                         vkMapMemory(GraphicsDevice.NativeDevice, NativeMemory, 0, (ulong)SizeInBytes, VkMemoryMapFlags.None, &uploadMemory);
-                        Utilities.CopyMemory((IntPtr)uploadMemory, dataPointer, SizeInBytes);
+                        Unsafe.CopyBlockUnaligned(uploadMemory, (void*)dataPointer, (uint)SizeInBytes);
+
                         vkUnmapMemory(GraphicsDevice.NativeDevice, NativeMemory);
                     }
                     else
@@ -193,9 +196,9 @@ namespace Stride.Graphics
                         var sizeInBytes = bufferDescription.SizeInBytes;
                         VkBuffer uploadResource;
                         int uploadOffset;
-                        var uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out uploadResource, out uploadOffset);
+                        IntPtr uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out uploadResource, out uploadOffset);
 
-                        Utilities.CopyMemory(uploadMemory, dataPointer, sizeInBytes);
+                        Unsafe.CopyBlockUnaligned((void*)uploadMemory, (void*)dataPointer, (uint)sizeInBytes);
 
                         // Barrier
                         var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong)uploadOffset, (ulong)sizeInBytes);
