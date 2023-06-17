@@ -9,6 +9,7 @@ namespace CSharpBeginner.Code
     public class InstantiatingPrefabsDemo : SyncScript
     {
         public Prefab PileOfBoxesPrefab;
+
         public override void Start()
         {
             // A prefab can be instantiated. Is does not give you a new prefab, but instead gives you a list of entities

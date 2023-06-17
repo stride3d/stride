@@ -4,10 +4,22 @@
     <RootNamespace>CustomEffect</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Core" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
-    <PackageReference Include="Stride.Engine" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Particles" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.UI" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Stride.Engine" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Particles" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.UI" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Effects\Effect.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Effects\Effect.sdsl">
+      <LastGenOutput>Effect.sdsl.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 </Project>

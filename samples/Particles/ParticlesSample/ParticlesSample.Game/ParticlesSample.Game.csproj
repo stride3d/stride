@@ -5,10 +5,54 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Core" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
-    <PackageReference Include="Stride.Engine" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Particles" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.UI" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Stride.Engine" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Particles" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.UI" Version="4.1.0.1" PrivateAssets="contentfiles;analyzers" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Effects\ComputeColorRadial.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\ComputeColorRed.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\ComputeColorTextureScroll.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\ParticleCustomEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\ParticleCustomShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Effects\ComputeColorRadial.sdsl">
+      <LastGenOutput>ComputeColorRadial.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\ComputeColorRed.sdsl">
+      <LastGenOutput>ComputeColorRed.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\ComputeColorTextureScroll.sdsl">
+      <LastGenOutput>ComputeColorTextureScroll.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\ParticleCustomEffect.sdfx">
+      <LastGenOutput>ParticleCustomEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\ParticleCustomShader.sdsl">
+      <LastGenOutput>ParticleCustomShader.sdsl.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 </Project>
