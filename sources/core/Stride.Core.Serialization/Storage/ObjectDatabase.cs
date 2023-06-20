@@ -298,7 +298,7 @@ namespace Stride.Core.Storage
         /// </summary>
         /// <param name="objectId">The <see cref="ObjectId"/>.</param>
         /// <param name="checkCache">if set to <c>true</c> [check cache for existing blobs].</param>
-        /// <returns>A <see cref="NativeStream"/> of the requested data.</returns>
+        /// <returns>A <see cref="Stream"/> of the requested data.</returns>
         public Stream Read(ObjectId objectId, bool checkCache = false)
         {
             if (checkCache)
@@ -306,8 +306,7 @@ namespace Stride.Core.Storage
                 lock (LoadedBlobs)
                 {
                     // Check if there is already an in-memory blob that we can use.
-                    Blob blob;
-                    if (LoadedBlobs.TryGetValue(objectId, out blob))
+                    if (LoadedBlobs.TryGetValue(objectId, out Blob blob))
                     {
                         return new BlobStream(blob);
                     }

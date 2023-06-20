@@ -1,10 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Stride.Core.Annotations;
-using Stride.Core.IO;
 
 namespace Stride.Core.Serialization
 {
@@ -13,6 +13,7 @@ namespace Stride.Core.Serialization
     /// </summary>
     public class BinarySerializationWriter : SerializationStream
     {
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BinarySerializationWriter"/> class.
         /// </summary>
@@ -31,55 +32,109 @@ namespace Stride.Core.Serialization
             UnderlyingStream.WriteByte(value ? (byte)1 : (byte)0);
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         /// <inheritdoc />
         public override unsafe void Serialize(ref float value)
         {
-            UnderlyingStream.Write(Unsafe.As<float, uint>(ref value));
+            unsafe
+            {
+                fixed (float* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(float));
+                    Writer.Write(span);
+                }
+            }
         }
 
         /// <inheritdoc />
         public override unsafe void Serialize(ref double value)
         {
-            UnderlyingStream.Write(Unsafe.As<double, ulong>(ref value));
+            unsafe
+            {
+                fixed (double* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(double));
+                    Writer.Write(span);
+                }
+            }
         }
 
         /// <inheritdoc />
         public override void Serialize(ref short value)
         {
-            UnderlyingStream.Write((ushort)value);
+            unsafe
+            {
+                fixed (short* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(short));
+                    Writer.Write(span);
+                }
+            }
         }
 
         /// <inheritdoc />
         public override void Serialize(ref int value)
         {
-            UnderlyingStream.Write((uint)value);
+            unsafe
+            {
+                fixed (int* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(int));
+                    Writer.Write(span);
+                }
+            }
         }
 
         /// <inheritdoc />
         public override void Serialize(ref long value)
         {
-            UnderlyingStream.Write((ulong)value);
+            unsafe
+            {
+                fixed (long* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(long));
+                    Writer.Write(span);
+                }
+            }
         }
 
         /// <inheritdoc />
         public override void Serialize(ref ushort value)
         {
-            UnderlyingStream.Write(value);
+            unsafe
+            {
+                fixed (ushort* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(ushort));
+                    Writer.Write(span);
+                }
+            }
         }
 
         /// <inheritdoc />
         public override void Serialize(ref uint value)
         {
-            UnderlyingStream.Write(value);
+            unsafe
+            {
+                fixed (uint* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(uint));
+                    Writer.Write(span);
+                }
+            }
         }
 
         /// <inheritdoc />
         public override void Serialize(ref ulong value)
         {
-            UnderlyingStream.Write(value);
+            unsafe
+            {
+                fixed (ulong* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(ulong));
+                    Writer.Write(span);
+                }
+            }
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <inheritdoc />
         public override void Serialize(ref string value)
@@ -96,13 +151,27 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref byte value)
         {
-            UnderlyingStream.WriteByte(value);
+            unsafe
+            {
+                fixed (byte* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(byte));
+                    Writer.Write(span);
+                }
+            }
         }
 
         /// <inheritdoc />
         public override void Serialize(ref sbyte value)
         {
-            UnderlyingStream.WriteByte((byte)value);
+            unsafe
+            {
+                fixed (sbyte* ptr = &value)
+                {
+                    var span = new Span<byte>(ptr, sizeof(sbyte));
+                    Writer.Write(span);
+                }
+            }
         }
 
         /// <inheritdoc />

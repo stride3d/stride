@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Buffers.Binary;
 using System.IO;
+using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
-using Stride.Core.IO;
 
 namespace Stride.Core.Serialization
 {
@@ -33,57 +34,85 @@ namespace Stride.Core.Serialization
             value = result != 0;
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         /// <inheritdoc />
         public override unsafe void Serialize(ref float value)
         {
-            fixed (float* valuePtr = &value)
-                *((uint*)valuePtr) = UnderlyingStream.ReadUInt32();
+            Span<byte> buffer = MemoryMarshal.Cast<float, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(float))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadSingleLittleEndian(buffer);
         }
 
         /// <inheritdoc />
-        public override unsafe void Serialize(ref double value)
+        public override void Serialize(ref double value)
         {
-            fixed (double* valuePtr = &value)
-                *((ulong*)valuePtr) = UnderlyingStream.ReadUInt64();
+            Span<byte> buffer = MemoryMarshal.Cast<double, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = (ulong)UnderlyingStream.Read(buffer);
+            if (read != sizeof(double))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadDoubleLittleEndian(buffer);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref short value)
         {
-            value = (short)UnderlyingStream.ReadUInt16();
+            Span<byte> buffer = MemoryMarshal.Cast<short, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(short))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadInt16LittleEndian(buffer);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref int value)
         {
-            value = (int)UnderlyingStream.ReadUInt32();
+            Span<byte> buffer = MemoryMarshal.Cast<int, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(int))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadInt32LittleEndian(buffer);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref long value)
         {
-            value = (long)UnderlyingStream.ReadUInt64();
+            Span<byte> buffer = MemoryMarshal.Cast<long, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(long))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadInt64LittleEndian(buffer);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref ushort value)
         {
-            value = UnderlyingStream.ReadUInt16();
+            Span<byte> buffer = MemoryMarshal.Cast<ushort, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(ushort))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadUInt16LittleEndian(buffer);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref uint value)
         {
-            value = UnderlyingStream.ReadUInt32();
+            Span<byte> buffer = MemoryMarshal.Cast<uint, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(uint))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadUInt32LittleEndian(buffer);
         }
 
         /// <inheritdoc />
         public override void Serialize(ref ulong value)
         {
-            value = UnderlyingStream.ReadUInt64();
+            Span<byte> buffer = MemoryMarshal.Cast<ulong, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(ulong))
+                throw new EndOfStreamException();
+            value = BinaryPrimitives.ReadUInt64LittleEndian(buffer);
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <inheritdoc />
         public override void Serialize([NotNull] ref string value)
@@ -100,19 +129,21 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref byte value)
         {
-            var result = UnderlyingStream.ReadByte();
-            if (result == -1)
+            Span<byte> buffer = MemoryMarshal.CreateSpan(ref value, 1);
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(byte))
                 throw new EndOfStreamException();
-            value = (byte)result;
+            value = buffer[0];
         }
 
         /// <inheritdoc />
         public override void Serialize(ref sbyte value)
         {
-            var result = UnderlyingStream.ReadByte();
-            if (result == -1)
+            Span<byte> buffer = MemoryMarshal.Cast<sbyte, byte>(MemoryMarshal.CreateSpan(ref value, 1));
+            var read = UnderlyingStream.Read(buffer);
+            if (read != sizeof(sbyte))
                 throw new EndOfStreamException();
-            value = (sbyte)(byte)result;
+            value = (sbyte)buffer[0];
         }
 
         /// <inheritdoc />
@@ -126,6 +157,7 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Flush()
         {
+            UnderlyingStream.Flush();
         }
     }
 }
