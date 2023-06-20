@@ -10,14 +10,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-StrideRuntime", "20-Stri
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
-		..\store.config = ..\store.config
+		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
 		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
 		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
-		..\sources\targets\Stride.Core.Sign.targets = ..\sources\targets\Stride.Core.Sign.targets
+		..\sources\targets\Stride.Core.TargetFrameworks.Editor.props = ..\sources\targets\Stride.Core.TargetFrameworks.Editor.props
 		..\sources\targets\Stride.Core.targets = ..\sources\targets\Stride.Core.targets
 		..\sources\targets\Stride.GraphicsApi.Dev.targets = ..\sources\targets\Stride.GraphicsApi.Dev.targets
 		..\sources\targets\Stride.GraphicsApi.PackageReference.targets = ..\sources\targets\Stride.GraphicsApi.PackageReference.targets
-		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
+		..\sources\targets\Stride.PackageVersion.targets = ..\sources\targets\Stride.PackageVersion.targets
 		..\sources\targets\Stride.props = ..\sources\targets\Stride.props
 		..\sources\targets\Stride.targets = ..\sources\targets\Stride.targets
 		..\sources\targets\Stride.UnitTests.CrossTargeting.targets = ..\sources\targets\Stride.UnitTests.CrossTargeting.targets

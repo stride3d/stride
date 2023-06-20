@@ -8,7 +8,7 @@ using Stride.Engine;
 namespace Stride.Rendering.Lights
 {
     /// <summary>
-    /// A list of <see cref="LightComponent"/> for a specified <see cref="RenderGroupMask"/>.
+    /// A list of <see cref="RenderLight"/> for a specified <see cref="RenderGroupMask"/>.
     /// </summary>
     public class RenderLightCollection : FastList<RenderLight>
     {

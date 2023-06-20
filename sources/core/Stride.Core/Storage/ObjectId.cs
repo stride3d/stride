@@ -95,7 +95,7 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="ObjectId"/> to <see cref="byte[]"/>.
+        /// Performs an explicit conversion from <see cref="ObjectId"/> to <see cref="byte"/>[].
         /// </summary>
         /// <param name="objectId">The object id.</param>
         /// <returns>The result of the conversion.</returns>

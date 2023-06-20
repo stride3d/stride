@@ -294,11 +294,11 @@ namespace Stride.Rendering.SubsurfaceScattering
 
         /// <summary>
         /// Specifies the number of times the blur should be executed.
-        /// The higher the number of passes, the smoother the final result (less noise & banding).
+        /// The higher the number of passes, the smoother the final result (less noise &amp; banding).
         /// </summary>
         /// <userdoc>
         /// Specifies the number of times the blur should be executed.
-        /// The higher the number of passes, the smoother the final result (less noise & banding).
+        /// The higher the number of passes, the smoother the final result (less noise &amp; banding).
         /// </userdoc>
         [DataMember(40)]
         [DefaultValue(1)]
@@ -307,14 +307,14 @@ namespace Stride.Rendering.SubsurfaceScattering
         public int NumberOfPasses { get; set; } = 1;
         
         /// <summary>
-        // This reduces the banding artifacts caused by undersampling (visible on closeups) by introducing a bit of noise.
-        // This might create a less mathematically correct falloff, since it messes with the sample offsets.
-        // But the difference is barely noticeable.
+        /// This reduces the banding artifacts caused by undersampling (visible on closeups) by introducing a bit of noise.
+        /// This might create a less mathematically correct falloff, since it messes with the sample offsets.
+        /// But the difference is barely noticeable.
         /// </summary>
         /// <userdoc>
-        // This reduces the banding artifacts caused by undersampling (visible on closeups) by introducing a bit of noise.
-        // This might create a less mathematically correct falloff, since it messes with the sample offsets.
-        // But the difference is barely noticeable.
+        /// This reduces the banding artifacts caused by undersampling (visible on closeups) by introducing a bit of noise.
+        /// This might create a less mathematically correct falloff, since it messes with the sample offsets.
+        /// But the difference is barely noticeable.
         /// </userdoc>
         [DataMember(50)]
         [DefaultValue(false)]
@@ -322,10 +322,10 @@ namespace Stride.Rendering.SubsurfaceScattering
         public bool JitterKernelSize { get; set; } = false;
 
         /// <summary>
-        // Changes the render mode of the post-process for debugging purposes.
+        /// Changes the render mode of the post-process for debugging purposes.
         /// </summary>
         /// <userdoc>
-        // Changes the render mode of the post-process for debugging purposes.
+        /// Changes the render mode of the post-process for debugging purposes.
         /// </userdoc>
         [DataMember(60)]
         [DefaultValue(RenderMode.Default)]
