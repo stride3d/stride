@@ -27,7 +27,7 @@ namespace Stride.Core.Tasks
                 // The following ensures that a clear message is logged before the stuff above is shown.
                 // Do note that the 'error' word in the message is essential for it to be logged,
                 // direct any message about this peculiar 'feature' over to Microsoft, thanks !
-                Console.Error.WriteLine($@"error {typeof(Program).Namespace}: No supported instance of MSBuild could be detected, make sure you have .Net SDK {Environment.Version.Major} {Environment.Version.Minor} installed");
+                Console.Error.WriteLine($@"error {typeof(Program).Namespace}: No supported instance of MSBuild could be detected, make sure you have .Net SDK {Environment.Version.Major}.{Environment.Version.Minor} installed");
                 throw;
             }
             return RealMain(args);
