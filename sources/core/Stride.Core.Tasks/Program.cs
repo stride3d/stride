@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Microsoft.Build.Locator;
 using Mono.Options;
@@ -18,20 +16,7 @@ namespace Stride.Core.Tasks
     {
         public static int Main(string[] args)
         {
-            try
-            {
-                MSBuildLocator.RegisterDefaults();
-            }
-            catch (InvalidOperationException e) when (e.Message.StartsWith("No instances of MSBuild could be detected."))
-            {
-                // When tasks running through build tools throw, it logs an obtuse 'The command [...]/Stride.Core.Tasks.exe [...] exited with code - x'
-                // message requiring the user to dig in the output to figure out what happened.
-                // The following ensures that a clear message is logged before the stuff above is shown.
-                // Do note that the 'error' word in the message is essential for it to be logged,
-                // direct any message about this peculiar 'feature' over to Microsoft, thanks !
-                Console.Error.WriteLine($@"error {typeof(Program).Namespace}: No supported instance of MSBuild could be detected, make sure you have .Net SDK {Environment.Version.Major} {Environment.Version.Minor} installed");
-                throw;
-            }
+            MSBuildLocator.RegisterDefaults();
             return RealMain(args);
         }
 
