@@ -150,31 +150,57 @@ void CrossShader()
 
 void CreateMixin()
 {
-    var mA = new Mixin("MixinA");
-    mA.AddType<int>();
-    mA.AddType<float>();
+    // var mA = new Mixin("MixinA");
+    // mA.AddType<int>();
+    // mA.AddType<float>();
 
-    var mB = new Mixin("MixinB");
-    mB.AddType<sbyte>();
-    mB.AddType<Half>();
+    // var mB = new Mixin("MixinB");
+    // mB.AddType<sbyte>();
+    // mB.AddType<Half>();
 
-    MixinSourceProvider.Register(mA);
-    MixinSourceProvider.Register(mB);
+    // MixinSourceProvider.Register(mA);
+    // MixinSourceProvider.Register(mB);
 
-    var mC = new Mixin("MixinC");
-    mC.AddMixin("MixinA");
-    mC.AddMixin("MixinB");
+    // var mC = new Mixin("MixinC");
+    // mC.AddMixin("MixinA");
+    // mC.AddMixin("MixinB");
 
-    foreach(var mix in mC)
-    {
-        Console.WriteLine(mix.Name);
-    }
+    // foreach(var mix in mC)
+    // {
+    //     Console.WriteLine(mix.Name);
+    // }
 
     var y = 0;
 }
-CreateMixin();
+
+static void ParseWorking()
+{
+    var buffer = new WordBuffer();
+
+    buffer.AddOpExtInstImport("GLSL.std.450");
+
+    var t_flt = buffer.AddOpTypeFloat(32);
+    var t_vec4 = buffer.AddOpTypeVector(t_flt, 4);
+    var c_3f = buffer.AddOpConstant<LiteralFloat>(t_flt,3f);
+    var c_4f = buffer.AddOpConstant<LiteralFloat>(t_flt,4f);
+    var c_5f = buffer.AddOpConstant<LiteralFloat>(t_flt,5f);
+    var c_6f = buffer.AddOpConstant<LiteralFloat>(t_flt,6f);
+
+    var c_vec4 = buffer.AddOpConstantComposite(t_vec4, stackalloc IdRef[]{c_3f,c_4f,c_5f,c_6f});
+    
+    var dis = new Disassembler();
+    Console.WriteLine(dis.Disassemble(buffer));
+}
+
+ParseWorking();
+
+// CreateMixin();
+
+
 
 var x = 0;
+
+
 
 // CrossShader();
 
