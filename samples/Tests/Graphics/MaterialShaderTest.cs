@@ -2,15 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Xunit;
-using Stride.Core;
-using Stride.Core.Mathematics;
 using Stride.Games.Testing;
 
 namespace Stride.Samples.Tests
 {
     public class MaterialShaderTest : IClassFixture<MaterialShaderTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\MaterialShader";
+        private const string Path = "..\\..\\..\\..\\samplesGenerated\\MaterialShader";
 
         public class Fixture : SampleTestFixture
         {

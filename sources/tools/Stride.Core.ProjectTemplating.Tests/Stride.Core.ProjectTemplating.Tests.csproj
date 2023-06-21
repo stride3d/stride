@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\targets\Stride.Core.TargetFrameworks.Editor.props" />
+<Project>
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <StartupObject>Stride.Core.ProjectTemplating.Tests.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -23,14 +23,20 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Test\%24ProjectName%24.cs.tt">
       <LastGenOutput>TextTemplate1.cs.txt</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Test\TestProjectTemplate.ttproj" />
+    <None Include="Test\TestProjectTemplate.ttproj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Test\SubFolder\TextTemplate1.cs.tt">
       <LastGenOutput>TextTemplate1.cs.txt</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -41,6 +47,9 @@
     <ProjectReference Include="..\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Test\SubFolder\TextRaw.txt" />
+    <Content Include="Test\SubFolder\TextRaw.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

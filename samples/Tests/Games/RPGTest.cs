@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Xunit;
-using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Input;
 using Stride.Games.Testing;
@@ -11,7 +10,7 @@ namespace Stride.Samples.Tests
 {
     public class RPGTest : IClassFixture<RPGTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\TopDownRPG";
+        private const string Path = "..\\..\\..\\..\\samplesGenerated\\TopDownRPG";
 
         public class Fixture : SampleTestFixture
         {

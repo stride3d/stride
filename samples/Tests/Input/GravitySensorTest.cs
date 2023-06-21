@@ -2,8 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Xunit;
-using Stride.Core;
-using Stride.Core.Mathematics;
 using Stride.Input;
 using Stride.Games.Testing;
 
@@ -11,7 +9,7 @@ namespace Stride.Samples.Tests
 {
     public class GravitySensorTest : IClassFixture<GravitySensorTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\GravitySensor";
+        private const string Path = "..\\..\\..\\..\\samplesGenerated\\GravitySensor";
 
         public class Fixture : SampleTestFixture
         {
