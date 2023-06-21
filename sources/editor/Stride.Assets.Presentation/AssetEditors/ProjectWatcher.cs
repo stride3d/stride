@@ -216,7 +216,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 if (needProjectReload == false
                     && (e.ChangeType == FileEventChangeType.Deleted || e.ChangeType == FileEventChangeType.Renamed || e.ChangeType == FileEventChangeType.Created)
                     && Path.GetExtension(changedFile)?.ToLowerInvariant() == ".cs"
-                    && !UPath.Combine(new UFile(trackedAssembly.Project.FilePath).GetFullDirectory(), new UDirectory("obj")).Contains(new UFile(changedFile)))
+                    && trackedAssembly.Project.Documents.Any(x => x.FilePath.Equals(changedFile,StringComparison.OrdinalIgnoreCase)))
                 {
                     needProjectReload = true;
                 }
