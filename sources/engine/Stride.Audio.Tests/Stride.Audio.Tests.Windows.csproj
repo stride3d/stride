@@ -19,14 +19,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Engine\Stride.Engine.csproj">
-      <Project>{C121A566-555E-42B9-9B0A-1696529A9088}</Project>
-      <Name>Stride.Engine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj">
-      <Project>{D002FEB1-00A6-4AB1-A83F-1F253465E64D}</Project>
-      <Name>Stride.Graphics.Regression</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="XunitAttributes.cs" />

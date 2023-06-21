@@ -1,12 +1,20 @@
-﻿<Project>
-  <Import Project="..\..\..\targets\Stride.props" />
+<Project>
+  <Import Project="..\..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
-    <StrideOutputFolder>Tests\$(AssemblyName)</StrideOutputFolder>
-    <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\data\tests\TextureConverter\**\*.*">
+      <Link>InputImages\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
@@ -15,16 +23,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\data\tests\TextureConverter\**\*.*">
-      <Link>InputImages\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="..\..\..\targets\Stride.UnitTests.targets" />
 </Project>
