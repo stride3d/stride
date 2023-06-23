@@ -176,6 +176,7 @@ void CreateMixin()
 static void ParseWorking()
 {
     var buffer = new WordBuffer();
+    var mixinName = buffer.AddOpSDSLMixinName("MyMixin");
 
     buffer.AddOpExtInstImport("GLSL.std.450");
 
