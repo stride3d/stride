@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftTouch.Spirv.Core", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftTouch.Spirv.Experiments", "src\SoftTouch.Spirv\src\SoftTouch.Spirv.Experiments\SoftTouch.Spirv.Experiments.csproj", "{C91364F9-6EEE-46E7-99F6-E864678763E0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CppNet", "src\CppNet\CppNet.csproj", "{E16CF2F7-2C3E-425B-93EC-86761DC055F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{C91364F9-6EEE-46E7-99F6-E864678763E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C91364F9-6EEE-46E7-99F6-E864678763E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C91364F9-6EEE-46E7-99F6-E864678763E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E16CF2F7-2C3E-425B-93EC-86761DC055F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E16CF2F7-2C3E-425B-93EC-86761DC055F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E16CF2F7-2C3E-425B-93EC-86761DC055F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E16CF2F7-2C3E-425B-93EC-86761DC055F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,6 +80,7 @@ Global
 		{B4DC25CC-8571-4D20-BE6A-DF0E1B507AD1} = {7D992A0D-31F2-42A1-BDA9-3F2D31C6DBE2}
 		{76F85253-0EA9-4A05-ACCB-DE908A3AEB8C} = {7D992A0D-31F2-42A1-BDA9-3F2D31C6DBE2}
 		{C91364F9-6EEE-46E7-99F6-E864678763E0} = {7D992A0D-31F2-42A1-BDA9-3F2D31C6DBE2}
+		{E16CF2F7-2C3E-425B-93EC-86761DC055F4} = {6C34518F-B5D8-42FC-9829-639353525AC4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A585C758-CCD8-43FB-8834-1F1330C2CA32}
