@@ -995,6 +995,8 @@ namespace Stride.Graphics
 
         public unsafe void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? sourceRegion, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
+            // TODO VULKAN: One copy per mip level
+
             if (source is Texture sourceTexture && destination is Texture destinationTexture)
             {
                 CleanupRenderPass();

@@ -440,9 +440,9 @@ namespace Stride.Graphics
             return nativeStages;
         }
 
-        //
-        // Reads the ShaderInputBytecode structure from a byte[].
-        //
+        /// <summary>
+        ///   Reads the ShaderInputBytecode structure from a byte[].
+        /// </summary>
         private unsafe static ShaderInputBytecode ReadShaderBytecode(byte[] data)
         {
             return Unsafe.Read<ShaderInputBytecode>(Unsafe.AsPointer(ref data[0]));
