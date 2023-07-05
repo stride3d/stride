@@ -37,7 +37,7 @@ namespace Stride.Physics
 
             if (Is2D)
             {
-                InternalShape = new BulletSharp.Convex2DShape(shape) { LocalScaling = cachedScaling };
+                InternalShape = new BulletSharp.Box2DShape(size / 2) { LocalScaling = cachedScaling };
             }
             else
             {
