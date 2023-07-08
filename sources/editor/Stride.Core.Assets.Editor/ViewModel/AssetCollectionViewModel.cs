@@ -244,9 +244,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public int AssetCount => assets.Count;
 
-        // FIXME: this property was added because for some reason DataGridEx has a lot of issues when displaying both assets and folders
-        [Obsolete("Should not be used except by AssetViewUserControl GridView")]
-        public IReadOnlyObservableCollection<AssetViewModel> FilteredAssets => filteredAssets;
 
         public IReadOnlyObservableCollection<object> FilteredContent => filteredContent;
 
