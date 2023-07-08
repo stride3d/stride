@@ -150,10 +150,8 @@ void CrossShader()
 
 void CreateMixin()
 {
-    // var mA = new Mixin("MixinA");
-    // mA.AddType<int>();
-    // mA.AddType<float>();
-
+    var mA = new Mixer("MixinA");
+    Console.WriteLine(mA);
     // var mB = new Mixin("MixinB");
     // mB.AddType<sbyte>();
     // mB.AddType<Half>();
@@ -193,9 +191,9 @@ static void ParseWorking()
     Console.WriteLine(dis.Disassemble(buffer));
 }
 
-ParseWorking();
+// ParseWorking();
 
-// CreateMixin();
+CreateMixin();
 
 
 
