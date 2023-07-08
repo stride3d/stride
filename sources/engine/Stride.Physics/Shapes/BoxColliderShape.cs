@@ -35,6 +35,8 @@ namespace Stride.Physics
                 LocalScaling = cachedScaling,
             };
 
+            // Note: Creating Convex 2D Shape from (3D) BoxShape, causes weird behaviour, 
+            // better to instantiate Box2DShape directly (see issue #1707)
             if (Is2D)
             {
                 InternalShape = new BulletSharp.Box2DShape(size / 2) { LocalScaling = cachedScaling };
