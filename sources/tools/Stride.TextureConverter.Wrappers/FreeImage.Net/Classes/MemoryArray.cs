@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -100,7 +101,7 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryArray&lt;T&gt;"/> class. 
+		/// Initializes a new instance of the <see cref="MemoryArray&lt;T&gt;"/> class.
 		/// </summary>
 		/// <param name="baseAddress">Address of the memory block.</param>
 		/// <param name="length">Length of the array.</param>
@@ -116,7 +117,7 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryArray&lt;T&gt;"/> class. 
+		/// Initializes a new instance of the <see cref="MemoryArray&lt;T&gt;"/> class.
 		/// </summary>
 		/// <param name="baseAddress">Address of the memory block.</param>
 		/// <param name="length">Length of the array.</param>
@@ -246,7 +247,7 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				CopyMemory(ptr, baseAddress + (index * size), size);
+                Unsafe.CopyBlockUnaligned(ptr, baseAddress + (index * size), (uint) size);
 				return buffer[0];
 			}
 		}
@@ -297,8 +298,8 @@ namespace FreeImageAPI
 			else
 			{
 				buffer[0] = value;
-				CopyMemory(baseAddress + (index * size), ptr, size);
-			}
+                Unsafe.CopyBlockUnaligned(baseAddress + (index * size), ptr, (uint) size);
+            }
 		}
 
 		/// <summary>
@@ -335,11 +336,10 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				GCHandle handle = GCHandle.Alloc(data, GCHandleType.Pinned);
-				byte* dst = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(data, 0);
-				CopyMemory(dst, baseAddress + (size * index), size * length);
-				handle.Free();
-			}
+                ref byte dst = ref Unsafe.As<T, byte>(ref data[0]);
+                ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * index));
+                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+            }
 			return data;
 		}
 
@@ -380,11 +380,10 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				GCHandle handle = GCHandle.Alloc(values, GCHandleType.Pinned);
-				byte* src = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(values, 0);
-				CopyMemory(baseAddress + (index * size), src, size * length);
-				handle.Free();
-			}
+                ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (index * size));
+                ref byte src = ref Unsafe.As<T, byte>(ref values[0]);
+                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+            }
 		}
 
 		/// <summary>
@@ -467,11 +466,10 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				GCHandle handle = GCHandle.Alloc(array, GCHandleType.Pinned);
-				byte* dst = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(array, destinationIndex);
-				CopyMemory(dst, baseAddress + (size * sourceIndex), size * length);
-				handle.Free();
-			}
+                ref byte dst = ref Unsafe.As<T, byte>(ref array[destinationIndex]);
+                ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * sourceIndex));
+                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+            }
 		}
 
 		/// <summary>
@@ -528,11 +526,10 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				GCHandle handle = GCHandle.Alloc(array, GCHandleType.Pinned);
-				byte* src = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(array, sourceIndex);
-				CopyMemory(baseAddress + (size * destinationIndex), src, size * length);
-				handle.Free();
-			}
+                ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (size * destinationIndex));
+                ref byte src = ref Unsafe.As<T, byte>(ref array[sourceIndex]);
+                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+            }
 		}
 
 		/// <summary>
@@ -555,11 +552,12 @@ namespace FreeImageAPI
 			{
 				result = new byte[size * length];
 			}
-			fixed (byte* dst = result)
-			{
-				CopyMemory(dst, baseAddress, result.Length);
-			}
-			return result;
+
+            ref byte dst = ref result[0];
+            ref byte src = ref Unsafe.AsRef<byte>(baseAddress);
+            Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) result.Length);
+
+            return result;
 		}
 
 		/// <summary>
@@ -776,55 +774,6 @@ namespace FreeImageAPI
 		{
 			EnsureNotDisposed();
 			return (int)baseAddress ^ length;
-		}
-
-		/// <summary>
-		/// Copies a block of memory from one location to another.
-		/// </summary>
-		/// <param name="dest">Pointer to the starting address of the copy destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be copied.</param>
-		/// <param name="len">Size of the block of memory to copy, in bytes.</param>
-		protected static unsafe void CopyMemory(byte* dest, byte* src, int len)
-		{
-			if (len >= 0x10)
-			{
-				do
-				{
-					*((int*)dest) = *((int*)src);
-					*((int*)(dest + 4)) = *((int*)(src + 4));
-					*((int*)(dest + 8)) = *((int*)(src + 8));
-					*((int*)(dest + 12)) = *((int*)(src + 12));
-					dest += 0x10;
-					src += 0x10;
-				}
-				while ((len -= 0x10) >= 0x10);
-			}
-			if (len > 0)
-			{
-				if ((len & 8) != 0)
-				{
-					*((int*)dest) = *((int*)src);
-					*((int*)(dest + 4)) = *((int*)(src + 4));
-					dest += 8;
-					src += 8;
-				}
-				if ((len & 4) != 0)
-				{
-					*((int*)dest) = *((int*)src);
-					dest += 4;
-					src += 4;
-				}
-				if ((len & 2) != 0)
-				{
-					*((short*)dest) = *((short*)src);
-					dest += 2;
-					src += 2;
-				}
-				if ((len & 1) != 0)
-				{
-					*dest = *src;
-				}
-			}
 		}
 	}
 }
