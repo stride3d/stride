@@ -3,11 +3,12 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 using Stride.Shaders;
+using Stride.Core.Serialization;
 using Encoding = System.Text.Encoding;
 
 namespace Stride.Graphics
@@ -443,9 +444,13 @@ namespace Stride.Graphics
         /// <summary>
         ///   Reads the ShaderInputBytecode structure from a byte[].
         /// </summary>
-        private unsafe static ShaderInputBytecode ReadShaderBytecode(byte[] data)
+        private static unsafe ShaderInputBytecode ReadShaderBytecode(byte[] data)
         {
-            return Unsafe.Read<ShaderInputBytecode>(Unsafe.AsPointer(ref data[0]));
+            using var dataStream = new MemoryStream(data);
+
+            var reader = new BinarySerializationReader(dataStream);
+
+            return reader.Read<ShaderInputBytecode>();
         }
 
         private VkPipelineRasterizationStateCreateInfo CreateRasterizationState(RasterizerStateDescription description)
