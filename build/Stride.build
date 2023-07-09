@@ -8,6 +8,7 @@ Example of use:
   <PropertyGroup>
     <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
     <StrideSolution>$(StrideRoot)build\Stride</StrideSolution>
+    <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio</StrideVisualStudioSolution>
     <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher</StrideSolutionLauncher>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
@@ -38,7 +39,7 @@ Example of use:
 
     <Delete Files="@(FilesToDeleteVSIX)"/>
 
-    <MSBuild Targets="91-VisualStudio\Stride_VisualStudio_Package;91-VisualStudio\Stride_VisualStudio_PackageInstall" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+    <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -OutputDirectory "$(StrideRoot)bin\vsix"' />
  
     <Exec Command='sign\SignClient sign -c "sign\appsettings.json" --input "..\bin\vsix\*.nupkg" --name "Stride" --user "$(StrideSignUser)" --secret "$(StrideSignSecret.Replace("%", "%%"))" -f "sign\nupkgfilter.txt"' EchoOff="true" />
