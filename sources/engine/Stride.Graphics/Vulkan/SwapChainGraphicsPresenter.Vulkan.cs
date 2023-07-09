@@ -149,7 +149,7 @@ namespace Stride.Graphics
             // Present
             if (vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo) == VkResult.ErrorOutOfDateKHR)
             {
-                // TODO VULKAN TEST
+                // TODO VULKAN
                 return;
             }
 
