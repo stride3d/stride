@@ -202,7 +202,7 @@ namespace Stride.Assets.Presentation.AssetEditors
             string changedFile;
             var renameEvent = e as FileRenameEvent;
             changedFile = renameEvent?.OldFullPath ?? e.FullPath;
-
+            
             foreach (var trackedAssembly in trackedAssemblies)
             {
                 // Report change of the assembly binary
@@ -214,9 +214,9 @@ namespace Stride.Assets.Presentation.AssetEditors
                 // Also check for .cs file changes (DefaultItems auto import *.cs, with some excludes such as obj subfolder)
                 // TODO: Check actual unevaluated .csproj to get the auto includes/excludes?
                 if (needProjectReload == false
-                    && (e.ChangeType == FileEventChangeType.Deleted || e.ChangeType == FileEventChangeType.Renamed || e.ChangeType == FileEventChangeType.Created)
+                    && ((e.ChangeType == FileEventChangeType.Deleted ||e.ChangeType == FileEventChangeType.Renamed ||  e.ChangeType == FileEventChangeType.Created)
                     && Path.GetExtension(changedFile)?.ToLowerInvariant() == ".cs"
-                    && !UPath.Combine(new UFile(trackedAssembly.Project.FilePath).GetFullDirectory(), new UDirectory("obj")).Contains(new UFile(changedFile)))
+                    && changedFile.StartsWith(Path.GetDirectoryName(trackedAssembly.Project.FilePath),StringComparison.OrdinalIgnoreCase)))
                 {
                     needProjectReload = true;
                 }
