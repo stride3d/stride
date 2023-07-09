@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using Stride.Core.Annotations;
-using Stride.Core.IO;
 
 namespace Stride.Core.Serialization
 {
