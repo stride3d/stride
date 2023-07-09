@@ -148,7 +148,7 @@ namespace Stride.Rendering
                 if (query.ProfilingKey != null)
                 {
                     var profilingState = Profiler.New(query.ProfilingKey);
-                    profilingState.BeginGpu(queryResults[query.Index]);
+                    profilingState.BeginGpu(queryResults[query.Index], commandList.GraphicsDevice.TimestampFrequency);
                     profilingStates.Push(profilingState);
                 }
                 else

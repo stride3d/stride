@@ -14,6 +14,7 @@ namespace Stride.Core.Diagnostics
         internal static readonly HashSet<ProfilingKey> AllKeys = new HashSet<ProfilingKey>();
         internal bool Enabled;
         internal ProfilingKeyFlags Flags;
+        internal ProfilingEventSource EventSource;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfilingKey" /> class.
@@ -24,6 +25,7 @@ namespace Stride.Core.Diagnostics
             Name = ValidateNameNotEmpty(name);
             Children = new List<ProfilingKey>();
             Flags = flags;
+            EventSource = new ProfilingEventSource(this);
 
             lock (AllKeys)
             {

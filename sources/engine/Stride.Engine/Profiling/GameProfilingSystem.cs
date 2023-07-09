@@ -66,16 +66,16 @@ namespace Stride.Profiling
 
         private struct ProfilingResult : IComparer<ProfilingResult>
         {
-            public long AccumulatedTime;
-            public long MinTime;
-            public long MaxTime;
+            public TimeSpan AccumulatedTime;
+            public TimeSpan MinTime;
+            public TimeSpan MaxTime;
             public int Count;
             public int MarkCount;
             public ProfilingEvent? Event;
 
             public int Compare(ProfilingResult x, ProfilingResult y)
             {
-                return Math.Sign(x.AccumulatedTime - y.AccumulatedTime);
+                return TimeSpan.Compare(x.AccumulatedTime, y.AccumulatedTime);
             }
         }
 
@@ -133,7 +133,6 @@ namespace Stride.Profiling
             if (FilteringMode != GameProfilingResults.Fps)
             {
                 var containsMarks = false;
-                var tickFrequency = FilteringMode == GameProfilingResults.GpuEvents ? GraphicsDevice.TimestampFrequency : Stopwatch.Frequency;
 
                 const float kb = 1 << 10;
                 const float mb = 1 << 20;
@@ -161,7 +160,7 @@ namespace Stride.Profiling
                     ProfilingResult profilingResult;
                     if (!profilingResultsDictionary.TryGetValue(e.Key, out profilingResult))
                     {
-                        profilingResult.MinTime = long.MaxValue;
+                        profilingResult.MinTime = TimeSpan.MaxValue;
                     }
 
                     if (e.Type == ProfilingMessageType.End)
@@ -197,7 +196,7 @@ namespace Stride.Profiling
 
                 if (SortingMode == GameProfilingSorting.ByTime)
                 {
-                    profilingResults.Sort((x1, x2) => Math.Sign(x2.AccumulatedTime - x1.AccumulatedTime));
+                    profilingResults.Sort((x,y) => x.Compare(x,y));
                 }
                 else
                 {
@@ -219,7 +218,7 @@ namespace Stride.Profiling
 
                 for (int i = 0; i < Math.Min(profilingResults.Count - (CurrentResultPage - 1) * elementsPerPage, elementsPerPage); i++)
                 {
-                    AppendEvent(profilingResults[((int)CurrentResultPage - 1) * elementsPerPage + i], elapsedFrames, tickFrequency, containsMarks);
+                    AppendEvent(profilingResults[((int)CurrentResultPage - 1) * elementsPerPage + i], elapsedFrames, containsMarks);
                 }
                 profilingResults.Clear();
 
@@ -247,17 +246,17 @@ namespace Stride.Profiling
             }
         }
 
-        private void AppendEvent(ProfilingResult profilingResult, int elapsedFrames, long tickFrequency, bool displayMarkCount)
+        private void AppendEvent(ProfilingResult profilingResult, int elapsedFrames, bool displayMarkCount)
         {
             var profilingEvent = profilingResult.Event.Value;
 
-            Profiler.AppendTime(profilersStringBuilder, profilingResult.AccumulatedTime / elapsedFrames, tickFrequency);
+            Profiler.AppendTime(profilersStringBuilder, profilingResult.AccumulatedTime / elapsedFrames);
             profilersStringBuilder.Append(" | ");
-            Profiler.AppendTime(profilersStringBuilder, profilingResult.AccumulatedTime / profilingResult.Count, tickFrequency);
+            Profiler.AppendTime(profilersStringBuilder, profilingResult.AccumulatedTime / profilingResult.Count);
             profilersStringBuilder.Append(" | ");
-            Profiler.AppendTime(profilersStringBuilder, profilingResult.MinTime, tickFrequency);
+            Profiler.AppendTime(profilersStringBuilder, profilingResult.MinTime);
             profilersStringBuilder.Append(" | ");
-            Profiler.AppendTime(profilersStringBuilder, profilingResult.MaxTime, tickFrequency);
+            Profiler.AppendTime(profilersStringBuilder, profilingResult.MaxTime);
             profilersStringBuilder.Append(" | ");
             profilersStringBuilder.AppendFormat("{0:00.00}", profilingResult.Count / (double)elapsedFrames);
             profilersStringBuilder.Append(" | ");

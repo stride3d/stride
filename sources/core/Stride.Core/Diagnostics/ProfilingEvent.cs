@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 
 namespace Stride.Core.Diagnostics
@@ -28,12 +29,12 @@ namespace Stride.Core.Diagnostics
         /// <summary>
         /// The timestamp.
         /// </summary>
-        public readonly long TimeStamp;
+        public readonly TimeSpan TimeStamp;
 
         /// <summary>
         /// The elapsed time since Begin event.
         /// </summary>
-        public readonly long ElapsedTime;
+        public readonly TimeSpan ElapsedTime;
 
         /// <summary>
         /// The message.
@@ -59,8 +60,8 @@ namespace Stride.Core.Diagnostics
             int profileId, 
             ProfilingKey profilingKey, 
             ProfilingMessageType profilingType, 
-            long timeStamp, 
-            long elapsedTime, 
+            TimeSpan timeStamp, 
+            TimeSpan elapsedTime, 
             ProfilingEventMessage? message,
             TagList attributes)
         {

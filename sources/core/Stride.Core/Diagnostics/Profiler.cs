@@ -233,7 +233,7 @@ namespace Stride.Core.Diagnostics
 
             // Log it
             if ((profilingEvent.Key.Flags & ProfilingKeyFlags.Log) != 0)
-                Logger.Log(new ProfilingMessage(profilingEvent.Id, profilingEvent.Key, profilingEvent.Type, profilingEvent.Message) { Attributes = profilingEvent.Attributes, ElapsedTime = new TimeSpan((profilingEvent.ElapsedTime * 10000000) / Stopwatch.Frequency) });
+                Logger.Log(new ProfilingMessage(profilingEvent.Id, profilingEvent.Key, profilingEvent.Type, profilingEvent.Message) { Attributes = profilingEvent.Attributes, ElapsedTime = profilingEvent.ElapsedTime });
         }
 
         /// <summary>
@@ -269,6 +269,11 @@ namespace Stride.Core.Diagnostics
         public static void AppendTime([NotNull] StringBuilder builder, long accumulatedTicks, long tickFrequency = 0)
         {
             var accumulatedTimeSpan = new TimeSpan((accumulatedTicks * 10000000) / (tickFrequency != 0 ? tickFrequency : Stopwatch.Frequency));
+            AppendTime(builder, accumulatedTimeSpan);
+        }
+
+        public static void AppendTime([NotNull] StringBuilder builder, TimeSpan accumulatedTimeSpan)
+        {
             if (accumulatedTimeSpan > new TimeSpan(0, 0, 1, 0))
             {
                 builder.AppendFormat("{0:000.000}m ", accumulatedTimeSpan.TotalMinutes);
