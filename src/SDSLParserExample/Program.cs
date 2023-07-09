@@ -150,8 +150,25 @@ void CrossShader()
 
 void CreateMixin()
 {
-    var mA = new Mixer("MixinA");
+    var mA = 
+        new Mixer("MixinA")
+        .WithType("float4")
+        .Build();
+    var mB = 
+        new Mixer("MixinB")
+        .WithType("int4x4")
+        .Build();
+    
+    var mC = 
+        new Mixer("MixinC")
+        .Inherit("MixinA")
+        .Inherit("MixinB")
+        .WithType("half2")
+        .Build();
+
     Console.WriteLine(mA);
+    Console.WriteLine(mB);
+    Console.WriteLine(mC);
     // var mB = new Mixin("MixinB");
     // mB.AddType<sbyte>();
     // mB.AddType<Half>();
