@@ -570,7 +570,7 @@ namespace Stride.Graphics
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
         public void Save(Stream imageStream, ImageFileType fileType)
         {
-            if (imageStream == null) throw new ArgumentNullException("imageStream");
+            if (imageStream == null) throw new ArgumentNullException(nameof(imageStream));
             Save(PixelBuffers, this.PixelBuffers.Length, Description, imageStream, fileType);
         }
 
