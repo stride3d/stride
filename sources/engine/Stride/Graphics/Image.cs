@@ -557,9 +557,9 @@ namespace Stride.Graphics
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
         public static Image Load(Stream imageStream, bool loadAsSRGB = false)
         {
-            if (imageStream == null) throw new ArgumentNullException("imageStream");
+            if (imageStream == null) throw new ArgumentNullException(nameof(imageStream));
             // Read the whole stream into memory.
-            return Load(Utilities.ReadStream(imageStream), loadAsSRGB);
+            return Load(imageStream, loadAsSRGB); ;
         }
 
         /// <summary>
