@@ -81,13 +81,6 @@ namespace Stride.Core.Storage
             get { return objectDatabase; }
         }
 
-        /// <summary>
-        /// Gets a <see cref="Stream"/> over the <see cref="Content"/>.
-        /// </summary>
-        /// It will keeps a reference to the <see cref="Blob"/> until disposed.
-        /// <returns>A <see cref="Stream"/> over the <see cref="Content"/>.</returns>
-        public Stream GetContentStream() => new BlobStream(this);
-
         /// <inheritdoc/>
         protected override void Destroy()
         {

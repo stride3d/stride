@@ -294,30 +294,6 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Returns a data stream of the data specified <see cref="ObjectId"/>.
-        /// </summary>
-        /// <param name="objectId">The <see cref="ObjectId"/>.</param>
-        /// <param name="checkCache">if set to <c>true</c> [check cache for existing blobs].</param>
-        /// <returns>A <see cref="Stream"/> of the requested data.</returns>
-        public Stream Read(ObjectId objectId, bool checkCache = false)
-        {
-            if (checkCache)
-            {
-                lock (LoadedBlobs)
-                {
-                    // Check if there is already an in-memory blob that we can use.
-                    Blob blob;
-                    if (LoadedBlobs.TryGetValue(objectId, out blob))
-                    {
-                        return new BlobStream(blob);
-                    }
-                }
-            }
-
-            return OpenStream(objectId);
-        }
-
-        /// <summary>
         /// Creates a stream that can then be saved directly in the database using <see cref="SaveStream"/>.
         /// </summary>
         /// <returns>a stream writer that should be passed to <see cref="SaveStream"/> in order to be stored in the database</returns>
