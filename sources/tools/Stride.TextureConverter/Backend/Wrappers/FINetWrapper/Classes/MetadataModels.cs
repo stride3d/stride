@@ -3519,22 +3519,6 @@ namespace FreeImageAPI.Metadata
     /// <summary>
     /// Represents a collection of all tags contained in the metadata model
     /// <see cref="FREE_IMAGE_MDMODEL.FIMD_EXIF_MAIN"/>.
-    /// <para/>
-    /// <b>This class is obsolete. Use class <see cref="MDM_EXIF_MAIN"/> instead.</b>
-    /// </summary>
-    [Obsolete("To be removed in future releases. Use MDM_EXIF_MAIN instead.")]
-    public class MDM_MAIN : MDM_EXIF_MAIN
-    {
-        /// <summary>
-        /// Initializes a new instance of this class.
-        /// </summary>
-        /// <param name="dib">Handle to a FreeImage bitmap.</param>
-        public MDM_MAIN(FIBITMAP dib) : base(dib) { }
-    }
-
-    /// <summary>
-    /// Represents a collection of all tags contained in the metadata model
-    /// <see cref="FREE_IMAGE_MDMODEL.FIMD_EXIF_MAIN"/>.
     /// </summary>
     public class MDM_EXIF_MAIN : MetadataModel
     {
