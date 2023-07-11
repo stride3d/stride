@@ -112,37 +112,6 @@ namespace Stride.Core
         }
 
         /// <summary>
-        ///   Read stream to a byte[] buffer
-        /// </summary>
-        /// <param name = "stream">input stream</param>
-        /// <returns>a byte[] buffer</returns>
-        [Obsolete("Allocates. Read into the destination.")]
-        public static byte[] ReadStream([NotNull] Stream stream)
-        {
-            Debug.Assert(stream != null);
-            Debug.Assert(stream.CanRead);
-
-            var readLength = (int)(stream.Length - stream.Position);
-
-            Debug.Assert(readLength <= (stream.Length - stream.Position));
-
-            if (readLength == 0)
-            {
-                return Array.Empty<byte>();
-            }
-
-            var buffer = new byte[readLength];
-            var bytesRead = 0;
-
-            while (bytesRead < readLength)
-            {
-                bytesRead += stream.Read(buffer, bytesRead, readLength - bytesRead);
-            }
-
-            return buffer;
-        }
-
-        /// <summary>
         /// Computes a hashcode for a dictionary.
         /// </summary>
         /// <returns>Hashcode for the list.</returns>

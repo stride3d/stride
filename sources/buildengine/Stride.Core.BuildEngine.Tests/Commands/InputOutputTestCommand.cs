@@ -21,7 +21,9 @@ namespace Stride.Core.BuildEngine.Tests.Commands
 
         public static DataContainer Load(Stream stream)
         {
-            return new DataContainer { Data = Utilities.ReadStream(stream) };
+            byte[] dataArray = new byte[stream.Length];
+            stream.Read(dataArray);
+            return new DataContainer { Data = dataArray };
         }
 
         public DataContainer Alterate()
