@@ -168,7 +168,7 @@ void CreateMixin()
 
     Console.WriteLine(mA);
     Console.WriteLine(mB);
-    Console.WriteLine(mC);
+    Console.WriteLine(mC.Disassemble());
     // var mB = new Mixin("MixinB");
     // mB.AddType<sbyte>();
     // mB.AddType<Half>();
