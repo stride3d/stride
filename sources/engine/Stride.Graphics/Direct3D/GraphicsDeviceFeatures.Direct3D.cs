@@ -1,18 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D11
+
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,21 +24,32 @@
 // THE SOFTWARE.
 
 using System;
-using System.Collections.Generic;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
+
+using Feature = Silk.NET.Direct3D11.Feature;
 
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Features supported by a <see cref="GraphicsDevice"/>.
+    ///   Contains information about the general features supported by a <see cref="GraphicsDevice"/>, as well as
+    ///   supported features specific to a particular pixel format or data format.
     /// </summary>
     /// <remarks>
-    /// This class gives also features for a particular format, using the operator this[dxgiFormat] on this structure.
+    ///   To obtain information about the supported features for a particular format, use the operator
+    ///   <see cref="this[PixelFormat]"/>.
     /// </remarks>
-    public partial struct GraphicsDeviceFeatures
+    public unsafe partial struct GraphicsDeviceFeatures
     {
-        private static readonly List<SharpDX.DXGI.Format> ObsoleteFormatToExcludes = new List<SharpDX.DXGI.Format>() { Format.R1_UNorm, Format.B5G6R5_UNorm, Format.B5G5R5A1_UNorm };
+        private static readonly Format[] ObsoleteFormatToExcludes = new[]
+        {
+            Format.FormatR1Unorm,
+            Format.FormatB5G6R5Unorm,
+            Format.FormatB5G5R5A1Unorm
+        };
 
         internal GraphicsDeviceFeatures(GraphicsDevice deviceRoot)
         {
@@ -48,56 +61,143 @@ namespace Stride.Graphics
 
             // Set back the real GraphicsProfile that is used
             RequestedProfile = deviceRoot.RequestedProfile;
-            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice.FeatureLevel);
+            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice->GetFeatureLevel());
 
             HasResourceRenaming = true;
 
-            HasComputeShaders = nativeDevice.CheckFeatureSupport(SharpDX.Direct3D11.Feature.ComputeShaders);
-            HasDoublePrecision = nativeDevice.CheckFeatureSupport(SharpDX.Direct3D11.Feature.ShaderDoubles);
-            nativeDevice.CheckThreadingSupport(out HasMultiThreadingConcurrentResources, out this.HasDriverCommandLists);
+            HasComputeShaders = CheckComputeShadersSupport();
+            HasDoublePrecision = CheckDoubleOpsInShadersSupport();
+            CheckThreadingSupport(out HasMultiThreadingConcurrentResources, out HasDriverCommandLists);
 
-            HasDepthAsSRV = (CurrentProfile >= GraphicsProfile.Level_10_0);
+            HasDepthAsSRV = CurrentProfile >= GraphicsProfile.Level_10_0;
             HasDepthAsReadOnlyRT = CurrentProfile >= GraphicsProfile.Level_11_0;
             HasMultisampleDepthAsSRV = CurrentProfile >= GraphicsProfile.Level_11_0;
 
             // Check features for each DXGI.Format
-            foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
+            foreach (var format in Enum.GetValues<Format>())
             {
-                var dxgiFormat = (SharpDX.DXGI.Format)format;
-                var maximumMultisampleCount = MultisampleCount.None;
-                var computeShaderFormatSupport = ComputeShaderFormatSupport.None;
-                var formatSupport = FormatSupport.None;
+                if (ObsoleteFormatToExcludes.Contains(format))
+                    continue;
 
-                if (!ObsoleteFormatToExcludes.Contains(dxgiFormat))
+                var maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice, format);
+
+                var computeShaderFormatSupport = HasComputeShaders
+                    ? (ComputeShaderFormatSupport) CheckComputeShaderFormatSupport(format)
+                    : ComputeShaderFormatSupport.None;
+
+                var formatSupport = CheckFormatSupport(format);
+
+                var pixelFormat = (PixelFormat) format;
+                mapFeaturesPerFormat[(int) format] = new FeaturesPerFormat(pixelFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
+            }
+
+            /// <summary>
+            ///   Checks if the Direct3D device does support Compute Shaders.
+            /// </summary>
+            bool CheckComputeShadersSupport()
+            {
+                FeatureDataD3D10XHardwareOptions hwOptions;
+
+                HResult result = nativeDevice->CheckFeatureSupport(Feature.D3D10XHardwareOptions,
+                                                                   &hwOptions, (uint) Unsafe.SizeOf<FeatureDataD3D10XHardwareOptions>());
+
+                if (result.IsFailure)
+                    return false;
+
+                return hwOptions.ComputeShadersPlusRawAndStructuredBuffersViaShader4X != 0;
+            }
+
+            /// <summary>
+            ///   Checks if the Direct3D device does support double precision operations in shaders.
+            /// </summary>
+            bool CheckDoubleOpsInShadersSupport()
+            {
+                FeatureDataDoubles doubles;
+
+                HResult result = nativeDevice->CheckFeatureSupport(Feature.Doubles,
+                                                                   &doubles, (uint) Unsafe.SizeOf<FeatureDataDoubles>());
+
+                if (result.IsFailure)
+                    return false;
+
+                return doubles.DoublePrecisionFloatShaderOps != 0;
+            }
+
+            /// <summary>
+            ///   Checks if the Direct3D device does support threading.
+            /// </summary>
+            void CheckThreadingSupport(out bool supportsConcurrentResources, out bool supportsCommandLists)
+            {
+                FeatureDataThreading featureDataThreading;
+
+                HResult result = nativeDevice->CheckFeatureSupport(Feature.Threading,
+                                                                   &featureDataThreading, (uint) Unsafe.SizeOf<FeatureDataThreading>());
+                if (result.IsFailure)
                 {
-                    maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice, dxgiFormat);
-                    if (HasComputeShaders)
-                        computeShaderFormatSupport = nativeDevice.CheckComputeShaderFormatSupport(dxgiFormat);
-
-                    formatSupport = (FormatSupport)nativeDevice.CheckFormatSupport(dxgiFormat);
+                    supportsConcurrentResources = false;
+                    supportsCommandLists = false;
                 }
-
-                //mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
-                mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, formatSupport);
+                else
+                {
+                    supportsConcurrentResources = featureDataThreading.DriverConcurrentCreates != 0;
+                    supportsCommandLists = featureDataThreading.DriverCommandLists != 0;
+                }
             }
-        }
 
-        /// <summary>
-        /// Gets the maximum multisample count for a particular <see cref="PixelFormat" />.
-        /// </summary>
-        /// <param name="device">The device.</param>
-        /// <param name="pixelFormat">The pixelFormat.</param>
-        /// <returns>The maximum multisample count for this pixel pixelFormat</returns>
-        private static MultisampleCount GetMaximumMultisampleCount(SharpDX.Direct3D11.Device device, SharpDX.DXGI.Format pixelFormat)
-        {
-            int maxCount = 1;
-            for (int i = 1; i <= 8; i *= 2)
+            /// <summary>
+            ///   Gets the maximum sample count when enabling multisampling for a particular <see cref="Format"/>.
+            /// </summary>
+            MultisampleCount GetMaximumMultisampleCount(ID3D11Device* device, Format pixelFormat)
             {
-                if (device.CheckMultisampleQualityLevels(pixelFormat, i) != 0)
-                    maxCount = i;
+                uint maxCount = 1;
+
+                for (uint sampleCount = 1; sampleCount <= 8; sampleCount *= 2)
+                {
+                    uint qualityLevels;
+
+                    HResult result = device->CheckMultisampleQualityLevels(pixelFormat, sampleCount, &qualityLevels);
+
+                    if (result.IsSuccess && qualityLevels != 0)
+                        maxCount = sampleCount;
+                }
+                return (MultisampleCount) maxCount;
             }
-            return (MultisampleCount)maxCount;
+
+            /// <summary>
+            ///   Check if the Direct3D device does support compute shaders for the specified format.
+            /// </summary>
+            /// <returns>Flags indicating usage contexts in which the specified format is supported.</returns>
+            FormatSupport2 CheckComputeShaderFormatSupport(Format format)
+            {
+                var dataFormatSupport2 = new FeatureDataFormatSupport2(format);
+
+                HResult result = nativeDevice->CheckFeatureSupport(Feature.FormatSupport2,
+                                                                   &dataFormatSupport2, (uint) Unsafe.SizeOf<FeatureDataFormatSupport2>());
+
+                if (result.IsFailure)
+                    return 0;
+
+                return (FormatSupport2) dataFormatSupport2.OutFormatSupport2;
+            }
+
+            /// <summary>
+            ///   Check the support the Direct3D device has for the specified format.
+            /// </summary>
+            /// <returns>Flags indicating usage contexts in which the specified format is supported.</returns>
+            FormatSupport CheckFormatSupport(Format format)
+            {
+                var dataFormatSupport = new FeatureDataFormatSupport(format);
+
+                HResult result = nativeDevice->CheckFeatureSupport(Feature.FormatSupport,
+                                                                   &dataFormatSupport, (uint) Unsafe.SizeOf<FeatureDataFormatSupport>());
+
+                if (result.IsFailure)
+                    return 0;
+
+                return (FormatSupport) dataFormatSupport.OutFormatSupport;
+            }
         }
     }
 }
+
 #endif
