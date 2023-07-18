@@ -199,24 +199,26 @@ namespace Stride.Games
             base.Destroy();
         }
 
-        private Vector2 GetRequestedSize(out PixelFormat format)
+        private Int2 GetRequestedSize(out PixelFormat format)
         {
             var bounds = Window.ClientBounds;
             format = PreferredBackBufferFormat == PixelFormat.None ? PixelFormat.R8G8B8A8_UNorm : PreferredBackBufferFormat;
-            return new Vector2(
+            return new Int2(
                 PreferredBackBufferWidth == 0 || windowUserResized ? bounds.Width : PreferredBackBufferWidth,
                 PreferredBackBufferHeight == 0 || windowUserResized ? bounds.Height : PreferredBackBufferHeight);
         }
 
         protected virtual void CreateOrUpdatePresenter()
         {
-            if (Presenter == null || isColorSpaceToChange)
+            if (Presenter is null || isColorSpaceToChange)
             {
-                PixelFormat resizeFormat;
-                var size = GetRequestedSize(out resizeFormat);
-                var presentationParameters = new PresentationParameters((int)size.X, (int)size.Y, Window.NativeWindow, resizeFormat) { DepthStencilFormat = PreferredDepthStencilFormat };
-                presentationParameters.PresentationInterval = PresentInterval.Immediate;
-                presentationParameters.OutputColorSpace = preferredOutputColorSpace;
+                var size = GetRequestedSize(out PixelFormat resizeFormat);
+                var presentationParameters = new PresentationParameters(size.X, size.Y, Window.NativeWindow, resizeFormat)
+                {
+                    DepthStencilFormat = PreferredDepthStencilFormat,
+                    PresentationInterval = PresentInterval.Immediate,
+                    OutputColorSpace = preferredOutputColorSpace
+                };
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
                 if (Game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
@@ -244,9 +246,8 @@ namespace Stride.Games
 
                 if (isBackBufferToResize || windowUserResized)
                 {
-                    PixelFormat resizeFormat;
-                    var size = GetRequestedSize(out resizeFormat);
-                    Presenter.Resize((int)size.X, (int)size.Y, resizeFormat);
+                    var size = GetRequestedSize(out var resizeFormat);
+                    Presenter.Resize(size.X, size.Y, resizeFormat);
 
                     isBackBufferToResize = false;
                     windowUserResized = false;
