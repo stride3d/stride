@@ -1,17 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D
+
 using System.Collections.Generic;
-using SharpDX.DXGI;
+using Silk.NET.Core.Native;
+using Silk.NET.DXGI;
 
 namespace Stride.Graphics
 {
-    public static partial class GraphicsAdapterFactory
+    public static unsafe partial class GraphicsAdapterFactory
     {
 #if STRIDE_PLATFORM_UWP || DIRECTX11_1
-        internal static Factory2 NativeFactory;
+        internal static IDXGIFactory2* NativeFactory;
 #else
-        internal static Factory1 NativeFactory;
+        internal static IDXGIFactory1* NativeFactory;
 #endif
 
         /// <summary>
@@ -21,35 +24,67 @@ namespace Stride.Graphics
         {
             staticCollector.Dispose();
 
-#if DIRECTX11_1
-            using (var factory = new Factory1())
-            NativeFactory = factory.QueryInterface<Factory2>();
-#elif STRIDE_PLATFORM_UWP
-            // Maybe this will become default code for everybody if we switch to DX 11.1/11.2 SharpDX dll?
-            NativeFactory = new Factory2();
+            var dxgi = DXGI.GetApi();
+
+#if STRIDE_PLATFORM_UWP || DIRECTX11_1
+
+#if DEBUG
+            uint debugFlag = 1;
 #else
-            NativeFactory = new Factory1();
+            uint debugFlag = 0;
 #endif
 
-            staticCollector.Add(NativeFactory);
+            IDXGIFactory2* factory2;
+            HResult result = dxgi.CreateDXGIFactory2(debugFlag, SilkMarshal.GuidPtrOf<IDXGIFactory2>(), (void**) &factory2);
 
-            int countAdapters = NativeFactory.GetAdapterCount1();
+            if (result.IsFailure)
+                result.Throw();
+
+            NativeFactory = factory2;
+            ComPtr<IDXGIFactory2> adapterFactory = new() { Handle = factory2 };
+#else
+            IDXGIFactory1* factory1;
+            HResult result = dxgi.CreateDXGIFactory1(SilkMarshal.GuidPtrOf<IDXGIFactory1>(), (void**) &factory1);
+
+            if (result.IsFailure)
+                result.Throw();
+
+            NativeFactory = factory1;
+            ComPtr<IDXGIFactory1> adapterFactory = new() { Handle = factory1 };
+#endif
+
+            staticCollector.Add(adapterFactory);
+
+            const int DXGI_ERROR_NOT_FOUND = unchecked((int) 0x887A0002);
+
+            uint adapterIndex = 0;
             var adapterList = new List<GraphicsAdapter>();
-            for (int i = 0; i < countAdapters; i++)
+
+            do
             {
-                var adapter = new GraphicsAdapter(NativeFactory, i);
+                IDXGIAdapter1* dxgiAdapter;
+                result = NativeFactory->EnumAdapters1(adapterIndex, &dxgiAdapter);
+
+                var adapter = new GraphicsAdapter(NativeFactory, (int) adapterIndex);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
-            }
+
+                adapterIndex++;
+
+            } while (result.Code != DXGI_ERROR_NOT_FOUND);
 
             defaultAdapter = adapterList.Count > 0 ? adapterList[0] : null;
             adapters = adapterList.ToArray();
         }
 
         /// <summary>
-        /// Gets the <see cref="Factory1"/> used by all GraphicsAdapter.
+        /// Gets the <see cref="IDXGIFactory"/> used by all <see cref="GraphicsAdapter"/>s.
         /// </summary>
-        internal static Factory1 Factory
+#if STRIDE_PLATFORM_UWP || DIRECTX11_1
+        internal static IDXGIFactory2* Factory
+#else
+        internal static IDXGIFactory1* Factory
+#endif
         {
             get
             {
@@ -62,4 +97,5 @@ namespace Stride.Graphics
         }
     }
 }
-#endif 
+
+#endif

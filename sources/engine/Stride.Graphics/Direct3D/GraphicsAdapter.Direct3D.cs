@@ -1,18 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D
+
 // Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,16 +22,13 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
 using System;
 using System.Collections.Generic;
-using System.Resources;
-using SharpDX;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-using Stride.Core;
-using ComponentBase = Stride.Core.ComponentBase;
-using Utilities = Stride.Core.Utilities;
+using System.Runtime.CompilerServices;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
 
 namespace Stride.Graphics
 {
@@ -39,76 +38,86 @@ namespace Stride.Graphics
     /// <msdn-id>ff471329</msdn-id>
     /// <unmanaged>IDXGIAdapter1</unmanaged>
     /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
-    public partial class GraphicsAdapter
+    public unsafe partial class GraphicsAdapter
     {
-        private readonly Adapter1 adapter;
-        private readonly int adapterOrdinal;
-        private readonly AdapterDescription1 description;
+        /// <summary>
+        ///   Gets the native DXGI adapter.
+        /// </summary>
+        internal IDXGIAdapter1* NativeAdapter { get; }
 
-        private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile)int.MaxValue;
+        private readonly int adapterOrdinal;
+        private readonly AdapterDesc1 adapterDesc;
+
+        private readonly string adapterDescriptionString;
+
+        private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile) int.MaxValue;
         private GraphicsProfile maximumSupportedProfile;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GraphicsAdapter" /> class.
+        ///   Gets the description of this adapter.
+        /// </summary>
+        public string Description => adapterDescriptionString;
+
+        /// <summary>
+        ///   Gets the vendor identifier of this adapter.
+        /// </summary>
+        public int VendorId => (int)adapterDesc.VendorId;
+
+        /// <summary>
+        ///   Determines if this instance of GraphicsAdapter is the default adapter.
+        /// </summary>
+        public bool IsDefaultAdapter => adapterOrdinal == 0;
+
+
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="GraphicsAdapter"/> class.
         /// </summary>
         /// <param name="defaultFactory">The default factory.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(Factory1 defaultFactory, int adapterOrdinal)
+        internal GraphicsAdapter(IDXGIFactory1* defaultFactory, int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
-            adapter = defaultFactory.GetAdapter1(adapterOrdinal).DisposeBy(this);
-            description = adapter.Description1;
-            description.Description = description.Description.TrimEnd('\0'); // for some reason sharpDX returns an adaptater name of fixed size filled with trailing '\0'
-            //var nativeOutputs = adapter.Outputs;
 
-            var count = adapter.GetOutputCount();
-            outputs = new GraphicsOutput[count];
-            for (var i = 0; i < outputs.Length; i++)
-                outputs[i] = new GraphicsOutput(this, i).DisposeBy(this);
+            IDXGIAdapter1* adapter = null;
+            HResult result = defaultFactory->EnumAdapters1((uint) adapterOrdinal, &adapter);
 
-            AdapterUid = adapter.Description1.Luid.ToString();
-        }
+            if (result.IsFailure)
+                result.Throw();
 
-        /// <summary>
-        /// Gets the description of this adapter.
-        /// </summary>
-        /// <value>The description.</value>
-        public string Description
-        {
-            get
+            NativeAdapter = adapter;
+
+            result = NativeAdapter->GetDesc1(ref adapterDesc);
+
+            if (result.IsFailure)
+                result.Throw();
+
+            fixed (char* descString = adapterDesc.Description)
+                adapterDescriptionString = SilkMarshal.PtrToString((nint) descString);
+
+            var nativeOutputs = new List<GraphicsOutput>();
+
+            const int DXGI_ERROR_NOT_FOUND = unchecked((int) 0x887A0002);
+
+            result = 0;
+            uint outputIndex = 0;
+            var outputsList = new List<GraphicsOutput>();
+
+            do
             {
-                return description.Description;
-            }
-        }
+                IDXGIOutput* output = null;
+                result = adapter->EnumOutputs(outputIndex, ref output);
 
-        /// <summary>
-        /// Gets or sets the vendor identifier.
-        /// </summary>
-        /// <value>
-        /// The vendor identifier.
-        /// </value>
-        public int VendorId
-        {
-            get { return description.VendorId; }
-        }
+                if (result == DXGI_ERROR_NOT_FOUND)
+                    break;
 
-        /// <summary>
-        /// Determines if this instance of GraphicsAdapter is the default adapter.
-        /// </summary>
-        public bool IsDefaultAdapter
-        {
-            get
-            {
-                return adapterOrdinal == 0;
+                var gfxOutput = new GraphicsOutput(this, output, (int) outputIndex);
+                outputsList.Add(gfxOutput);
             }
-        }
+            while (true);
 
-        internal Adapter1 NativeAdapter
-        {
-            get
-            {
-                return adapter;
-            }
+            Outputs = outputsList.ToArray();
+
+            AdapterUid = Unsafe.As<Luid, long>(ref adapterDesc.AdapterLuid);
         }
 
         /// <summary>
@@ -130,7 +139,26 @@ namespace Stride.Graphics
                 return false;
 
             // Check and min/max cached values
-            if (SharpDX.Direct3D11.Device.IsSupportedFeatureLevel(this.NativeAdapter, (SharpDX.Direct3D.FeatureLevel)graphicsProfile))
+
+            var d3d11 = D3D11.GetApi();
+
+            ID3D11Device* device = null;
+            ID3D11DeviceContext* deviceContext = null;
+            D3DFeatureLevel matchedFeatureLevel = 0;
+            var featureLevel = (D3DFeatureLevel) graphicsProfile;
+            var featureLevels = stackalloc D3DFeatureLevel[] { featureLevel };
+
+            HResult result = d3d11.CreateDevice(pAdapter: null, D3DDriverType.Hardware, Software: IntPtr.Zero,
+                                                Flags: 0, featureLevels, 1, D3D11.SdkVersion,
+                                                &device, &matchedFeatureLevel, &deviceContext);
+
+            if (deviceContext != null)
+                deviceContext->Release();
+
+            if (device != null)
+                device->Release();
+
+            if (result.IsSuccess && matchedFeatureLevel == featureLevel)
             {
                 maximumSupportedProfile = graphicsProfile;
                 return true;
@@ -143,5 +171,6 @@ namespace Stride.Graphics
 #endif
         }
     }
-} 
+}
+
 #endif

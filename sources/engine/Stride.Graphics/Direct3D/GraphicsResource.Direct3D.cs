@@ -1,42 +1,40 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_DIRECT3D11
-using System;
 
-using SharpDX.Direct3D11;
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+
+using Silk.NET.Direct3D11;
+
+using static Stride.Graphics.DebugHelpers;
 
 namespace Stride.Graphics
 {
     /// <summary>
     /// GraphicsResource class
     /// </summary>
-    public abstract partial class GraphicsResource
+    public abstract unsafe partial class GraphicsResource
     {
-        private ShaderResourceView shaderResourceView;
-        private UnorderedAccessView unorderedAccessView;
-        internal bool DiscardNextMap; // Used to internally force a WriteDiscard (to force a rename) with the GraphicsResourceAllocator
+        private ID3D11ShaderResourceView* shaderResourceView;
+        private ID3D11UnorderedAccessView* unorderedAccessView;
 
-        protected bool IsDebugMode
-        {
-            get
-            {
-                return GraphicsDevice != null && GraphicsDevice.IsDebugMode;
-            }
-        }
+        // Used to internally force a WriteDiscard (to force a rename) with the GraphicsResourceAllocator
+        internal bool DiscardNextMap;
+
+        protected bool IsDebugMode => GraphicsDevice?.IsDebugMode == true;
 
         protected override void OnNameChanged()
         {
             base.OnNameChanged();
+
             if (IsDebugMode)
             {
-                if (this.shaderResourceView != null)
+                if (shaderResourceView != null)
                 {
-                    shaderResourceView.DebugName = Name == null ? null : $"{Name} SRV";
+                    SetDebugName((ID3D11DeviceChild*) shaderResourceView, Name is null ? null : $"{Name} SRV");
                 }
-
-                if (this.unorderedAccessView != null)
+                if (unorderedAccessView != null)
                 {
-                    unorderedAccessView.DebugName = Name == null ? null : $"{Name} UAV";
+                    SetDebugName((ID3D11DeviceChild*) unorderedAccessView, Name is null ? null : $"{Name} UAV");
                 }
             }
         }
@@ -46,19 +44,17 @@ namespace Stride.Graphics
         /// Note that only Texture, Texture3D, RenderTarget2D, RenderTarget3D, DepthStencil are using this ShaderResourceView
         /// </summary>
         /// <value>The device child.</value>
-        protected internal SharpDX.Direct3D11.ShaderResourceView NativeShaderResourceView
+        protected internal ID3D11ShaderResourceView* NativeShaderResourceView
         {
-            get
-            {
-                return shaderResourceView;
-            }
+            get => shaderResourceView;
+
             set
             {
                 shaderResourceView = value;
 
                 if (IsDebugMode && shaderResourceView != null)
                 {
-                    shaderResourceView.DebugName = Name == null ? null : $"{Name} SRV";
+                    SetDebugName((ID3D11DeviceChild*)shaderResourceView, Name is null ? null : $"{Name} SRV");
                 }
             }
         }
@@ -67,31 +63,32 @@ namespace Stride.Graphics
         /// Gets or sets the UnorderedAccessView attached to this GraphicsResource.
         /// </summary>
         /// <value>The device child.</value>
-        protected internal UnorderedAccessView NativeUnorderedAccessView
+        protected internal ID3D11UnorderedAccessView* NativeUnorderedAccessView
         {
-            get
-            {
-                return unorderedAccessView;
-            }
+            get => unorderedAccessView;
+
             set
             {
                 unorderedAccessView = value;
 
                 if (IsDebugMode && unorderedAccessView != null)
                 {
-                    unorderedAccessView.DebugName = Name == null ? null : $"{Name} UAV";
+                    SetDebugName((ID3D11DeviceChild*)unorderedAccessView, Name is null ? null : $"{Name} UAV");
                 }
             }
         }
 
         protected internal override void OnDestroyed()
         {
-            ReleaseComObject(ref shaderResourceView);
-            ReleaseComObject(ref unorderedAccessView);
+            if (shaderResourceView != null)
+                shaderResourceView->Release();
+
+            if (unorderedAccessView != null)
+                unorderedAccessView->Release();
 
             base.OnDestroyed();
         }
     }
 }
- 
+
 #endif

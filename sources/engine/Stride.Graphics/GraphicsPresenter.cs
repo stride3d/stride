@@ -188,7 +188,7 @@ namespace Stride.Graphics
 
         private PixelFormat NormalizeBackBufferFormat(PixelFormat backBufferFormat)
         {
-            // If we are creating a GraphicsPresenter with 
+            // If we are creating a GraphicsPresenter with
             if (GraphicsDevice.Features.HasSRgb && GraphicsDevice.ColorSpace == ColorSpace.Linear)
             {
                 // If the device support SRgb and ColorSpace is linear, we use automatically a SRgb backbuffer
