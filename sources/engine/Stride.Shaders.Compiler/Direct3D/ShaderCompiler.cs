@@ -1,95 +1,177 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_PLATFORM_DESKTOP
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SharpDX;
-using SharpDX.D3DCompiler;
+using System.Text;
 using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
-using Stride.Rendering;
+using System.Runtime.CompilerServices;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D11;
+using Silk.NET.Direct3D.Compilers;
 using Stride.Graphics;
-using ConstantBufferType = Stride.Shaders.ConstantBufferType;
-using ShaderBytecode = Stride.Shaders.ShaderBytecode;
-using ShaderVariableType = SharpDX.D3DCompiler.ShaderVariableType;
 
 namespace Stride.Shaders.Compiler.Direct3D
 {
-    internal class ShaderCompiler : IShaderCompiler
+    internal unsafe class ShaderCompiler : IShaderCompiler
     {
-        public ShaderBytecodeResult Compile(string shaderSource, string entryPoint, ShaderStage stage, EffectCompilerParameters effectParameters, EffectReflection reflection, string sourceFilename = null)
+        // D3DCOMPILE constants from d3dcompiler.h in the Windows SDK for Windows 10.0.22621.0
+
+        public const uint D3DCOMPILE_DEBUG = (1 << 0);
+        public const uint D3DCOMPILE_SKIP_OPTIMIZATION = (1 << 2);
+        public const uint D3DCOMPILE_OPTIMIZATION_LEVEL0 = (1 << 14);
+        public const uint D3DCOMPILE_OPTIMIZATION_LEVEL1 = 0;
+        public const uint D3DCOMPILE_OPTIMIZATION_LEVEL2 = ((1 << 14) | (1 << 15));
+        public const uint D3DCOMPILE_OPTIMIZATION_LEVEL3 = (1 << 15);
+
+
+        public ShaderBytecodeResult Compile(string shaderSource, string entryPoint, ShaderStage stage,
+                                            EffectCompilerParameters effectParameters, EffectReflection reflection,
+                                            string sourceFilename = null)
         {
             var isDebug = effectParameters.Debug;
             var optimLevel = effectParameters.OptimizationLevel;
             var profile = effectParameters.Profile;
-            
+
             var shaderModel = ShaderStageToString(stage) + "_" + ShaderProfileFromGraphicsProfile(profile);
 
-            var shaderFlags = ShaderFlags.None;
+            uint effectFlags = 0;
+            uint shaderFlags = 0;
+
             if (isDebug)
             {
-                shaderFlags = ShaderFlags.Debug;
+                shaderFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
             }
             switch (optimLevel)
             {
-                case 0:
-                    shaderFlags |= ShaderFlags.OptimizationLevel0;
-                    break;
-                case 1:
-                    shaderFlags |= ShaderFlags.OptimizationLevel1;
-                    break;
-                case 2:
-                    shaderFlags |= ShaderFlags.OptimizationLevel2;
-                    break;
-                case 3:
-                    shaderFlags |= ShaderFlags.OptimizationLevel3;
-                    break;
+                case 0: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL0; break;
+                case 1: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL1; break;
+                case 2: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL2; break;
+                case 3: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3; break;
             }
-            SharpDX.Configuration.ThrowOnShaderCompileError = false;
+
+            var shaderBytes = Encoding.ASCII.GetBytes(shaderSource);
+            var shaderModelBytes = Encoding.ASCII.GetBytes(shaderModel);
+
+            ID3D10Blob* byteCode = null;
+            ID3D10Blob* compileErrors = null;
 
             // Compile using D3DCompiler
-            var compilationResult = SharpDX.D3DCompiler.ShaderBytecode.Compile(shaderSource, entryPoint, shaderModel, shaderFlags, EffectFlags.None, null, null, sourceFilename);
+            var d3dCompiler = D3DCompiler.GetApi();
+
+            HResult result = d3dCompiler.Compile(in shaderBytes[0], (nuint) shaderBytes.Length, pSourceName: nameof(shaderSource),
+                                                 pDefines: null, pInclude: null, entryPoint, shaderModel, shaderFlags, effectFlags,
+                                                 ref byteCode, ref compileErrors);
 
             var byteCodeResult = new ShaderBytecodeResult();
 
-            if (compilationResult.HasErrors || compilationResult.Bytecode == null)
+            if (result.IsFailure || byteCode == null)
             {
                 // Log compilation errors
-                byteCodeResult.Error(compilationResult.Message);
+                if (compileErrors is not null)
+                {
+                    byteCodeResult.Error(GetTextFromBlob(compileErrors));
+                }
             }
             else
             {
                 // TODO: Make this optional
-                try
-                {
-                    byteCodeResult.DisassembleText = compilationResult.Bytecode.Disassemble();
-                }
-                catch (SharpDXException)
-                {
-                }
+                byteCodeResult.DisassembleText = Disassemble(byteCode);
 
-                // As effect bytecode binary can changed when having debug infos (with d3dcompiler_47), we are calculating a bytecodeId on the stripped version
-                var rawData = compilationResult.Bytecode.Strip(StripFlags.CompilerStripDebugInformation | StripFlags.CompilerStripReflectionData);
+                // As effect bytecode binary can change when having debug info (with d3dcompiler_47), we are calculating a bytecodeId on the stripped version
+                var strippedByteCode = Strip(byteCode);
+                var rawData = BlobAsBytes(strippedByteCode);
+                Free(strippedByteCode);
+
                 var bytecodeId = ObjectId.FromBytes(rawData);
-                byteCodeResult.Bytecode = new ShaderBytecode(bytecodeId, compilationResult.Bytecode.Data) { Stage = stage };
+                byteCodeResult.Bytecode = new ShaderBytecode(bytecodeId, BlobAsBytes(byteCode)) { Stage = stage };
 
-                // If compilation succeed, then we can update reflection.
+                // If compilation succeeded, then we can update reflection
                 UpdateReflection(byteCodeResult.Bytecode, reflection, byteCodeResult);
 
-                if (!string.IsNullOrEmpty(compilationResult.Message))
+                if (compileErrors != null)
                 {
-                    byteCodeResult.Warning(compilationResult.Message);
+                    byteCodeResult.Warning(GetTextFromBlob(compileErrors));
                 }
             }
 
+            Free(byteCode);
+            Free(compileErrors);
+
             return byteCodeResult;
+
+            /// <summary>
+            ///   Disassembles a blob of shader bytecode to its textual equivalent in HLSL code.
+            /// </summary>
+            string Disassemble(ID3D10Blob* byteCode)
+            {
+                ID3D10Blob* disassembly = null;
+
+                d3dCompiler.Disassemble(byteCode, byteCode->GetBufferSize(), Flags: 0, in Unsafe.NullRef<byte>(), ref disassembly);
+
+                string shaderDisassembly = GetTextFromBlob(disassembly);
+                Free(disassembly);
+                return shaderDisassembly;
+            }
+
+            /// <summary>
+            ///   Gets a blob of shader bytecode with debug and reflection data stripped out.
+            /// </summary>
+            ID3D10Blob* Strip(ID3D10Blob* byteCode)
+            {
+                ID3D10Blob* strippedByteCode = null;
+
+                const uint StripDebugAndReflection = (uint) (CompilerStripFlags.ReflectionData | CompilerStripFlags.DebugInfo);
+
+                HResult result = d3dCompiler.StripShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), StripDebugAndReflection, ref strippedByteCode);
+
+                if (result.IsFailure)
+                    return null;
+
+                return strippedByteCode;
+            }
+
+            /// <summary>
+            ///   Gets a byte span with the data from a blob of shader bytecode.
+            /// </summary>
+            byte[] BlobAsBytes(ID3D10Blob* blob)
+            {
+                return new ReadOnlySpan<byte>(blob->GetBufferPointer(), (int) blob->GetBufferSize()).ToArray();
+            }
+
+            /// <summary>
+            ///   Gets text data from a <see cref="ID3D10Blob"/> as a <see cref="string"/>.
+            /// </summary>
+            static string GetTextFromBlob(ID3D10Blob* blob)
+            {
+                var message = SilkMarshal.PtrToString((nint) blob->GetBufferPointer(), NativeStringEncoding.LPWStr);
+                return message;
+            }
+
+            /// <summary>
+            ///   Releases a DirectX Blob safely.
+            /// </summary>
+            static void Free(ID3D10Blob* blob)
+            {
+                if (blob is not null)
+                    blob->Release();
+            }
         }
 
         private void UpdateReflection(ShaderBytecode shaderBytecode, EffectReflection effectReflection, LoggerResult log)
         {
-            var shaderReflectionRaw = new SharpDX.D3DCompiler.ShaderReflection(shaderBytecode);
-            var shaderReflectionRawDesc = shaderReflectionRaw.Description;
+            var d3dCompiler = D3DCompiler.GetApi();
+
+            var byteCode = shaderBytecode.Data;
+
+            ID3D11ShaderReflection* shaderReflection = Reflect(byteCode);
+
+            ShaderDesc shaderReflectionDesc;
+            shaderReflection->GetDesc(&shaderReflectionDesc);
 
             foreach (var constantBuffer in effectReflection.ConstantBuffers)
             {
@@ -97,30 +179,38 @@ namespace Stride.Shaders.Compiler.Direct3D
             }
 
             // Constant Buffers
-            for (int i = 0; i < shaderReflectionRawDesc.ConstantBuffers; ++i)
+            for (uint i = 0; i < shaderReflectionDesc.ConstantBuffers; ++i)
             {
-                var constantBufferRaw = shaderReflectionRaw.GetConstantBuffer(i);
-                var constantBufferRawDesc = constantBufferRaw.Description;
-                if (constantBufferRawDesc.Type == SharpDX.D3DCompiler.ConstantBufferType.ResourceBindInformation)
+                ID3D11ShaderReflectionConstantBuffer* constantBuffer = shaderReflection->GetConstantBufferByIndex(i);
+
+                ShaderBufferDesc constantBufferDesc;
+                constantBuffer->GetDesc(&constantBufferDesc);
+
+                if (constantBufferDesc.Type == D3DCBufferType.D3DCTResourceBindInfo)
                     continue;
 
-                var linkBuffer = effectReflection.ConstantBuffers.First(buffer => buffer.Name == constantBufferRawDesc.Name);
+                string constantBufferName = SilkMarshal.PtrToString((nint) constantBufferDesc.Name);
+                var linkBuffer = effectReflection.ConstantBuffers.First(buffer => buffer.Name == constantBufferName);
 
-                ValidateConstantBufferReflection(constantBufferRaw, ref constantBufferRawDesc, linkBuffer, log);
+                ValidateConstantBufferReflection(constantBuffer, ref constantBufferDesc, linkBuffer, log);
             }
 
-            // BoundResources
-            for (int i = 0; i < shaderReflectionRawDesc.BoundResources; ++i)
+            // Bound Resources
+            for (uint i = 0; i < shaderReflectionDesc.BoundResources; ++i)
             {
-                var boundResourceDesc = shaderReflectionRaw.GetResourceBindingDescription(i);
+                ShaderInputBindDesc boundResourceDesc;
+                shaderReflection->GetResourceBindingDesc(i, &boundResourceDesc);
 
                 string linkKeyName = null;
                 string resourceGroup = null;
                 string logicalGroup = null;
                 var elementType = default(EffectTypeDescription);
+
+                var resourceName = SilkMarshal.PtrToString((nint) boundResourceDesc.Name);
+
                 foreach (var linkResource in effectReflection.ResourceBindings)
                 {
-                    if (linkResource.RawName == boundResourceDesc.Name && linkResource.Stage == ShaderStage.None)
+                    if (linkResource.RawName == resourceName && linkResource.Stage == ShaderStage.None)
                     {
                         linkKeyName = linkResource.KeyInfo.KeyName;
                         resourceGroup = linkResource.ResourceGroup;
@@ -133,12 +223,11 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 if (linkKeyName == null)
                 {
-                    log.Error($"Resource [{boundResourceDesc.Name}] has no link");
+                    log.Error($"Resource [{resourceName}] has no link");
                 }
                 else
                 {
-
-                    var binding = GetResourceBinding(boundResourceDesc, linkKeyName, log);
+                    var binding = GetResourceBinding(boundResourceDesc, linkKeyName);
                     binding.Stage = shaderBytecode.Stage;
                     binding.ResourceGroup = resourceGroup;
                     binding.LogicalGroup = logicalGroup;
@@ -147,129 +236,127 @@ namespace Stride.Shaders.Compiler.Direct3D
                     effectReflection.ResourceBindings.Add(binding);
                 }
             }
+
+            if (shaderReflection is not null)
+                shaderReflection->Release();
+
+            /// <summary>
+            ///   Gets reflection information about a shader from its shader bytecode.
+            /// </summary>
+            ID3D11ShaderReflection* Reflect(byte[] byteCode)
+            {
+                ID3D11ShaderReflection* shaderReflection = null;
+
+                HResult result = d3dCompiler.Reflect(in byteCode[0], (nuint) byteCode.Length,
+                                                     SilkMarshal.GuidPtrOf<ID3D11ShaderReflection>(), (void**) &shaderReflection);
+
+                if (result.IsFailure)
+                    result.Throw();
+
+                return shaderReflection;
+            }
         }
 
-        private EffectResourceBindingDescription GetResourceBinding(SharpDX.D3DCompiler.InputBindingDescription bindingDescriptionRaw, string name, LoggerResult log)
+        private EffectResourceBindingDescription GetResourceBinding(ShaderInputBindDesc bindingDescriptionRaw, string name)
         {
             var paramClass = EffectParameterClass.Object;
             var paramType = EffectParameterType.Void;
 
             switch (bindingDescriptionRaw.Type)
             {
-                case SharpDX.D3DCompiler.ShaderInputType.TextureBuffer:
+                case D3DShaderInputType.D3DSitTbuffer:
                     paramType = EffectParameterType.TextureBuffer;
                     paramClass = EffectParameterClass.TextureBuffer;
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.ConstantBuffer:
+
+                case D3DShaderInputType.D3DSitCbuffer:
                     paramType = EffectParameterType.ConstantBuffer;
                     paramClass = EffectParameterClass.ConstantBuffer;
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.Texture:
+
+                case D3DShaderInputType.D3DSitTexture:
                     paramClass = EffectParameterClass.ShaderResourceView;
                     switch (bindingDescriptionRaw.Dimension)
                     {
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Buffer:
-                            paramType = EffectParameterType.Buffer;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture1D:
-                            paramType = EffectParameterType.Texture1D;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture1DArray:
-                            paramType = EffectParameterType.Texture1DArray;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture2D:
-                            paramType = EffectParameterType.Texture2D;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture2DArray:
-                            paramType = EffectParameterType.Texture2DArray;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture2DMultisampled:
-                            paramType = EffectParameterType.Texture2DMultisampled;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture2DMultisampledArray:
-                            paramType = EffectParameterType.Texture2DMultisampledArray;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture3D:
-                            paramType = EffectParameterType.Texture3D;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.TextureCube:
-                            paramType = EffectParameterType.TextureCube;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.TextureCubeArray:
-                            paramType = EffectParameterType.TextureCubeArray;
-                            break;
+                        case D3DSrvDimension.D3DSrvDimensionBuffer:           paramType = EffectParameterType.Buffer;                     break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture1D:        paramType = EffectParameterType.Texture1D;                  break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture1Darray:   paramType = EffectParameterType.Texture1DArray;             break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture2D:        paramType = EffectParameterType.Texture2D;                  break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture2Darray:   paramType = EffectParameterType.Texture2DArray;             break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture2Dms:      paramType = EffectParameterType.Texture2DMultisampled;      break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture2Dmsarray: paramType = EffectParameterType.Texture2DMultisampledArray; break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture3D:        paramType = EffectParameterType.Texture3D;                  break;
+                        case D3DSrvDimension.D3DSrvDimensionTexturecube:      paramType = EffectParameterType.TextureCube;                break;
+                        case D3DSrvDimension.D3DSrvDimensionTexturecubearray: paramType = EffectParameterType.TextureCubeArray;           break;
                     }
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.Structured:
+
+                case D3DShaderInputType.D3DSitStructured:
                     paramClass = EffectParameterClass.ShaderResourceView;
                     paramType = EffectParameterType.StructuredBuffer;
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.ByteAddress:
+
+                case D3DShaderInputType.D3DSitByteaddress:
                     paramClass = EffectParameterClass.ShaderResourceView;
                     paramType = EffectParameterType.ByteAddressBuffer;
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.UnorderedAccessViewRWTyped:
+
+                case D3DShaderInputType.D3DSitUavRwtyped:
                     paramClass = EffectParameterClass.UnorderedAccessView;
                     switch (bindingDescriptionRaw.Dimension)
                     {
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Buffer:
-                            paramType = EffectParameterType.RWBuffer;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture1D:
-                            paramType = EffectParameterType.RWTexture1D;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture1DArray:
-                            paramType = EffectParameterType.RWTexture1DArray;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture2D:
-                            paramType = EffectParameterType.RWTexture2D;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture2DArray:
-                            paramType = EffectParameterType.RWTexture2DArray;
-                            break;
-                        case SharpDX.Direct3D.ShaderResourceViewDimension.Texture3D:
-                            paramType = EffectParameterType.RWTexture3D;
-                            break;
+                        case D3DSrvDimension.D3DSrvDimensionBuffer:         paramType = EffectParameterType.RWBuffer;         break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture1D:      paramType = EffectParameterType.RWTexture1D;      break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture1Darray: paramType = EffectParameterType.RWTexture1DArray; break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture2D:      paramType = EffectParameterType.RWTexture2D;      break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture2Darray: paramType = EffectParameterType.RWTexture2DArray; break;
+                        case D3DSrvDimension.D3DSrvDimensionTexture3D:      paramType = EffectParameterType.RWTexture3D;      break;
                     }
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.UnorderedAccessViewRWStructured:
+
+                case D3DShaderInputType.D3DSitUavRwstructured:
                     paramClass = EffectParameterClass.UnorderedAccessView;
                     paramType = EffectParameterType.RWStructuredBuffer;
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.UnorderedAccessViewRWByteAddress:
+
+                case D3DShaderInputType.D3DSitUavRwbyteaddress:
                     paramClass = EffectParameterClass.UnorderedAccessView;
                     paramType = EffectParameterType.RWByteAddressBuffer;
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.UnorderedAccessViewAppendStructured:
+
+                case D3DShaderInputType.D3DSitUavAppendStructured:
                     paramClass = EffectParameterClass.UnorderedAccessView;
                     paramType = EffectParameterType.AppendStructuredBuffer;
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.UnorderedAccessViewConsumeStructured:
+
+                case D3DShaderInputType.D3DSitUavConsumeStructured:
                     paramClass = EffectParameterClass.UnorderedAccessView;
                     paramType = EffectParameterType.ConsumeStructuredBuffer;
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.UnorderedAccessViewRWStructuredWithCounter:
+
+                case D3DShaderInputType.D3DSitUavRwstructuredWithCounter:
                     paramClass = EffectParameterClass.UnorderedAccessView;
                     paramType = EffectParameterType.RWStructuredBuffer;
                     break;
-                case SharpDX.D3DCompiler.ShaderInputType.Sampler:
+
+                case D3DShaderInputType.D3DSitSampler:
                     paramClass = EffectParameterClass.Sampler;
                     paramType = EffectParameterType.Sampler;
                     break;
             }
 
             var binding = new EffectResourceBindingDescription()
+            {
+                KeyInfo =
                 {
-                    KeyInfo =
-                        {
-                            KeyName = name,
-                        },
-                    RawName = bindingDescriptionRaw.Name,
-                    Class = paramClass,
-                    Type = paramType,
-                    SlotStart = bindingDescriptionRaw.BindPoint,
-                    SlotCount = bindingDescriptionRaw.BindCount,
-                };
+                    KeyName = name
+                },
+                RawName = SilkMarshal.PtrToString((nint) bindingDescriptionRaw.Name),
+                Class = paramClass,
+                Type = paramType,
+                SlotStart = (int) bindingDescriptionRaw.BindPoint,
+                SlotCount = (int) bindingDescriptionRaw.BindCount
+            };
 
             return binding;
         }
@@ -301,18 +388,20 @@ namespace Stride.Shaders.Compiler.Direct3D
             reflectionConstantBuffer.Size = (constantBufferOffset + 15) / 16 * 16;
         }
 
-        private void ValidateConstantBufferReflection(ConstantBuffer constantBufferRaw, ref ConstantBufferDescription constantBufferRawDesc, EffectConstantBufferDescription constantBuffer, LoggerResult log)
+        private void ValidateConstantBufferReflection(ID3D11ShaderReflectionConstantBuffer* constantBufferRaw, ref ShaderBufferDesc constantBufferRawDesc, EffectConstantBufferDescription constantBuffer, LoggerResult log)
         {
             switch (constantBufferRawDesc.Type)
             {
-                case SharpDX.D3DCompiler.ConstantBufferType.ConstantBuffer:
+                case D3DCBufferType.D3DCTCbuffer:
                     if (constantBuffer.Type != ConstantBufferType.ConstantBuffer)
                         log.Error($"Invalid buffer type for {constantBuffer.Name}: {constantBuffer.Type} instead of {ConstantBufferType.ConstantBuffer}");
                     break;
-                case SharpDX.D3DCompiler.ConstantBufferType.TextureBuffer:
+
+                case D3DCBufferType.D3DCTTbuffer:
                     if (constantBuffer.Type != ConstantBufferType.TextureBuffer)
                         log.Error($"Invalid buffer type for {constantBuffer.Name}: {constantBuffer.Type} instead of {ConstantBufferType.TextureBuffer}");
                     break;
+
                 default:
                     if (constantBuffer.Type != ConstantBufferType.Unknown)
                         log.Error($"Invalid buffer type for {constantBuffer.Name}: {constantBuffer.Type} instead of {ConstantBufferType.Unknown}");
@@ -320,23 +409,30 @@ namespace Stride.Shaders.Compiler.Direct3D
             }
 
             // ConstantBuffers variables
-            for (int i = 0; i < constantBufferRawDesc.VariableCount; i++)
+            for (uint i = 0; i < constantBufferRawDesc.Variables; i++)
             {
-                var variable = constantBufferRaw.GetVariable(i);
-                var variableType = variable.GetVariableType();
-                var variableDescription = variable.Description;
-                var variableTypeDescription = variableType.Description;
+                var variable = constantBufferRaw->GetVariableByIndex(i);
 
+                ShaderVariableDesc variableDescription;
+                variable->GetDesc(&variableDescription);
+
+                var variableType = variable->GetType();
+
+                ShaderTypeDesc variableTypeDescription;
+                variableType->GetDesc(&variableTypeDescription);
+
+                var variableName = SilkMarshal.PtrToString((nint) variableDescription.Name);
                 if (variableTypeDescription.Offset != 0)
                 {
-                    log.Error($"Unexpected offset [{variableTypeDescription.Offset}] for variable [{variableDescription.Name}] in constant buffer [{constantBuffer.Name}]");
+                    log.Error($"Unexpected offset [{variableTypeDescription.Offset}] for variable [{variableName}] in constant buffer [{constantBuffer.Name}]");
                 }
 
                 var binding = constantBuffer.Members[i];
+
                 // Retrieve Link Member
-                if (binding.RawName != variableDescription.Name)
+                if (binding.RawName != variableName)
                 {
-                    log.Error($"Variable [{variableDescription.Name}] in constant buffer [{constantBuffer.Name}] has no link");
+                    log.Error($"Variable [{variableName}] in constant buffer [{constantBuffer.Name}] has no link");
                 }
                 else
                 {
@@ -344,24 +440,24 @@ namespace Stride.Shaders.Compiler.Direct3D
                     {
                         Type =
                         {
-                            Class = (EffectParameterClass)variableTypeDescription.Class,
+                            Class = (EffectParameterClass) variableTypeDescription.Class,
                             Type = ConvertVariableValueType(variableTypeDescription.Type, log),
-                            Elements = variableTypeDescription.ElementCount,
-                            RowCount = (byte)variableTypeDescription.RowCount,
-                            ColumnCount = (byte)variableTypeDescription.ColumnCount,
+                            Elements = (int) variableTypeDescription.Elements,
+                            RowCount = (byte) variableTypeDescription.Rows,
+                            ColumnCount = (byte) variableTypeDescription.Columns
                         },
-                        RawName = variableDescription.Name,
-                        Offset = variableDescription.StartOffset,
-                        Size = variableDescription.Size,
+                        RawName = variableName,
+                        Offset = (int) variableDescription.StartOffset,
+                        Size = (int) variableDescription.Size
                     };
 
-                    if (parameter.Offset != binding.Offset
-                        || parameter.Size != binding.Size
-                        || parameter.Type.Elements != binding.Type.Elements
-                        || ((parameter.Type.Class != EffectParameterClass.Struct) && // Ignore columns/rows if it's a struct (sometimes it contains weird data)
-                               (parameter.Type.RowCount != binding.Type.RowCount || parameter.Type.ColumnCount != binding.Type.ColumnCount)))
+                    if (parameter.Offset != binding.Offset ||
+                        parameter.Size != binding.Size ||
+                        parameter.Type.Elements != binding.Type.Elements ||
+                        ((parameter.Type.Class != EffectParameterClass.Struct) && // Ignore columns/rows if it's a struct (sometimes it contains weird data)
+                         (parameter.Type.RowCount != binding.Type.RowCount || parameter.Type.ColumnCount != binding.Type.ColumnCount)))
                     {
-                        log.Error($"Variable [{variableDescription.Name}] in constant buffer [{constantBuffer.Name}] binding doesn't match what was expected");
+                        log.Error($"Variable [{variableName}] in constant buffer [{constantBuffer.Name}] binding doesn't match what was expected");
                     }
                 }
             }
@@ -464,68 +560,48 @@ namespace Stride.Shaders.Compiler.Direct3D
 
         private static string ShaderStageToString(ShaderStage stage)
         {
-            string shaderStageText;
-            switch (stage)
+            return stage switch
             {
-                case ShaderStage.Compute:
-                    shaderStageText = "cs";
-                    break;
-                case ShaderStage.Vertex:
-                    shaderStageText = "vs";
-                    break;
-                case ShaderStage.Hull:
-                    shaderStageText = "hs";
-                    break;
-                case ShaderStage.Domain:
-                    shaderStageText = "ds";
-                    break;
-                case ShaderStage.Geometry:
-                    shaderStageText = "gs";
-                    break;
-                case ShaderStage.Pixel:
-                    shaderStageText = "ps";
-                    break;
-                default:
-                    throw new ArgumentException("Stage not supported", "stage");
-            }
-            return shaderStageText;
+                ShaderStage.Compute => "cs",
+                ShaderStage.Vertex => "vs",
+                ShaderStage.Hull => "hs",
+                ShaderStage.Domain => "ds",
+                ShaderStage.Geometry => "gs",
+                ShaderStage.Pixel => "ps",
+
+                _ => throw new ArgumentException("Stage not supported", nameof(stage))
+            };
         }
 
         private static string ShaderProfileFromGraphicsProfile(GraphicsProfile graphicsProfile)
         {
-            switch (graphicsProfile)
+            return graphicsProfile switch
             {
-                case GraphicsProfile.Level_9_1:
-                    return "4_0_level_9_1";
-                case GraphicsProfile.Level_9_2:
-                    return "4_0_level_9_2";
-                case GraphicsProfile.Level_9_3:
-                    return "4_0_level_9_3";
-                case GraphicsProfile.Level_10_0:
-                    return "4_0";
-                case GraphicsProfile.Level_10_1:
-                    return "4_1";
-                case GraphicsProfile.Level_11_0:
-                case GraphicsProfile.Level_11_1:
-                    return "5_0";
-            }
-            throw new ArgumentException("graphicsProfile");
-        }
-        private static readonly Dictionary<ShaderVariableType, EffectParameterType> MapTypes = new Dictionary<ShaderVariableType,EffectParameterType>()
-            {
-                {ShaderVariableType.Void                                 , EffectParameterType.Void                          },
-                {ShaderVariableType.Bool                                 , EffectParameterType.Bool                          },
-                {ShaderVariableType.Int                                  , EffectParameterType.Int                           },
-                {ShaderVariableType.Float                                , EffectParameterType.Float                         },
-                {ShaderVariableType.UInt                                 , EffectParameterType.UInt                          },
-                {ShaderVariableType.UInt8                                , EffectParameterType.UInt8                         },
-                {ShaderVariableType.Double                               , EffectParameterType.Double                        },
-            };
+                GraphicsProfile.Level_9_1 => "4_0_level_9_1",
+                GraphicsProfile.Level_9_2 => "4_0_level_9_2",
+                GraphicsProfile.Level_9_3 => "4_0_level_9_3",
+                GraphicsProfile.Level_10_0 => "4_0",
+                GraphicsProfile.Level_10_1 => "4_1",
+                GraphicsProfile.Level_11_0 or GraphicsProfile.Level_11_1 => "5_0",
 
-        private EffectParameterType ConvertVariableValueType(ShaderVariableType type, LoggerResult log)
+                _ => throw new ArgumentException(nameof(graphicsProfile))
+            };
+        }
+
+        private static readonly Dictionary<D3DShaderVariableType, EffectParameterType> MapTypes = new()
         {
-            EffectParameterType effectParameterType;
-            if (!MapTypes.TryGetValue(type, out effectParameterType))
+            { D3DShaderVariableType.D3DSvtVoid   , EffectParameterType.Void   },
+            { D3DShaderVariableType.D3DSvtBool   , EffectParameterType.Bool   },
+            { D3DShaderVariableType.D3DSvtInt    , EffectParameterType.Int    },
+            { D3DShaderVariableType.D3DSvtFloat  , EffectParameterType.Float  },
+            { D3DShaderVariableType.D3DSvtUint   , EffectParameterType.UInt   },
+            { D3DShaderVariableType.D3DSvtUint8  , EffectParameterType.UInt8  },
+            { D3DShaderVariableType.D3DSvtDouble , EffectParameterType.Double },
+        };
+
+        private EffectParameterType ConvertVariableValueType(D3DShaderVariableType type, LoggerResult log)
+        {
+            if (!MapTypes.TryGetValue(type, out var effectParameterType))
             {
                 log.Error($"Type [{type}] from D3DCompiler not supported");
             }
@@ -533,4 +609,5 @@ namespace Stride.Shaders.Compiler.Direct3D
         }
     }
 }
+
 #endif
