@@ -167,6 +167,7 @@ void CreateMixin()
         .Inherit("MixinA")
         .FinishInherit()
         .WithType("float4x2")
+        .WithType("uint2x3")
         .Build();
 
     var mD =
@@ -175,6 +176,7 @@ void CreateMixin()
         .Inherit("MixinC")
         .FinishInherit()
         .WithType("float4x3")
+        .WithType("half3x3")
         .Build();
 
     Console.WriteLine(mA);
