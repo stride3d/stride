@@ -219,7 +219,6 @@ namespace Stride.Graphics
             {
                 var graphicsProfile = graphicsProfiles[index];
 
-                // D3D12 supports only feature level 11+
                 var level = graphicsProfile.ToFeatureLevel();
 
                 // INTEL workaround: it seems Intel driver doesn't support properly feature level 9.x. Fallback to 10.
