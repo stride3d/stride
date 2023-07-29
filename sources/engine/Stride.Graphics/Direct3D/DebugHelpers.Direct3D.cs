@@ -8,7 +8,9 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
+using Silk.NET.Direct3D12;
 using Silk.NET.DXGI;
 
 namespace Stride.Graphics;
@@ -55,8 +57,11 @@ internal static unsafe class DebugHelpers
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
     public static unsafe void SetDebugName(ID3D12DeviceChild* deviceChild, string name)
     {
-        var ptrName = (byte*) SilkMarshal.StringToPtr(name, NativeStringEncoding.LPWStr);
+        var ptrName = (char*) SilkMarshal.StringToPtr(name, NativeStringEncoding.LPWStr);
+
         deviceChild->SetName(ptrName);
+
+        SilkMarshal.Free((nint) ptrName);
     }
 #endif
 

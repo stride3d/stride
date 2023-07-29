@@ -36,4 +36,5 @@ namespace Stride.Graphics
         }
     }
 }
+
 #endif
