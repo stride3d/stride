@@ -1,18 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D12
+
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,11 +24,12 @@
 // THE SOFTWARE.
 
 using System;
-using System.Collections.Generic;
-using SharpDX.DXGI;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.Direct3D12;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D12;
+
+using Format = Silk.NET.DXGI.Format;
 
 namespace Stride.Graphics
 {
@@ -36,9 +39,14 @@ namespace Stride.Graphics
     /// <remarks>
     /// This class gives also features for a particular format, using the operator this[dxgiFormat] on this structure.
     /// </remarks>
-    public partial struct GraphicsDeviceFeatures
+    public unsafe partial struct GraphicsDeviceFeatures
     {
-        private static readonly List<SharpDX.DXGI.Format> ObsoleteFormatToExcludes = new List<SharpDX.DXGI.Format>() { Format.R1_UNorm, Format.B5G6R5_UNorm, Format.B5G5R5A1_UNorm };
+        private static readonly Format[] ObsoleteFormatToExcludes =
+        {
+            Format.FormatR1Unorm,
+            Format.FormatB5G6R5Unorm,
+            Format.FormatB5G5R5A1Unorm
+        };
 
         internal GraphicsDeviceFeatures(GraphicsDevice deviceRoot)
         {
@@ -55,7 +63,14 @@ namespace Stride.Graphics
 
             // TODO D3D12
             HasComputeShaders = true;
-            HasDoublePrecision = nativeDevice.D3D12Options.DoublePrecisionFloatShaderOps;
+
+            FeatureDataD3D12Options d3D12Options;
+            HResult result = nativeDevice->CheckFeatureSupport(Feature.D3D12Options, &d3D12Options, (uint) Unsafe.SizeOf<FeatureDataD3D12Options>());
+
+            if (result.IsFailure)
+                result.Throw();
+
+            HasDoublePrecision = d3D12Options.DoublePrecisionFloatShaderOps;
 
             // TODO D3D12 Confirm these are correct
             // Some docs: https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx
@@ -69,24 +84,33 @@ namespace Stride.Graphics
             HasDriverCommandLists = true;
 
             // Check features for each DXGI.Format
-            foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
+            foreach (var format in Enum.GetValues<Format>())
             {
-                var dxgiFormat = (SharpDX.DXGI.Format)format;
                 var maximumMultisampleCount = MultisampleCount.None;
                 var formatSupport = FormatSupport.None;
+                var csFormatSupport = ComputeShaderFormatSupport.None;
 
-                if (!ObsoleteFormatToExcludes.Contains(dxgiFormat))
+                if (!ObsoleteFormatToExcludes.Contains(format))
                 {
-                    SharpDX.Direct3D12.FeatureDataFormatSupport formatSupportData;
-                    formatSupportData.Format = dxgiFormat;
-                    formatSupportData.Support1 = FormatSupport1.None;
-                    formatSupportData.Support2 = FormatSupport2.None;
-                    if (nativeDevice.CheckFeatureSupport(SharpDX.Direct3D12.Feature.FormatSupport, ref formatSupportData))
-                        formatSupport = (FormatSupport)formatSupportData.Support1;
-                    maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice, dxgiFormat);
+                    FeatureDataFormatSupport formatSupportData = new()
+                    {
+                        Format = format,
+                        Support1 = FormatSupport1.None,
+                        Support2 = FormatSupport2.None
+                    };
+
+                    result = nativeDevice->CheckFeatureSupport(Feature.FormatSupport, &formatSupportData, (uint) Unsafe.SizeOf<FeatureDataFormatSupport>());
+
+                    if (result.IsFailure)
+                        result.Throw();
+
+                    formatSupport = (FormatSupport) formatSupportData.Support1;
+                    csFormatSupport = (ComputeShaderFormatSupport) formatSupportData.Support2;
+
+                    maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice, format);
                 }
 
-                mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, formatSupport);
+                mapFeaturesPerFormat[(int) format] = new((PixelFormat) format, maximumMultisampleCount, csFormatSupport, formatSupport);
             }
         }
 
@@ -96,25 +120,32 @@ namespace Stride.Graphics
         /// <param name="device">The device.</param>
         /// <param name="pixelFormat">The pixelFormat.</param>
         /// <returns>The maximum multisample count for this pixel pixelFormat</returns>
-        private static MultisampleCount GetMaximumMultisampleCount(SharpDX.Direct3D12.Device device, SharpDX.DXGI.Format pixelFormat)
+        private static MultisampleCount GetMaximumMultisampleCount(ID3D12Device* device, Format pixelFormat)
         {
-            SharpDX.Direct3D12.FeatureDataMultisampleQualityLevels qualityLevels;
-            qualityLevels.Format = pixelFormat;
-            qualityLevels.Flags = MultisampleQualityLevelFlags.None;
-            qualityLevels.QualityLevelCount = 0;
+            FeatureDataMultisampleQualityLevels qualityLevels = new()
+            {
+                Format = pixelFormat,
+                Flags = MultisampleQualityLevelFlags.None,
+                NumQualityLevels = 0
+            };
+            var sizeInBytes = (uint) Unsafe.SizeOf<FeatureDataMultisampleQualityLevels>();
 
-            int maxCount = 1;
-            for (int i = 8; i >= 1; i /= 2)
+            uint maxCount = 1;
+            for (uint i = 8; i >= 1; i /= 2)
             {
                 qualityLevels.SampleCount = i;
-                if (device.CheckFeatureSupport(SharpDX.Direct3D12.Feature.MultisampleQualityLevels, ref qualityLevels))
+
+                HResult result = device->CheckFeatureSupport(Feature.MultisampleQualityLevels, &qualityLevels, sizeInBytes);
+
+                if (result.IsSuccess)
                 {
                     maxCount = i;
                     break;
                 }
             }
-            return (MultisampleCount)maxCount;
+            return (MultisampleCount) maxCount;
         }
     }
 }
+
 #endif
