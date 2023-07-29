@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D12
-using System;
-using SharpDX;
-using SharpDX.Direct3D12;
+
+using System.Runtime.CompilerServices;
+using Silk.NET.Direct3D12;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
@@ -11,7 +12,7 @@ namespace Stride.Graphics
     /// <summary>
     /// Describes a sampler state used for texture sampling.
     /// </summary>
-    public partial class SamplerState
+    public unsafe partial class SamplerState
     {
         internal CpuDescriptorHandle NativeSampler;
 
@@ -19,7 +20,6 @@ namespace Stride.Graphics
         /// Initializes a new instance of the <see cref="SamplerState"/> class.
         /// </summary>
         /// <param name="device">The device.</param>
-        /// <param name="name">The name.</param>
         /// <param name="samplerStateDescription">The sampler state description.</param>
         private SamplerState(GraphicsDevice device, SamplerStateDescription samplerStateDescription) : base(device)
         {
@@ -32,28 +32,31 @@ namespace Stride.Graphics
         protected internal override bool OnRecreate()
         {
             base.OnRecreate();
+
             CreateNativeDeviceChild();
             return true;
         }
 
         private void CreateNativeDeviceChild()
         {
-            SharpDX.Direct3D12.SamplerStateDescription nativeDescription;
-
-            nativeDescription.AddressU = (SharpDX.Direct3D12.TextureAddressMode)Description.AddressU;
-            nativeDescription.AddressV = (SharpDX.Direct3D12.TextureAddressMode)Description.AddressV;
-            nativeDescription.AddressW = (SharpDX.Direct3D12.TextureAddressMode)Description.AddressW;
-            nativeDescription.BorderColor = ColorHelper.Convert(Description.BorderColor);
-            nativeDescription.ComparisonFunction = (SharpDX.Direct3D12.Comparison)Description.CompareFunction;
-            nativeDescription.Filter = (SharpDX.Direct3D12.Filter)Description.Filter;
-            nativeDescription.MaximumAnisotropy = Description.MaxAnisotropy;
-            nativeDescription.MaximumLod = Description.MaxMipLevel;
-            nativeDescription.MinimumLod = Description.MinMipLevel;
-            nativeDescription.MipLodBias = Description.MipMapLevelOfDetailBias;
+            var nativeDescription = new SamplerDesc
+            {
+                AddressU = (Silk.NET.Direct3D12.TextureAddressMode) Description.AddressU,
+                AddressV = (Silk.NET.Direct3D12.TextureAddressMode) Description.AddressV,
+                AddressW = (Silk.NET.Direct3D12.TextureAddressMode) Description.AddressW,
+                ComparisonFunc = (ComparisonFunc) Description.CompareFunction,
+                Filter = (Filter) Description.Filter,
+                MaxAnisotropy = (uint) Description.MaxAnisotropy,
+                MaxLOD = Description.MaxMipLevel,
+                MinLOD = Description.MinMipLevel,
+                MipLODBias = Description.MipMapLevelOfDetailBias
+            };
+            Unsafe.AsRef<Color4>(nativeDescription.BorderColor) = Description.BorderColor;
 
             NativeSampler = GraphicsDevice.SamplerAllocator.Allocate(1);
-            GraphicsDevice.NativeDevice.CreateSampler(nativeDescription, NativeSampler);
+            NativeDevice->CreateSampler(nativeDescription, NativeSampler);
         }
     }
-} 
+}
+
 #endif

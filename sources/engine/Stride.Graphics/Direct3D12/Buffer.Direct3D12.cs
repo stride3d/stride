@@ -1,21 +1,21 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_DIRECT3D12
-using System;
-using System.Collections.Generic;
 
-using SharpDX;
-using SharpDX.DXGI;
-using SharpDX.Direct3D12;
-using Stride.Core.Mathematics;
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+
+using System;
 using System.Runtime.CompilerServices;
+using Silk.NET.Core.Native;
+using Silk.NET.DXGI;
+using Silk.NET.Direct3D12;
+using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
 {
-    public partial class Buffer
+    public unsafe partial class Buffer
     {
-        private SharpDX.Direct3D12.ResourceDescription nativeDescription;
-        internal long GPUVirtualAddress;
+        private ResourceDesc nativeDescription;
+        internal ulong GPUVirtualAddress;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Buffer" /> class.
@@ -28,15 +28,14 @@ namespace Stride.Graphics
         {
             bufferDescription = description;
             nativeDescription = ConvertToNativeDescription(GraphicsDevice, Description);
+
             ViewFlags = viewFlags;
-            InitCountAndViewFormat(out this.elementCount, ref viewFormat);
+            InitCountAndViewFormat(out elementCount, ref viewFormat);
             ViewFormat = viewFormat;
+
             Recreate(dataPointer);
 
-            if (GraphicsDevice != null)
-            {
-                GraphicsDevice.RegisterBufferMemoryUsage(SizeInBytes);
-            }
+            GraphicsDevice?.RegisterBufferMemoryUsage(SizeInBytes);
 
             return this;
         }
@@ -44,10 +43,7 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
-            if (GraphicsDevice != null)
-            {
-                GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
-            }
+            GraphicsDevice?.RegisterBufferMemoryUsage(-SizeInBytes);
 
             base.OnDestroyed();
         }
@@ -57,8 +53,7 @@ namespace Stride.Graphics
         {
             base.OnRecreate();
 
-            if (Description.Usage == GraphicsResourceUsage.Immutable
-                || Description.Usage == GraphicsResourceUsage.Default)
+            if (Description.Usage is GraphicsResourceUsage.Immutable or GraphicsResourceUsage.Default)
                 return false;
 
             Recreate(IntPtr.Zero);
@@ -71,31 +66,31 @@ namespace Stride.Graphics
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dataPointer"></param>
-        public unsafe void Recreate(IntPtr dataPointer)
+        public void Recreate(IntPtr dataPointer)
         {
             // TODO D3D12 where should that go longer term? should it be precomputed for future use? (cost would likely be additional check on SetDescriptorSets/Draw)
             NativeResourceState = ResourceStates.Common;
             var bufferFlags = bufferDescription.BufferFlags;
 
-            if ((bufferFlags & BufferFlags.ConstantBuffer) != 0)
+            if (bufferFlags.HasFlag(BufferFlags.ConstantBuffer))
                 NativeResourceState |= ResourceStates.VertexAndConstantBuffer;
 
-            if ((bufferFlags & BufferFlags.IndexBuffer) != 0)
+            if (bufferFlags.HasFlag(BufferFlags.IndexBuffer))
                 NativeResourceState |= ResourceStates.IndexBuffer;
 
-            if ((bufferFlags & BufferFlags.VertexBuffer) != 0)
+            if (bufferFlags.HasFlag(BufferFlags.VertexBuffer))
                 NativeResourceState |= ResourceStates.VertexAndConstantBuffer;
 
-            if ((bufferFlags & BufferFlags.ShaderResource) != 0)
+            if (bufferFlags.HasFlag(BufferFlags.ShaderResource))
                 NativeResourceState |= ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource;
 
-            if ((bufferFlags & BufferFlags.StructuredBuffer) != 0)
+            if (bufferFlags.HasFlag(BufferFlags.StructuredBuffer))
             {
                 if (bufferDescription.StructureByteStride <= 0)
                     throw new ArgumentException("Element size cannot be less or equal 0 for structured buffer");
             }
 
-            if ((bufferFlags & BufferFlags.ArgumentBuffer) == BufferFlags.ArgumentBuffer)
+            if (bufferFlags.HasFlag(BufferFlags.ArgumentBuffer))
                 NativeResourceState |= ResourceStates.IndirectArgument;
 
             var heapType = HeapType.Default;
@@ -105,7 +100,7 @@ namespace Stride.Graphics
                     throw new NotImplementedException("D3D12: Staging buffers can't be created with initial data.");
 
                 heapType = HeapType.Readback;
-                NativeResourceState = ResourceStates.CopyDestination;
+                NativeResourceState = ResourceStates.CopyDest;
             }
             else if (Usage == GraphicsResourceUsage.Dynamic)
             {
@@ -114,36 +109,63 @@ namespace Stride.Graphics
             }
 
             // TODO D3D12 move that to a global allocator in bigger committed resources
-            NativeDeviceChild = GraphicsDevice.NativeDevice.CreateCommittedResource(new HeapProperties(heapType), HeapFlags.None, nativeDescription, dataPointer != IntPtr.Zero ? ResourceStates.CopyDestination : NativeResourceState);
-            GPUVirtualAddress = NativeResource.GPUVirtualAddress;
+            ID3D12Resource* resource;
+            var heap = new HeapProperties { Type = heapType };
+            var initialState = dataPointer != IntPtr.Zero ? ResourceStates.CopyDest : NativeResourceState;
+
+            HResult result = GraphicsDevice.NativeDevice->CreateCommittedResource(in heap, HeapFlags.None, nativeDescription, initialState, pOptimizedClearValue: null, SilkMarshal.GuidPtrOf<ID3D12Resource>(), (void**) &resource);
+
+            if (result.IsFailure)
+                result.Throw();
+
+            NativeDeviceChild = (ID3D12DeviceChild*) resource;
+            GPUVirtualAddress = NativeResource->GetGPUVirtualAddress();
 
             if (dataPointer != IntPtr.Zero)
             {
                 if (heapType == HeapType.Upload)
                 {
-                    var uploadMemory = NativeResource.Map(0);
-                    Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
-                    NativeResource.Unmap(0);
+                    void* uploadMemory;
+                    result = NativeResource->Map(Subresource: 0, pReadRange: null, &uploadMemory);
+
+                    if (result.IsFailure)
+                        result.Throw();
+
+					Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+
+                    NativeResource->Unmap(Subresource: 0, pWrittenRange: null);
                 }
                 else
                 {
                     // Copy data in upload heap for later copy
                     // TODO D3D12 move that to a shared upload heap
-                    SharpDX.Direct3D12.Resource uploadResource;
-                    int uploadOffset;
-                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out uploadResource, out uploadOffset);
-                    Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out var uploadResource, out var uploadOffset);
+
+					Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                     // TODO D3D12 lock NativeCopyCommandList usages
                     var commandList = GraphicsDevice.NativeCopyCommandList;
-                    commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, null);
+                    result = commandList->Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: null);
+
+                    if (result.IsFailure)
+                        result.Throw();
+
                     // Copy from upload heap to actual resource
-                    commandList.CopyBufferRegion(NativeResource, 0, uploadResource, uploadOffset, SizeInBytes);
+                    commandList->CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
 
                     // Switch resource to proper read state
-                    commandList.ResourceBarrierTransition(NativeResource, 0, ResourceStates.CopyDestination, NativeResourceState);
+                    var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
+                    resourceBarrier.Transition.PResource = NativeResource;
+                    resourceBarrier.Transition.Subresource = 0;
+                    resourceBarrier.Transition.StateBefore = ResourceStates.CopyDest;
+                    resourceBarrier.Transition.StateAfter = NativeResourceState;
 
-                    commandList.Close();
+                    commandList->ResourceBarrier(NumBarriers: 1, in resourceBarrier);
+
+                    result = commandList->Close();
+
+                    if (result.IsFailure)
+                        result.Throw();
 
                     GraphicsDevice.WaitCopyQueue();
                 }
@@ -165,27 +187,28 @@ namespace Stride.Graphics
         internal CpuDescriptorHandle GetShaderResourceView(PixelFormat viewFormat)
         {
             var srv = new CpuDescriptorHandle();
-            if ((ViewFlags & BufferFlags.ShaderResource) != 0)
+
+            if (ViewFlags.HasFlag(BufferFlags.ShaderResource))
             {
-                var description = new ShaderResourceViewDescription
+                var description = new ShaderResourceViewDesc
                 {
                     Shader4ComponentMapping = 0x00001688,
-                    Format = (SharpDX.DXGI.Format)viewFormat,
-                    Dimension = SharpDX.Direct3D12.ShaderResourceViewDimension.Buffer,
-                    Buffer =
+                    Format = (Format) viewFormat,
+                    ViewDimension = SrvDimension.Buffer,
+                    Buffer = new()
                     {
-                        ElementCount = this.ElementCount,
+                        NumElements = (uint) ElementCount,
                         FirstElement = 0,
-                        Flags = BufferShaderResourceViewFlags.None,
-                        StructureByteStride = StructureByteStride,
+                        Flags = BufferSrvFlags.None,
+                        StructureByteStride = (uint) StructureByteStride
                     }
                 };
 
-                if (((ViewFlags & BufferFlags.RawBuffer) == BufferFlags.RawBuffer))
-                    description.Buffer.Flags |= BufferShaderResourceViewFlags.Raw;
+                if (ViewFlags.HasFlag(BufferFlags.RawBuffer))
+                    description.Buffer.Flags |= BufferSrvFlags.Raw;
 
                 srv = GraphicsDevice.ShaderResourceViewAllocator.Allocate(1);
-                NativeDevice.CreateShaderResourceView(NativeResource, description, srv);
+                NativeDevice->CreateShaderResourceView(NativeResource, in description, srv);
             }
             return srv;
         }
@@ -193,33 +216,34 @@ namespace Stride.Graphics
         internal CpuDescriptorHandle GetUnorderedAccessView(PixelFormat viewFormat)
         {
             var uav = new CpuDescriptorHandle();
-            if ((ViewFlags & BufferFlags.UnorderedAccess) != 0)
+
+            if (ViewFlags.HasFlag(BufferFlags.UnorderedAccess))
             {
-                var description = new UnorderedAccessViewDescription
+                var description = new UnorderedAccessViewDesc
                 {
-                    Format = (SharpDX.DXGI.Format)viewFormat,
-                    Dimension = SharpDX.Direct3D12.UnorderedAccessViewDimension.Buffer,
-                    Buffer =
+                    Format = (Format) viewFormat,
+                    ViewDimension = UavDimension.Buffer,
+                    Buffer = new()
                     {
-                        ElementCount = this.ElementCount,
+                        NumElements = (uint) ElementCount,
                         FirstElement = 0,
-                        Flags = BufferUnorderedAccessViewFlags.None,
-                        StructureByteStride = StructureByteStride,
-                        CounterOffsetInBytes = 0,
+                        Flags = BufferUavFlags.None,
+                        StructureByteStride = (uint) StructureByteStride,
+                        CounterOffsetInBytes = 0
                     }
                 };
 
-                if ((ViewFlags & BufferFlags.RawBuffer) == BufferFlags.RawBuffer)
+                if (ViewFlags.HasFlag(BufferFlags.RawBuffer))
                 {
-                    description.Buffer.Flags |= BufferUnorderedAccessViewFlags.Raw;
-                    description.Format = Format.R32_Typeless;
+                    description.Buffer.Flags |= BufferUavFlags.Raw;
+                    description.Format = Format.FormatR32Typeless;
                 }
 
                 uav = GraphicsDevice.UnorderedAccessViewAllocator.Allocate(1);
 
                 // TODO: manage counter value here if buffer has 'Counter' or 'Append' flag
                 // if (Flags == BufferFlags.StructuredAppendBuffer || Flags == BufferFlags.StructuredCounterBuffer))
-                NativeDevice.CreateUnorderedAccessView(NativeResource, null, description, uav);
+                NativeDevice->CreateUnorderedAccessView(NativeResource, pCounterResource: null, in description, uav);
             }
             return uav;
         }
@@ -229,11 +253,11 @@ namespace Stride.Graphics
             if (Description.StructureByteStride == 0)
             {
                 // TODO: The way to calculate the count is not always correct depending on the ViewFlags...etc.
-                if ((ViewFlags & BufferFlags.RawBuffer) != 0)
+                if (ViewFlags.HasFlag(BufferFlags.RawBuffer))
                 {
                     count = Description.SizeInBytes / sizeof(int);
                 }
-                else if ((ViewFlags & BufferFlags.ShaderResource) != 0)
+                else if (ViewFlags.HasFlag(BufferFlags.ShaderResource))
                 {
                     count = Description.SizeInBytes / viewFormat.SizeInBytes();
                 }
@@ -250,19 +274,34 @@ namespace Stride.Graphics
             }
         }
 
-        private static SharpDX.Direct3D12.ResourceDescription ConvertToNativeDescription(GraphicsDevice graphicsDevice, BufferDescription bufferDescription)
+        private static ResourceDesc ConvertToNativeDescription(GraphicsDevice graphicsDevice, BufferDescription bufferDescription)
         {
             var flags = ResourceFlags.None;
             var size = bufferDescription.SizeInBytes;
 
             // TODO D3D12 for now, ensure size is multiple of ConstantBufferDataPlacementAlignment (for cbuffer views)
-            size = MathUtil.AlignUp(size, graphicsDevice.ConstantBufferDataPlacementAlignment);
+            size = MathUtil.AlignUp(size, D3D12.ConstantBufferDataPlacementAlignment);
 
-            if ((bufferDescription.BufferFlags & BufferFlags.UnorderedAccess) != 0)
+            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.UnorderedAccess))
                 flags |= ResourceFlags.AllowUnorderedAccess;
 
-            return SharpDX.Direct3D12.ResourceDescription.Buffer(size, flags);
+            return new ResourceDesc
+            {
+                Dimension = ResourceDimension.Buffer,
+                Width = (ulong) size,
+                Height = 1,
+                DepthOrArraySize = 1,
+                MipLevels = 1,
+                Alignment = 0,
+
+                SampleDesc = { Count = 1, Quality = 0 },
+
+                Format = Format.FormatUnknown,
+                Layout = TextureLayout.LayoutRowMajor,
+                Flags = flags
+            };
         }
     }
 }
+
 #endif
