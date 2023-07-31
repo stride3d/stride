@@ -20,7 +20,6 @@ namespace Stride.Graphics
         private const int SamplerStateCount = D3D11.CommonshaderSamplerSlotCount;
         private const int ShaderResourceViewCount = D3D11.CommonshaderInputResourceSlotCount;
         private const int SimultaneousRenderTargetCount = D3D11.SimultaneousRenderTargetCount;
-        private const int StageCount = 6;
         private const int UnorderedAcccesViewCount = D3D11.D3D111UavSlotCount;
 
         private ID3D11DeviceContext* nativeDeviceContext;
@@ -32,6 +31,8 @@ namespace Stride.Graphics
 
         private readonly ID3D11UnorderedAccessView*[] currentUARenderTargetViews = new ID3D11UnorderedAccessView*[SimultaneousRenderTargetCount];
         private readonly ID3D11UnorderedAccessView*[] unorderedAccessViews = new ID3D11UnorderedAccessView*[UnorderedAcccesViewCount]; // Only CS
+
+        private const int StageCount = 6;
 
         private readonly Buffer[] constantBuffers = new Buffer[StageCount * ConstantBufferCount];
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
@@ -683,7 +684,7 @@ namespace Stride.Graphics
         /// <param name="index">The query index.</param>
         public void WriteTimestamp(QueryPool queryPool, int index)
         {
-            var query = (ID3D11Asynchronous*) queryPool.NativeQueries[index].Query;
+            var query = (ID3D11Asynchronous*) queryPool.NativeQueries[index].Value;
 
             nativeDeviceContext->End(query);
         }
@@ -961,17 +962,6 @@ namespace Stride.Graphics
         {
             nativeDeviceContext->Unmap(mappedResource.Resource.NativeResource, (uint) mappedResource.SubResourceIndex);
         }
-
-        #region Ptr structure
-
-        // Ancillary boxing structure to store D3D COM pointers without messing with reference-counting lifetime management
-        private readonly record struct Ptr<T>(T* Pointer) where T : unmanaged
-        {
-            public static implicit operator T*(Ptr<T> ptr) => ptr.Pointer;
-            public static implicit operator Ptr<T>(T* ptr) => new(ptr);
-        }
-
-        #endregion
     }
 }
 
