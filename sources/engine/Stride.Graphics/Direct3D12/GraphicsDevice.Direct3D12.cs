@@ -16,6 +16,8 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
+        internal readonly int ConstantBufferDataPlacementAlignment = D3D12.ConstantBufferDataPlacementAlignment;
+
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D12;
 
         internal readonly ConcurrentPool<List<GraphicsResource>> StagingResourceLists = new(() => new List<GraphicsResource>());

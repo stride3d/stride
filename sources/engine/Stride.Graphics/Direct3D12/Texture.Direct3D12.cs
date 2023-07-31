@@ -41,6 +41,9 @@ namespace Stride.Graphics
 
         private int TexturePixelSize => Format.SizeInBytes();
 
+        private const int TextureRowPitchAlignment = D3D12.TextureDataPitchAlignment;
+        private const int TextureSubresourceAlignment = D3D12.TextureDataPlacementAlignment;
+
         public void Recreate(DataBox[] dataBoxes = null)
         {
             InitializeFromImpl(dataBoxes);
