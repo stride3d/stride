@@ -11,6 +11,7 @@ using System.Text;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Storage;
 using Stride.Shaders;
@@ -399,30 +400,30 @@ namespace Stride.Graphics
         // Caches
         private class DevicePipelineStateCache : IDisposable
         {
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, Ptr<ID3D11VertexShader>> VertexShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, Ptr<ID3D11PixelShader>> PixelShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, Ptr<ID3D11GeometryShader>> GeometryShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, Ptr<ID3D11HullShader>> HullShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, Ptr<ID3D11DomainShader>> DomainShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, Ptr<ID3D11ComputeShader>> ComputeShaderCache;
-            public readonly GraphicsCache<BlendStateDescription, BlendStateDescription, Ptr<ID3D11BlendState>> BlendStateCache;
-            public readonly GraphicsCache<RasterizerStateDescription, RasterizerStateDescription, Ptr<ID3D11RasterizerState>> RasterizerStateCache;
-            public readonly GraphicsCache<DepthStencilStateDescription, DepthStencilStateDescription, Ptr<ID3D11DepthStencilState>> DepthStencilStateCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, Pointer<ID3D11VertexShader>> VertexShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, Pointer<ID3D11PixelShader>> PixelShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, Pointer<ID3D11GeometryShader>> GeometryShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, Pointer<ID3D11HullShader>> HullShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, Pointer<ID3D11DomainShader>> DomainShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, Pointer<ID3D11ComputeShader>> ComputeShaderCache;
+            public readonly GraphicsCache<BlendStateDescription, BlendStateDescription, Pointer<ID3D11BlendState>> BlendStateCache;
+            public readonly GraphicsCache<RasterizerStateDescription, RasterizerStateDescription, Pointer<ID3D11RasterizerState>> RasterizerStateCache;
+            public readonly GraphicsCache<DepthStencilStateDescription, DepthStencilStateDescription, Pointer<ID3D11DepthStencilState>> DepthStencilStateCache;
 
             public DevicePipelineStateCache(GraphicsDevice graphicsDevice)
             {
                 // Shaders
-                VertexShaderCache = new(source => source.Id, source => CreateVertexShader(graphicsDevice.NativeDevice, source), source => source.Pointer->Release());
-                PixelShaderCache = new(source => source.Id, source => CreatePixelShader(graphicsDevice.NativeDevice, source), source => source.Pointer->Release());
-                GeometryShaderCache = new(source => source.Id, source => CreateGeometryShader(graphicsDevice.NativeDevice, source), source => source.Pointer->Release());
-                HullShaderCache = new(source => source.Id, source => CreateHullShader(graphicsDevice.NativeDevice, source), source => source.Pointer->Release());
-                DomainShaderCache = new(source => source.Id, source => CreateDomainShader(graphicsDevice.NativeDevice, source), source => source.Pointer->Release());
-                ComputeShaderCache = new(source => source.Id, source => CreateComputeShader(graphicsDevice.NativeDevice, source), source => source.Pointer->Release());
+                VertexShaderCache = new(source => source.Id, source => CreateVertexShader(graphicsDevice.NativeDevice, source), source => source.Value->Release());
+                PixelShaderCache = new(source => source.Id, source => CreatePixelShader(graphicsDevice.NativeDevice, source), source => source.Value->Release());
+                GeometryShaderCache = new(source => source.Id, source => CreateGeometryShader(graphicsDevice.NativeDevice, source), source => source.Value->Release());
+                HullShaderCache = new(source => source.Id, source => CreateHullShader(graphicsDevice.NativeDevice, source), source => source.Value->Release());
+                DomainShaderCache = new(source => source.Id, source => CreateDomainShader(graphicsDevice.NativeDevice, source), source => source.Value->Release());
+                ComputeShaderCache = new(source => source.Id, source => CreateComputeShader(graphicsDevice.NativeDevice, source), source => source.Value->Release());
 
                 // States
-                BlendStateCache = new(source => source, source => CreateBlendState(graphicsDevice.NativeDevice, source), source => source.Pointer->Release());
-                RasterizerStateCache = new(source => source, source => CreateRasterizerState(graphicsDevice.NativeDevice, source), source => source.Pointer->Release());
-                DepthStencilStateCache = new(source => source, source => CreateDepthStencilState(graphicsDevice.NativeDevice, source), source => source.Pointer->Release());
+                BlendStateCache = new(source => source, source => CreateBlendState(graphicsDevice.NativeDevice, source), source => source.Value->Release());
+                RasterizerStateCache = new(source => source, source => CreateRasterizerState(graphicsDevice.NativeDevice, source), source => source.Value->Release());
+                DepthStencilStateCache = new(source => source, source => CreateDepthStencilState(graphicsDevice.NativeDevice, source), source => source.Value->Release());
             }
 
             private ID3D11VertexShader* CreateVertexShader(ID3D11Device* nativeDevice, ShaderBytecode source)
@@ -599,17 +600,6 @@ namespace Stride.Graphics
                 DepthStencilStateCache.Dispose();
             }
         }
-
-        #region Ptr structure
-
-        // Ancillary boxing structure to store D3D COM pointers without messing with reference-counting lifetime management
-        private readonly record struct Ptr<T>(T* Pointer) where T : unmanaged
-        {
-            public static implicit operator T*(Ptr<T> ptr) => ptr.Pointer;
-            public static implicit operator Ptr<T>(T* ptr) => new(ptr);
-        }
-
-        #endregion
     }
 }
 

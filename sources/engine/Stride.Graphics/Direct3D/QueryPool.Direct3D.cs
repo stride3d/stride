@@ -7,6 +7,8 @@ using System;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 
+using QueryPtr = Stride.Core.Pointer<Silk.NET.Direct3D11.ID3D11Query>;
+
 namespace Stride.Graphics
 {
     public unsafe partial class QueryPool
@@ -19,7 +21,7 @@ namespace Stride.Graphics
 
             for (var index = 0; index < NativeQueries.Length; index++)
             {
-                var query = (ID3D11Asynchronous*) NativeQueries[index].Query;
+                var query = (ID3D11Asynchronous*) NativeQueries[index].Value;
 
                 HResult result = deviceContext->GetData(query, ref dataArray[index], sizeof(long), GetDataFlags: 0);
 
@@ -35,7 +37,7 @@ namespace Stride.Graphics
         {
             for (var i = 0; i < QueryCount; i++)
             {
-                NativeQueries[i].Query->Release();
+                NativeQueries[i].Value->Release();
                 NativeQueries[i] = null;
             }
             NativeQueries = null;
@@ -69,17 +71,6 @@ namespace Stride.Graphics
                 NativeQueries[i] = query;
             }
         }
-
-        #region QueryPtr structure
-
-        // Ancillary struct to store a Query without messing with its reference count (as ComPtr<T> does).
-        internal readonly record struct QueryPtr(ID3D11Query* Query)
-        {
-            public static implicit operator ID3D11Query*(QueryPtr queryPtr) => queryPtr.Query;
-            public static implicit operator QueryPtr(ID3D11Query* query) => new(query);
-        }
-
-        #endregion
     }
 }
 
