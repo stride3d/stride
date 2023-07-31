@@ -11,6 +11,8 @@ using Silk.NET.DXGI;
 using Silk.NET.Core.Native;
 using Stride.Core;
 
+using QueryPtr = Stride.Core.Pointer<Silk.NET.Direct3D11.ID3D11Query>;
+
 namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
@@ -127,7 +129,6 @@ namespace Stride.Graphics
                     result.Throw();
             }
 
-            // TODO: Implicit op calls AddRef
             currentDisjointQueries.Push(currentDisjointQuery);
 
             NativeDeviceContext->Begin((ID3D11Asynchronous*) currentDisjointQuery);
@@ -291,7 +292,7 @@ namespace Stride.Graphics
         {
             foreach (var queryPtr in disjointQueries)
             {
-                queryPtr.Query->Release();
+                queryPtr.Value->Release();
             }
             disjointQueries.Clear();
 
@@ -330,17 +331,6 @@ namespace Stride.Graphics
 
         [DllImport("kernel32.dll", EntryPoint = "GetModuleHandle", CharSet = CharSet.Unicode)]
         private static extern IntPtr GetModuleHandle(string lpModuleName);
-
-        #region QueryPtr structure
-
-        // Ancillary struct to store a Query without messing with its reference count (as ComPtr<T> does).
-        private readonly record struct QueryPtr(ID3D11Query* Query)
-        {
-            public static implicit operator ID3D11Query*(QueryPtr queryPtr) => queryPtr.Query;
-            public static implicit operator QueryPtr(ID3D11Query* query) => new(query);
-        }
-
-        #endregion
     }
 }
 
