@@ -3,18 +3,18 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
-using SharpDX.Direct3D11;
+using Silk.NET.Direct3D11;
 using Valve.VR;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
-using System.Runtime.CompilerServices;
-using System.Diagnostics;
 
 namespace Stride.VirtualReality
 {
-    internal static class OpenVR
+    internal static unsafe class OpenVR
     {
         /// <summary>Bypasses definite assignment rules for a given reference.
         /// <para>A thin wrapper around <see cref="Unsafe.SkipInit{T}(out T)"/> for the sole purpose of making it usable in an expression.</para></summary>
@@ -245,7 +245,7 @@ namespace Stride.VirtualReality
             {
                 eType = ETextureType.DirectX,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer,
+                handle = (IntPtr) texture.NativeResource
             };
             var bounds = new VRTextureBounds_t
             {
@@ -423,12 +423,12 @@ namespace Stride.VirtualReality
 
         public static Texture GetMirrorTexture(GraphicsDevice device, int eyeIndex)
         {
-            var nativeDevice = device.NativeDevice.NativePointer;
+            var nativeDevice = device.NativeDevice;
             var eyeTexSrv = IntPtr.Zero;
-            Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, nativeDevice, ref eyeTexSrv);
+            Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, (IntPtr) nativeDevice, ref eyeTexSrv);
 
             var tex = new Texture(device);
-            var srv = new ShaderResourceView(eyeTexSrv);
+            var srv = (ID3D11ShaderResourceView*) (void*) eyeTexSrv;
 
             tex.InitializeFromImpl(srv);
 
@@ -454,7 +454,7 @@ namespace Stride.VirtualReality
             {
                 eType = ETextureType.DirectX,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer,
+                handle = (IntPtr) texture.NativeResource
             };
 
             return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;
