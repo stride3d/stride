@@ -9,19 +9,10 @@ namespace Stride.Graphics
     /// </summary>
     public sealed partial class GraphicsAdapter : ComponentBase
     {
-        private readonly GraphicsOutput[] outputs;
-
         /// <summary>
-        /// Gets the <see cref="GraphicsOutput"/> attached to this adapter
+        ///   Gets the <see cref="GraphicsOutput"/>s attached to this adapter.
         /// </summary>
-        /// <returns>The <see cref="GraphicsOutput"/> attached to this adapter.</returns>
-        public GraphicsOutput[] Outputs
-        {
-            get
-            {
-                return outputs;
-            }
-        }
+        public GraphicsOutput[] Outputs { get; }
 
         /// <summary>
         /// Return the description of this adapter
@@ -33,8 +24,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// The unique id in the form of string of this device
+        ///   Gets the unique id of this device.
         /// </summary>
-        public string AdapterUid { get; internal set; }
+        public long AdapterUid { get; internal set; }
     }
 }
