@@ -7,12 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Stride.Core.Diagnostics;
-using Stride.Core.Storage;
 using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.Direct3D.Compilers;
+using Stride.Core.Diagnostics;
+using Stride.Core.Storage;
 using Stride.Graphics;
 
 namespace Stride.Shaders.Compiler.Direct3D
@@ -84,11 +84,11 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 // As effect bytecode binary can change when having debug info (with d3dcompiler_47), we are calculating a bytecodeId on the stripped version
                 var strippedByteCode = Strip(byteCode);
-                var rawData = BlobAsBytes(strippedByteCode);
-                Free(strippedByteCode);
 
-                var bytecodeId = ObjectId.FromBytes(rawData);
-                byteCodeResult.Bytecode = new ShaderBytecode(bytecodeId, BlobAsBytes(byteCode)) { Stage = stage };
+                var bytecodeId = ObjectId.FromBytes(strippedByteCode->Buffer);
+                byteCodeResult.Bytecode = new ShaderBytecode(bytecodeId, byteCode->Buffer.ToArray()) { Stage = stage };
+
+                Free(strippedByteCode);
 
                 // If compilation succeeded, then we can update reflection
                 UpdateReflection(byteCodeResult.Bytecode, reflection, byteCodeResult);
@@ -111,7 +111,8 @@ namespace Stride.Shaders.Compiler.Direct3D
             {
                 ID3D10Blob* disassembly = null;
 
-                d3dCompiler.Disassemble(byteCode, byteCode->GetBufferSize(), Flags: 0, in Unsafe.NullRef<byte>(), ref disassembly);
+                d3dCompiler.Disassemble(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), Flags: 0,
+                                        szComments: in Unsafe.NullRef<byte>(), ref disassembly);
 
                 string shaderDisassembly = GetTextFromBlob(disassembly);
                 Free(disassembly);
@@ -136,20 +137,13 @@ namespace Stride.Shaders.Compiler.Direct3D
             }
 
             /// <summary>
-            ///   Gets a byte span with the data from a blob of shader bytecode.
-            /// </summary>
-            byte[] BlobAsBytes(ID3D10Blob* blob)
-            {
-                return new ReadOnlySpan<byte>(blob->GetBufferPointer(), (int) blob->GetBufferSize()).ToArray();
-            }
-
-            /// <summary>
             ///   Gets text data from a <see cref="ID3D10Blob"/> as a <see cref="string"/>.
             /// </summary>
             static string GetTextFromBlob(ID3D10Blob* blob)
             {
-                var message = SilkMarshal.PtrToString((nint) blob->GetBufferPointer(), NativeStringEncoding.LPWStr);
-                return message;
+                return blob != null
+                    ? SilkMarshal.PtrToString((nint) blob->GetBufferPointer())
+                    : string.Empty;
             }
 
             /// <summary>
