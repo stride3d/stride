@@ -162,6 +162,9 @@ namespace Stride.Graphics
 
             foreach (var format in Enum.GetValues<Format>())
             {
+                if (format == Format.FormatForceUint)
+                    continue;
+
                 uint displayModeCount = 0;
 #if DIRECTX11_1
                 result = output1->GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, null);
