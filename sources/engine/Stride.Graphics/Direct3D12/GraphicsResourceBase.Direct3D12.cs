@@ -67,7 +67,7 @@ namespace Stride.Graphics
             if (nativeDeviceChild != null)
             {
                 // Schedule the resource for destruction (as soon as we are done with it)
-                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, new ResourcePtr(NativeResource)));
+                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, new Pointer<ID3D12Resource>(NativeResource)));
                 nativeDeviceChild = null;
             }
             NativeResource = null;
