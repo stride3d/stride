@@ -84,7 +84,12 @@ namespace Stride.Graphics
                 result.Throw();
 
             var rectangle = outputDescription.DesktopCoordinates;
-            desktopBounds = *(Rectangle*) &rectangle;
+            desktopBounds = new()
+            {
+                Location = *(Point*) &rectangle.Min,
+                Width = rectangle.Size.X,
+                Height = rectangle.Size.Y
+            };
         }
 
         /// <summary>
