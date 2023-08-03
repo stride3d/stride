@@ -57,7 +57,7 @@ namespace Stride.Graphics
             InitCountAndViewFormat(out elementCount, ref viewFormat);
             ViewFormat = viewFormat;
 
-            var subresourceData = dataPointer == IntPtr.Zero ? new SubresourceData((void*) dataPointer) : default;
+            var subresourceData = dataPointer != IntPtr.Zero ? new SubresourceData((void*) dataPointer) : default;
 
             ID3D11Buffer* pBuffer = null;
 
