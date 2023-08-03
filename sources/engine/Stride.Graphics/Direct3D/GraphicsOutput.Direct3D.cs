@@ -99,7 +99,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(targetProfiles);
 
-            var d3d11 = D3D11.GetApi();
+            var d3d11 = D3D11.GetApi(window: null);
 
             // NOTE: Assume the same underlying integer type
             Debug.Assert(sizeof(GraphicsProfile) == sizeof(D3DFeatureLevel));
