@@ -285,6 +285,19 @@ namespace Stride.Core.Storage
         /// <param name="buffer">The byte buffer.</param>
         /// <returns>The hash of the object.</returns>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
+        public static ObjectId FromBytes(ReadOnlySpan<byte> buffer)
+        {
+            var builder = new ObjectIdBuilder();
+            builder.Write(buffer);
+            return builder.ComputeHash();
+        }
+
+        /// <summary>
+        /// Computes a hash from a byte buffer.
+        /// </summary>
+        /// <param name="buffer">The byte buffer.</param>
+        /// <returns>The hash of the object.</returns>
+        /// <exception cref="System.ArgumentNullException">buffer</exception>
         public static ObjectId FromBytes([NotNull] byte[] buffer)
         {
             if (buffer == null) throw new ArgumentNullException(nameof(buffer));
