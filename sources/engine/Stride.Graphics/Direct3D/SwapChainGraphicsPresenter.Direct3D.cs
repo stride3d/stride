@@ -33,7 +33,7 @@ using Silk.NET.DXGI;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using BackBufferResourceType = Silk.NET.Direct3D11.ID3D11Texture2D;
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
-using BackBufferResourceType = SharpDX.Direct3D12.Resource;
+using BackBufferResourceType = Silk.NET.Direct3D12.ID3D12Resource;
 #endif
 
 namespace Stride.Graphics
@@ -55,7 +55,7 @@ namespace Stride.Graphics
         private int bufferCount;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
-        private int bufferSwapIndex;
+        private uint bufferSwapIndex;
 #endif
 
         public SwapChainGraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
@@ -273,7 +273,7 @@ namespace Stride.Graphics
                 ? DXGI.PresentAllowTearing
                 : 0;
 
-            HResult result = swapChain->Present((uint) presentInterval, (uint) presentFlags);
+            HResult result = swapChain->Present((uint) presentInterval,  presentFlags);
 
             if (result.IsFailure)
             {
@@ -286,7 +286,7 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_DIRECT3D12
             // Manually swap back buffer
             backBuffer.NativeResource->Release();
-            bufferSwapIndex = (++bufferSwapIndex) % bufferCount;
+            bufferSwapIndex = (uint)((++bufferSwapIndex) % bufferCount);
             var nextBackBuffer = GetBackBuffer<BackBufferResourceType>(bufferSwapIndex);
             backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb());
 #endif

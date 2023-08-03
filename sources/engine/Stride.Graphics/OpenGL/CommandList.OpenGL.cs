@@ -89,7 +89,7 @@ namespace Stride.Graphics
 
         public void Flush()
         {
-            
+
         }
 
         public CompiledCommandList Close()
@@ -1071,7 +1071,7 @@ namespace Stride.Graphics
 
             return new MappedResource(texture, subResourceIndex, new DataBox { DataPointer = mapResult, SlicePitch = texture.ComputeSlicePitch(mipLevel), RowPitch = texture.ComputeRowPitch(mipLevel) }, offsetInBytes, lengthInBytes)
             {
-                PixelBufferObjectId = pixelBufferObjectId,
+                PixelBufferObjectId = pixelBufferObjectId
             };
         }
 
@@ -1343,7 +1343,7 @@ namespace Stride.Graphics
 
             throw new NotSupportedException();
         }
-        
+
         /// <summary>
         /// Unsets an unordered access view from the shader pipeline.
         /// </summary>
