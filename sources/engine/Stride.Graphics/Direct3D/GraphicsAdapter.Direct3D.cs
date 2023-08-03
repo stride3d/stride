@@ -94,13 +94,16 @@ namespace Stride.Graphics
 
             uint outputIndex = 0;
             var outputsList = new List<GraphicsOutput>();
+            bool foundValidOutput;
 
             do
             {
                 IDXGIOutput* output;
                 result = adapter->EnumOutputs(outputIndex, &output);
 
-                if (result == DXGI_ERROR_NOT_FOUND)
+                foundValidOutput = result.IsSuccess && result.Code != DXGI_ERROR_NOT_FOUND;
+
+                if (!foundValidOutput)
                     break;
 
                 var gfxOutput = new GraphicsOutput(adapter: this, output, (int) outputIndex);
@@ -108,7 +111,7 @@ namespace Stride.Graphics
 
                 outputIndex++;
             }
-            while (result.Code != DXGI_ERROR_NOT_FOUND);
+            while (foundValidOutput);
 
             Outputs = outputsList.ToArray();
 
