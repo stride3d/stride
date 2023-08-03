@@ -65,7 +65,10 @@ namespace Stride.Graphics
                 IDXGIAdapter1* dxgiAdapter;
                 result = NativeFactory->EnumAdapters1(adapterIndex, &dxgiAdapter);
 
-                var adapter = new GraphicsAdapter(NativeFactory, (int) adapterIndex);
+                if (result.Code != DXGI_ERROR_NOT_FOUND)
+                    break;
+
+                var adapter = new GraphicsAdapter(dxgiAdapter, (int) adapterIndex);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
 

@@ -72,48 +72,43 @@ namespace Stride.Graphics
         /// <summary>
         ///   Initializes a new instance of the <see cref="GraphicsAdapter"/> class.
         /// </summary>
-        /// <param name="defaultFactory">The default factory.</param>
+        /// <param name="adapter">The DXGI adapter.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(IDXGIFactory1* defaultFactory, int adapterOrdinal)
+        internal GraphicsAdapter(IDXGIAdapter1* adapter, int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
 
-            IDXGIAdapter1* adapter = null;
-            HResult result = defaultFactory->EnumAdapters1((uint) adapterOrdinal, &adapter);
-
-            if (result.IsFailure)
-                result.Throw();
-
             NativeAdapter = adapter;
 
-            result = NativeAdapter->GetDesc1(ref adapterDesc);
+            HResult result = NativeAdapter->GetDesc1(ref adapterDesc);
 
             if (result.IsFailure)
                 result.Throw();
 
             fixed (char* descString = adapterDesc.Description)
-                adapterDescriptionString = SilkMarshal.PtrToString((nint) descString);
+                adapterDescriptionString = SilkMarshal.PtrToString((nint) descString, NativeStringEncoding.LPWStr);
 
             var nativeOutputs = new List<GraphicsOutput>();
 
             const int DXGI_ERROR_NOT_FOUND = unchecked((int) 0x887A0002);
 
-            result = 0;
             uint outputIndex = 0;
             var outputsList = new List<GraphicsOutput>();
 
             do
             {
-                IDXGIOutput* output = null;
-                result = adapter->EnumOutputs(outputIndex, ref output);
+                IDXGIOutput* output;
+                result = adapter->EnumOutputs(outputIndex, &output);
 
                 if (result == DXGI_ERROR_NOT_FOUND)
                     break;
 
-                var gfxOutput = new GraphicsOutput(this, output, (int) outputIndex);
+                var gfxOutput = new GraphicsOutput(adapter: this, output, (int) outputIndex);
                 outputsList.Add(gfxOutput);
+
+                outputIndex++;
             }
-            while (true);
+            while (result.Code != DXGI_ERROR_NOT_FOUND);
 
             Outputs = outputsList.ToArray();
 
