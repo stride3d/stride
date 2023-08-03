@@ -4,8 +4,10 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
 using System;
+using System.Diagnostics;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
+using Stride.Core;
 
 namespace Stride.Graphics
 {
@@ -28,15 +30,30 @@ namespace Stride.Graphics
 
             set
             {
+                if (nativeDeviceChild == value)
+                    return;
+
+                var oldDeviceChild = nativeDeviceChild;
+                if (oldDeviceChild != null)
+                    oldDeviceChild->Release();
+
                 nativeDeviceChild = value;
+                if (nativeDeviceChild != null)
+                    nativeDeviceChild->AddRef();
+                else
+                    return;
+
+                Debug.Assert(nativeDeviceChild != null);
 
                 ID3D12Resource* d3d12Resource;
                 HResult result = nativeDeviceChild->QueryInterface(SilkMarshal.GuidPtrOf<ID3D12Resource>(), (void**) &d3d12Resource);
 
-                if (result.IsFailure)
-                    result.Throw();
-
-                NativeResource = d3d12Resource;
+                // The device child can be something that is not a Direct3D resource actually,
+                // like a Sampler State, for example
+                if (result.IsSuccess)
+                {
+                    NativeResource = d3d12Resource;
+                }
 
                 // Associate PrivateData to this DeviceResource
                 SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
