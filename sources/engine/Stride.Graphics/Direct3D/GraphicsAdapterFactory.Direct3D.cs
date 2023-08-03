@@ -24,7 +24,7 @@ namespace Stride.Graphics
         {
             staticCollector.Dispose();
 
-            var dxgi = DXGI.GetApi();
+            var dxgi = DXGI.GetApi(window: null);
 
 #if STRIDE_PLATFORM_UWP || DIRECTX11_1
 

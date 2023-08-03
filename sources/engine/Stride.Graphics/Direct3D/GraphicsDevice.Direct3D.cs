@@ -235,7 +235,7 @@ namespace Stride.Graphics
                         level = D3DFeatureLevel.Level110;
                 }
 
-                var d3d11 = D3D11.GetApi();
+                var d3d11 = D3D11.GetApi(window: null);
 
                 var featureLevels = stackalloc D3DFeatureLevel[] { level };
                 ID3D11Device* device = null;
