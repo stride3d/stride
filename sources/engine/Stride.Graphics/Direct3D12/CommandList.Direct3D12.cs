@@ -10,6 +10,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
+using Stride.Core;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
@@ -28,7 +29,7 @@ namespace Stride.Graphics
         private readonly Dictionary<nuint, GpuDescriptorHandle> srvMapping = new();
         private readonly Dictionary<nuint, GpuDescriptorHandle> samplerMapping = new();
 
-        internal readonly Queue<CommandListPtr> NativeCommandLists = new();
+        internal readonly Queue<Pointer<ID3D12GraphicsCommandList>> NativeCommandLists = new();
 
         private CompiledCommandList currentCommandList;
 
@@ -94,7 +95,7 @@ namespace Stride.Graphics
 
             while (NativeCommandLists.Count > 0)
             {
-                var commandList = NativeCommandLists.Dequeue().CommandList;
+                var commandList = NativeCommandLists.Dequeue().Value;
                 commandList->Release();
             }
 
@@ -1179,7 +1180,7 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, new ResourcePtr(nativeUploadTexture)));
+                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, new Pointer<ID3D12Resource>(nativeUploadTexture)));
 
                 result = nativeUploadTexture->WriteToSubresource(DstSubresource: 0, pDstBox: null,
                                                                  (void*) databox.DataPointer, (uint) databox.RowPitch, (uint) databox.SlicePitch);

@@ -9,6 +9,7 @@ using System.Threading;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 using Silk.NET.DXGI;
+using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Threading;
 
@@ -21,7 +22,7 @@ namespace Stride.Graphics
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D12;
 
         internal readonly ConcurrentPool<List<GraphicsResource>> StagingResourceLists = new(() => new List<GraphicsResource>());
-        internal readonly ConcurrentPool<List<HeapPtr>> DescriptorHeapLists = new(() => new List<HeapPtr>());
+        internal readonly ConcurrentPool<List<ComPtr<ID3D12DescriptorHeap>>> DescriptorHeapLists = new(() => new List<ComPtr<ID3D12DescriptorHeap>>());
 
         private bool simulateReset = false;
         private string rendererName;
@@ -66,7 +67,7 @@ namespace Stride.Graphics
         // Temporary or destroyed resources kept around until the GPU doesn't need them anymore
         internal Queue<(ulong FenceValue, object Resource)> TemporaryResources = new();
 
-        private readonly FastList<CommandListPtr> nativeCommandLists = new();
+        private readonly FastList<Pointer<ID3D12GraphicsCommandList>> nativeCommandLists = new();
 
         /// <summary>
         /// The tick frquency of timestamp queries in Hertz.
@@ -181,7 +182,7 @@ namespace Stride.Graphics
             }
 
             // Submit and signal the fence
-            var commandListToExecute = (ID3D12CommandList*) nativeCommandLists.Items[0].CommandList;
+            var commandListToExecute = (ID3D12CommandList*) nativeCommandLists.Items[0].Value;
             NativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
 
             HResult result = NativeCommandQueue->Signal(nativeFence, fenceValue);
@@ -421,7 +422,8 @@ namespace Stride.Graphics
                 if (nativeUploadBuffer != null)
                 {
                     nativeUploadBuffer->Unmap(Subresource: 0, pWrittenRange: null);
-                    var nativeUploadBufferPtr = new ResourcePtr(nativeUploadBuffer);
+
+                    Pointer<ID3D12Resource> nativeUploadBufferPtr = nativeUploadBuffer;
                     TemporaryResources.Enqueue((NextFenceValue, nativeUploadBufferPtr));
                 }
 
@@ -497,9 +499,9 @@ namespace Stride.Graphics
                 {
                     var temporaryResource = TemporaryResources.Dequeue().Resource;
 
-                    if (temporaryResource is ResourcePtr comObject)
+                    if (temporaryResource is Pointer<ID3D12Resource> resource)
                     {
-                        comObject.Resource->Release();
+                        resource.Value->Release();
                     }
                     else if (temporaryResource is GraphicsResourceLink referenceLink)
                     {
@@ -672,11 +674,10 @@ namespace Stride.Graphics
         }
 
         internal abstract class ResourcePool<T> : IDisposable
-            //where T : IComVtbl<ID3D12Pageable>
-            where T : IDisposable
+            where T : unmanaged, IComVtbl<ID3D12Pageable>, IComVtbl<T>
         {
             protected readonly GraphicsDevice GraphicsDevice;
-            private readonly Queue<KeyValuePair<ulong, T>> liveObjects = new();
+            private readonly Queue<(ulong, ComPtr<T>)> liveObjects = new();
 
             protected ResourcePool(GraphicsDevice graphicsDevice)
             {
@@ -687,15 +688,15 @@ namespace Stride.Graphics
             {
                 lock (liveObjects)
                 {
-                    foreach (var liveObject in liveObjects)
+                    foreach (var (_, liveObject) in liveObjects)
                     {
-                        liveObject.Value.Dispose();
+                        liveObject.Dispose();
                     }
                     liveObjects.Clear();
                 }
             }
 
-            public T GetObject()
+            public T* GetObject()
             {
                 // TODO D3D12: SpinLock
                 lock (liveObjects)
@@ -703,18 +704,17 @@ namespace Stride.Graphics
                     // Check if first allocator is ready for reuse
                     if (liveObjects.Count > 0)
                     {
-                        var firstAllocator = liveObjects.Peek();
-                        if (firstAllocator.Key <= GraphicsDevice.nativeFence->GetCompletedValue())
+                        var (key, firstAllocator) = liveObjects.Peek();
+                        if (key <= GraphicsDevice.nativeFence->GetCompletedValue())
                         {
                             liveObjects.Dequeue();
-                            ResetObject(firstAllocator.Value);
+                            ResetObject(firstAllocator);
 
-                            if (firstAllocator.Value == null)
+                            if (firstAllocator.Handle == null)
                             {
-
                             }
 
-                            return firstAllocator.Value;
+                            return firstAllocator;
                         }
                     }
 
@@ -722,27 +722,28 @@ namespace Stride.Graphics
                 }
             }
 
-            protected abstract T CreateObject();
+            protected abstract T* CreateObject();
 
-            protected abstract void ResetObject(T obj);
+            protected abstract void ResetObject(T* obj);
 
-            public void RecycleObject(ulong fenceValue, T obj)
+            public void RecycleObject(ulong fenceValue, T* obj)
             {
                 // TODO D3D12: SpinLock
                 lock (liveObjects)
                 {
-                    liveObjects.Enqueue(new KeyValuePair<ulong, T>(fenceValue, obj));
+                    var comPtr = new ComPtr<T> { Handle = obj };
+                    liveObjects.Enqueue((fenceValue, comPtr));
                 }
             }
         }
 
-        internal class CommandAllocatorPool : ResourcePool<CommandAllocatorPtr>
+        internal class CommandAllocatorPool : ResourcePool<ID3D12CommandAllocator>
         {
             public CommandAllocatorPool(GraphicsDevice graphicsDevice) : base(graphicsDevice)
             {
             }
 
-            protected override CommandAllocatorPtr CreateObject()
+            protected override ID3D12CommandAllocator* CreateObject()
             {
                 // No allocator ready to be used, let's create a new one
                 ID3D12CommandAllocator* commandAllocator;
@@ -755,16 +756,16 @@ namespace Stride.Graphics
                 return commandAllocator;
             }
 
-            protected override void ResetObject(CommandAllocatorPtr obj)
+            protected override void ResetObject(ID3D12CommandAllocator* obj)
             {
-                HResult result = obj.Allocator->Reset();
+                HResult result = obj->Reset();
 
                 if (result.IsFailure)
                     result.Throw();
             }
         }
 
-        internal class HeapPool : ResourcePool<HeapPtr>
+        internal class HeapPool : ResourcePool<ID3D12DescriptorHeap>
         {
             private readonly int heapSize;
             private readonly DescriptorHeapType heapType;
@@ -775,7 +776,7 @@ namespace Stride.Graphics
                 this.heapType = heapType;
             }
 
-            protected override HeapPtr CreateObject()
+            protected override ID3D12DescriptorHeap* CreateObject()
             {
                 // No allocator ready to be used, let's create a new one
                 var descriptorHeapDesc = new DescriptorHeapDesc
@@ -795,27 +796,10 @@ namespace Stride.Graphics
                 return descriptorHeap;
             }
 
-            protected override void ResetObject(HeapPtr obj)
+            protected override void ResetObject(ID3D12DescriptorHeap* obj)
             {
             }
         }
-
-        #region CommandAllocatorPtr structure
-
-        // Ancillary struct to store a Command Allocator without messing with its reference count (as ComPtr<T> does).
-        internal readonly record struct CommandAllocatorPtr(ID3D12CommandAllocator* Allocator) : IDisposable
-        {
-            public static implicit operator ID3D12CommandAllocator*(CommandAllocatorPtr allocatorPtr) => allocatorPtr.Allocator;
-            public static implicit operator CommandAllocatorPtr(ID3D12CommandAllocator* allocator) => new(allocator);
-
-            public void Dispose()
-            {
-                if (Allocator != null)
-                    Allocator->Release();
-            }
-        }
-
-        #endregion
 
         /// <summary>
         /// Allocate descriptor handles. For now a simple bump alloc, but at some point we will have to make a real allocator with free
@@ -880,28 +864,6 @@ namespace Stride.Graphics
             }
         }
     }
-
-    #region CommandListPtr structure
-
-    // Ancillary struct to store a Command List without messing with its reference count (as ComPtr<T> does).
-    internal readonly unsafe record struct CommandListPtr(ID3D12GraphicsCommandList* CommandList)
-    {
-        public static implicit operator ID3D12GraphicsCommandList*(CommandListPtr commandListPtr) => commandListPtr.CommandList;
-        public static implicit operator CommandListPtr(ID3D12GraphicsCommandList* commandList) => new(commandList);
-    }
-
-    #endregion
-
-    #region ResourcePtr structure
-
-    // Ancillary struct to store a Resource without messing with its reference count (as ComPtr<T> does).
-    internal readonly unsafe record struct ResourcePtr(ID3D12Resource* Resource)
-    {
-        public static implicit operator ID3D12Resource*(ResourcePtr resourcePtr) => resourcePtr.Resource;
-        public static implicit operator ResourcePtr(ID3D12Resource* resource) => new(resource);
-    }
-
-    #endregion
 }
 
 #endif
