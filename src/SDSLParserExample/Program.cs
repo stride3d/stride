@@ -177,6 +177,18 @@ void CreateMixin()
         .FinishInherit()
         .WithType("float4x3")
         .WithType("half3x3")
+        .WithConstant("a",5)
+        .WithEntryPoint(ExecutionModel.Vertex,"VSMain")
+            .WithInput("float3", "in_position")
+            .WithInput("float3", "in_normal")
+            .WithInput("float3", "in_color")
+            .WithOutput("float3", "out_color")
+            .FunctionStart()
+                .Declare("int", "a")
+                .StoreInt("a",5)
+                .Return()
+            .FunctionEnd()
+        .FinishEntryPoint()
         .Build();
 
     Console.WriteLine(mA);
