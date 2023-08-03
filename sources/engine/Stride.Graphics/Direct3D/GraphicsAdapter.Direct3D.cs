@@ -135,7 +135,7 @@ namespace Stride.Graphics
 
             // Check and min/max cached values
 
-            var d3d11 = D3D11.GetApi();
+            var d3d11 = D3D11.GetApi(window: null);
 
             ID3D11Device* device = null;
             ID3D11DeviceContext* deviceContext = null;
