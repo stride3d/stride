@@ -41,18 +41,19 @@ namespace Stride.Graphics
                 nativeDeviceChild = value;
                 if (nativeDeviceChild != null)
                     nativeDeviceChild->AddRef();
+                else
+                    return;
 
                 Debug.Assert(nativeDeviceChild != null);
 
-                void* d3dResource = null;
+                HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D11Resource> d3dResource);
 
-                var iidID3DResource = SilkMarshal.GuidPtrOf<ID3D11Resource>();
-                HResult result = nativeDeviceChild->QueryInterface(iidID3DResource, ref d3dResource);
-
-                if (result.IsFailure)
-                    result.Throw();
-
-                nativeResource = (ID3D11Resource*) d3dResource;
+                // The device child can be something that is not a Direct3D resource actually,
+                // like a Sampler State, for example
+                if (result.IsSuccess)
+                {
+                    nativeResource = (ID3D11Resource*) d3dResource;
+                }
 
                 SetDebugName(nativeDeviceChild, Name);
             }

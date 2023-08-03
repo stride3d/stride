@@ -338,7 +338,9 @@ namespace Stride.Graphics
             Texture2DDesc description = ConvertToNativeDescription2D();
             SubresourceData[] initiatDataPerSubresource = ConvertDataBoxes(initialData);
 
-            HResult result = NativeDevice->CreateTexture2D(in description, in initiatDataPerSubresource[0], &texture2D);
+            HResult result = initiatDataPerSubresource is null
+                ? NativeDevice->CreateTexture2D(in description, pInitialData: null, &texture2D)
+                : NativeDevice->CreateTexture2D(in description, in initiatDataPerSubresource[0], &texture2D);
 
             if (result.IsFailure)
                 result.Throw();
