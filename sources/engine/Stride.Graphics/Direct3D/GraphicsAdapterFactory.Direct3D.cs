@@ -59,13 +59,15 @@ namespace Stride.Graphics
 
             uint adapterIndex = 0;
             var adapterList = new List<GraphicsAdapter>();
+            bool foundValidAdapter;
 
             do
             {
                 IDXGIAdapter1* dxgiAdapter;
                 result = NativeFactory->EnumAdapters1(adapterIndex, &dxgiAdapter);
 
-                if (result.Code != DXGI_ERROR_NOT_FOUND)
+                foundValidAdapter = result.IsSuccess && result.Code != DXGI_ERROR_NOT_FOUND;
+                if (!foundValidAdapter)
                     break;
 
                 var adapter = new GraphicsAdapter(dxgiAdapter, (int) adapterIndex);
@@ -74,7 +76,7 @@ namespace Stride.Graphics
 
                 adapterIndex++;
 
-            } while (result.Code != DXGI_ERROR_NOT_FOUND);
+            } while (foundValidAdapter);
 
             defaultAdapter = adapterList.Count > 0 ? adapterList[0] : null;
             adapters = adapterList.ToArray();
