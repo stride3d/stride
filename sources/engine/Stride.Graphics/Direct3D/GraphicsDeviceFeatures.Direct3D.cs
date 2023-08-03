@@ -76,6 +76,9 @@ namespace Stride.Graphics
             // Check features for each DXGI.Format
             foreach (var format in Enum.GetValues<Format>())
             {
+                if (format == Format.FormatForceUint)
+                    continue;
+
                 if (ObsoleteFormatToExcludes.Contains(format))
                     continue;
 
