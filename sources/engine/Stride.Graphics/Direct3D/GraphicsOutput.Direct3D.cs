@@ -77,9 +77,8 @@ namespace Stride.Graphics
             this.adapter = adapter;
 
             NativeOutput = nativeOutput;
-            NativeOutput->AddRef();
 
-            HResult result = NativeOutput->GetDesc(ref outputDescription);
+            HResult result = nativeOutput->GetDesc(ref outputDescription);
 
             if (result.IsFailure)
                 result.Throw();
