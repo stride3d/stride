@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
-using Stride.Graphics.Direct3D;
 
 namespace Stride.Graphics
 {
@@ -296,10 +295,10 @@ namespace Stride.Graphics
             }
 
             if (bufferDescription.BufferFlags.HasFlag(BufferFlags.RawBuffer))
-                bufferDesc.MiscFlags |= (uint) MiscFlags.BUFFER_ALLOW_RAW_VIEWS;
+                bufferDesc.MiscFlags |= (uint) ResourceMiscFlag.BufferAllowRawViews;
 
             if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ArgumentBuffer))
-                bufferDesc.MiscFlags |= (uint) MiscFlags.DRAWINDIRECT_ARGS;
+                bufferDesc.MiscFlags |= (uint) ResourceMiscFlag.DrawindirectArgs;
 
             if (bufferDescription.BufferFlags.HasFlag(BufferFlags.StreamOutput))
                 bufferDesc.BindFlags |= (uint) BindFlag.StreamOutput;
