@@ -1,24 +1,10 @@
-﻿using Eto.Parse;
-using Eto.Parse.Grammars;
-using SDSL.Parsing;
-using SDSL.Parsing.Grammars.Expression;
-using System.Diagnostics;
-using System.Linq;
-using Stride.Core.Shaders.Grammar;
-using Stride.Core.Shaders;
-using Stride.Core.Shaders.Parser;
-using Stride.Core.Shaders.Grammar.Stride;
-using SDSL.Parsing.AST.Shader;
-using SDSL.Mixing;
-using SDSL.ThreeAddress;
+﻿using SDSL.Parsing.AST.Shader;
 using SDSL.Parsing.AST.Shader.Analysis;
-using System.Text;
-using SPIRVCross;
-using static SPIRVCross.SPIRV;
-using SoftTouch.Spirv.Core;
-using static Spv.Specification;
 using SDSLParserExample;
 using SoftTouch.Spirv;
+using SoftTouch.Spirv.Core;
+using SoftTouch.Spirv.Core.Buffers;
+using static Spv.Specification;
 
 static void ThreeAddress()
 {
@@ -238,11 +224,6 @@ static void ParseWorking()
 CreateMixin();
 
 
-
-var x = 0;
-
-
-
-// CrossShader();
+//CrossShader();
 
 // ThreeAddress();
