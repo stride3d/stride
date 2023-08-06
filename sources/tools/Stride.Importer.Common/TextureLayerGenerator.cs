@@ -13,19 +13,13 @@ namespace Stride.Importer.Common
 {
     public class TextureLayerGenerator
     {
-        public static ShaderClassSource GenerateTextureLayer(string vfsOutputPath, string sourceTextureFile, int textureUVSetIndex, Vector2 textureUVscaling,
-                                        ref int textureCount, ParameterKey<Texture> surfaceMaterialKey, Mesh meshData, Logger logger)
+        public static ShaderClassSource GenerateTextureLayer(string vfsOutputPath, string sourceTextureFile, int textureUVSetIndex, Vector2 textureUVscaling,ref int textureCount, ParameterKey<Texture> surfaceMaterialKey, Mesh meshData, Logger logger)
         {
             ParameterKey<Texture> parameterKey;
 
-            var url = vfsOutputPath + "_" + Path.GetFileNameWithoutExtension(sourceTextureFile);
-
-            if (File.Exists(sourceTextureFile))
+            if (File.Exists(sourceTextureFile) && logger != null)
             {
-                if (logger != null)
-                {
-                    logger.Warning($"The texture '{sourceTextureFile}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", CallerInfo.Get());
-                }
+                logger.Warning($"The texture '{sourceTextureFile}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", CallerInfo.Get());
             }
 
             parameterKey = ParameterKeys.IndexedKey(surfaceMaterialKey, textureCount++);
@@ -46,14 +40,10 @@ namespace Stride.Importer.Common
         public static ComputeTextureColor GenerateMaterialTextureNode(string vfsOutputPath, string sourceTextureFile, uint textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU, TextureAddressMode addressModeV, Logger logger)
         {
             var textureFileName = Path.GetFileNameWithoutExtension(sourceTextureFile);
-            var url = vfsOutputPath + "_" + textureFileName;
 
-            if (File.Exists(sourceTextureFile))
+            if (File.Exists(sourceTextureFile) && logger != null)
             {
-                if (logger != null)
-                {
-                    logger.Warning($"The texture '{sourceTextureFile}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", CallerInfo.Get());
-                }
+                logger.Warning($"The texture '{sourceTextureFile}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", CallerInfo.Get());
             }
 
             var uvScaling = textureUVscaling;

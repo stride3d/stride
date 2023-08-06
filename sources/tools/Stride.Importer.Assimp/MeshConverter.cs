@@ -3,15 +3,10 @@ using Stride.Core.Mathematics;
 using Stride.Rendering;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Silk.NET.Assimp;
 using Mesh = Stride.Rendering.Mesh;
 using Stride.Core.IO;
 using Stride.Rendering.Materials;
-using Material = Silk.NET.Assimp.Material;
 using Stride.Assets.Materials;
 using System.Globalization;
 using Stride.Graphics;
@@ -35,8 +30,6 @@ namespace Stride.Importer.Assimp
 
         public bool AllowUnsignedBlendIndices { get; set; }
 
-        private readonly Stopwatch internalStopWatch = new();
-
         // Conversion data
 
         private string vfsInputFilename;
@@ -49,8 +42,8 @@ namespace Stride.Importer.Assimp
         private Matrix rootTransformInverse;
         private Model modelData;
 
-        private readonly List<ModelNodeDefinition> nodes = new List<ModelNodeDefinition>();
-        private readonly Dictionary<string, int> textureNameCount = new Dictionary<string, int>();
+        private readonly List<ModelNodeDefinition> nodes = new();
+        private readonly Dictionary<string, int> textureNameCount = new();
 
         public MeshConverter(Logger logger)
         {
@@ -209,10 +202,10 @@ namespace Stride.Importer.Assimp
                             };
                         }
 
-                        if (meshInfo.HasSkinningPosition)
+                        if (meshInfo.HasSkinningPosition && meshInfo.TotalClusterCount > 0)
                             nodeMeshData.Parameters.Set(MaterialKeys.HasSkinningPosition, true);
 
-                        if (meshInfo.HasSkinningNormal)
+                        if (meshInfo.HasSkinningNormal && meshInfo.TotalClusterCount > 0)
                             nodeMeshData.Parameters.Set(MaterialKeys.HasSkinningNormal, true);
 
                         modelData.Meshes.Add(nodeMeshData);
@@ -325,7 +318,7 @@ namespace Stride.Importer.Assimp
         {
             var animationCurve = new AnimationCurve<Vector3>();
 
-            // Switch to cubic implicit interpolation mode for Vector3
+                // Switch to cubic implicit interpolation mode for Vector3
             animationCurve.InterpolationType = AnimationCurveInterpolationType.Cubic;
 
             var lastKeyTime = new CompressedTimeSpan();
@@ -361,10 +354,9 @@ namespace Stride.Importer.Assimp
 
             animationClip.AddCurve(partialTargetName, animationCurve, false);
 
-            if (nbKeys > 0)
+            if (nbKeys > 0 && animationClip.Duration < lastKeyTime)
             {
-                if (animationClip.Duration < lastKeyTime)
-                    animationClip.Duration = lastKeyTime;
+                animationClip.Duration = lastKeyTime;
             }
         }
 
@@ -390,10 +382,9 @@ namespace Stride.Importer.Assimp
 
             animationClip.AddCurve(partialTargetName, animationCurve, false);
 
-            if (nbKeys > 0)
+            if (nbKeys > 0 && animationClip.Duration < lastKeyTime)
             {
-                if (animationClip.Duration < lastKeyTime)
-                    animationClip.Duration = lastKeyTime;
+                animationClip.Duration = lastKeyTime;
             }
         }
 
@@ -775,12 +766,12 @@ namespace Stride.Importer.Assimp
                                 if (AllowUnsignedBlendIndices)
                                     ((ushort*)(vbPointer + blendIndicesOffset))[bone] = (ushort)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
                                 else
-                                    ((short*)(vbPointer + blendIndicesOffset))[bone] = (short)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
+                                    ((short*)(vbPointer + blendIndicesOffset))[bone] = vertexIndexToBoneIdWeight[(int)i][bone].Item1;
                             }
                             else
                             {
                                 if (AllowUnsignedBlendIndices)
-                                    ((byte*)(vbPointer + blendIndicesOffset))[bone] = (byte)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
+                                    (vbPointer + blendIndicesOffset)[bone] = (byte)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
                                 else
                                     ((sbyte*)(vbPointer + blendIndicesOffset))[bone] = (sbyte)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
                             }
@@ -913,7 +904,6 @@ namespace Stride.Importer.Assimp
             {
                 var lMaterial = scene->MMaterials[i];
 
-
                 var aiMaterial = new AssimpString();
                 var materialName = assimp.GetMaterialString(lMaterial, Silk.NET.Assimp.Assimp.MaterialNameBase, 0, 0, ref aiMaterial) == Return.ReturnSuccess ? aiMaterial.AsString : "Material";
                 baseNames.Add(materialName);
@@ -926,29 +916,64 @@ namespace Stride.Importer.Assimp
         {
             var finalMaterial = new MaterialAsset();
 
-            // TODO: Add support for all missing texture / material property types
+            float specPower = 0;
+            float opacity = 0;
 
-            var hasDiffColor = false;
-            var hasSpecColor = false;
+            bool hasDiffColor = false;
+            bool hasSpecColor = false;
+            bool hasAmbientColor = false;
+            bool hasEmissiveColor = false;
+            bool hasReflectiveColor = false;
+            bool hasSpecPower = false;
+            bool hasOpacity = false;
+
             var diffColor = System.Numerics.Vector4.Zero;
             var specColor = System.Numerics.Vector4.Zero;
+            var ambientColor = System.Numerics.Vector4.Zero;
+            var emissiveColor = System.Numerics.Vector4.Zero;
+            var reflectiveColor = System.Numerics.Vector4.Zero;
             var dummyColor = System.Numerics.Vector4.Zero;
 
-            if (assimp.GetMaterialColor(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorDiffuseBase, 0, 0, ref diffColor) == Return.ReturnSuccess) // always keep black color for diffuse
-            {
-                hasDiffColor = true;
-            }
-
-            if (assimp.GetMaterialColor(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorSpecularBase, 0, 0, ref specColor) == Return.ReturnSuccess)
-            {
-                hasSpecColor = true;
-            }
+            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorDiffuseBase, ref hasDiffColor, ref diffColor, true);// always keep black color for diffuse
+            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorSpecularBase, ref hasSpecColor, ref specColor, IsNotBlackColor(specColor));
+            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorAmbientBase, ref hasAmbientColor, ref ambientColor, IsNotBlackColor(specColor));
+            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorEmissiveBase, ref hasEmissiveColor, ref emissiveColor, IsNotBlackColor(emissiveColor));
+            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorReflectiveBase, ref hasReflectiveColor, ref reflectiveColor, IsNotBlackColor(reflectiveColor));
+            SetMaterialFloatArrayFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialShininessBase, ref hasSpecPower, specPower, specPower > 0);
+            SetMaterialFloatArrayFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialOpacityBase, ref hasOpacity, opacity, opacity < 1.0);
 
             BuildLayeredSurface(pMaterial, hasDiffColor, false, diffColor.ToStrideColor(), 0.0f, TextureType.TextureTypeDiffuse, finalMaterial);
             BuildLayeredSurface(pMaterial, hasSpecColor, false, specColor.ToStrideColor(), 0.0f, TextureType.TextureTypeSpecular, finalMaterial);
             BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.TextureTypeNormals, finalMaterial);
+            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.TextureTypeDisplacement, finalMaterial);
+            BuildLayeredSurface(pMaterial, hasAmbientColor, false, ambientColor.ToStrideColor(), 0.0f, TextureType.TextureTypeAmbient, finalMaterial);
+            BuildLayeredSurface(pMaterial, false, hasOpacity, dummyColor.ToStrideColor(), opacity, TextureType.TextureTypeOpacity, finalMaterial);
+            BuildLayeredSurface(pMaterial, false, hasSpecPower, dummyColor.ToStrideColor(), specPower, TextureType.TextureTypeShininess, finalMaterial);
+            BuildLayeredSurface(pMaterial, hasEmissiveColor, false, emissiveColor.ToStrideColor(), 0.0f, TextureType.TextureTypeEmissive, finalMaterial);
+            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.TextureTypeHeight, finalMaterial);
+            BuildLayeredSurface(pMaterial, hasReflectiveColor, false, reflectiveColor.ToStrideColor(), 0.0f, TextureType.TextureTypeReflection, finalMaterial);
 
             return finalMaterial;
+        }
+
+        private unsafe void SetMaterialColorFlag(Silk.NET.Assimp.Material* pMaterial, string materialColorBase, ref bool hasMatColor, ref System.Numerics.Vector4 matColor, bool condition)
+        {
+            if (assimp.GetMaterialColor(pMaterial, materialColorBase, 0, 0, ref matColor) == Return.ReturnSuccess && condition)
+            {
+                hasMatColor = true;
+            }
+        }
+        private unsafe void SetMaterialFloatArrayFlag(Silk.NET.Assimp.Material* pMaterial, string materialBase, ref bool hasMatProperty, float matColor, bool condition)
+        {
+            if(assimp.GetMaterialFloatArray(pMaterial, materialBase, 0, 0, &matColor, (uint*)0x0) == Return.ReturnSuccess && condition)
+            {
+                hasMatProperty = true;
+            }
+        }
+
+        private bool IsNotBlackColor(System.Numerics.Vector4 diffColor)
+        {
+            return diffColor != System.Numerics.Vector4.Zero;
         }
 
         private unsafe void BuildLayeredSurface(Silk.NET.Assimp.Material* pMat, bool hasBaseColor, bool hasBaseValue, Color4 baseColor, float baseValue, TextureType textureType, MaterialAsset finalMaterial)
@@ -1076,33 +1101,24 @@ namespace Stride.Importer.Assimp
                     curCompositionFather = compositionFathers.Pop();
                 }
 
-                var set = sets.Pop();
-
                 var type = top.type;
                 var strength = top.blend;
                 var alpha = top.alpha;
+                int set = sets.Peek();
 
                 if (type == Material.StackType.Operation)
                 {
+                    set = sets.Pop();
                     var realTop = (Material.StackOperation)top;
                     var op = realTop.operation;
                     var binNode = new ComputeBinaryColor(null, null, BinaryOperator.Add);
 
-                    switch (op)
+                    binNode.Operator = op switch
                     {
-                        case Material.Operation.Add3ds:
-                        case Material.Operation.AddMaya:
-                            binNode.Operator = BinaryOperator.Add;
-                            break;
-                        case Material.Operation.Multiply3ds:
-                        case Material.Operation.MultiplyMaya:
-                            binNode.Operator = BinaryOperator.Multiply;
-                            break;
-                        default:
-                            binNode.Operator = BinaryOperator.Add;
-                            break;
-                    }
-
+                        Material.Operation.Add3ds or Material.Operation.AddMaya => BinaryOperator.Add,
+                        Material.Operation.Multiply3ds or Material.Operation.MultiplyMaya => BinaryOperator.Multiply,
+                        _ => BinaryOperator.Add,
+                    };
                     curComposition = binNode;
                 }
                 else if (type == Material.StackType.Color)
@@ -1172,18 +1188,13 @@ namespace Stride.Importer.Assimp
 
         private static TextureAddressMode ConvertTextureMode(Material.MappingMode mappingMode)
         {
-            switch (mappingMode)
+            return mappingMode switch
             {
-                case Material.MappingMode.Clamp:
-                    return TextureAddressMode.Clamp;
-                case Material.MappingMode.Decal:
-                    return TextureAddressMode.Border;
-                case Material.MappingMode.Mirror:
-                    return TextureAddressMode.Mirror;
-                default:
-                case Material.MappingMode.Wrap:
-                    return TextureAddressMode.Wrap;
-            }
+                Material.MappingMode.Clamp => TextureAddressMode.Clamp,
+                Material.MappingMode.Decal => TextureAddressMode.Border,
+                Material.MappingMode.Mirror => TextureAddressMode.Mirror,
+                _ => TextureAddressMode.Wrap,
+            };
         }
 
         private ComputeTextureColor GetTextureReferenceNode(string vfsOutputPath, string sourceTextureFile, uint textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU, TextureAddressMode addressModeV, MaterialAsset finalMaterial)
@@ -1257,7 +1268,6 @@ namespace Stride.Importer.Assimp
 
         private unsafe void GetNodes(Node* node, int depth, Dictionary<IntPtr, string> nodeNames, List<NodeInfo> allNodes)
         {
-            var currentIndex = allNodes.Count;
             var newNodeInfo = new NodeInfo
             {
                 Name = nodeNames[(IntPtr)node],
@@ -1277,7 +1287,7 @@ namespace Stride.Importer.Assimp
 
             GenerateAnimationNames(scene, animationNames);
 
-            var animationList = new List<String>();
+            var animationList = new List<string>();
             foreach (var animationName in animationNames)
             {
                 animationList.Add(animationName.Value);
@@ -1288,7 +1298,7 @@ namespace Stride.Importer.Assimp
 
         private unsafe List<string> ExtractTextureDependencies(Scene* scene)
         {
-            var textureNames = new List<String>();
+            var textureNames = new List<string>();
 
             // texture search is done by type so we need to loop on them
             var allTextureTypes = new TextureType[]
@@ -1359,7 +1369,7 @@ namespace Stride.Importer.Assimp
     public unsafe class MaterialInstances
     {
         public Silk.NET.Assimp.Material* SourceMaterial;
-        public List<MaterialInstantiation> Instances = new List<MaterialInstantiation>();
+        public List<MaterialInstantiation> Instances = new();
         public string MaterialsName;
     }
 }
