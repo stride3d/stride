@@ -16,7 +16,7 @@
     <Folder Include="Analysis\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Silk.NET.Assimp" Version="2.11.0" />
+    <PackageReference Include="Silk.NET.Assimp" Version="2.17.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Importer.Common\Stride.Importer.Common.csproj" />

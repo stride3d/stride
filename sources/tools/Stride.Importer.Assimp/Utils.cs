@@ -1,11 +1,10 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Core.Mathematics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Stride.Importer.Assimp
 {
@@ -30,10 +29,8 @@ namespace Stride.Importer.Assimp
         public static Color ToStrideColor(this System.Numerics.Vector4 v)
             => new Color(v.X, v.Y, v.Z, v.W);
 
-        public static Core.Mathematics.Quaternion ToStrideQuaternion(this System.Numerics.Quaternion q)
-        // TODO: Not sure why I have to do this Assimp & System.Numerics.Quaternion seems to have the same memory layout (W, X, Y, Z)
-        // so just passing X, Y, Z, W without swizzling should work ...
-            => new Core.Mathematics.Quaternion(q.Y, q.Z, q.W, q.X); 
+        public static Core.Mathematics.Quaternion ToStrideQuaternion(this AssimpQuaternion q)
+            => new Core.Mathematics.Quaternion(q.X, q.Y, q.Z, q.W); 
 
         public static unsafe uint GetNumUVChannels(Silk.NET.Assimp.Mesh* mesh)
         {
@@ -57,7 +54,7 @@ namespace Stride.Importer.Assimp
             return (uint)n;
         }
 
-        public static CompressedTimeSpan AiTimeToXkTimeSpan(double time, double aiTickPerSecond)
+        public static CompressedTimeSpan AiTimeToStrideTimeSpan(double time, double aiTickPerSecond)
         {
             var sdTime = CompressedTimeSpan.TicksPerSecond / aiTickPerSecond * time;
             return new CompressedTimeSpan((int)sdTime);
