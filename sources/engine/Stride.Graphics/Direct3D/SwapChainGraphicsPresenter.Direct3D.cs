@@ -63,7 +63,7 @@ namespace Stride.Graphics
         {
             PresentInterval = presentationParameters.PresentationInterval;
 
-            CheckDeviceFeatures(device, out flipModelSupport, out tearingSupport);
+            CheckDeviceFeatures(out flipModelSupport, out tearingSupport);
 
             // Initialize the swap chain
             swapChain = CreateSwapChain();
@@ -75,35 +75,28 @@ namespace Stride.Graphics
             // Reload should get backbuffer from swapchain as well
             //backBuffer.Reload = graphicsResource => ((Texture)graphicsResource).Recreate(swapChain.GetBackBuffer<SharpDX.Direct3D11.Texture>(0));
 
-            static void CheckDeviceFeatures(GraphicsDevice device, out bool supportsFlipModel, out bool supportsTearing)
+            void CheckDeviceFeatures(out bool supportsFlipModel, out bool supportsTearing)
             {
-                IDXGIDevice* dxgiDevice = null;
-                IDXGIAdapter* dxgiAdapter = null;
+                var nativeAdapter = device.Adapter.NativeAdapter;
 
-                HResult result = device.NativeDevice->QueryInterface(SilkMarshal.GuidPtrOf<IDXGIDevice>(), (void**) &dxgiDevice);
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+                supportsFlipModel = CheckFlipModelSupport(nativeAdapter);
 
-                if (result.IsFailure)
-                    goto Error;
+#elif STRIDE_GRAPHICS_API_DIRECT3D12
 
-                result = dxgiDevice->GetAdapter(&dxgiAdapter);
+                // From MSDN: https://learn.microsoft.com/en-us/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect
 
-                if (result.IsFailure)
-                    goto Error;
+                //   DXGI_SWAP_EFFECT_DISCARD or DXGI_SWAP_EFFECT_SEQUENTIAL:
+                //     This enumeration value is never supported. D3D12 apps must use DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
+                //     or DXGI_SWAP_EFFECT_FLIP_DISCARD.
 
-                supportsFlipModel = CheckFlipModelSupport(dxgiAdapter);
-                supportsTearing = CheckTearingSupport(dxgiAdapter);
-                return;
-
-            Error:
-                supportsFlipModel = false;
-                supportsTearing = false;
-
-                if (dxgiAdapter is not null) dxgiAdapter->Release();
-                if (dxgiDevice is not null) dxgiDevice->Release();
-                result.Throw();
+                supportsFlipModel = true;
+#endif
+                supportsTearing = CheckTearingSupport(nativeAdapter);
             }
 
-            static bool CheckFlipModelSupport(IDXGIAdapter* adapter)
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+            static bool CheckFlipModelSupport(IDXGIAdapter1* adapter)
             {
                 // From https://github.com/walbourn/directx-vs-templates/blob/main/d3d11game_win32_dr/DeviceResources.cpp#L138
                 IDXGIFactory4* dxgiAdapterFactory4 = null;
@@ -115,8 +108,9 @@ namespace Stride.Graphics
                 dxgiAdapterFactory4->Release();
                 return supportsFlipModel;
             }
+#endif
 
-            static unsafe bool CheckTearingSupport(IDXGIAdapter* adapter)
+            static unsafe bool CheckTearingSupport(IDXGIAdapter1* adapter)
             {
                 // From https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
                 IDXGIFactory5* dxgiAdapterFactory5 = null;
