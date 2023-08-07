@@ -75,8 +75,12 @@ namespace Stride.Graphics
             if (nativeDeviceChild != null)
                 nativeDeviceChild->Release();
 
-            if (NativeResource != null)
-                NativeResource->Release();
+            nativeDeviceChild = null;
+
+            if (nativeResource != null)
+                nativeResource->Release();
+
+            nativeResource = null;
         }
 
         /// <summary>
@@ -89,16 +93,17 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Gets the cpu access flags from resource usage.
+        ///   Gets the CPU access flags from the intended resource usage.
         /// </summary>
         /// <param name="usage">The usage.</param>
-        /// <returns></returns>
+        /// <returns>A combination of one or more <see cref="CpuAccessFlag"/> flags.</returns>
         internal static CpuAccessFlag GetCpuAccessFlagsFromUsage(GraphicsResourceUsage usage)
         {
             return usage switch
             {
                 GraphicsResourceUsage.Dynamic => CpuAccessFlag.Write,
                 GraphicsResourceUsage.Staging => CpuAccessFlag.Read | CpuAccessFlag.Write,
+                GraphicsResourceUsage.Immutable => CpuAccessFlag.None,
 
                 _ => CpuAccessFlag.Read
             };
