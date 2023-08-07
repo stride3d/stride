@@ -4,6 +4,7 @@ using SDSLParserExample;
 using SoftTouch.Spirv;
 using SoftTouch.Spirv.Core;
 using SoftTouch.Spirv.Core.Buffers;
+using SoftTouch.Spirv.PostProcessor;
 using static Spv.Specification;
 
 static void ThreeAddress()
@@ -177,9 +178,17 @@ void CreateMixin()
         .FinishEntryPoint()
         .Build();
 
-    Console.WriteLine(mA);
-    Console.WriteLine(mB);
-    Console.WriteLine(mD.Disassemble());
+    //Console.WriteLine(mA);
+    //Console.WriteLine(mB);
+    //Console.WriteLine(mD.Disassemble());
+
+    using var processor = new PostProcessor("MixinD");
+    processor.Apply();
+
+    Console.WriteLine(new Disassembler().Disassemble(processor.Buffer));
+    
+    
+
     // var mB = new Mixin("MixinB");
     // mB.AddType<sbyte>();
     // mB.AddType<Half>();
