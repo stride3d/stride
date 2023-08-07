@@ -323,7 +323,9 @@ namespace Stride.Graphics
             Texture1DDesc description = ConvertToNativeDescription1D();
             SubresourceData[] initiatDataPerSubresource = ConvertDataBoxes(initialData);
 
-            HResult result = NativeDevice->CreateTexture1D(in description, in initiatDataPerSubresource[0], &texture1D);
+            HResult result = initiatDataPerSubresource is null
+                ? NativeDevice->CreateTexture1D(in description, pInitialData: null, &texture1D)
+                : NativeDevice->CreateTexture1D(in description, in initiatDataPerSubresource[0], &texture1D);
 
             if (result.IsFailure)
                 result.Throw();
@@ -355,7 +357,9 @@ namespace Stride.Graphics
             Texture3DDesc description = ConvertToNativeDescription3D();
             SubresourceData[] initiatDataPerSubresource = ConvertDataBoxes(initialData);
 
-            HResult result = NativeDevice->CreateTexture3D(in description, in initiatDataPerSubresource[0], &texture3D);
+            HResult result = initiatDataPerSubresource is null
+                ? NativeDevice->CreateTexture3D(in description, pInitialData: null, &texture3D)
+                : NativeDevice->CreateTexture3D(in description, in initiatDataPerSubresource[0], &texture3D);
 
             if (result.IsFailure)
                 result.Throw();
@@ -999,6 +1003,23 @@ namespace Stride.Graphics
                 PixelFormat.R32G8X24_Typeless or
                 PixelFormat.D32_Float_S8X24_UInt => true,
                 _ => false
+            };
+        }
+
+        /// <summary>
+        ///   Gets the CPU access flags from the intended texture usage.
+        /// </summary>
+        /// <param name="usage">The usage.</param>
+        /// <returns>A combination of one or more <see cref="CpuAccessFlag"/> flags.</returns>
+        private new CpuAccessFlag GetCpuAccessFlagsFromUsage(GraphicsResourceUsage usage)
+        {
+            return usage switch
+            {
+                // DepthStencil textures may not be used in combination with CpuAccessFlags
+                // when the usage is Default
+                GraphicsResourceUsage.Default when IsDepthStencil => CpuAccessFlag.None,
+
+                _ => GraphicsResourceBase.GetCpuAccessFlagsFromUsage(usage)
             };
         }
     }
