@@ -182,10 +182,10 @@ void CreateMixin()
     //Console.WriteLine(mB);
     //Console.WriteLine(mD.Disassemble());
 
-    using var processor = new PostProcessor("MixinD");
-    processor.Apply();
+    using var processed = PostProcessor.Process("MixinD");
+ 
 
-    Console.WriteLine(new Disassembler().Disassemble(processor.Buffer));
+    Console.WriteLine(new Disassembler().Disassemble(processed));
     
     
 
