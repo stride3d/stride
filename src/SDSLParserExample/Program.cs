@@ -43,7 +43,7 @@ void CrossShader()
     buffer.AddOpExtension("SPV_GOOGLE_decorate_string");
     buffer.AddOpExtension("SPV_GOOGLE_hlsl_functionality1");
     var extInstImport = buffer.AddOpExtInstImport("GLSL.std.450");
-    buffer.AddOpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450);
+    buffer.AddOpMemoryModel(AddressingModel.Logical, MemoryModel.Vulkan);
 
 
     // declarations
@@ -154,7 +154,6 @@ void CreateMixin()
         .Inherit("MixinA")
         .FinishInherit()
         .WithType("float4x2")
-        .WithType("uint2x3")
         .Build();
 
     var mD =
@@ -186,8 +185,10 @@ void CreateMixin()
  
 
     Console.WriteLine(new Disassembler().Disassemble(processed));
+
+    processed.AsBytes().ToGlsl();
     
-    
+    File.WriteAllBytes("./mixed.spv", processed.AsBytes().ToArray());
 
     // var mB = new Mixin("MixinB");
     // mB.AddType<sbyte>();

@@ -6,6 +6,9 @@ namespace SDSLParserExample;
 
 public static class CrossExtensions
 {
+
+    public static void ToGlsl(this Span<byte> byteCode) => ToGlsl(byteCode.ToArray());
+    public static void ToHlsl(this Span<byte> byteCode) => ToHlsl(byteCode.ToArray());
     public static void ToGlsl(this byte[] bytecode)
     {
         unsafe
