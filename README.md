@@ -48,7 +48,7 @@ Ask for help or report issues:
 * [Discuss topics on Github discussions](https://github.com/stride3d/stride/discussions)
 * [Report engine issues](https://github.com/stride3d/stride/issues)
 * [Donate to support the project](https://opencollective.com/stride3d/) [![Open collective backers](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
-* [List of Projects made by users](https://github.com/stride3d/stride/wiki/StrideCommunityProjects)
+* [List of Projects made by users](https://github.com/stride3d/stride/wiki/Community-Projects)
 * [Localization](docs/localization.md)
 
 ## Building from source
