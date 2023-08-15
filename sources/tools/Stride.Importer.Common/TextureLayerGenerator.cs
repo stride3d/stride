@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.IO;
@@ -16,7 +16,16 @@ namespace Stride.Importer.Common
 {
     public class TextureLayerGenerator
     {
-        public static ShaderClassSource GenerateTextureLayer(string vfsOutputPath, string sourceTextureFile, int textureUVSetIndex, Vector2 textureUVscaling,ref int textureCount, ParameterKey<Texture> surfaceMaterialKey, Mesh meshData, Logger logger)
+        public static ShaderClassSource GenerateTextureLayer(
+            string vfsOutputPath,
+            string sourceTextureFile,
+            int textureUVSetIndex,
+            Vector2 textureUVscaling,
+            ref int textureCount,
+            ParameterKey<Texture> surfaceMaterialKey,
+            Mesh meshData,
+            Logger logger
+        )
         {
             ParameterKey<Texture> parameterKey;
 
@@ -34,13 +43,26 @@ namespace Stride.Importer.Common
             var textureName = parameterKey.Name;
             var needScaling = uvScaling != Vector2.One;
             var currentComposition = needScaling
-                ? new ShaderClassSource("ComputeColorTextureRepeat", textureName, uvSetName, "float2(" + uvScaling.X + ", " + uvScaling.Y + ")")
-            : new ShaderClassSource("ComputeColorTexture", textureName, uvSetName);
+                ? new ShaderClassSource(
+                    "ComputeColorTextureRepeat",
+                    textureName,
+                    uvSetName,
+                    "float2(" + uvScaling.X + ", " + uvScaling.Y + ")"
+                )
+                : new ShaderClassSource("ComputeColorTexture", textureName, uvSetName);
 
             return currentComposition;
         }
 
-        public static ComputeTextureColor GenerateMaterialTextureNode(string vfsOutputPath, string sourceTextureFile, uint textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU, TextureAddressMode addressModeV, Logger logger)
+        public static ComputeTextureColor GenerateMaterialTextureNode(
+            string vfsOutputPath,
+            string sourceTextureFile,
+            uint textureUVSetIndex,
+            Vector2 textureUVscaling,
+            TextureAddressMode addressModeU,
+            TextureAddressMode addressModeV,
+            Logger logger
+        )
         {
             var textureFileName = Path.GetFileNameWithoutExtension(sourceTextureFile);
 

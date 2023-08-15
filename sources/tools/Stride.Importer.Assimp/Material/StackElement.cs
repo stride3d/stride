@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 namespace Stride.Importer.Assimp.Material
@@ -11,11 +11,11 @@ namespace Stride.Importer.Assimp.Material
         /// <summary>
         /// Initializes a new instance of the <see cref="StackElement"/> class.
         /// </summary>
-        /// <param name="Alpha">The alpha of the node.</param>
-        /// <param name="Blend">The blending coefficient of the node.</param>
+        /// <param name="alpha">The alpha of the node.</param>
+        /// <param name="blend">The blending coefficient of the node.</param>
         /// <param name="flags">The flags of the node.</param>
-        /// <param name="Type">The type of the node.</param>
-        public StackElement(float alpha, float blend, int flags, StackType type)
+        /// <param name="type">The type of the node.</param>
+        public StackElement(float alpha, float blend, int flags, StackElementType type)
         {
             Alpha = alpha;
             Blend = blend;
@@ -48,6 +48,6 @@ namespace Stride.Importer.Assimp.Material
         /// <value>
         /// The type of the node.
         /// </value>
-        public StackType Type { get; private set; }
+        public StackElementType Type { get; private set; }
     }
 }

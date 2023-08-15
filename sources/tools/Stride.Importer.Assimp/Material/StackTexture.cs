@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 namespace Stride.Importer.Assimp.Material
@@ -19,7 +19,7 @@ namespace Stride.Importer.Assimp.Material
         /// <param name="blend">The blending coefficient of the node.</param>
         /// <param name="flags">The flags of the node.</param>
         public StackTexture(string texturePath, int channel, MappingMode mappingModeU, MappingMode mappingModeV, float alpha = 1.0f, float blend = 1.0F, int flags = 0)
-            : base(alpha, blend, flags, StackType.Texture)
+            : base(alpha, blend, flags, StackElementType.Texture)
         {
             TexturePath = texturePath;
             Channel = channel;
