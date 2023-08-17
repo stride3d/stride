@@ -301,6 +301,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "tamamutu",
+      "name": "tamamutu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/62577086?v=4",
+      "profile": "https://github.com/tamamutu",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -308,5 +317,7 @@
   "projectOwner": "stride3d",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitType": "docs",
+  "commitConvention": "angular"
 }
