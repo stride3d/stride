@@ -301,6 +301,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "IXLLEGACYIXL",
+      "name": "IXLLEGACYIXL",
+      "avatar_url": "https://avatars.githubusercontent.com/u/107197024?v=4",
+      "profile": "https://github.com/IXLLEGACYIXL",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -308,5 +317,7 @@
   "projectOwner": "stride3d",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitType": "docs",
+  "commitConvention": "angular"
 }
