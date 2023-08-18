@@ -13,10 +13,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tools\Stride.Assimp\Stride.Assimp.csproj" PrivateAssets="All" />
-    <ProjectReference Include="..\..\tools\Stride.Assimp.Translation\Stride.Assimp.Translation.vcxproj" PrivateAssets="All" />
-    <ProjectReference Include="..\..\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.vcxproj" PrivateAssets="All" />
-    <ProjectReference Include="..\..\tools\Stride.Importer.Common\Stride.Importer.Common.vcxproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.Importer.Common\Stride.Importer.Common.csproj" />
     <ProjectReference Include="..\..\tools\Stride.Importer.FBX\Stride.Importer.FBX.vcxproj" PrivateAssets="All" />
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
   </ItemGroup>
@@ -34,10 +32,7 @@
     <ItemGroup>
       <!-- Needed by .NET Core runtime to be able to load C++/CLI assemblies -->
       <BuildOutputInPackage Include="$(OutputPath)ijwhost.dll" Condition="Exists('$(OutputPath)ijwhost.dll')" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Assimp.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Assimp.Translation.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Assimp.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Assimp.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Common.dll" />
@@ -46,7 +41,6 @@
 
   <Target Name="_StrideIncludeNativeLibs">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\assimp-vc140-mt.dll" PackagePath="runtimes\win-x64\native\assimp-vc140-mt.dll" />
       <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\libfbxsdk.dll" PackagePath="runtimes\win-x64\native\libfbxsdk.dll" />
     </ItemGroup>
   </Target>
