@@ -322,7 +322,7 @@ namespace Stride.Importer.Assimp
         {
             var animationCurve = new AnimationCurve<Vector3>();
 
-                // Switch to cubic implicit interpolation mode for Vector3
+            // Switch to cubic implicit interpolation mode for Vector3
             animationCurve.InterpolationType = AnimationCurveInterpolationType.Cubic;
 
             var lastKeyTime = new CompressedTimeSpan();
