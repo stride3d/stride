@@ -2,7 +2,7 @@
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-35-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-36-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
 
@@ -166,6 +166,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://insomnyawolf.github.io"><img src="https://avatars.githubusercontent.com/u/18150917?v=4?s=100" width="100px;" alt="insomnyawolf"/><br /><sub><b>insomnyawolf</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=insomnyawolf" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Doprez"><img src="https://avatars.githubusercontent.com/u/73259914?v=4?s=100" width="100px;" alt="Doprez"/><br /><sub><b>Doprez</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Doprez" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Jklawreszuk"><img src="https://avatars.githubusercontent.com/u/31008367?v=4?s=100" width="100px;" alt="Jakub Ławreszuk"/><br /><sub><b>Jakub Ławreszuk</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Jklawreszuk" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Ethereal77"><img src="https://avatars.githubusercontent.com/u/8967302?v=4?s=100" width="100px;" alt="Mario Guerra"/><br /><sub><b>Mario Guerra</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Ethereal77" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
