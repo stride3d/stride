@@ -346,6 +346,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "arturoc",
+      "name": "arturo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/48240?v=4",
+      "profile": "https://github.com/arturoc",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
