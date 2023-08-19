@@ -2,7 +2,7 @@
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-42-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
 
@@ -174,6 +174,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/arturoc"><img src="https://avatars.githubusercontent.com/u/48240?v=4?s=100" width="100px;" alt="arturo"/><br /><sub><b>arturo</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=arturoc" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/garychia"><img src="https://avatars.githubusercontent.com/u/88014292?v=4?s=100" width="100px;" alt="Chia-Hsiang Cheng"/><br /><sub><b>Chia-Hsiang Cheng</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=garychia" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://nicusorn5.github.io/"><img src="https://avatars.githubusercontent.com/u/20599225?v=4?s=100" width="100px;" alt="Nicolae Tugui"/><br /><sub><b>Nicolae Tugui</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=NicusorN5" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://mattiascibien.net"><img src="https://avatars.githubusercontent.com/u/1300681?v=4?s=100" width="100px;" alt="Mattias Cibien"/><br /><sub><b>Mattias Cibien</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=mattiascibien" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
