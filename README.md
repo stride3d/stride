@@ -2,7 +2,7 @@
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-38-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-39-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
 
@@ -171,6 +171,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Ethereal77"><img src="https://avatars.githubusercontent.com/u/8967302?v=4?s=100" width="100px;" alt="Mario Guerra"/><br /><sub><b>Mario Guerra</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Ethereal77" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tamamutu"><img src="https://avatars.githubusercontent.com/u/62577086?v=4?s=100" width="100px;" alt="tamamutu"/><br /><sub><b>tamamutu</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=tamamutu" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/IXLLEGACYIXL"><img src="https://avatars.githubusercontent.com/u/107197024?v=4?s=100" width="100px;" alt="IXLLEGACYIXL"/><br /><sub><b>IXLLEGACYIXL</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=IXLLEGACYIXL" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/arturoc"><img src="https://avatars.githubusercontent.com/u/48240?v=4?s=100" width="100px;" alt="arturo"/><br /><sub><b>arturo</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=arturoc" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
