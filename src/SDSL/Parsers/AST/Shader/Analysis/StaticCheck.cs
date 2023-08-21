@@ -9,8 +9,8 @@ public interface IStaticCheck
 public interface IStreamCheck
 {
     public bool CheckStream(SymbolTable s);
-    public IEnumerable<string> GetUsedStream();
-    public IEnumerable<string> GetAssignedStream();
+    public IEnumerable<string>? GetUsedStream();
+    public IEnumerable<string>? GetAssignedStream();
     
 }
 

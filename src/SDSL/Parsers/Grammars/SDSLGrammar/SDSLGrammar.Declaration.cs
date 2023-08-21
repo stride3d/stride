@@ -5,6 +5,7 @@ using static Eto.Parse.Terminals;
 namespace SDSL.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
 {
+    public SequenceParser ShaderCompositionDeclaration = new() { Name = "ShaderCompositionDeclaration" };
     public SequenceParser ShaderValueDeclaration = new() { Name = "ShaderValueDeclaration" };
     public SequenceParser ConstantBufferValueDeclaration = new(){Name = "ConstantBufferValueDeclaration"};
     public SequenceParser StructDefinition = new(){Name = "StructDefinition"};
@@ -20,6 +21,17 @@ public partial class SDSLGrammar : Grammar
     {
         var ws = WhiteSpace.Repeat(0);
         var ws1 = WhiteSpace.Repeat(1);
+
+
+        ShaderCompositionDeclaration.Add(
+            Compose,
+            Identifier,
+            Identifier,
+            Literal("[]").Optional().WithName("Array"),
+            Semi
+        );
+        ShaderCompositionDeclaration.SeparatedBy(ws);
+
 
         var declare = new SequenceParser();
         declare.Add(

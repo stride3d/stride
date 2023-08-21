@@ -12,9 +12,9 @@ public class ShaderProgram : ShaderToken
 {
     public SymbolTable Symbols {get;set;}
     public string Name {get;set;}
-    public IEnumerable<ShaderGenerics>? Generics { get; set; }
-    public IEnumerable<MixinToken> Mixins { get; set; }
-    public IEnumerable<ShaderToken> Body { get; set; }
+    public List<ShaderGenerics>? Generics { get; set; }
+    public List<MixinToken> Mixins { get; set; }
+    public List<ShaderToken> Body { get; set; }
 
     public ShaderProgram(Match m)
     {

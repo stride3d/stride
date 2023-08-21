@@ -15,8 +15,8 @@ public class ShaderMethod : ShaderToken
 
     public string Name { get; set; }
     public SymbolType ReturnType { get; set; }
-    public IEnumerable<ShaderToken> ParameterList { get; set; }
-    public IEnumerable<Statement> Statements { get; set; }
+    public List<ShaderToken>? ParameterList { get; set; }
+    public List<Statement>? Statements { get; set; }
 
     public ShaderMethod(Match m, SymbolTable symbols)
     {
@@ -49,25 +49,26 @@ public abstract class MainMethod : ShaderMethod, IStreamCheck
     protected string prefix;
     // public TAC IL { get; set; }
 
-    public MainMethod(Match m, SymbolTable s) : base(m, s) 
-    { 
+    public MainMethod(Match m, SymbolTable s) : base(m, s)
+    {
         prefix = "NONE";
         // IL = new(s);
     }
 
     public bool CheckStream(SymbolTable s)
     {
+        if (Statements == null) return true;
         return Statements.OfType<IStreamCheck>().Any(x => x.CheckStream(s));
     }
 
-    public IEnumerable<string> GetAssignedStream()
+    public IEnumerable<string>? GetAssignedStream()
     {
-        return Statements.OfType<IStreamCheck>().SelectMany(x => x.GetAssignedStream());
+        return Statements?.OfType<IStreamCheck>().SelectMany(x => x.GetAssignedStream() ?? Enumerable.Empty<string>());
     }
 
-    public IEnumerable<string> GetUsedStream()
+    public IEnumerable<string>? GetUsedStream()
     {
-        return Statements.OfType<IStreamCheck>().SelectMany(x => x.GetUsedStream());
+        return Statements?.OfType<IStreamCheck>().SelectMany(x => x.GetUsedStream() ?? Enumerable.Empty<string>());
     }
 
     public void VariableChecking(SymbolTable sym)

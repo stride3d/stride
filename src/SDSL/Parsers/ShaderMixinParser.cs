@@ -15,21 +15,21 @@ using CppNet;
 public class ShaderMixinParser
 {
 
-    private static readonly ShaderMixinParser instance = new();
-    public static ShaderProgram ParseShader(string shader) => instance.Parse(shader);
-    public static List<string> GetMixins(string shader) => instance.ParseMixins(shader);
+    public static ShaderMixinParser Instance { get; } = new();
+    public static ShaderProgram ParseShader(string shader) => Instance.Parse(shader);
+    public static List<string> GetMixins(string shader) => Instance.ParseMixins(shader);
 
-    
 
-    public SDSLGrammar Grammar {get;set;}
+
+    public SDSLGrammar Grammar { get; set; }
     public DirectivePreprocessor DPreprocessor { get; set; }
     public Preprocessor Preprocessor { get; set; }
 
-    public SDSLMixinReader MixinParser {get;set;}
+    public SDSLMixinReader MixinParser { get; set; }
 
     public GrammarMatch? ParseTree { get; set; }
 
-    public ShaderMixinParser()
+    private ShaderMixinParser()
     {
         Grammar = new();
         MixinParser = new();
@@ -144,6 +144,6 @@ public class ShaderMixinParser
 
     private class ErrorListener : DefaultPreprocessorListener
     {
-        
+
     }
-}   
+}

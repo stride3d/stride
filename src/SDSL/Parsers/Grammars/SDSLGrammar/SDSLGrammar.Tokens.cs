@@ -150,8 +150,9 @@ public partial class SDSLGrammar : Grammar
     protected LiteralTerminal False = new();
     protected AlternativeParser PreprocessorDirectiveName =  new();
 
-    protected LiteralTerminal Stream = new(){Name = "Stream"};
-    protected LiteralTerminal Stage = new(){Name = "Stage"};
+    protected LiteralTerminal Compose = new();
+    protected LiteralTerminal Stream = new();
+    protected LiteralTerminal Stage = new();
     
 
     public void CreateTokens()
@@ -320,8 +321,9 @@ public partial class SDSLGrammar : Grammar
             Literal("undef")
         );
         
-        Stage = Literal("stage");
-        Stream = Literal("stream");
+        Stage = Literal("stage").WithName("Stage");
+        Stream = Literal("stream").WithName("Stream");
+        Compose = Literal("compose").WithName("Compose");
         
     }
 }
