@@ -186,8 +186,8 @@ void CreateMixin()
 
     Console.WriteLine(new Disassembler().Disassemble(processed));
 
-    processed.Bytes.ToGlsl();
-    
+    //processed.Bytes.ToArray().ToGlsl();
+
     File.WriteAllBytes("./mixed.spv", processed.Bytes.ToArray());
 
     // var mB = new Mixin("MixinB");
@@ -231,9 +231,9 @@ static void ParseWorking()
 
 // ParseWorking();
 
-// CreateMixin();
+CreateMixin();
 
 
 //CrossShader();
 
-ThreeAddress();
+//ThreeAddress();
