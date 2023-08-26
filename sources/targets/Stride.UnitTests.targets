@@ -100,4 +100,13 @@
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
   <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(MSBuildThisFileDirectory)..\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
 
+  <!-- Ensure native libs get copied to output folder of test projects -->
+  <Target Name="_StrideSetupNativeLibraries" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <None Include="@(_StrideDependencyNativeLib)">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+  </Target>
+
 </Project>

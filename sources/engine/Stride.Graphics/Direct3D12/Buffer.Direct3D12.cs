@@ -8,6 +8,7 @@ using SharpDX;
 using SharpDX.DXGI;
 using SharpDX.Direct3D12;
 using Stride.Core.Mathematics;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Graphics
 {
@@ -15,7 +16,7 @@ namespace Stride.Graphics
     {
         private SharpDX.Direct3D12.ResourceDescription nativeDescription;
         internal long GPUVirtualAddress;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Buffer" /> class.
         /// </summary>
@@ -70,7 +71,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dataPointer"></param>
-        public void Recreate(IntPtr dataPointer)
+        public unsafe void Recreate(IntPtr dataPointer)
         {
             // TODO D3D12 where should that go longer term? should it be precomputed for future use? (cost would likely be additional check on SetDescriptorSets/Draw)
             NativeResourceState = ResourceStates.Common;
@@ -121,7 +122,7 @@ namespace Stride.Graphics
                 if (heapType == HeapType.Upload)
                 {
                     var uploadMemory = NativeResource.Map(0);
-                    Utilities.CopyMemory(uploadMemory, dataPointer, SizeInBytes);
+                    Unsafe.CopyBlockUnaligned((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
                     NativeResource.Unmap(0);
                 }
                 else
@@ -131,7 +132,7 @@ namespace Stride.Graphics
                     SharpDX.Direct3D12.Resource uploadResource;
                     int uploadOffset;
                     var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out uploadResource, out uploadOffset);
-                    Utilities.CopyMemory(uploadMemory, dataPointer, SizeInBytes);
+                    Unsafe.CopyBlockUnaligned((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                     // TODO D3D12 lock NativeCopyCommandList usages
                     var commandList = GraphicsDevice.NativeCopyCommandList;
@@ -158,7 +159,7 @@ namespace Stride.Graphics
         /// <param name="viewFormat">The view format.</param>
         /// <returns>A <see cref="ShaderResourceView"/> for the particular view format.</returns>
         /// <remarks>
-        /// The buffer must have been declared with <see cref="Graphics.BufferFlags.ShaderResource"/>. 
+        /// The buffer must have been declared with <see cref="Graphics.BufferFlags.ShaderResource"/>.
         /// The ShaderResourceView instance is kept by this buffer and will be disposed when this buffer is disposed.
         /// </remarks>
         internal CpuDescriptorHandle GetShaderResourceView(PixelFormat viewFormat)
@@ -263,5 +264,5 @@ namespace Stride.Graphics
             return SharpDX.Direct3D12.ResourceDescription.Buffer(size, flags);
         }
     }
-} 
-#endif 
+}
+#endif

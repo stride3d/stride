@@ -149,7 +149,8 @@ namespace Stride.Shaders.Compiler.OpenGL
 
                 using (var stream = new MemoryStream())
                 {
-                    BinarySerialization.Write(stream, shaderBytecodes);
+                    var writer = new BinarySerializationWriter(stream);
+                    writer.Write(shaderBytecodes);
                     rawData = stream.ToArray();
                 }
 

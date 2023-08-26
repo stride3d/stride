@@ -485,9 +485,9 @@
                       <TextBlock Text="{sd:Localize Grid axis}" FontWeight="Bold"/>
                     </Border>
                     <DockPanel Margin="8">
-                      <RadioButton Content="{sd:Localize X, Context=Button}" IsChecked="{Binding Grid.AxisIndex, Converter={sd:IntToBool}, ConverterParameter=0}" Margin="4"/>
-                      <RadioButton Content="{sd:Localize Y, Context=Button}" IsChecked="{Binding Grid.AxisIndex, Converter={sd:IntToBool}, ConverterParameter=1}" Margin="4"/>
-                      <RadioButton Content="{sd:Localize Z, Context=Button}" IsChecked="{Binding Grid.AxisIndex, Converter={sd:IntToBool}, ConverterParameter=2}" Margin="4"/>
+                      <CheckBox Content="{sd:Localize X, Context=Button}" IsChecked="{Binding Grid.IsXAxisVisible}" Margin="4"/>
+                      <CheckBox Content="{sd:Localize Y, Context=Button}" IsChecked="{Binding Grid.IsYAxisVisible}" Margin="4"/>
+                      <CheckBox Content="{sd:Localize Z, Context=Button}" IsChecked="{Binding Grid.IsZAxisVisible}" Margin="4"/>
                     </DockPanel>
                     <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
                       <TextBlock Text="{sd:Localize Grid opacity}" FontWeight="Bold"/>

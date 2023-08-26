@@ -16,10 +16,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LibGit2Sharp, Version=0.24.0.0, Culture=neutral, PublicKeyToken=7cbde695407f0333, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\deps\libgit2\LibGit2Sharp.dll</HintPath>
-    </Reference>
     <PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" ExcludeAssets="runtime" />
@@ -37,11 +33,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <None Include="..\..\..\deps\libgit2\**\*.dll">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>

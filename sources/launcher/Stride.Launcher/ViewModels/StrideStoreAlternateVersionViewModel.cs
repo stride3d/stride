@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Packages;
@@ -49,9 +44,7 @@ namespace Stride.LauncherApp.ViewModels
         {
             get
             {
-                if (LocalPackage != null)
-                    return $"{LocalPackage.Id} {LocalPackage.Version} (installed)";
-                return $"{ServerPackage.Id} {ServerPackage.Version}";
+                return LocalPackage != null ? $"{LocalPackage.Id} {LocalPackage.Version} (installed)" : $"{ServerPackage.Id} {ServerPackage.Version}";
             }
         }
 

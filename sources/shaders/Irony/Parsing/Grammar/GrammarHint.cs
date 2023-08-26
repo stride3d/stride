@@ -44,14 +44,6 @@ namespace Irony.Parsing {
 
 
   public class GrammarHintList : List<GrammarHint> {
-#if SILVERLIGHT
-    public delegate bool HintPredicate(GrammarHint hint);
-    public GrammarHint Find(HintPredicate match) {
-      foreach(var hint in this)
-        if (match(hint)) return hint; 
-      return null; 
-    }
-#endif 
   }
 
   //Hints are additional instructions for parser added inside BNF expressions.

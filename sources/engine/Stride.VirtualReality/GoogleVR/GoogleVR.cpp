@@ -118,8 +118,6 @@ extern "C" {
 #if defined(ANDROID)
 			gGvrLibrary = LoadDynamicLibrary("libgvr");
 			gGvrGLESv2 = LoadDynamicLibrary("libGLESv2");
-			auto core = LoadDynamicLibrary("libcore");
-			cnDebugPrintLine = (CnPrintDebugFunc)GetSymbolAddress(core, "cnDebugPrintLine");
 #else
 			gGvrLibrary = LoadDynamicLibrary(NULL);
 			gGvrGLESv2 = LoadDynamicLibrary(NULL);

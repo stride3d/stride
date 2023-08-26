@@ -6,7 +6,7 @@ using Stride.Core;
 namespace Stride.Core.Assets
 {
     /// <summary>
-    /// Common class used by both <see cref="PackageReference"/> and <see cref="PackageDependency"/>.
+    /// Common class used by <see cref="PackageDependency"/>.
     /// </summary>
     [DataContract("PackageReferenceBase")]
     public abstract class PackageReferenceBase

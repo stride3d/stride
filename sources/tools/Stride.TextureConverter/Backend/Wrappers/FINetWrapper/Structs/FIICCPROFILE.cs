@@ -34,6 +34,7 @@
 // ==========================================================
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace FreeImageAPI
@@ -113,9 +114,14 @@ namespace FreeImageAPI
 		{
 			get
 			{
-				byte[] result;
-				FreeImage.CopyMemory(result = new byte[size], data.ToPointer(), size);
-				return result;
+                byte[] result = new byte[size];
+
+                ref byte dst = ref result[0];
+                ref byte src = ref Unsafe.AsRef<byte>((void*) data);
+
+                Unsafe.CopyBlockUnaligned(ref dst, ref src, size);
+
+                return result;
 			}
 		}
 

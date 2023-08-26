@@ -235,25 +235,6 @@ namespace Stride.Core.Storage
             => Write(MemoryMarshal.AsBytes(buffer));
 
         /// <summary>
-        /// Writes the specified buffer to this instance.
-        /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        [Obsolete("Use Write(ReadOnlySpan<byte>)")]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(ref byte buffer, int length)
-            => Write(MemoryMarshal.CreateReadOnlySpan(ref buffer, length));
-
-        /// <summary>
-        /// Writes the specified buffer to this instance.
-        /// </summary>
-        /// <typeparam name="T">Type must be a struct</typeparam>
-        /// <param name="data">The data.</param>
-        [Obsolete("Use Write(T) or Write(ReadOnlySpan<byte>)")]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write<T>(ref T data) where T : unmanaged
-            => Write(data);
-
-        /// <summary>
         /// Writes a buffer of byte to this builder.
         /// </summary>
         /// <param name="buffer">The buffer.</param>

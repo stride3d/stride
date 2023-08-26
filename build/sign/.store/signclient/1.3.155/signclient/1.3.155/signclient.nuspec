@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>SignClient</id>
+    <version>1.3.155</version>
+    <authors>SignClient</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/dotnet/SignService</projectUrl>
+    <description>Client-side tools for the .NET Foundation Sign Service</description>
+    <copyright>© 2006-2021 .NET Foundation and Contributors</copyright>
+    <packageTypes>
+      <packageType name="DotnetTool" />
+    </packageTypes>
+    <repository type="git" url="https://github.com/dotnet/SignService" commit="fa49e5e47663e4a07e917927a648a7c4b4fc3cb4" />
+  </metadata>
+</package>
