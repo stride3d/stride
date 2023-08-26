@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
@@ -175,14 +175,14 @@
     <ClCompile Include="UtilityFunctions.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Stride.Importer.Common\ImporterUtils.h" />
+    <ClInclude Include="ImporterUtils.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UtilityFunctions.h" />
   </ItemGroup>
   <ItemGroup>
     <StrideNativeLib Include="$(FbxSdkDir)\lib\$(FbxLibVersionDir)x64\debug\libfbxsdk.dll">
-      <Link>x64\%(Filename)%(Extension)</Link>
-      <RelativePath>x64\%(Filename)%(Extension)</RelativePath>
+      <Link>runtimes\win-x64\native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\win-x64\native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>
@@ -243,9 +243,8 @@
       <Project>{7732cb84-a39a-4adf-b740-fd32a352fa8a}</Project>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Stride.Importer.Common\Stride.Importer.Common.vcxproj">
-      <Project>{43a6e62e-1b1c-4630-abb8-c3f716004645}</Project>
-      <Private>False</Private>
+    <ProjectReference Include="..\Stride.Importer.Common\Stride.Importer.Common.csproj">
+      <Project>{806aa078-6070-4bb6-b05b-6ee6b21b1cde}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

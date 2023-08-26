@@ -165,6 +165,8 @@
     <DesignTimeBuild Condition="'$(DesignTimeBuild)' == ''">False</DesignTimeBuild>
     <!-- Use AssemblyName rather than RootNamespace for Resource class otherwise it might clash between some assemblies (i.e. Stride and Stride.Engine) -->
     <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
+    <!-- Needs to be set to 21 as long as generated entry point projects are - otherwise user gets a lot of build warnings -->
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(OutputType)' == 'Exe' ">
     <AndroidApplication>true</AndroidApplication>
@@ -229,12 +231,11 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
 
-  <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link.
-       Note: this target is redefined in References.targets for user projects -->
+  <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link. -->
   <Target Name="CopyStrideNativeLibraries" Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' and '$(OutputType)' == 'Exe'">
   </Target>
 
-  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits (note: it's a copy of Stride.UnitTests.targets one because some unit tests import Stride.Core.PreSettings.targets rather than Stride.UnitTests.targets) -->
+  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits (note: it's a copy of Stride.UnitTests.targets one because some unit tests import Stride.Core.props rather than Stride.UnitTests.props) -->
   <Target Name="_StrideAfterGetTargetPathWithTargetPlatformMoniker" AfterTargets="GetTargetPathWithTargetPlatformMoniker">
     <ItemGroup>
       <TargetPathWithTargetPlatformMoniker Update="$(TargetPath)">

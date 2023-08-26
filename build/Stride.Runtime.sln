@@ -8,29 +8,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-StrideRuntime", "20-Stri
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
-		..\store.config = ..\store.config
-		..\sources\targets\Stride.Core.Android.CSharp.targets = ..\sources\targets\Stride.Core.Android.CSharp.targets
-		..\sources\targets\Stride.Core.CoreCLR.Cpp.targets = ..\sources\targets\Stride.Core.CoreCLR.Cpp.targets
-		..\sources\targets\Stride.Core.CoreCLR.CSharp.targets = ..\sources\targets\Stride.Core.CoreCLR.CSharp.targets
-		..\sources\targets\Stride.Core.Cpp.targets = ..\sources\targets\Stride.Core.Cpp.targets
-		..\sources\targets\Stride.Core.CSharp.targets = ..\sources\targets\Stride.Core.CSharp.targets
-		..\sources\targets\Stride.Core.GlobalSettings.targets = ..\sources\targets\Stride.Core.GlobalSettings.targets
-		..\sources\targets\Stride.Core.iOS.CSharp.targets = ..\sources\targets\Stride.Core.iOS.CSharp.targets
-		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
-		..\sources\targets\Stride.Core.PostSettings.targets = ..\sources\targets\Stride.Core.PostSettings.targets
-		..\sources\targets\Stride.Core.PreSettings.targets = ..\sources\targets\Stride.Core.PreSettings.targets
-		..\sources\targets\Stride.Core.Sign.targets = ..\sources\targets\Stride.Core.Sign.targets
-		..\sources\targets\Stride.Core.UWP.Cpp.targets = ..\sources\targets\Stride.Core.UWP.Cpp.targets
-		..\sources\targets\Stride.Core.UWP.CSharp.targets = ..\sources\targets\Stride.Core.UWP.CSharp.targets
-		..\sources\targets\Stride.GlobalSettings.targets = ..\sources\targets\Stride.GlobalSettings.targets
 		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
-		..\sources\targets\Stride.PostSettings.References.targets = ..\sources\targets\Stride.PostSettings.References.targets
-		..\sources\targets\Stride.PostSettings.targets = ..\sources\targets\Stride.PostSettings.targets
-		..\sources\targets\Stride.PostSettings.User.targets = ..\sources\targets\Stride.PostSettings.User.targets
-		..\sources\targets\Stride.PreSettings.targets = ..\sources\targets\Stride.PreSettings.targets
-		..\sources\targets\Stride.UnitTests.props = ..\sources\targets\Stride.UnitTests.props
-		..\sources\targets\Stride.PreSettings.User.targets = ..\sources\targets\Stride.PreSettings.User.targets
+		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
+		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
+		..\sources\targets\Stride.Core.targets = ..\sources\targets\Stride.Core.targets
+		..\sources\targets\Stride.GraphicsApi.Dev.targets = ..\sources\targets\Stride.GraphicsApi.Dev.targets
+		..\sources\targets\Stride.GraphicsApi.PackageReference.targets = ..\sources\targets\Stride.GraphicsApi.PackageReference.targets
+		..\sources\targets\Stride.PackageVersion.targets = ..\sources\targets\Stride.PackageVersion.targets
+		..\sources\targets\Stride.props = ..\sources\targets\Stride.props
+		..\sources\targets\Stride.targets = ..\sources\targets\Stride.targets
+		..\sources\targets\Stride.UnitTests.CrossTargeting.targets = ..\sources\targets\Stride.UnitTests.CrossTargeting.targets
 		..\sources\targets\Stride.UnitTests.DisableBuild.targets = ..\sources\targets\Stride.UnitTests.DisableBuild.targets
+		..\sources\targets\Stride.UnitTests.props = ..\sources\targets\Stride.UnitTests.props
 		..\sources\targets\Stride.UnitTests.targets = ..\sources\targets\Stride.UnitTests.targets
 	EndProjectSection
 EndProject
@@ -48,10 +37,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targets.Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
 	ProjectSection(SolutionItems) = preProject
 		Stride.build = Stride.build
-		Stride.Core.GlobalSettings.Local.targets = Stride.Core.GlobalSettings.Local.targets
-		Stride.Core.PostSettings.Local.targets = Stride.Core.PostSettings.Local.targets
-		Stride.Core.PreSettings.Local.targets = Stride.Core.PreSettings.Local.targets
-		Stride.PreSettings.Local.targets = Stride.PreSettings.Local.targets
+		Stride.Build.props = Stride.Build.props
+		Stride.Build.targets = Stride.Build.targets
+		Stride.Core.Build.props = Stride.Core.Build.props
+		Stride.Core.Build.targets = Stride.Core.Build.targets
+		Stride.UnitTests.Build.targets = Stride.UnitTests.Build.targets
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine", "..\sources\engine\Stride.Engine\Stride.Engine.csproj", "{C121A566-555E-42B9-9B0A-1696529A9088}"
@@ -147,12 +137,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Rendering", "..\sources\engine\Stride.Rendering\Stride.Rendering.csproj", "{AD4FDC24-B64D-4ED7-91AA-62C9EDA12FA4}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 4
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 4
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{fb06c76a-6bb7-40be-9afa-fec13b045fb5}*SharedItemsImports = 4
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -359,5 +343,11 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 5
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 5
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{fb06c76a-6bb7-40be-9afa-fec13b045fb5}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

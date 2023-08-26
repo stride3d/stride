@@ -24,7 +24,28 @@ namespace Stride.Core.Reflection
         /// <returns><c>true</c> if the specified type is collection; otherwise, <c>false</c>.</returns>
         public static bool IsCollection(Type type)
         {
-            return TypeHelper.IsCollection(type);
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsArray)
+            {
+                return false;
+            }
+
+            if (typeof(IList).GetTypeInfo().IsAssignableFrom(typeInfo))
+            {
+                return true;
+            }
+
+            foreach (var iType in typeInfo.ImplementedInterfaces)
+            {
+                var iTypeInfo = iType.GetTypeInfo();
+                if (iTypeInfo.IsGenericType && iTypeInfo.GetGenericTypeDefinition() == typeof(ICollection<>))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

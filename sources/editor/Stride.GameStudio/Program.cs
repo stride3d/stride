@@ -115,18 +115,6 @@ namespace Stride.GameStudio
                             renderDocManager = new RenderDocManager();
                             renderDocManager.Initialize();
                         }
-                        else if (args[i] == "/Reattach")
-                        {
-                            var debuggerProcessId = int.Parse(args[++i]);
-
-                            if (!System.Diagnostics.Debugger.IsAttached)
-                            {
-                                using (var debugger = VisualStudioDebugger.GetByProcess(debuggerProcessId))
-                                {
-                                    debugger?.Attach();
-                                }
-                            }
-                        }
                         else if (args[i] == "/RecordEffects")
                         {
                             GameStudioBuilderService.GlobalEffectLogPath = args[++i];
@@ -244,7 +232,8 @@ namespace Stride.GameStudio
                 catch (Exception e)
                 {
                     var message = "Could not find a compatible version of MSBuild.\r\n\r\n" +
-                                  "Check that you have a valid installation with the required workloads, or go to [www.visualstudio.com/downloads](https://www.visualstudio.com/downloads) to install a new one.\r\n\r\n" +
+                                  "Check that you have a valid installation with the required workloads, or go to [www.visualstudio.com/downloads](https://www.visualstudio.com/downloads) to install a new one.\r\n" +
+                                  "Also make sure you have the latest [.NET 6 SDK](https://dotnet.microsoft.com/) \r\n\r\n" +
                                   e;
                     await serviceProvider.Get<IEditorDialogService>().MessageBox(message, Core.Presentation.Services.MessageBoxButton.OK, Core.Presentation.Services.MessageBoxImage.Error);
                     app.Shutdown();

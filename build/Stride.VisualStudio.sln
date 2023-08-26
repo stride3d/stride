@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Commands", "..\sources\tools\Stride.VisualStudio.Commands\Stride.VisualStudio.Commands.csproj", "{EF920B86-36CA-4457-8D6C-1F300F97C355}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Commands.Interfaces", "..\sources\tools\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj", "{C2E8CBA7-04A8-44F9-ABA2-7D245AFF88E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Package", "..\sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj", "{740ECD08-3EF4-40D9-B0D3-B37BC354F79D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Package.Tests", "..\sources\tools\Stride.VisualStudio.Package.Tests\Stride.VisualStudio.Package.Tests.csproj", "{6B57CBCF-EFB2-473C-A70E-E1772D183E85}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.PackageInstall", "..\sources\tools\Stride.VisualStudio.PackageInstall\Stride.VisualStudio.PackageInstall.csproj", "{5A19D2C0-EA79-437A-AE19-8D82D6B93A34}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EF920B86-36CA-4457-8D6C-1F300F97C355}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF920B86-36CA-4457-8D6C-1F300F97C355}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF920B86-36CA-4457-8D6C-1F300F97C355}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF920B86-36CA-4457-8D6C-1F300F97C355}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2E8CBA7-04A8-44F9-ABA2-7D245AFF88E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2E8CBA7-04A8-44F9-ABA2-7D245AFF88E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2E8CBA7-04A8-44F9-ABA2-7D245AFF88E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2E8CBA7-04A8-44F9-ABA2-7D245AFF88E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{740ECD08-3EF4-40D9-B0D3-B37BC354F79D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{740ECD08-3EF4-40D9-B0D3-B37BC354F79D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{740ECD08-3EF4-40D9-B0D3-B37BC354F79D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{740ECD08-3EF4-40D9-B0D3-B37BC354F79D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B57CBCF-EFB2-473C-A70E-E1772D183E85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B57CBCF-EFB2-473C-A70E-E1772D183E85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B57CBCF-EFB2-473C-A70E-E1772D183E85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B57CBCF-EFB2-473C-A70E-E1772D183E85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A19D2C0-EA79-437A-AE19-8D82D6B93A34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A19D2C0-EA79-437A-AE19-8D82D6B93A34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A19D2C0-EA79-437A-AE19-8D82D6B93A34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A19D2C0-EA79-437A-AE19-8D82D6B93A34}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{ef920b86-36ca-4457-8d6c-1f300f97c355}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal

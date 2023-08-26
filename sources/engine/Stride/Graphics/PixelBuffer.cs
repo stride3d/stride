@@ -223,7 +223,7 @@ namespace Stride.Graphics
         /// <returns>Scanline pixels from the buffer</returns>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <see cref="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
         /// the pixels from.
         /// </remarks>
         public T[] GetPixels<T>(int yOffset = 0) where T : struct
@@ -247,7 +247,7 @@ namespace Stride.Graphics
         /// <returns>Scanline pixels from the buffer</returns>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <see cref="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
         /// the pixels from.
         /// </remarks>
         public void GetPixels<T>(T[] pixels, int yOffset = 0) where T : struct
@@ -261,11 +261,11 @@ namespace Stride.Graphics
         /// <typeparam name="T">Type of the pixel data</typeparam>
         /// <param name="pixels">An allocated scanline pixel buffer</param>
         /// <param name="yOffset">The y line offset.</param>
-        /// <param name="pixelIndex">Offset into the destination <see cref="pixels"/> buffer.</param>
-        /// <param name="pixelCount">Number of pixels to write into the destination <see cref="pixels"/> buffer.</param>
+        /// <param name="pixelIndex">Offset into the destination <paramref name="pixels"/> buffer.</param>
+        /// <param name="pixelCount">Number of pixels to write into the destination <paramref name="pixels"/> buffer.</param>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <see cref="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
         /// the pixels from.
         /// </remarks>
         public unsafe void GetPixels<T>(T[] pixels, int yOffset, int pixelIndex, int pixelCount) where T : struct
@@ -301,7 +301,7 @@ namespace Stride.Graphics
         /// <param name="yOffset">The y line offset.</param>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <see cref="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
         /// the pixels from.
         /// </remarks>
         public void SetPixels<T>(T[] sourcePixels, int yOffset = 0) where T : struct
@@ -315,11 +315,11 @@ namespace Stride.Graphics
         /// <typeparam name="T">Type of the pixel data</typeparam>
         /// <param name="sourcePixels">Source pixel buffer</param>
         /// <param name="yOffset">The y line offset.</param>
-        /// <param name="pixelIndex">Offset into the source <see cref="sourcePixels"/> buffer.</param>
-        /// <param name="pixelCount">Number of pixels to write into the source <see cref="sourcePixels"/> buffer.</param>
+        /// <param name="pixelIndex">Offset into the source <paramref name="sourcePixels"/> buffer.</param>
+        /// <param name="pixelCount">Number of pixels to write into the source <paramref name="sourcePixels"/> buffer.</param>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <see cref="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
         /// the pixels from.
         /// </remarks>
         public unsafe void SetPixels<T>(T[] sourcePixels, int yOffset, int pixelIndex, int pixelCount) where T : struct

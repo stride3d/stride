@@ -72,7 +72,7 @@ namespace Irony.Parsing {
         if(_dictionary.TryGetValue(text, out symbol))
           return symbol;
         //Create symbol; first find/create lower symbol
-        var lowerText = text.ToLower(CultureInfo.InvariantCulture); //ToLowerInvariant looks better but it's not in Silverlight, so using ToLower 
+        var lowerText = text.ToLowerInvariant();
         if(!_dictionary.TryGetValue(lowerText, out lowerSymbol))
           lowerSymbol = NewSymbol(lowerText, null);
         //if the text is all lower, return lowerSymbol as result

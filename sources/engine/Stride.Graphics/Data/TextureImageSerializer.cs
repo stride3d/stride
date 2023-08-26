@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core;
@@ -22,7 +22,7 @@ namespace Stride.Graphics.Data
                 var graphicsDeviceService = services.GetSafeServiceAs<IGraphicsDeviceService>();
 
                 // TODO: Error handling?
-                using (var textureData = Image.Load(stream.NativeStream))
+                using (var textureData = Image.Load(stream.UnderlyingStream))
                 {
                     if (texture.GraphicsDevice != null)
                         texture.OnDestroyed(); //Allows fast reloading todo review maybe?
@@ -51,7 +51,7 @@ namespace Stride.Graphics.Data
                 if (textureData == null)
                     throw new InvalidOperationException("Trying to serialize a Texture without CPU info.");
 
-                textureData.Image.Save(stream.NativeStream, ImageFileType.Stride);
+                textureData.Image.Save(stream.UnderlyingStream, ImageFileType.Stride);
             }
         }
 

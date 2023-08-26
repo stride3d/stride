@@ -64,9 +64,10 @@
       <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
       <Name>Stride.Core.Serialization</Name>
     </ProjectReference>
-    <StrideEmbeddedNativeLibrary Include="$(StridePackageStridePlatformBin)\libcore">
-      <Visible>false</Visible>
-    </StrideEmbeddedNativeLibrary>
+    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj">
+      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
+      <Name>Stride.Core</Name>
+    </ProjectReference>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="..\..\targets\Stride.UnitTests.targets" Condition="Exists('..\..\targets\Stride.UnitTests.targets')" />
