@@ -79,8 +79,7 @@ namespace Stride.GameStudio
             // opened assets
             try
             {
-                var manager = SessionViewModel.Instance?.Dialogs?.AssetEditorsManager as AssetEditorsManager;
-                if (manager != null)
+                if (SessionViewModel.Instance?.Dialogs?.AssetEditorsManager is AssetEditorsManager manager)
                 {
                     var sb = new StringBuilder();
                     foreach (var asset in manager.GetCurrentlyOpenedAssets())
@@ -203,8 +202,7 @@ namespace Stride.GameStudio
 
         private static void PrintOperation(Operation operation, StringBuilder stringBuilder, int increment, int offset)
         {
-            var transaction = operation as IReadOnlyTransaction;
-            if (transaction != null)
+            if (operation is IReadOnlyTransaction transaction)
             {
                 PrintTransaction(transaction, stringBuilder, increment, offset);
                 return;

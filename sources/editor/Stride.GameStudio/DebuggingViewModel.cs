@@ -391,7 +391,7 @@ namespace Stride.GameStudio
                 var platformName = "AnyCPU";
                 var configuration = "Debug";
                 var target = "Build";
-                var cpu = string.Empty; // Used only for Windows Phone so far, default to ARM (need to provide a selector or detection)
+
                 var extraProperties = new Dictionary<string, string>
                 {
                     ["StrideBuildEngineLogVerbose"] = "true",

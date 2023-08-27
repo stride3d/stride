@@ -15,7 +15,7 @@ namespace Stride.GameStudio
 {
     public static class AvalonDockHelper
     {
-        private static readonly List<LayoutAnchorable> VisiblityChangingAnchorable = new List<LayoutAnchorable>();
+        private static readonly List<LayoutAnchorable> VisiblityChangingAnchorable = new();
         private static IViewModelServiceProvider serviceProvider;
         public static readonly DependencyProperty IsVisibleProperty = DependencyProperty.RegisterAttached("IsVisible", typeof(bool), typeof(AvalonDockHelper), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, IsVisibleChanged));
 
@@ -77,8 +77,7 @@ namespace Stride.GameStudio
 
         private static void IsVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            var content = d as LayoutAnchorable;
-            if (content != null)
+            if (d is LayoutAnchorable content)
             {
                 // This means that the anchorable is not loaded yet
                 if (!content.IsVisible && !content.IsHidden)
@@ -127,9 +126,7 @@ namespace Stride.GameStudio
         /// </remarks>
         private static void AdjustAnchorableHideAndCloseCommands(LayoutAnchorable anchorable)
         {
-            var layoutItem = (LayoutAnchorableItem)anchorable.Root.Manager.GetLayoutItemFromModel(anchorable);
-            if (layoutItem == null)
-                throw new InvalidOperationException("The anchorable must be added to the docking manager before calling this method.");
+            var layoutItem = (LayoutAnchorableItem)anchorable.Root.Manager.GetLayoutItemFromModel(anchorable) ?? throw new InvalidOperationException("The anchorable must be added to the docking manager before calling this method.");
 
             // There's a bug in AvalonDock 3.4.0 which sets CanClose to false once a LayoutAnchorable is dragged into a new floating window or a new pane.
             // This is because ResetCanCloseInternal() is called without SetCanCloseInternal() so value gets reset to false.
