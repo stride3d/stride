@@ -21,8 +21,9 @@ using Stride.Core.VisualStudio;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.GameStudio.Services;
+using Stride.GameStudio.Helpers;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.ViewModels
 {
     public class GameStudioViewModel : EditorViewModel
     {

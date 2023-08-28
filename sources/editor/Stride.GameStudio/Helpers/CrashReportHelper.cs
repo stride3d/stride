@@ -20,8 +20,9 @@ using Stride.Core.Presentation.Services;
 using Stride.Editor.CrashReport;
 using Stride.Graphics;
 using DialogResult = System.Windows.Forms.DialogResult;
+using Stride.GameStudio.AssetsEditors;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.Helpers
 {
     public static class CrashReportHelper
     {
@@ -29,7 +30,7 @@ namespace Stride.GameStudio
         {
             public ReportSettings()
             {
-                Email = Stride.Core.Assets.Editor.Settings.EditorSettings.StoreCrashEmail.GetValue();
+                Email = Core.Assets.Editor.Settings.EditorSettings.StoreCrashEmail.GetValue();
                 StoreCrashEmail = !string.IsNullOrEmpty(Email);
             }
 
@@ -39,8 +40,8 @@ namespace Stride.GameStudio
 
             public void Save()
             {
-                Stride.Core.Assets.Editor.Settings.EditorSettings.StoreCrashEmail.SetValue(Email);
-                Stride.Core.Assets.Editor.Settings.EditorSettings.Save();
+                Core.Assets.Editor.Settings.EditorSettings.StoreCrashEmail.SetValue(Email);
+                Core.Assets.Editor.Settings.EditorSettings.Save();
             }
         }
 

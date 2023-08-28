@@ -11,7 +11,7 @@ using AvalonDock;
 using AvalonDock.Controls;
 using AvalonDock.Layout;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.Helpers
 {
     public static class AvalonDockHelper
     {

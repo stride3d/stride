@@ -10,7 +10,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModel;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.ViewModels
 {
     public class PreviewViewModel : DispatcherViewModel, IDisposable
     {

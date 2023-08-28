@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using Stride.Core.Settings;
 using Stride.Core.Presentation.ViewModel;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.ViewModels
 {
     /// <summary>
     /// This view model represents the state of the different panel of the editor window.
@@ -83,7 +83,7 @@ namespace Stride.GameStudio
             AssetLogPanelVisible = GameStudioInternalSettings.AssetLogPanelVisible.GetValue();
             BuildLogPanelVisible = GameStudioInternalSettings.BuildLogPanelVisible.GetValue();
         }
-        
+
         /// <summary>
         /// Sets all panels to be visible.
         /// </summary>
@@ -99,7 +99,7 @@ namespace Stride.GameStudio
             BuildLogPanelVisible = true;
         }
 
-        private void SetValue(ref bool field, bool value, SettingsKey<bool> settingsKey, [CallerMemberName]string propertyName = null)
+        private void SetValue(ref bool field, bool value, SettingsKey<bool> settingsKey, [CallerMemberName] string propertyName = null)
         {
             SetValue(ref field, value, propertyName);
             settingsKey.SetValue(value);

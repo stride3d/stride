@@ -23,8 +23,10 @@ using Stride.Animations;
 using Stride.Assets.Presentation.CurveEditor.ViewModels;
 using Stride.Assets.Presentation.CurveEditor.Views;
 using AvalonDock.Layout;
+using Stride.GameStudio.Helpers;
+using Stride.GameStudio.Layout;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.AssetsEditors
 {
     internal sealed class AssetEditorsManager : IAssetEditorsManager, IDestroyable
     {

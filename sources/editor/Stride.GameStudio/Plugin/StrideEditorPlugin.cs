@@ -15,8 +15,10 @@ using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.Editor.Thumbnails;
 using Stride.GameStudio.Debugging;
+using Stride.GameStudio.Helpers;
+using Stride.GameStudio.ViewModels;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.Plugin
 {
     public class StrideEditorPlugin : StrideAssetsPlugin
     {

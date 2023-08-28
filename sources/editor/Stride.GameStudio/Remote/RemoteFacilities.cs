@@ -16,7 +16,7 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Translation;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.Remote
 {
     /// <summary>
     /// Various feature for doing remote tasks: login, copying, executing, ...
@@ -236,7 +236,7 @@ namespace Stride.GameStudio
         {
             //encrypt data
             var data = Encoding.Unicode.GetBytes(plainText);
-            byte[] encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
+            var encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
 
             //return as base64 string
             return Convert.ToBase64String(encrypted);
@@ -252,10 +252,10 @@ namespace Stride.GameStudio
             try
             {
                 //parse base64 string
-                byte[] data = Convert.FromBase64String(cipher);
+                var data = Convert.FromBase64String(cipher);
 
                 //decrypt data
-                byte[] decrypted = ProtectedData.Unprotect(data, null, DataProtectionScope.CurrentUser);
+                var decrypted = ProtectedData.Unprotect(data, null, DataProtectionScope.CurrentUser);
                 return Encoding.Unicode.GetString(decrypted);
             }
             catch
@@ -274,11 +274,11 @@ namespace Stride.GameStudio
             var ipAddrList = new List<string>();
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if ((item.OperationalStatus == OperationalStatus.Up) && !item.GetIPProperties().DhcpServerAddresses.IsNullOrEmpty() && (
-                    (item.NetworkInterfaceType == NetworkInterfaceType.Ethernet) || (item.NetworkInterfaceType == NetworkInterfaceType.FastEthernetT)
-                    || (item.NetworkInterfaceType == NetworkInterfaceType.GigabitEthernet) || (item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211)))
+                if (item.OperationalStatus == OperationalStatus.Up && !item.GetIPProperties().DhcpServerAddresses.IsNullOrEmpty() && (
+                    item.NetworkInterfaceType == NetworkInterfaceType.Ethernet || item.NetworkInterfaceType == NetworkInterfaceType.FastEthernetT
+                    || item.NetworkInterfaceType == NetworkInterfaceType.GigabitEthernet || item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211))
                 {
-                    foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses)
+                    foreach (var ip in item.GetIPProperties().UnicastAddresses)
                     {
                         if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
                         {

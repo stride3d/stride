@@ -16,8 +16,11 @@ using AvalonDock;
 using AvalonDock.Layout;
 using AvalonDock.Layout.Serialization;
 using Microsoft.Xaml.Behaviors;
+using Stride.GameStudio.ViewModels;
+using Stride.GameStudio.Helpers;
+using Stride.GameStudio.View;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.Layout
 {
     /// <summary>
     /// A class that manages the docking layout of a <see cref="GameStudioWindow"/>, including switching between Editor and Normal mode, saving/loading

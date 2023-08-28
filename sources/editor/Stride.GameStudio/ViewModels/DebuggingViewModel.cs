@@ -30,8 +30,9 @@ using Stride.Core.Annotations;
 using Stride.Core.Translation;
 using Stride.Assets.Presentation.AssetEditors;
 using Stride.GameStudio.Services;
+using Stride.GameStudio.Remote;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.ViewModels
 {
     public class DebuggingViewModel : DispatcherViewModel, IDisposable
     {
@@ -510,7 +511,7 @@ namespace Stride.GameStudio
                             break;
                         case PlatformType.Android:
                             // Extract GetAndroidPackage result
-                            if (!buildTask.ResultsByTarget.TryGetValue("GetAndroidPackage", out TargetResult targetResult))
+                            if (!buildTask.ResultsByTarget.TryGetValue("GetAndroidPackage", out var targetResult))
                             {
                                 logger.Error(string.Format(Tr._p("Message", "Couldn't find Android package name for {0}."), Session.CurrentProject.Name));
                                 return false;
