@@ -171,7 +171,6 @@ void CreateMixin()
         .WithEntryPoint(ExecutionModel.Vertex,"VSMain")
             .FunctionStart()
             .FunctionEnd()
-        .FinishEntryPoint()
         .Build();
 
     //Console.WriteLine(mA);
