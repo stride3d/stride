@@ -141,6 +141,7 @@ void CreateMixin()
         Mixer.Create("MixinA")
         .FinishInherit()
         .WithType("float4")
+        .WithType("int*", StorageClass.Function)
         .Build();
     var mB = 
         Mixer.Create("MixinB")
@@ -170,6 +171,13 @@ void CreateMixin()
         .WithOutput("float3", "out_color")
         .WithEntryPoint(ExecutionModel.Vertex,"VSMain")
             .FunctionStart()
+            //.DeclareAssign("int*","a", static (mixer) =>
+            //{
+            //    var c5 = mixer.WithConstant("const_5", 5);
+
+
+            //} 
+            //)
             .FunctionEnd()
         .Build();
 
