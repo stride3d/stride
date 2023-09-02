@@ -171,13 +171,8 @@ void CreateMixin()
         .WithOutput("float3", "out_color")
         .WithEntryPoint(ExecutionModel.Vertex,"VSMain")
             .FunctionStart()
-            //.DeclareAssign("int*","a", static (mixer) =>
-            //{
-            //    var c5 = mixer.WithConstant("const_5", 5);
-
-
-            //} 
-            //)
+            .DeclareAssign("int", "a", static (mixer) => mixer.CreateConstant("cs5",5).ResultId ?? -1)
+            .DeclareAssign("int", "b", static (mixer) => mixer.Variables["cs5"].Id)
             .FunctionEnd()
         .Build();
 
