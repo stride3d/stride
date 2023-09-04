@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Stride.Core.props" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -22,13 +22,4 @@
     <ProjectReference Include="..\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
-
-  </PropertyGroup>
-  <Target Name="_StrideIncludeExtraAssemblies">
-    <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)Microsoft.WindowsAPICodePack*.dll" />
-    </ItemGroup>
-  </Target>
 </Project>
