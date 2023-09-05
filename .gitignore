@@ -4,3 +4,4 @@ obj/
 .fake
 .vs/
 .antlr/
+/src/SDSLParserExample/Properties/launchSettings.json
