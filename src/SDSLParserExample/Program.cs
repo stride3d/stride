@@ -4,6 +4,7 @@ using SDSLParserExample;
 using SoftTouch.Spirv;
 using SoftTouch.Spirv.Core;
 using SoftTouch.Spirv.Core.Buffers;
+using SoftTouch.Spirv.Core.Parsing;
 using SoftTouch.Spirv.PostProcessor;
 using static Spv.Specification;
 
@@ -164,16 +165,17 @@ void CreateMixin()
         .FinishInherit()
         .WithType("float4x3")
         .WithType("half3x3")
-        .WithConstant("a",5)
+        .WithConstant("a", 5)
         .WithInput("float3", "in_position")
         .WithInput("float3", "in_normal")
         .WithInput("float3", "in_color")
         .WithOutput("float3", "out_color")
-        .WithEntryPoint(ExecutionModel.Vertex,"VSMain")
+        .WithEntryPoint(ExecutionModel.Vertex, "VSMain")
             .FunctionStart()
-            .DeclareAssign("int", "a", static (mixer) => mixer.CreateConstant("cs5",5).ResultId ?? -1)
-            .DeclareAssign("int", "b", static (mixer) => mixer.Variables["cs5"].Id)
+            .DeclareAssign("int", "a", static (mixer) => mixer.CreateConstant("cs5", 5).ResultId ?? -1)
+            .DeclareAssign("int", "b", static (mixer) => mixer.Variables["a"].Id)
             .FunctionEnd()
+        .WithCapability(Capability.Shader)
         .Build();
 
     //Console.WriteLine(mA);
@@ -228,9 +230,22 @@ static void ParseWorking()
     Console.WriteLine(dis.Disassemble(buffer));
 }
 
-// ParseWorking();
+static void CheckOrderedEnumerator()
+{
+    var buffer = new WordBuffer();
+    buffer.AddOpTypeInt(32, 1);
+    buffer.AddOpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450);
 
-CreateMixin();
+    foreach(var e in buffer)
+    {
+        Console.WriteLine(e.OpCode);
+    }
+}
+
+
+// ParseWorking();
+CheckOrderedEnumerator();
+//CreateMixin();
 
 
 //CrossShader();
