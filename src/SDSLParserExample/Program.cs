@@ -185,7 +185,7 @@ void CreateMixin()
     using var processed = PostProcessor.Process("MixinD");
  
 
-    Console.WriteLine(new Disassembler().Disassemble(processed));
+    Console.WriteLine(Disassembler.Disassemble(processed));
 
     //processed.Bytes.ToArray().ToGlsl();
 
@@ -226,8 +226,7 @@ static void ParseWorking()
 
     var c_vec4 = buffer.AddOpConstantComposite(t_vec4, stackalloc IdRef[]{c_3f,c_4f,c_5f,c_6f});
     
-    var dis = new Disassembler();
-    Console.WriteLine(dis.Disassemble(buffer));
+    Console.WriteLine(Disassembler.Disassemble(buffer));
 }
 
 static void CheckOrderedEnumerator()
