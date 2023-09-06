@@ -233,8 +233,14 @@ static void ParseWorking()
 static void CheckOrderedEnumerator()
 {
     var buffer = new WordBuffer();
-    buffer.AddOpTypeInt(32, 1);
+    var t_int = buffer.AddOpTypeInt(32, 1);
+    var i_var = buffer.AddOpVariable(t_int, StorageClass.Private, null);
+    buffer.AddOpName(i_var, "My_var");
+    buffer.AddOpTypeInt(64, 0);
     buffer.AddOpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450);
+    buffer.AddOpCapability(Capability.Shader);
+    buffer.AddOpCapability(Capability.Geometry);
+    buffer.AddOpCapability(Capability.VectorComputeINTEL);
 
     foreach(var e in buffer)
     {
@@ -243,9 +249,9 @@ static void CheckOrderedEnumerator()
 }
 
 
-// ParseWorking();
-CheckOrderedEnumerator();
-//CreateMixin();
+//ParseWorking();
+//CheckOrderedEnumerator();
+CreateMixin();
 
 
 //CrossShader();
