@@ -2,7 +2,7 @@
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <UseWPF>true</UseWPF>
   </PropertyGroup>

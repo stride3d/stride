@@ -2,7 +2,7 @@
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Graphics.Tests.11_0</AssemblyName>
     <RootNamespace>Stride.Graphics.Tests</RootNamespace>
     <StrideBuildTags>*</StrideBuildTags>

@@ -2,7 +2,7 @@
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Shaders.Tests</AssemblyName>
     <RootNamespace>Stride.Shaders.Tests</RootNamespace>
     <StrideBuildTags>*</StrideBuildTags>

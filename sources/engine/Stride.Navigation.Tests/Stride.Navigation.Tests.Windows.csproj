@@ -2,7 +2,7 @@
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Navigation.Tests</AssemblyName>
     <RootNamespace>Stride.Navigation.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
