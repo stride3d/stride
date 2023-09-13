@@ -1,21 +1,9 @@
 <Project>
-  <PropertyGroup>
-    <StridePlatform>Windows</StridePlatform>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Exe</OutputType>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
