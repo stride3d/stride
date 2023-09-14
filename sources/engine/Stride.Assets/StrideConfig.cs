@@ -236,19 +236,19 @@ namespace Stride.Assets
         internal static bool IsVSComponentAvailableAnyVersion(IDictionary<Version, string> vsVersionToComponent)
         {
             if (vsVersionToComponent == null) { throw new ArgumentNullException("vsVersionToComponent"); }
-
+            if (!OperatingSystem.IsWindows())
+                return false;                
+                
             foreach (var pair in vsVersionToComponent)
             {
                 if (pair.Key == VS2015Version)
                 {
                     return IsFileInProgramFilesx86Exist(pair.Value);
                 }
-                else
-                {
-                    return VisualStudioVersions.AvailableVisualStudioInstances.Any(
-                        ideInfo => ideInfo.PackageVersions.ContainsKey(pair.Value)
-                    );
-                }
+
+                return VisualStudioVersions.AvailableVisualStudioInstances.Any(
+                    ideInfo => ideInfo.PackageVersions.ContainsKey(pair.Value)
+                );
             }
             return false;
         }
