@@ -292,7 +292,7 @@ namespace Stride.Core.IO
         [NotNull]
         public string ToWindowsPath()
         {
-            return FullPath.Replace('/', '\\');
+            return OperatingSystem.IsWindows() ? FullPath.Replace('/', '\\') : FullPath;
         }
 
         /// <summary>
