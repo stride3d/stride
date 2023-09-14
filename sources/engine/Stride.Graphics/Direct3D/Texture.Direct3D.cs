@@ -175,25 +175,26 @@ namespace Stride.Graphics
             NativeRenderTargetView = GetRenderTargetView(ViewType, ArraySlice, MipLevel);
             NativeDepthStencilView = GetDepthStencilView(out HasStencil);
 
-            switch (textureDescription.Options)
+            if (textureDescription.Options == TextureOptions.None)
             {
-                case TextureOptions.None:
-                    SharedHandle = IntPtr.Zero;
-                    break;
-                case TextureOptions.Shared:
-                    var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
-                    SharedHandle = sharedResource.SharedHandle;
-                    break;
+                SharedHandle = IntPtr.Zero;
+            }
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-                case TextureOptions.SharedNthandle | TextureOptions.SharedKeyedmutex:
-                    var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
-                    var uniqueName = "Stride:" + Guid.NewGuid().ToString();
-                    SharedHandle = sharedResource1.CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
-                    SharedNtHandleName = uniqueName;
-                    break; 
+            else if ((textureDescription.Options & TextureOptions.SharedNthandle) != 0)
+            {
+                var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
+                var uniqueName = "Stride:" + Guid.NewGuid().ToString();
+                SharedHandle = sharedResource1.CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
+                SharedNtHandleName = uniqueName;
+            }
 #endif
-                default:
-                    throw new ArgumentOutOfRangeException("textureDescription.Options");
+            else if ((textureDescription.Options & TextureOptions.Shared) != 0) {
+                var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
+                SharedHandle = sharedResource.SharedHandle;
+            }
+            else
+            { 
+                throw new ArgumentOutOfRangeException("textureDescription.Options");
             }
         }
 
