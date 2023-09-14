@@ -60,7 +60,7 @@ namespace Stride.Core.Assets.Compiler
             // Try to compile only if we're sure that the sources exist.
             if (EnsureSourcesExist(result, assetItem))
             {
-                Prepare((AssetCompilerContext)context, assetItem, assetItem.Location.GetDirectoryAndFileName(), result);
+                Prepare(context, assetItem, assetItem.Location.GetDirectoryAndFileName(), result);
             }
 
             return result;

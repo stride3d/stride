@@ -20,6 +20,19 @@ namespace Stride.Assets.SpriteFont
         public abstract FontFace GetFontFace();
 
         /// <summary>
+        /// Gets the associated <see cref="FontFace"/>
+        /// </summary>
+        /// <returns><see cref="FontFace"/> from the specified source or <c>null</c> if not found</returns>
+        public abstract SixLabors.Fonts.Font GetFont();
+
+        /// <summary>
+        /// Gets the actual file path to the font file
+        /// </summary>
+        /// <returns>Path to the font file</returns>
+        public abstract string GetFontP(AssetCompilerResult result = null);
+
+
+        /// <summary>
         /// Gets the actual file path to the font file
         /// </summary>
         /// <returns>Path to the font file</returns>
