@@ -39,6 +39,7 @@ Example of use:
 
     <Delete Files="@(FilesToDeleteVSIX)"/>
 
+    <MSBuild Targets="Restore" Projects="$(StrideVisualStudioSolution).sln" />
     <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution).sln" Properties="$(BuildProperties);Platform=Any CPU"/>
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -OutputDirectory "$(StrideRoot)bin\vsix"' />
  
