@@ -97,7 +97,7 @@ namespace Stride.Core.Diagnostics
         /// </summary>
         internal void BeginGpu(long timeStamp, long tickFrequency)
         {
-            // Perform event only if the profiling is running
+            // Perform event only if the profiling is running (to save on time calculations)
             if (!isEnabled) return;
 
             this.tickFrequency = tickFrequency > 0 ? tickFrequency : Stopwatch.Frequency;
@@ -152,7 +152,7 @@ namespace Stride.Core.Diagnostics
         /// </summary>
         internal void EndGpu(long timeStamp)
         {
-            // Perform event only if the profiling is running
+            // Perform event only if the profiling is running (to save on time calculations)
             if (!isEnabled) return;
 
             EmitEvent(ProfilingMessageType.End, TimeSpanFromTimeStamp(timeStamp));
@@ -180,17 +180,11 @@ namespace Stride.Core.Diagnostics
 
             TimeSpan deltaTime = timeStamp - startTime;
 
+            // Send profiler measurement to Histogram Meter
+            ProfilingKey.PerformanceMeasurement.Record(deltaTime.TotalMilliseconds, Attributes);
+
             // Create profiler event
             var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, timeStamp, deltaTime, message, Attributes);
-
-            // Send data to event source for external tracing
-            if (ProfilingKey.EventSource.IsEnabled())
-            {
-                // only send trace data if someone is listening
-                ProfilingKey.EventSource.ProfilingEvent(ProfilingId, profilingType, timeStamp, deltaTime, message.ToString(), Attributes.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()));
-            }
-            // but always try send histogram data which is optimized
-            ProfilingKey.EventSource.ProfilingHistogram(deltaTime, Attributes);
 
             // Send profiler event to Profiler
             Profiler.ProcessEvent(ref profilerEvent, eventType);

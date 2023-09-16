@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Diagnostics
@@ -14,7 +15,10 @@ namespace Stride.Core.Diagnostics
         internal static readonly HashSet<ProfilingKey> AllKeys = new HashSet<ProfilingKey>();
         internal bool Enabled;
         internal ProfilingKeyFlags Flags;
-        internal ProfilingEventSource EventSource;
+        
+        // .NET Core profiling meter - allows consuming the data with dotnet-counters
+        internal static Meter profilingMeter = new Meter("Stride.Profiler");
+        internal readonly Histogram<double> PerformanceMeasurement;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfilingKey" /> class.
@@ -25,7 +29,7 @@ namespace Stride.Core.Diagnostics
             Name = ValidateNameNotEmpty(name);
             Children = new List<ProfilingKey>();
             Flags = flags;
-            EventSource = new ProfilingEventSource(this);
+            PerformanceMeasurement = profilingMeter.CreateHistogram<double>(Name, "ms", "Duration");
 
             lock (AllKeys)
             {
@@ -43,8 +47,11 @@ namespace Stride.Core.Diagnostics
             : this($"{parent ?? throw new ArgumentNullException(nameof(parent))}.{ValidateNameNotEmpty(name)}", flags)
         {
             Parent = parent;
-            // Register ourself in parent's children.
-            parent.Children?.Add(this);
+            lock (parent.Children)
+            {
+                // Register ourself in parent's children.
+                parent.Children.Add(this);
+            }
         }
 
         /// <summary>

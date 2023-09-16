@@ -71,6 +71,7 @@ namespace Stride.Core.Diagnostics
             get => Message?.ToString();
             set
             {
+                // ignore null set in base constructor call, otherwise throw
                 if (value != null) throw new NotSupportedException("Set Message instead.");
             }
         }
