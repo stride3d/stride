@@ -791,6 +791,14 @@ namespace Stride.Core.Mathematics
             z = Z;
         }
 
+        /// <summary>
+        /// Preforms an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="Stride.Core.Mathematics.Vector3"/>.
+        /// </summary>
+        public static implicit operator Vector3(Int3 value)
+        {
+            return new Vector3(value);
+        }
+        
 #if WPFInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="System.Windows.Media.Media3D.Int3D"/>.
