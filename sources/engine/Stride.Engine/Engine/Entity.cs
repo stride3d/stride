@@ -179,14 +179,6 @@ namespace Stride.Engine
         {
             return Components.Get<T>();
         }
-        
-        /// <summary>
-        /// Gets the first component of the specified type. Does not check if type is <see cref="EntityComponent">.
-        /// </summary>
-        public T GetUnsafe<T>()
-        {
-            return Components.GetUnsafe<T>();
-        }
 
         /// <summary>
         /// Gets the index'th component of the specified type. See remarks.
