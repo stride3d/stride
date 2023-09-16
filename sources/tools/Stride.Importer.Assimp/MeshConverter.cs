@@ -8,6 +8,7 @@ using System.IO;
 using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Assets.Materials;
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -25,6 +26,14 @@ namespace Stride.Importer.Assimp
 {
     public class MeshConverter
     {
+        static MeshConverter()
+        {
+            if (Platform.Type == PlatformType.Windows)
+                NativeLibraryHelper.PreloadLibrary("Assimp64", typeof(MeshConverter));
+            else if (Platform.Type == PlatformType.macOS || Platform.Type == PlatformType.Linux)
+                NativeLibraryHelper.PreloadLibrary("libassimp", typeof(MeshConverter));
+        }
+
         private const int NumberOfBonesPerVertex = 4;
 
         public Logger Logger { get; set; }
