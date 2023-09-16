@@ -200,6 +200,15 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Calculates the unrounded length of the vector.
+        /// </summary>
+        /// <returns>The length of the vector unrounded.</returns>
+        public float LengthUnrounded() 
+        {
+            return Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+        }
+
+        /// <summary>
         /// Calculates the squared length of the vector.
         /// </summary>
         /// <returns>The squared length of the vector.</returns>
