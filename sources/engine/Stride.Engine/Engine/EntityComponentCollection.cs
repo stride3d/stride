@@ -57,6 +57,18 @@ namespace Stride.Engine
             return null;
         }
 
+        public T? GetUnsafe<T>()
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (this[i] is T item)
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
+
         /// <summary>
         /// Gets the index'th component of the specified type or derived type.
         /// </summary>
