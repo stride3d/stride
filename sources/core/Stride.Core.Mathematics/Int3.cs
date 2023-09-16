@@ -144,6 +144,16 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Creates a new instance of the <see cref="Int3"/> struct by rounding the X, Y, and Z components of a <see cref="Vector3"/> struct to the nearest integer.
+        /// </summary>
+        public Int3 RoundToInt3(Vector3 value)
+        {
+            X = (int)Math.Round(value.X);
+            Y = (int)Math.Round(value.Y);
+            Z = (int)Math.Round(value.Z);
+        }
+
+        /// <summary>
         /// Gets or sets the component at the specified index.
         /// </summary>
         /// <value>The value of the X, Y, or Z component, depending on the index.</value>
