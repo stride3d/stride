@@ -1,49 +1,48 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_DIRECT3D 
-using SharpDX.Direct3D;
+
+#if STRIDE_GRAPHICS_API_DIRECT3D
+
+using Silk.NET.Core.Native;
 
 namespace Stride.Graphics
 {
     internal static class GraphicsProfileHelper
     {
         /// <summary>
-        /// Returns a GraphicsProfile from a FeatureLevel.
+        ///   Converts an array of <see cref="GraphicsProfile"/>s to an array of corresponding <see cref="D3DFeatureLevel"/>s.
         /// </summary>
-        /// <returns>associated GraphicsProfile</returns>
-        public static FeatureLevel[] ToFeatureLevel(this GraphicsProfile[] profiles)
+        /// <param name="profiles">An array of <see cref="GraphicsProfile"/>s to convert.</param>
+        /// <returns>An array of Direct3D <see cref="D3DFeatureLevel"/>s.</returns>
+        public static D3DFeatureLevel[] ToFeatureLevel(this GraphicsProfile[] profiles)
         {
             if (profiles == null)
-            {
                 return null;
-            }
 
-            var levels = new FeatureLevel[profiles.Length];
+            var levels = new D3DFeatureLevel[profiles.Length];
+
             for (int i = 0; i < levels.Length; i++)
             {
-                levels[i] = (FeatureLevel)profiles[i];
+                levels[i] = (D3DFeatureLevel)profiles[i];
             }
+
             return levels;
-        }
-        
-        /// <summary>
-        /// Returns a GraphicsProfile from a FeatureLevel.
-        /// </summary>
-        /// <returns>associated GraphicsProfile</returns>
-        public static FeatureLevel ToFeatureLevel(this GraphicsProfile profile)
-        {
-            return (FeatureLevel)profile;
         }
 
         /// <summary>
-        /// Returns a GraphicsProfile from a FeatureLevel.
+        ///   Converts a <see cref="GraphicsProfile"/> to its corresponding <see cref="D3DFeatureLevel"/>.
         /// </summary>
-        /// <param name="level">The level.</param>
-        /// <returns>associated GraphicsProfile</returns>
-        public static GraphicsProfile FromFeatureLevel(FeatureLevel level)
-        {
-            return (GraphicsProfile)level;
-        }
+        /// <param name="profile">A <see cref="GraphicsProfile"/> to convert.</param>
+        /// <returns>A Direct3D <see cref="D3DFeatureLevel"/>.</returns>
+        public static D3DFeatureLevel ToFeatureLevel(this GraphicsProfile profile) => (D3DFeatureLevel)profile;
+
+        /// <summary>
+        ///   Converts a <see cref="D3DFeatureLevel"/> to its corresponding <see cref="GraphicsProfile"/>.
+        /// </summary>
+        /// <param name="level">A <see cref="D3DFeatureLevel"/> to convert.</param>
+        /// <returns>A Stride <see cref="GraphicsProfile"/>.</returns>
+        public static GraphicsProfile FromFeatureLevel(D3DFeatureLevel level) => (GraphicsProfile) level;
     }
-} 
-#endif 
+}
+
+#endif

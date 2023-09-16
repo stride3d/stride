@@ -2,12 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
+
+using Silk.NET.Direct3D12;
+
 namespace Stride.Graphics
 {
-    public partial struct MappedResource
+    public readonly unsafe partial struct MappedResource
     {
-        internal SharpDX.Direct3D12.Resource UploadResource;
-        internal int UploadOffset;
+        internal readonly ID3D12Resource* UploadResource;
+        internal readonly int UploadOffset;
     }
 }
+
 #endif
