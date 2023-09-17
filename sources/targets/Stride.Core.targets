@@ -37,7 +37,10 @@
         BeforeTargets="CoreCompile"
         Condition="'$(StrideEnableCodeAnalysis)' != 'true'">
     <ItemGroup>
-      <Analyzer Remove="@(Analyzer)"/>
+      <!-- We want to include Stride analyzers by default -->
+      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Stride'))" />
+      <AnalyzersToRemove Include="@(Analyzer)" Exclude="@(AnalyzersNotToRemove)" />
+      <Analyzer Remove="@(AnalyzersToRemove)"/>
     </ItemGroup>
   </Target>
 

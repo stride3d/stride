@@ -10,13 +10,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-StrideRuntime", "20-Stri
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
-		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
 		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
 		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
 		..\sources\targets\Stride.Core.TargetFrameworks.Editor.props = ..\sources\targets\Stride.Core.TargetFrameworks.Editor.props
 		..\sources\targets\Stride.Core.targets = ..\sources\targets\Stride.Core.targets
 		..\sources\targets\Stride.GraphicsApi.Dev.targets = ..\sources\targets\Stride.GraphicsApi.Dev.targets
 		..\sources\targets\Stride.GraphicsApi.PackageReference.targets = ..\sources\targets\Stride.GraphicsApi.PackageReference.targets
+		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
 		..\sources\targets\Stride.PackageVersion.targets = ..\sources\targets\Stride.PackageVersion.targets
 		..\sources\targets\Stride.props = ..\sources\targets\Stride.props
 		..\sources\targets\Stride.targets = ..\sources\targets\Stride.targets
@@ -66,6 +66,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targ
 		Stride.Build.targets = Stride.Build.targets
 		Stride.Core.Build.props = Stride.Core.Build.props
 		Stride.Core.Build.targets = Stride.Core.Build.targets
+		Stride.Core.DiagnosticsServices.props = Stride.Core.DiagnosticsServices.props
 		Stride.UnitTests.Build.targets = Stride.UnitTests.Build.targets
 	EndProjectSection
 EndProject
@@ -314,6 +315,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.Assimp", "..\sources\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.csproj", "{967BA05D-4AC4-4848-AEFD-894EF2309E4D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.Common", "..\sources\tools\Stride.Importer.Common\Stride.Importer.Common.csproj", "{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.StrideDiagnostics", "..\sources\core\Stride.Core.StrideDiagnostics\Stride.Core.StrideDiagnostics.csproj", "{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1402,6 +1405,18 @@ Global
 		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Release|Win32.ActiveCfg = Release|Any CPU
 		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Release|Win32.Build.0 = Release|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Debug|Win32.Build.0 = Debug|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Release|Win32.ActiveCfg = Release|Any CPU
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1520,6 +1535,7 @@ Global
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
 		{967BA05D-4AC4-4848-AEFD-894EF2309E4D} = {6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C}
 		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE} = {6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C}
+		{E72E5E39-769E-44AA-9C90-F1C43A7ECBE4} = {2E93E2B5-4500-4E47-9B65-E705218AB578}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

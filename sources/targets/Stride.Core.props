@@ -243,7 +243,8 @@
       </TargetPathWithTargetPlatformMoniker>
     </ItemGroup>
   </Target>
-
+  <!-- Include Stride analyzer/code generator -->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.StrideDiagnostics.props"/>
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(StrideProjectType)' != 'Cpp'" />
 
 </Project>
