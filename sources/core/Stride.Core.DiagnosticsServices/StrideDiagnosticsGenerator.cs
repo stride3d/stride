@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using System.Diagnostics;
@@ -13,7 +13,7 @@ public class StrideDiagnosticsGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
-        Debugger.Launch();
+        // Debugger.Launch();
         context.RegisterForSyntaxNotifications(() => new StrideDiagnosticsSyntaxReceiver());
     }
     private Diagnoser classGenerator { get; set; } = new();
