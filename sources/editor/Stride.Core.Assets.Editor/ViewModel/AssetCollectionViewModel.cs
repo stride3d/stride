@@ -541,6 +541,29 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             List<AssetViewModel> newAssets = new List<AssetViewModel>();
 
+            foreach (var file in files)
+            {
+                bool inResourceFolder = false;
+                foreach (var resourceFolder in directory.Package.Package.ResourceFolders)
+                {
+                    if (file.FullPath.StartsWith(resourceFolder.FullPath))
+                    {
+                        inResourceFolder = true;
+                        break;
+                    }
+                }
+
+                if (inResourceFolder == false)
+                {
+                    var message = Tr._p("Message", "Source file '{0}' is not inside any of your project's resource folders, import anyway ?");
+                    message = string.Format(message, file.FullPath);
+
+                    var result = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.No)
+                        return newAssets;
+                }
+            }
+
             var parameters = new AssetTemplateGeneratorParameters(directory.Path, files)
             {
                 Name = name,
