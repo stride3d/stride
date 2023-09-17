@@ -54,18 +54,20 @@ Ask for help or report issues:
 ### Prerequisites
 
 1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog.
-2. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
+2. [DotNet SDK 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+  * Run 'dotnet --info' in a console or powershell window to see which versions you have installed  
+3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
   * `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
   * `Desktop development with C++` with
     * `Windows 10 SDK (10.0.18362.0)` (it's currently enabled by default but it might change)
     * `MSVC v143 - VS2022 C++ x64/x86 build tools (v14.30)` or later version (should be enabled by default)
     * `C++/CLI support for v143 build tools (v14.30)` or later version **(not enabled by default)**
   * Optional (to target iOS/Android): `Mobile development with .NET` and `Android SDK setup (API level 27)` individual component, then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 19+) from `Tools` tab.
-3. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
+4. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
 
 ### Build Stride
 
-1. Open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
+1. Open a command prompt, point it to a directory and clone Stride to it: `git clone https://github.com/stride3d/stride.git`
    - Note that when you use GitHub -> Code -> Download ZIP, this doesn't support Large File Support ```lfs```, make sure you use the command above or that your git client does it for you
 2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 and build `Stride.GameStudio` in the 60-Editor solution folder (it should be the default startup project) or run it from VS's toolbar.
    - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
