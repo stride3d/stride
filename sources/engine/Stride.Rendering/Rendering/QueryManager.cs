@@ -38,8 +38,6 @@ namespace Stride.Rendering
         {
             this.commandList = commandList;
             this.allocator = allocator;
-
-            Profiler.GpuTimestampFrequencyRatio = commandList.GraphicsDevice.TimestampFrequency / 1000.0;
         }
 
         /// <summary>
@@ -148,7 +146,8 @@ namespace Stride.Rendering
                 if (query.ProfilingKey != null)
                 {
                     var profilingState = Profiler.New(query.ProfilingKey);
-                    profilingState.BeginGpu(queryResults[query.Index], commandList.GraphicsDevice.TimestampFrequency);
+                    profilingState.TickFrequency = commandList.GraphicsDevice.TimestampFrequency;
+                    profilingState.BeginGpu(queryResults[query.Index]);
                     profilingStates.Push(profilingState);
                 }
                 else

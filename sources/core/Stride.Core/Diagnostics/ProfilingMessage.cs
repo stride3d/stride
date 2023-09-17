@@ -61,7 +61,7 @@ namespace Stride.Core.Diagnostics
         /// <summary>
         /// Event message.
         /// </summary>
-        public ProfilingEventMessage? Message { get; }
+        public ProfilingEventMessage? Message { get; private set; }
 
         /// <summary>
         /// Text of the log.
@@ -69,11 +69,7 @@ namespace Stride.Core.Diagnostics
         public override string Text
         {
             get => Message?.ToString();
-            set
-            {
-                // ignore null set in base constructor call, otherwise throw
-                if (value != null) throw new NotSupportedException("Set Message instead.");
-            }
+            set => Message = value != null ? new ProfilingEventMessage(value) : null;
         }
 
         /// <summary>

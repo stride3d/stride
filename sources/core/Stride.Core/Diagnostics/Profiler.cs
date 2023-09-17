@@ -88,8 +88,6 @@ namespace Stride.Core.Diagnostics
         private static bool enableAll;
         private static int profileId;
 
-        public static double GpuTimestampFrequencyRatio = 0.0;
-
         /// <summary>
         /// Enables all profilers.
         /// </summary>

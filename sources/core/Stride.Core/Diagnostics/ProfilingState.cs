@@ -19,7 +19,7 @@ namespace Stride.Core.Diagnostics
         private TimeSpan startTime;
         private ProfilingEventMessage? beginMessage;
         private ProfilingEventType eventType;
-        private long tickFrequency = 1;
+        private long tickFrequency = Stopwatch.Frequency;
 
         internal ProfilingState(int profilingId, ProfilingKey profilingKey, bool isEnabled)
         {
@@ -53,6 +53,16 @@ namespace Stride.Core.Diagnostics
         /// A list of attributes (dimensions) associated with this profiling state.
         /// </summary>
         public TagList Attributes { get; }
+
+        /// <summary>
+        /// Gets or sets the TickFrequency used to convert <see cref="long"/> timestamp to <see cref="TimeSpan"/>.
+        /// By default for CPU events it's <see cref="Stopwatch.Frequency"/> and for GPU events it's set by the rendering code."/>
+        /// </summary>
+        public long TickFrequency
+        {
+            get => tickFrequency;
+            set => tickFrequency = value > 0 ? value : throw new ArgumentOutOfRangeException("Tick frequency must be non-zero");
+        }
 
         /// <summary>
         /// Checks if the profiling key is enabled and update this instance. See remarks.
@@ -95,14 +105,13 @@ namespace Stride.Core.Diagnostics
         /// <summary>
         /// Emits a Begin event with an override on the timestamp. Internal for the use of Stride.Rendering.
         /// </summary>
-        internal void BeginGpu(long timeStamp, long tickFrequency)
+        internal void BeginGpu(long timeStamp)
         {
             // Perform event only if the profiling is running (to save on time calculations)
             if (!isEnabled) return;
 
-            this.tickFrequency = tickFrequency > 0 ? tickFrequency : Stopwatch.Frequency;
             eventType = ProfilingEventType.GpuProfilingEvent;
-            EmitEvent(ProfilingMessageType.Begin, TimeSpanFromTimeStamp(timeStamp));
+            EmitEventCore(ProfilingMessageType.Begin, TimeSpanFromTimeStamp(timeStamp));
         }
 
         /// <summary>
@@ -155,10 +164,10 @@ namespace Stride.Core.Diagnostics
             // Perform event only if the profiling is running (to save on time calculations)
             if (!isEnabled) return;
 
-            EmitEvent(ProfilingMessageType.End, TimeSpanFromTimeStamp(timeStamp));
+            EmitEventCore(ProfilingMessageType.End, TimeSpanFromTimeStamp(timeStamp));
         }
 
-        private void EmitEvent(ProfilingMessageType profilingType, TimeSpan timeStamp, ProfilingEventMessage? message = null)
+        private void EmitEventCore(ProfilingMessageType profilingType, TimeSpan timeStamp, ProfilingEventMessage? message = null)
         {
             // Perform event only if the profiling is running
             if (!isEnabled) return;
@@ -196,8 +205,7 @@ namespace Stride.Core.Diagnostics
             if (!isEnabled) return;
 
             var timeStamp = Stopwatch.GetTimestamp();
-            tickFrequency = Stopwatch.Frequency;
-            EmitEvent(profilingType, TimeSpanFromTimeStamp(timeStamp), message);
+            EmitEventCore(profilingType, TimeSpanFromTimeStamp(timeStamp), message);
         }
 
         private TimeSpan TimeSpanFromTimeStamp(long timeStamp)

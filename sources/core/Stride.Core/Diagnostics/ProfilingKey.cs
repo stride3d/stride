@@ -44,9 +44,10 @@ namespace Stride.Core.Diagnostics
         /// <param name="name">The name.</param>
         /// <exception cref="System.ArgumentNullException">parent</exception>
         public ProfilingKey([NotNull] ProfilingKey parent, [NotNull] string name, ProfilingKeyFlags flags = ProfilingKeyFlags.None)
-            : this($"{parent ?? throw new ArgumentNullException(nameof(parent))}.{ValidateNameNotEmpty(name)}", flags)
+            : this($"{parent}.{name}", flags)
         {
-            Parent = parent;
+            ValidateNameNotEmpty(name);
+            Parent = parent ?? throw new ArgumentNullException(nameof(parent));
             lock (parent.Children)
             {
                 // Register ourself in parent's children.
