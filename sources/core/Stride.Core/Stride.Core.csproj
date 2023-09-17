@@ -20,7 +20,7 @@
   <ItemGroup>
     <PackageReference Include="ServiceWire" Version="5.3.4" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" Version="3.1.0" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="6.0.2" />
   </ItemGroup>
   
   <ItemGroup>
@@ -32,6 +32,9 @@
     <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
     <None Include="build\**\*.props" PackagePath="buildTransitive\" Pack="true" />
     <None Include="..\..\..\deps\AssemblyProcessor\**\*.*" Exclude="..\..\..\deps\AssemblyProcessor\.gitignore" PackagePath="tools\AssemblyProcessor\" Pack="true" />
+    <!-- The following line packages up the analyzer into Stride.Core - this way it will be transiently invoked in packages that depend on Stride.Core -->
+    <!-- You need to rebuild this project if the file changes (VS caches it somewhere) -->
+    <None Include="$(MSBuildThisFileDirectory)\..\Stride.Core.DiagnosticsServices\bin\$(Configuration)\netstandard2.0\Stride.Core.DiagnosticsServices.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
   
   <ItemGroup>

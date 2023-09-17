@@ -66,6 +66,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targ
 		Stride.Build.targets = Stride.Build.targets
 		Stride.Core.Build.props = Stride.Core.Build.props
 		Stride.Core.Build.targets = Stride.Core.Build.targets
+		Stride.Core.DiagnosticsServices.props = Stride.Core.DiagnosticsServices.props
 		Stride.UnitTests.Build.targets = Stride.UnitTests.Build.targets
 	EndProjectSection
 EndProject
@@ -315,9 +316,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.Assimp", ".
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.Common", "..\sources\tools\Stride.Importer.Common\Stride.Importer.Common.csproj", "{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.DiagnosticsServices", "..\sources\core\Stride.Core.DiagnosticsServices\Stride.Core.DiagnosticsServices.csproj", "{30D896B3-B789-4E60-A86A-61E32D890ECE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.DiagnosticsServices", "..\sources\core\Stride.Core.DiagnosticsServices\Stride.Core.DiagnosticsServices.csproj", "{30D896B3-B789-4E60-A86A-61E32D890ECE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.DiagnosticsServices.Tests", "..\sources\core\Stride.Core.DiagnosticsServices.Tests\Stride.Core.DiagnosticsServices.Tests.csproj", "{16C0AA3B-495A-46BF-983F-3721C0258A07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.DiagnosticsServices.Tests", "..\sources\core\Stride.Core.DiagnosticsServices.Tests\Stride.Core.DiagnosticsServices.Tests.csproj", "{16C0AA3B-495A-46BF-983F-3721C0258A07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
