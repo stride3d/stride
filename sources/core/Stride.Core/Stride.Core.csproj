@@ -3,19 +3,18 @@
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.Core.props" />
-  
+
   <PropertyGroup>
-    <Description>Core assembly for all Stride assemblies.</Description>
+    <Description>Stride Core DiagnosticsServices assembly.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+    <StridePlatformDependent>true</StridePlatformDependent>
     <StrideBuildTags>*</StrideBuildTags>
-    <RestorePackages>true</RestorePackages>
-    <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
   </PropertyGroup>
   
   <ItemGroup>
