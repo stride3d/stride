@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Ta
 	ProjectSection(SolutionItems) = preProject
 		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
 		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
+		..\sources\targets\Stride.Core.StrideDiagnostics.props = ..\sources\targets\Stride.Core.StrideDiagnostics.props
 		..\sources\targets\Stride.Core.TargetFrameworks.Editor.props = ..\sources\targets\Stride.Core.TargetFrameworks.Editor.props
 		..\sources\targets\Stride.Core.targets = ..\sources\targets\Stride.Core.targets
 		..\sources\targets\Stride.GraphicsApi.Dev.targets = ..\sources\targets\Stride.GraphicsApi.Dev.targets
