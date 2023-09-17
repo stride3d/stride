@@ -75,6 +75,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
@@ -192,9 +193,9 @@ namespace Stride.Graphics
         /// <summary>
         /// Reset the buffer (by default it is not cleared)
         /// </summary>
-        public void Clear()
+        public unsafe void Clear()
         {
-            Utilities.ClearMemory(buffer, 0, totalSizeInBytes);
+            Unsafe.InitBlockUnaligned((void*)buffer, 0, (uint)totalSizeInBytes);
         }
 
         /// <summary>
@@ -498,11 +499,11 @@ namespace Stride.Graphics
         /// <summary>
         /// Loads an image from an unmanaged memory pointer.
         /// </summary>
-        /// <param name="dataBuffer">Pointer to an unmanaged memory. If <see cref="makeACopy"/> is false, this buffer must be allocated with <see cref="Utilities.AllocateMemory"/>.</param>
+        /// <param name="dataBuffer">Pointer to an unmanaged memory. If <paramref name="makeACopy"/> is false, this buffer must be allocated with <see cref="Utilities.AllocateMemory"/>.</param>
         /// <param name="makeACopy">True to copy the content of the buffer to a new allocated buffer, false otherwise.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <returns>An new image.</returns>
-        /// <remarks>If <see cref="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
+        /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
         public static Image Load(DataPointer dataBuffer, bool makeACopy = false, bool loadAsSRGB = false)
         {
             return Load(dataBuffer.Pointer, dataBuffer.Size, makeACopy, loadAsSRGB);
@@ -511,12 +512,12 @@ namespace Stride.Graphics
         /// <summary>
         /// Loads an image from an unmanaged memory pointer.
         /// </summary>
-        /// <param name="dataPointer">Pointer to an unmanaged memory. If <see cref="makeACopy"/> is false, this buffer must be allocated with <see cref="Utilities.AllocateMemory"/>.</param>
+        /// <param name="dataPointer">Pointer to an unmanaged memory. If <paramref name="makeACopy"/> is false, this buffer must be allocated with <see cref="Utilities.AllocateMemory"/>.</param>
         /// <param name="dataSize">Size of the unmanaged buffer.</param>
         /// <param name="makeACopy">True to copy the content of the buffer to a new allocated buffer, false otherwise.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <returns>An new image.</returns>
-        /// <remarks>If <see cref="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
+        /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
         public static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy = false, bool loadAsSRGB = false)
         {
             return Load(dataPointer, dataSize, makeACopy, null, loadAsSRGB);
@@ -534,18 +535,16 @@ namespace Stride.Graphics
             if (buffer == null)
                 throw new ArgumentNullException("buffer");
 
-            int size = buffer.Length;
-
             // If buffer is allocated on Larget Object Heap, then we are going to pin it instead of making a copy.
-            if (size > (85 * 1024))
+            if (buffer.Length > (85 * 1024))
             {
                 var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                return Load(handle.AddrOfPinnedObject(), size, false, handle, loadAsSRGB);
+                return Load(handle.AddrOfPinnedObject(), buffer.Length, false, handle, loadAsSRGB);
             }
 
             fixed (void* pbuffer = buffer)
             {
-                return Load((IntPtr)pbuffer, size, true, loadAsSRGB);
+                return Load((IntPtr)pbuffer, buffer.Length, true, loadAsSRGB);
             }
         }
 

@@ -147,11 +147,11 @@ namespace Stride.Core.BuildEngine
                 var hash = prepareContext.ComputeInputHash(inputFile.Type, inputFile.Path);
                 if (hash == ObjectId.Empty)
                 {
-                    writer.NativeStream.WriteByte(0);
+                    writer.UnderlyingStream.WriteByte(0);
                 }
                 else
                 {
-                    writer.NativeStream.Write((byte[])hash, 0, ObjectId.HashSize);
+                    writer.UnderlyingStream.Write((byte[])hash, 0, ObjectId.HashSize);
                 }
             }
         }

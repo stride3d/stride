@@ -7,17 +7,17 @@
 // -----------------------------------------------------------------------------
 /*
 * Copyright (c) 2007-2011 SlimDX Group
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in
 * all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -472,7 +472,7 @@ namespace Stride.Core.Mathematics
                 (rz * lw + lz * rw + rx * ly) - (ry * lx),
                 (rw * lw) - (rx * lx + ry * ly + rz * lz));
         }
-        
+
         /// <summary>
         /// Reverses the direction of a given quaternion.
         /// </summary>
@@ -575,7 +575,7 @@ namespace Stride.Core.Mathematics
         {
             return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
         }
-        
+
         /// <summary>
         /// Returns the absolute angle in radians between <paramref name="a"/> and <paramref name="b"/>
         /// </summary>
@@ -654,7 +654,7 @@ namespace Stride.Core.Mathematics
         /// <remarks>
         /// This method performs the linear interpolation based on the following formula.
         /// <code>start + (end - start) * amount</code>
-        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
+        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
         /// </remarks>
         public static void Lerp(ref Quaternion start, ref Quaternion end, float amount, out Quaternion result)
         {
@@ -688,7 +688,7 @@ namespace Stride.Core.Mathematics
         /// <remarks>
         /// This method performs the linear interpolation based on the following formula.
         /// <code>start + (end - start) * amount</code>
-        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
+        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
         /// </remarks>
         public static Quaternion Lerp(Quaternion start, Quaternion end, float amount)
         {
@@ -696,7 +696,7 @@ namespace Stride.Core.Mathematics
             Lerp(ref start, ref end, amount, out result);
             return result;
         }
-        
+
         /// <summary>
         /// Returns a rotation whose facing direction points towards <paramref name="forward"/>
         /// and whose up direction points as close as possible to <paramref name="up"/>.
@@ -968,15 +968,15 @@ namespace Stride.Core.Mathematics
         /// Calculate the yaw/pitch/roll rotation equivalent to the provided quaternion.
         /// </summary>
         /// <param name="rotation">The input quaternion</param>
-        /// <param name="yaw">The yaw component</param>
-        /// <param name="pitch">The pitch component</param>
-        /// <param name="roll">The roll component</param>
+        /// <param name="yaw">The yaw component in radians.</param>
+        /// <param name="pitch">The pitch component in radians.</param>
+        /// <param name="roll">The roll component in radians.</param>
         public static void RotationYawPitchRoll(ref Quaternion rotation, out float yaw, out float pitch, out float roll)
         {
             // Equivalent to:
             //  Matrix rotationMatrix;
             //  Matrix.Rotation(ref cachedRotation, out rotationMatrix);
-            //  rotationMatrix.DecomposeXYZ(out rotationEuler);
+            //  rotationMatrix.Decompose(out float yaw, out float pitch, out float roll);
 
             var xx = rotation.X * rotation.X;
             var yy = rotation.Y * rotation.Y;
@@ -988,16 +988,40 @@ namespace Stride.Core.Mathematics
             var yz = rotation.Y * rotation.Z;
             var xw = rotation.X * rotation.W;
 
-            pitch = MathF.Asin(2.0f * (xw - yz));
-            if (MathF.Cos(pitch) > MathUtil.ZeroTolerance)
+            var M11 = 1.0f - (2.0f * (yy + zz));
+            var M12 = 2.0f * (xy + zw);
+            //var M13 = 2.0f * (zx - yw);
+            var M21 = 2.0f * (xy - zw);
+            var M22 = 1.0f - (2.0f * (zz + xx));
+            //var M23 = 2.0f * (yz + xw);
+            var M31 = 2.0f * (zx + yw);
+            var M32 = 2.0f * (yz - xw);
+            var M33 = 1.0f - (2.0f * (yy + xx));
+
+            /*** Refer to Matrix.Decompose(out float yaw, out float pitch, out float roll) for code and license ***/
+            if (MathUtil.IsOne(Math.Abs(M32)))
             {
-                roll = MathF.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (zz + xx)));
-                yaw = MathF.Atan2(2.0f * (zx + yw), 1.0f - (2.0f * (yy + xx)));
+                if (M32 >= 0)
+                {
+                    // Edge case where M32 == +1
+                    pitch = -MathUtil.PiOverTwo;
+                    yaw = MathF.Atan2(-M21, M11);
+                    roll = 0;
+                }
+                else
+                {
+                    // Edge case where M32 == -1
+                    pitch = MathUtil.PiOverTwo;
+                    yaw = -MathF.Atan2(-M21, M11);
+                    roll = 0;
+                }
             }
             else
             {
-                roll = MathF.Atan2(-2.0f * (xy - zw), 1.0f - (2.0f * (yy + zz)));
-                yaw = 0.0f;
+                // Common case
+                pitch = MathF.Asin(-M32);
+                yaw = MathF.Atan2(M31, M33);
+                roll = MathF.Atan2(M12, M22);
             }
         }
 
@@ -1013,7 +1037,7 @@ namespace Stride.Core.Mathematics
             var halfRoll = roll * 0.5f;
             var halfPitch = pitch * 0.5f;
             var halfYaw = yaw * 0.5f;
-            
+
             var sinRoll = MathF.Sin(halfRoll);
             var cosRoll = MathF.Cos(halfRoll);
             var sinPitch = MathF.Sin(halfPitch);
@@ -1031,11 +1055,11 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Creates a quaternion given a yaw, pitch, and roll value.
+        /// Creates a quaternion given a yaw, pitch, and roll value (angles in radians).
         /// </summary>
-        /// <param name="yaw">The yaw of rotation.</param>
-        /// <param name="pitch">The pitch of rotation.</param>
-        /// <param name="roll">The roll of rotation.</param>
+        /// <param name="yaw">The yaw of rotation in radians.</param>
+        /// <param name="pitch">The pitch of rotation in radians.</param>
+        /// <param name="roll">The roll of rotation in radians.</param>
         /// <returns>The newly created quaternion.</returns>
         public static Quaternion RotationYawPitchRoll(float yaw, float pitch, float roll)
         {
@@ -1151,7 +1175,7 @@ namespace Stride.Core.Mathematics
             result.W = (inverse * start.W) + (opposite * end.W);
             return result;
         }
-        
+
         /// <summary>
         /// Rotate <paramref name="current"/> towards <paramref name="target"/> by <paramref name="angle"/>.
         /// </summary>
@@ -1395,7 +1419,7 @@ namespace Stride.Core.Mathematics
         /// Returns a hash code for this instance.
         /// </summary>
         /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
         /// </returns>
         public override readonly int GetHashCode()
         {

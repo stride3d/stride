@@ -11,6 +11,9 @@
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UtilityFunctions.h" />
-    <ClInclude Include="..\Stride.Importer.Common\ImporterUtils.h" />
+    <ClInclude Include="ImporterUtils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)nuget-icon.png" />
   </ItemGroup>
 </Project>

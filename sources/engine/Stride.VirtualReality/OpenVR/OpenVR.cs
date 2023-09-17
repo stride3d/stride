@@ -10,11 +10,24 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace Stride.VirtualReality
 {
     internal static class OpenVR
     {
+        /// <summary>Bypasses definite assignment rules for a given reference.
+        /// <para>A thin wrapper around <see cref="Unsafe.SkipInit{T}(out T)"/> for the sole purpose of making it usable in an expression.</para></summary>
+        /// <typeparam name="T">The type of the reference.</typeparam>
+        /// <param name="value">The reference whose initialization should be skipped.</param>
+        /// <returns>The reference to <paramref name="value"/>.</returns>
+        /// <remarks>Take care to ensure that the struct has been initialized appropriately, otherwise the struct's fields could contain uninitialized data from the stack.</remarks>
+        private static ref T SkipInit<T>(out T value)
+        {
+            Unsafe.SkipInit(out value);
+            return ref value;
+        }
+
         public class Controller
         {
             // This helper can be used in a variety of ways.  Beware that indices may change
@@ -252,10 +265,11 @@ namespace Stride.VirtualReality
 
         private static unsafe void GetEyeToHeadUnsafe(int eyeIndex, out Matrix pose)
         {
+            Debug.Assert(Unsafe.SizeOf<Matrix>() > Unsafe.SizeOf<HmdMatrix34_t>());
             pose = Matrix.Identity;
             var eye = eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right;
             var eyeToHead = Valve.VR.OpenVR.System.GetEyeToHeadTransform(eye);
-            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref pose), (IntPtr)Interop.Fixed(ref eyeToHead), Unsafe.SizeOf<HmdMatrix34_t>());
+            Unsafe.As<Matrix, HmdMatrix34_t>(ref pose) = eyeToHead;
         }
 
         public static void UpdatePoses()
@@ -280,11 +294,11 @@ namespace Stride.VirtualReality
 
         private static unsafe DeviceState GetControllerPoseUnsafe(int controllerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
         {
+            Debug.Assert(Unsafe.SizeOf<Vector3>() == Unsafe.SizeOf<HmdVector3_t>());
+            Debug.Assert(Unsafe.SizeOf<Matrix>() > Unsafe.SizeOf<HmdMatrix34_t>());
             var currentIndex = 0;
 
             pose = Matrix.Identity;
-            velocity = Vector3.Zero;
-            angVelocity = Vector3.Zero;
 
             for (uint index = 0; index < DevicePoses.Length; index++)
             {
@@ -292,16 +306,17 @@ namespace Stride.VirtualReality
                 {
                     if (currentIndex == controllerIndex)
                     {
-                        Utilities.CopyMemory((IntPtr)Interop.Fixed(ref pose), (IntPtr)Interop.Fixed(ref DevicePoses[index].mDeviceToAbsoluteTracking), Unsafe.SizeOf<HmdMatrix34_t>());
-                        Utilities.CopyMemory((IntPtr)Interop.Fixed(ref velocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vVelocity), Unsafe.SizeOf<HmdVector3_t>());
-                        Utilities.CopyMemory((IntPtr)Interop.Fixed(ref angVelocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vAngularVelocity), Unsafe.SizeOf<HmdVector3_t>());
+                        ref var devicePose = ref DevicePoses[index];
+                        Unsafe.As<Matrix, HmdMatrix34_t>(ref pose) = devicePose.mDeviceToAbsoluteTracking;
+                        Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out velocity)) = devicePose.vVelocity;
+                        Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out angVelocity)) = devicePose.vAngularVelocity;
 
                         var state = DeviceState.Invalid;
-                        if (DevicePoses[index].bDeviceIsConnected && DevicePoses[index].bPoseIsValid)
+                        if (devicePose.bDeviceIsConnected && devicePose.bPoseIsValid)
                         {
                             state = DeviceState.Valid;
                         }
-                        else if (DevicePoses[index].bDeviceIsConnected && !DevicePoses[index].bPoseIsValid && DevicePoses[index].eTrackingResult == ETrackingResult.Running_OutOfRange)
+                        else if (devicePose.bDeviceIsConnected && !devicePose.bPoseIsValid && devicePose.eTrackingResult == ETrackingResult.Running_OutOfRange)
                         {
                             state = DeviceState.OutOfRange;
                         }
@@ -311,7 +326,8 @@ namespace Stride.VirtualReality
                     currentIndex++;
                 }
             }
-
+            velocity = default;
+            angVelocity = default;
             return DeviceState.Invalid;
         }
 
@@ -322,21 +338,21 @@ namespace Stride.VirtualReality
 
         private static unsafe DeviceState GetTrackerPoseUnsafe(int trackerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
         {
+            Debug.Assert(Unsafe.SizeOf<Vector3>() == Unsafe.SizeOf<HmdVector3_t>());
+            Debug.Assert(Unsafe.SizeOf<Matrix>() > Unsafe.SizeOf<HmdMatrix34_t>());
             pose = Matrix.Identity;
-            velocity = Vector3.Zero;
-            angVelocity = Vector3.Zero;
-            var index = trackerIndex;
+            ref var devicePose = ref DevicePoses[trackerIndex];
 
-            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref pose), (IntPtr)Interop.Fixed(ref DevicePoses[index].mDeviceToAbsoluteTracking), Unsafe.SizeOf<HmdMatrix34_t>());
-            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref velocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vVelocity), Unsafe.SizeOf<HmdVector3_t>());
-            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref angVelocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vAngularVelocity), Unsafe.SizeOf<HmdVector3_t>());
+            Unsafe.As<Matrix, HmdMatrix34_t>(ref pose) = devicePose.mDeviceToAbsoluteTracking;
+            Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out velocity)) = devicePose.vVelocity;
+            Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out angVelocity)) = devicePose.vAngularVelocity;
 
             var state = DeviceState.Invalid;
-            if (DevicePoses[index].bDeviceIsConnected && DevicePoses[index].bPoseIsValid)
+            if (devicePose.bDeviceIsConnected && devicePose.bPoseIsValid)
             {
                 state = DeviceState.Valid;
             }
-            else if (DevicePoses[index].bDeviceIsConnected && !DevicePoses[index].bPoseIsValid && DevicePoses[index].eTrackingResult == ETrackingResult.Running_OutOfRange)
+            else if (devicePose.bDeviceIsConnected && !devicePose.bPoseIsValid && devicePose.eTrackingResult == ETrackingResult.Running_OutOfRange)
             {
                 state = DeviceState.OutOfRange;
             }
@@ -351,16 +367,17 @@ namespace Stride.VirtualReality
 
         private static unsafe DeviceState GetHeadPoseUnsafe(out Matrix pose, out Vector3 linearVelocity, out Vector3 angularVelocity)
         {
+            Debug.Assert(Unsafe.SizeOf<Vector3>() == Unsafe.SizeOf<HmdVector3_t>());
+            Debug.Assert(Unsafe.SizeOf<Matrix>() > Unsafe.SizeOf<HmdMatrix34_t>());
             pose = Matrix.Identity;
-            linearVelocity = Vector3.Zero;
-            angularVelocity = Vector3.Zero;
             for (uint index = 0; index < DevicePoses.Length; index++)
             {
+                ref var devicePose = ref DevicePoses[index];
                 if (Valve.VR.OpenVR.System.GetTrackedDeviceClass(index) == ETrackedDeviceClass.HMD)
                 {
-                    Utilities.CopyMemory((IntPtr)Interop.Fixed(ref pose), (IntPtr)Interop.Fixed(ref DevicePoses[index].mDeviceToAbsoluteTracking), Unsafe.SizeOf<HmdMatrix34_t>());
-                    Utilities.CopyMemory((IntPtr)Interop.Fixed(ref linearVelocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vVelocity), Unsafe.SizeOf<HmdVector3_t>());
-                    Utilities.CopyMemory((IntPtr)Interop.Fixed(ref angularVelocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vAngularVelocity), Unsafe.SizeOf<HmdVector3_t>());
+                    Unsafe.As<Matrix, HmdMatrix34_t>(ref pose) = devicePose.mDeviceToAbsoluteTracking;
+                    Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out linearVelocity)) = devicePose.vVelocity;
+                    Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out angularVelocity)) = devicePose.vAngularVelocity;
 
                     var state = DeviceState.Invalid;
                     if (DevicePoses[index].bDeviceIsConnected && DevicePoses[index].bPoseIsValid)
@@ -376,6 +393,8 @@ namespace Stride.VirtualReality
                 }
             }
 
+            linearVelocity = default;
+            angularVelocity = default;
             return DeviceState.Invalid;
         }
 
@@ -386,10 +405,10 @@ namespace Stride.VirtualReality
 
         private static unsafe void GetProjectionUnsafe(int eyeIndex, float near, float far, out Matrix projection)
         {
-            projection = Matrix.Identity;
+            Debug.Assert(Unsafe.SizeOf<HmdMatrix44_t>() == Unsafe.SizeOf<Matrix>());
             var eye = eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right;
             var proj = Valve.VR.OpenVR.System.GetProjectionMatrix(eye, near, far);
-            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref projection), (IntPtr)Interop.Fixed(ref proj), Unsafe.SizeOf<Matrix>());
+            projection = Unsafe.As<HmdMatrix44_t, Matrix>(ref proj);
         }
 
         public static void ShowMirror()
@@ -449,14 +468,12 @@ namespace Stride.VirtualReality
 
             if (followsHead)
             {
-                HmdMatrix34_t pose = new HmdMatrix34_t();
-                Utilities.CopyMemory((IntPtr)Interop.Fixed(ref pose), (IntPtr)Interop.Fixed(ref transform), Unsafe.SizeOf<HmdMatrix34_t>());
+                var pose = Unsafe.As<Matrix, HmdMatrix34_t>(ref transform);
                 Valve.VR.OpenVR.Overlay.SetOverlayTransformTrackedDeviceRelative(overlayId, 0, ref pose);
             }
             else
             {
-                HmdMatrix34_t pose = new HmdMatrix34_t();
-                Utilities.CopyMemory((IntPtr)Interop.Fixed(ref pose), (IntPtr)Interop.Fixed(ref transform), Unsafe.SizeOf<HmdMatrix34_t>());
+                var pose = Unsafe.As<Matrix, HmdMatrix34_t>(ref transform);
                 Valve.VR.OpenVR.Overlay.SetOverlayTransformAbsolute(overlayId, ETrackingUniverseOrigin.TrackingUniverseSeated, ref pose);
             }
         }

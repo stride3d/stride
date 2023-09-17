@@ -1093,6 +1093,22 @@ namespace Stride.Core.Mathematics
         {
             var value = (int)(component * 255.0f);
             return (byte)(value < 0 ? 0 : value > 255 ? 255 : value);
+        }        
+
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="r">The R component</param>
+        /// <param name="g">The G component</param>
+        /// <param name="b">The B component</param>
+        /// <param name="a">The A component</param>
+        public void Deconstruct(out byte r, out byte g, out byte b, out byte a)
+        {
+            r = R;
+            g = G;
+            b = B;
+            a = A;
         }
+
     }
 }

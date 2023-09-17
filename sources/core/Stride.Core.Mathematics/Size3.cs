@@ -232,5 +232,18 @@ namespace Stride.Core.Mathematics
         {
             return direction == 0 ? this : direction < 0 ? Down2() : Up2();
         }
+                
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="width">The Width component</param>
+        /// <param name="height">The Height component</param>
+        /// <param name="depth">The Depth component</param>
+        public void Deconstruct(out int width, out int height, out int depth)
+        {
+            width = Width;
+            height = Height;
+            depth = Depth;
+        }
     }
 }

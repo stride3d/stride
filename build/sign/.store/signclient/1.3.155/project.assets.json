@@ -1,0 +1,183 @@
+{
+  "version": 3,
+  "targets": {
+    "net7.0": {
+      "SignClient/1.3.155": {
+        "type": "package"
+      }
+    },
+    "net7.0/any": {
+      "SignClient/1.3.155": {
+        "type": "package",
+        "tools": {
+          "tools/net5.0/any/DotnetToolSettings.xml": {},
+          "tools/net5.0/any/Microsoft.Extensions.CommandLineUtils.dll": {},
+          "tools/net5.0/any/Microsoft.Extensions.Configuration.Abstractions.dll": {},
+          "tools/net5.0/any/Microsoft.Extensions.Configuration.EnvironmentVariables.dll": {},
+          "tools/net5.0/any/Microsoft.Extensions.Configuration.FileExtensions.dll": {},
+          "tools/net5.0/any/Microsoft.Extensions.Configuration.Json.dll": {},
+          "tools/net5.0/any/Microsoft.Extensions.Configuration.dll": {},
+          "tools/net5.0/any/Microsoft.Extensions.FileProviders.Abstractions.dll": {},
+          "tools/net5.0/any/Microsoft.Extensions.FileProviders.Physical.dll": {},
+          "tools/net5.0/any/Microsoft.Extensions.FileSystemGlobbing.dll": {},
+          "tools/net5.0/any/Microsoft.Extensions.Primitives.dll": {},
+          "tools/net5.0/any/Microsoft.Identity.Client.dll": {},
+          "tools/net5.0/any/Refit.dll": {},
+          "tools/net5.0/any/SignClient.deps.json": {},
+          "tools/net5.0/any/SignClient.dll": {},
+          "tools/net5.0/any/SignClient.pdb": {},
+          "tools/net5.0/any/SignClient.runtimeconfig.json": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SignClient/1.3.155": {
+      "sha512": "DEkr0B/UOiZl6R+YDOu/EXXoz6hi/KR5qWuHI/KzFL236aEwjXS177woxLzWLuGK99b5qZUS8Eyl6/qmJVqMvQ==",
+      "type": "package",
+      "path": "signclient/1.3.155",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "signclient.1.3.155.nupkg.sha512",
+        "signclient.nuspec",
+        "tools/net5.0/any/DotnetToolSettings.xml",
+        "tools/net5.0/any/Microsoft.Extensions.CommandLineUtils.dll",
+        "tools/net5.0/any/Microsoft.Extensions.Configuration.Abstractions.dll",
+        "tools/net5.0/any/Microsoft.Extensions.Configuration.EnvironmentVariables.dll",
+        "tools/net5.0/any/Microsoft.Extensions.Configuration.FileExtensions.dll",
+        "tools/net5.0/any/Microsoft.Extensions.Configuration.Json.dll",
+        "tools/net5.0/any/Microsoft.Extensions.Configuration.dll",
+        "tools/net5.0/any/Microsoft.Extensions.FileProviders.Abstractions.dll",
+        "tools/net5.0/any/Microsoft.Extensions.FileProviders.Physical.dll",
+        "tools/net5.0/any/Microsoft.Extensions.FileSystemGlobbing.dll",
+        "tools/net5.0/any/Microsoft.Extensions.Primitives.dll",
+        "tools/net5.0/any/Microsoft.Identity.Client.dll",
+        "tools/net5.0/any/Refit.dll",
+        "tools/net5.0/any/SignClient.deps.json",
+        "tools/net5.0/any/SignClient.dll",
+        "tools/net5.0/any/SignClient.pdb",
+        "tools/net5.0/any/SignClient.runtimeconfig.json",
+        "tools/netcoreapp2.1/any/DotnetToolSettings.xml",
+        "tools/netcoreapp2.1/any/Microsoft.Bcl.AsyncInterfaces.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.CommandLineUtils.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.Configuration.Abstractions.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.Configuration.EnvironmentVariables.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.Configuration.FileExtensions.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.Configuration.Json.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.Configuration.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.FileProviders.Abstractions.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.FileProviders.Physical.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.FileSystemGlobbing.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Extensions.Primitives.dll",
+        "tools/netcoreapp2.1/any/Microsoft.Identity.Client.dll",
+        "tools/netcoreapp2.1/any/Refit.dll",
+        "tools/netcoreapp2.1/any/SignClient.deps.json",
+        "tools/netcoreapp2.1/any/SignClient.dll",
+        "tools/netcoreapp2.1/any/SignClient.pdb",
+        "tools/netcoreapp2.1/any/SignClient.runtimeconfig.json",
+        "tools/netcoreapp2.1/any/System.Net.Http.Json.dll",
+        "tools/netcoreapp2.1/any/System.Runtime.CompilerServices.Unsafe.dll",
+        "tools/netcoreapp2.1/any/System.Text.Encodings.Web.dll",
+        "tools/netcoreapp2.1/any/System.Text.Json.dll",
+        "tools/netcoreapp3.1/any/DotnetToolSettings.xml",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.CommandLineUtils.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.Configuration.Abstractions.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.Configuration.EnvironmentVariables.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.Configuration.FileExtensions.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.Configuration.Json.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.Configuration.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.FileProviders.Abstractions.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.FileProviders.Physical.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.FileSystemGlobbing.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Extensions.Primitives.dll",
+        "tools/netcoreapp3.1/any/Microsoft.Identity.Client.dll",
+        "tools/netcoreapp3.1/any/Refit.dll",
+        "tools/netcoreapp3.1/any/SignClient.deps.json",
+        "tools/netcoreapp3.1/any/SignClient.dll",
+        "tools/netcoreapp3.1/any/SignClient.pdb",
+        "tools/netcoreapp3.1/any/SignClient.runtimeconfig.json",
+        "tools/netcoreapp3.1/any/System.Net.Http.Json.dll",
+        "tools/netcoreapp3.1/any/System.Text.Json.dll"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net7.0": [
+      "signclient >= *"
+    ]
+  },
+  "packageFolders": {
+    "C:\\dev\\stride\\build\\sign\\.store\\.stage\\5zdy4aug.kc2": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\xen\\AppData\\Local\\Temp\\a51201f1-789d-4773-8ad7-bc52ff4d6172\\restore.csproj",
+      "projectName": "restore",
+      "projectPath": "C:\\Users\\xen\\AppData\\Local\\Temp\\a51201f1-789d-4773-8ad7-bc52ff4d6172\\restore.csproj",
+      "packagesPath": "C:\\dev\\stride\\build\\sign\\.store\\.stage\\5zdy4aug.kc2",
+      "outputPath": "C:\\dev\\stride\\build\\sign\\.store\\.stage\\5zdy4aug.kc2\\",
+      "projectStyle": "DotnetToolReference",
+      "configFilePaths": [
+        "C:\\dev\\stride\\NuGet.Config",
+        "C:\\Users\\xen\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net7.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {},
+        "C:\\Users\\xen\\AppData\\Local\\Stride\\NugetDev": {},
+        "https://api.nuget.org/v3/index.json": {},
+        "https://packages.stride3d.net/nuget": {},
+        "https://pkgs.dev.azure.com/clairernovotny/GitBuilds/_packaging/MSBuildSdkExtras@Local/nuget/v3/index.json": {}
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net7.0": {
+        "targetAlias": "net7.0",
+        "dependencies": {
+          "signclient": {
+            "target": "Package",
+            "version": "[*, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.102\\RuntimeIdentifierGraph.json"
+      }
+    },
+    "runtimes": {
+      "any": {
+        "#import": []
+      }
+    }
+  }
+}

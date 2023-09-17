@@ -27,8 +27,13 @@
     <When Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' ">
       <ItemGroup>
         <StrideNativeLib Include="..\..\..\deps\OpenVR\$(StridePlatformDeps)\**\openvr_api.*">
-          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+          <RelativePath>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </StrideNativeLib>
+        <StrideNativeLib Include="..\..\..\deps\OpenXR\openxr_loader.dll">
+          <Link>runtimes\win-x64\native\%(RecursiveDir)%(Filename)%(Extension)</Link>
+          <RelativePath>runtimes\win-x64\native\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
       </ItemGroup>
@@ -56,6 +61,9 @@
     <None Include="GoogleVR\GoogleVR.cpp" />
     <None Include="OculusOVR\OculusOVR.cpp" />
     <None Include="Fove\Fove.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.OpenXR" Version="2.15.0" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 

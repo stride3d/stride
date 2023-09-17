@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
@@ -42,7 +43,6 @@ namespace Stride.Rendering
             blendMatrices = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationSkinningKeys.BlendMatrixArray.Name);
         }
 
-        /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
@@ -126,11 +126,11 @@ namespace Stride.Rendering
                 if (renderModelObjectInfo == null)
                     return;
 
-                var mappedCB = renderNode.Resources.ConstantBuffer.Data + blendMatricesOffset;
+                var mappedCB = (byte*)renderNode.Resources.ConstantBuffer.Data + blendMatricesOffset;
 
-                fixed (Matrix* blendMatricesPtr = &renderModelObjectInfo[0])
+                fixed (Matrix* blendMatricesPtr = renderModelObjectInfo)
                 {
-                    Utilities.CopyMemory(mappedCB, new IntPtr(blendMatricesPtr), renderModelObjectInfo.Length * sizeof(Matrix));
+                    Unsafe.CopyBlockUnaligned(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
                 }
             });
         }

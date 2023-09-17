@@ -1,14 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
-using System.Windows;
 using System.Windows.Threading;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
-using Stride.LauncherApp.Views;
 using Stride.CrashReport;
 using Stride.Editor.CrashReport;
 
@@ -31,7 +28,7 @@ namespace Stride.LauncherApp.CrashReport
 
             var englishCulture = new CultureInfo("en-US");
             var crashLogThread = new Thread(CrashReport) { CurrentUICulture = englishCulture, CurrentCulture = englishCulture };
-            crashLogThread.Start(new CrashReportArgs { Dispatcher = dispatcher, Exception = exception });
+            crashLogThread.Start(new CrashReportArgs(exception, dispatcher));
             crashLogThread.Join();
         }
 
@@ -72,10 +69,6 @@ namespace Stride.LauncherApp.CrashReport
             reporter.ShowDialog();
         }
 
-        private class CrashReportArgs
-        {
-            public Exception Exception;
-            public Dispatcher Dispatcher;
-        }
+        private record CrashReportArgs(Exception Exception, Dispatcher Dispatcher);
     }
 }

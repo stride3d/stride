@@ -44,7 +44,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
                 this.x = x;
                 this.y = y;
                 this.z = z;
-                this.w = w;   
+                this.w = w;
             }
 
             public float T => t;
@@ -69,7 +69,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
                 }
             }
         }
-        
+
         private readonly List<RotationData> sampleData = new List<RotationData>();
         private RotationDisplayMode displayMode = RotationDisplayMode.Euler;
 
@@ -125,7 +125,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
                         break;
 
                     case RotationDisplayMode.Euler:
-                        var matrix = Matrix.RotationQuaternion(sample);
+                        Matrix.RotationQuaternion(ref sample, out var matrix);
                         DecomposeXYZ(matrix, out vector);
                         //matrix.DecomposeXYZ(out decomposed);
                         sampleData.Add(new RotationData(ft, MathUtil.RadiansToDegrees(vector.X), MathUtil.RadiansToDegrees(vector.Y), MathUtil.RadiansToDegrees(vector.Z), float.NaN));
@@ -209,20 +209,31 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         /// </summary>
         /// <param name="matrix"></param>
         /// <param name="rotation"></param>
-        private static void DecomposeXYZ(Matrix matrix, out Vector3 rotation)
+        private static void DecomposeXYZ(in Matrix matrix, out Vector3 rotation)
         {
-            var rotY = Math.Abs(matrix.M13) - 1 < 1e-6f ? Math.Acos(Math.Max(Math.Abs(matrix.M11), Math.Abs(matrix.M33))) : Math.Asin(-matrix.M13);
-            rotation.Y = (float)(MathF.Sign(-matrix.M13)*rotY);
+            var rotY = MathUtil.IsOne(Math.Abs(matrix.M13)) ? Math.Acos(Math.Max(Math.Abs(matrix.M11), Math.Abs(matrix.M33))) : Math.Asin(-matrix.M13);
+            rotation.Y = (float)(MathF.Sign(-matrix.M13) * rotY);
             var test = Math.Cos(rotY);
-            if (test > 1e-6f)
+            if (test > MathUtil.ZeroTolerance)
             {
+                // Common case
                 rotation.Z = MathF.Atan2(matrix.M12, matrix.M11);
                 rotation.X = MathF.Atan2(matrix.M23, matrix.M33);
             }
             else
             {
-                rotation.Z = MathF.Atan2(-matrix.M21, matrix.M31);
-                rotation.X = 0.0f;
+                if (matrix.M13 >= 0)
+                {
+                    // Edge case where M13 == +1
+                    rotation.Z = MathF.Atan2(-matrix.M32, matrix.M22);
+                    rotation.X = 0.0f;
+                }
+                else
+                {
+                    // Edge case where M13 == -1
+                    rotation.Z = -MathF.Atan2(-matrix.M32, matrix.M22);
+                    rotation.X = 0.0f;
+                }
             }
         }
     }

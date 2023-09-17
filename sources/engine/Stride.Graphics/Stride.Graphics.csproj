@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
@@ -15,15 +15,15 @@
   </PropertyGroup>
   <ItemGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
     <StrideNativeLib Include="..\..\..\deps\MoltenVK\$(StridePlatformDeps)\**\*.*">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
     <StrideNativeLib Include="..\..\..\deps\freetype\$(StridePlatformDeps)\**\*.*">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>
@@ -51,11 +51,11 @@
     <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
     <PackageReference Include="Vortice.Vulkan" Version="1.2.167" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <PackageReference Include="Silk.NET.OpenGL" Version="2.10.1" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <PackageReference Include="Silk.NET.OpenGLES" Version="2.10.1" />
-    <PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.10.1" />
-    <PackageReference Include="Silk.NET.Sdl" Version="2.10.1" />
-    <PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.10.1" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.15.0" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    <PackageReference Include="Silk.NET.OpenGLES" Version="2.15.0" />
+    <PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.15.0" />
+    <PackageReference Include="Silk.NET.Sdl" Version="2.15.0" />
+    <PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.15.0" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
     <PackageReference Include="Stride.SharpFont" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>

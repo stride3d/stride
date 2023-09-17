@@ -50,7 +50,7 @@ namespace Stride.Core.Mathematics
         /// Dotnet's <see cref="System.Numerics.Matrix4x4"/> are row major.
         /// </remarks>
         public const bool LayoutIsRowMajor = false;
-        
+
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Matrix"/> type, in bytes.
         /// </summary>
@@ -504,6 +504,7 @@ namespace Stride.Core.Mathematics
 
         /// <summary>
         /// Inverts the matrix.
+        /// If the matrix cannot be inverted (eg. Determinant was zero), then the matrix will be set equivalent to <see cref="Zero"/>.
         /// </summary>
         public void Invert()
         {
@@ -621,43 +622,91 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Decomposes a rotation matrix with the specified yaw, pitch, roll
+        /// Decomposes a rotation matrix with the specified yaw, pitch, roll value (angles in radians).
         /// </summary>
-        /// <param name="yaw">The yaw.</param>
-        /// <param name="pitch">The pitch.</param>
-        /// <param name="roll">The roll.</param>
+        /// <param name="yaw">The yaw component in radians.</param>
+        /// <param name="pitch">The pitch component in radians.</param>
+        /// <param name="roll">The roll component in radians.</param>
+        /// <remarks>
+        /// This rotation matrix can be represented by <b>intrinsic</b> rotations in the order <paramref name="yaw"/>, <paramref name="pitch"/>, then <paramref name="roll"/>.
+        /// <br/>
+        /// Therefore the <b>extrinsic</b> rotations to achieve this matrix is the reversed order of operations,
+        /// ie. Matrix.RotationZ(roll) * Matrix.RotationX(pitch) * Matrix.RotationY(yaw)
+        /// </remarks>
         public void Decompose(out float yaw, out float pitch, out float roll)
         {
-            pitch = MathF.Asin(-M32);
-            if (MathF.Cos(pitch) > MathUtil.ZeroTolerance)
+            // Adapted from 'Euler Angle Formulas' by David Eberly - https://www.geometrictools.com/Documentation/EulerAngles.pdf
+            // 2.3 Factor as Ry Rx Rz
+            // License under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+            //
+            // Note the Stride's matrix row/column ordering is swapped, indices starts at one,
+            // and the if-statement ordering is written to minimize the number of operations to get to
+            // the common case, and made to handle the +/- 1 cases better due to low precision in floats
+            if (MathUtil.IsOne(Math.Abs(M32)))
             {
-                roll = MathF.Atan2(M12, M22);
-                yaw = MathF.Atan2(M31, M33);
+                if (M32 >= 0)
+                {
+                    // Edge case where M32 == +1
+                    pitch = -MathUtil.PiOverTwo;
+                    yaw = MathF.Atan2(-M21, M11);
+                    roll = 0;
+                }
+                else
+                {
+                    // Edge case where M32 == -1
+                    pitch = MathUtil.PiOverTwo;
+                    yaw = -MathF.Atan2(-M21, M11);
+                    roll = 0;
+                }
             }
             else
             {
-                roll = MathF.Atan2(-M21, M11);
-                yaw = 0.0f;
+                // Common case
+                pitch = MathF.Asin(-M32);
+                yaw = MathF.Atan2(M31, M33);
+                roll = MathF.Atan2(M12, M22);
             }
         }
 
         /// <summary>
-        /// Decomposes a rotation matrix with the specified X, Y and Z euler angles.
+        /// Decomposes a rotation matrix with the specified X, Y and Z euler angles in radians.
         /// Matrix.RotationX(rotation.X) * Matrix.RotationY(rotation.Y) * Matrix.RotationZ(rotation.Z) should represent the same rotation.
         /// </summary>
         /// <param name="rotation">The vector containing the 3 rotations angles to be applied in order.</param>
         public void DecomposeXYZ(out Vector3 rotation)
         {
-            rotation.Y = MathF.Asin(-M13);
-            if (MathF.Cos(rotation.Y) > MathUtil.ZeroTolerance)
+            // Adapted from 'Euler Angle Formulas' by David Eberly - https://www.geometrictools.com/Documentation/EulerAngles.pdf
+            // 2.6 Factor as Rz Ry Rx
+            // License under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+            //
+            // Note the Stride's matrix row/column ordering is swapped, indices starts at one,
+            // and the if-statement ordering is written to minimize the number of operations to get to
+            // the common case, and made to handle the +/- 1 cases better due to low precision in floats.
+            // The above documentation implies the *extrinsic* rotation order is X-Y-Z,
+            // so the *intrinsic* rotation is Z-Y-X which is the formula to use here
+            if (MathUtil.IsOne(Math.Abs(M13)))
             {
-                rotation.Z = MathF.Atan2(M12, M11);
-                rotation.X = MathF.Atan2(M23, M33);
+                if (M13 >= 0)
+                {
+                    // Edge case where M13 == +1
+                    rotation.Y = -MathUtil.PiOverTwo;
+                    rotation.Z = MathF.Atan2(-M32, M22);
+                    rotation.X = 0;
+                }
+                else
+                {
+                    // Edge case where M13 == -1
+                    rotation.Y = MathUtil.PiOverTwo;
+                    rotation.Z = -MathF.Atan2(-M32, M22);
+                    rotation.X = 0;
+                }
             }
             else
             {
-                rotation.Z = MathF.Atan2(-M21, M31);
-                rotation.X = 0.0f;
+                // Common case
+                rotation.Y = MathF.Asin(-M13);
+                rotation.Z = MathF.Atan2(M12, M11);
+                rotation.X = MathF.Atan2(M23, M33);
             }
         }
 
@@ -966,35 +1015,6 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <param name="result">The product of the two matrices.</param>
-        [Obsolete($"Use {nameof(Multiply)} instead, this signature will be removed")]
-        public static void MultiplyTo(ref Matrix left, ref Matrix right, out Matrix result)
-        {
-            result.M11 = (left.M11 * right.M11) + (left.M12 * right.M21) + (left.M13 * right.M31) + (left.M14 * right.M41);
-            result.M21 = (left.M21 * right.M11) + (left.M22 * right.M21) + (left.M23 * right.M31) + (left.M24 * right.M41);
-            result.M31 = (left.M31 * right.M11) + (left.M32 * right.M21) + (left.M33 * right.M31) + (left.M34 * right.M41);
-            result.M41 = (left.M41 * right.M11) + (left.M42 * right.M21) + (left.M43 * right.M31) + (left.M44 * right.M41);
-            result.M12 = (left.M11 * right.M12) + (left.M12 * right.M22) + (left.M13 * right.M32) + (left.M14 * right.M42);
-            result.M22 = (left.M21 * right.M12) + (left.M22 * right.M22) + (left.M23 * right.M32) + (left.M24 * right.M42);
-            result.M32 = (left.M31 * right.M12) + (left.M32 * right.M22) + (left.M33 * right.M32) + (left.M34 * right.M42);
-            result.M42 = (left.M41 * right.M12) + (left.M42 * right.M22) + (left.M43 * right.M32) + (left.M44 * right.M42);
-            result.M13 = (left.M11 * right.M13) + (left.M12 * right.M23) + (left.M13 * right.M33) + (left.M14 * right.M43);
-            result.M23 = (left.M21 * right.M13) + (left.M22 * right.M23) + (left.M23 * right.M33) + (left.M24 * right.M43);
-            result.M33 = (left.M31 * right.M13) + (left.M32 * right.M23) + (left.M33 * right.M33) + (left.M34 * right.M43);
-            result.M43 = (left.M41 * right.M13) + (left.M42 * right.M23) + (left.M43 * right.M33) + (left.M44 * right.M43);
-            result.M14 = (left.M11 * right.M14) + (left.M12 * right.M24) + (left.M13 * right.M34) + (left.M14 * right.M44);
-            result.M24 = (left.M21 * right.M14) + (left.M22 * right.M24) + (left.M23 * right.M34) + (left.M24 * right.M44);
-            result.M34 = (left.M31 * right.M14) + (left.M32 * right.M24) + (left.M33 * right.M34) + (left.M34 * right.M44);
-            result.M44 = (left.M41 * right.M14) + (left.M42 * right.M24) + (left.M43 * right.M34) + (left.M44 * right.M44);
-        }
-
-        /// <summary>
-        /// Determines the product of two matrices.
-        /// Variables passed as <paramref name="left"/> or <paramref name="right"/> must not be used as the out parameter
-        /// <paramref name="result"/>, because <paramref name="result"/> is calculated in-place.
-        /// </summary>
-        /// <param name="left">The first matrix to multiply.</param>
-        /// <param name="right">The second matrix to multiply.</param>
-        /// <param name="result">The product of the two matrices.</param>
         public static void Multiply(ref Matrix left, ref Matrix right, out Matrix result)
         {
             ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
@@ -1017,20 +1037,6 @@ namespace Stride.Core.Mathematics
             ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
             Unsafe.SkipInit(out result);
             UnsafeRefAsDotNet(in result) = LayoutIsRowMajor ? l * r : r * l;
-        }
-
-        /// <summary>
-        /// Determines the product of two matrices.
-        /// Variables passed as <paramref name="left"/> or <paramref name="right"/> must not be used as the out parameter
-        /// <paramref name="result"/>, because <paramref name="result"/> is calculated in-place.
-        /// </summary>
-        /// <param name="left">The first matrix to multiply.</param>
-        /// <param name="right">The second matrix to multiply.</param>
-        /// <param name="result">The product of the two matrices.</param>
-        [Obsolete($"Use {nameof(Multiply)} instead")]
-        public static void MultiplyRef(ref Matrix left, ref Matrix right, ref Matrix result)
-        {
-            Multiply(ref left, ref right, out result);
         }
 
         /// <summary>
@@ -1352,6 +1358,7 @@ namespace Stride.Core.Mathematics
 
         /// <summary>
         /// Calculates the inverse of the specified matrix.
+        /// If the matrix cannot be inverted (eg. Determinant was zero), then <paramref name="result"/> will be <see cref="Zero"/>.
         /// </summary>
         /// <param name="value">The matrix whose inverse is to be calculated.</param>
         /// <param name="result">When the method completes, contains the inverse of the specified matrix.</param>
@@ -1359,11 +1366,15 @@ namespace Stride.Core.Mathematics
         {
             // Invert works the same in row and column major, no need to transpose
             Unsafe.SkipInit(out result);
-            MatrixDotnet.Invert(UnsafeRefAsDotNet(value), out UnsafeRefAsDotNet(result));
+            if (!MatrixDotnet.Invert(UnsafeRefAsDotNet(value), out UnsafeRefAsDotNet(result)))
+            {
+                result = Zero;
+            }
         }
 
         /// <summary>
         /// Calculates the inverse of the specified matrix.
+        /// If the matrix cannot be inverted (eg. Determinant was zero), then the returning matrix will be <see cref="Zero"/>.
         /// </summary>
         /// <param name="value">The matrix whose inverse is to be calculated.</param>
         /// <returns>The inverse of the specified matrix.</returns>
@@ -2776,7 +2787,7 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Creates a rotation matrix with a specified yaw, pitch, and roll.
+        /// Creates a rotation matrix with a specified yaw, pitch, and roll value (angles in radians).
         /// </summary>
         /// <param name="yaw">Yaw around the y-axis, in radians.</param>
         /// <param name="pitch">Pitch around the x-axis, in radians.</param>
@@ -2789,7 +2800,7 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Creates a rotation matrix with a specified yaw, pitch, and roll.
+        /// Creates a rotation matrix with a specified yaw, pitch, and roll value (angles in radians).
         /// </summary>
         /// <param name="yaw">Yaw around the y-axis, in radians.</param>
         /// <param name="pitch">Pitch around the x-axis, in radians.</param>
@@ -3080,7 +3091,7 @@ namespace Stride.Core.Mathematics
                 }
             }
         }
-        
+
         static ref MatrixDotnet UnsafeRefAsDotNet(in Matrix m) => ref Unsafe.As<Matrix, MatrixDotnet>(ref Unsafe.AsRef(in m));
         static ref Matrix UnsafeRefFromDotNet(in MatrixDotnet m) => ref Unsafe.As<MatrixDotnet, Matrix>(ref Unsafe.AsRef(in m));
 

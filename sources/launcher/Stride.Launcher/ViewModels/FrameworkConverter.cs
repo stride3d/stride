@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using NuGet.Frameworks;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.ValueConverters;

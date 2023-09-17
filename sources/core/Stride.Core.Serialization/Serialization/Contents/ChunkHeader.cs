@@ -50,7 +50,7 @@ namespace Stride.Core.Serialization.Contents
             if (magic != Magic)
             {
                 // Rewind
-                stream.NativeStream.Seek(-4, SeekOrigin.Current);
+                stream.UnderlyingStream.Seek(-4, SeekOrigin.Current);
                 return null;
             }
 

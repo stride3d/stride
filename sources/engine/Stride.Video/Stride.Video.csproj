@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
@@ -32,8 +32,8 @@
     <When Condition="$(DefineConstants.Contains(STRIDE_VIDEO_FFMPEG))">
       <ItemGroup>
         <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatformDeps)\**\*.*" Exclude="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatformDeps)\*.*">
-          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+          <RelativePath>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
       </ItemGroup>

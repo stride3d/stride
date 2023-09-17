@@ -30,7 +30,7 @@ namespace Stride.Graphics.Data
                     texturesStreamingProvider?.UnregisterTexture(texture);
 
                     // TODO: Error handling?
-                    using (var textureData = Image.Load(stream.NativeStream))
+                    using (var textureData = Image.Load(stream.UnderlyingStream))
                     {
                         if (texture.GraphicsDevice != null)
                             texture.OnDestroyed(); //Allows fast reloading todo review maybe?
@@ -75,7 +75,7 @@ namespace Stride.Graphics.Data
                         // Load initial texture (with limited number of mipmaps)
                         if (storageHeader.InitialImage)
                         {
-                            using (var textureData = Image.Load(stream.NativeStream))
+                            using (var textureData = Image.Load(stream.UnderlyingStream))
                             {
                                 if (texture.GraphicsDevice != null)
                                     texture.OnDestroyed(); //Allows fast reloading todo review maybe?
@@ -102,7 +102,7 @@ namespace Stride.Graphics.Data
                         // Load initial texture and discard it (we are going to load the full chunk texture right after)
                         if (storageHeader.InitialImage)
                         {
-                            using (var textureData = Image.Load(stream.NativeStream))
+                            using (var textureData = Image.Load(stream.UnderlyingStream))
                             {
                             }
                         }

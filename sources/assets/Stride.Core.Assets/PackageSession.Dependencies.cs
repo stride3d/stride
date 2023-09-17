@@ -355,7 +355,7 @@ namespace Stride.Core.Assets
                                 // Build list of assemblies
                                 foreach (var a in targetLibrary.RuntimeAssemblies)
                                 {
-                                    if (!a.Path.EndsWith("_._"))
+                                    if (!a.Path.EndsWith("_._") && !a.Path.Contains("/native/"))
                                     {
                                         var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
                                         projectDependency.Assemblies.Add(assemblyFile);
@@ -363,7 +363,7 @@ namespace Stride.Core.Assets
                                 }
                                 foreach (var a in targetLibrary.RuntimeTargets)
                                 {
-                                    if (!a.Path.EndsWith("_._"))
+                                    if (!a.Path.EndsWith("_._") && !a.Path.Contains("/native/"))
                                     {
                                         var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
                                         projectDependency.Assemblies.Add(assemblyFile);

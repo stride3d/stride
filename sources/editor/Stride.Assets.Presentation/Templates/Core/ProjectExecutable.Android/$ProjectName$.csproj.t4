@@ -16,6 +16,9 @@
 	  
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+
+    <!-- Use AssemblyName rather than RootNamespace for Resource class otherwise it might clash between some assemblies (i.e. MyGame and MyGame.Android) -->
+    <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
   </PropertyGroup>
 
   <ItemGroup>

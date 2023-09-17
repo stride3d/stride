@@ -129,7 +129,7 @@ namespace FreeImageAPI.Metadata
             }
             set
             {
-                SetTagValue("GlobalPalette", (value != null) ? null : value.Data);
+                SetTagValue("GlobalPalette", value?.Data);
             }
         }
 
@@ -1220,7 +1220,7 @@ namespace FreeImageAPI.Metadata
 
         /// <summary>
         /// Gets or sets the exposure bias. The unit is the APEX value.
-        /// Ordinarily it is given in the range of –99.99 to 99.99.
+        /// Ordinarily it is given in the range of -99.99 to 99.99.
         /// </summary>
         /// <remarks>
         /// <b>Handling of null values</b><para/>

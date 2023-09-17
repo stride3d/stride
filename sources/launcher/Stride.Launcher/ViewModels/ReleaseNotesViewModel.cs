@@ -74,11 +74,9 @@ namespace Stride.LauncherApp.ViewModels
 
             try
             {
-                using (var response = await httpClient.GetAsync($"{BaseUrl}{ReleaseNotesFileName}"))
-                {
-                    response.EnsureSuccessStatusCode();
-                    releaseNotesMarkdown = await response.Content.ReadAsStringAsync();
-                }
+                using var response = await httpClient.GetAsync($"{BaseUrl}{ReleaseNotesFileName}");
+                response.EnsureSuccessStatusCode();
+                releaseNotesMarkdown = await response.Content.ReadAsStringAsync();
             }
             catch (Exception)
             {

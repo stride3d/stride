@@ -666,7 +666,7 @@ namespace Stride.Graphics
         /// <typeparam name="TData">The type of the T pixel data.</typeparam>
         /// <returns>The expected width</returns>
         /// <exception cref="System.ArgumentException">If the size is invalid</exception>
-        public int CalculateWidth<TData>(int mipLevel = 0) where TData : struct
+        public int CalculateWidth<TData>(int mipLevel = 0) where TData : unmanaged
         {
             var widthOnMip = CalculateMipSize((int)Width, mipLevel);
             var rowStride = widthOnMip * Format.SizeInBytes();
@@ -686,7 +686,7 @@ namespace Stride.Graphics
         /// <param name="mipLevel">The mip level.</param>
         /// <returns>The number of pixel data.</returns>
         /// <remarks>This method is used to allocated a texture data buffer to hold pixel datas: var textureData = new T[ texture.CalculatePixelCount&lt;T&gt;() ] ;.</remarks>
-        public int CalculatePixelDataCount<TData>(int mipLevel = 0) where TData : struct
+        public int CalculatePixelDataCount<TData>(int mipLevel = 0) where TData : unmanaged
         {
             return CalculateWidth<TData>(mipLevel) * CalculateMipSize(Height, mipLevel) * CalculateMipSize(Depth, mipLevel);
         }
@@ -703,7 +703,7 @@ namespace Stride.Graphics
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// This method creates internally a stagging resource, copies to it and map it to memory. Use method with explicit staging resource
         /// for optimal performances.</remarks>
-        public TData[] GetData<TData>(CommandList commandList, int arraySlice = 0, int mipSlice = 0) where TData : struct
+        public TData[] GetData<TData>(CommandList commandList, int arraySlice = 0, int mipSlice = 0) where TData : unmanaged
         {
             var toData = new TData[this.CalculatePixelDataCount<TData>(mipSlice)];
             GetData(commandList, toData, arraySlice, mipSlice);
@@ -719,12 +719,12 @@ namespace Stride.Graphics
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
         /// <param name="mipSlice">The mip slice index.</param>
         /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <see cref="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
+        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <paramref name="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// This method creates internally a stagging resource if this texture is not already a stagging resouce, copies to it and map it to memory. Use method with explicit staging resource
         /// for optimal performances.</remarks>
-        public bool GetData<TData>(CommandList commandList, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : struct
+        public bool GetData<TData>(CommandList commandList, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : unmanaged
         {
             // Get data from this resource
             if (Usage == GraphicsResourceUsage.Staging)
@@ -750,14 +750,15 @@ namespace Stride.Graphics
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
         /// <param name="mipSlice">The mip slice index.</param>
         /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <see cref="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
+        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <paramref name="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
         /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// </remarks>
-        public unsafe bool GetData<TData>(CommandList commandList, Texture stagingTexture, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : struct
+        public unsafe bool GetData<TData>(CommandList commandList, Texture stagingTexture, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : unmanaged
         {
-            return GetData(commandList, stagingTexture, new DataPointer((IntPtr)Interop.Fixed(toData), toData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, doNotWait);
+            fixed (TData* to = toData)
+                return GetData(commandList, stagingTexture, new DataPointer(to, toData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, doNotWait);
         }
 
         /// <summary>
@@ -773,9 +774,10 @@ namespace Stride.Graphics
         /// <remarks>
         /// See unmanaged documentation for usage and restrictions.
         /// </remarks>
-        public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null) where TData : struct
+        public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null) where TData : unmanaged
         {
-            SetData(commandList, new DataPointer((IntPtr)Interop.Fixed(fromData), fromData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, region);
+            fixed (TData* from = fromData)
+                SetData(commandList, new DataPointer(from, fromData.Length * Unsafe.SizeOf<TData>()), arraySlice, mipSlice, region);
         }
 
         /// <summary>
@@ -787,7 +789,7 @@ namespace Stride.Graphics
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
         /// <param name="mipSlice">The mip slice index.</param>
         /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <see cref="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
+        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <paramref name="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
         /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
@@ -843,7 +845,7 @@ namespace Stride.Graphics
             // The fast way: If same stride, we can directly copy the whole texture in one shot
             if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride && !isFlippedTexture)
             {
-                Utilities.CopyMemory(toData.Pointer, box.DataPointer, mipMapSize);
+                Unsafe.CopyBlockUnaligned((void*)toData.Pointer, (void*)box.DataPointer, (uint)mipMapSize);
             }
             else
             {
@@ -859,11 +861,11 @@ namespace Stride.Graphics
 
                     if (isFlippedTexture)
                     {
-                        sourcePtr = sourcePtr + box.RowPitch * (height - 1);
+                        sourcePtr += box.RowPitch * (height - 1);
                         for (int i = height - 1; i >= 0; i--)
                         {
                             // Copy a single row
-                            Utilities.CopyMemory(new IntPtr(destPtr), new IntPtr(sourcePtr), rowStride);
+                            Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)rowStride);
                             sourcePtr -= box.RowPitch;
                             destPtr += rowStride;
                         }
@@ -873,7 +875,7 @@ namespace Stride.Graphics
                         for (int i = 0; i < height; i++)
                         {
                             // Copy a single row
-                            Utilities.CopyMemory(new IntPtr(destPtr), new IntPtr(sourcePtr), rowStride);
+                            Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)rowStride);
                             sourcePtr += box.RowPitch;
                             destPtr += rowStride;
                         }
@@ -993,7 +995,7 @@ namespace Stride.Graphics
                 // The fast way: If same stride, we can directly copy the whole texture in one shot
                 if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride)
                 {
-                    Utilities.CopyMemory(box.DataPointer, fromData.Pointer, sizeOfTextureData);
+                    Unsafe.CopyBlockUnaligned((void*)box.DataPointer, (void*)fromData.Pointer, (uint)sizeOfTextureData);
                 }
                 else
                 {
@@ -1008,7 +1010,7 @@ namespace Stride.Graphics
                         // Iterate on each line
                         for (int i = 0; i < height; i++)
                         {
-                            Utilities.CopyMemory((IntPtr)destPtr, (IntPtr)sourcePtr, rowStride);
+                            Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)rowStride);
                             destPtr += box.RowPitch;
                             sourcePtr += rowStride;
                         }
@@ -1209,7 +1211,7 @@ namespace Stride.Graphics
             return requestedLevel == 0 ? maxMipMap : Math.Min(requestedLevel, maxMipMap);
         }
 
-        private static DataBox GetDataBox<T>(PixelFormat format, int width, int height, int depth, T[] textureData, IntPtr fixedPointer) where T : struct
+        private static DataBox GetDataBox<T>(PixelFormat format, int width, int height, int depth, T[] textureData, IntPtr fixedPointer) where T : unmanaged
         {
             // Check that the textureData size is correct
             if (textureData == null) throw new ArgumentNullException("textureData");

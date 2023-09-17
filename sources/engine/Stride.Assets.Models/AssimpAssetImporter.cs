@@ -14,11 +14,6 @@ namespace Stride.Assets.Models
 {
     public class AssimpAssetImporter : ModelAssetImporter
     {
-        static AssimpAssetImporter()
-        {
-            NativeLibraryHelper.PreloadLibrary("assimp-vc140-mt", typeof(AssimpAssetImporter));
-        }
-
         // Supported file extensions for this importer
         internal const string FileExtensions = ".dae;.3ds;.gltf;.glb;.obj;.blend;.x;.md2;.md3;.dxf;.ply;.stl;.stp";
 
@@ -33,7 +28,7 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         public override EntityInfo GetEntityInfo(UFile localPath, Logger logger, AssetImporterParameters importParameters)
         {
-            var meshConverter = new Importer.AssimpNET.MeshConverter(logger);
+            var meshConverter = new Importer.Assimp.MeshConverter(logger);
 
             if (!importParameters.InputParameters.TryGet(DeduplicateMaterialsKey, out var deduplicateMaterials))
                 deduplicateMaterials = true;    // Dedupe is the default value
@@ -45,7 +40,7 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         public override void GetAnimationDuration(UFile localPath, Logger logger, AssetImporterParameters importParameters, out TimeSpan startTime, out TimeSpan endTime)
         {
-            var meshConverter = new Importer.AssimpNET.MeshConverter(logger);
+            var meshConverter = new Importer.Assimp.MeshConverter(logger);
             var sceneData = meshConverter.ConvertAnimation(localPath.FullPath, "");
 
             startTime = CompressedTimeSpan.MaxValue; // This will go down, so we start from positive infinity

@@ -30,7 +30,7 @@ namespace Stride.Core.Serialization
     }
 
     /// <summary>
-    /// Represents a Url to an asset of type <see cref="T"/>.
+    /// Represents a Url to an asset of type <typeparamref name="T"/>.
     /// </summary>
     /// <typeparam name="T">The type off asset.</typeparam>
     [DataSerializer(typeof(UrlReferenceDataSerializer<>), Mode = DataSerializerGenericMode.GenericArguments)]

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Threading;
@@ -102,7 +103,6 @@ namespace Stride.Rendering.Materials
             perMaterialDescriptorSetSlot = ((RootEffectRenderFeature)RootRenderFeature).GetOrCreateEffectDescriptorSetSlot("PerMaterial");
         }
 
-        /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
@@ -380,9 +380,9 @@ namespace Stride.Rendering.Materials
             // Process PerMaterial cbuffer
             if (materialInfo.ConstantBufferReflection != null)
             {
-                var mappedCB = materialInfo.Resources.ConstantBuffer.Data;
+                var mappedCB = (byte*)materialInfo.Resources.ConstantBuffer.Data;
                 fixed (byte* dataValues = materialInfo.ParameterCollection.DataValues)
-                    Utilities.CopyMemory(mappedCB, (IntPtr)dataValues, materialInfo.Resources.ConstantBuffer.Size);
+                    Unsafe.CopyBlockUnaligned(mappedCB, dataValues, (uint)materialInfo.Resources.ConstantBuffer.Size);
             }
 
             return true;

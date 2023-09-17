@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
@@ -20,7 +21,7 @@ namespace Stride.Graphics.Data
                 var isStreamable = stream.ReadBoolean();
                 if (!isStreamable)
                 {
-                    var image = Image.Load(stream.NativeStream);
+                    var image = Image.Load(stream.UnderlyingStream);
                     textureData.InitializeFrom(image);
                 }
                 else
@@ -40,7 +41,7 @@ namespace Stride.Graphics.Data
             }
             else
             {
-                textureData.Save(stream.NativeStream, ImageFileType.Stride);
+                textureData.Save(stream.UnderlyingStream, ImageFileType.Stride);
             }
         }
 
@@ -49,7 +50,7 @@ namespace Stride.Graphics.Data
             return new Image();
         }
 
-        private static void DeserializeImage(ContentManager contentManager, Image obj, ref ImageDescription imageDescription, ref ContentStorageHeader storageHeader)
+        private static unsafe void DeserializeImage(ContentManager contentManager, Image obj, ref ImageDescription imageDescription, ref ContentStorageHeader storageHeader)
         {
             using (var content = new ContentStreamingService())
             {
@@ -120,8 +121,8 @@ namespace Stride.Graphics.Data
                             var data = chunk.GetData(fileProvider);
                             if (!chunk.IsLoaded)
                                 throw new ContentStreamingException("Data chunk is not loaded.", storage);
-                                
-                            Utilities.CopyMemory(bufferPtr, data, chunk.Size);
+
+                            Unsafe.CopyBlockUnaligned((void*)bufferPtr, (void*)data, (uint)chunk.Size);
                             bufferPtr += chunk.Size;
                         }
                     }

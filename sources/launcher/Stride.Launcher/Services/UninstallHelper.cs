@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Stride.Core.Extensions;
-using Stride.Core.VisualStudio;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
@@ -17,7 +16,7 @@ namespace Stride.LauncherApp.Services
         private readonly IViewModelServiceProvider serviceProvider;
         private readonly NugetStore store;
 
-        internal UninstallHelper(IViewModelServiceProvider serviceProvider,  NugetStore store)
+        internal UninstallHelper(IViewModelServiceProvider serviceProvider, NugetStore store)
         {
             this.serviceProvider = serviceProvider;
             this.store = store;
@@ -110,7 +109,7 @@ namespace Stride.LauncherApp.Services
             // Can probably be improved (not sure how stable and unique path could be?)
             return (path.IndexOf(folder, StringComparison.OrdinalIgnoreCase) != -1);
         }
-        
+
         private static List<Process> CollectPackageProcesses(string installPath)
         {
             var result = new List<Process>();
@@ -125,7 +124,7 @@ namespace Stride.LauncherApp.Services
                         continue;
 
                     // Discard ourselves
-                    if (process.Id == Process.GetCurrentProcess().Id)
+                    if (process.Id == Environment.ProcessId)
                         continue;
 
                     result.Add(process);

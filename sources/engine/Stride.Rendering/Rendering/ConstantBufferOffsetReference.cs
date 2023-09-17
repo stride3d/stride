@@ -3,7 +3,7 @@
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Handle used to query what's the actual offset of a given variable in a constant buffer, through <see cref="ResourceGroupLayout.GetConstantBufferOffset"/>.
+    /// Handle used to query what's the actual offset of a given variable in a constant buffer, through <see cref="RenderSystemResourceGroupLayout.GetConstantBufferOffset"/>.
     /// </summary>
     public struct ConstantBufferOffsetReference
     {

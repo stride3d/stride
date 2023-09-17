@@ -149,22 +149,14 @@ namespace Stride.Core.Mathematics
         /// <exception cref = "System.ArgumentOutOfRangeException">Thrown when the <paramref name = "index" /> is out of the range [0, 3].</exception>
         public int this[int index]
         {
-            get
+            get => index switch
             {
-                switch (index)
-                {
-                    case 0:
-                        return X;
-                    case 1:
-                        return Y;
-                    case 2:
-                        return Z;
-                    case 3:
-                        return W;
-                }
-
-                throw new ArgumentOutOfRangeException("index", "Indices for Int4 run from 0 to 3, inclusive.");
-            }
+                0 => X,
+                1 => Y,
+                2 => Z,
+                3 => W,
+                _ => throw new ArgumentOutOfRangeException("index", "Indices for Int4 run from 0 to 3, inclusive."),
+            };
 
             set
             {
@@ -695,6 +687,21 @@ namespace Stride.Core.Mathematics
         public static implicit operator int[](Int4 input)
         {
             return input.ToArray();
+        }
+
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="x">The X component</param>
+        /// <param name="y">The Y component</param>
+        /// <param name="z">The Z component</param>
+        /// <param name="w">The W component</param>
+        public void Deconstruct(out int x, out int y, out int z, out int w)
+        {
+            x = X;
+            y = Y;
+            z = Z;
+            w = W;
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Stride.Extensions
 
             var oldVertexBufferBinding = meshData.VertexBuffers[0];
             var indexBufferBinding = meshData.IndexBuffer;
-            var indexData = indexBufferBinding != null ? indexBufferBinding.Buffer.GetSerializationData().Content : null;
+            var indexData = indexBufferBinding?.Buffer.GetSerializationData().Content;
 
             var oldVertexStride = oldVertexBufferBinding.Declaration.VertexStride;
             var bufferData = oldVertexBufferBinding.Buffer.GetSerializationData().Content;
@@ -36,7 +36,15 @@ namespace Stride.Extensions
             fixed (byte* indexBufferStart = indexData)
             fixed (byte* oldBuffer = bufferData)
             {
-                var result = VertexHelper.GenerateTangentBinormal(oldVertexBufferBinding.Declaration, (IntPtr)oldBuffer, oldVertexBufferBinding.Count, oldVertexBufferBinding.Offset, oldVertexBufferBinding.Stride, (IntPtr)indexBufferStart, indexBufferBinding != null && indexBufferBinding.Is32Bit, indexBufferBinding != null ? indexBufferBinding.Count : 0);
+                var result = VertexHelper.GenerateTangentBinormal(
+                    vertexDeclaration: oldVertexBufferBinding.Declaration,
+                    vertexBufferData: (nint)oldBuffer,
+                    vertexCount: oldVertexBufferBinding.Count,
+                    vertexOffset: oldVertexBufferBinding.Offset,
+                    vertexStride: oldVertexBufferBinding.Stride,
+                    indexData: (nint)indexBufferStart,
+                    is32BitIndex: indexBufferBinding?.Is32Bit ?? false,
+                    indexCountArg: indexBufferBinding?.Count ?? 0);
 
                 // Replace new vertex buffer binding
                 meshData.VertexBuffers[0] = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer, result.VertexBuffer).ToSerializableVersion(), result.Layout, oldVertexBufferBinding.Count);

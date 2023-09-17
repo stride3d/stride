@@ -31,7 +31,7 @@ namespace Stride.Graphics.GeometricPrimitives
     /// <summary>
     /// A geometric primitive used to draw a simple model built from a set of vertices and indices.
     /// </summary>
-    public class GeometricPrimitive<T> : ComponentBase where T : struct, IVertex
+    public class GeometricPrimitive<T> : ComponentBase where T : unmanaged, IVertex
     {
         /// <summary>
         /// The pipeline state.
@@ -68,7 +68,7 @@ namespace Stride.Graphics.GeometricPrimitives
         /// </summary>
         /// <param name="graphicsDevice">The graphics device.</param>
         /// <param name="geometryMesh">The geometry mesh.</param>
-        /// <exception cref="System.InvalidOperationException">Cannot generate more than 65535 indices on feature level HW <= 9.3</exception>
+        /// <exception cref="System.InvalidOperationException">Cannot generate more than 65535 indices on feature level HW &lt;&#61; 9.3</exception>
         public GeometricPrimitive(GraphicsDevice graphicsDevice, GeometricMeshData<T> geometryMesh)
         {
             GraphicsDevice = graphicsDevice;

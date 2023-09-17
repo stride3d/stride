@@ -12,6 +12,11 @@
 
   <!-- Default GraphicsApi -->
   <PropertyGroup>
+    <!-- When working in a specific API in the Stride Runtime or in the Stride solution (not in a game or app),
+         you can uncomment this property and set its value to the name of that graphics API so it becomes
+         the active one that Visual Studio and IntelliSense takes into account -->
+    <!--<StrideDefaultGraphicsApiDesignTime>Vulkan</StrideDefaultGraphicsApiDesignTime>-->
+
     <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
 
     <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
@@ -33,7 +38,7 @@
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Settings StrideGraphicsApi specific
   -->
   <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' ">
@@ -60,14 +65,14 @@
     <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_VULKAN</StrideGraphicsApiDefines>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Settings TargetFramework specific
   -->
   <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
     <ProjectLockFile Condition="'$(ProjectLockFile)' == ''">$(MSBuildThisFileDirectory)..\build\project.lock.json</ProjectLockFile>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Global Defines
   -->
   <PropertyGroup>

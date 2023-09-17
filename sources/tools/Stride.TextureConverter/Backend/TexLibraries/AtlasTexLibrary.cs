@@ -8,6 +8,7 @@ using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.TextureConverter.Requests;
 using Stride.Graphics;
+using System.Runtime.CompilerServices;
 
 namespace Stride.TextureConverter.TexLibraries
 {
@@ -167,7 +168,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="atlas">The atlas.</param>
         /// <param name="request">The request.</param>
         /// <exception cref="TexLibraryException">The request texture name  + request.Name +  doesn't exist in this atlas.</exception>
-        private void Update(TexAtlas atlas, AtlasUpdateRequest request)
+        private unsafe void Update(TexAtlas atlas, AtlasUpdateRequest request)
         {
             if (!atlas.Layout.TexList.ContainsKey(request.Name))
             {
@@ -199,18 +200,20 @@ namespace Stride.TextureConverter.TexLibraries
             h = position.Height;
             int x = position.UOffset;
             int y = position.VOffset;
-            long subImageData, atlasData;
             int xOffset, yOffset;
             for (int i = 0; i < mipmapCount; ++i)
             {
-                xOffset = (int)((Decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
+                xOffset = (int)((decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
                 yOffset = y * atlas.SubImageArray[i].RowPitch;
-                subImageData = request.Texture.SubImageArray[i].Data.ToInt64();
-                atlasData = atlas.SubImageArray[i].Data.ToInt64();
+                var subImageData = (byte*)request.Texture.SubImageArray[i].Data;
+                var atlasData = (byte*)atlas.SubImageArray[i].Data;
 
                 for (int j = 0; j < h; ++j)
                 {
-                    Utilities.CopyMemory(new IntPtr(atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset), new IntPtr(subImageData + j * request.Texture.SubImageArray[i].RowPitch), request.Texture.SubImageArray[i].RowPitch);
+                    Unsafe.CopyBlockUnaligned(
+                        destination: (byte*)atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset,
+                        source: subImageData + j * request.Texture.SubImageArray[i].RowPitch,
+                        byteCount: (uint)request.Texture.SubImageArray[i].RowPitch);
                 }
 
                 w = w > 1 ? w >>= 1 : w;
@@ -227,7 +230,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="atlas">The atlas.</param>
         /// <param name="texture">The texture that will be filled.</param>
         /// <param name="position">The position of the texture in the atlas.</param>
-        private void ExtractTexture(TexAtlas atlas, TexImage texture, TexAtlas.TexLayout.Position position, int minimumMipmapSize)
+        private unsafe void ExtractTexture(TexAtlas atlas, TexImage texture, TexAtlas.TexLayout.Position position, int minimumMipmapSize)
         {
             texture.Format = atlas.Format;
 
@@ -256,9 +259,9 @@ namespace Stride.TextureConverter.TexLibraries
             texture.Width = position.Width;
             texture.Height = position.Height;
 
-            long atlasData, textureData;
+            nint atlasData, textureData;
             int xOffset, yOffset;
-            IntPtr destPtr, srcPtr;
+            nint destPtr, srcPtr;
 
             w = position.Width;
             h = position.Height;
@@ -269,24 +272,26 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 Tools.ComputePitch(texture.Format, w, h, out rowPitch, out slicePitch);
 
-                texture.SubImageArray[i] = new TexImage.SubImage();
-                texture.SubImageArray[i].Data = new IntPtr(texture.Data.ToInt64() + offset);
-                texture.SubImageArray[i].DataSize = slicePitch;
-                texture.SubImageArray[i].Width = w;
-                texture.SubImageArray[i].Height = h;
-                texture.SubImageArray[i].RowPitch = rowPitch;
-                texture.SubImageArray[i].SlicePitch = slicePitch;
+                texture.SubImageArray[i] = new TexImage.SubImage
+                {
+                    Data = texture.Data + offset,
+                    DataSize = slicePitch,
+                    Width = w,
+                    Height = h,
+                    RowPitch = rowPitch,
+                    SlicePitch = slicePitch
+                };
 
-                atlasData = atlas.SubImageArray[i].Data.ToInt64();
-                textureData = texture.SubImageArray[i].Data.ToInt64();
-                xOffset = (int)((Decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
+                atlasData = atlas.SubImageArray[i].Data;
+                textureData = texture.SubImageArray[i].Data;
+                xOffset = (int)((decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
                 yOffset = y * atlas.SubImageArray[i].RowPitch;
 
                 for (int j = 0; j < h; ++j)
                 {
-                    srcPtr = new IntPtr(atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset);
-                    destPtr = new IntPtr(textureData + j * rowPitch);
-                    Utilities.CopyMemory(destPtr, srcPtr, rowPitch);
+                    srcPtr = atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset;
+                    destPtr = textureData + j * rowPitch;
+                    Unsafe.CopyBlockUnaligned((void*)destPtr, (void*)srcPtr, (uint)rowPitch);
                 }
 
                 offset += slicePitch;
@@ -523,27 +528,20 @@ namespace Stride.TextureConverter.TexLibraries
         /// </summary>
         /// <param name="node">The node.</param>
         /// <param name="atlas">The atlas.</param>
-        private void CopyTexturesIntoAtlasMemory(Node node, TexAtlas atlas)
+        private unsafe void CopyTexturesIntoAtlasMemory(Node node, TexAtlas atlas)
         {
             if (!node.IsEmpty() && node.IsLeaf())
             {
-                long atlasData = atlas.Data.ToInt64();
-                long textureData = node.Texture.Data.ToInt64();
-                //int xOffset = (int)((Decimal)node.X / atlas.Width * atlas.RowPitch);
-                //int yOffset = node.Y * atlas.RowPitch;
-                //IntPtr destPtr, srcPtr;
-
                 int x, y, xOffset, yOffset;
-                IntPtr destPtr, srcPtr;
 
                 x = node.X;
                 y = node.Y;
-                
+
                 for (int i = 0; i < node.Texture.MipmapCount && i < atlas.MipmapCount; ++i)
                 {
-                    atlasData = atlas.SubImageArray[i].Data.ToInt64();
-                    textureData = node.Texture.SubImageArray[i].Data.ToInt64();
-                    xOffset = (int)((Decimal)x / (Decimal)atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
+                    var atlasData = (byte*)atlas.SubImageArray[i].Data;
+                    var textureData = (byte*)node.Texture.SubImageArray[i].Data;
+                    xOffset = (int)((decimal)x / atlas.SubImageArray[i].Width * atlas.SubImageArray[i].RowPitch);
                     yOffset = y * atlas.SubImageArray[i].RowPitch;
 
                     /*if (node.Texture.SubImageArray[i].Width == 3)
@@ -554,9 +552,9 @@ namespace Stride.TextureConverter.TexLibraries
                     }*/
                     for (int j = 0; j < node.Texture.SubImageArray[i].Height; ++j)
                     {
-                        destPtr = new IntPtr(atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset);
-                        srcPtr = new IntPtr(textureData + j * node.Texture.SubImageArray[i].RowPitch);
-                        Utilities.CopyMemory(destPtr, srcPtr, node.Texture.SubImageArray[i].RowPitch);
+                        var destPtr = atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset;
+                        var srcPtr = textureData + j * node.Texture.SubImageArray[i].RowPitch;
+                        Unsafe.CopyBlockUnaligned(destPtr, srcPtr, (uint)node.Texture.SubImageArray[i].RowPitch);
                     }
 
                     x = x <= 1 ? 0 : x >>= 1;

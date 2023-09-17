@@ -11,7 +11,6 @@ using Stride.Core.IO;
 using Stride.Core.LZ4;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.Serialization.Serializers;
 
 namespace Stride.Core.Storage
 {

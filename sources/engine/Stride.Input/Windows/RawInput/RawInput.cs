@@ -108,13 +108,7 @@ namespace Stride.Input.RawInput
         }
 
         private static unsafe bool RegisterDevice(RawInputDevice device)
-        {
-            var devices = new RawInputDevice[1] { device };
-            fixed (void* ptr = devices)
-            {
-                return Win32.RegisterRawInputDevices(ptr, 1, (uint)sizeof(RawInputDevice));
-            }
-        }
+            => Win32.RegisterRawInputDevices(&device, 1, (uint)sizeof(RawInputDevice));
 
         public static bool RegisterDevice(UsagePage usagePage, UsageId usageId, ModeFlags flags, IntPtr target)
         {

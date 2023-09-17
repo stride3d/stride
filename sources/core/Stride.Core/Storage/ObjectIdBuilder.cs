@@ -17,6 +17,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 using System;
+using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
@@ -55,15 +57,8 @@ namespace Stride.Core.Storage
             currentBlock4 = 0;
         }
 
-        public uint Seed { get { return seed; } }
-
-        public int Length
-        {
-            get
-            {
-                return currentLength;
-            }
-        }
+        public uint Seed => seed;
+        public int Length => currentLength;
 
         private uint H1;
         private uint H2;
@@ -168,18 +163,15 @@ namespace Stride.Core.Storage
         /// <param name="value">The value.</param>
         public void WriteByte(byte value)
         {
-            fixed (uint* currentBlockStart = &currentBlock1)
+            ref var currentBlock = ref Unsafe.As<uint, byte>(ref currentBlock1);
+
+            var position = currentLength++ & 15;
+
+            Unsafe.Add(ref currentBlock,  position) = value;
+
+            if (position == 15)
             {
-                var currentBlock = (byte*)currentBlockStart;
-
-                var position = currentLength++ % 16;
-
-                currentBlock[position] = value;
-
-                if (position == 15)
-                {
-                    BodyCore(currentBlock);
-                }
+                BodyCore(ref currentBlock);
             }
         }
 
@@ -194,7 +186,7 @@ namespace Stride.Core.Storage
         public void Write([NotNull] byte[] buffer)
         {
             if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-            Write(buffer, 0, buffer.Length);
+            Write(buffer.AsSpan());
         }
 
         /// <summary>
@@ -207,33 +199,20 @@ namespace Stride.Core.Storage
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte[] buffer, int offset, int count)
-        {
-            fixed (byte* bufferStart = buffer)
-            {
-                Write(bufferStart + offset, count);
-            }
-        }
+            => Write(buffer.AsSpan(offset, count));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write([NotNull] string str)
-        {
-            fixed (char* strPtr = str)
-                Write((byte*)strPtr, str.Length * sizeof(char));
-        }
+            => Write(str.AsSpan());
 
-// Those routines are using Interop which are not implemented when compiling
-// the assembly processor as it is it that generates them (Chicken & Egg problem).
-#if !STRIDE_ASSEMBLY_PROCESSOR
         /// <summary>
         /// Writes the specified buffer to this instance.
         /// </summary>
         /// <typeparam name="T">Type must be a struct</typeparam>
         /// <param name="data">The data.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write<T>(T data) where T : struct
-        {
-            Write(ref data);
-        }
+        public void Write<T>(T data) where T : unmanaged
+            => Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>()));
 
         /// <summary>
         /// Writes the specified buffer to this instance.
@@ -243,24 +222,17 @@ namespace Stride.Core.Storage
         /// <param name="offset">The offset.</param>
         /// <param name="count">The count.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write<T>(T[] buffer, int offset, int count) where T : struct
-        {
-            var ptr = (IntPtr)Interop.Fixed(buffer) + offset * Unsafe.SizeOf<T>();
-            Write((byte*)ptr, count * Unsafe.SizeOf<T>());
-        }
+        public void Write<T>(T[] buffer, int offset, int count) where T : unmanaged
+            => Write<T>(buffer.AsSpan(offset, count));
 
         /// <summary>
         /// Writes the specified buffer to this instance.
         /// </summary>
         /// <typeparam name="T">Type must be a struct</typeparam>
-        /// <param name="data">The data.</param>
+        /// <param name="buffer">The buffer.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write<T>(ref T data) where T : struct
-        {
-            var ptr = (byte*)Interop.Fixed(ref data);
-            Write(ptr, Unsafe.SizeOf<T>());
-        }
-#endif
+        public void Write<T>(ReadOnlySpan<T> buffer) where T : unmanaged
+            => Write(MemoryMarshal.AsBytes(buffer));
 
         /// <summary>
         /// Writes a buffer of byte to this builder.
@@ -269,6 +241,7 @@ namespace Stride.Core.Storage
         /// <param name="count">The count.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
+        [Obsolete("Use Write(ReadOnlySpan<byte>)")]
         public void Write(byte* buffer, int length)
         {
             fixed (uint* currentBlockStart = &currentBlock1)
@@ -324,8 +297,69 @@ namespace Stride.Core.Storage
                 }
             }
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
+        /// <summary>
+        /// Writes a buffer of byte to this builder.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="count">The count.</param>
+        /// <exception cref="System.ArgumentNullException">buffer</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
+        public void Write(ReadOnlySpan<byte> span)
+        {
+            ref var currentBlock = ref Unsafe.As<uint, byte>(ref currentBlock1);
+            var position = currentLength % 16;
+            ref byte buffer = ref Unsafe.AsRef(in span.GetPinnableReference());
+            int length = span.Length;
+
+            currentLength += length;
+
+            // Partial block to continue?
+            if (position != 0)
+            {
+                var remainder = 16 - position;
+
+                var partialLength = length;
+                if (partialLength > remainder)
+                    partialLength = remainder;
+
+                #warning PERF: Do not copy byte-for-byte.
+                ref var dest = ref Unsafe.Add(ref currentBlock, position);
+                for (var copyLength = partialLength; copyLength > 0; --copyLength) {
+                    dest = buffer;
+                    dest = ref Unsafe.Add(ref dest, 1);
+                    buffer = ref Unsafe.Add(ref buffer, 1);
+                }
+                length -= partialLength;
+
+                if (partialLength == remainder)
+                {
+                    BodyCore(ref currentBlock);
+                }
+            }
+
+            if (length > 0)
+            {
+                var blocks = length / 16;
+                length -= blocks * 16;
+
+                // Main loop
+                while (blocks-- > 0)
+                {
+                    BodyCore(ref buffer);
+                    buffer = ref Unsafe.Add(ref buffer, 16);
+                }
+
+                // Start partial block
+                #warning PERF: Do not copy byte-for-byte.
+                for (; length > 0; --length) {
+                    currentBlock = buffer;
+                    currentBlock = ref Unsafe.Add(ref currentBlock, 1);
+                    buffer = ref Unsafe.Add(ref buffer, 1);
+                }
+            }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Use BodyCore(ref byte)")]
         private void BodyCore(byte* data)
         {
             var b = (uint*)data;
@@ -348,10 +382,32 @@ namespace Stride.Core.Storage
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint RotateLeft(uint x, byte r)
+        private void BodyCore(ref byte data)
         {
-            return (x << r) | (x >> (32 - r));
+            ref var b = ref Unsafe.As<byte, uint>(ref data);
+
+            // K1 - consume first integer
+            H1 ^= RotateLeft((b * C1), 15) * C2;
+            H1 = (RotateLeft(H1, 19) + H2) * 5 + 0x561ccd1b;
+            b = ref Unsafe.Add(ref b, 1);
+
+            // K2 - consume second integer
+            H2 ^= RotateLeft((b * C2), 16) * C3;
+            H2 = (RotateLeft(H2, 17) + H3) * 5 + 0x0bcaa747;
+            b = ref Unsafe.Add(ref b, 1);
+
+            // K3 - consume third integer
+            H3 ^= RotateLeft((b * C3), 17) * C4;
+            H3 = (RotateLeft(H3, 15) + H4) * 5 + 0x96cd1c35;
+            b = ref Unsafe.Add(ref b, 1);
+
+            // K4 - consume fourth integer
+            H4 ^= RotateLeft((b * C4), 18) * C1;
+            H4 = (RotateLeft(H4, 13) + H1) * 5 + 0x32ac3b17;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint RotateLeft(uint x, byte r) => BitOperations.RotateLeft(x, r);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint FMix(uint h)

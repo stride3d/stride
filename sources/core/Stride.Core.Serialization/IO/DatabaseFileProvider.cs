@@ -89,12 +89,14 @@ namespace Stride.Core.IO
             throw new ArgumentException("mode");
         }
 
+        /// <inheritdoc />
+        /// <param name="url">The url (without preceding slash).</param>
+        /// <remarks>
+        /// Example: to get all files within a directory <c>ListFiles("path/to/folder", "*", VirtualSearchOption.TopDirectoryOnly)</c>
+        /// </remarks>
         public override string[] ListFiles(string url, string searchPattern, VirtualSearchOption searchOption)
         {
-            url = Regex.Escape(url);
-            searchPattern = Regex.Escape(searchPattern).Replace(@"\*", "[^/]*").Replace(@"\?", "[^/]");
-            string recursivePattern = searchOption == VirtualSearchOption.AllDirectories ? "(.*/)*" : "/?";
-            var regex = new Regex("^" + url + recursivePattern + searchPattern + "$");
+            var regex = CreateRegexForFileSearch(url, searchPattern, searchOption);
 
             return contentIndexMap.SearchValues(x => regex.IsMatch(x.Key)).Select(x => x.Key).ToArray();
         }
@@ -140,6 +142,14 @@ namespace Stride.Core.IO
                 return null;
             }
             return provider.ContentIndexMap.TryGetValue(resolveProviderResult.Path, out objectId) ? provider : null;
+        }
+
+        public static Regex CreateRegexForFileSearch(string url, string searchPattern, VirtualSearchOption searchOption)
+        {
+            url = Regex.Escape(url);
+            searchPattern = Regex.Escape(searchPattern).Replace(@"\*", "[^/]*").Replace(@"\?", "[^/]");
+            string recursivePattern = searchOption == VirtualSearchOption.AllDirectories ? "(.*/)*" : "/?";
+            return new Regex($"^{url}{recursivePattern}{searchPattern}$");
         }
 
         private abstract class DatabaseFileStream : VirtualFileStream, IDatabaseStream

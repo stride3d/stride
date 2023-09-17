@@ -4,6 +4,7 @@
   <PropertyGroup>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.ssdeps; $(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StrideRegisterDependenciesOutputs</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_StrideRegisterPackageFiles</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
   <!-- 
   *****************************************************************************************************************************
@@ -121,7 +122,7 @@
         <Type>NativeLib</Type>
         <Destination>$(OutDir)%(TargetPath)</Destination>
       </_StrideDependencyToCopy>
-      
+
       <_StrideDependencyToCopy Remove="@(_StrideNativeLibAssigned)" Condition=" '$(StridePackageBuild)' == 'true' And '%(_StrideNativeLibAssigned.Extension)' == '.pdb' "/>
     </ItemGroup>
 
@@ -147,7 +148,21 @@
   <Target Name="_StrideRegisterDependenciesOutputs" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_StrideGenerateDependenciesCore">
     <ItemGroup Condition="'@(_StrideDependencyToCopy)' != ''">
       <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).ssdeps" />
-      <BuildOutputInPackage Include="@(_StrideDependencyToCopy)" PackagePath="%(_StrideDependencyToCopy.TargetPath)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideRegisterPackageFiles" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_StrideGenerateDependenciesCore">
+    <ItemGroup Condition="'@(_StrideDependencyToCopy)' != ''">
+      <!-- Native dependencies go to the runtimes/RID/native folder -->
+      <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)" 
+                              Condition=" '%(_StrideDependencyToCopy.Type)' == 'NativeLib' "
+                              PackagePath="%(_StrideDependencyToCopy.TargetPath)" />
+      
+      <!-- Content goes to contentFiles/any/any (language/tfm) with CopyToOutput=true and BuildAction=None -->
+      <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)" 
+                              Condition=" '%(_StrideDependencyToCopy.Type)' == 'Content' " 
+                              PackagePath="contentFiles/any/any/%(_StrideDependencyToCopy.TargetPath)"
+                              PackageCopyToOutput="true"
+                              BuildAction="None" />
     </ItemGroup>
   </Target>
 </Project>

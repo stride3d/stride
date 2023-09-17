@@ -40,9 +40,15 @@ namespace Stride.Core.Assets
                 MSBuildInstance = MSBuildLocator.QueryVisualStudioInstances().FirstOrDefault(x => isNETCore
                     ? x.DiscoveryType == DiscoveryType.DotNetSdk && x.Version.Major >= 3
                     : (x.DiscoveryType == DiscoveryType.VisualStudioSetup || x.DiscoveryType == DiscoveryType.DeveloperConsole) && x.Version.Major >= 16);
+                
+                if (MSBuildInstance == null)
+                {
+                    throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later) " +
+                        "Please ensure you have the .NET 6 SDK installed from Microsoft's website");
+                }
 
                 // Make sure it is not already loaded (otherwise MSBuildLocator.RegisterDefaults() throws an exception)
-                if (MSBuildInstance != null && !AppDomain.CurrentDomain.GetAssemblies().Any(IsMSBuildAssembly))
+                if (!AppDomain.CurrentDomain.GetAssemblies().Any(IsMSBuildAssembly))
                 {
                     // We can't use directly RegisterInstance because we want to avoid NuGet verison conflicts (between MSBuild/dotnet one and ours).
                     // More details at https://github.com/microsoft/MSBuildLocator/issues/127
@@ -66,9 +72,6 @@ namespace Stride.Core.Assets
                 }
             }
 
-            if (MSBuildInstance == null)
-                throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later)");
-
             SetupMSBuildCurrentHostForOutOfProc(MSBuildInstance.MSBuildPath);
             CheckMSBuildToolset();
 
@@ -85,9 +88,9 @@ namespace Stride.Core.Assets
 
             var variables = new Dictionary<string, string>
             {
-                [MSBUILD_EXE_PATH] = dotNetSdkPath + "MSBuild.dll",
+                [MSBUILD_EXE_PATH] = Path.Combine(dotNetSdkPath, "MSBuild.dll"),
                 [MSBuildExtensionsPath] = dotNetSdkPath,
-                [MSBuildSDKsPath] = dotNetSdkPath + "Sdks"
+                [MSBuildSDKsPath] = Path.Combine(dotNetSdkPath, "Sdks")
             };
 
             foreach (var kvp in variables)
