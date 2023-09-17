@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -38,8 +38,6 @@ namespace Stride.Rendering
         {
             this.commandList = commandList;
             this.allocator = allocator;
-
-            Profiler.GpuTimestampFrequencyRatio = commandList.GraphicsDevice.TimestampFrequency / 1000.0;
         }
 
         /// <summary>
@@ -148,13 +146,14 @@ namespace Stride.Rendering
                 if (query.ProfilingKey != null)
                 {
                     var profilingState = Profiler.New(query.ProfilingKey);
-                    profilingState.Begin(queryResults[query.Index]);
+                    profilingState.TickFrequency = commandList.GraphicsDevice.TimestampFrequency;
+                    profilingState.BeginGpu(queryResults[query.Index]);
                     profilingStates.Push(profilingState);
                 }
                 else
                 {
                     var profilingState = profilingStates.Pop();
-                    profilingState.End(queryResults[query.Index]);
+                    profilingState.EndGpu(queryResults[query.Index]);
                 }
             }
         }

@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Stride.Core.Diagnostics
 {
@@ -16,20 +16,18 @@ namespace Stride.Core.Diagnostics
     public struct ProfilingState : IDisposable
     {
         private bool isEnabled;
-        private Dictionary<object, object> attributes;
-        private long startTime;
-        private string beginText;
+        private TimeSpan startTime;
+        private ProfilingEventMessage? beginMessage;
         private ProfilingEventType eventType;
+        private long tickFrequency = Stopwatch.Frequency;
 
         internal ProfilingState(int profilingId, ProfilingKey profilingKey, bool isEnabled)
         {
             ProfilingId = profilingId;
             ProfilingKey = profilingKey;
             this.isEnabled = isEnabled;
-            DisposeDelegate = null;
-            attributes = null;
-            beginText = null;
-            startTime = 0;
+            beginMessage = null;
+            startTime = new TimeSpan();
             eventType = ProfilingEventType.CpuProfilingEvent;
         }
 
@@ -52,10 +50,19 @@ namespace Stride.Core.Diagnostics
         public ProfilingKey ProfilingKey { get; }
 
         /// <summary>
-        /// Gets or sets the dispose profile delegate.
+        /// A list of attributes (dimensions) associated with this profiling state.
         /// </summary>
-        /// <value>The dispose profile delegate.</value>
-        public ProfilerDisposeEventDelegate DisposeDelegate { get; set; }
+        public TagList Attributes { get; }
+
+        /// <summary>
+        /// Gets or sets the TickFrequency used to convert <see cref="long"/> timestamp to <see cref="TimeSpan"/>.
+        /// By default for CPU events it's <see cref="Stopwatch.Frequency"/> and for GPU events it's set by the rendering code."/>
+        /// </summary>
+        public long TickFrequency
+        {
+            get => tickFrequency;
+            set => tickFrequency = value > 0 ? value : throw new ArgumentOutOfRangeException("Tick frequency must be greater than zero");
+        }
 
         /// <summary>
         /// Checks if the profiling key is enabled and update this instance. See remarks.
@@ -69,69 +76,17 @@ namespace Stride.Core.Diagnostics
             isEnabled = Profiler.IsEnabled(ProfilingKey);
         }
 
-        /// <summary>
-        /// Gets the attribute value.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <returns>Value of a key.</returns>
-        /// <remarks>If profiling was not enabled for this profile key, the attribute is not stored</remarks>
-        public object GetAttribute(string key)
-        {
-            if (attributes == null)
-            {
-                return null;
-            }
-            object result;
-            attributes.TryGetValue(key, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Sets the attribute value for a specified key. See remarks.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <remarks>If profiling was not enabled for this profile key, the attribute is not stored</remarks>
-        public void SetAttribute(string key, object value)
-        {
-            // If profiling is not enabled, doesn't store anything
-            if (!isEnabled) return;
-
-            if (attributes == null)
-            {
-                attributes = new Dictionary<object, object>();
-            }
-            attributes[key] = value;
-        }
-
         public void Dispose()
         {
             // Perform a Start event only if the profiling is running
             if (!isEnabled) return;
 
-            // Give a chance to the profiling to end and put some property in this profiler state
-            DisposeDelegate?.Invoke(ref this);
-
             End();
         }
 
-        /// <summary>
-        /// Emits a Begin profiling event with the specified text.
-        /// </summary>
-        /// <param name="text">The text.</param>
-        public void Begin(string text = null)
+        public void Begin()
         {
-            EmitEvent(ProfilingMessageType.Begin, text);
-        }
-
-        /// <summary>
-        /// Emits a Begin profiling event with the specified formatted text.
-        /// </summary>
-        /// <param name="textFormat">The text format.</param>
-        /// <param name="textFormatArguments">The text format arguments.</param>
-        public void Begin(string textFormat, params object[] textFormatArguments)
-        {
-            EmitEvent(ProfilingMessageType.Begin, textFormat, textFormatArguments);
+            EmitEvent(ProfilingMessageType.Begin);
         }
 
         /// <summary>
@@ -142,27 +97,21 @@ namespace Stride.Core.Diagnostics
         /// <param name="value1">Second value (can be int, float, long or double).</param>
         /// <param name="value2">Third value (can be int, float, long or double).</param>
         /// <param name="value3">Fourth value (can be int, float, long or double).</param>
-        public void Begin(string text, ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
+        public void Begin(string text, ProfilingCustomValue? value0 = null, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
-            EmitEvent(ProfilingMessageType.Begin, text, value0, value1, value2, value3);
+            EmitEvent(ProfilingMessageType.Begin, new ProfilingEventMessage(text, value0, value1, value2, value3));
         }
 
         /// <summary>
-        /// Emits a Begin event with the specified formatted text.
+        /// Emits a Begin event with an override on the timestamp. Internal for the use of Stride.Rendering.
         /// </summary>
-        /// <param name="value0">First value (can be int, float, long or double).</param>
-        /// <param name="value1">Second value (can be int, float, long or double).</param>
-        /// <param name="value2">Third value (can be int, float, long or double).</param>
-        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
-        public void Begin(ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
+        internal void BeginGpu(long timeStamp)
         {
-            EmitEvent(ProfilingMessageType.Begin, null, value0, value1, value2, value3);
-        }
+            // Perform event only if the profiling is running (to save on time calculations)
+            if (!isEnabled) return;
 
-        internal void Begin(long timeStamp)
-        {
             eventType = ProfilingEventType.GpuProfilingEvent;
-            EmitEvent(ProfilingMessageType.Begin, null, timeStamp);
+            EmitEventCore(ProfilingMessageType.Begin, TimeSpanFromTimeStamp(timeStamp));
         }
 
         /// <summary>
@@ -174,25 +123,6 @@ namespace Stride.Core.Diagnostics
         }
 
         /// <summary>
-        /// Emits a Mark event with the specified text.
-        /// </summary>
-        /// <param name="text">The text.</param>
-        public void Mark(string text)
-        {
-            EmitEvent(ProfilingMessageType.Mark, text);
-        }
-
-        /// <summary>
-        /// Emits a Mark event with the specified formatted text.
-        /// </summary>
-        /// <param name="textFormat">The text format.</param>
-        /// <param name="textFormatArguments">The text format arguments.</param>
-        public void Mark(string textFormat, params object[] textFormatArguments)
-        {
-            EmitEvent(ProfilingMessageType.Mark, textFormat, textFormatArguments);
-        }
-
-        /// <summary>
         /// Emits a Mark profiling event with the specified text.
         /// </summary>
         /// <param name="text">The event text.</param>
@@ -200,21 +130,9 @@ namespace Stride.Core.Diagnostics
         /// <param name="value1">Second value (can be int, float, long or double).</param>
         /// <param name="value2">Third value (can be int, float, long or double).</param>
         /// <param name="value3">Fourth value (can be int, float, long or double).</param>
-        public void Mark(string text, ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
+        public void Mark(string text, ProfilingCustomValue? value0 = null, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
-            EmitEvent(ProfilingMessageType.Mark, text, value0, value1, value2, value3);
-        }
-
-        /// <summary>
-        /// Emits a Mark profiling event with the specified text.
-        /// </summary>
-        /// <param name="value0">First value (can be int, float, long or double).</param>
-        /// <param name="value1">Second value (can be int, float, long or double).</param>
-        /// <param name="value2">Third value (can be int, float, long or double).</param>
-        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
-        public void Mark(ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
-        {
-            EmitEvent(ProfilingMessageType.Mark, null, value0, value1, value2, value3);
+            EmitEvent(ProfilingMessageType.Mark, new ProfilingEventMessage(text, value0, value1, value2, value3));
         }
 
         /// <summary>
@@ -226,25 +144,6 @@ namespace Stride.Core.Diagnostics
         }
 
         /// <summary>
-        /// Emits a End profiling event with the specified text.
-        /// </summary>
-        /// <param name="text">The text.</param>
-        public void End(string text)
-        {
-            EmitEvent(ProfilingMessageType.End, text);
-        }
-
-        /// <summary>
-        /// Emits a End profiling event with the specified formatted text.
-        /// </summary>
-        /// <param name="textFormat">The text format.</param>
-        /// <param name="textFormatArguments">The text format arguments.</param>
-        public void End(string textFormat, params object[] textFormatArguments)
-        {
-            EmitEvent(ProfilingMessageType.End, textFormat, textFormatArguments);
-        }
-
-        /// <summary>
         /// Emits a End profiling event with the specified custom value.
         /// </summary>
         /// <param name="text">The event text.</param>
@@ -252,144 +151,66 @@ namespace Stride.Core.Diagnostics
         /// <param name="value1">Second value (can be int, float, long or double).</param>
         /// <param name="value2">Third value (can be int, float, long or double).</param>
         /// <param name="value3">Fourth value (can be int, float, long or double).</param>
-        public void End(string text, ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
+        public void End(string text, ProfilingCustomValue? value0 = null, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
-            EmitEvent(ProfilingMessageType.End, text, value0, value1, value2, value3);
+            EmitEvent(ProfilingMessageType.End, new ProfilingEventMessage(text, value0, value1, value2, value3));
         }
 
         /// <summary>
-        /// Emits a End profiling event with the specified custom value.
+        /// Emits an End event with an override on the timestamp. Internal for the use of Stride.Rendering.
         /// </summary>
-        /// <param name="value0">First value (can be int, float, long or double).</param>
-        /// <param name="value1">Second value (can be int, float, long or double).</param>
-        /// <param name="value2">Third value (can be int, float, long or double).</param>
-        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
-        public void End(ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
+        internal void EndGpu(long timeStamp)
         {
-            EmitEvent(ProfilingMessageType.End, null, value0, value1, value2, value3);
-        }
-
-        internal void End(long timeStamp)
-        {
-            EmitEvent(ProfilingMessageType.End, null, timeStamp);
-        }
-
-        private void EmitEvent(ProfilingMessageType profilingType, string text, long timeStamp)
-        {
-            // Perform a Mark event only if the profiling is running
+            // Perform event only if the profiling is running (to save on time calculations)
             if (!isEnabled) return;
-            
-            // In the case of begin/end, reuse the text from the `begin`event 
-            // if the text is null for `end` event.
-            if (text == null && profilingType != ProfilingMessageType.Mark)
-                text = beginText;
+
+            EmitEventCore(ProfilingMessageType.End, TimeSpanFromTimeStamp(timeStamp));
+        }
+
+        private void EmitEventCore(ProfilingMessageType profilingType, TimeSpan timeStamp, ProfilingEventMessage? message = null)
+        {
+            // Perform event only if the profiling is running
+            if (!isEnabled) return;
 
             if (profilingType == ProfilingMessageType.Begin)
             {
                 startTime = timeStamp;
-                beginText = text;
+                beginMessage = message;
             }
             else if (profilingType == ProfilingMessageType.End)
             {
-                beginText = null;
+                if (message == null)
+                    message = beginMessage;
+
+                // upon end we disable this state
+                // one of the reasons is that we can call End(message) inside the `using() { }` and by disabling we prevent another End event to be emitted.
                 isEnabled = false;
             }
 
+            TimeSpan deltaTime = timeStamp - startTime;
+
+            // Send profiler measurement to Histogram Meter
+            ProfilingKey.PerformanceMeasurement.Record(deltaTime.TotalMilliseconds, Attributes);
+
             // Create profiler event
-            // TODO ideally we should make a copy of the attributes
-            var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, timeStamp, timeStamp - startTime, text, attributes);
+            var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, timeStamp, deltaTime, message, Attributes);
 
             // Send profiler event to Profiler
             Profiler.ProcessEvent(ref profilerEvent, eventType);
         }
 
-        private void EmitEvent(ProfilingMessageType profilingType, string text = null)
+        private void EmitEvent(ProfilingMessageType profilingType, ProfilingEventMessage? message = null)
         {
-            // Perform a Mark event only if the profiling is running
+            // Perform event only if the profiling is running
             if (!isEnabled) return;
 
             var timeStamp = Stopwatch.GetTimestamp();
-
-            // In the case of begin/end, reuse the text from the `begin`event 
-            // if the text is null for `end` event.
-            if (text == null && profilingType != ProfilingMessageType.Mark)
-                text = beginText;
-
-            if (profilingType == ProfilingMessageType.Begin)
-            {
-                startTime = timeStamp;
-                beginText = text;
-            }
-            else if (profilingType == ProfilingMessageType.End)
-            {
-                beginText = null;
-            }
-
-            // Create profiler event
-            // TODO ideally we should make a copy of the attributes
-            var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, timeStamp, timeStamp - startTime, text, attributes);
-
-            // Send profiler event to Profiler
-            Profiler.ProcessEvent(ref profilerEvent, eventType);
+            EmitEventCore(profilingType, TimeSpanFromTimeStamp(timeStamp), message);
         }
 
-        private void EmitEvent(ProfilingMessageType profilingType, string textFormat, params object[] textFormatArguments)
+        private TimeSpan TimeSpanFromTimeStamp(long timeStamp)
         {
-            // Perform a Mark event only if the profiling is running
-            if (!isEnabled) return;
-
-            var timeStamp = Stopwatch.GetTimestamp();
-
-            // In the case of begin/end, reuse the text from the `begin`event 
-            // if the text is null for `end` event.
-            var text = textFormat != null ? string.Format(textFormat, textFormatArguments) : profilingType == ProfilingMessageType.Mark ? null : beginText;
-
-            if (profilingType == ProfilingMessageType.Begin)
-            {
-                startTime = timeStamp;
-                beginText = text;
-            }
-            else if (profilingType == ProfilingMessageType.End)
-            {
-                beginText = null;
-            }
-
-            // Create profiler event
-            // TODO ideally we should make a copy of the attributes
-            var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, timeStamp, timeStamp - startTime, text, attributes);
-
-            // Send profiler event to Profiler
-            Profiler.ProcessEvent(ref profilerEvent, eventType);
-        }
-
-        private void EmitEvent(ProfilingMessageType profilingType, string text, ProfilingCustomValue? value0, ProfilingCustomValue? value1, ProfilingCustomValue? value2, ProfilingCustomValue? value3)
-        {
-            // Perform a Mark event only if the profiling is running
-            if (!isEnabled) return;
-
-            var timeStamp = Stopwatch.GetTimestamp();
-
-            if (profilingType == ProfilingMessageType.Begin)
-            {
-                startTime = timeStamp;
-            }
-
-            //this actually stores the LAST text into beginText so to be able to add it at the end
-            if (profilingType != ProfilingMessageType.End && text != null)
-            {
-                beginText = text;
-            }
-
-            // Create profiler event
-            var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, timeStamp, timeStamp - startTime, beginText ?? text, attributes, value0, value1, value2, value3);
-
-            if (profilingType == ProfilingMessageType.End)
-            {
-                beginText = null;
-            }
-
-            // Send profiler event to Profiler
-            Profiler.ProcessEvent(ref profilerEvent, eventType);
+            return new TimeSpan(timeStamp * 10000000 / tickFrequency);
         }
     }
 }

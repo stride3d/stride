@@ -7,6 +7,14 @@ namespace Stride.Profiling
 {
     public class GcProfiling : IDisposable
     {
+        private const string CollectionCountMessage = "Garbage collections> Gen0: {0}, Gen1: {1}, Gen2: {2}";
+        private const string BeginMemoryMessage = "Allocated memory> Total: {0:0.00}MB";
+        private const string EndMemoryMessage = "Allocated memory> Total: {0:0.00}MB Peak: {1:0.00}MB";
+        private const string MarkMemoryMessage = "Allocated memory> Total: {0:0.00}MB Peak: {1:0.00}MB Allocations: {2:0.00}KB";
+
+        private const float kB = 1 << 10;
+        private const float MB = 1 << 20;
+
         public static ProfilingKey GcCollectionCountKey = new ProfilingKey("GC Collection Count");
         public static ProfilingKey GcMemoryKey = new ProfilingKey("GC Memory");
 
@@ -25,11 +33,11 @@ namespace Stride.Profiling
             gen0Count = GC.CollectionCount(0);
             gen1Count = GC.CollectionCount(1);
             gen2Count = GC.CollectionCount(2);
-            collectionCountState.Begin(gen0Count, gen1Count, gen2Count);
+            collectionCountState.Begin(CollectionCountMessage, gen0Count, gen1Count, gen2Count);
 
             gcMemoryState = Profiler.New(GcMemoryKey);
             memoryPeak = lastFrameMemory = GC.GetTotalMemory(false);
-            gcMemoryState.Begin(lastFrameMemory, lastFrameMemory, memoryPeak);
+            gcMemoryState.Begin(BeginMemoryMessage, lastFrameMemory / MB);
         }
 
         public void Tick()
@@ -40,7 +48,7 @@ namespace Stride.Profiling
             var diff = totalMem - lastFrameMemory;
             if (Math.Abs(diff) > 0)
             {
-                gcMemoryState.Mark(totalMem, diff, memoryPeak);
+                gcMemoryState.Mark(MarkMemoryMessage, totalMem / MB, memoryPeak / MB, diff / kB);
                 lastFrameMemory = totalMem;
             }
 
@@ -53,7 +61,7 @@ namespace Stride.Profiling
                 gen0Count = gen0;
                 gen1Count = gen1;
                 gen2Count = gen2;
-                collectionCountState.Mark(gen0Count, gen1Count, gen2Count);
+                collectionCountState.Mark(CollectionCountMessage, gen0Count, gen1Count, gen2Count);
             }
         }
 
@@ -62,13 +70,13 @@ namespace Stride.Profiling
             //memory
             var totalMem = GC.GetTotalMemory(false);
             memoryPeak = Math.Max(totalMem, memoryPeak);
-            gcMemoryState.End(totalMem, totalMem - lastFrameMemory, memoryPeak);
+            gcMemoryState.End(EndMemoryMessage, totalMem / MB, memoryPeak / MB);
 
             //gens count
             gen0Count = GC.CollectionCount(0);
             gen1Count = GC.CollectionCount(1);
             gen2Count = GC.CollectionCount(2);
-            collectionCountState.End(gen0Count, gen1Count, gen2Count);
+            collectionCountState.End(CollectionCountMessage, gen0Count, gen1Count, gen2Count);
         }
 
         public void Enable()
