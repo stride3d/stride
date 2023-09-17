@@ -61,7 +61,7 @@ namespace Stride.Core.Diagnostics
         public long TickFrequency
         {
             get => tickFrequency;
-            set => tickFrequency = value > 0 ? value : throw new ArgumentOutOfRangeException("Tick frequency must be non-zero");
+            set => tickFrequency = value > 0 ? value : throw new ArgumentOutOfRangeException("Tick frequency must be greater than zero");
         }
 
         /// <summary>
