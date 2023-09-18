@@ -37,6 +37,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         private Transformation activeTransformation;
         private TransformationSpace space;
         private double gizmoSize = 1.0f;
+        private bool dynamicSnappingInUse = false;
 
         public EditorGameEntityTransformService([NotNull] EntityHierarchyEditorViewModel editor, [NotNull] IEditorGameController controller)
         {
@@ -97,7 +98,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             }
         }
 
-        public override IEnumerable<Type> Dependencies {  get { yield return typeof(IEditorGameEntitySelectionService); } }
+        public override IEnumerable<Type> Dependencies { get { yield return typeof(IEditorGameEntitySelectionService); } }
 
         Transformation IEditorGameTransformViewModelService.ActiveTransformation
         {
@@ -215,22 +216,34 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 {
                     if (IsMouseAvailable)
                     {
+                        // Snap the current selection to the grid, on keypress
                         if (game.Input.IsKeyPressed(SceneEditorSettings.SnapSelectionToGrid.GetValue()))
                         {
                             SnapSelectionToGrid();
                         }
+
+                        // Use snapping while pressing a key and moving an object(entity) in the scene
+                        DynamicSnapSelectionToGrid(game.Input.IsKeyDown(SceneEditorSettings.ControlDynamicSnapSelectionToGrid.GetValue()));
+
+                        // Activate transformation snapping
                         if (game.Input.IsKeyPressed(SceneEditorSettings.TranslationGizmo.GetValue()))
                         {
                             await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Translation);
                         }
+
+                        // Activate rotation snapping
                         if (game.Input.IsKeyPressed(SceneEditorSettings.RotationGizmo.GetValue()))
                         {
                             await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Rotation);
                         }
+
+                        // Activate scale snapping
                         if (game.Input.IsKeyPressed(SceneEditorSettings.ScaleGizmo.GetValue()))
                         {
                             await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Scale);
                         }
+
+                        // Toggle between different snapping methods
                         if (game.Input.IsKeyPressed(SceneEditorSettings.SwitchGizmo.GetValue()))
                         {
                             var current = activeTransformation;
@@ -270,6 +283,20 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             InvokeTransformationFinished(transformations);
         }
 
+        private void DynamicSnapSelectionToGrid(bool useDynamicSnapping)
+        {
+            if (!useDynamicSnapping && dynamicSnappingInUse)
+            {
+                activeTransformationGizmo.UseSnap = false;
+                dynamicSnappingInUse = false;
+            }
+
+            if (useDynamicSnapping && !dynamicSnappingInUse && !ActiveTransformationGizmo.UseSnap)
+            {
+                dynamicSnappingInUse = true;
+                activeTransformationGizmo.UseSnap = true;
+            }
+        }
 
         private void UpdateModifiedEntitiesList(object sender, [NotNull] EntitySelectionEventArgs e)
         {

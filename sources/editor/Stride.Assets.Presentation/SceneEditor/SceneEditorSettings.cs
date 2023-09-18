@@ -52,6 +52,10 @@ namespace Stride.Assets.Presentation.SceneEditor
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Snap selection to the grid")}"
             };
+            ControlDynamicSnapSelectionToGrid = new SettingsKey<Keys>("SceneEditor/KeyBindings/ControlDynamicSnapSelectionToGrid", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.LeftShift)
+            {
+                DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Use snapping while selection is beeing manipulated")}"
+            };
             TranslationGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/TranslationGizmo", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.W)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Switch to translation mode")}"
@@ -111,6 +115,8 @@ namespace Stride.Assets.Presentation.SceneEditor
         public static SettingsKey<Keys> CenterViewOnSelection { get; }
 
         public static SettingsKey<Keys> SnapSelectionToGrid { get; }
+
+        public static SettingsKey<Keys> ControlDynamicSnapSelectionToGrid { get; }
 
         public static SettingsKey<Keys> TranslationGizmo { get; }
 
