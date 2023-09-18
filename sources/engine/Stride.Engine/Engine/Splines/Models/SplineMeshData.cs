@@ -11,20 +11,23 @@ namespace Stride.Engine.Splines.Models
 {
     public class SplineMeshData : IDisposable
     {
-        public List<VertexPositionNormalTexture> Vertices { get; set; } = new List<VertexPositionNormalTexture>();
+        private Buffer<VertexPositionNormalTexture> buffer;
+        private List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
+        private List<int> indices;
+        private Buffer<int> indexBuffer;
 
-        public List<int> Indices { get; set; } = new List<int>();
+        public SplineMeshData()
+        {
+            indices = new List<int>();
+        }
 
-        public Buffer<VertexPositionNormalTexture> VertexBuffer { get; set; }
-        public Buffer<int> IndexBuffer { get; set; }
-
-        public SplineMeshData(Vector3[] points, GraphicsDevice graphicsDevice)
+        public MeshDraw Build(Vector3[] points, GraphicsDevice graphicsDevice)
         {
             var indexCount = 0;
             var vertexCount = 0;
-
             var totalDistance = 0.0f;
-            var halfWidth = 0.01f;
+            const float halfWidth = 0.01f;
+
             for (var i = 0; i < points.Length; i++)
             {
                 // Calculate forward direction
@@ -33,10 +36,12 @@ namespace Stride.Engine.Splines.Models
                 {
                     forward += points[i + 1] - points[i];
                 }
+
                 if (i > 0)
                 {
                     forward += points[i] - points[i - 1];
                 }
+
                 forward.Normalize();
 
                 var right = Vector3.Cross(forward, Vector3.UnitY);
@@ -69,56 +74,57 @@ namespace Stride.Engine.Splines.Models
                 color.G = (byte)forwardBiasedAndScaled.Y;
                 color.B = (byte)forwardBiasedAndScaled.Z;
 
-                Vertices.Add(new VertexPositionNormalTexture(p0, Vector3.UnitY, Vector2.Zero));
-                Vertices.Add(new VertexPositionNormalTexture(p1, Vector3.UnitY, Vector2.Zero));
-                Vertices.Add(new VertexPositionNormalTexture(p2, Vector3.UnitY, Vector2.Zero));
+                vertices.Add(new VertexPositionNormalTexture(p0, Vector3.UnitY, Vector2.Zero));
+                vertices.Add(new VertexPositionNormalTexture(p1, Vector3.UnitY, Vector2.Zero));
+                vertices.Add(new VertexPositionNormalTexture(p2, Vector3.UnitY, Vector2.Zero));
 
                 if (i < points.Length - 1)
                 {
-                    Indices.Add(vertexCount + 0);
-                    Indices.Add(vertexCount + 3);
-                    Indices.Add(vertexCount + 1);
+                    indices.Add(vertexCount + 0);
+                    indices.Add(vertexCount + 3);
+                    indices.Add(vertexCount + 1);
 
-                    Indices.Add(vertexCount + 1);
-                    Indices.Add(vertexCount + 3);
-                    Indices.Add(vertexCount + 4);
+                    indices.Add(vertexCount + 1);
+                    indices.Add(vertexCount + 3);
+                    indices.Add(vertexCount + 4);
 
-                    Indices.Add(vertexCount + 1);
-                    Indices.Add(vertexCount + 4);
-                    Indices.Add(vertexCount + 2);
+                    indices.Add(vertexCount + 1);
+                    indices.Add(vertexCount + 4);
+                    indices.Add(vertexCount + 2);
 
-                    Indices.Add(vertexCount + 2);
-                    Indices.Add(vertexCount + 4);
-                    Indices.Add(vertexCount + 5);
+                    indices.Add(vertexCount + 2);
+                    indices.Add(vertexCount + 4);
+                    indices.Add(vertexCount + 5);
                 }
 
                 vertexCount += 3;
                 indexCount += 12;
             }
 
-            VertexBuffer = Graphics.Buffer.Vertex.New(graphicsDevice, Vertices.ToArray(), GraphicsResourceUsage.Dynamic);
-            IndexBuffer?.Dispose();
-            IndexBuffer = Graphics.Buffer.Index.New(graphicsDevice, Indices.ToArray(), GraphicsResourceUsage.Dynamic);
-        }
+            buffer = Graphics.Buffer.Vertex.New(graphicsDevice, vertices.ToArray(), GraphicsResourceUsage.Dynamic);
+            indexBuffer?.Dispose();
+            indexBuffer = Graphics.Buffer.Index.New(graphicsDevice, indices.ToArray(), GraphicsResourceUsage.Dynamic);
 
-        public MeshDraw Build()
-        {
-            return new MeshDraw
+            var meshDraw = new MeshDraw
             {
                 PrimitiveType = PrimitiveType.TriangleList,
-                DrawCount = Indices.Count,
-                IndexBuffer = new IndexBufferBinding(IndexBuffer, true, Indices.Count),
-                VertexBuffers = new[] { new VertexBufferBinding(VertexBuffer, VertexPositionNormalTexture.Layout, VertexBuffer.ElementCount) },
+                DrawCount = indices.Count,
+                IndexBuffer = new IndexBufferBinding(indexBuffer, true, indices.Count),
+                VertexBuffers = new[] { new VertexBufferBinding(buffer, VertexPositionNormalTexture.Layout, buffer.ElementCount) }
             };
+
+
+            return meshDraw;
         }
+        
 
         public void Dispose()
         {
-            IndexBuffer?.Dispose();
-            VertexBuffer?.Dispose();
+            indexBuffer?.Dispose();
+            buffer?.Dispose();
 
-            IndexBuffer = null;
-            VertexBuffer = null;
+            indexBuffer = null;
+            buffer = null;
         }
     }
 }

@@ -7,7 +7,7 @@ using Stride.Extensions;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
 {
     [GizmoComponent(typeof(SplineNodeComponent), false)]
     public class SplineNodeGizmo : EntityGizmo<SplineNodeComponent>
@@ -64,7 +64,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             //Only update the tangents mesh if tangent positions have changed
             if (Component.SplineNode.TangentInLocal == previousInTangent && Component.SplineNode.TangentOutLocal == previousOutTangent
-                && translation == previousNodePosition)
+                                                                         && translation == previousNodePosition)
                 return;
 
             GizmoRootEntity.Transform.Position = translation;
@@ -77,17 +77,31 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             ClearChildren(gizmoTangentOut);
             ClearChildren(gizmoTangentIn);
 
-            var tangentLineOutGoingMesh = new SplineMeshData(new Vector3[] { new Vector3(0), -Component.SplineNode.TangentOutLocal }, GraphicsDevice);
-            var tangentLineOutGoing = new Entity() { new ModelComponent { Model = new Model { outMaterial, new Mesh { Draw = tangentLineOutGoingMesh.Build() } }, RenderGroup = RenderGroup } };
+            var meshData = new SplineMeshData();
+            var tangentLineOutGoing = new Entity()
+            {
+                new ModelComponent
+                {
+                    Model = new Model { outMaterial, new Mesh { Draw = meshData.Build(new Vector3[] { new Vector3(0), -Component.SplineNode.TangentOutLocal }, GraphicsDevice) } },
+                    RenderGroup = RenderGroup
+                }
+            };
             gizmoTangentOut.AddChild(tangentLineOutGoing);
-
-            var tangentLineInwardsMesh = new SplineMeshData(new Vector3[] { new Vector3(0), -Component.SplineNode.TangentInLocal }, GraphicsDevice);
-            var tangentLineInwards = new Entity() { new ModelComponent { Model = new Model { inMaterial, new Mesh { Draw = tangentLineInwardsMesh.Build() } }, RenderGroup = RenderGroup } };
+            
+            var tangentLineInwards = new Entity()
+            {
+                new ModelComponent
+                {
+                    Model = new Model { inMaterial, new Mesh { Draw = meshData.Build(new Vector3[] { new Vector3(0), -Component.SplineNode.TangentInLocal }, GraphicsDevice) } },
+                    RenderGroup = RenderGroup
+                }
+            };
             gizmoTangentIn.AddChild(tangentLineInwards);
 
             previousInTangent = Component.SplineNode.TangentInLocal;
             previousOutTangent = Component.SplineNode.TangentOutLocal;
             previousNodePosition = translation;
+            meshData.Dispose();
         }
 
         private void ClearChildren(Entity entity)

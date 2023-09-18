@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Engine.Design;
 using Stride.Engine.Splines.Processors;
 using Stride.Core.Mathematics;
@@ -23,22 +24,26 @@ namespace Stride.Engine.Splines.Components
         private Vector3 previousPosition;
         private SplineRenderer splineRenderer;
         private Spline spline;
+        private SplineBuilder splineBuilder;
 
         /// <summary>
         /// Reference to the Spline
         /// </summary>
         [DataMemberIgnore]
+        [NotNull]
         public Spline Spline
         {
             get
             {
                 spline ??= new Spline();
+                splineBuilder ??= new SplineBuilder();
                 return spline;
             }
             set
             {
                 spline = value;
-                Spline.EnqueueSplineUpdate();
+                spline ??= new Spline(); // in case a null is being set to the Spline property, create a new Spline, as the component requires one to function properly in the editor
+                spline.EnqueueSplineUpdate();
             }
         }
 
@@ -108,30 +113,27 @@ namespace Stride.Engine.Splines.Components
             Spline.EnqueueSplineUpdate();
         }
 
+        public SplinePositionInfo GetClosestPointOnSpline(Vector3 originPosition)
+        { 
+            return Spline.GetClosestPointOnSpline(originPosition);
+        }
+
         internal void Update(TransformComponent transformComponent)
         {
-            if (previousPosition.X != Entity.Transform.Position.X || previousPosition.Y != Entity.Transform.Position.Y || previousPosition.Z != Entity.Transform.Position.Z)
+            if (previousPosition.X == Entity.Transform.Position.X && previousPosition.Y == Entity.Transform.Position.Y && previousPosition.Z == Entity.Transform.Position.Z)
             {
-                Spline.EnqueueSplineUpdate();
-                previousPosition = Entity.Transform.Position;
+                return;
             }
+
+            Spline.EnqueueSplineUpdate();
+            previousPosition = Entity.Transform.Position;
         }
 
         private void SplineRenderer_OnSplineRendererSettingsUpdated()
         {
             Spline.EnqueueSplineUpdate();
         }
-
-        public SplinePositionInfo GetPositionOnSpline(float percentage)
-        {
-            return Spline.GetPositionOnSpline(percentage);
-        }
-
-        public SplinePositionInfo GetClosestPointOnSpline(Vector3 originPosition)
-        {
-            return Spline.GetClosestPointOnSpline(originPosition);
-        }
-
+        
         ~SplineComponent()
         {
             spline = null;

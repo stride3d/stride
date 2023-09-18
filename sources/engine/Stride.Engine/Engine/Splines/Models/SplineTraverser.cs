@@ -163,31 +163,33 @@ namespace Stride.Engine.Splines.Models
 
         public void DetermineOriginAndTarget()
         {
-            if (entity != null && Spline?.SplineNodes?.Count > 1)
+            if (entity == null || !(Spline?.SplineNodes?.Count > 1))
             {
-                var currentPositionOfTraverser = entity.Transform.WorldMatrix.TranslationVector;
-                var splinePositionInfo = spline.GetClosestPointOnSpline(currentPositionOfTraverser);
-                var forwards = Speed > 0;
-
-                targetSplineNodeIndex = forwards ? splinePositionInfo.SplineNodeBIndex : splinePositionInfo.SplineNodeAIndex;
-
-                originSplineNode = forwards ? splinePositionInfo.SplineNodeA : splinePositionInfo.SplineNodeB;
-                targetSplineNode = forwards ? splinePositionInfo.SplineNodeB : splinePositionInfo.SplineNodeA;
-
-                bezierPointsToTraverse = forwards ? originSplineNode.GetBezierPoints() : targetSplineNode.GetBezierPoints();
-
-                if (bezierPointsToTraverse == null)
-                {
-                    return;
-                }
-
-                bezierPointIndex = splinePositionInfo.ClosestBezierPointIndex;
-                originBezierPoint = bezierPointsToTraverse[bezierPointIndex];
-                targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
-                attachedToSpline = true;
-                startRotation = entity.Transform.Rotation;
-                SetNextTarget();
+                return;
             }
+
+            var currentPositionOfTraverser = entity.Transform.WorldMatrix.TranslationVector;
+            var splinePositionInfo = spline.GetClosestPointOnSpline(currentPositionOfTraverser);
+            var forwards = Speed > 0;
+            
+            targetSplineNodeIndex = forwards ? splinePositionInfo.SplineNodeBIndex : splinePositionInfo.SplineNodeAIndex;
+            
+            originSplineNode = forwards ? splinePositionInfo.SplineNodeA : splinePositionInfo.SplineNodeB;
+            targetSplineNode = forwards ? splinePositionInfo.SplineNodeB : splinePositionInfo.SplineNodeA;
+            
+            bezierPointsToTraverse = forwards ? originSplineNode.GetBezierPoints() : targetSplineNode.GetBezierPoints();
+            
+            if (bezierPointsToTraverse == null)
+            {
+                return;
+            }
+            
+            bezierPointIndex = splinePositionInfo.ClosestBezierPointIndex;
+            originBezierPoint = bezierPointsToTraverse[bezierPointIndex];
+            targetBezierPoint = bezierPointsToTraverse[bezierPointIndex];
+            attachedToSpline = true;
+            startRotation = entity.Transform.Rotation;
+            SetNextTarget();
         }
 
         public void Update(GameTime time)
