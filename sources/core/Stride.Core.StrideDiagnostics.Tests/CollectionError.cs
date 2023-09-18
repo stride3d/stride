@@ -1,5 +1,5 @@
 using Microsoft.CodeAnalysis;
-using Xunit;
+
 namespace Stride.Core.StrideDiagnostics.Tests;
 
 public class CollectionError

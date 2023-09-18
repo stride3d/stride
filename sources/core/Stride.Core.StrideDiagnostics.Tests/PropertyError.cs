@@ -1,8 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
-using Stride.Core;
-using Xunit;
+using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.Tests;
+
 public class PropertyError
 {
     [Fact]

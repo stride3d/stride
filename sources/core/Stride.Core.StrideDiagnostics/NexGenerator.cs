@@ -1,10 +1,7 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using System.Linq;
 using Microsoft.CodeAnalysis;
-using System.Diagnostics;
-using System.Linq;
-using System.Collections.Immutable;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Stride.Core.StrideDiagnostics;
 

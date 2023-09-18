@@ -1,14 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
-using Stride.Core;
-using Stride.Core.StrideDiagnostics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
+using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.Tests;
+
 public class DoubleAnnotationError
 {
     [Fact]

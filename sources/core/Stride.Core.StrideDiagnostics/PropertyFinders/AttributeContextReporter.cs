@@ -1,12 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks.Sources;
+using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.PropertyFinders;
+
 internal class AttributeContextReporter : IViolationReporter, IPropertyFinder
 {
     /// <summary>

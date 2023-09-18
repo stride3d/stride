@@ -1,8 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Stride.Core.StrideDiagnostics;
 

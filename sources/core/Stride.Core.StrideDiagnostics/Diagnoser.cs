@@ -1,8 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
-using Stride.Core.StrideDiagnostics.PropertyFinders;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
+using Stride.Core.StrideDiagnostics.PropertyFinders;
 
 namespace Stride.Core.StrideDiagnostics;
 

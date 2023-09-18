@@ -1,7 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.PropertyFinders;
+
 public static class PropertyAttributeFinderExtension
 {
     /// <summary>

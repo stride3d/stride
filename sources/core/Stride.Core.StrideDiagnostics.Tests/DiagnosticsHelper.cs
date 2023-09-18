@@ -1,7 +1,5 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Stride.Core;
-using Stride.Core.StrideDiagnostics;
 
 namespace Stride.Core.StrideDiagnostics.Tests;
 

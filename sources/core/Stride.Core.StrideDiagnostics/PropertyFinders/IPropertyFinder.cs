@@ -1,9 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
 using System.Collections.Generic;
-using System.Text;
+using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.PropertyFinders;
+
 public interface IPropertyFinder
 {
     public IEnumerable<IPropertySymbol> Find(ref INamedTypeSymbol baseType);

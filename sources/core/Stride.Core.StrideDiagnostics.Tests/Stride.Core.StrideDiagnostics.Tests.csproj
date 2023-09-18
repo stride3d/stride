@@ -8,7 +8,9 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
-
+  <ItemGroup>
+    <Using Include="Xunit"/>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.StrideDiagnostics\Stride.Core.StrideDiagnostics.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
   </ItemGroup>

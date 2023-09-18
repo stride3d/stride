@@ -1,6 +1,4 @@
 using Microsoft.CodeAnalysis;
-using System.Runtime.Serialization;
-using Xunit;
 
 namespace Stride.Core.StrideDiagnostics.Tests;
 

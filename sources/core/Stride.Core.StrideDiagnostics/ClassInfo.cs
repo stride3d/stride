@@ -1,12 +1,11 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Stride.Core.StrideDiagnostics;
+
 public class ClassInfo
 {
     public GeneratorExecutionContext ExecutionContext { get; set; }

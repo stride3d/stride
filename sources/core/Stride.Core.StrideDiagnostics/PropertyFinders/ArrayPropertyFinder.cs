@@ -1,8 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.PropertyFinders;
+
 public class ArrayPropertyFinder : IViolationReporter, IPropertyFinder
 {
     /// <summary>

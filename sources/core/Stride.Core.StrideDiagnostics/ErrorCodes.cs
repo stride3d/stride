@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Stride.Core.StrideDiagnostics;
+
 public static class ErrorCodes
 {
     public const string ArrayAccess = "STRD001";
