@@ -9,6 +9,7 @@ public class PropertyError
     {
         // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
+using Stride.Core;
 [DataContract]
 public class InvalidCollection
 {
@@ -26,6 +27,7 @@ public class InvalidCollection
     {
         // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
+using Stride.Core;
 [DataContract]
 public class InvalidCollection
 {
@@ -43,6 +45,7 @@ public class InvalidCollection
     {
         // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
+using Stride.Core;
 [DataContract]
 public class IgnoreMember
 {

@@ -9,6 +9,7 @@ public class CollectionError
     {
         // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
+using Stride.Core;
 [DataContract]
 public class InvalidCollection
 {
@@ -22,6 +23,7 @@ public class InvalidCollection
     public void Valid_Dictionary_Access_with_public_getter()
     {
         var sourceCode = @"
+using Stride.Core;
 [DataContract]
 public class InvalidCollection
 {
@@ -35,6 +37,7 @@ public class InvalidCollection
     public void Valid_Collection_Access_with_public_getter()
     {
         var sourceCode = @"
+using Stride.Core;
 [DataContract]
 public class InvalidCollection
 {
@@ -50,6 +53,7 @@ public class InvalidCollection
     public void Valid_Collection_Access_with_internal_getter()
     {
         var sourceCode = @"
+using Stride.Core;
 [DataContract]
 public class InvalidCollection
 {
@@ -65,6 +69,7 @@ public class InvalidCollection
     {
         // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
+using Stride.Core;
 [DataContract]
 public class InvalidCollection
 {
@@ -96,6 +101,7 @@ public class IgnoreCollection
     public void Ignore_Private_Collection_Property()
     {
         var sourceCode = @"
+using Stride.Core;
 [DataContract]
 public class IgnoreCollection
 {
