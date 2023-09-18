@@ -12,7 +12,7 @@
     <Using Include="Xunit"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Core.StrideDiagnostics\Stride.Core.StrideDiagnostics.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\Stride.Core.StrideDiagnostics\Stride.Core.StrideDiagnostics.csproj" ReferenceOutputAssembly="true" />
   </ItemGroup>
   <ItemGroup>
     <!-- Including Code Analysis for Validation against Diagnostics in a Code -->
