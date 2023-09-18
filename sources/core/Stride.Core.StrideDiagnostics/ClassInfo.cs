@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,9 +19,12 @@ public class ClassInfo
     public NexSyntaxReceiver SyntaxReceiver { get; set; }
     public SemanticModel SemanticModel { get => _compilationCache ??= ExecutionContext.Compilation.GetSemanticModel(TypeSyntax.SyntaxTree); }
     private SemanticModel _compilationCache;
-    public bool IsAbstract()
+    public bool IsAbstract
     {
-        return TypeSyntax.Modifiers.Any(x => x.IsKind(SyntaxKind.AbstractKeyword));
+        get
+        {
+            return TypeSyntax.Modifiers.Any(x => x.IsKind(SyntaxKind.AbstractKeyword));
+        }
     }
 
 }
