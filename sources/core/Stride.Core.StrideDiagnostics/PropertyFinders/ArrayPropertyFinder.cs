@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace StrideDiagnostics.PropertyFinders;
+namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 public class ArrayPropertyFinder : IViolationReporter, IPropertyFinder
 {
     /// <summary>
@@ -35,15 +35,15 @@ public class ArrayPropertyFinder : IViolationReporter, IPropertyFinder
     {
         if (baseType == null)
             return;
-        IEnumerable<IPropertySymbol> violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && !HasProperAccess(property));
-        foreach (IPropertySymbol violation in violations)
+        var violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && !HasProperAccess(property));
+        foreach (var violation in violations)
         {
             Report(violation, info);
         }
     }
     private static void Report(IPropertySymbol property, ClassInfo classInfo)
     {
-        DiagnosticDescriptor error = new DiagnosticDescriptor(
+        var error = new DiagnosticDescriptor(
             id: ErrorCodes.ArrayAccess,
             title: "Invalid Access",
             category: NexGenerator.CompilerServicesDiagnosticCategory,
@@ -52,7 +52,7 @@ public class ArrayPropertyFinder : IViolationReporter, IPropertyFinder
             messageFormat: $"The Property '{property.Name}' has an invalid Access Type for an Array, expected for Arrays is a public/internal get; Accessor, Stride will not be able to use this Property as [DataMember]. Add [DataMemberIgnore] to let Stride Ignore the Member in the [DataContract] or change the get; accesibility.",
             helpLinkUri: "https://www.stride3d.net"
         );
-        Location location = Location.Create(classInfo.TypeSyntax.SyntaxTree, property.DeclaringSyntaxReferences.FirstOrDefault().Span);
+        var location = Location.Create(classInfo.TypeSyntax.SyntaxTree, property.DeclaringSyntaxReferences.FirstOrDefault().Span);
         classInfo.ExecutionContext.ReportDiagnostic(Diagnostic.Create(error, location));
     }
 }

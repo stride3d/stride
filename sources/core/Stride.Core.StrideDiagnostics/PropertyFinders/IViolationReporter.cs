@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
+using Stride.Core.StrideDiagnostics;
 
-namespace StrideDiagnostics.PropertyFinders;
+namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 
 public interface IViolationReporter
 {

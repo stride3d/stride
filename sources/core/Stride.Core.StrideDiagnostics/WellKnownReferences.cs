@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace StrideDiagnostics;
+namespace Stride.Core.StrideDiagnostics;
 internal class WellKnownReferences
 {
     public WellKnownReferences(Compilation compilation)

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace StrideDiagnostics.PropertyFinders;
+namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 internal class CollectionPropertyFinder : IPropertyFinder, IViolationReporter
 {
     public IEnumerable<IPropertySymbol> Find(ref INamedTypeSymbol baseType)
@@ -17,8 +17,8 @@ internal class CollectionPropertyFinder : IPropertyFinder, IViolationReporter
     {
         if (baseType == null)
             return;
-        IEnumerable<IPropertySymbol> violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && PropertyHelper.ImplementsICollectionT(property.Type) && !HasProperAccess(property));
-        foreach (IPropertySymbol violation in violations)
+        var violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && PropertyHelper.ImplementsICollectionT(property.Type) && !HasProperAccess(property));
+        foreach (var violation in violations)
         {
 
             Report(violation, classInfo);
@@ -32,7 +32,7 @@ internal class CollectionPropertyFinder : IPropertyFinder, IViolationReporter
 
     private static void Report(IPropertySymbol property, ClassInfo classInfo)
     {
-        DiagnosticDescriptor error = new DiagnosticDescriptor(
+        var error = new DiagnosticDescriptor(
             id: ErrorCodes.CollectionAccess,
             title: "Invalid Access",
             category: NexGenerator.CompilerServicesDiagnosticCategory,
@@ -41,7 +41,7 @@ internal class CollectionPropertyFinder : IPropertyFinder, IViolationReporter
             messageFormat: $"The Property '{property.Name}' has an invalid Access Type for an {property.Type}, expected for a ICollection<T> is a public/internal get; Accessor, Stride will not be able to use this Property as [DataMember]. Add [DataMemberIgnore] to let Stride Ignore the Member in the [DataContract] or change the get; accesibility.",
             helpLinkUri: "https://www.stride3d.net"
         );
-        Location location = Location.Create(classInfo.TypeSyntax.SyntaxTree, property.DeclaringSyntaxReferences.FirstOrDefault().Span);
+        var location = Location.Create(classInfo.TypeSyntax.SyntaxTree, property.DeclaringSyntaxReferences.FirstOrDefault().Span);
         classInfo.ExecutionContext.ReportDiagnostic(Diagnostic.Create(error, location));
     }
     private bool HasProperAccess(IPropertySymbol property)

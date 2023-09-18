@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace StrideDiagnostics;
+namespace Stride.Core.StrideDiagnostics;
 
 public class NexSyntaxReceiver : ISyntaxReceiver
 {

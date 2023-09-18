@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace StrideDiagnostics;
+namespace Stride.Core.StrideDiagnostics;
 internal class PropertyAttributeFinder
 {
     List<string> allowedAttributes = new List<string>()
@@ -30,7 +30,7 @@ internal class PropertyAttributeFinder
     /// <returns>All allowed Properties in any base class in the inheritance tree</returns>
     public static IEnumerable<IPropertySymbol> FilterBasePropertiesRecursive(ref INamedTypeSymbol currentBaseType)
     {
-        List<IPropertySymbol> result = new List<IPropertySymbol>();
+        var result = new List<IPropertySymbol>();
         while (currentBaseType != null)
         {
             result.AddRange(currentBaseType.GetMembers().OfType<IPropertySymbol>().Where(PropertyHasAllowedAccessors));
@@ -53,10 +53,10 @@ internal class PropertyAttributeFinder
     }
     private static bool HasDataMemberIgnoreAttribute(IPropertySymbol property)
     {
-        System.Collections.Immutable.ImmutableArray<AttributeData> attributes = property.GetAttributes();
-        foreach (AttributeData attribute in attributes)
+        var attributes = property.GetAttributes();
+        foreach (var attribute in attributes)
         {
-            INamedTypeSymbol attributeType = attribute.AttributeClass;
+            var attributeType = attribute.AttributeClass;
             if (attributeType != null)
             {
                 if (attributeType.Name == "DataMemberIgnore" &&

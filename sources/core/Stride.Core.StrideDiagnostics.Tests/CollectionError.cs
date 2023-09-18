@@ -1,6 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Xunit;
-namespace StrideDiagnosticsTests;
+namespace Stride.Core.StrideDiagnostics.Tests;
 
 public class CollectionError
 {
@@ -8,15 +8,15 @@ public class CollectionError
     public void ErrorOnInvalidCollectionAccess()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class InvalidCollection
 {
     public System.Collections.Generic.List<int> FancyList { private get; set; }
 }}";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
 
         // Assert that there is an error
         Assert.True(hasError, "The 'List' property should generate an error.");
@@ -25,15 +25,15 @@ public class InvalidCollection
     public void NoErrorOnCorrectCollectionAccess1()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class InvalidCollection
 {
     public System.Collections.Generic.List<int> FancyList { get; set; }
 }}";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
 
         // Assert that there is an error
         Assert.True(!hasError, "The 'List' property Access should be valid.");
@@ -42,15 +42,15 @@ public class InvalidCollection
     public void NoErrorOnCorrectCollectionAccess2()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class InvalidCollection
 {
     public System.Collections.Generic.List<int> FancyList { get; }
 }}";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
 
         // Assert that there is an error
         Assert.True(!hasError, "The 'List' property Access should be valid.");
@@ -59,15 +59,15 @@ public class InvalidCollection
     public void NoErrorOnCorrectCollectionAccess3()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class InvalidCollection
 {
     internal System.Collections.Generic.List<int> FancyList { get; }
 }}";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
 
         // Assert that there is an error
         Assert.True(!hasError, "The 'List' property Access should be valid.");
@@ -76,15 +76,15 @@ public class InvalidCollection
     public void NoErrorOnCorrectCollectionAccess4()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class InvalidCollection
 {
     internal System.Collections.Generic.List<int> FancyList { get; set; }
 }}";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
 
         // Assert that there is an error
         Assert.True(!hasError, "The 'List' property Access should be valid.");
@@ -93,7 +93,7 @@ public class InvalidCollection
     public void IgnoreMember1()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 using Stride.Core;
 [DataContract]
 public class IgnoreCollection
@@ -101,9 +101,9 @@ public class IgnoreCollection
     [DataMemberIgnore]
     internal System.Collections.Generic.List<int> FancyList { private get; set; }
 }";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any();
+        var hasError = generatedDiagnostics.Any();
 
         // Assert that there is an error
         Assert.True(!hasError, "The Property should be ignored with DataMemberIgnore.");
@@ -112,15 +112,15 @@ public class IgnoreCollection
     public void IgnoreMember2()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class IgnoreCollection
 {
     private System.Collections.Generic.List<int> FancyList { private get; set; }
 }";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any();
+        var hasError = generatedDiagnostics.Any();
 
         // Assert that there is an error
         Assert.True(!hasError, "The Property should be ignored with DataMemberIgnore.");

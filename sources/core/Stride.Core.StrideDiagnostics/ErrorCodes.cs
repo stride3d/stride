@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace StrideDiagnostics;
+namespace Stride.Core.StrideDiagnostics;
 public static class ErrorCodes
 {
     public const string ArrayAccess = "STRD001";

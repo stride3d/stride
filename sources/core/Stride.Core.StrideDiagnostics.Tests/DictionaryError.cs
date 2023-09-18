@@ -1,22 +1,22 @@
 using Microsoft.CodeAnalysis;
-using StrideDiagnostics;
+using Stride.Core.StrideDiagnostics;
 
-namespace StrideDiagnosticsTests;
+namespace Stride.Core.StrideDiagnostics.Tests;
 public class DictionaryError
 {
     [Fact]
     public void ValidDictionary()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class IgnoreCollection
 {
     internal System.Collections.Generic.Dictionary<int,string> Dictionary { get; set; }
 }";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any();
+        var hasError = generatedDiagnostics.Any();
 
         // Assert that there is an error
         Assert.True(!hasError, "The Property should be valid.");
@@ -25,7 +25,7 @@ public class IgnoreCollection
     public void IgnoreMember1()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 using Stride.Core;
 [DataContract]
 public class IgnoreCollection
@@ -33,9 +33,9 @@ public class IgnoreCollection
     [DataMemberIgnore]
     internal System.Collections.Generic.Dictionary<int,string> Dictionary { private get; set; }
 }";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any();
+        var hasError = generatedDiagnostics.Any();
 
         // Assert that there is an error
         Assert.True(!hasError, "The Property should be ignored with DataMemberIgnore.");
@@ -77,15 +77,15 @@ public class IgnoreCollection
         foreach (var primitiveType in primitiveTypes)
         {
             // Define the source code for the Class1 class with an invalid property
-            string sourceCode = @$"
+            var sourceCode = @$"
 [DataContract]
 public class IgnoreCollection
 {{
     internal System.Collections.Generic.Dictionary<{primitiveType},string> Dictionary {{get; set; }}
 }}";
-            IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+            var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
             // Check if there are any diagnostics with the expected ID
-            bool hasError = generatedDiagnostics.Any();
+            var hasError = generatedDiagnostics.Any();
             // Assert that there is an error
             Assert.False(hasError, $"The Dictionary Key for type {primitiveType} should be valid.");
         }
@@ -94,15 +94,15 @@ public class IgnoreCollection
     public void InvalidDictionaryKey1()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class IgnoreCollection
 {
     internal System.Collections.Generic.Dictionary<System.Collections.Generic.List<int>,string> Dictionary {  get; set; }
 }";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DictionaryKey);
+        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DictionaryKey);
 
         // Assert that there is an error
         Assert.True(hasError, "The Dictionary Key should be invalid.");
@@ -111,15 +111,15 @@ public class IgnoreCollection
     public void InvalidDictionaryKey2()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class IgnoreCollection
 {
     internal System.Collections.Generic.Dictionary<object,string> Dictionary {  get; set; }
 }";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DictionaryKey);
+        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DictionaryKey);
 
         // Assert that there is an error
         Assert.True(hasError, "The Dictionary Key should be invalid.");
@@ -128,15 +128,15 @@ public class IgnoreCollection
     public void InvalidDictionaryAccess()
     {
         // Define the source code for the Class1 class with an invalid property
-        string sourceCode = @"
+        var sourceCode = @"
 [DataContract]
 public class IgnoreCollection
 {
     internal System.Collections.Generic.Dictionary<object,string> Dictionary { private get; set; }
 }";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.CollectionAccess);
+        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.CollectionAccess);
 
         // Assert that there is an error
         Assert.True(hasError, "The Dictionary Key should be invalid.");

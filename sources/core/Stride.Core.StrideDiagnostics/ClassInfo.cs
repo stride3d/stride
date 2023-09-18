@@ -6,7 +6,7 @@ using System.Text;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace StrideDiagnostics;
+namespace Stride.Core.StrideDiagnostics;
 public class ClassInfo
 {
     public GeneratorExecutionContext ExecutionContext { get; set; }
@@ -28,8 +28,8 @@ public class ClassInfo
         {
             if (_propertyCache == null)
             {
-                INamedTypeSymbol classSymbol = SemanticModel.GetDeclaredSymbol(TypeSyntax);
-                IEnumerable<IPropertySymbol> properties = PropertyAttributeFinder.FilterBasePropertiesRecursive(ref classSymbol);
+                var classSymbol = SemanticModel.GetDeclaredSymbol(TypeSyntax);
+                var properties = PropertyAttributeFinder.FilterBasePropertiesRecursive(ref classSymbol);
                 return _propertyCache = properties.ToList();
             }
             else

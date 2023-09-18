@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Stride.Core;
-using StrideDiagnostics;
+using Stride.Core.StrideDiagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace StrideDiagnosticsTests;
+namespace Stride.Core.StrideDiagnostics.Tests;
 public class DoubleAnnotationError
 {
     [Fact]
     public void HasDataMemberAndDataMemberIgnoreAtTheSameTime()
     {
-        string sourceCode = @"
+        var sourceCode = @"
 using Stride.Core;
 [DataContract]
 public class DoubleAnnotation
@@ -24,9 +24,9 @@ public class DoubleAnnotation
     public int Value { get; set; }
 }
 ";
-        IEnumerable<Diagnostic> generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        bool hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DoubledAnnotation);
+        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DoubledAnnotation);
 
         // Assert that there is an error
         Assert.True(hasError, "The Dictionary Key should be invalid.");

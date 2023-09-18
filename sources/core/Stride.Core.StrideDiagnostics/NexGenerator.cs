@@ -6,7 +6,7 @@ using System.Linq;
 using System.Collections.Immutable;
 using System.Collections.Generic;
 
-namespace StrideDiagnostics;
+namespace Stride.Core.StrideDiagnostics;
 
 [Generator]
 public class NexGenerator : ISourceGenerator
@@ -19,11 +19,11 @@ public class NexGenerator : ISourceGenerator
     private Diagnoser classGenerator { get; set; } = new();
     public void Execute(GeneratorExecutionContext context)
     {
-        NexSyntaxReceiver syntaxReceiver = (NexSyntaxReceiver)context.SyntaxReceiver;
+        var syntaxReceiver = (NexSyntaxReceiver)context.SyntaxReceiver;
 
-        foreach (TypeDeclarationSyntax classDeclaration in syntaxReceiver.TypeDeclarations)
+        foreach (var classDeclaration in syntaxReceiver.TypeDeclarations)
         {
-            SemanticModel semanticModel = context.Compilation.GetSemanticModel(classDeclaration.SyntaxTree);
+            var semanticModel = context.Compilation.GetSemanticModel(classDeclaration.SyntaxTree);
             if (!HasDataContractAttribute(classDeclaration, semanticModel))
             {
                 continue;
@@ -56,7 +56,7 @@ public class NexGenerator : ISourceGenerator
         }
 
         // Check if any base class has [DataContract(Inherited = true)] attribute
-        INamedTypeSymbol baseType = semanticModel.GetDeclaredSymbol(info);
+        var baseType = semanticModel.GetDeclaredSymbol(info);
         while (baseType != null)
         {
 

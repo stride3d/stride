@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks.Sources;
 
-namespace StrideDiagnostics.PropertyFinders;
+namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 internal class AttributeContextReporter : IViolationReporter, IPropertyFinder
 {
     /// <summary>
@@ -23,10 +23,10 @@ internal class AttributeContextReporter : IViolationReporter, IPropertyFinder
     {
         if (baseType == null)
             return;
-        IEnumerable<IPropertySymbol> violations = baseType.GetMembers().OfType<IPropertySymbol>();
+        var violations = baseType.GetMembers().OfType<IPropertySymbol>();
 
-        IEnumerable<IPropertySymbol> violationsFiltered = violations.Where(property => this.ShouldBeIgnored(property) && this.HasDataMemberAnnotation(property));
-        foreach (IPropertySymbol violation in violationsFiltered)
+        var violationsFiltered = violations.Where(property => this.ShouldBeIgnored(property) && this.HasDataMemberAnnotation(property));
+        foreach (var violation in violationsFiltered)
         {
 
             Report(violation, classInfo);
@@ -38,7 +38,7 @@ internal class AttributeContextReporter : IViolationReporter, IPropertyFinder
 
     private static void Report(IPropertySymbol property, ClassInfo classInfo)
     {
-        DiagnosticDescriptor error = new DiagnosticDescriptor(
+        var error = new DiagnosticDescriptor(
             id: ErrorCodes.DoubledAnnotation,
             title: "Invalid Annotations",
             category: NexGenerator.CompilerServicesDiagnosticCategory,
@@ -47,7 +47,7 @@ internal class AttributeContextReporter : IViolationReporter, IPropertyFinder
             messageFormat: $"The Property has a contradiction in the Annotations, there can't be [DataMember] and [DataMemberIgnore] on the same Property.\nIt's also not allowed to annotate DataMember on a Property that Stride will ignore ( private/protected ).",
             helpLinkUri: "https://www.stride3d.net"
         );
-        Location location = Location.Create(classInfo.TypeSyntax.SyntaxTree, property.DeclaringSyntaxReferences.FirstOrDefault().Span);
+        var location = Location.Create(classInfo.TypeSyntax.SyntaxTree, property.DeclaringSyntaxReferences.FirstOrDefault().Span);
         classInfo.ExecutionContext.ReportDiagnostic(Diagnostic.Create(error, location));
     }
 }

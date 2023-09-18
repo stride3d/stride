@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace StrideDiagnostics.PropertyFinders;
+namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 internal class DictionaryKeyReporter : IViolationReporter, IPropertyFinder
 {
     /// <summary>
@@ -21,8 +21,8 @@ internal class DictionaryKeyReporter : IViolationReporter, IPropertyFinder
     {
         if (baseType == null)
             return;
-        IEnumerable<IPropertySymbol> violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => PropertyHelper.IsDictionary(property, classInfo) && !this.ShouldBeIgnored(property) && HasProperAccess(property) && InvalidDictionaryKey(property, classInfo));
-        foreach (IPropertySymbol violation in violations)
+        var violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => PropertyHelper.IsDictionary(property, classInfo) && !this.ShouldBeIgnored(property) && HasProperAccess(property) && InvalidDictionaryKey(property, classInfo));
+        foreach (var violation in violations)
         {
             Report(violation, classInfo);
         }
@@ -38,7 +38,7 @@ internal class DictionaryKeyReporter : IViolationReporter, IPropertyFinder
     {
         if (PropertyHelper.IsDictionary(property, info))
         {
-            ITypeSymbol firstTypeArgument = ((INamedTypeSymbol)property.Type).TypeArguments[0];
+            var firstTypeArgument = ((INamedTypeSymbol)property.Type).TypeArguments[0];
             if (IsPrimitiveType(firstTypeArgument))
             {
                 return false;
@@ -89,7 +89,7 @@ internal class DictionaryKeyReporter : IViolationReporter, IPropertyFinder
     }
     private void Report(IPropertySymbol property, ClassInfo classInfo)
     {
-        DiagnosticDescriptor error = new DiagnosticDescriptor(
+        var error = new DiagnosticDescriptor(
     id: ErrorCodes.DictionaryKey,
     title: "Invalid Dictionary Key",
     category: NexGenerator.CompilerServicesDiagnosticCategory,
@@ -98,7 +98,7 @@ internal class DictionaryKeyReporter : IViolationReporter, IPropertyFinder
     messageFormat: $"The Generic Key for '{property.Name}' is invalid, expected for a IDictionary<T,Y> is a struct/simple type Key to use this Property as [DataMember]. Add [DataMemberIgnore] to let Stride Ignore the Member in the [DataContract] or change the Dictionary Key.",
     helpLinkUri: "https://www.stride3d.net"
 );
-        Location location = Location.Create(classInfo.TypeSyntax.SyntaxTree, property.DeclaringSyntaxReferences.FirstOrDefault().Span);
+        var location = Location.Create(classInfo.TypeSyntax.SyntaxTree, property.DeclaringSyntaxReferences.FirstOrDefault().Span);
         classInfo.ExecutionContext.ReportDiagnostic(Diagnostic.Create(error, location));
 
     }

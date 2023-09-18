@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 
-namespace StrideDiagnostics.PropertyFinders;
+namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 public static class PropertyAttributeFinderExtension
 {
     /// <summary>
@@ -27,10 +27,10 @@ public static class PropertyAttributeFinderExtension
         {
             return true;
         }
-        System.Collections.Immutable.ImmutableArray<AttributeData> attributes = property.GetAttributes();
-        foreach (AttributeData attribute in attributes)
+        var attributes = property.GetAttributes();
+        foreach (var attribute in attributes)
         {
-            INamedTypeSymbol attributeType = attribute.AttributeClass;
+            var attributeType = attribute.AttributeClass;
 
             if (attributeType != null)
             {
@@ -45,10 +45,10 @@ public static class PropertyAttributeFinderExtension
     }
     public static bool HasDataMemberAnnotation(this IPropertyFinder finder, IPropertySymbol property)
     {
-        System.Collections.Immutable.ImmutableArray<AttributeData> attributes = property.GetAttributes();
-        foreach (AttributeData attribute in attributes)
+        var attributes = property.GetAttributes();
+        foreach (var attribute in attributes)
         {
-            INamedTypeSymbol attributeType = attribute.AttributeClass;
+            var attributeType = attribute.AttributeClass;
             if (attributeType != null)
             {
                 if (attributeType.Name == "DataMemberAttribute" && attributeType.ContainingNamespace.ContainingModule.Name == "Stride.Core.dll")
@@ -61,7 +61,7 @@ public static class PropertyAttributeFinderExtension
     }
     public static IEnumerable<IPropertySymbol> FindRecursive(this IPropertyFinder finder, ref INamedTypeSymbol baseType)
     {
-        List<IPropertySymbol> result = new List<IPropertySymbol>();
+        var result = new List<IPropertySymbol>();
         while (baseType != null)
         {
             result.AddRange(finder.Find(ref baseType));
