@@ -36,7 +36,7 @@ public class IgnoreArray
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.True(!hasError, "The Array should be ignored but wasn't.");
+        Assert.False(hasError, "The Array should be ignored but wasn't.");
     }
     [Fact]
     public void Ignore_Private_Array_Property()
@@ -51,6 +51,6 @@ public class IgnoreArray
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.True(!hasError, "The Array should be ignored but wasn't.");
+        Assert.False(hasError, "The Array should be ignored but wasn't.");
     }
 }

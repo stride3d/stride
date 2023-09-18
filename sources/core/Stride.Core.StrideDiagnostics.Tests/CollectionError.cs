@@ -31,7 +31,7 @@ public class InvalidCollection
 }}";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.CollectionAccess);
-        Assert.True(!hasError, "The 'List' property Access should be valid.");
+        Assert.False(hasError, "The 'List' property Access should be valid.");
     }
     [Fact]
     public void Valid_Collection_Access_with_public_getter()
@@ -47,7 +47,7 @@ public class InvalidCollection
         var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.CollectionAccess);
 
         // Assert that there is an error
-        Assert.True(!hasError, "The 'List' property Access should be valid.");
+        Assert.False(hasError, "The 'List' property Access should be valid.");
     }
     [Fact]
     public void Valid_Collection_Access_with_internal_getter()
@@ -62,7 +62,7 @@ public class InvalidCollection
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.CollectionAccess);
 
-        Assert.True(!hasError, "The 'List' property Access should be valid.");
+        Assert.False(hasError, "The 'List' property Access should be valid.");
     }
     [Fact]
     public void Valid_Collection_Access_with_public_getter_and_public_setter()
@@ -80,7 +80,7 @@ public class InvalidCollection
         var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
 
         // Assert that there is an error
-        Assert.True(!hasError, "The 'List' property Access should be valid.");
+        Assert.False(hasError, "The 'List' property Access should be valid.");
     }
     [Fact]
     public void DataMemberIgnore_Attribute_On_Collections()
@@ -95,7 +95,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.True(!hasError, "The Property should be ignored with DataMemberIgnore.");
+        Assert.False(hasError, "The Property should be ignored with DataMemberIgnore.");
     }
     [Fact]
     public void Ignore_Private_Collection_Property()
@@ -109,7 +109,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.True(!hasError, "The Property should be ignored with DataMemberIgnore.");
+        Assert.False(hasError, "The Property should be ignored with DataMemberIgnore.");
     }
 }
 

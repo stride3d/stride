@@ -17,7 +17,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.True(!hasError, "The Property should be ignored with DataMemberIgnore.");
+        Assert.False(hasError, "The Property should be ignored with DataMemberIgnore.");
     }
     [Fact]
     public void Valid_DictionaryKeys_for_Primitives()

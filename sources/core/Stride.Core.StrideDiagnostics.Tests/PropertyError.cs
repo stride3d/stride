@@ -57,7 +57,7 @@ public class IgnoreMember
         var hasError = generatedDiagnostics.Any();
 
         // Assert that there is an error
-        Assert.True(!hasError, "The Property shouldnt be considered when private.");
+        Assert.False(hasError, "The Property shouldnt be considered when private.");
     }
     [Fact]
     public void IgnoreMember2()
@@ -75,6 +75,6 @@ public class IgnoreMember
         var hasError = generatedDiagnostics.Any();
 
         // Assert that there is an error
-        Assert.True(!hasError, "The Property shouldnt be considered when private.");
+        Assert.False(hasError, "The Property shouldnt be considered when private.");
     }
 }
