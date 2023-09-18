@@ -45,7 +45,7 @@ public class ArrayPropertyFinder : IViolationReporter, IPropertyFinder
     private static void Report(IPropertySymbol property, ClassInfo classInfo)
     {
         var error = new DiagnosticDescriptor(
-            id: ErrorCodes.ArrayAccess,
+            id: ErrorCodes.InvalidArrayAccess,
             title: "Invalid Access",
             category: NexGenerator.CompilerServicesDiagnosticCategory,
             defaultSeverity: DiagnosticSeverity.Warning,

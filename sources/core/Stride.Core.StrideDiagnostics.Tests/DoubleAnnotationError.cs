@@ -18,7 +18,7 @@ public class DoubleAnnotation
 }
 ";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DoubledAnnotation);
+        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidDataMemberCombination);
         Assert.True(hasError, "The Dictionary can't be Ignored and evaluated at the same time.");
     }
 }

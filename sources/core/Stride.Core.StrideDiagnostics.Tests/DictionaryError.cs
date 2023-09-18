@@ -81,7 +81,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DictionaryKey);
+        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidDictionaryKey);
 
         // Assert that there is an error
         Assert.True(hasError, "The Dictionary Key should be invalid.");
@@ -98,7 +98,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DictionaryKey);
+        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidDictionaryKey);
 
         // Assert that there is an error
         Assert.True(hasError, "The Dictionary Key should be invalid.");
@@ -116,7 +116,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.CollectionAccess);
+        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidCollectionAccess);
 
         // Assert that there is an error
         Assert.True(hasError, "The Dictionary Key should be invalid.");

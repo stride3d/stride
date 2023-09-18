@@ -18,7 +18,7 @@ public class ArrayError
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any(diagnostic =>
             diagnostic.Severity == DiagnosticSeverity.Warning &&
-            diagnostic.Id == ErrorCodes.ArrayAccess);
+            diagnostic.Id == ErrorCodes.InvalidArrayAccess);
         Assert.True(hasError, "The 'Array' property should generate an error, a private getter is not allowed.");
 
     }

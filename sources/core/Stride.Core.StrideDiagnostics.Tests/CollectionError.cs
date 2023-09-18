@@ -16,7 +16,7 @@ public class InvalidCollection
     public System.Collections.Generic.List<int> FancyList { private get; set; }
 }}";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.CollectionAccess);
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.InvalidCollectionAccess);
         Assert.True(hasError, "The 'List' property should generate an error. A private getter is not allowed.");
     }
     [Fact]
@@ -30,7 +30,7 @@ public class InvalidCollection
     public System.Collections.Generic.List<int> FancyList { get; set; }
 }}";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.CollectionAccess);
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.InvalidCollectionAccess);
         Assert.False(hasError, "The 'List' property Access should be valid.");
     }
     [Fact]
@@ -44,7 +44,7 @@ public class InvalidCollection
     public System.Collections.Generic.List<int> FancyList { get; }
 }}";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.CollectionAccess);
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.InvalidCollectionAccess);
 
         // Assert that there is an error
         Assert.False(hasError, "The 'List' property Access should be valid.");
@@ -60,7 +60,7 @@ public class InvalidCollection
     internal System.Collections.Generic.List<int> FancyList { get; }
 }}";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.CollectionAccess);
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.InvalidCollectionAccess);
 
         Assert.False(hasError, "The 'List' property Access should be valid.");
     }

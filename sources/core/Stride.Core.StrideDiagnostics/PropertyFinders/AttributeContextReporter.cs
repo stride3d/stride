@@ -36,7 +36,7 @@ internal class AttributeContextReporter : IViolationReporter, IPropertyFinder
     private static void Report(IPropertySymbol property, ClassInfo classInfo)
     {
         var error = new DiagnosticDescriptor(
-            id: ErrorCodes.DoubledAnnotation,
+            id: ErrorCodes.InvalidDataMemberCombination,
             title: "Invalid Annotations",
             category: NexGenerator.CompilerServicesDiagnosticCategory,
             defaultSeverity: DiagnosticSeverity.Warning,

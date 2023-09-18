@@ -89,7 +89,7 @@ internal class DictionaryKeyReporter : IViolationReporter, IPropertyFinder
     private void Report(IPropertySymbol property, ClassInfo classInfo)
     {
         var error = new DiagnosticDescriptor(
-    id: ErrorCodes.DictionaryKey,
+    id: ErrorCodes.InvalidDictionaryKey,
     title: "Invalid Dictionary Key",
     category: NexGenerator.CompilerServicesDiagnosticCategory,
     defaultSeverity: DiagnosticSeverity.Warning,
