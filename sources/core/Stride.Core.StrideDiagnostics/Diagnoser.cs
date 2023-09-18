@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.StrideDiagnostics.PropertyFinders;
 
@@ -6,17 +7,17 @@ namespace Stride.Core.StrideDiagnostics;
 
 internal class Diagnoser
 {
+    private static List<Type> violationReporterTypes = typeof(Diagnoser).Assembly.GetTypes()
+        .Where(type => typeof(IViolationReporter).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract)
+        .ToList();
     internal void StartCreation(ClassInfo info)
     {
         DiagnoseDataMember(info);
     }
     private void DiagnoseDataMember(ClassInfo info)
     {
-        var reporterTypes = typeof(Diagnoser).Assembly.GetTypes()
-            .Where(type => typeof(IViolationReporter).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract);
-
         // Instantiate each reporter and call ReportViolations
-        foreach (var reporterType in reporterTypes)
+        foreach (var reporterType in violationReporterTypes)
         {
             var reporter = (IViolationReporter)Activator.CreateInstance(reporterType);
             var symbol = info.Symbol;
