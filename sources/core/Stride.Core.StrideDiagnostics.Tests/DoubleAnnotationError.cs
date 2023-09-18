@@ -5,7 +5,7 @@ namespace Stride.Core.StrideDiagnostics.Tests;
 public class DoubleAnnotationError
 {
     [Fact]
-    public void HasDataMemberAndDataMemberIgnoreAtTheSameTime()
+    public void Has_DataMember_and_DataMemberIgnore_At_The_Same_Time()
     {
         var sourceCode = @"
 using Stride.Core;
@@ -18,11 +18,8 @@ public class DoubleAnnotation
 }
 ";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        // Check if there are any diagnostics with the expected ID
         var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.DoubledAnnotation);
-
-        // Assert that there is an error
-        Assert.True(hasError, "The Dictionary Key should be invalid.");
+        Assert.True(hasError, "The Dictionary can't be Ignored and evaluated at the same time.");
     }
 }
 

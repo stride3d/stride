@@ -5,26 +5,8 @@ namespace Stride.Core.StrideDiagnostics.Tests;
 public class DictionaryError
 {
     [Fact]
-    public void ValidDictionary()
+    public void DataMemberIgnore_Attribute_On_Dictionary()
     {
-        // Define the source code for the Class1 class with an invalid property
-        var sourceCode = @"
-[DataContract]
-public class IgnoreCollection
-{
-    internal System.Collections.Generic.Dictionary<int,string> Dictionary { get; set; }
-}";
-        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        // Check if there are any diagnostics with the expected ID
-        var hasError = generatedDiagnostics.Any();
-
-        // Assert that there is an error
-        Assert.True(!hasError, "The Property should be valid.");
-    }
-    [Fact]
-    public void IgnoreMember1()
-    {
-        // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
 using Stride.Core;
 [DataContract]
@@ -34,14 +16,11 @@ public class IgnoreCollection
     internal System.Collections.Generic.Dictionary<int,string> Dictionary { private get; set; }
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        // Check if there are any diagnostics with the expected ID
         var hasError = generatedDiagnostics.Any();
-
-        // Assert that there is an error
         Assert.True(!hasError, "The Property should be ignored with DataMemberIgnore.");
     }
     [Fact]
-    public void ValidDictionaryKeysForPrimitives()
+    public void Valid_DictionaryKeys_for_Primitives()
     {
         var primitiveTypes = new HashSet<string>
         {
@@ -91,7 +70,7 @@ public class IgnoreCollection
         }
     }
     [Fact]
-    public void InvalidDictionaryKey1()
+    public void Invalid_Dictionary_Key_for_objects()
     {
         // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
@@ -108,7 +87,7 @@ public class IgnoreCollection
         Assert.True(hasError, "The Dictionary Key should be invalid.");
     }
     [Fact]
-    public void InvalidDictionaryKey2()
+    public void Invalid_Dictionary_Key_for_objects2()
     {
         // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
@@ -125,7 +104,7 @@ public class IgnoreCollection
         Assert.True(hasError, "The Dictionary Key should be invalid.");
     }
     [Fact]
-    public void InvalidDictionaryAccess()
+    public void Invalid_Dictionary_Access_On_private_Getter()
     {
         // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
