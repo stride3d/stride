@@ -20,23 +20,6 @@ public class ClassInfo
     public NexSyntaxReceiver SyntaxReceiver { get; set; }
     public SemanticModel SemanticModel { get => _compilationCache ??= ExecutionContext.Compilation.GetSemanticModel(TypeSyntax.SyntaxTree); }
     private SemanticModel _compilationCache;
-    private List<IPropertySymbol> _propertyCache;
-    public IEnumerable<IPropertySymbol> AvailableProperties
-    {
-        get
-        {
-            if (_propertyCache == null)
-            {
-                var classSymbol = SemanticModel.GetDeclaredSymbol(TypeSyntax);
-                var properties = PropertyAttributeFinder.FilterBasePropertiesRecursive(ref classSymbol);
-                return _propertyCache = properties.ToList();
-            }
-            else
-            {
-                return _propertyCache;
-            }
-        }
-    }
     public bool IsAbstract()
     {
         return TypeSyntax.Modifiers.Any(x => x.IsKind(SyntaxKind.AbstractKeyword));
