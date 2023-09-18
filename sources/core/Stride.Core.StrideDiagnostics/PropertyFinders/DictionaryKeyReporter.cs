@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,16 +39,53 @@ internal class DictionaryKeyReporter : IViolationReporter, IPropertyFinder
         if (PropertyHelper.IsDictionary(property, info))
         {
             ITypeSymbol firstTypeArgument = ((INamedTypeSymbol)property.Type).TypeArguments[0];
-            if (firstTypeArgument != null && !firstTypeArgument.IsValueType)
-            {
-                return true;
-            }
-            else
+            if (IsPrimitiveType(firstTypeArgument))
             {
                 return false;
             }
+            else
+            {
+                return true;
+            }
         }
         return false;
+    }
+    private bool IsPrimitiveType(ITypeSymbol type)
+    {
+        // List of all C# primitive types (both aliased and non-aliased names)
+        var primitiveTypes = new HashSet<string>
+        {
+            "bool",
+            "Boolean",
+            "byte",
+            "Byte",
+            "sbyte",
+            "SByte",
+            "char",
+            "Char",
+            "decimal",
+            "Decimal",
+            "double",
+            "Double",
+            "float",
+            "Single", // Note that Single is the non-aliased name for float.
+            "int",
+            "Int32", // Note that Int32 is the non-aliased name for int.
+            "uint",
+            "UInt32", // Note that UInt32 is the non-aliased name for uint.
+            "long",
+            "Int64", // Note that Int64 is the non-aliased name for long.
+            "ulong",
+            "UInt64", // Note that UInt64 is the non-aliased name for ulong.
+            "short",
+            "Int16", // Note that Int16 is the non-aliased name for short.
+            "ushort",
+            "UInt16", // Note that UInt16 is the non-aliased name for ushort.
+            "string",
+            "String"
+        };
+
+        return primitiveTypes.Contains(type.Name);
     }
     private void Report(IPropertySymbol property, ClassInfo classInfo)
     {
