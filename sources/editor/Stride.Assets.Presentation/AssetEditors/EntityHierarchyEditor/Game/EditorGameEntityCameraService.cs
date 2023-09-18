@@ -240,6 +240,14 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     z = 0f;
                 }
 
+                if (input.isMoving && input.isRotating)
+                {
+                    if (Game.Input.MouseWheelDelta > 0.0f)
+                        MoveSpeed += 1f;
+                    if (Game.Input.MouseWheelDelta < 0.0f)
+                        MoveSpeed -= 1f;
+                }
+
                 var localDirection = Vector3.Normalize(new Vector3(x, y, -z));
                 position += Vector3.Transform(localDirection, rotation) * baseSpeed * dt * 60f;
             }
@@ -272,7 +280,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             }
 
             // Forward/backward
-            if (input.isZooming)
+            if (!input.isRotating && input.isZooming)
             {
                 if (asOrthographic)
                 {
