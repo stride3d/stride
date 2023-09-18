@@ -12,10 +12,6 @@ internal class Diagnoser
         .ToList();
     internal void StartCreation(ClassInfo info)
     {
-        DiagnoseDataMember(info);
-    }
-    private void DiagnoseDataMember(ClassInfo info)
-    {
         // Instantiate each reporter and call ReportViolations
         foreach (var reporterType in violationReporterTypes)
         {
