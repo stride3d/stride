@@ -8,11 +8,11 @@
     <IsTestProject>true</IsTestProject>
     <!-- Check if we have override -->
     <StrideGraphicsApis Condition="'$(StrideGraphicsApisTest)' != ''">$(StrideGraphicsApisTest)</StrideGraphicsApis>
-    
+
     <!-- Build list of Graphics API for platform that supports multiple -->
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
-  
+
     <!-- Setup default GraphicsApi-->
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideGraphicsApi>
   </PropertyGroup>
@@ -84,8 +84,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="TeamCity.VSTest.TestAdapter" Version="1.0.32" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="TeamCity.VSTest.TestAdapter" Version="1.0.36" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

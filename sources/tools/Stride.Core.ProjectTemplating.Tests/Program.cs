@@ -11,7 +11,7 @@ namespace Stride.Core.ProjectTemplating.Tests
         [Fact]
         public void TestProjectTemplate()
         {
-            var projectTemplate = ProjectTemplate.Load(@"..\..\Test\TestProjectTemplate.ttproj");
+            var projectTemplate = ProjectTemplate.Load(@"Test\TestProjectTemplate.ttproj");
             var outputDir = Environment.CurrentDirectory + "\\OutputTemp";
             try
             {
@@ -29,7 +29,7 @@ namespace Stride.Core.ProjectTemplating.Tests
             Assert.True(File.Exists(Path.Combine(outputDir, @"SubFolder\TextTemplate1.cs")));
 
             Assert.Equal("This is a test with the file name using the property $ProjectName$ = \"TestProject\"", File.ReadAllText(Path.Combine(outputDir, @"TestProject.cs")).Trim());
-            Assert.Equal(File.ReadAllText(@"..\..\Test\SubFolder\TextRaw.txt"), File.ReadAllText(Path.Combine(outputDir, @"SubFolder\TextRaw.txt")));
+            Assert.Equal(File.ReadAllText(@"Test\SubFolder\TextRaw.txt"), File.ReadAllText(Path.Combine(outputDir, @"SubFolder\TextRaw.txt")));
             Assert.Equal("This is a test of template with the project name TestProject and 5", File.ReadAllText(Path.Combine(outputDir, @"SubFolder\TextTemplate1.cs")).Trim());
         }
 

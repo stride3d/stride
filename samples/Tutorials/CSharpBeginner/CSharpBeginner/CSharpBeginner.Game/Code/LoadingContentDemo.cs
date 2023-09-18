@@ -13,21 +13,22 @@ namespace CSharpBeginner.Code
     public class LoadingContentDemo : SyncScript
     {
         private Model loadedMannequinModel = null;
-        private Stack<Entity> spawnedEntities = new Stack<Entity>();
-        private Random random = new Random();
+        private Stack<Entity> spawnedEntities = new();
+
+        private readonly Random random = new();
 
         public override void Start() { }
 
         public override void Update()
         {
-            // To load any content we use the Load method. First we need to specify the type between the '< >'. The we provide the URL 
+            // To load any content we use the Load method. First we need to specify the type between the '< >'. The we provide the URL
             if (Input.IsKeyPressed(Keys.L))
             {
                 loadedMannequinModel = Content.Load<Model>("Models/mannequinModel");
             }
 
-            // To remove loaded content we use the unload method to remove all existing models from the scene. 
-            // Note: when we remove content, we can no longer see the model, but the entity still exists in the scene 
+            // To remove loaded content we use the unload method to remove all existing models from the scene.
+            // Note: when we remove content, we can no longer see the model, but the entity still exists in the scene
             if (Input.IsKeyPressed(Keys.U))
             {
                 Content.Unload(loadedMannequinModel);
@@ -67,7 +68,7 @@ namespace CSharpBeginner.Code
                 // Get a random position near the center of the scene
                 var randomPosition = new Vector3(random.Next(-2, 4), 0, random.Next(-2, 2));
 
-                // Create a new entity and attach a model component 
+                // Create a new entity and attach a model component
                 var entity = new Entity("My new entity with a model component", randomPosition);
                 entity.Add(modelComponent);
 

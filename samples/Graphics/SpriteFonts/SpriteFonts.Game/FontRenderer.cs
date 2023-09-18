@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Graphics;
@@ -15,7 +13,7 @@ namespace SpriteFonts
 {
     /// <summary>
     /// This sample shows how to easily manipulate font in several different ways for rendering using SpriteBatch.
-    /// The features of font described in here includes: 
+    /// The features of font described in here includes:
     /// 1. Static font
     /// 2. Dynamic font with different size
     /// 3. Font styles {Bold, Italic}
@@ -30,7 +28,7 @@ namespace SpriteFonts
         private static readonly float[] TimeToDisplayTextGroups = { 3f /*Intro*/, 5f /*Static*/, 5f /*Dynamic*/, 4f /*Style*/, 5f /*Alias*/,
                                                                     5f /*Language*/, 5f /*Alignment*/, 10f /*Animated*/};
 
-        private readonly List<Action> screenRenderers = new List<Action>();
+        private readonly List<Action> screenRenderers = new();
 
         private const float FadeInDuration = 1f;
         private const float FadeOutDuration = 1f;
@@ -66,7 +64,7 @@ at full size and full measure";
         public SpriteFont JapaneseFont;
         public SpriteFont TimesNewRoman;
         public SpriteFont HeaderFont;
-        
+
         private Vector2 animatedFontPosition;
         private float animatedFontScale;
         private float animatedFontRotation;
@@ -88,7 +86,7 @@ at full size and full measure";
         {
             base.InitializeCore();
 
-            input = Context.Services.GetServiceAs<InputManager>();
+            input = Context.Services.GetService<InputManager>();
 
             // Create the SpriteBatch used to render them
             spriteBatch = new SpriteBatch(GraphicsDevice) { VirtualResolution = new Vector3(virtualResolution, 1000) };
@@ -117,13 +115,13 @@ at full size and full measure";
             UpdateCurrentScreenIndex();
 
             if (isPlaying)
-                currentTime += (float)context.Time.Elapsed.TotalSeconds;
+                currentTime += (float) context.Time.Elapsed.TotalSeconds;
 
             spriteBatch.Begin(drawContext.GraphicsContext);
-            
+
             // Draw background
             var target = drawContext.CommandList.RenderTarget;
-            var imageBufferMinRatio = Math.Min(Background.ViewWidth / (float)target.ViewWidth, Background.ViewHeight / (float)target.ViewHeight);
+            var imageBufferMinRatio = Math.Min(Background.ViewWidth / (float) target.ViewWidth, Background.ViewHeight / (float) target.ViewHeight);
             var sourceSize = new Vector2(target.ViewWidth * imageBufferMinRatio, target.ViewHeight * imageBufferMinRatio);
             var source = new RectangleF((Background.ViewWidth - sourceSize.X) / 2, (Background.ViewHeight - sourceSize.Y) / 2, sourceSize.X, sourceSize.Y);
             spriteBatch.Draw(Background, new RectangleF(0, 0, virtualResolution.X, virtualResolution.Y), source, Color.White, 0, Vector2.Zero);
@@ -381,8 +379,8 @@ at full size and full measure";
                 return;
 
             animatedFontAlpha = GetVaryingValue(1.6f * currentTime);
-            animatedFontRotation = 2f * currentTime * (float)Math.PI;
-            animatedFontPosition = GetVirtualPosition(0.5f, 0.65f) + 160 * new Vector2(1.5f * (float)Math.Cos(1.5f * currentTime), (float)Math.Sin(1.5f * currentTime));
+            animatedFontRotation = 2f * currentTime * MathF.PI;
+            animatedFontPosition = GetVirtualPosition(0.5f, 0.65f) + 160 * new Vector2(1.5f * MathF.Cos(1.5f * currentTime), MathF.Sin(1.5f * currentTime));
             animatedFontScale = 0.9f + 0.2f * GetVaryingValue(2.5f * currentTime);
         }
 
@@ -431,7 +429,7 @@ at full size and full measure";
         /// <returns>the varying value</returns>
         private static float GetVaryingValue(float time)
         {
-            return (float)Math.Cos(time) * 0.5f + 0.5f;
+            return MathF.Cos(time) * 0.5f + 0.5f;
         }
     }
 }

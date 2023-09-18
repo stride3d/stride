@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Xunit;
-using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Input;
 using Stride.Games.Testing;
@@ -11,7 +10,7 @@ namespace Stride.Samples.Tests
 {
     public class PhysicsSampleTest : IClassFixture<PhysicsSampleTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\PhysicsSample";
+        private const string Path = "..\\..\\..\\..\\samplesGenerated\\PhysicsSample";
 
         public class Fixture : SampleTestFixture
         {
@@ -80,7 +79,7 @@ namespace Stride.Samples.Tests
                 game.Tap(new Vector2(0.659375f, 0.5319445f), TimeSpan.FromMilliseconds(200));
                 game.TakeScreenshot();
 
-                game.KeyPress(Keys.Right, TimeSpan.FromMilliseconds(500));              
+                game.KeyPress(Keys.Right, TimeSpan.FromMilliseconds(500));
                 game.Wait(TimeSpan.FromMilliseconds(500));
             }
         }
