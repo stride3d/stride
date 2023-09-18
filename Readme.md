@@ -1,6 +1,8 @@
-# Parser for SDSL
+# Parser and compiler for SDSL
 
-`Warn : this project is not official`
+This repository contains a new implementation of a parser/compiler for SDSL.
+
+This implementation is described in detail in the [wiki](https://github.com/ykafia/SDSLParser/wiki).
 
 ## SDSL
 
@@ -13,8 +15,3 @@ SDSL is a superset of the HLSL Shading language, bringing advanced and higher le
 * **modularity** to provide a set modular shaders each focusing on a single rendering technique, more easily manageable
 
 * **reusability** to maximize code reuse between shaders
-
-
-## Parser
-
-This language parser is built from the ground up using the [Eto.Parse](https://github.com/picoe/Eto.Parse) library. It is designed to be faster and more efficient.
