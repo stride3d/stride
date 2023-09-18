@@ -42,8 +42,7 @@ public class PropertyFinder : IPropertyFinder, IViolationReporter
         if (propertyInfo == null)
             return false;
         return (propertyInfo.SetMethod?.DeclaredAccessibility == Accessibility.Public ||
-                propertyInfo.SetMethod?.DeclaredAccessibility == Accessibility.Internal ||
-                propertyInfo.GetMethod?.ReturnsVoid == true
+                propertyInfo.SetMethod?.DeclaredAccessibility == Accessibility.Internal
             )
             &&
                 (propertyInfo.GetMethod?.DeclaredAccessibility == Accessibility.Public ||
