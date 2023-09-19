@@ -515,6 +515,27 @@ namespace Stride.Core.Threading
             }
         }
 
+        [Obsolete("Use Array.Sort(collection.Items) instead.")]
+        public static void Sort<T>([NotNull] ConcurrentCollector<T> collection, IComparer<T> comparer)
+        {
+            Sort(collection.Items, 0, collection.Count, comparer);
+        }
+
+        [Obsolete("Use FastList.Sort instead.")]
+        public static void Sort<T>([NotNull] FastList<T> collection, IComparer<T> comparer)
+        {
+            Sort(collection.Items, 0, collection.Count, comparer);
+        }
+
+        [Obsolete("Use Array.Sort instead.")]
+        public static void Sort<T>(T[] collection, int index, int length, IComparer<T> comparer)
+        {
+            if (length <= 0)
+                return;
+
+            Array.Sort(collection, index, length, comparer);
+        }
+
         private class BatchState
         {
             private static readonly ConcurrentPool<BatchState> Pool = new ConcurrentPool<BatchState>(() => new BatchState());
