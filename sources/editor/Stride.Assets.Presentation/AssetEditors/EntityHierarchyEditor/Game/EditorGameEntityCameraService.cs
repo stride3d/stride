@@ -167,7 +167,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             bool isAltDown = Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt);
             input.isShiftDown = Game.Input.IsKeyDown(Keys.LeftShift) || Game.Input.IsKeyDown(Keys.RightShift);
 
-            input.isPanning = !isAltDown && mbDown && !rbDown;
+            input.isPanning = mbDown && !rbDown;
             input.isRotating = !isAltDown && !mbDown && rbDown;
             input.isMoving = !isAltDown && mbDown && rbDown;
             input.isZooming = (isAltDown && !lbDown && !mbDown && rbDown) || (MathF.Abs(Game.Input.MouseWheelDelta) > MathUtil.ZeroTolerance);
