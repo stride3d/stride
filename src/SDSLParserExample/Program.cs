@@ -5,7 +5,7 @@ using SoftTouch.Spirv;
 using SoftTouch.Spirv.Core;
 using SoftTouch.Spirv.Core.Buffers;
 using SoftTouch.Spirv.Core.Parsing;
-using SoftTouch.Spirv.PostProcessor;
+using SoftTouch.Spirv.PostProcessing;
 using static Spv.Specification;
 
 static void ThreeAddress()
@@ -157,6 +157,9 @@ void CreateMixin()
         .FinishInherit()
         .WithType("float4x2")
         .Build();
+
+    
+    CompositionSourceProvider.CompileAndRegister("MixinC");
 
     var mD =
         Mixer.Create("MixinD")
