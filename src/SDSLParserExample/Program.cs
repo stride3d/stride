@@ -172,24 +172,27 @@ void CreateMixin()
         .WithOutput("float3", "out_color")
         .WithEntryPoint(ExecutionModel.Vertex, "VSMain")
             .FunctionStart()
-            .DeclareAssign("int", "a", static (mixer) => mixer.CreateConstant("cs5", 5).ResultId ?? -1)
-            .DeclareAssign("int", "b", static (mixer) => mixer.Variables["a"].Id)
+            .DeclareAssign("int", "a", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => mixer.CreateConstant("cs5", 5).ResultId ?? -1)
+            .DeclareAssign("int", "b", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => mixer.Variables["a"].Id)
+            .Return()
             .FunctionEnd()
         .WithCapability(Capability.Shader)
+        .WithCapability(Capability.Float16)
+        .WithCapability(Capability.Int8)
         .Build();
 
     //Console.WriteLine(mA);
     //Console.WriteLine(mB);
-    //Console.WriteLine(mD.Disassemble());
+    Console.WriteLine(mD.Disassemble());
 
     using var processed = PostProcessor.Process("MixinD");
  
 
     Console.WriteLine(Disassembler.Disassemble(processed));
 
-    //processed.Bytes.ToArray().ToGlsl();
 
     File.WriteAllBytes("./mixed.spv", processed.Bytes.ToArray());
+    processed.Bytes.ToArray().ToGlsl();
 
     // var mB = new Mixin("MixinB");
     // mB.AddType<sbyte>();
