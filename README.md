@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-white.png">
       <source media="(prefers-color-scheme: light)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
@@ -6,12 +6,10 @@
     </picture>
 </p>
 
-[![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-33-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-[![Financial sponsors](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
-
+[![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord&logoColor=f2f2f2)](https://discord.gg/f6aerfE)
+[![All Contributors](https://img.shields.io/github/all-contributors/stride3d/stride?color=ee8449)](#contributors)
+[![Financial sponsors](https://img.shields.io/opencollective/all/stride3d?logo=opencollective)](https://opencollective.com/stride3d)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/stride3d/stride/blob/master/LICENSE.md)
 
 Welcome to the Stride source code repository!
 
