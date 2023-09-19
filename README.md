@@ -1,4 +1,10 @@
-![Stride](sources/data/images/Logo/stride-logo-readme.png)
+<p align="center">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-white.png">
+      <source media="(prefers-color-scheme: light)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
+      <img alt="Shows a black logo in light color mode and a white one in dark color mode." src="https://media.githubusercontent.com/media/chkworks/stride/Logo-with-solid-background/sources/data/images/Logo/stride-logo-readme.png">
+    </picture>
+</p>
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
