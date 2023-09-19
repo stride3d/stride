@@ -33,10 +33,10 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             40.0f,
             50.0f,
             60.0f,
-            70.0f,
             80.0f,
-            90.0f,
-            100.0f
+            100.0f,
+            150.0f,
+            200.0f
         };
 
         public int AvailableMovementSpeedCount => AvailableMovementSpeed.Length - 1;
