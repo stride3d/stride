@@ -88,7 +88,7 @@ at full size and full measure";
         {
             base.InitializeCore();
 
-            input = Context.Services.GetServiceAs<InputManager>();
+            input = Context.Services.GetSafeServiceAs<InputManager>();
 
             // Create the SpriteBatch used to render them
             spriteBatch = new SpriteBatch(GraphicsDevice) { VirtualResolution = new Vector3(virtualResolution, 1000) };
