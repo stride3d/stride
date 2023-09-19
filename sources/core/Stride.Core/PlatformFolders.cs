@@ -184,11 +184,10 @@ namespace Stride.Core
         [NotNull]
         private static string GetApplicationBinaryDirectory()
         {
-            var executablePath = GetApplicationExecutableDirectory();
 #if STRIDE_PLATFORM_ANDROID
-            return executablePath;
+            return GetApplicationExecutableDirectory();
 #else
-            return FindCoreAssemblyDirectory(executablePath);
+            return Path.GetDirectoryName(typeof(PlatformFolders).Assembly.Location);
 #endif
         }
 
@@ -210,30 +209,6 @@ namespace Stride.Core
 #else
             throw new NotImplementedException();
 #endif
-        }
-
-        static string FindCoreAssemblyDirectory(string entryDirectory)
-        {
-            //simple case
-            var corePath = Path.Combine(entryDirectory, "Stride.Core.dll");
-            if (File.Exists(corePath))
-            {
-                return entryDirectory;
-            }
-            else //search one level down
-            {
-                foreach (var subfolder in Directory.GetDirectories(entryDirectory))
-                {
-                    corePath = Path.Combine(subfolder, "Stride.Core.dll");
-                    if (File.Exists(corePath))
-                    {
-                        return subfolder;
-                    }
-                }
-            }
-
-            //if nothing found, return input
-            return entryDirectory;
         }
 
         [NotNull]

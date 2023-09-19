@@ -3,17 +3,17 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -55,31 +55,23 @@ namespace Stride.Graphics
 
         internal void SwapInternal(Texture other)
         {
-            var deviceChild = NativeDeviceChild;
-            NativeDeviceChild = other.NativeDeviceChild;
-            other.NativeDeviceChild = deviceChild;
-            //
-            var srv = NativeShaderResourceView;
-            NativeShaderResourceView = other.NativeShaderResourceView;
-            other.NativeShaderResourceView = srv;
-            //
-            var uav = NativeUnorderedAccessView;
-            NativeUnorderedAccessView = other.NativeUnorderedAccessView;
-            other.NativeUnorderedAccessView = uav;
-            //
-            Utilities.Swap(ref StagingFenceValue, ref other.StagingFenceValue);
-            Utilities.Swap(ref StagingBuilder, ref other.StagingBuilder);
-            Utilities.Swap(ref NativeResourceState, ref other.NativeResourceState);
-            Utilities.Swap(ref NativeRenderTargetView, ref other.NativeRenderTargetView);
-            Utilities.Swap(ref NativeDepthStencilView, ref other.NativeDepthStencilView);
-            Utilities.Swap(ref HasStencil, ref other.HasStencil);
+            (other.NativeDeviceChild, NativeDeviceChild)                 = (NativeDeviceChild, other.NativeDeviceChild);
+            (other.NativeShaderResourceView, NativeShaderResourceView)   = (NativeShaderResourceView, other.NativeShaderResourceView);
+            (other.NativeUnorderedAccessView, NativeUnorderedAccessView) = (NativeUnorderedAccessView, other.NativeUnorderedAccessView);
+
+            (StagingFenceValue, other.StagingFenceValue)           = (other.StagingFenceValue, StagingFenceValue);
+            (StagingBuilder, other.StagingBuilder)                 = (other.StagingBuilder, StagingBuilder);
+            (NativeResourceState, other.NativeResourceState)       = (other.NativeResourceState, NativeResourceState);
+            (NativeRenderTargetView, other.NativeRenderTargetView) = (other.NativeRenderTargetView, NativeRenderTargetView);
+            (NativeDepthStencilView, other.NativeDepthStencilView) = (other.NativeDepthStencilView, NativeDepthStencilView);
+            (HasStencil, other.HasStencil)                         = (other.HasStencil, HasStencil);
         }
 
         /// <summary>
         /// Initializes from a native SharpDX.Texture
         /// </summary>
         /// <param name="texture">The texture.</param>
-        internal Texture InitializeFromImpl(SharpDX.Direct3D12.Resource texture, bool isSrgb)
+        internal Texture InitializeFromImpl(Resource texture, bool isSrgb)
         {
             NativeDeviceChild = texture;
             var newTextureDescription = ConvertFromNativeDescription(texture.Description);
@@ -91,7 +83,7 @@ namespace Stride.Graphics
             return InitializeFrom(newTextureDescription);
         }
 
-        private void InitializeFromImpl(DataBox[] dataBoxes = null)
+        private unsafe void InitializeFromImpl(DataBox[] dataBoxes = null)
         {
             bool hasInitData = dataBoxes != null && dataBoxes.Length > 0;
 
@@ -139,12 +131,10 @@ namespace Stride.Graphics
                     if (hasInitData)
                     {
                         var commandList = GraphicsDevice.NativeCopyCommandList;
-                        commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, null);
-                        
-                        Resource uploadResource;
-                        int uploadOffset;
-                        var uploadMemory = GraphicsDevice.AllocateUploadBuffer(totalSize, out uploadResource, out uploadOffset, TextureSubresourceAlignment);
-                        
+                        commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, initialStateRef: null);
+
+                        var uploadMemory = GraphicsDevice.AllocateUploadBuffer(totalSize, out var uploadResource, out var uploadOffset, TextureSubresourceAlignment);
+
                         // Copy data to the upload buffer
                         int dataBoxIndex = 0;
                         var uploadMemoryMipStart = uploadMemory;
@@ -160,7 +150,7 @@ namespace Stride.Graphics
                                 var dataPointerCurrent = databox.DataPointer;
                                 for (int rowIndex = 0; rowIndex < mipHeight; rowIndex++)
                                 {
-                                    Utilities.CopyMemory(uploadMemoryCurrent, dataPointerCurrent, mipRowPitch);
+                                    Unsafe.CopyBlockUnaligned((void*) uploadMemoryCurrent, (void*) dataPointerCurrent, (uint) mipRowPitch);
                                     uploadMemoryCurrent += mipRowPitch;
                                     dataPointerCurrent += databox.RowPitch;
                                 }
@@ -168,10 +158,10 @@ namespace Stride.Graphics
                                 uploadMemoryMipStart += ComputeSubresourceSize(mipLevel);
                             }
                         }
-                        
+
                         // Copy from upload heap to actual resource
-                        commandList.CopyBufferRegion(NativeResource, 0, uploadResource, uploadOffset, totalSize);
-                        
+                        commandList.CopyBufferRegion(NativeResource, dstOffset: 0, uploadResource, uploadOffset, totalSize);
+
                         commandList.Close();
 
                         StagingFenceValue = 0;
@@ -192,17 +182,14 @@ namespace Stride.Graphics
                 {
                     // Trigger copy
                     var commandList = GraphicsDevice.NativeCopyCommandList;
-                    commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, null);
+                    commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, initialStateRef: null);
 
-                    long textureCopySize;
                     var placedSubresources = new PlacedSubResourceFootprint[dataBoxes.Length];
                     var rowCounts = new int[dataBoxes.Length];
                     var rowSizeInBytes = new long[dataBoxes.Length];
-                    GraphicsDevice.NativeDevice.GetCopyableFootprints(ref nativeDescription, 0, dataBoxes.Length, 0, placedSubresources, rowCounts, rowSizeInBytes, out textureCopySize);
+                    GraphicsDevice.NativeDevice.GetCopyableFootprints(ref nativeDescription, 0, dataBoxes.Length, 0, placedSubresources, rowCounts, rowSizeInBytes, out var textureCopySize);
 
-                    SharpDX.Direct3D12.Resource uploadResource;
-                    int uploadOffset;
-                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer((int)textureCopySize, out uploadResource, out uploadOffset, TextureSubresourceAlignment);
+                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer((int)textureCopySize, out var uploadResource, out var uploadOffset, TextureSubresourceAlignment);
 
                     for (int i = 0; i < dataBoxes.Length; ++i)
                     {
@@ -211,7 +198,7 @@ namespace Stride.Graphics
 
                         var rowCount = rowCounts[i];
                         var sliceCount = placedSubresources[i].Footprint.Depth;
-                        var rowSize = (int)rowSizeInBytes[i];
+                        var rowSize = (int) rowSizeInBytes[i];
                         var destRowPitch = placedSubresources[i].Footprint.RowPitch;
 
                         // Memcpy data
@@ -221,7 +208,7 @@ namespace Stride.Graphics
                             var dataPointerCurrent = dataPointer + z * databox.SlicePitch;
                             for (int y = 0; y < rowCount; ++y)
                             {
-                                Utilities.CopyMemory(uploadMemoryCurrent, dataPointerCurrent, rowSize);
+                                Unsafe.CopyBlockUnaligned((void*) uploadMemoryCurrent, (void*) dataPointerCurrent, (uint) rowSize);
                                 uploadMemoryCurrent += destRowPitch;
                                 dataPointerCurrent += databox.RowPitch;
                             }
@@ -255,9 +242,9 @@ namespace Stride.Graphics
             {
                 NativeDeviceChild = null;
             }
-            else if (GraphicsDevice != null)
+            else
             {
-                GraphicsDevice.RegisterTextureMemoryUsage(-SizeInBytes);
+                GraphicsDevice?.RegisterTextureMemoryUsage(-SizeInBytes);
             }
 
             base.OnDestroyed();
@@ -295,19 +282,17 @@ namespace Stride.Graphics
             if (!IsShaderResource)
                 return new CpuDescriptorHandle();
 
-            int arrayCount;
-            int mipCount;
-            GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out arrayCount, out mipCount);
+            GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out var arrayCount, out var mipCount);
 
             // Create the view
             // TODO D3D12 Shader4ComponentMapping is now set to default value D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING (0x00001688); need better control
             var srvDescription = new ShaderResourceViewDescription() { Shader4ComponentMapping = 0x00001688, Format = ComputeShaderResourceViewFormat() };
 
             // Initialize for texture arrays or texture cube
-            if (this.ArraySize > 1)
+            if (ArraySize > 1)
             {
                 // If texture cube
-                if (this.Dimension == TextureDimension.TextureCube && viewType == ViewType.Full)
+                if (Dimension == TextureDimension.TextureCube && viewType == ViewType.Full)
                 {
                     srvDescription.Dimension = ShaderResourceViewDimension.TextureCube;
                     srvDescription.TextureCube.MipLevels = mipCount;
@@ -384,7 +369,7 @@ namespace Stride.Graphics
         /// <param name="arrayOrDepthSlice">The texture array slice index.</param>
         /// <param name="mipIndex">Index of the mip.</param>
         /// <returns>An <see cref="RenderTargetView" /></returns>
-        /// <exception cref="System.NotSupportedException">ViewSlice.MipBand is not supported for render targets</exception>
+        /// <exception cref="NotSupportedException">ViewSlice.MipBand is not supported for render targets</exception>
         private CpuDescriptorHandle GetRenderTargetView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
         {
             if (!IsRenderTarget)
@@ -392,17 +377,14 @@ namespace Stride.Graphics
 
             if (viewType == ViewType.MipBand)
                 throw new NotSupportedException("ViewSlice.MipBand is not supported for render targets");
-
-            int arrayCount;
-            int mipCount;
-            GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out arrayCount, out mipCount);
+            GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out var arrayCount, out _);
 
             // Create the render target view
-            var rtvDescription = new RenderTargetViewDescription() { Format = (SharpDX.DXGI.Format)ViewFormat };
+            var rtvDescription = new RenderTargetViewDescription() { Format = (SharpDX.DXGI.Format) ViewFormat };
 
-            if (this.ArraySize > 1)
+            if (ArraySize > 1)
             {
-                if (this.MultisampleCount > MultisampleCount.None)
+                if (MultisampleCount > MultisampleCount.None)
                 {
                     if (Dimension != TextureDimension.Texture2D)
                     {
@@ -527,15 +509,12 @@ namespace Stride.Graphics
 
             if (IsMultisample)
                 throw new NotSupportedException("Multisampling is not supported for unordered access views");
-            
-            int arrayCount;
-            int mipCount;
-            GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out arrayCount, out mipCount);
+            GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out var arrayCount, out _);
 
             // Create a Unordered Access view on this texture2D
             var uavDescription = new UnorderedAccessViewDescription
             {
-                Format = (SharpDX.DXGI.Format)ViewFormat
+                Format = (SharpDX.DXGI.Format) ViewFormat
             };
 
             if (ArraySize > 1)
@@ -580,7 +559,7 @@ namespace Stride.Graphics
                         throw new NotSupportedException("TextureCube dimension is expecting an array size > 1");
                 }
             }
-            
+
             var descriptorHandle = GraphicsDevice.UnorderedAccessViewAllocator.Allocate(1);
             NativeDevice.CreateUnorderedAccessView(NativeResource, null, uavDescription, descriptorHandle);
             return descriptorHandle;
@@ -622,7 +601,7 @@ namespace Stride.Graphics
 
         private ResourceDescription ConvertToNativeDescription1D()
         {
-            return ResourceDescription.Texture1D((SharpDX.DXGI.Format)textureDescription.Format, textureDescription.Width, (short)textureDescription.ArraySize, (short)textureDescription.MipLevels, GetBindFlagsFromTextureFlags(textureDescription.Flags));
+            return ResourceDescription.Texture1D((SharpDX.DXGI.Format) textureDescription.Format, textureDescription.Width, (short) textureDescription.ArraySize, (short) textureDescription.MipLevels, GetBindFlagsFromTextureFlags(textureDescription.Flags));
         }
 
         private SharpDX.DXGI.Format ComputeShaderResourceViewFormat()
@@ -642,11 +621,11 @@ namespace Stride.Graphics
             var desc = new TextureDescription()
             {
                 Dimension = TextureDimension.Texture2D,
-                Width = (int)description.Width,
+                Width = (int) description.Width,
                 Height = description.Height,
                 Depth = 1,
-                MultisampleCount = (MultisampleCount)description.SampleDescription.Count,
-                Format = (PixelFormat)description.Format,
+                MultisampleCount = (MultisampleCount) description.SampleDescription.Count,
+                Format = (PixelFormat) description.Format,
                 MipLevels = description.MipLevels,
                 Usage = GraphicsResourceUsage.Default,
                 ArraySize = description.DepthOrArraySize,
@@ -667,7 +646,7 @@ namespace Stride.Graphics
 
         private ResourceDescription ConvertToNativeDescription2D()
         {
-            var format = (SharpDX.DXGI.Format)textureDescription.Format;
+            var format = (SharpDX.DXGI.Format) textureDescription.Format;
             var flags = textureDescription.Flags;
 
             // If the texture is going to be bound on the depth stencil, for to use TypeLess format
@@ -675,7 +654,7 @@ namespace Stride.Graphics
             {
                 if (IsShaderResource && GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
                 {
-                    throw new NotSupportedException(String.Format("ShaderResourceView for DepthStencil Textures are not supported for Graphics profile < 10.0 (Current: [{0}])", GraphicsDevice.Features.CurrentProfile));
+                    throw new NotSupportedException(string.Format("ShaderResourceView for DepthStencil Textures are not supported for Graphics profile < 10.0 (Current: [{0}])", GraphicsDevice.Features.CurrentProfile));
                 }
                 else
                 {
@@ -697,7 +676,7 @@ namespace Stride.Graphics
                                 format = SharpDX.DXGI.Format.D32_Float_S8X24_UInt;
                                 break;
                             default:
-                                throw new NotSupportedException(String.Format("Unsupported DepthFormat [{0}] for depth buffer", textureDescription.Format));
+                                throw new NotSupportedException(string.Format("Unsupported DepthFormat [{0}] for depth buffer", textureDescription.Format));
                         }
                     }
                     else
@@ -718,7 +697,7 @@ namespace Stride.Graphics
                                 format = SharpDX.DXGI.Format.R32G8X24_Typeless;
                                 break;
                             default:
-                                throw new NotSupportedException(String.Format("Unsupported DepthFormat [{0}] for depth buffer", textureDescription.Format));
+                                throw new NotSupportedException(string.Format("Unsupported DepthFormat [{0}] for depth buffer", textureDescription.Format));
                         }
                     }
                 }
@@ -746,7 +725,7 @@ namespace Stride.Graphics
             {
                 return new ClearValue
                 {
-                    Format = (SharpDX.DXGI.Format)textureDescription.Format,
+                    Format = (SharpDX.DXGI.Format) textureDescription.Format,
                     Color = new RawVector4(0, 0, 0, 1),
                 };
             }
@@ -804,7 +783,7 @@ namespace Stride.Graphics
                     viewFormat = SharpDX.DXGI.Format.D32_Float_S8X24_UInt;
                     break;
                 default:
-                    throw new NotSupportedException(String.Format("Unsupported depth format [{0}]", format));
+                    throw new NotSupportedException(string.Format("Unsupported depth format [{0}]", format));
             }
 
             return viewFormat;
@@ -812,7 +791,7 @@ namespace Stride.Graphics
 
         private ResourceDescription ConvertToNativeDescription3D()
         {
-            return ResourceDescription.Texture3D((SharpDX.DXGI.Format)textureDescription.Format, textureDescription.Width, textureDescription.Height, (short)textureDescription.Depth, (short)textureDescription.MipLevels, GetBindFlagsFromTextureFlags(textureDescription.Flags));
+            return ResourceDescription.Texture3D((SharpDX.DXGI.Format) textureDescription.Format, textureDescription.Width, textureDescription.Height, (short) textureDescription.Depth, (short) textureDescription.MipLevels, GetBindFlagsFromTextureFlags(textureDescription.Flags));
         }
 
         /// <summary>
@@ -836,7 +815,7 @@ namespace Stride.Graphics
         /// <param name="size">The size.</param>
         /// <param name="minimumSizeLastMip">The minimum size of the last mip.</param>
         /// <returns>The mip level.</returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">Value must be > 0;size</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Value must be > 0;size</exception>
         private static int CalculateMipCountFromSize(int size, int minimumSizeLastMip = 4)
         {
             if (size <= 0)
@@ -865,7 +844,7 @@ namespace Stride.Graphics
         /// <param name="height">The height.</param>
         /// <param name="minimumSizeLastMip">The minimum size of the last mip.</param>
         /// <returns>The mip level.</returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">Value must be &gt; 0;size</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Value must be &gt; 0;size</exception>
         private static int CalculateMipCount(int width, int height, int minimumSizeLastMip = 4)
         {
             return Math.Min(CalculateMipCountFromSize(width, minimumSizeLastMip), CalculateMipCountFromSize(height, minimumSizeLastMip));

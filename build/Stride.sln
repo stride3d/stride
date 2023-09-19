@@ -10,14 +10,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-StrideRuntime", "20-Stri
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
-		..\store.config = ..\store.config
+		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
 		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
 		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
-		..\sources\targets\Stride.Core.Sign.targets = ..\sources\targets\Stride.Core.Sign.targets
+		..\sources\targets\Stride.Core.TargetFrameworks.Editor.props = ..\sources\targets\Stride.Core.TargetFrameworks.Editor.props
 		..\sources\targets\Stride.Core.targets = ..\sources\targets\Stride.Core.targets
 		..\sources\targets\Stride.GraphicsApi.Dev.targets = ..\sources\targets\Stride.GraphicsApi.Dev.targets
 		..\sources\targets\Stride.GraphicsApi.PackageReference.targets = ..\sources\targets\Stride.GraphicsApi.PackageReference.targets
-		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
+		..\sources\targets\Stride.PackageVersion.targets = ..\sources\targets\Stride.PackageVersion.targets
 		..\sources\targets\Stride.props = ..\sources\targets\Stride.props
 		..\sources\targets\Stride.targets = ..\sources\targets\Stride.targets
 		..\sources\targets\Stride.UnitTests.CrossTargeting.targets = ..\sources\targets\Stride.UnitTests.CrossTargeting.targets
@@ -28,15 +28,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Ta
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "80-Shaders", "80-Shaders", "{10D145AF-C8AE-428F-A80F-CA1B591D0DB2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3D-Exporters", "3D-Exporters", "{47FFA9CA-781D-427E-9A41-365D789DD4B1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "50-Presentation", "50-Presentation", "{75A820AB-0F21-40F2-9448-5D7F495B97A0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Internals", "Internals", "{860946E4-CC77-4FDA-A4FD-3DB2A502A696}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "40-Assets", "40-Assets", "{A2A4342E-024B-4063-B10C-1DA96CA3046D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "91-VisualStudio", "91-VisualStudio", "{E4508D15-6503-4A29-ADC4-27B3A5E99545}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "60-Editor", "60-Editor", "{5D2D3BE8-9910-45CA-8E45-95660DA4C563}"
 EndProject
@@ -99,13 +95,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Tests", "..\sources\presentation\Stride.Core.Presentation.Tests\Stride.Core.Presentation.Tests.csproj", "{C223FCD7-CDCC-4943-9E11-9C2CC8FA9FC4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stride.Importer.Assimp", "..\sources\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.vcxproj", "{C2306552-6C42-464C-8981-32FEF4F9458D}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Irony", "..\sources\shaders\Irony\Irony.csproj", "{D81F5C91-D7DB-46E5-BC99-49488FB6814C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Games", "..\sources\engine\Stride.Games\Stride.Games.csproj", "{42780CBD-3FE7-48E3-BD5B-59945EA20137}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Package", "..\sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj", "{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.TextureConverter", "..\sources\tools\Stride.TextureConverter\Stride.TextureConverter.csproj", "{7F7BFF79-C400-435F-B359-56A2EF8956E0}"
 EndProject
@@ -115,13 +107,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.ProjectGenerator", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio.Tests.Windows", "..\sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.Windows.csproj", "{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assimp", "..\sources\tools\Stride.Assimp\Stride.Assimp.csproj", "{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.BuildEngine.Tests", "..\sources\buildengine\Stride.Core.BuildEngine.Tests\Stride.Core.BuildEngine.Tests.csproj", "{09F32307-595A-4CBB-BF7C-F055DA1F70EE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.BuildEngine.Common", "..\sources\buildengine\Stride.Core.BuildEngine.Common\Stride.Core.BuildEngine.Common.csproj", "{7732CB84-A39A-4ADF-B740-FD32A352FA8A}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stride.Assimp.Translation", "..\sources\tools\Stride.Assimp.Translation\Stride.Assimp.Translation.vcxproj", "{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core", "..\sources\core\Stride.Core\Stride.Core.csproj", "{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}"
 EndProject
@@ -181,8 +169,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Design", "..\so
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Regression", "..\sources\engine\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj", "{D002FEB1-00A6-4AB1-A83F-1F253465E64D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stride.Importer.Common", "..\sources\tools\Stride.Importer.Common\Stride.Importer.Common.vcxproj", "{43A6E62E-1B1C-4630-ABB8-C3F716004645}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.StorageTool", "..\sources\tools\Stride.StorageTool\Stride.StorageTool.csproj", "{942A5B1D-2B3D-4B30-98DE-336CE93F4F12}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.ProjectTemplating", "..\sources\tools\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj", "{2E2382F7-9576-49F0-AE43-93AFD7DB2368}"
@@ -194,8 +180,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.TestRunner", "..\sources\tools\Stride.TestRunner\Stride.TestRunner.csproj", "{A5DC820B-9554-45B6-9677-6A2F902E7787}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Design.Tests", "..\sources\core\Stride.Core.Design.Tests\Stride.Core.Design.Tests.csproj", "{4D13D69B-C8E8-4675-8198-1BE2785FFB6D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Commands", "..\sources\tools\Stride.VisualStudio.Commands\Stride.VisualStudio.Commands.csproj", "{E136B568-3E3F-498F-A8B4-2877B7768560}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Physics", "..\sources\engine\Stride.Physics\Stride.Physics.csproj", "{DD592516-B341-40FE-9100-1B0FA784A060}"
 EndProject
@@ -263,8 +247,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Qu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Code.Tests", "..\sources\tools\Stride.Code.Tests\Stride.Code.Tests.csproj", "{3C855DB2-EEA3-415C-A0A8-C834DEC40531}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Core.VisualStudio", "..\sources\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.shproj", "{991E796A-D1D1-48B8-B9AA-95C2744FE112}"
-EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Core.Assets.Yaml", "..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.shproj", "{FB9ED2C4-94A0-4004-A498-3F29A9D5BB5D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation", "..\sources\engine\Stride.Navigation\Stride.Navigation.csproj", "{FBE1FA7B-E699-4BB2-9C8F-41F4C9F3F088}"
@@ -276,10 +258,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.PackageInstall", "..\sources\tools\Stride.PackageInstall\Stride.PackageInstall.csproj", "{BD176B28-49CD-4FAD-A430-CDBCF1C2E514}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Tasks", "..\sources\core\Stride.Core.Tasks\Stride.Core.Tasks.csproj", "{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.PackageInstall", "..\sources\tools\Stride.VisualStudio.PackageInstall\Stride.VisualStudio.PackageInstall.csproj", "{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Package.Tests", "..\sources\tools\Stride.VisualStudio.Package.Tests\Stride.VisualStudio.Package.Tests.csproj", "{5BFE4386-3C42-4118-96C8-4B68441F1661}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation", "..\sources\core\Stride.Core.Translation\Stride.Core.Translation.csproj", "{6A7B231E-36AA-4647-8C1A-FB1540ABC813}"
 EndProject
@@ -331,46 +309,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "xunit.runner.stride", "..\s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.NuGetLoader", "..\sources\tools\Stride.NuGetLoader\Stride.NuGetLoader.csproj", "{7FA381C8-8EBE-4515-969D-01369CC47D0E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Commands.Interfaces", "..\sources\tools\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj", "{83E4E436-659A-4D82-90DD-0DC67BE38D17}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.NoAssets.Tests.Windows", "..\sources\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.Windows.csproj", "{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.Assimp", "..\sources\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.csproj", "{967BA05D-4AC4-4848-AEFD-894EF2309E4D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.Common", "..\sources\tools\Stride.Importer.Common\Stride.Importer.Common.csproj", "{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}"
+EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{00b72ed7-00e9-47f7-868d-8162027cd068}*SharedItemsImports = 13
-		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
-		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{2fc40214-a4aa-45dc-9c93-72ed800c40b0}*SharedItemsImports = 5
-		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
-		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
-		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
-		..\sources\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{39ae9c77-e94b-404f-8768-b6261b3c1e0e}*SharedItemsImports = 5
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{3a3cb33c-64d9-4948-86c1-0d86320d23c3}*SharedItemsImports = 13
-		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{50d1a3bb-4b41-4ef5-8d2f-3618a3b6c698}*SharedItemsImports = 5
-		..\sources\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems*{50d1a3bb-4b41-4ef5-8d2f-3618a3b6c698}*SharedItemsImports = 5
-		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{5863574d-7a55-49bc-8e65-babb74d8e66e}*SharedItemsImports = 5
-		..\sources\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems*{5bfe4386-3c42-4118-96c8-4b68441f1661}*SharedItemsImports = 5
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{75d71310-ecf7-4592-9e35-3fe540040982}*SharedItemsImports = 5
-		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{75d71310-ecf7-4592-9e35-3fe540040982}*SharedItemsImports = 5
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{77e2fcc0-4ca6-436c-be6f-9418cb807d45}*SharedItemsImports = 5
-		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{77e2fcc0-4ca6-436c-be6f-9418cb807d45}*SharedItemsImports = 5
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{7af4b563-aad3-42ff-b91e-84b9d34d904a}*SharedItemsImports = 5
-		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{950badd0-ad5a-4f58-87ec-4adaecbea89b}*SharedItemsImports = 13
-		..\sources\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems*{991e796a-d1d1-48b8-b9aa-95c2744fe112}*SharedItemsImports = 13
-		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{9ac6d791-811e-4d6a-b08e-93f0093ef268}*SharedItemsImports = 13
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{a5dc820b-9554-45b6-9677-6a2f902e7787}*SharedItemsImports = 5
-		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{a5dc820b-9554-45b6-9677-6a2f902e7787}*SharedItemsImports = 5
-		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{ab574f65-1402-4476-9314-74dcdaf19097}*SharedItemsImports = 13
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 5
-		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{e136b568-3e3f-498f-a8b4-2877b7768560}*SharedItemsImports = 5
-		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{e25e7778-0b2f-4a0b-bcd6-1de95320b531}*SharedItemsImports = 5
-		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 5
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{fb06c76a-6bb7-40be-9afa-fec13b045fb5}*SharedItemsImports = 5
-		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{fb9ed2c4-94a0-4004-a498-3f29a9d5bb5d}*SharedItemsImports = 13
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -481,16 +426,6 @@ Global
 		{C223FCD7-CDCC-4943-9E11-9C2CC8FA9FC4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{C223FCD7-CDCC-4943-9E11-9C2CC8FA9FC4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{C223FCD7-CDCC-4943-9E11-9C2CC8FA9FC4}.Release|Win32.ActiveCfg = Release|Any CPU
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Debug|Mixed Platforms.Build.0 = Debug|x64
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Debug|Win32.Build.0 = Debug|Win32
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Release|Any CPU.ActiveCfg = Release|Win32
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Release|Mixed Platforms.ActiveCfg = Release|x64
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Release|Mixed Platforms.Build.0 = Release|x64
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Release|Win32.ActiveCfg = Release|Win32
-		{C2306552-6C42-464C-8981-32FEF4F9458D}.Release|Win32.Build.0 = Release|Win32
 		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D81F5C91-D7DB-46E5-BC99-49488FB6814C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -511,16 +446,6 @@ Global
 		{42780CBD-3FE7-48E3-BD5B-59945EA20137}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{42780CBD-3FE7-48E3-BD5B-59945EA20137}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{42780CBD-3FE7-48E3-BD5B-59945EA20137}.Release|Win32.ActiveCfg = Release|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}.Release|Win32.ActiveCfg = Release|Any CPU
 		{7F7BFF79-C400-435F-B359-56A2EF8956E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7F7BFF79-C400-435F-B359-56A2EF8956E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F7BFF79-C400-435F-B359-56A2EF8956E0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -559,14 +484,6 @@ Global
 		{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}.Release|Win32.ActiveCfg = Release|Any CPU
-		{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}.Release|Win32.ActiveCfg = Release|Any CPU
 		{09F32307-595A-4CBB-BF7C-F055DA1F70EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{09F32307-595A-4CBB-BF7C-F055DA1F70EE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{09F32307-595A-4CBB-BF7C-F055DA1F70EE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
@@ -583,16 +500,6 @@ Global
 		{7732CB84-A39A-4ADF-B740-FD32A352FA8A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{7732CB84-A39A-4ADF-B740-FD32A352FA8A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{7732CB84-A39A-4ADF-B740-FD32A352FA8A}.Release|Win32.ActiveCfg = Release|Any CPU
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Debug|Mixed Platforms.Build.0 = Debug|x64
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Debug|Win32.ActiveCfg = Debug|Win32
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Debug|Win32.Build.0 = Debug|Win32
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Release|Any CPU.ActiveCfg = Release|Win32
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Release|Mixed Platforms.ActiveCfg = Release|x64
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Release|Mixed Platforms.Build.0 = Release|x64
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Release|Win32.ActiveCfg = Release|Win32
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}.Release|Win32.Build.0 = Release|Win32
 		{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -883,16 +790,6 @@ Global
 		{D002FEB1-00A6-4AB1-A83F-1F253465E64D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{D002FEB1-00A6-4AB1-A83F-1F253465E64D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{D002FEB1-00A6-4AB1-A83F-1F253465E64D}.Release|Win32.ActiveCfg = Release|Any CPU
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Debug|Mixed Platforms.Build.0 = Debug|x64
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Debug|Win32.ActiveCfg = Debug|Win32
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Debug|Win32.Build.0 = Debug|Win32
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Release|Any CPU.ActiveCfg = Release|Win32
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Release|Mixed Platforms.ActiveCfg = Release|x64
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Release|Mixed Platforms.Build.0 = Release|x64
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Release|Win32.ActiveCfg = Release|Win32
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645}.Release|Win32.Build.0 = Release|Win32
 		{942A5B1D-2B3D-4B30-98DE-336CE93F4F12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{942A5B1D-2B3D-4B30-98DE-336CE93F4F12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{942A5B1D-2B3D-4B30-98DE-336CE93F4F12}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -953,16 +850,6 @@ Global
 		{4D13D69B-C8E8-4675-8198-1BE2785FFB6D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{4D13D69B-C8E8-4675-8198-1BE2785FFB6D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4D13D69B-C8E8-4675-8198-1BE2785FFB6D}.Release|Win32.ActiveCfg = Release|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{E136B568-3E3F-498F-A8B4-2877B7768560}.Release|Win32.ActiveCfg = Release|Any CPU
 		{DD592516-B341-40FE-9100-1B0FA784A060}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DD592516-B341-40FE-9100-1B0FA784A060}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD592516-B341-40FE-9100-1B0FA784A060}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -1359,30 +1246,6 @@ Global
 		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}.Release|Win32.ActiveCfg = Release|Any CPU
 		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}.Release|Win32.Build.0 = Release|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Debug|Win32.Build.0 = Debug|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Release|Win32.ActiveCfg = Release|Any CPU
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}.Release|Win32.Build.0 = Release|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Debug|Win32.Build.0 = Debug|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Release|Win32.ActiveCfg = Release|Any CPU
-		{5BFE4386-3C42-4118-96C8-4B68441F1661}.Release|Win32.Build.0 = Release|Any CPU
 		{6A7B231E-36AA-4647-8C1A-FB1540ABC813}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6A7B231E-36AA-4647-8C1A-FB1540ABC813}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A7B231E-36AA-4647-8C1A-FB1540ABC813}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -1503,18 +1366,6 @@ Global
 		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Release|Win32.ActiveCfg = Release|Any CPU
 		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Release|Win32.Build.0 = Release|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Win32.Build.0 = Debug|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Win32.ActiveCfg = Release|Any CPU
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Win32.Build.0 = Release|Any CPU
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -1527,12 +1378,35 @@ Global
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Release|Win32.ActiveCfg = Release|Any CPU
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Release|Win32.Build.0 = Release|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Debug|Win32.Build.0 = Debug|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Release|Win32.ActiveCfg = Release|Any CPU
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D}.Release|Win32.Build.0 = Release|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Debug|Win32.Build.0 = Debug|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Release|Win32.ActiveCfg = Release|Any CPU
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{47FFA9CA-781D-427E-9A41-365D789DD4B1} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{860946E4-CC77-4FDA-A4FD-3DB2A502A696} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{4A15BAAD-AA37-4754-A2BF-8D4049211E36} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
@@ -1547,18 +1421,14 @@ Global
 		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F} = {10D145AF-C8AE-428F-A80F-CA1B591D0DB2}
 		{47AFCC2E-E9F0-47D6-9D75-9E646546A92B} = {75A820AB-0F21-40F2-9448-5D7F495B97A0}
 		{C223FCD7-CDCC-4943-9E11-9C2CC8FA9FC4} = {52AE329E-B588-40D0-A578-8D0DB1BD83E5}
-		{C2306552-6C42-464C-8981-32FEF4F9458D} = {6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C}
 		{D81F5C91-D7DB-46E5-BC99-49488FB6814C} = {10D145AF-C8AE-428F-A80F-CA1B591D0DB2}
 		{42780CBD-3FE7-48E3-BD5B-59945EA20137} = {4C142567-C42B-40F5-B092-798882190209}
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6} = {E4508D15-6503-4A29-ADC4-27B3A5E99545}
 		{7F7BFF79-C400-435F-B359-56A2EF8956E0} = {4A15BAAD-AA37-4754-A2BF-8D4049211E36}
 		{C485CE61-3006-4C99-ACB3-A737F5CEBAE7} = {4A15BAAD-AA37-4754-A2BF-8D4049211E36}
 		{4B299721-18EA-4B6D-AFD5-2D6E188B97BD} = {860946E4-CC77-4FDA-A4FD-3DB2A502A696}
 		{7AF4B563-AAD3-42FF-B91E-84B9D34D904A} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
-		{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA} = {47FFA9CA-781D-427E-9A41-365D789DD4B1}
 		{09F32307-595A-4CBB-BF7C-F055DA1F70EE} = {B175D318-B4D0-49EA-9AEF-A54ACA2F03DC}
 		{7732CB84-A39A-4ADF-B740-FD32A352FA8A} = {25F10A0B-7259-404C-86BE-FD2363C92F72}
-		{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8} = {47FFA9CA-781D-427E-9A41-365D789DD4B1}
 		{0E916AB7-5A6C-4820-8AB1-AA492FE66D68} = {2E93E2B5-4500-4E47-9B65-E705218AB578}
 		{1677B922-CCF0-44DE-B57E-1CDD3D2B8E8A} = {2E93E2B5-4500-4E47-9B65-E705218AB578}
 		{5210FB81-B807-49BB-AF0D-31FB6A83A572} = {2E93E2B5-4500-4E47-9B65-E705218AB578}
@@ -1588,14 +1458,12 @@ Global
 		{0EA748AF-E1DC-4788-BA50-8BABD56F220C} = {F5F744B5-803E-4180-B82A-8B1F0BCD6579}
 		{66581DAD-70AD-4475-AE47-C6C0DF1EC5E2} = {25F10A0B-7259-404C-86BE-FD2363C92F72}
 		{D002FEB1-00A6-4AB1-A83F-1F253465E64D} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
-		{43A6E62E-1B1C-4630-ABB8-C3F716004645} = {6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C}
 		{942A5B1D-2B3D-4B30-98DE-336CE93F4F12} = {860946E4-CC77-4FDA-A4FD-3DB2A502A696}
 		{2E2382F7-9576-49F0-AE43-93AFD7DB2368} = {860946E4-CC77-4FDA-A4FD-3DB2A502A696}
 		{550C1B7C-B7AD-46DF-ACF3-C36AEF35D5FF} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
 		{862C7C39-8E2B-4F18-88E9-ACD6EDF818CD} = {860946E4-CC77-4FDA-A4FD-3DB2A502A696}
 		{A5DC820B-9554-45B6-9677-6A2F902E7787} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{4D13D69B-C8E8-4675-8198-1BE2785FFB6D} = {B175D318-B4D0-49EA-9AEF-A54ACA2F03DC}
-		{E136B568-3E3F-498F-A8B4-2877B7768560} = {E4508D15-6503-4A29-ADC4-27B3A5E99545}
 		{DD592516-B341-40FE-9100-1B0FA784A060} = {4C142567-C42B-40F5-B092-798882190209}
 		{4FAC003A-2532-42F3-AED7-A296D1A1615E} = {75A820AB-0F21-40F2-9448-5D7F495B97A0}
 		{FDF801D9-90CC-4CBD-9F53-7F32F7EDF4F1} = {860946E4-CC77-4FDA-A4FD-3DB2A502A696}
@@ -1629,15 +1497,12 @@ Global
 		{53782603-3096-40C2-ABD3-F8F311BAE4BE} = {4C142567-C42B-40F5-B092-798882190209}
 		{E8C458AE-7B42-4DCE-B326-7F3A9065EA19} = {52AE329E-B588-40D0-A578-8D0DB1BD83E5}
 		{3C855DB2-EEA3-415C-A0A8-C834DEC40531} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
-		{991E796A-D1D1-48B8-B9AA-95C2744FE112} = {E4508D15-6503-4A29-ADC4-27B3A5E99545}
 		{FB9ED2C4-94A0-4004-A498-3F29A9D5BB5D} = {A2A4342E-024B-4063-B10C-1DA96CA3046D}
 		{FBE1FA7B-E699-4BB2-9C8F-41F4C9F3F088} = {4C142567-C42B-40F5-B092-798882190209}
 		{1AC5A693-3CC4-4450-AA76-70DA4F0C29DF} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
 		{A9A83BE5-271B-4347-9C4D-340FC3BD0B2B} = {22ADD4CD-092E-4ADC-A21E-64CF42230152}
 		{BD176B28-49CD-4FAD-A430-CDBCF1C2E514} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A} = {25F10A0B-7259-404C-86BE-FD2363C92F72}
-		{AF6049CC-E60E-4174-9AB6-9AA282DE3A31} = {E4508D15-6503-4A29-ADC4-27B3A5E99545}
-		{5BFE4386-3C42-4118-96C8-4B68441F1661} = {E4508D15-6503-4A29-ADC4-27B3A5E99545}
 		{6A7B231E-36AA-4647-8C1A-FB1540ABC813} = {25F10A0B-7259-404C-86BE-FD2363C92F72}
 		{B686C194-D71D-4FF0-8B4F-F53AFBCD962F} = {75A820AB-0F21-40F2-9448-5D7F495B97A0}
 		{164A5B9A-E684-4B3F-9EF4-B7765FC0A8A1} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
@@ -1652,10 +1517,41 @@ Global
 		{66BE41FC-FC52-48D0-9C04-BCE8CC393020} = {4C142567-C42B-40F5-B092-798882190209}
 		{D5B023BE-010F-44A8-ABF1-DB6F3BCEA392} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{7FA381C8-8EBE-4515-969D-01369CC47D0E} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
-		{83E4E436-659A-4D82-90DD-0DC67BE38D17} = {E4508D15-6503-4A29-ADC4-27B3A5E99545}
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
+		{967BA05D-4AC4-4848-AEFD-894EF2309E4D} = {6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C}
+		{806AA078-6070-4BB6-B05B-6EE6B21B1CDE} = {6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{00b72ed7-00e9-47f7-868d-8162027cd068}*SharedItemsImports = 13
+		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{2fc40214-a4aa-45dc-9c93-72ed800c40b0}*SharedItemsImports = 5
+		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
+		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{39ae9c77-e94b-404f-8768-b6261b3c1e0e}*SharedItemsImports = 5
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{3a3cb33c-64d9-4948-86c1-0d86320d23c3}*SharedItemsImports = 13
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{50d1a3bb-4b41-4ef5-8d2f-3618a3b6c698}*SharedItemsImports = 5
+		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{5863574d-7a55-49bc-8e65-babb74d8e66e}*SharedItemsImports = 5
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{75d71310-ecf7-4592-9e35-3fe540040982}*SharedItemsImports = 5
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{75d71310-ecf7-4592-9e35-3fe540040982}*SharedItemsImports = 5
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{77e2fcc0-4ca6-436c-be6f-9418cb807d45}*SharedItemsImports = 5
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{77e2fcc0-4ca6-436c-be6f-9418cb807d45}*SharedItemsImports = 5
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{7af4b563-aad3-42ff-b91e-84b9d34d904a}*SharedItemsImports = 5
+		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{950badd0-ad5a-4f58-87ec-4adaecbea89b}*SharedItemsImports = 13
+		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{9ac6d791-811e-4d6a-b08e-93f0093ef268}*SharedItemsImports = 13
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{a5dc820b-9554-45b6-9677-6a2f902e7787}*SharedItemsImports = 5
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{a5dc820b-9554-45b6-9677-6a2f902e7787}*SharedItemsImports = 5
+		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{ab574f65-1402-4476-9314-74dcdaf19097}*SharedItemsImports = 13
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 5
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{e25e7778-0b2f-4a0b-bcd6-1de95320b531}*SharedItemsImports = 5
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 5
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{fb06c76a-6bb7-40be-9afa-fec13b045fb5}*SharedItemsImports = 5
+		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{fb9ed2c4-94a0-4004-a498-3f29a9d5bb5d}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

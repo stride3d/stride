@@ -2,21 +2,18 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
-
-using Stride.LauncherApp.Services;
-using Stride.LauncherApp.ViewModels;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.ViewModel;
-using NuGet.Frameworks;
+using Stride.LauncherApp.Services;
+using Stride.LauncherApp.ViewModels;
 
 namespace Stride.LauncherApp.Views
 {
@@ -25,7 +22,7 @@ namespace Stride.LauncherApp.Views
     /// </summary>
     public partial class LauncherWindow
     {
-        
+
         public LauncherWindow()
         {
             InitializeComponent();
@@ -51,14 +48,14 @@ namespace Stride.LauncherApp.Views
         }
 
         public bool ExitOnUserClose { get; set; }
-        
+
         private LauncherViewModel ViewModel => (LauncherViewModel)DataContext;
 
         internal void Initialize(NugetStore store, string defaultLogText = null)
         {
             var dispatcherService = new DispatcherService(Dispatcher);
             var dialogService = new DialogService(dispatcherService, Launcher.ApplicationName);
-            var serviceProvider = new ViewModelServiceProvider(new object[] {dispatcherService, dialogService});
+            var serviceProvider = new ViewModelServiceProvider(new object[] { dispatcherService, dialogService });
             DataContext = new LauncherViewModel(serviceProvider, store);
         }
 
@@ -78,7 +75,7 @@ namespace Stride.LauncherApp.Views
             }
 
             var viewModel = (LauncherViewModel)DataContext;
-            LauncherSettings.ActiveVersion = viewModel.ActiveVersion != null ? viewModel.ActiveVersion.Name : ""; 
+            LauncherSettings.ActiveVersion = viewModel.ActiveVersion != null ? viewModel.ActiveVersion.Name : "";
             LauncherSettings.Save();
             if (ExitOnUserClose)
                 Environment.Exit(1);

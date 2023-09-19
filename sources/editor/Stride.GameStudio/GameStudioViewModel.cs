@@ -80,7 +80,7 @@ namespace Stride.GameStudio
 
         protected override void RestartAndCreateNewSession()
         {
-            restartArguments = "/NewProject" + GetCommonArguments();
+            restartArguments = "/NewProject";
             CloseAndRestart();
         }
 
@@ -100,7 +100,7 @@ namespace Stride.GameStudio
             if (sessionPath == null)
                 return;
 
-            restartArguments = $"\"{sessionPath.ToWindowsPath()}\"" + GetCommonArguments();
+            restartArguments = $"\"{sessionPath.ToWindowsPath()}\"";
             await CloseAndRestart();
         }
 
@@ -144,21 +144,6 @@ namespace Stride.GameStudio
             {
                 e.Ignore();
             }
-        }
-
-        private static string GetCommonArguments()
-        {
-            var arguments = "";
-
-            using (var debugger = VisualStudioDebugger.GetAttached())
-            {
-                if (debugger != null)
-                {
-                    arguments += $" /Reattach {debugger.ProcessId}";
-                }
-            }
-
-            return arguments;
         }
     }
 }

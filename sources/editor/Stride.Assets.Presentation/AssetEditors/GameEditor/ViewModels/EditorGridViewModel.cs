@@ -1,15 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModel;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
+    [Flags]
+    public enum ViewportGridAxis
+    {
+        X = 1,
+        Y = 2,
+        Z = 4,
+    }
+
     /// <summary>
     /// A view model controlling a grid in an editor game.
     /// </summary>
@@ -49,6 +57,51 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         /// Gets or sets the axis of the grid.
         /// </summary>
         public int AxisIndex { get { return Service.AxisIndex; } set { SetValue(AxisIndex != value, () => Service.AxisIndex = value); } }
+
+        /// <summary>
+        /// Gets or sets whether the X axis of the grid is currently visible.
+        /// </summary>
+        public bool IsXAxisVisible
+        {
+            get => Convert.ToBoolean(AxisIndex & (int)ViewportGridAxis.X);
+            set
+            {
+                if (value)
+                    AxisIndex |= (int)ViewportGridAxis.X;
+                else
+                    AxisIndex &= ~(int)ViewportGridAxis.X;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the Y axis of the grid is currently visible.
+        /// </summary>
+        public bool IsYAxisVisible
+        {
+            get => Convert.ToBoolean(AxisIndex & (int)ViewportGridAxis.Y);
+            set
+            {
+                if (value)
+                    AxisIndex |= (int)ViewportGridAxis.Y;
+                else
+                    AxisIndex &= ~(int)ViewportGridAxis.Y;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the Z axis of the grid is currently visible.
+        /// </summary>
+        public bool IsZAxisVisible
+        {
+            get => Convert.ToBoolean(AxisIndex & (int)ViewportGridAxis.Z);
+            set
+            {
+                if (value)
+                    AxisIndex |= (int)ViewportGridAxis.Z;
+                else
+                    AxisIndex &= ~(int)ViewportGridAxis.Z;
+            }
+        }
 
         /// <summary>
         /// Gets a command that will toggle the visibility of the grid.

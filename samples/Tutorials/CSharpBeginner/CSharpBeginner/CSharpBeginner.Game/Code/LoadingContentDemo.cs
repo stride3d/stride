@@ -68,7 +68,7 @@ namespace CSharpBeginner.Code
                 var randomPosition = new Vector3(random.Next(-2, 4), 0, random.Next(-2, 2));
 
                 // Create a new entity and attach a model component 
-                var entity = new Entity(randomPosition, "My new entity with a model component");
+                var entity = new Entity("My new entity with a model component", randomPosition);
                 entity.Add(modelComponent);
 
                 // Add the new entity to the current tutorial scene

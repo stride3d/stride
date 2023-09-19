@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
 using System.IO;
-using FreeImageAPI.Metadata;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using FreeImageAPI.Metadata;
 
 namespace FreeImageAPI
 {
@@ -397,16 +398,16 @@ namespace FreeImageAPI
 		public void Load(BinaryReader reader)
 		{
 			EnsureNotDisposed();
-			unsafe
-			{
-				int size = length * sizeof(RGBQUAD);
-				byte[] data = reader.ReadBytes(size);
-				fixed (byte* src = data)
-				{
-					CopyMemory(baseAddress, src, data.Length);
-				}
-			}
-		}
+            unsafe
+            {
+                int size = length * sizeof(RGBQUAD);
+                byte[] data = reader.ReadBytes(size);
+
+                ref byte dst = ref Unsafe.AsRef<byte>(baseAddress);
+                ref byte src = ref data[0];
+                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) data.Length);
+            }
+        }
 
 		/// <summary>
 		/// Releases allocated handles associated with this instance.

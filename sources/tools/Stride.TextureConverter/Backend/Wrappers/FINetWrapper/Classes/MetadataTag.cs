@@ -36,6 +36,7 @@
 using System;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -408,9 +409,12 @@ namespace FreeImageAPI.Metadata
 					}
 
 					Array array = Array.CreateInstance(idList[Type], Count);
-					void* src = (void*)FreeImage.GetTagValue(tag);
-					FreeImage.CopyMemory(array, src, Length);
-					return array;
+
+                    ref byte dst = ref MemoryMarshal.GetArrayDataReference(array);
+                    ref byte src = ref Unsafe.AsRef<byte>((void*) FreeImage.GetTagValue(tag));
+                    Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
+
+                    return array;
 				}
 			}
 			set
@@ -512,22 +516,25 @@ namespace FreeImageAPI.Metadata
 			}
 			else
 			{
-				Array array = value as Array;
-				if (array == null)
-				{
-					throw new ArgumentException("value");
-				}
+                if (value is not Array array)
+                {
+                    throw new ArgumentException(nameof(value));
+                }
 
-				if (array.Length != 0)
+                if (array.Length != 0)
 					if (!CheckType(array.GetValue(0).GetType(), type))
 						throw new ArgumentException("The type of value is incorrect.");
 
 				Type = type;
 				Count = (uint)array.Length;
 				Length = (uint)(array.Length * Marshal.SizeOf(idList[type]));
+
 				data = new byte[Length];
-				FreeImage.CopyMemory(data, array, Length);
-			}
+
+                ref byte dst = ref data[0];
+                ref byte src = ref MemoryMarshal.GetArrayDataReference(array);
+                Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
+            }
 
 			return FreeImage.SetTagValue(tag, data);
 		}
@@ -617,8 +624,13 @@ namespace FreeImageAPI.Metadata
 			item.Id = ID;
 			item.Len = (int)Length;
 			item.Type = (short)Type;
-			FreeImage.CopyMemory(item.Value = new byte[item.Len], FreeImage.GetTagValue(tag), item.Len);
-			return item;
+            item.Value = new byte[item.Len];
+
+            ref byte dst = ref item.Value[0];
+            ref byte src = ref Unsafe.AsRef<byte>((void*) FreeImage.GetTagValue(tag));
+            Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
+
+            return item;
 		}
 
 		/// <summary>

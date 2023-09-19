@@ -7,11 +7,11 @@ if %ERRORLEVEL% neq 0 GOTO :error_popd
 popd
 
 REM Create folders
-mkdir x86
-mkdir x64
+mkdir win-x86
+mkdir win-x64
 
-copy ..\..\externals\BulletSharpPInvoke\src\VHACD_Lib\VHACD\Release\*.dll x86
-copy ..\..\externals\BulletSharpPInvoke\src\VHACD_Lib\VHACD\x64\Release\*.dll x64
+copy ..\..\externals\BulletSharpPInvoke\src\VHACD_Lib\VHACD\Release\*.dll win-x86
+copy ..\..\externals\BulletSharpPInvoke\src\VHACD_Lib\VHACD\x64\Release\*.dll win-x64
 
 GOTO :end
 :error_popd

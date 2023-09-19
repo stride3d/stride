@@ -4,7 +4,7 @@
 namespace Stride.Rendering.Materials
 {
     /// <summary>
-    /// Type of a stream used by <see cref="MaterialStreamAttribute"/>
+    /// Type of a stream used by <see cref="MaterialBlendLayerContext"/>
     /// </summary>
     public enum MaterialStreamType
     {

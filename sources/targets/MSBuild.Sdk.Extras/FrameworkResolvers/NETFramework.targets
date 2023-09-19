@@ -4,8 +4,6 @@
     <MSBuildAllProjects Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
-
-
   <PropertyGroup Condition="$(_SdkShortFrameworkProfileCount) == 1 AND $(_SdkShortFrameworkProfile.Contains('+client+'))">
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <TargetFrameworkVersion Condition="'$(TargetFrameworkVersion)' == ''">v4.0</TargetFrameworkVersion>

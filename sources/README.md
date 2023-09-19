@@ -41,7 +41,7 @@ and used by most projects.
 
 ### targets ###
 
-* MSBuild target files to create easily cross-platform solutions (Android, iOS, WinRT, WinPhone, etc...), and define behaviors and targets globally. Extensible.
+* MSBuild target files to create easily cross-platform solutions (Android, iOS, WinRT, etc...), and define behaviors and targets globally. Extensible.
 
 ----------
 

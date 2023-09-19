@@ -72,7 +72,6 @@
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="..\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
   <Target Name="LocateDevenv" AfterTargets="PrepareForBuild">
     <!-- Compute and save VisualStudio path to a file so that it can be used when running the test. Note: ideally we should use a Task, but Visual Studio lock the files -->

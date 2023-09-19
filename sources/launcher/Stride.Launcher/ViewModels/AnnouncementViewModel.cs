@@ -66,10 +66,8 @@ namespace Stride.LauncherApp.ViewModels
                     if (stream == null)
                         return null;
 
-                    using (var reader = new StreamReader(stream))
-                    {
-                        return reader.ReadToEnd();
-                    }
+                    using var reader = new StreamReader(stream);
+                    return reader.ReadToEnd();
                 }
             }
             catch (Exception)

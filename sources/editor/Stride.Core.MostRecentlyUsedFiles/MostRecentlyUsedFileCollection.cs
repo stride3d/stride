@@ -7,8 +7,8 @@ using System.Linq;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
-using Stride.Core.Settings;
 using Stride.Core.Presentation.Collections;
+using Stride.Core.Settings;
 
 namespace Stride.Core.MostRecentlyUsedFiles
 {

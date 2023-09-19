@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using Stride.Core.Yaml.Serialization;

@@ -67,7 +67,6 @@ namespace Stride.Rendering
             });
         }
 
-        /// <param name="context"></param>
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
         {

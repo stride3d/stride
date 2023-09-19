@@ -22,15 +22,6 @@ namespace Stride.Core
             isShared = false;
         }
 
-        [Obsolete("Obtain Memory<T> using GC.Allocate*Array or a Stride-specific allocator mechanism.")]
-        public UnmanagedArray(int length, IntPtr unmanagedDataPtr)
-        {
-            Length = length;
-            sizeOfT = Unsafe.SizeOf<T>();
-            Pointer = unmanagedDataPtr;
-            isShared = true;
-        }
-
         public void Dispose()
         {
             if (!isShared)

@@ -21,7 +21,7 @@ namespace Stride.Graphics.Data
                 var isStreamable = stream.ReadBoolean();
                 if (!isStreamable)
                 {
-                    var image = Image.Load(stream.NativeStream);
+                    var image = Image.Load(stream.UnderlyingStream);
                     textureData.InitializeFrom(image);
                 }
                 else
@@ -41,7 +41,7 @@ namespace Stride.Graphics.Data
             }
             else
             {
-                textureData.Save(stream.NativeStream, ImageFileType.Stride);
+                textureData.Save(stream.UnderlyingStream, ImageFileType.Stride);
             }
         }
 

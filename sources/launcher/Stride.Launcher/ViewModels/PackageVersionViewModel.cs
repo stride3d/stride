@@ -35,10 +35,8 @@ namespace Stride.LauncherApp.ViewModels
         internal PackageVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage)
             : base(launcher.SafeArgument("launcher").ServiceProvider)
         {
-            if (launcher == null) throw new ArgumentNullException(nameof(launcher));
-            if (store == null) throw new ArgumentNullException(nameof(store));
-            Launcher = launcher;
-            Store = store;
+            Launcher = launcher ?? throw new ArgumentNullException(nameof(launcher));
+            Store = store ?? throw new ArgumentNullException(nameof(store));
             LocalPackage = localPackage;
             DownloadCommand = new AnonymousTaskCommand(ServiceProvider, () => Download(true));
             DeleteCommand = new AnonymousTaskCommand(ServiceProvider, () => Delete(true, true)) { IsEnabled = CanDelete };
@@ -184,13 +182,11 @@ namespace Stride.LauncherApp.ViewModels
                     try
                     {
                         CurrentProcessStatus = null;
-                        using (var progressReport = new ProgressReport(Store, ServerPackage))
-                        {
-                            progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
-                            progressReport.UpdateProgress(ProgressAction.Delete, -1);
-                            await Store.UninstallPackage(LocalPackage, progressReport);
-                            CurrentProcessStatus = null;
-                        }
+                        using var progressReport = new ProgressReport(Store, ServerPackage);
+                        progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
+                        progressReport.UpdateProgress(ProgressAction.Delete, -1);
+                        await Store.UninstallPackage(LocalPackage, progressReport);
+                        CurrentProcessStatus = null;
                     }
                     catch (Exception e)
                     {

@@ -103,7 +103,6 @@ namespace Stride.Rendering.Materials
             perMaterialDescriptorSetSlot = ((RootEffectRenderFeature)RootRenderFeature).GetOrCreateEffectDescriptorSetSlot("PerMaterial");
         }
 
-        /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {

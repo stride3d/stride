@@ -38,7 +38,7 @@ namespace Stride.Core.Serialization
             this.url = url;
         }
 
-        // <summary>
+        /// <summary>
         /// Gets the Url of the referenced asset.
         /// </summary>
         [DataMember(10)]

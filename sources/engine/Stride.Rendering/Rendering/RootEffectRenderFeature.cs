@@ -388,7 +388,6 @@ namespace Stride.Rendering
         {
         }
 
-        /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {

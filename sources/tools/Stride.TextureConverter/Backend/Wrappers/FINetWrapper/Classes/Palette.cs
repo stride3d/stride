@@ -1,13 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
 using System.IO;
-using FreeImageAPI.Metadata;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using FreeImageAPI.Metadata;
 
 namespace FreeImageAPI
 {
@@ -400,11 +399,11 @@ namespace FreeImageAPI
 			{
 				int size = length * sizeof(RGBQUAD);
 				byte[] data = reader.ReadBytes(size);
-				fixed (byte* src = data)
-				{
-					CopyMemory(baseAddress, src, data.Length);
-				}
-			}
+
+                ref byte dst = ref Unsafe.AsRef<byte>(baseAddress);
+                ref byte src = ref data[0];
+                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) data.Length);
+            }
 		}
 
 		/// <summary>

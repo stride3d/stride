@@ -35,7 +35,7 @@ namespace Stride.GameStudio
         public static string DocumentationUrl => $"https://doc.stride3d.net/{EditorVersionMajor}/";
 
         [NotNull]
-        public static string ForumsUrl => "https://forums.stride3d.net/";
+        public static string ForumsUrl => "https://github.com/stride3d/stride/discussions";
 
         [NotNull]
         public static string ReportIssueUrl => "https://github.com/stride3d/stride/issues/";

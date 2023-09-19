@@ -315,6 +315,11 @@ namespace Stride.Core.Reflection
                             // No way to load from byte array (see https://stackoverflow.com/questions/5005409/exception-with-resolving-assemblies-attempt-to-load-an-unverifiable-executable)
                             assembly = Assembly.LoadFrom(assemblyFullPath);
                         }
+                        catch (BadImageFormatException)
+                        {
+                            // It could be a mixed mode assembly (see https://stackoverflow.com/questions/2945080/how-do-i-dynamically-load-raw-assemblies-that-contains-unmanaged-codebypassing)
+                            assembly = Assembly.LoadFrom(assemblyFullPath);
+                        }
                         loadedAssembly = new LoadedAssembly(this, assemblyFullPath, assembly, dependenciesMapping);
                         loadedAssemblies.Add(loadedAssembly);
                         loadedAssembliesByName.Add(assemblyFullPath, loadedAssembly);

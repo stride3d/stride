@@ -68,7 +68,7 @@ namespace Stride.Graphics.GeometricPrimitives
         /// </summary>
         /// <param name="graphicsDevice">The graphics device.</param>
         /// <param name="geometryMesh">The geometry mesh.</param>
-        /// <exception cref="System.InvalidOperationException">Cannot generate more than 65535 indices on feature level HW <= 9.3</exception>
+        /// <exception cref="System.InvalidOperationException">Cannot generate more than 65535 indices on feature level HW &lt;&#61; 9.3</exception>
         public GeometricPrimitive(GraphicsDevice graphicsDevice, GeometricMeshData<T> geometryMesh)
         {
             GraphicsDevice = graphicsDevice;

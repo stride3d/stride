@@ -10,38 +10,6 @@
     <_SdkImplicitFrameworkProfileDefine Condition="'$(_SdkShortFrameworkIdentifier)' == 'uap'">WINDOWS_UWP</_SdkImplicitFrameworkProfileDefine>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'win' OR '$(TargetFramework)' == 'win8' OR '$(TargetFramework)' == 'win80'">
-    <TargetPlatformVersion>8.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>8.0</TargetPlatformMinVersion>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
-    <NugetTargetMoniker>Windows,Version=v8.0</NugetTargetMoniker>
-
-    <!-- Need to override the built-in implicit defines for win8 or it'll be NETCORE4_5 -->
-    <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">WINDOWS8</ImplicitFrameworkDefine>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'win81'">
-    <TargetPlatformVersion>8.1</TargetPlatformVersion>
-    <TargetPlatformMinVersion>8.1</TargetPlatformMinVersion>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
-    <NugetTargetMoniker>Windows,Version=v8.1</NugetTargetMoniker>
-
-    <!-- Need to override the built-in implicit defines for win81 or it'll be NETCORE4_5_1 -->
-    <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">WINDOWS8_1</ImplicitFrameworkDefine>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'wpa' OR '$(TargetFramework)' == 'wpa81'">
-    <TargetPlatformVersion>8.1</TargetPlatformVersion>
-    <TargetPlatformMinVersion>8.1</TargetPlatformMinVersion>
-    <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
-    <TargetPlatformIdentifier>WindowsPhoneApp</TargetPlatformIdentifier>
-
-    <!-- Need to override the built-in implicit defines for wpa81 or it'll be WINDOWSPHONEAPP8_1 -->
-    <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">WINDOWS_PHONE_APP</ImplicitFrameworkDefine>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(_SdkShortFrameworkIdentifier)' == 'uap'">
     <TargetFrameworkVersion>v6.0</TargetFrameworkVersion>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>

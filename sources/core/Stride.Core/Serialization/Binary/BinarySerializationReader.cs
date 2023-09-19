@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using Stride.Core.Annotations;
-using Stride.Core.IO;
 
 namespace Stride.Core.Serialization
 {
@@ -15,11 +14,11 @@ namespace Stride.Core.Serialization
         /// <summary>
         /// Initializes a new instance of the <see cref="BinarySerializationReader"/> class.
         /// </summary>
-        /// <param name="inputStream">The input stream.</param>
+        /// <param name="inputStream">The input stream to read from.</param>
         public BinarySerializationReader([NotNull] Stream inputStream)
         {
             Reader = new BinaryReader(inputStream);
-            NativeStream = inputStream;
+            UnderlyingStream = inputStream;
         }
 
         private BinaryReader Reader { get; }
@@ -27,63 +26,56 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref bool value)
         {
-            var result = NativeStream.ReadByte();
-            if (result == -1)
-                throw new EndOfStreamException();
-            value = result != 0;
+            value = Reader.ReadBoolean();
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         /// <inheritdoc />
         public override unsafe void Serialize(ref float value)
         {
-            fixed (float* valuePtr = &value)
-                *((uint*)valuePtr) = NativeStream.ReadUInt32();
+            value = Reader.ReadSingle();
         }
 
         /// <inheritdoc />
         public override unsafe void Serialize(ref double value)
         {
-            fixed (double* valuePtr = &value)
-                *((ulong*)valuePtr) = NativeStream.ReadUInt64();
+            value = Reader.ReadDouble();
         }
 
         /// <inheritdoc />
         public override void Serialize(ref short value)
         {
-            value = (short)NativeStream.ReadUInt16();
+            value = Reader.ReadInt16();
         }
 
         /// <inheritdoc />
         public override void Serialize(ref int value)
         {
-            value = (int)NativeStream.ReadUInt32();
+            value = Reader.ReadInt32();
         }
 
         /// <inheritdoc />
         public override void Serialize(ref long value)
         {
-            value = (long)NativeStream.ReadUInt64();
+            value = Reader.ReadInt64();
         }
 
         /// <inheritdoc />
         public override void Serialize(ref ushort value)
         {
-            value = NativeStream.ReadUInt16();
+            value = Reader.ReadUInt16();
         }
 
         /// <inheritdoc />
         public override void Serialize(ref uint value)
         {
-            value = NativeStream.ReadUInt32();
+            value = Reader.ReadUInt32();
         }
 
         /// <inheritdoc />
         public override void Serialize(ref ulong value)
         {
-            value = NativeStream.ReadUInt64();
+            value = Reader.ReadUInt64();
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <inheritdoc />
         public override void Serialize([NotNull] ref string value)
@@ -100,19 +92,13 @@ namespace Stride.Core.Serialization
         /// <inheritdoc />
         public override void Serialize(ref byte value)
         {
-            var result = NativeStream.ReadByte();
-            if (result == -1)
-                throw new EndOfStreamException();
-            value = (byte)result;
+            value = Reader.ReadByte();
         }
 
         /// <inheritdoc />
         public override void Serialize(ref sbyte value)
         {
-            var result = NativeStream.ReadByte();
-            if (result == -1)
-                throw new EndOfStreamException();
-            value = (sbyte)(byte)result;
+            value = Reader.ReadSByte();
         }
 
         /// <inheritdoc />
@@ -121,7 +107,7 @@ namespace Stride.Core.Serialization
             Reader.Read(values, offset, count);
         }
         /// <inheritdoc/>
-        public override void Serialize(Span<byte> buffer) => NativeStream.Read(buffer);
+        public override void Serialize(Span<byte> buffer) => Reader.Read(buffer);
 
         /// <inheritdoc />
         public override void Flush()

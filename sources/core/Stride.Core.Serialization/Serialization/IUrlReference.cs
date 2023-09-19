@@ -5,7 +5,7 @@ namespace Stride.Core.Serialization
     /// </summary>
     public interface IUrlReference
     {
-        // <summary>
+        /// <summary>
         /// Gets the Url of the referenced asset.
         /// </summary>
         string Url { get; }

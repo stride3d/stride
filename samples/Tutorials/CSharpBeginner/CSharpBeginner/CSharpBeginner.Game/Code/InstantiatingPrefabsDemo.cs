@@ -24,7 +24,7 @@ namespace CSharpBeginner.Code
 
             // We add the entities to a new entity that we can use a parent
             // We can easily position and rotate the parent entity
-            var pileOfBoxesParent = new Entity(new Vector3(0, 0, -2), "PileOfBoxes2");
+            var pileOfBoxesParent = new Entity("PileOfBoxes2", new Vector3(0, 0, -2));
             pileOfBoxesParent.Transform.Rotation = Quaternion.RotationY(135);
             foreach (var entity in pileOfBoxesInstance2)
             {

@@ -62,7 +62,7 @@ namespace Stride.LauncherApp.ViewModels
             await UpdateVersionsFromStore();
             Dispatcher.Invoke(UpdateStatus);
         }
-        
+
         /// <inheritdoc/>
         protected override void UpdateStatus()
         {
@@ -114,7 +114,7 @@ namespace Stride.LauncherApp.ViewModels
         /// <inheritdoc/>
         protected override async Task UpdateVersionsFromStore()
         {
-            var versionRange = Store.VsixVersionToStrideRelease[this.vsixSupportedVsVersion];
+            var versionRange = Store.VsixVersionToStrideRelease[vsixSupportedVsVersion];
             var minVersion = versionRange.MinVersion;
             var maxVersion = versionRange.MaxVersion;
 

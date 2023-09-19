@@ -162,8 +162,8 @@ namespace Stride.GameStudio.Debugging
 
             if (process == null)
             {
-                // If not, let the user pick an instance
-                var picker = new DebuggerPickerWindow(VisualStudioDTE.GetActiveInstances());
+                // If not, let the user pick an instance (Todo)
+                var picker = new DebuggerPickerWindow(Array.Empty<Process>());
 
                 var result = await picker.ShowModal();
 

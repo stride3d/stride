@@ -301,6 +301,87 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Doprez",
+      "name": "Doprez",
+      "avatar_url": "https://avatars.githubusercontent.com/u/73259914?v=4",
+      "profile": "https://github.com/Doprez",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Jklawreszuk",
+      "name": "Jakub Ławreszuk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31008367?v=4",
+      "profile": "https://github.com/Jklawreszuk",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Ethereal77",
+      "name": "Mario Guerra",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8967302?v=4",
+      "profile": "https://github.com/Ethereal77",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "tamamutu",
+      "name": "tamamutu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/62577086?v=4",
+      "profile": "https://github.com/tamamutu",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "IXLLEGACYIXL",
+      "name": "IXLLEGACYIXL",
+      "avatar_url": "https://avatars.githubusercontent.com/u/107197024?v=4",
+      "profile": "https://github.com/IXLLEGACYIXL",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "arturoc",
+      "name": "arturo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/48240?v=4",
+      "profile": "https://github.com/arturoc",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "garychia",
+      "name": "Chia-Hsiang Cheng",
+      "avatar_url": "https://avatars.githubusercontent.com/u/88014292?v=4",
+      "profile": "https://github.com/garychia",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "NicusorN5",
+      "name": "Nicolae Tugui",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20599225?v=4",
+      "profile": "https://nicusorn5.github.io/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mattiascibien",
+      "name": "Mattias Cibien",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1300681?v=4",
+      "profile": "https://mattiascibien.net",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -308,5 +389,7 @@
   "projectOwner": "stride3d",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitType": "docs",
+  "commitConvention": "angular"
 }

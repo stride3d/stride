@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
@@ -14,13 +14,13 @@
   </ItemGroup>
   <ItemGroup>
     <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FreeImage\Release\**\*.dll">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
     <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
     <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.dll">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>

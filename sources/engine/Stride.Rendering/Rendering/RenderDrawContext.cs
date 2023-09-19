@@ -9,7 +9,7 @@ using Stride.Graphics;
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Rendering context used during <see cref="IGraphicsRenderer.Draw"/>.
+    /// Rendering context used during <see cref="IGraphicsRendererBase.Draw(RenderDrawContext)"/>.
     /// </summary>
     public sealed class RenderDrawContext : ComponentBase
     {

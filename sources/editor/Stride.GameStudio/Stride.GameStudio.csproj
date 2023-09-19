@@ -1,7 +1,6 @@
 <Project>
   <Import Project="..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="..\..\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>

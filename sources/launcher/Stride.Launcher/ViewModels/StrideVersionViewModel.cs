@@ -38,44 +38,45 @@ namespace Stride.LauncherApp.ViewModels
         protected void UpdateFrameworks()
         {
             Frameworks.Clear();
-            if (LocalPackage != null && InstallPath != null)
+            if (LocalPackage == null || InstallPath == null)
             {
-                foreach (var toplevelFolder in new[] { "tools", "lib" })
+                return;
+            }
+            foreach (var toplevelFolder in new[] { "tools", "lib" })
+            {
+                var libDirectory = Path.Combine(InstallPath, toplevelFolder);
+                if (Directory.Exists(libDirectory))
                 {
-                    var libDirectory = Path.Combine(InstallPath, toplevelFolder);
-                    if (Directory.Exists(libDirectory))
+                    foreach (var frameworkPath in Directory.EnumerateDirectories(libDirectory))
                     {
-                        foreach (var frameworkPath in Directory.EnumerateDirectories(libDirectory))
+                        if (File.Exists(Path.Combine(frameworkPath, Major >= 4 ? StrideGameStudioExe : XenkoGameStudioExe)))
                         {
-                            if (File.Exists(Path.Combine(frameworkPath, Major >= 4 ? StrideGameStudioExe : XenkoGameStudioExe)))
-                            {
-                                Frameworks.Add(new DirectoryInfo(frameworkPath).Name);
-                            }
+                            Frameworks.Add(new DirectoryInfo(frameworkPath).Name);
                         }
                     }
                 }
+            }
 
-                if (Frameworks.Count > 0)
+            if (Frameworks.Count > 0)
+            {
+                try
                 {
-                    try
+                    // If preferred framework exists in our list, select it
+                    var preferredFramework = LauncherSettings.PreferredFramework;
+                    if (Frameworks.Contains(preferredFramework))
+                        SelectedFramework = preferredFramework;
+                    else
                     {
-                        // If preferred framework exists in our list, select it
-                        var preferredFramework = LauncherSettings.PreferredFramework;
-                        if (Frameworks.Contains(preferredFramework))
-                            SelectedFramework = preferredFramework;
-                        else
-                        {
-                            // Otherwise, try to find a framework of the same kind (.NET Core or .NET Framework)
-                            var nugetFramework = NuGetFramework.ParseFolder(preferredFramework);
-                            SelectedFramework =
-                                Frameworks.FirstOrDefault(x => NuGetFramework.ParseFolder(preferredFramework).Framework == nugetFramework.Framework)
-                                ?? Frameworks.First(); // otherwise fallback to first choice
-                        }
+                        // Otherwise, try to find a framework of the same kind (.NET Core or .NET Framework)
+                        var nugetFramework = NuGetFramework.ParseFolder(preferredFramework);
+                        SelectedFramework =
+                            Frameworks.FirstOrDefault(x => NuGetFramework.ParseFolder(preferredFramework).Framework == nugetFramework.Framework)
+                            ?? Frameworks.First(); // otherwise fallback to first choice
                     }
-                    catch
-                    {
-                        SelectedFramework = Frameworks.First();
-                    }
+                }
+                catch
+                {
+                    SelectedFramework = Frameworks.First();
                 }
             }
         }
@@ -140,7 +141,7 @@ namespace Stride.LauncherApp.ViewModels
 
             return $"{packageSimpleName} {majorVersion}.{minorVersion}";
         }
-        
+
         /// <summary>
         /// Indicates if the given version corresponds to a beta version.
         /// </summary>

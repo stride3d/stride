@@ -82,10 +82,10 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Gets a <see cref="NativeStream"/> over the <see cref="Content"/>.
+        /// Gets a <see cref="Stream"/> over the <see cref="Content"/>.
         /// </summary>
         /// It will keeps a reference to the <see cref="Blob"/> until disposed.
-        /// <returns>A <see cref="NativeStream"/> over the <see cref="Content"/>.</returns>
+        /// <returns>A <see cref="Stream"/> over the <see cref="Content"/>.</returns>
         public Stream GetContentStream() => new BlobStream(this);
 
         /// <inheritdoc/>

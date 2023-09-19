@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
@@ -23,8 +23,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <StrideNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
-      <Link>win-%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <RelativePath>win-%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <Link>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
     <StrideContent Include="..\..\..\deps\glslang\**\glslangValidator*.*">
