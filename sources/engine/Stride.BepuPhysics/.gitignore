@@ -1,0 +1,14 @@
+
+*.user
+*.lock
+*.lock.json
+.vs/
+_ReSharper*
+*.suo
+*.VC.db
+*.vshost.exe
+*.manifest
+*.sdf
+[Bb]in/
+obj/
+Cache/

@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0-windows</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepuPhysics" Version="2.4.0" />
+    <PackageReference Include="Stride.Engine" Version="4.1.0.1898" />
+
+    <PackageReference Include="Stride.Video" Version="4.1.0.1898" />
+    <PackageReference Include="Stride.Physics" Version="4.1.0.1898" />
+    <PackageReference Include="Stride.Navigation" Version="4.1.0.1898" />
+    <PackageReference Include="Stride.Particles" Version="4.1.0.1898" />
+    <PackageReference Include="Stride.UI" Version="4.1.0.1898" />
+
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.1.0.1898" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>
