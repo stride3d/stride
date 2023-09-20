@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -41,11 +42,23 @@ public class PropertyFinder : IPropertyFinder, IViolationReporter
     {
         if (propertyInfo == null)
             return false;
+        return HasPublicInternalSetterGetters(propertyInfo) || HasInitializerAndGetter(propertyInfo);
+    }
+
+    private bool HasInitializerAndGetter(IPropertySymbol propertyInfo)
+    {
+        return (propertyInfo.GetMethod?.DeclaredAccessibility == Accessibility.Public ||
+                        propertyInfo.GetMethod?.DeclaredAccessibility == Accessibility.Internal)
+                        && propertyInfo.
+    }
+
+    private static bool HasPublicInternalSetterGetters(IPropertySymbol propertyInfo)
+    {
         return (propertyInfo.SetMethod?.DeclaredAccessibility == Accessibility.Public ||
-                propertyInfo.SetMethod?.DeclaredAccessibility == Accessibility.Internal
-            )
-            &&
-                (propertyInfo.GetMethod?.DeclaredAccessibility == Accessibility.Public ||
-                propertyInfo.GetMethod?.DeclaredAccessibility == Accessibility.Internal);
+                        propertyInfo.SetMethod?.DeclaredAccessibility == Accessibility.Internal
+                    )
+                    &&
+                        (propertyInfo.GetMethod?.DeclaredAccessibility == Accessibility.Public ||
+                        propertyInfo.GetMethod?.DeclaredAccessibility == Accessibility.Internal);
     }
 }
