@@ -1,9 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#include "../../../deps/NativePath/NativePath.h"
-#include "../../../deps/NativePath/NativeMath.h"
-#include "../../../deps/NativePath/standard/math.h"
 #include "../StrideNative.h"
 
 #ifdef __cplusplus

@@ -6,8 +6,6 @@
 
 //Borrowed from: https://msdn.microsoft.com/en-us/library/windows/desktop/ee417014(v=vs.85).aspx#XInput_and_DirectInput_Side_by_Side
 
-#include "../../../deps/NativePath/NativePath.h"
-
 typedef struct _GUID {
 	unsigned long  Data1;
 	unsigned short Data2;
