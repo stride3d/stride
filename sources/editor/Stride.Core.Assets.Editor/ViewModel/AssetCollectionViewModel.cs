@@ -540,27 +540,29 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, IEnumerable<UFile> files, PropertyContainer? customParameters)
         {
             List<AssetViewModel> newAssets = new List<AssetViewModel>();
-
-            foreach (var file in files)
+            if (files is not null)
             {
-                bool inResourceFolder = false;
-                foreach (var resourceFolder in directory.Package.Package.ResourceFolders)
+                foreach (var file in files)
                 {
-                    if (file.FullPath.StartsWith(resourceFolder.FullPath))
+                    bool inResourceFolder = false;
+                    foreach (var resourceFolder in directory.Package.Package.ResourceFolders)
                     {
-                        inResourceFolder = true;
-                        break;
+                        if (file.FullPath.StartsWith(resourceFolder.FullPath))
+                        {
+                            inResourceFolder = true;
+                            break;
+                        }
                     }
-                }
 
-                if (inResourceFolder == false)
-                {
-                    var message = Tr._p("Message", "Source file '{0}' is not inside any of your project's resource folders, import anyway ?");
-                    message = string.Format(message, file.FullPath);
+                    if (inResourceFolder == false)
+                    {
+                        var message = Tr._p("Message", "Source file '{0}' is not inside any of your project's resource folders, import anyway ?");
+                        message = string.Format(message, file.FullPath);
 
-                    var result = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                    if (result == MessageBoxResult.No)
-                        return newAssets;
+                        var result = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                        if (result == MessageBoxResult.No)
+                            return newAssets;
+                    }
                 }
             }
 
@@ -1236,7 +1238,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private static string[] ComputeTokens(string pattern)
         {
-            return pattern?.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
+            return pattern?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
         }
 
         private void UpdateAvailableAssetFilters(string filterText)
