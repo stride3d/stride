@@ -27,7 +27,7 @@ This project is supported by the [.NET Foundation](https://dotnetfoundation.org)
 
 ### License
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
-You can find the list of third party projects [here](THIRD%20PARTY.md).
+You can find the list of third-party projects [here](THIRD%20PARTY.md).
 Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
 
 ### Code of conduct
@@ -49,10 +49,11 @@ Find explanations and information about Stride:
 
 Ask for help or report issues:
 * [Chat with the community on Discord](https://discord.gg/f6aerfE)
-* [Discuss topics on Github discussions](https://github.com/stride3d/stride/discussions)
+* [Discuss topics on GitHub discussions](https://github.com/stride3d/stride/discussions)
 * [Report engine issues](https://github.com/stride3d/stride/issues)
 * [Donate to support the project](https://opencollective.com/stride3d/)
 * [List of Projects made by users](https://github.com/stride3d/stride/wiki/Community-Projects)
+* [Awesome Stride - Huge List of Stride Resources](https://github.com/Doprez/Awesome-Stride)
 * [Localization](docs/localization.md)
 
 ## Building from source
