@@ -225,6 +225,19 @@ namespace Stride.GameStudio
                 InitializeLanguageSettings();
                 var serviceProvider = InitializeServiceProvider();
 
+                //Check to see that the required .NET SDK is available, otherwise Stride will launch with an older version of the SDK
+                if (StrideGameStudio.EditorVersionMajor == "4.1" && !RuntimeInformation.FrameworkDescription.ToString().StartsWith(".NET 6"))
+                {
+                    var message = "Could not find required .NET 6.0 SDK.\r\n\r\n" +
+                                  "Check that you have a valid installation with the required workloads, or go to [https://dotnet.microsoft.com/en-us/download](https://dotnet.microsoft.com/en-us/download) and install.\r\n\r\n" +
+                                  "Detected SDK: " + RuntimeInformation.FrameworkDescription.ToString() + "\r\n";
+
+                    await serviceProvider.Get<IEditorDialogService>().MessageBox(message, Core.Presentation.Services.MessageBoxButton.OK, Core.Presentation.Services.MessageBoxImage.Error);
+                    app.Shutdown();
+                    return;
+
+                }
+
                 try
                 {
                     PackageSessionPublicHelper.FindAndSetMSBuildVersion();
