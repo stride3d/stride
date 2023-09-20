@@ -123,7 +123,7 @@ namespace Stride.Core.Tests
                 Profiler.EnableAll();
                 using (var profile = Profiler.Begin(TestKey))
                 {
-                    profile.SetAttribute("MyAttribute", 5);
+                    profile.Attributes.Add("MyAttribute", 5);
                     Thread.Sleep(timeToWait);
                     profile.Mark();
                 }
@@ -216,7 +216,7 @@ namespace Stride.Core.Tests
                 Assert.True(watcher.CurrentMessage < expectedMessages.Count, $"Unexpected message received: [{messageToString}]");
                 string expectedMessage;
                 var result = expectedMessages[watcher.CurrentMessage](messageToString, out expectedMessage, false);
-                Assert.True(result, $"Expecting message [{expectedMessage}]");
+                Assert.True(result, $"Expecting message \"{expectedMessage}\", but got \"{messageToString}\"");
                 watcher.CurrentMessage++;
             };
             GlobalLogger.GlobalMessageLogged += watcher.LogAction;
