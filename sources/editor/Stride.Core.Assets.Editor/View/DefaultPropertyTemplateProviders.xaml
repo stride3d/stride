@@ -230,7 +230,7 @@
                     Visibility="{Binding HasChild_Enabled, Converter={sd:VisibleOrCollapsed}}"/>
         </Grid>
       </Border>
-      <GridSplitter Grid.Column="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
+      <GridSplitter Grid.Column="2" Width="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource TextBoxBackgroundBrush}"/>
       <Border x:Name="PART_Editor" Grid.Column="3" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,0,5,0">
         <ContentControl x:Name="PART_ValueContainer" Content="{Binding}" ContentTemplateSelector="{x:Static edvw:PropertyViewHelper.EditorProviders}"
                         Focusable="False" VerticalAlignment="Center" d:DataContext="{d:DesignInstance qvm:NodeViewModel}"/>

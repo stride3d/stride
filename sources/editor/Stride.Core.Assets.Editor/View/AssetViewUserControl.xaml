@@ -280,7 +280,7 @@
         <Menu Background="Transparent">
           <MenuItem StaysOpenOnClick="True" Style="{StaticResource ToolBarIconMenuItemStyle}">
             <MenuItem.Icon>
-              <Image Source="{StaticResource ImageView}" MaxHeight="24" MaxWidth="24"
+              <Image Source="{StaticResource ImageView}" MaxHeight="16" MaxWidth="16"
                      ToolTip="{sd:Localize Asset view options, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
             </MenuItem.Icon>
             <MenuItem.Resources>
