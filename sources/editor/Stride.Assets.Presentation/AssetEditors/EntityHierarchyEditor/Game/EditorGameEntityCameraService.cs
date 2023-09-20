@@ -265,7 +265,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             if (input.isPanning)
             {
                 float panningSpeed = asOrthographic ? Component.OrthographicSize : revolutionRadius;
-                panningSpeed *= MouseMoveSpeedFactor * baseSpeed;
+                panningSpeed *= MouseMoveSpeedFactor / 50f;
                 if (InvertPanningAxis.GetValue())
                     panningSpeed = -panningSpeed;
 
