@@ -37,6 +37,7 @@
     <themes:ThemeResourceDictionary Source="Overrides/ExpressionDarkTheme.xaml"
                                     ExpressionDarkSource="Overrides/ExpressionDarkTheme.xaml"
                                     DarkSteelSource="Overrides/DarkSteelTheme.xaml"
+                                    DividedSource="Overrides/DividedTheme.xaml"
                                     LightSteelBlueSource="Overrides/LightSteelBlueTheme.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
@@ -873,7 +874,7 @@
   <Style TargetType="{x:Type CheckBox}">
     <Setter Property="SnapsToDevicePixels" Value="true" />
     <Setter Property="FocusVisualStyle" Value="{DynamicResource CheckBoxFocusVisual}" />
-    <Setter Property="Background" Value="{DynamicResource NormalBrush}" />
+    <Setter Property="Background" Value="{DynamicResource ComboBoxBackground}" />
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource NormalBorderBrush}" />
     <Setter Property="Template" Value="{DynamicResource CheckBoxTemplate}" />
@@ -1752,7 +1753,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ctrl:NumericTextBox">
-          <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
+          <Border BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
             <DockPanel LastChildFill="True">
               <UniformGrid x:Name="upDownButtons" HorizontalAlignment="Stretch" DockPanel.Dock="Right" Rows="2" Focusable="False" Visibility="Collapsed" MaxWidth="16">
                 <RepeatButton x:Name="PART_IncreaseButton" Command="{x:Static ctrl:NumericTextBox.SmallIncreaseCommand}">
@@ -2858,9 +2859,9 @@
   <ControlTemplate x:Key="PropertyGridHeaderExpanderToggleButton" TargetType="{x:Type ToggleButton}">
     <Grid Background="Transparent">
       <Path HorizontalAlignment="Center" x:Name="Up_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphHeaderBrush}"
-                  Data="M 0 0 L 6 6 L 0 12 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+                  Data="M 0 6 V 0 l 5 3 z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
       <Path Visibility="Collapsed" HorizontalAlignment="Center" x:Name="Down_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphHeaderBrush}"
-                  Data="M 0 0 L 6 6 L 12 0 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+                  Data="M 0 0 H 6 L 3 6 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
     </Grid>
     <ControlTemplate.Triggers>
       <Trigger Property="IsChecked" Value="true">
@@ -2873,9 +2874,9 @@
   <ControlTemplate x:Key="TreeExpanderToggleButton" TargetType="{x:Type ToggleButton}">
     <Grid Background="Transparent">
       <Path HorizontalAlignment="Center" x:Name="Up_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphBrush}"
-                  Data="M 0 0 L 6 6 L 0 12 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+                  Data="M 0 6 V 0 l 5 3 z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
       <Path Visibility="Collapsed" HorizontalAlignment="Center" x:Name="Down_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphBrush}"
-                  Data="M 0 0 L 6 6 L 12 0 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+                  Data="M 0 0 H 6 L 3 6 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
     </Grid>
     <ControlTemplate.Triggers>
       <Trigger Property="IsChecked" Value="true">
@@ -4735,8 +4736,8 @@
                         <ResourceDictionary />
                       </Style.Resources>
                       <Setter Property="Focusable" Value="False" />
-                      <Setter Property="Width" Value="12" />
-                      <Setter Property="Height" Value="12" />
+                      <Setter Property="Width" Value="8" />
+                      <Setter Property="Height" Value="8" />
                       <Setter Property="Margin" Value="0,0,4,0" />
                       <Setter Property="Template" Value="{StaticResource TreeExpanderToggleButton}"/>
                     </Style>
