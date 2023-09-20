@@ -68,7 +68,7 @@ namespace Stride.Core.Diagnostics
         /// Gets or sets the text.
         /// </summary>
         /// <value>The text.</value>
-        public string Text { get; set; }
+        public virtual string Text { get; set; }
 
         /// <summary>
         /// Gets or sets the exception.

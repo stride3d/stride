@@ -21,4 +21,62 @@ shader ColorUtility
         float3 sRGB = sRGBa.rgb;
         return float4(sRGB * (sRGB * (sRGB * 0.305306011 + 0.682171111) + 0.012522878), sRGBa.a);
     }
+
+    // simple screen gamma conversion
+    float4 GammaToLinear (float4 RGBa, float Gamma = 2.2)
+    {
+        RGBa.rgb = pow(RGBa.rgb, 1.0/Gamma);
+        return RGBa;
+    }
+
+    float4 LinearToGamma (float4 RGBa, float Gamma = 2.2)
+    {
+        RGBa.rgb = pow(RGBa.rgb, Gamma);
+        return RGBa;
+    }
+
+    //https://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
+    // Converts an sRGB color to linear space
+    float4 SRgbToLinear(float4 sRGBa)
+    {
+        float3 sRGB = sRGBa.rgb;
+        return float4(sRGB * (sRGB * (sRGB * 0.305306011 + 0.682171111) + 0.012522878), sRGBa.a);
+    }
+
+    // Converts an linear color to sRGB space
+    float4 LinearToSRgb(float4 RGBa)
+    {
+        float3 RGB = RGBa.rgb;
+
+        float3 S1 = sqrt(RGB);
+        float3 S2 = sqrt(S1);
+        float3 S3 = sqrt(S2);
+
+        return float4(0.662002687f * S1 + 0.684122060f * S2 - 0.323583601f * S3 - 0.0225411470f * RGB, RGBa.a);
+    }
+
+    //https://github.com/vvvv/VL.Stride/pull/395#issuecomment-760253956
+    // Converts a color from linear to sRGB
+    float4 LinearToSRgbPrecise(float4 RGBa)
+    {
+        float3 rgb = RGBa.rgb;
+        float3 higher = 1.055 * pow(rgb, 1.0/2.4) - 0.055;
+        float3 lower = rgb * 12.92f;
+
+        float3 cutoff = step(rgb, 0.0031308);
+        RGBa.rgb = lerp(higher, lower, cutoff);
+        return RGBa;
+    }
+
+    // Converts a color from sRGB to linear
+    float4 SRgbToLinearPrecise(float4 sRGBa)
+    {
+        float3 srgb = sRGBa.rgb;
+        float3 higher = pow((srgb + 0.055) / 1.055, 2.4);
+        float3 lower = srgb / 12.92;
+
+        float3 cutoff = step(srgb, 0.04045);
+        sRGBa.rgb = lerp(higher, lower, cutoff);
+        return sRGBa;
+    }
 };
