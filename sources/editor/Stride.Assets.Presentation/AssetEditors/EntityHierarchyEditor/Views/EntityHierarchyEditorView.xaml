@@ -360,7 +360,7 @@
                     <TextBlock Style="{StaticResource NameStyle}"/>
                     <!-- FIXME uncomment this when we allow to load/unload a single entity -->
                     <!--<TextBlock Style="{StaticResource LoadingStyle}" />-->
-                    <TextBlock Text="{Binding Components, Converter={pvc:EntityComponentToTransformLinkInfo}, Mode=OneWay, StringFormat=(Link: {0}), FallbackValue={}}" Foreground="#FFB0D3FF" />
+                    <TextBlock Text="{Binding Components, Converter={pvc:EntityComponentToTransformLinkInfo}, Mode=OneWay, StringFormat=(Link: {0}), FallbackValue={}}" Foreground="{DynamicResource LinkTextColor}" />
                     <TextBlock Text="{Binding SourcePrefab.Name, Mode=OneWay, StringFormat=(Prefab: {0}), FallbackValue={}}" Foreground="{DynamicResource PrefabTextColor}" />
                   </StackPanel>
                 </DockPanel>

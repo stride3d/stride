@@ -157,10 +157,6 @@
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
 
-                  <Rectangle
-                               x:Name="splineBd"
-                               Fill="{TemplateBinding Background}"/>
-
                   <Border x:Name="Bd"
                                    Grid.Column="1"
                      BorderBrush="{TemplateBinding BorderBrush}">
@@ -168,7 +164,7 @@
                                   x:Name="BdInternal"
                     Background="{TemplateBinding Background}"
                     Padding="{TemplateBinding Padding}"
-                                            >
+                    CornerRadius="5,5,0,0">
                       <ContentPresenter
                      x:Name="Content"
                      ContentSource="Header"
@@ -293,6 +289,7 @@
                 <Grid SnapsToDevicePixels="true">
                   <Border x:Name="Bd"
                           BorderBrush="{TemplateBinding BorderBrush}"
+                          CornerRadius="0,0,5,5"
                           Background="{TemplateBinding Background}"
                           Padding="{TemplateBinding Padding}">
                     <ContentPresenter

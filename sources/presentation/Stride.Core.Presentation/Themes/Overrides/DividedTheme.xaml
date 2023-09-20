@@ -109,6 +109,8 @@
 
   <SolidColorBrush x:Key="GraphicsCompositorNodeTextBrush" Color="#EBEBEB" />
 
+
+  <SolidColorBrush x:Key="LinkTextColor" Color="#FFB0D3FF" />
   <SolidColorBrush x:Key="PrefabTextColor" Color="#7198d2" />
   
 

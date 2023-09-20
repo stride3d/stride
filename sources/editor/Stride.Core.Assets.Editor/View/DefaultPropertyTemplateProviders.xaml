@@ -259,7 +259,7 @@
     <Grid Visibility="{Binding IsVisible, Converter={sd:VisibleOrCollapsed}}" edvw:PropertyViewHelper.Increment="0"
               Margin="{Binding Offset, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 1,0,0,0},
                                RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}, Mode=OneWay}" x:Name="Grid">
-      <Border x:Name="PART_Name" MinHeight="26" Margin="6" Background="{StaticResource EmphasisColorBrush}"
+      <Border x:Name="PART_Name" MinHeight="20" Margin="6" Background="{StaticResource EmphasisColorBrush}"
                     VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ToolTip="{Binding Documentation}"/>
       <DockPanel Margin="10,8" x:Name="HeaderDockPanel">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">

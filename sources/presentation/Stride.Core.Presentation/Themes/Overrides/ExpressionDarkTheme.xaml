@@ -113,6 +113,9 @@
 
   <SolidColorBrush x:Key="GraphicsCompositorNodeTextBrush" Color="#EBEBEB" />
 
+  <SolidColorBrush x:Key="LinkTextColor" Color="#FFB0D3FF" />
+  <SolidColorBrush x:Key="PrefabTextColor" Color="#FFB0FFD3" />
+
   <!--TextLogViewer colors-->
   <SolidColorBrush x:Key="TextLogDebugBrush" Color="DarkGray"/>
   <SolidColorBrush x:Key="TextLogVerboseBrush" Color="White"/>
