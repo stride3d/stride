@@ -228,13 +228,13 @@ namespace Stride.Assets
                             {
                                 // In case it's a single TargetFramework, add the "s" at the end
                                 tfm.Xml.Name = "TargetFrameworks";
-                                tfm.Xml.Value = "net6.0";
+                                tfm.Xml.Value = "net8.0";
                                 isProjectDirty = true;
                             }
                             // Executable
                             else if ((tfm.EvaluatedValue.StartsWith("net4") || tfm.EvaluatedValue.StartsWith("net5")) && solutionProject.Type == ProjectType.Executable)
                             {
-                                tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net6.0-windows" : "net6.0";
+                                tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net8.0-windows" : "net8.0";
                                 isProjectDirty = true;
                             }
                         }
