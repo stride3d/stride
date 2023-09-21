@@ -258,7 +258,7 @@ namespace Stride.Core.Assets
                     switch (projectDependency.Type)
                     {
                         case DependencyType.Project:
-                            if (Path.GetExtension(projectDependency.MSBuildProject).ToLowerInvariant() == ".csproj")
+                            if (SupportedProgrammingLanguages.IsSupportedByExtension(Path.GetExtension(projectDependency.MSBuildProject).ToLowerInvariant()))
                                 file = UPath.Combine(project.FullPath.GetFullDirectory(), (UFile)projectDependency.MSBuildProject);
                             break;
                         case DependencyType.Package:
