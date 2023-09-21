@@ -83,7 +83,8 @@ namespace Stride.GameStudio
             Thread.CurrentThread.Name = "Main thread";
 
             // Install Metrics for the editor
-            using (StrideGameStudio.MetricsClient = new MetricsClient(CommonApps.StrideEditorAppId))
+
+            using (StrideGameStudio.MetricsClient = EditorSettings.EnableMetrics.GetValue() ? new MetricsClient(CommonApps.StrideEditorAppId) : null)
             {
                 try
                 {
