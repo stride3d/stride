@@ -312,7 +312,7 @@ namespace Stride.Core.Presentation.Controls
         protected sealed override void OnValidated()
         {
             double? value;
-            if (double.TryParse(Text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsedValue))
+            if (double.TryParse(Text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out var parsedValue))
             {
                 value = parsedValue;
             }
@@ -328,7 +328,7 @@ namespace Stride.Core.Presentation.Controls
 
         protected override bool IsTextCompatibleWithValueBinding(string text)
         {
-            return double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _);
+            return double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out _);
         }
 
         /// <inheritdoc/>
@@ -337,7 +337,7 @@ namespace Stride.Core.Presentation.Controls
         {
             baseValue = base.CoerceTextForValidation(baseValue);
             double? value;
-            if (double.TryParse(baseValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsedValue))
+            if (double.TryParse(baseValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out var parsedValue))
             {
                 value = parsedValue;
 
@@ -366,7 +366,7 @@ namespace Stride.Core.Presentation.Controls
 
             var decimalPlaces = DecimalPlaces;
             var coercedValue = decimalPlaces < 0 ? value.Value : Math.Round(value.Value, decimalPlaces);
-            return coercedValue.ToString(CultureInfo.InvariantCulture);
+            return coercedValue.ToString(CultureInfo.CurrentCulture);
         }
 
         private void RepeatButtonIsPressedChanged(object sender, EventArgs e)
