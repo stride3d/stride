@@ -10,7 +10,7 @@
         Title="{sd:Localize Add asset...}"
         SizeToContent="WidthAndHeight"
         Icon="{DynamicResource EditorIcon}" ShowInTaskbar="False"
-        Style="{DynamicResource WindowChromeStyle}" d:DataContext="{d:DesignInstance viewModels:NewPackageTemplateCollectionViewModel}">
+        Style="{DynamicResource WindowChromeStyle}" d:DataContext="{d:DesignInstance viewModels:NewProjectTemplateCollectionViewModel}">
   <sd:ModalWindow.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
