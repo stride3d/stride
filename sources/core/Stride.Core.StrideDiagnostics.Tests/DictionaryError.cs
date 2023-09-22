@@ -55,7 +55,6 @@ public class IgnoreCollection
         };
         foreach (var primitiveType in primitiveTypes)
         {
-            // Define the source code for the Class1 class with an invalid property
             var sourceCode = @$"
 [DataContract]
 public class IgnoreCollection
@@ -63,16 +62,13 @@ public class IgnoreCollection
     internal System.Collections.Generic.Dictionary<{primitiveType},string> Dictionary {{get; set; }}
 }}";
             var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-            // Check if there are any diagnostics with the expected ID
             var hasError = generatedDiagnostics.Any();
-            // Assert that there is an error
             Assert.False(hasError, $"The Dictionary Key for type {primitiveType} should be valid.");
         }
     }
     [Fact]
     public void Invalid_Dictionary_Key_for_objects()
     {
-        // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
 [DataContract]
 public class IgnoreCollection
@@ -80,16 +76,12 @@ public class IgnoreCollection
     internal System.Collections.Generic.Dictionary<System.Collections.Generic.List<int>,string> Dictionary {  get; set; }
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        // Check if there are any diagnostics with the expected ID
         var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidDictionaryKey);
-
-        // Assert that there is an error
         Assert.True(hasError, "The Dictionary Key should be invalid.");
     }
     [Fact]
     public void Invalid_Dictionary_Key_for_objects2()
     {
-        // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
 [DataContract]
 public class IgnoreCollection
@@ -97,16 +89,12 @@ public class IgnoreCollection
     internal System.Collections.Generic.Dictionary<object,string> Dictionary {  get; set; }
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        // Check if there are any diagnostics with the expected ID
         var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidDictionaryKey);
-
-        // Assert that there is an error
         Assert.True(hasError, "The Dictionary Key should be invalid.");
     }
     [Fact]
     public void Invalid_Dictionary_Access_On_private_Getter()
     {
-        // Define the source code for the Class1 class with an invalid property
         var sourceCode = @"
 using Stride.Core;
 [DataContract]
@@ -115,10 +103,7 @@ public class IgnoreCollection
     internal System.Collections.Generic.Dictionary<object,string> Dictionary { private get; set; }
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        // Check if there are any diagnostics with the expected ID
-        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidCollectionAccess);
-
-        // Assert that there is an error
+        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidDictionaryAccess);
         Assert.True(hasError, "The Dictionary Key should be invalid.");
     }
 }

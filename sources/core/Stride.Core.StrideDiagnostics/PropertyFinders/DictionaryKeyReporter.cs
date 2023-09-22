@@ -23,7 +23,7 @@ internal class DictionaryKeyReporter : IViolationReporter
     }
     public bool CanHandle(ISymbol classMember)
     {
-        if (classMember is IPropertySymbol property && PropertyHelper.IsDictionary(property, ClassInfo) && !this.ShouldBeIgnored(property) && HasProperAccess(property))
+        if (classMember is IPropertySymbol property && PropertyHelper.IsDictionary(property, ClassInfo) && !this.ShouldBeIgnored(property))
         {
             return true;
         }
@@ -38,12 +38,6 @@ internal class DictionaryKeyReporter : IViolationReporter
         }
         return true;
     }
-    private bool HasProperAccess(IPropertySymbol property)
-    {
-        return property.GetMethod?.DeclaredAccessibility == Accessibility.Public ||
-                property.GetMethod?.DeclaredAccessibility == Accessibility.Internal;
-    }
-
     private bool InvalidDictionaryKey(IPropertySymbol property, ClassInfo info)
     {
         if (PropertyHelper.IsDictionary(property, info))

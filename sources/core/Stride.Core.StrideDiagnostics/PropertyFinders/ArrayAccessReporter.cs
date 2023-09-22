@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 
-public class ArrayPropertyFinder : IViolationReporter
+public class ArrayAccessReporter : IViolationReporter
 {
     public ClassInfo ClassInfo { get; set; }
 
