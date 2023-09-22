@@ -471,7 +471,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             base.Destroy();
         }
 
-        public async Task<List<AssetViewModel>> RunAssetTemplate(ITemplateDescriptionViewModel template, IList<UFile> files, PropertyContainer? customParameters = null)
+        public async Task<List<AssetViewModel>> RunAssetTemplate(ITemplateDescriptionViewModel template, [CanBeNull] IList<UFile> files, PropertyContainer? customParameters = null)
         {
             if (template == null)
                 return new List<AssetViewModel>();
@@ -537,96 +537,91 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private async Task<string> GetAssetCopyDirectory(DirectoryBaseViewModel directory, UFile file)
         {
-            string path = directory.Path;
+            var path = directory.Path;
             var message = Tr._p("Message", "Do you want to place the resource in the default location ?");
-            string finalPath = Path.Combine(directory.Package.Package.ResourceFolders[0],path,file.GetFileName());
+            var finalPath = Path.Combine(directory.Package.Package.ResourceFolders[0], path, file.GetFileName());
             var pathResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (pathResult == MessageBoxResult.No)
             {
-                bool done = false;
-                do
+                while(true)
                 {
                     var fileDialog = Dialogs.CreateFileSaveModalDialog();
                     fileDialog.Filters = new List<FileDialogFilter>() { new FileDialogFilter("", file.GetFileExtension()) };
-                    fileDialog.InitialDirectory = Path.GetFullPath(directory.Package.Package.ResourceFolders.FirstOrDefault().FullPath);
+                    fileDialog.InitialDirectory = Path.GetFullPath(directory.Package.Package.ResourceFolders[0].FullPath);
                     fileDialog.DefaultFileName = file.GetFileName();
                     DialogResult result = await fileDialog.ShowModal();
 
                     // If the user closes the dialog, assume that they want to use the default directory
                     if (result != DialogResult.Ok)
                     {
-                        done = true;
+                        return finalPath;
                     }
-                    else
+
+                    var fullPath = Path.GetFullPath(fileDialog.FilePath);
+
+                    bool inResource = directory.Package.Package.ResourceFolders.Any(x => fullPath.StartsWith(Path.GetFullPath(x.FullPath)));
+                    if (inResource)
                     {
-                        var fullPath = Path.GetFullPath(fileDialog.FilePath);
-
-                        bool inResource = directory.Package.Package.ResourceFolders.Any(x => fullPath.StartsWith(Path.GetFullPath(x.FullPath)));
-                        if (inResource)
-                        {
-                            finalPath = fullPath;
-                            done = true;
-                        }
-                        else
-                        {
-                            message = Tr._p("Message", "The selected directory is not a subdirectory of the resources folder!");
-                            await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
-                        }
+                        return fullPath;
                     }
 
-                } while (!done);
+                    message = Tr._p("Message", "The selected directory is not a subdirectory of the resources folder!");
+                    await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             return finalPath;
         }
 
-        private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, IList<UFile> files, PropertyContainer? customParameters)
+        private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, [CanBeNull] IList<UFile> files, PropertyContainer? customParameters)
         {
             List<AssetViewModel> newAssets = new List<AssetViewModel>();
             if (files is not null)
             {
-                for (int i = 0; i < files.Count(); i++)
+                for (int i = 0; i < files.Count; i++)
                 {
                     var file = files[i];
                     bool inResourceFolder = directory.Package.Package.ResourceFolders.Any(x => file.FullPath.StartsWith(x.FullPath));
 
-                    if (inResourceFolder == false)
+                    if (inResourceFolder)
+                        continue;
+
+                    var message = Tr._p("Message", "Source file '{0}' is not inside of your project's resource folders, do you want to copy it?").ToFormat(file.FullPath);
+
+                    var copyResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                    if (copyResult != MessageBoxResult.Yes)
+                        continue;
+
+                    string finalPath = await GetAssetCopyDirectory(directory, file);
+
+                    try
                     {
-                        var message = Tr._p("Message", "Source file '{0}' is not inside of your project's resource folders, do you want to copy it?").ToFormat(file.FullPath);
-
-                        var copyResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-                        if (copyResult == MessageBoxResult.Yes)
+                        Directory.CreateDirectory(Path.GetDirectoryName(finalPath));
+                        if (File.Exists(finalPath))
                         {
-                            string finalPath = await GetAssetCopyDirectory(directory, file);
+                            message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(file.FullPath);
 
-                            try
-                            {
-                                Directory.CreateDirectory(Path.GetDirectoryName(finalPath));
-                                if (File.Exists(finalPath))
-                                {
-                                    message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(file.FullPath);
+                            copyResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
-                                    copyResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                                    
-                                    // Abort if the user says no or closes the prompt
-                                    if (copyResult != MessageBoxResult.Yes)
-                                    {
-                                        return newAssets;
-                                    }
-                                }                                
-                                
-                                File.Copy(file.FullPath, finalPath,true);
-                                files[i] = new UFile(finalPath);
-                            }
-                            catch (Exception ex)
+                            // Abort if the user says no or closes the prompt
+                            if (copyResult != MessageBoxResult.Yes)
                             {
-                                message = Tr._p("Message", $"An error occurred while copying the asset to the resources folder : {ex.Message}");
-                                await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
                                 return newAssets;
                             }
-
+                            File.Copy(file.FullPath, finalPath, true);
+                        }
+                        else
+                        {
+                            File.Copy(file.FullPath, finalPath);
                         }
 
+                        files[i] = new UFile(finalPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        message = Tr._p("Message", $"An error occurred while copying the asset to the resources folder : {ex.Message}");
+                        await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                        return newAssets;
                     }
                 }
             }
