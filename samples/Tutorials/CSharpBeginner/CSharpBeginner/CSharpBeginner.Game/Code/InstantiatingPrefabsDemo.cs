@@ -5,6 +5,9 @@ namespace CSharpBeginner.Code
 {
     /// <summary>
     /// This script demonstrates how we can instantiate prefabs
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/instantiating-prefabs.html
+    /// </para>
     /// </summary>
     public class InstantiatingPrefabsDemo : SyncScript
     {

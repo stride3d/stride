@@ -6,6 +6,9 @@ namespace CSharpBeginner.Code
     /// <summary>
     /// This script demonstrates how to add a component to an entiy. 
     /// We also learn a way to automically create and attach a component to our entity. 
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/add-component.html
+    /// </para>
     /// </summary>
     public class AddingAComponentDemo : SyncScript
     {
