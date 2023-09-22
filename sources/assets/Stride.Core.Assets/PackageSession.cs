@@ -832,7 +832,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
 
                         session.LoadMissingDependencies(sessionResult, loadParameters);
                     }
-                    else if (SupportedProgrammingLanguages.IsSupportedByExtension(Path.GetExtension(filePath).ToLowerInvariant())
+                    else if (SupportedProgrammingLanguages.IsProjectExtensionSupported(Path.GetExtension(filePath).ToLowerInvariant())
                         || Path.GetExtension(filePath).ToLowerInvariant() == Package.PackageFileExtension)
                     {
                         var project = session.LoadProject(sessionResult, filePath, loadParameters);

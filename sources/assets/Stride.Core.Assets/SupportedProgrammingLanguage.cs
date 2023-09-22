@@ -38,7 +38,7 @@ namespace Stride.Core.Assets
         /// </summary>
         /// <param name="extension">The project file extension to check.</param>
         /// <returns>True if the extension is supported, otherwise false.</returns>
-        public static bool IsSupportedByExtension(string extension)
+        public static bool IsProjectExtensionSupported(string extension)
         {
             return Languages.Any(lang => string.Equals(lang.Extension, extension, StringComparison.InvariantCultureIgnoreCase));
         }
