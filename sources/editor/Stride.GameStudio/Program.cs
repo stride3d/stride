@@ -48,7 +48,6 @@ using EditorSettings = Stride.Core.Assets.Editor.Settings.EditorSettings;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using MessageBoxImage = System.Windows.MessageBoxImage;
-using Microsoft.Build.Locator;
 
 namespace Stride.GameStudio
 {
