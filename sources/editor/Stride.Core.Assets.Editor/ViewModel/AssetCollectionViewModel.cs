@@ -538,8 +538,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private async Task<string> GetAssetCopyDirectory(DirectoryBaseViewModel directory, UFile file)
         {
             string path = directory.Path;
-            var message = Tr._p("Message", "Do you want to place the resource in the default location ?").ToFormat(file.FullPath);
-            string finalPath = directory.Package.Package.ResourceFolders[0] + "/" + path + file.GetFileName();
+            var message = Tr._p("Message", "Do you want to place the resource in the default location ?");
+            string finalPath = Path.Combine(directory.Package.Package.ResourceFolders[0],path,file.GetFileName());
             var pathResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (pathResult == MessageBoxResult.No)
             {
@@ -548,7 +548,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 {
                     var fileDialog = Dialogs.CreateFileSaveModalDialog();
                     fileDialog.Filters = new List<FileDialogFilter>() { new FileDialogFilter("", file.GetFileExtension()) };
-                    fileDialog.InitialDirectory = directory.Package.Package.ResourceFolders.FirstOrDefault().FullPath.Replace("/", "\\");
+                    fileDialog.InitialDirectory = Path.GetFullPath(directory.Package.Package.ResourceFolders.FirstOrDefault().FullPath);
                     fileDialog.DefaultFileName = file.GetFileName();
                     DialogResult result = await fileDialog.ShowModal();
 
@@ -559,9 +559,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     }
                     else
                     {
-                        var fullPath = Path.GetFullPath(fileDialog.FilePath).Replace("\\", "/");
+                        var fullPath = Path.GetFullPath(fileDialog.FilePath);
 
-                        bool inResource = directory.Package.Package.ResourceFolders.Any(x => fullPath.StartsWith(x.FullPath));
+                        bool inResource = directory.Package.Package.ResourceFolders.Any(x => fullPath.StartsWith(Path.GetFullPath(x.FullPath)));
                         if (inResource)
                         {
                             finalPath = fullPath;
@@ -613,10 +613,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
                                     {
                                         return newAssets;
                                     }
-                                    File.Delete(finalPath);
                                 }                                
                                 
-                                File.Copy(file.FullPath, finalPath);
+                                File.Copy(file.FullPath, finalPath,true);
                                 files[i] = new UFile(finalPath);
                             }
                             catch (Exception ex)
