@@ -937,7 +937,7 @@
           </xcad:LayoutPanel>
         </xcad:LayoutRoot>
       </xcad:DockingManager>
-      <StatusBar Grid.Row="2" Background="{StaticResource MenuBackgroundBrush}" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
+      <StatusBar Grid.Row="2" Background="{StaticResource StatusBarBackgroundBrush}" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
         <StatusBar.Resources>
           <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
             <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>

@@ -64,6 +64,7 @@
   <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#FF040405" />
   <SolidColorBrush x:Key="DisabledBorderBrush" Color="#AAA" />
   <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FF373737" />
+  <SolidColorBrush x:Key="StatusBarBackgroundBrush" Color="#FF373737" />
 
   <SolidColorBrush x:Key="ToggleButtonNormalBackground" Color="#FF808080"/>
   <SolidColorBrush x:Key="ComboToggleButtonBackground" Color="#FF515151" />
