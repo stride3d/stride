@@ -8,17 +8,16 @@ internal class AttributeContextReporter : IViolationReporter
 {
     public ClassInfo ClassInfo { get; set; }
 
-    public void ReportViolation(IPropertySymbol classMember, ClassInfo classInfo)
+    public void ReportViolation(IPropertySymbol property, ClassInfo classInfo)
     {
-        if (!CanHandle(classMember))
+        if (!CanHandle(property))
         {
             return;
         }
-        if (IsValid(classMember))
+        if (IsValid(property))
         {
             return;
         }
-        IPropertySymbol property = classMember as IPropertySymbol;
         Report(property, classInfo);
     }
     public bool IsValid(IPropertySymbol property)
@@ -29,7 +28,7 @@ internal class AttributeContextReporter : IViolationReporter
         }
         return true;
     }
-    public bool CanHandle(IPropertySymbol classMember)
+    public bool CanHandle(IPropertySymbol property)
     {
         return true;
     }
