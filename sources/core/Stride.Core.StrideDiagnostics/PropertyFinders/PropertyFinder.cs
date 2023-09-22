@@ -5,24 +5,40 @@ using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 
-public class PropertyFinder : IPropertyFinder, IViolationReporter
+public class PropertyFinder : IViolationReporter
 {
-    public IEnumerable<IPropertySymbol> Find(ref INamedTypeSymbol baseType)
+    public ClassInfo ClassInfo { get; set; }
+
+    public void ReportViolation(ISymbol baseType, ClassInfo classInfo)
     {
-        if (baseType == null)
-            return Enumerable.Empty<IPropertySymbol>();
-        return baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !PropertyHelper.IsICollection_generic(property.Type) && !this.ShouldBeIgnored(property) && HasProperAccess(property));
+        if (!CanHandle(baseType))
+        {
+            return;
+        }
+        if (IsValid(baseType))
+        {
+            return;
+        }
+        IPropertySymbol property = baseType as IPropertySymbol;
+        Report(property, classInfo);
+    }
+    public bool CanHandle(ISymbol classMember)
+    {
+        if (classMember is IPropertySymbol property && !PropertyHelper.IsArray(property) && !PropertyHelper.IsICollection_generic(property.Type) && !this.ShouldBeIgnored(property) && !PropertyHelper.IsDictionary(property, ClassInfo))
+        {
+            return true;
+        }
+        return false;
     }
 
-    public void ReportViolations(ref INamedTypeSymbol baseType, ClassInfo classInfo)
+    public bool IsValid(ISymbol classMember)
     {
-        if (baseType == null)
-            return;
-        var violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !PropertyHelper.IsICollection_generic(property.Type) && !this.ShouldBeIgnored(property) && !HasProperAccess(property));
-        foreach (var violation in violations)
+        IPropertySymbol property = classMember as IPropertySymbol;
+        if (HasProperAccess(property))
         {
-            Report(violation, classInfo);
+            return true;
         }
+        return false;
     }
     private static void Report(IPropertySymbol property, ClassInfo classInfo)
     {

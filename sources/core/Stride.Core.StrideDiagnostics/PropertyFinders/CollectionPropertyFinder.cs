@@ -4,32 +4,40 @@ using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 
-internal class CollectionPropertyFinder : IPropertyFinder, IViolationReporter
+public class CollectionPropertyFinder : IViolationReporter
 {
-    public IEnumerable<IPropertySymbol> Find(ref INamedTypeSymbol baseType)
-    {
-        if (baseType == null)
-            return Enumerable.Empty<IPropertySymbol>();
-        return baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && PropertyHelper.IsICollection_generic(property.Type) && HasProperAccess(property));
-    }
+    public ClassInfo ClassInfo { get; set; }
 
-    public void ReportViolations(ref INamedTypeSymbol baseType, ClassInfo classInfo)
+    public void ReportViolation(ISymbol baseType, ClassInfo classInfo)
     {
-        if (baseType == null)
-            return;
-        var violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && PropertyHelper.IsICollection_generic(property.Type) && !HasProperAccess(property));
-        foreach (var violation in violations)
+        if (!CanHandle(baseType))
         {
-
-            Report(violation, classInfo);
-
-
+            return;
         }
+        if (IsValid(baseType))
+        {
+            return;
+        }
+        IPropertySymbol property = baseType as IPropertySymbol;
+        Report(property, classInfo);
     }
-
-
-
-
+    public bool CanHandle(ISymbol classMember)
+    {
+        if (classMember is IPropertySymbol property && PropertyHelper.IsICollection_generic(property.Type) && !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property))
+        {
+            return true;
+        }
+        return false;
+    }
+    public bool IsValid(ISymbol classMember)
+    {
+        IPropertySymbol property = classMember as IPropertySymbol;
+        if (HasProperAccess(property))
+        {
+            return true;
+        }
+        return false;
+    }
     private static void Report(IPropertySymbol property, ClassInfo classInfo)
     {
         var error = new DiagnosticDescriptor(
@@ -47,6 +55,6 @@ internal class CollectionPropertyFinder : IPropertyFinder, IViolationReporter
     private bool HasProperAccess(IPropertySymbol property)
     {
         return property.GetMethod?.DeclaredAccessibility == Accessibility.Public ||
-                property.GetMethod?.DeclaredAccessibility == Accessibility.Internal;
+               property.GetMethod?.DeclaredAccessibility == Accessibility.Internal;
     }
 }

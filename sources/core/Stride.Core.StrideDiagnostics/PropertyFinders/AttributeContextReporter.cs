@@ -4,35 +4,40 @@ using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 
-internal class AttributeContextReporter : IViolationReporter, IPropertyFinder
+internal class AttributeContextReporter : IViolationReporter
 {
-    /// <summary>
-    /// Is always Empty
-    /// </summary>
-    /// <param name="baseType"></param>
-    /// <returns></returns>
-    public IEnumerable<IPropertySymbol> Find(ref INamedTypeSymbol baseType)
-    {
-        return Enumerable.Empty<IPropertySymbol>();
-    }
+    public ClassInfo ClassInfo { get; set; }
 
-    public void ReportViolations(ref INamedTypeSymbol baseType, ClassInfo classInfo)
+    public void ReportViolation(ISymbol classMember, ClassInfo classInfo)
     {
-        if (baseType == null)
-            return;
-        var violations = baseType.GetMembers().OfType<IPropertySymbol>();
-
-        var violationsFiltered = violations.Where(property => this.ShouldBeIgnored(property) && this.HasDataMemberAnnotation(property));
-        foreach (var violation in violationsFiltered)
+        if (!CanHandle(classMember))
         {
-
-            Report(violation, classInfo);
-
-
+            return;
         }
+        if (IsValid(classMember))
+        {
+            return;
+        }
+        IPropertySymbol property = classMember as IPropertySymbol;
+        Report(property, classInfo);
     }
-
-
+    public bool IsValid(ISymbol classMember)
+    {
+        IPropertySymbol property = classMember as IPropertySymbol;
+        if (this.ShouldBeIgnored(property) && this.HasDataMemberAnnotation(property))
+        {
+            return false;
+        }
+        return true;
+    }
+    public bool CanHandle(ISymbol classMember)
+    {
+        if (classMember is IPropertySymbol)
+        {
+            return true;
+        }
+        return false;
+    }
     private static void Report(IPropertySymbol property, ClassInfo classInfo)
     {
         var error = new DiagnosticDescriptor(

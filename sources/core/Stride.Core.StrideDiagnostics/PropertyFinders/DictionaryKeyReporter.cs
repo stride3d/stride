@@ -4,29 +4,40 @@ using Microsoft.CodeAnalysis;
 
 namespace Stride.Core.StrideDiagnostics.PropertyFinders;
 
-internal class DictionaryKeyReporter : IViolationReporter, IPropertyFinder
+internal class DictionaryKeyReporter : IViolationReporter
 {
-    /// <summary>
-    /// Is Always Empty, use <see cref="CollectionPropertyFinder"/> and check against <see cref="PropertyHelper.IsDictionary(IPropertySymbol)"/>
-    /// </summary>
-    /// <param name="baseType"></param>
-    /// <returns></returns>
-    public IEnumerable<IPropertySymbol> Find(ref INamedTypeSymbol baseType)
-    {
-        return Enumerable.Empty<IPropertySymbol>(); ;
-    }
+    public ClassInfo ClassInfo { get; set; }
 
-    public void ReportViolations(ref INamedTypeSymbol baseType, ClassInfo classInfo)
+    public void ReportViolation(ISymbol baseType, ClassInfo classInfo)
     {
-        if (baseType == null)
-            return;
-        var violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => PropertyHelper.IsDictionary(property, classInfo) && !this.ShouldBeIgnored(property) && HasProperAccess(property) && InvalidDictionaryKey(property, classInfo));
-        foreach (var violation in violations)
+        if (!CanHandle(baseType))
         {
-            Report(violation, classInfo);
+            return;
         }
+        if (IsValid(baseType))
+        {
+            return;
+        }
+        IPropertySymbol property = baseType as IPropertySymbol;
+        Report(property, classInfo);
     }
-
+    public bool CanHandle(ISymbol classMember)
+    {
+        if (classMember is IPropertySymbol property && PropertyHelper.IsDictionary(property, ClassInfo) && !this.ShouldBeIgnored(property) && HasProperAccess(property))
+        {
+            return true;
+        }
+        return false;
+    }
+    public bool IsValid(ISymbol classMember)
+    {
+        IPropertySymbol property = classMember as IPropertySymbol;
+        if (InvalidDictionaryKey(property, ClassInfo))
+        {
+            return false;
+        }
+        return true;
+    }
     private bool HasProperAccess(IPropertySymbol property)
     {
         return property.GetMethod?.DeclaredAccessibility == Accessibility.Public ||
@@ -101,4 +112,6 @@ internal class DictionaryKeyReporter : IViolationReporter, IPropertyFinder
         classInfo.ExecutionContext.ReportDiagnostic(Diagnostic.Create(error, location));
 
     }
+
+
 }

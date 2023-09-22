@@ -19,7 +19,7 @@ public static class PropertyAttributeFinderExtension
     /// If the attribute is found, the method returns <c>true</c>, indicating that the property should be ignored.
     /// Otherwise, it returns <c>false</c>.
     /// </remarks>
-    public static bool ShouldBeIgnored(this IPropertyFinder finder, IPropertySymbol property)
+    public static bool ShouldBeIgnored(this IViolationReporter reporter, IPropertySymbol property)
     {
         if (property.DeclaredAccessibility == Accessibility.Private ||
             property.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
@@ -44,7 +44,7 @@ public static class PropertyAttributeFinderExtension
         }
         return false;
     }
-    public static bool HasDataMemberAnnotation(this IPropertyFinder finder, IPropertySymbol property)
+    public static bool HasDataMemberAnnotation(this IViolationReporter reporter, IPropertySymbol property)
     {
         var attributes = property.GetAttributes();
         foreach (var attribute in attributes)
@@ -59,15 +59,5 @@ public static class PropertyAttributeFinderExtension
             }
         }
         return false;
-    }
-    public static IEnumerable<IPropertySymbol> FindRecursive(this IPropertyFinder finder, ref INamedTypeSymbol baseType)
-    {
-        var result = new List<IPropertySymbol>();
-        while (baseType != null)
-        {
-            result.AddRange(finder.Find(ref baseType));
-            baseType = baseType.BaseType;
-        }
-        return result;
     }
 }
