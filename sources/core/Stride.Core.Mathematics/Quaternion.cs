@@ -42,6 +42,10 @@ namespace Stride.Core.Mathematics
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Quaternion : IEquatable<Quaternion>, IFormattable
     {
+        const float SINGULARITY_THRESHOLD = 0.4999995f;
+        const float RAD_2_DEG = (float)(180.0 / Math.PI);
+        const float DEG_2_RAD = (float)(Math.PI / 180.0);
+
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Quaternion"/> type, in bytes.
         /// </summary>
@@ -1066,6 +1070,93 @@ namespace Stride.Core.Mathematics
             Quaternion result;
             RotationYawPitchRoll(yaw, pitch, roll, out result);
             return result;
+        }
+
+        /// <summary>
+        /// Creates a quaternion from an euler rotation
+        /// </summary>
+        /// <param name ="x">X degrees</param>
+        /// <param name ="y">Y degrees</param>
+        /// <param name="z">Z degrees</param>
+        /// <param name="result">The converted quaternion</param>
+        public static void RotationEulerXYZ(float x, float y, float z, out Quaternion result)
+        {
+
+            float halfX = x * 0.5f * DEG_2_RAD;
+            float sinX = Sin(halfX);
+            float cosX = Cos(halfX);
+            float halfY = y * 0.5f * DEG_2_RAD;
+            float sinY = Sin(halfY);
+            float cosY = Cos(halfY);
+            float halfZ = z * 0.5f * DEG_2_RAD;
+            float sinZ = Sin(halfZ);
+            float cosZ = Cos(halfZ);
+
+            result.X = (sinX * cosY * cosZ) - (cosX * sinY * sinZ);
+            result.Y = (cosX * sinY * cosZ) + (sinX * cosY * sinZ);
+            result.Z = (cosX * cosY * sinZ) - (sinX * sinY * cosZ);
+            result.W = (cosY * cosX * cosZ) + (sinY * sinX * sinZ);
+        }
+
+        /// <summary>
+        /// Creates a quaternion from an euler rotation
+        /// </summary>
+        /// <param name ="x">X degrees</param>
+        /// <param name ="y">Y degrees</param>
+        /// <param name="z">Z degrees</param>
+        /// <returns>The converted quaternion</returns>
+        public static Quaternion RotationEulerXYZ(float x, float y, float z)
+        {
+            RotationEulerXYZ(x, y, z, out Quaternion result);
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a quaternion from an euler rotation
+        /// </summary>
+        /// <returns>The converted quaternion</returns>
+        public static Quaternion RotationEulerXYZ(ref Vector3 rotation, out Quaternion result)
+        {
+            RotationEulerXYZ(rotation.X, rotation.Y, rotation.Z, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Convert a quaternion to an euler xyz rotation, in degrees
+        /// </summary>
+        /// <param name="value">The quaternion to be converted</param>
+        /// <returns>The corresponding euler xyz rotation in degrees</returns>
+        public static Vector3 ToEulerXYZ(Quaternion value)
+        {
+            float singularityTest = (value.X * value.Z) - (value.Y * value.W);
+
+            if (singularityTest < -SINGULARITY_THRESHOLD)
+            {
+                float m01 = 2 * ((value.X * value.Y) - (value.Z * value.W));
+                float m11 = 2 * ((value.W * value.W) + (value.Y * value.Y)) - 1;
+
+                return new Vector3(Atan2(m01, m11) * RAD_2_DEG, 90f, 0f);
+            }
+
+            if (singularityTest > SINGULARITY_THRESHOLD)
+            {
+                float m01 = 2 * ((value.X * value.Y) - (value.Z * value.W));
+                float m11 = 2 * ((value.W * value.W) + (value.Y * value.Y)) - 1;
+
+                return new Vector3(Atan2(-m01, m11) * RAD_2_DEG, -90f, 0f);
+            }
+
+            float m21 = 2 * ((value.Y * value.Z) + (value.X * value.W));
+            float m22 = 2 * ((value.W * value.W) + (value.Z * value.Z)) - 1;
+            float rotX = Atan2(m21, m22);
+
+            float rotY = Asin(-2 * singularityTest);
+
+            float m10 = 2 * ((value.X * value.Y) + (value.Z * value.W));
+            float m00 = 2 * ((value.W * value.W) + (value.X * value.X)) - 1;
+            float rotZ = Atan2(m10, m00);
+
+            return new Vector3(rotX * RAD_2_DEG, rotY * RAD_2_DEG, rotZ * RAD_2_DEG);
         }
 
         /// <summary>
