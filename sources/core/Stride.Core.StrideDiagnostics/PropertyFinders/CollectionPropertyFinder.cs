@@ -10,14 +10,14 @@ internal class CollectionPropertyFinder : IPropertyFinder, IViolationReporter
     {
         if (baseType == null)
             return Enumerable.Empty<IPropertySymbol>();
-        return baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && PropertyHelper.ImplementsICollectionT(property.Type) && HasProperAccess(property));
+        return baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && PropertyHelper.IsICollection_generic(property.Type) && HasProperAccess(property));
     }
 
     public void ReportViolations(ref INamedTypeSymbol baseType, ClassInfo classInfo)
     {
         if (baseType == null)
             return;
-        var violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && PropertyHelper.ImplementsICollectionT(property.Type) && !HasProperAccess(property));
+        var violations = baseType.GetMembers().OfType<IPropertySymbol>().Where(property => !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property) && PropertyHelper.IsICollection_generic(property.Type) && !HasProperAccess(property));
         foreach (var violation in violations)
         {
 

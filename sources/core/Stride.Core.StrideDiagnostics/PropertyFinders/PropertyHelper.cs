@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -16,10 +16,15 @@ internal static class PropertyHelper
         }
         return false;
     }
-    public static bool ImplementsICollectionT(ITypeSymbol type)
+    public static bool IsICollection_generic(ITypeSymbol type)
     {
+        if (type is INamedTypeSymbol namedType &&
+    namedType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_ICollection_T)
+        {
+            return true;
+        }
         if (type.AllInterfaces.Any(i =>
-            i.OriginalDefinition is INamedTypeSymbol namedType && namedType.ConstructedFrom.SpecialType == SpecialType.System_Collections_Generic_ICollection_T))
+            (i.OriginalDefinition is INamedTypeSymbol namedType && namedType.ConstructedFrom.SpecialType == SpecialType.System_Collections_Generic_ICollection_T)))
         {
             return true;
         }
