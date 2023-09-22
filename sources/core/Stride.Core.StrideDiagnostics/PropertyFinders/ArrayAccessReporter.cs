@@ -8,30 +8,29 @@ public class ArrayAccessReporter : IViolationReporter
 {
     public ClassInfo ClassInfo { get; set; }
 
-    public void ReportViolation(ISymbol classMember, ClassInfo info)
+    public void ReportViolation(IPropertySymbol property, ClassInfo info)
     {
-        if (!CanHandle(classMember))
+        if (!CanHandle(property))
         {
             return;
         }
-        if (IsValid(classMember))
+        if (IsValid(property))
         {
             return;
         }
-        IPropertySymbol property = classMember as IPropertySymbol;
         Report(property, info);
     }
-    public bool CanHandle(ISymbol classMember)
+    public bool CanHandle(IPropertySymbol property)
     {
-        if (classMember is IPropertySymbol property && PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property))
+        if (PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property))
         {
             return true;
         }
         return false;
     }
-    public bool IsValid(ISymbol classMember)
+    public bool IsValid(IPropertySymbol property)
     {
-        if (classMember is IPropertySymbol property && !HasProperAccess(property))
+        if (!HasProperAccess(property))
         {
             return false;
         }

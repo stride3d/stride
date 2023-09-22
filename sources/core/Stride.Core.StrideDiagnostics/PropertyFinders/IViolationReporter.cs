@@ -16,13 +16,13 @@ public interface IViolationReporter
     /// <param name="info">
     /// Additional information about the class.
     /// </param>
-    public void ReportViolation(ISymbol classMember, ClassInfo classInfo);
+    public void ReportViolation(IPropertySymbol classMember, ClassInfo classInfo);
     /// <summary>
     /// Decides if the <see cref="INamedTypeSymbol"/> can be handled by this <see cref="IViolationReporter"/>
     /// </summary>
     /// <param name="classMember">The member to analyze if it can be analyzed</param>
     /// <returns>true if it can be handled, else false</returns>
-    public bool CanHandle(ISymbol classMember);
+    public bool CanHandle(IPropertySymbol classMember);
     /// <summary>
     /// Checks if the member is Valid in it's Declaration for Stride or not.
     /// <see cref="ReportViolation(ref ISymbol, ClassInfo)"/> will Report Diagnostics if it is not <see cref="IsValid(ref ISymbol)"/>
@@ -30,5 +30,5 @@ public interface IViolationReporter
     /// </summary>
     /// <param name="classMember">A reference to the class member</param>
     /// <returns>true if it's declaration is valid</returns>
-    public bool IsValid(ISymbol classMember);
+    public bool IsValid(IPropertySymbol classMember);
 }

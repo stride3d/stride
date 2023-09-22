@@ -5,7 +5,7 @@ namespace Stride.Core.StrideDiagnostics.Tests;
 public class PropertyError
 {
     [Fact]
-    public void ErrorOnInvalidPropertyAccess1()
+    public void ErrorOnInvalidPropertyAccess_private_get()
     {
         var sourceCode = @"
 using Stride.Core;
@@ -21,12 +21,12 @@ public class InvalidCollection
         Assert.True(hasError, "The Property should generate an error.");
     }
     [Fact]
-    public void ErrorOnInvalidPropertyAccess2()
+    public void ErrorOnInvalidPropertyAccess_private_set()
     {
         var sourceCode = @"
 using Stride.Core;
 [DataContract]
-public class InvalidCollection
+public class InvalidProperty
 {
     public int Property { get; private set; }
 }}";
@@ -36,8 +36,9 @@ public class InvalidCollection
         // Assert that there is an error
         Assert.True(hasError, "The Property should generate an error.");
     }
+
     [Fact]
-    public void IgnoreMember1()
+    public void IgnoreMember_On_DataMemberIgnore_Properties()
     {
         var sourceCode = @"
 using Stride.Core;
@@ -52,7 +53,7 @@ public class IgnoreMember
         Assert.False(hasError, "The Property shouldnt be considered when private.");
     }
     [Fact]
-    public void IgnoreMember2()
+    public void IgnoreMember_on_private_Properties()
     {
         var sourceCode = @"
 using Stride.Core;
@@ -60,6 +61,35 @@ using Stride.Core;
 public class IgnoreMember
 {
     private int Property { get; set; }
+}";
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var hasError = generatedDiagnostics.Any();
+        Assert.False(hasError, "The Property shouldnt be considered when private.");
+    }
+    [Fact]
+    public void IgnoreMember_on_private_fields()
+    {
+        var sourceCode = @"
+using Stride.Core;
+[DataContract]
+public class IgnoreMember
+{
+    private int Property;
+}";
+        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
+        var hasError = generatedDiagnostics.Any();
+        Assert.False(hasError, "The field shouldnt be considered when private.");
+    }
+    [Fact]
+    public void IgnoreMember_on_DataMemberIgnore_fields()
+    {
+        var sourceCode = @"
+using Stride.Core;
+[DataContract]
+public class IgnoreMember
+{
+    [DataMemberIgnore]
+    public int Property;
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();

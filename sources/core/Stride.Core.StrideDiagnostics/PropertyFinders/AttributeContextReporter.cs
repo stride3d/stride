@@ -8,7 +8,7 @@ internal class AttributeContextReporter : IViolationReporter
 {
     public ClassInfo ClassInfo { get; set; }
 
-    public void ReportViolation(ISymbol classMember, ClassInfo classInfo)
+    public void ReportViolation(IPropertySymbol classMember, ClassInfo classInfo)
     {
         if (!CanHandle(classMember))
         {
@@ -21,22 +21,17 @@ internal class AttributeContextReporter : IViolationReporter
         IPropertySymbol property = classMember as IPropertySymbol;
         Report(property, classInfo);
     }
-    public bool IsValid(ISymbol classMember)
+    public bool IsValid(IPropertySymbol property)
     {
-        IPropertySymbol property = classMember as IPropertySymbol;
         if (this.ShouldBeIgnored(property) && this.HasDataMemberAnnotation(property))
         {
             return false;
         }
         return true;
     }
-    public bool CanHandle(ISymbol classMember)
+    public bool CanHandle(IPropertySymbol classMember)
     {
-        if (classMember is IPropertySymbol)
-        {
-            return true;
-        }
-        return false;
+        return true;
     }
     private static void Report(IPropertySymbol property, ClassInfo classInfo)
     {

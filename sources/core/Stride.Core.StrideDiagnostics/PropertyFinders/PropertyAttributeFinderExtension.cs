@@ -44,7 +44,62 @@ public static class PropertyAttributeFinderExtension
         }
         return false;
     }
+    /// <summary>
+    /// Determines whether a property should be ignored based on the presence of a specific attribute.
+    /// </summary>
+    /// <param name="finder">The <see cref="IPropertyFinder"/> used to locate properties.</param>
+    /// <param name="field">The <see cref="IFieldSymbol"/> to be checked for the presence of the "DataMemberIgnore" attribute.</param>
+    /// <returns>
+    /// <c>true</c> if the property has the "DataMemberIgnore" attribute from the "Stride.Core" namespace; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// This method checks the attributes of the given property to determine if it should be ignored.
+    /// It specifically looks for the "DataMemberIgnore" attribute from the "Stride.Core" namespace.
+    /// If the attribute is found, the method returns <c>true</c>, indicating that the property should be ignored.
+    /// Otherwise, it returns <c>false</c>.
+    /// </remarks>
+    public static bool ShouldBeIgnored(this IViolationReporter reporter, IFieldSymbol field)
+    {
+        if (field.DeclaredAccessibility == Accessibility.Private ||
+            field.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
+            field.DeclaredAccessibility == Accessibility.NotApplicable ||
+            field.DeclaredAccessibility == Accessibility.Protected)
+        {
+            return true;
+        }
+        var attributes = field.GetAttributes();
+        foreach (var attribute in attributes)
+        {
+            var attributeType = attribute.AttributeClass;
+
+            if (attributeType != null)
+            {
+                if (attributeType.Name == "DataMemberIgnoreAttribute"
+                     && attributeType.ContainingNamespace.ContainingModule.Name == "Stride.Core.dll")
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     public static bool HasDataMemberAnnotation(this IViolationReporter reporter, IPropertySymbol property)
+    {
+        var attributes = property.GetAttributes();
+        foreach (var attribute in attributes)
+        {
+            var attributeType = attribute.AttributeClass;
+            if (attributeType != null)
+            {
+                if (attributeType.Name == "DataMemberAttribute" && attributeType.ContainingNamespace.ContainingModule.Name == "Stride.Core.dll")
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    public static bool HasDataMemberAnnotation(this IViolationReporter reporter, IFieldSymbol property)
     {
         var attributes = property.GetAttributes();
         foreach (var attribute in attributes)

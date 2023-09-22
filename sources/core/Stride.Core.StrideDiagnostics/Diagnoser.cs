@@ -13,7 +13,7 @@ internal class Diagnoser
         .ToList();
     internal void StartCreation(ClassInfo info)
     {
-        var allProperties = info.Symbol.GetMembers().OfType<IPropertySymbol>().Cast<ISymbol>();
+        var allProperties = info.Symbol.GetMembers().OfType<IPropertySymbol>();
         // Instantiate each reporter and call ReportViolations
         foreach (var reporterType in violationReporterTypes)
         {

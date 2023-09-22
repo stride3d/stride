@@ -8,30 +8,28 @@ public class CollectionAccessReporter : IViolationReporter
 {
     public ClassInfo ClassInfo { get; set; }
 
-    public void ReportViolation(ISymbol baseType, ClassInfo classInfo)
+    public void ReportViolation(IPropertySymbol property, ClassInfo classInfo)
     {
-        if (!CanHandle(baseType))
+        if (!CanHandle(property))
         {
             return;
         }
-        if (IsValid(baseType))
+        if (IsValid(property))
         {
             return;
         }
-        IPropertySymbol property = baseType as IPropertySymbol;
         Report(property, classInfo);
     }
-    public bool CanHandle(ISymbol classMember)
+    public bool CanHandle(IPropertySymbol property)
     {
-        if (classMember is IPropertySymbol property && PropertyHelper.IsICollection_generic(property.Type) && !PropertyHelper.IsDictionary(property, ClassInfo) && !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property))
+        if (PropertyHelper.IsICollection_generic(property.Type) && !PropertyHelper.IsDictionary(property, ClassInfo) && !PropertyHelper.IsArray(property) && !this.ShouldBeIgnored(property))
         {
             return true;
         }
         return false;
     }
-    public bool IsValid(ISymbol classMember)
+    public bool IsValid(IPropertySymbol property)
     {
-        IPropertySymbol property = classMember as IPropertySymbol;
         if (HasProperAccess(property))
         {
             return true;

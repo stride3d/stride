@@ -8,30 +8,28 @@ internal class DictionaryKeyReporter : IViolationReporter
 {
     public ClassInfo ClassInfo { get; set; }
 
-    public void ReportViolation(ISymbol baseType, ClassInfo classInfo)
+    public void ReportViolation(IPropertySymbol property, ClassInfo classInfo)
     {
-        if (!CanHandle(baseType))
+        if (!CanHandle(property))
         {
             return;
         }
-        if (IsValid(baseType))
+        if (IsValid(property))
         {
             return;
         }
-        IPropertySymbol property = baseType as IPropertySymbol;
         Report(property, classInfo);
     }
-    public bool CanHandle(ISymbol classMember)
+    public bool CanHandle(IPropertySymbol property)
     {
-        if (classMember is IPropertySymbol property && PropertyHelper.IsDictionary(property, ClassInfo) && !this.ShouldBeIgnored(property))
+        if (PropertyHelper.IsDictionary(property, ClassInfo) && !this.ShouldBeIgnored(property))
         {
             return true;
         }
         return false;
     }
-    public bool IsValid(ISymbol classMember)
+    public bool IsValid(IPropertySymbol property)
     {
-        IPropertySymbol property = classMember as IPropertySymbol;
         if (InvalidDictionaryKey(property, ClassInfo))
         {
             return false;
