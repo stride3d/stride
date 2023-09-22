@@ -429,7 +429,7 @@
       <TextBox Visibility="Hidden" Template="{DynamicResource ComboBoxTextBox}" HorizontalAlignment="Left" Margin="3,2,23,2" x:Name="PART_EditableTextBox" Style="{x:Null}" VerticalAlignment="Center" Focusable="True" Background="{TemplateBinding Background}" IsReadOnly="{TemplateBinding IsReadOnly}" BorderBrush="{DynamicResource NormalBorderBrush}" Foreground="{DynamicResource TextBrush}" />
       <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" x:Name="Popup" Focusable="False" AllowsTransparency="True" PopupAnimation="Slide">
         <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}" x:Name="DropDown" SnapsToDevicePixels="True">
-          <Border x:Name="DropDownBorder" Background="{DynamicResource ControlBackgroundBrush}" />
+          <Border x:Name="DropDownBorder" Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="3"/>
           <ScrollViewer Margin="1" Style="{DynamicResource NuclearScrollViewer}" SnapsToDevicePixels="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" CanContentScroll="True" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}">
             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
           </ScrollViewer>
@@ -678,7 +678,8 @@
         <ControlTemplate TargetType="{x:Type ToolTip}">
           <Border x:Name="Border" BorderThickness="1" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"
                         Background="{DynamicResource WindowBackgroundBrush}"
-                        BorderBrush="{DynamicResource SolidBorderBrush}">
+                        BorderBrush="{DynamicResource SolidBorderBrush}"
+                        CornerRadius="3">
             <ContentPresenter Margin="4" HorizontalAlignment="Left" VerticalAlignment="Top" />
           </Border>
           <ControlTemplate.Triggers>
@@ -706,7 +707,7 @@
               <Setter Property="MaxWidth" Value="16" />
             </Style>
           </ControlTemplate.Resources>
-          <Border x:Name="Border" Background="{DynamicResource MenuBackgroundBrush}" BorderBrush="{DynamicResource MenuBorderBrush}" BorderThickness="1">
+          <Border x:Name="Border" Background="{DynamicResource MenuBackgroundBrush}" BorderBrush="{DynamicResource MenuBorderBrush}" BorderThickness="1" CornerRadius="3">
             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
           </Border>
           <ControlTemplate.Triggers>
@@ -776,11 +777,11 @@
 
   <ControlTemplate x:Key="SimpleToggleButtonTemplate" TargetType="{x:Type ToggleButton}">
     <Grid x:Name="Grid">
-      <Border x:Name="Background" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="2" BorderThickness="{TemplateBinding BorderThickness}"/>
-      <Border x:Name="HoverBorder" Opacity="0" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" Background="{DynamicResource ButtonHoverBackgroundBrush}" />
-      <Border x:Name="PressedBorder" Opacity="0" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" Background="{DynamicResource PressedBrush}" />
+      <Border x:Name="Background" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3" BorderThickness="{TemplateBinding BorderThickness}"/>
+      <Border x:Name="HoverBorder" Opacity="0" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" Background="{DynamicResource ButtonHoverBackgroundBrush}" />
+      <Border x:Name="PressedBorder" Opacity="0" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" Background="{DynamicResource PressedBrush}" />
       <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" />
-      <Border x:Name="FocusVisualElement" IsHitTestVisible="false" BorderBrush="{DynamicResource ButtonNormalBorder}" Margin="0" Opacity="1" BorderThickness="{TemplateBinding BorderThickness}" />
+      <Border x:Name="FocusVisualElement" IsHitTestVisible="false" BorderBrush="{DynamicResource ButtonNormalBorder}" Margin="0" Opacity="1" CornerRadius="3" BorderThickness="{TemplateBinding BorderThickness}" />
     </Grid>
     <ControlTemplate.Triggers>
       <Trigger Property="IsKeyboardFocused" Value="true">
@@ -825,11 +826,11 @@
   </Style>
   <ControlTemplate x:Key="ButtonTemplate" TargetType="{x:Type Button}">
     <Grid x:Name="Grid">
-      <Border x:Name="Background" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
-      <Border x:Name="HoverBorder" Opacity="0" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{DynamicResource ButtonHoverBackgroundBrush}" />
-      <Border x:Name="PressedBorder" Opacity="0" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{DynamicResource PressedBrush}" />
+      <Border x:Name="Background" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3" BorderThickness="{TemplateBinding BorderThickness}"/>
+      <Border x:Name="HoverBorder" Opacity="0" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3" BorderThickness="{TemplateBinding BorderThickness}" Background="{DynamicResource ButtonHoverBackgroundBrush}"/>
+      <Border x:Name="PressedBorder" Opacity="0" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3" BorderThickness="{TemplateBinding BorderThickness}" Background="{DynamicResource PressedBrush}"/>
       <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" />
-      <Border x:Name="FocusVisualElement" IsHitTestVisible="false" BorderBrush="{DynamicResource ButtonNormalBorder}" Margin="0" Opacity="1" BorderThickness="{TemplateBinding BorderThickness}" />
+      <Border x:Name="FocusVisualElement" IsHitTestVisible="false" BorderBrush="{DynamicResource ButtonNormalBorder}" Margin="0" Opacity="1" CornerRadius="3" BorderThickness="{TemplateBinding BorderThickness}"/>
     </Grid>
     <ControlTemplate.Triggers>
       <Trigger Property="IsDefault" Value="True"/>
@@ -1061,7 +1062,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type RepeatButton}">
           <Grid>
-            <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Opacity="1" />
+            <Border x:Name="Border" CornerRadius="3" BorderThickness="{TemplateBinding BorderThickness}" Opacity="1" />
             <ContentPresenter HorizontalAlignment="Center" x:Name="ContentPresenter" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}" Opacity="1" Height="Auto" />
           </Grid>
           <ControlTemplate.Triggers>
@@ -1627,7 +1628,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type ProgressBar}">
           <Grid>
-            <Border x:Name="PART_Track" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+            <Border x:Name="PART_Track" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3" BorderThickness="{TemplateBinding BorderThickness}"
                                 Background="{TemplateBinding Background}"/>
             <Border HorizontalAlignment="Left" x:Name="PART_Indicator" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
               <Border.Background>
@@ -1947,15 +1948,15 @@
       </Storyboard>
     </ControlTemplate.Resources>
     <Grid>
-      <Border x:Name="Border" Opacity="1" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+      <Border x:Name="Border" Opacity="1" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
         <Grid>
           <Border BorderThickness="1">
             <ScrollViewer Margin="0" x:Name="PART_ContentHost" Style="{DynamicResource NuclearScrollViewer}" />
           </Border>
         </Grid>
       </Border>
-      <Border x:Name="HoverBorder" IsHitTestVisible="False" Opacity="0" BorderBrush="{DynamicResource HoverTextBorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" />
-      <Border x:Name="FocusVisualElement" IsHitTestVisible="False" Opacity="0" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" >
+      <Border x:Name="HoverBorder" IsHitTestVisible="False" Opacity="0" BorderBrush="{DynamicResource HoverTextBorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" />
+      <Border x:Name="FocusVisualElement" IsHitTestVisible="False" Opacity="0" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" >
         <Border.BorderBrush>
           <SolidColorBrush Color="{DynamicResource TextBoxFocusBrush}"/>
         </Border.BorderBrush>
@@ -2020,15 +2021,15 @@
             </Storyboard>
           </ControlTemplate.Resources>
           <Grid>
-            <Border x:Name="Border" Opacity="1" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" Background="{TemplateBinding Background}">
+            <Border x:Name="Border" Opacity="1" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" Background="{TemplateBinding Background}">
               <Grid>
                 <Border BorderThickness="1">
                   <ScrollViewer Margin="0" x:Name="PART_ContentHost" Style="{DynamicResource NuclearScrollViewer}" />
                 </Border>
               </Grid>
             </Border>
-            <Border x:Name="HoverBorder" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource GlyphBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" />
-            <Border x:Name="FocusVisualElement" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource HoverShineBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" />
+            <Border x:Name="HoverBorder" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource GlyphBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" />
+            <Border x:Name="FocusVisualElement" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource HoverShineBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" />
 
           </Grid>
           <ControlTemplate.Triggers>
@@ -2098,15 +2099,15 @@
             </Storyboard>
           </ControlTemplate.Resources>
           <Grid>
-            <Border x:Name="Border" Opacity="1" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" Background="{TemplateBinding Background}">
+            <Border x:Name="Border" Opacity="1" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" Background="{TemplateBinding Background}">
               <Grid>
                 <Border BorderThickness="1">
                   <ScrollViewer Margin="0" x:Name="PART_ContentHost" Style="{DynamicResource NuclearScrollViewer}" />
                 </Border>
               </Grid>
             </Border>
-            <Border x:Name="HoverBorder" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource GlyphBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" />
-            <Border x:Name="FocusVisualElement" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource HoverShineBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" />
+            <Border x:Name="HoverBorder" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource GlyphBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" />
+            <Border x:Name="FocusVisualElement" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource HoverShineBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="23" />
           </Grid>
           <ControlTemplate.Triggers>
             <Trigger Property="IsFocused" Value="True">
