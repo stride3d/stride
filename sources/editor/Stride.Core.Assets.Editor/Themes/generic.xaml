@@ -77,7 +77,7 @@
                     </Path.Style>
                   </Path>
                 </DataTemplate>
-                <DataTemplate x:Key="LogMessageHasExceptionCellTemplate" DataType="compilerApp:AssetSerializableLogMessage">
+                <DataTemplate x:Key="LogMessageHasExceptionCellTemplate" DataType="diagnostics:AssetSerializableLogMessage">
                   <Border>
                     <Image SnapsToDevicePixels="True" Width="16" Height="16" Stretch="None" VerticalAlignment="Center" Source="../Resources/exception.png" Visibility="{Binding ExceptionInfo, Mode=OneTime, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrHidden}}}">
                       <ToolTipService.ToolTip>
@@ -89,7 +89,7 @@
                 <DataTemplate x:Key="LogMessageAssetUrlCellTemplate">
                   <TextBlock Text="{sd:PriorityBinding {Binding DataContext.AssetUrl, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}}, {Binding DataContext.AssetReference.Location, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}}}" />
                 </DataTemplate>
-                <DataTemplate x:Key="LogMessageTextCellTemplate" DataType="compilerApp:AssetSerializableLogMessage">
+                <DataTemplate x:Key="LogMessageTextCellTemplate" DataType="diagnostics:AssetSerializableLogMessage">
                   <TextBlock Text="{Binding}" TextWrapping="Wrap" />
                 </DataTemplate>
               </DataGrid.Resources>
