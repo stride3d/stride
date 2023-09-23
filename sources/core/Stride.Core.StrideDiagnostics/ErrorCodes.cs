@@ -16,12 +16,6 @@ public static class ErrorCodes
     /// </summary>
     public const string InvalidDictionaryAccess = "STRD003";
     /// <summary>
-    /// A property must have a public/internal getter.
-    /// A property must be set during instantiation, then no public setter would be valid.
-    /// Or it must have a public setter else.
-    /// </summary>
-    public const string InvalidPropertyAccess = "STRD004";
-    /// <summary>
     /// For <see cref="System.Collections.Generic.Dictionary{TKey, TValue}"/> the only valid Keys are primitive Types.
     /// All complex types like custom structs, objects are not allowed.
     /// // TODO : Enums are supported or not?
