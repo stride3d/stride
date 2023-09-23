@@ -201,10 +201,10 @@ void CreateMixin()
 
 
     File.WriteAllBytes("./mixed.spv", processed.Bytes.ToArray());
-    processed.Bytes.ToArray().ToGlsl();
+    processed.Bytes.ToArray().ToHlsl();
 
     stopwatch.Restart();
-    processed.Bytes.ToArray().ToGlsl();
+    processed.Bytes.ToArray().ToHlsl();
     stopwatch.Stop();
     Console.WriteLine($"Cross compilation took : {stopwatch.ElapsedMilliseconds}ms");
 
