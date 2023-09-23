@@ -41,7 +41,7 @@ internal class DictionaryKeyReporter : IViolationReporter
         if (PropertyHelper.IsDictionary(property, info))
         {
             var firstTypeArgument = ((INamedTypeSymbol)property.Type).TypeArguments[0];
-            if (IsPrimitiveType(firstTypeArgument))
+            if (IsPrimitiveType(firstTypeArgument) || IsKeyPrimitiveType(property, ClassInfo))
             {
                 return false;
             }
@@ -52,8 +52,29 @@ internal class DictionaryKeyReporter : IViolationReporter
         }
         return false;
     }
+    private bool IsKeyPrimitiveType(IPropertySymbol property, ClassInfo info)
+    {
+        // Check if the class implements IDictionary<TKey, TValue> and the key type is primitive.
+        var implementedInterfaces = info.Symbol.AllInterfaces;
+        var dictionaryInterface = info.ExecutionContext.Compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName);
+        var comparer = SymbolEqualityComparer.Default;
+        foreach (var type in implementedInterfaces)
+        {
+
+            if (type.AllInterfaces.Any(x => x.ConstructedFrom.Equals(dictionaryInterface, comparer)))
+            {
+                var keyType = ((INamedTypeSymbol)type).TypeArguments[0];
+                if (IsPrimitiveType(keyType))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     private bool IsPrimitiveType(ITypeSymbol type)
     {
+
         // List of all C# primitive types (both aliased and non-aliased names)
         var primitiveTypes = new HashSet<string>
         {
