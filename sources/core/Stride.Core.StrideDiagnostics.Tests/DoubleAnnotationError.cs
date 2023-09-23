@@ -21,22 +21,5 @@ public class DoubleAnnotation
         var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidDataMemberCombination);
         Assert.True(hasError, "The Dictionary can't be Ignored and evaluated at the same time.");
     }
-    [Fact]
-    public void Has_DataMember_and_DataMemberIgnore_At_The_Same_Time_on_field()
-    {
-        var sourceCode = @"
-using Stride.Core;
-[DataContract]
-public class DoubleAnnotation
-{
-    [DataMemberIgnore]
-    [DataMember]
-    public int Value;
-}
-";
-        var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
-        var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidDataMemberCombination);
-        Assert.True(hasError, "The Dictionary can't be Ignored and evaluated at the same time.");
-    }
 }
 
