@@ -7,9 +7,9 @@ namespace SDSLParserExample;
 public static class CrossExtensions
 {
 
-    public static void ToGlsl(this Span<byte> byteCode) => ToGlsl(byteCode.ToArray());
-    public static void ToHlsl(this Span<byte> byteCode) => ToHlsl(byteCode.ToArray());
-    public static void ToGlsl(this byte[] bytecode)
+    public static string ToGlsl(this Span<byte> byteCode) => ToGlsl(byteCode.ToArray());
+    public static string ToHlsl(this Span<byte> byteCode) => ToHlsl(byteCode.ToArray());
+    public static string ToGlsl(this byte[] bytecode)
     {
         unsafe
         {
@@ -82,13 +82,14 @@ public static class CrossExtensions
             byte* result = default;
             var res = spvc_compiler_compile(compiler_glsl, (byte*)&result);
             if (res != spvc_result.SPVC_SUCCESS) throw new Exception(res.ToString());
-            Console.WriteLine("Cross-compiled source: \n{0}", GetString(result));
+            var code = GetString(result);
 
             // Frees all memory we allocated so far.
             spvc_context_destroy(context);
+            return code;
         }
     }
-    public static void ToHlsl(this byte[] bytecode)
+    public static string ToHlsl(this byte[] bytecode)
     {
         unsafe
         {
@@ -154,10 +155,11 @@ public static class CrossExtensions
 
             byte* result = default;
             spvc_compiler_compile(compiler_hlsl, (byte*)&result);
-            Console.WriteLine("Cross-compiled source: \n{0}", GetString(result));
+            var code = GetString(result);
 
             // Frees all memory we allocated so far.
             spvc_context_destroy(context);
+            return code;
         }
     }
 }

@@ -204,8 +204,9 @@ void CreateMixin()
     processed.Bytes.ToArray().ToHlsl();
 
     stopwatch.Restart();
-    processed.Bytes.ToArray().ToHlsl();
+    var code = processed.Bytes.ToArray().ToHlsl();
     stopwatch.Stop();
+    Console.WriteLine(code);
     Console.WriteLine($"Cross compilation took : {stopwatch.ElapsedMilliseconds}ms");
 
     // var mB = new Mixin("MixinB");
