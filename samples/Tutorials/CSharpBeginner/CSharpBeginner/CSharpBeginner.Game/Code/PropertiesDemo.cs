@@ -10,6 +10,9 @@ namespace CSharpBeginner.Code
     /// This script demonstrates the most common properties you can expose to the editor.
     /// When we add the public keyword to the variables, they show up as properties in the editor.
     /// Note that in the editor, the properties are alphabetically sorted.
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/editor-properties.html
+    /// </para>
     /// </summary>
     public class PropertiesDemo : SyncScript
     {
