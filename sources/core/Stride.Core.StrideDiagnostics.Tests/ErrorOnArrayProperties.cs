@@ -17,7 +17,6 @@ public class ArrayError
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any(diagnostic =>
-            diagnostic.Severity == DiagnosticSeverity.Warning &&
             diagnostic.Id == ErrorCodes.InvalidArrayAccess);
         Assert.True(hasError, "The 'Array' property should generate an error, a private getter is not allowed.");
 
@@ -36,7 +35,7 @@ public class IgnoreArray
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.False(hasError, "The Array should be ignored but wasn't.");
+        Assert.False(hasError, $"The Array should be ignored but wasn't. {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
     [Fact]
     public void Ignore_Private_Array_Property()
@@ -51,6 +50,6 @@ public class IgnoreArray
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.False(hasError, "The Array should be ignored but wasn't.");
+        Assert.False(hasError, $"The Array should be ignored but wasn't. {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
 }

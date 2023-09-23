@@ -58,6 +58,7 @@ internal class DictionaryKeyReporter : IViolationReporter
     {
         switch (type.SpecialType)
         {
+            case SpecialType.System_Enum:
             case SpecialType.System_Boolean:
             case SpecialType.System_Byte:
             case SpecialType.System_SByte:

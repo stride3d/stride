@@ -17,7 +17,7 @@ public class InvalidCollection
 }}";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.InvalidCollectionAccess);
-        Assert.True(hasError, "The 'List' property should generate an error. A private getter is not allowed.");
+        Assert.True(hasError, $"The 'List' property should generate an error. A private getter is not allowed: {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
     [Fact]
     public void Valid_Dictionary_Access_with_public_getter()
@@ -31,7 +31,7 @@ public class InvalidCollection
 }}";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.InvalidCollectionAccess);
-        Assert.False(hasError, "The 'List' property Access should be valid.");
+        Assert.False(hasError, $"The 'List' property Access should be valid. {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
     [Fact]
     public void Valid_Collection_Access_with_public_getter()
@@ -47,7 +47,7 @@ public class InvalidCollection
         var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.InvalidCollectionAccess);
 
         // Assert that there is an error
-        Assert.False(hasError, "The 'List' property Access should be valid.");
+        Assert.False(hasError, $"The 'List' property Access should be valid. {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
     [Fact]
     public void Valid_Collection_Access_with_internal_getter()
@@ -62,7 +62,7 @@ public class InvalidCollection
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.InvalidCollectionAccess);
 
-        Assert.False(hasError, "The 'List' property Access should be valid.");
+        Assert.False(hasError, $"The 'List' property Access should be valid. {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
     [Fact]
     public void Valid_Collection_Access_with_public_getter_and_public_setter()
@@ -77,10 +77,10 @@ public class InvalidCollection
 }}";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         // Check if there are any diagnostics with the expected ID
-        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == "STRD002");
+        var hasError = generatedDiagnostics.Any(diagnostic => diagnostic.Id == ErrorCodes.InvalidCollectionAccess);
 
         // Assert that there is an error
-        Assert.False(hasError, "The 'List' property Access should be valid.");
+        Assert.False(hasError, $"The 'List' property Access should be valid. {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
     [Fact]
     public void DataMemberIgnore_Attribute_On_Collections()
@@ -95,7 +95,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.False(hasError, "The Property should be ignored with DataMemberIgnore.");
+        Assert.False(hasError, $"The Property should be ignored with DataMemberIgnore. {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
     [Fact]
     public void Ignore_Private_Collection_Property()
@@ -109,7 +109,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.False(hasError, "The Property should be ignored with DataMemberIgnore.");
+        Assert.False(hasError, $"The Property should be ignored with DataMemberIgnore. {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
 }
 

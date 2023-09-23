@@ -16,7 +16,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.False(hasError, "The Property should be ignored with DataMemberIgnore.");
+        Assert.False(hasError, $"The Dictionary should be ignored with DataMemberIgnore {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
     // TODO : Make this Test work, even though it works in a normal environment
     [Fact(Skip = "In a normal environment it works, but with the compilation it throws the Diagnostics, probably it throws it shortly which is enough to get reported.")]
@@ -77,7 +77,7 @@ public class IgnoreCollection
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any(x => x.Id == ErrorCodes.InvalidDictionaryKey);
-        Assert.True(hasError, "The Dictionary Key should be invalid.");
+        Assert.True(hasError, $"The Dictionary Key should be invalid: {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}");
     }
     [Fact]
     public void Invalid_Dictionary_Key_for_objects2()

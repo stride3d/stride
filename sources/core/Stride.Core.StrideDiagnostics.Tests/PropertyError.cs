@@ -17,7 +17,7 @@ public class IgnoreMember
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.False(hasError, $"A DataMemberIgnore Property should never be considered when it has DataMemberIgnore:  {generatedDiagnostics.Select(x => x.Id)}.");
+        Assert.False(hasError, $"A DataMemberIgnore Property should never be considered when it has DataMemberIgnore: {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}.");
     }
     [Fact]
     public void IgnoreMember_on_private_Properties()
@@ -31,7 +31,7 @@ public class IgnoreMember
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.False(hasError, $"A private Property should never be considered for Diagnostics when private: {generatedDiagnostics.Select(x => x.Id)}.");
+        Assert.False(hasError, $"A private Property should never be considered for Diagnostics when private: {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}.");
     }
     [Fact]
     public void IgnoreMember_on_private_fields()
@@ -45,7 +45,7 @@ public class IgnoreMember
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.False(hasError, $"A private field should never be considered by a Diagnostics Error  {generatedDiagnostics.Select(x => x.Id)}.");
+        Assert.False(hasError, $"A private field should never be considered by a Diagnostics Error: {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}.");
     }
     [Fact]
     public void IgnoreMember_on_DataMemberIgnore_fields()
@@ -60,6 +60,6 @@ public class IgnoreMember
 }";
         var generatedDiagnostics = DiagnosticsHelper.GetDiagnostics(sourceCode);
         var hasError = generatedDiagnostics.Any();
-        Assert.False(hasError, $"A DataMemberIgnore field should never be considered by a Diagnostics Error: {generatedDiagnostics.Select(x => x.Id)}.");
+        Assert.False(hasError, $"A DataMemberIgnore field should never be considered by a Diagnostics Error: {string.Join(", ", generatedDiagnostics.Select(x => x.Id))}.");
     }
 }
