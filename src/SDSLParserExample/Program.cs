@@ -176,7 +176,7 @@ void CreateMixin()
         .WithEntryPoint(ExecutionModel.Vertex, "VSMain")
             .FunctionStart()
             .DeclareAssign("int", "a", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => mixer.CreateConstant("cs5", 5).ResultId ?? -1)
-            .DeclareAssign("int", "b", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => mixer.Variables["a"].Id)
+            .DeclareAssign("int", "b", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => mixer.LocalVariables["a"].ResultId ?? -1)
             .Return()
             .FunctionEnd()
         .WithCapability(Capability.Shader)
@@ -195,7 +195,7 @@ void CreateMixin()
 
 
     File.WriteAllBytes("./mixed.spv", processed.Bytes.ToArray());
-    processed.Bytes.ToArray().ToGlsl();
+    //processed.Bytes.ToArray().ToGlsl();
 
     // var mB = new Mixin("MixinB");
     // mB.AddType<sbyte>();
