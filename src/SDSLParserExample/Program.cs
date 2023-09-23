@@ -6,6 +6,7 @@ using SoftTouch.Spirv.Core;
 using SoftTouch.Spirv.Core.Buffers;
 using SoftTouch.Spirv.Core.Parsing;
 using SoftTouch.Spirv.PostProcessing;
+using System.Diagnostics;
 using static Spv.Specification;
 
 static void ThreeAddress()
@@ -175,8 +176,9 @@ void CreateMixin()
         .WithOutput("float3", "out_color")
         .WithEntryPoint(ExecutionModel.Vertex, "VSMain")
             .FunctionStart()
-            .DeclareAssign("int", "a", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => mixer.CreateConstant("cs5", 5).ResultId ?? -1)
-            .DeclareAssign("int", "b", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => mixer.LocalVariables["a"].ResultId ?? -1)
+            .DeclareAssign("int", "a", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => new(mixer.CreateConstant("cs5", 5), true))
+            .DeclareAssign("int", "b", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => new(mixer.LocalVariables["a"], false))
+            .DeclareAssign("int", "c", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => new(mixer.LocalVariables["a"], false))
             .Return()
             .FunctionEnd()
         .WithCapability(Capability.Shader)
@@ -186,16 +188,25 @@ void CreateMixin()
 
     //Console.WriteLine(mA);
     //Console.WriteLine(mB);
-    Console.WriteLine(mD.Disassemble());
+    //Console.WriteLine(mD.Disassemble());
 
-    using var processed = PostProcessor.Process("MixinD");
- 
+    var processed = PostProcessor.Process("MixinD");
+    processed.Dispose();
+    Stopwatch stopwatch = Stopwatch.StartNew();
+    processed = PostProcessor.Process("MixinD");
+    stopwatch.Stop();
 
     Console.WriteLine(Disassembler.Disassemble(processed));
+    Console.WriteLine($"Process took : {stopwatch.ElapsedMilliseconds}ms");
 
 
     File.WriteAllBytes("./mixed.spv", processed.Bytes.ToArray());
-    //processed.Bytes.ToArray().ToGlsl();
+    processed.Bytes.ToArray().ToGlsl();
+
+    stopwatch.Restart();
+    processed.Bytes.ToArray().ToGlsl();
+    stopwatch.Stop();
+    Console.WriteLine($"Cross compilation took : {stopwatch.ElapsedMilliseconds}ms");
 
     // var mB = new Mixin("MixinB");
     // mB.AddType<sbyte>();
@@ -256,6 +267,7 @@ static void CheckOrderedEnumerator()
 
 //ParseWorking();
 //CheckOrderedEnumerator();
+Console.WriteLine("working on " + Directory.GetCurrentDirectory());
 CreateMixin();
 
 
