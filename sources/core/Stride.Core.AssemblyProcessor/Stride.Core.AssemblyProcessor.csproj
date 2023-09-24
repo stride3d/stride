@@ -3,7 +3,7 @@
     <ProductVersion>16.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net6</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
@@ -73,11 +73,11 @@
     <!--<PackageReference Include="ILRepack" Version="2.0.15" PrivateAssets="All" />-->
     <PackageReference Include="ILRepack" Version="2.0.18" PrivateAssets="All" />
     <!--<PackageReference Include="Mono.Cecil" Version="0.11.2" />-->
-    <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
     <!--<PackageReference Include="Mono.Options" Version="5.3.0.1" />-->
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
 
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.7.2" ExcludeAssets="runtime" />
   </ItemGroup>
   <!-- Generate hash file for assembly -->
   <UsingTask

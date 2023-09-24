@@ -17,10 +17,6 @@ namespace Stride.Core.AssemblyProcessor
     {
         private static readonly string attributeUsageTypeName = typeof(AttributeUsageAttribute).FullName;
 
-        public AssemblyScanProcessor()
-        {
-        }
-
         public bool Process(AssemblyProcessorContext context)
         {
             var registry = new AssemblyScanRegistry();
@@ -70,7 +66,7 @@ namespace Stride.Core.AssemblyProcessor
                 assemblyScanType.Methods.Add(initializeMethod);
 
                 // Make sure it is called at module startup
-                initializeMethod.AddModuleInitializer(-2000);
+                initializeMethod.AddModuleInitializer();
 
                 var mscorlibAssembly = CecilExtensions.FindCorlibAssembly(assembly);
                 var collectionAssembly = CecilExtensions.FindCollectionsAssembly(assembly);

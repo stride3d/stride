@@ -212,7 +212,14 @@ namespace Stride.Core.Storage
         /// <param name="data">The data.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T data) where T : unmanaged
-            => Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>()));
+        {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
+            Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>()));
+#else
+            fixed (byte* buffer = &Unsafe.As<T, byte>(ref data))
+                Write(new ReadOnlySpan<byte>(buffer, Unsafe.SizeOf<T>()));
+#endif
+        }
 
         /// <summary>
         /// Writes the specified buffer to this instance.
@@ -407,7 +414,14 @@ namespace Stride.Core.Storage
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static uint RotateLeft(uint x, byte r) => BitOperations.RotateLeft(x, r);
+        static uint RotateLeft(uint x, byte r)
+        {
+#if NETCOREAPP3_0_OR_GREATER              
+            return BitOperations.RotateLeft(x, r);
+#else
+            return (x << r) | (x >> (32 - r));
+#endif
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint FMix(uint h)
