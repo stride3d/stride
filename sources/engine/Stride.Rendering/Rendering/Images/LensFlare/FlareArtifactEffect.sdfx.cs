@@ -7,6 +7,7 @@
 // </auto-generated>
 
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Rendering;
 using Stride.Graphics;

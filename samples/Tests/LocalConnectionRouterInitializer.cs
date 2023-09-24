@@ -5,14 +5,14 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using Stride.Core;
 using Stride.Engine.Network;
 
 namespace Stride.Samples.Tests
 {
     //This is how we inject the assembly to run automatically at game start, paired with Stride.targets and the msbuild property StrideAutoTesting
-    internal class LocalConnectionRouterInitializer
+    internal static class LocalConnectionRouterInitializer
     {
         [ModuleInitializer]
         public static void Initialize()
@@ -33,6 +33,7 @@ namespace Stride.Samples.Tests
                 }
                 catch (Exception)
                 {
+                    // ignored
                 }
             }
 

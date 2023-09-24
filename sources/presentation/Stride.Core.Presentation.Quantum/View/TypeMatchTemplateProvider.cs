@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Yaml.Tokens;
 
 namespace Stride.Core.Presentation.Quantum.View
 {
@@ -20,7 +21,7 @@ namespace Stride.Core.Presentation.Quantum.View
 
         /// <summary>
         /// Gets or sets the <see cref="Type"/> to match. This provider will accept any node that has either a <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.Type"/>
-        /// or a <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.Value"/> with a type that is assignable to the type represented in this property.
+        /// or a <see cref="Value"/> with a type that is assignable to the type represented in this property.
         /// </summary>
         public Type Type { get; set; }
 

@@ -3,8 +3,7 @@
 
 using System;
 using System.Reflection;
-using Stride.Core;
-using Stride.Core.Reflection;
+using System.Runtime.CompilerServices;
 using Stride.Core.Serialization;
 using Stride.Updater;
 

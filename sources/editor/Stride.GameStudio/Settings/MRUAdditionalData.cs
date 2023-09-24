@@ -4,15 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Assets;
 using Stride.Core.IO;
+using Stride.Core.MostRecentlyUsedFiles;
 
 namespace Stride.GameStudio
 {
     /// <summary>
-    /// A class representing additional data associated with a <see cref="MostRecentlyUsedFiles.MostRecentlyUsedFile"/>
+    /// A class representing additional data associated with a <see cref="MostRecentlyUsedFile"/>
     /// </summary>
     [DataContract("MRUAdditionalData")]
     [DebuggerDisplay("MRUData: {FilePath}")]

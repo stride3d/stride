@@ -1,16 +1,18 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.Services;
-using Stride.Core;
-using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Skyboxes;
+using Stride.Core;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering.Lights;
 using Stride.Rendering.Skyboxes;
-using Stride.Rendering.Voxels.VoxelGI;
 using Stride.Rendering.Voxels;
+using Stride.Rendering.Voxels.VoxelGI;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
 {

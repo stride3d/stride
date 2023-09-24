@@ -1,22 +1,22 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Runtime.CompilerServices;
-using Stride.Core.Assets.Quantum;
-using Stride.Core;
-using Stride.Core.Reflection;
-using Stride.Core.Translation;
-using Stride.Core.Translation.Providers;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.Templates;
 using Stride.Assets.SpriteFont;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Reflection;
+using Stride.Core.Translation;
+using Stride.Core.Translation.Providers;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 
 namespace Stride.Assets.Presentation
 {
-    internal class Module
+    internal static class Module
     {
-        [Core.ModuleInitializer]
+        [ModuleInitializer]
         public static void Initialize()
         {
             RuntimeHelpers.RunModuleConstructor(typeof(SpriteFontAsset).Module.ModuleHandle);

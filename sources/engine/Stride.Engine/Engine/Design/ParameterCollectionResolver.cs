@@ -2,8 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Unsafe = System.Runtime.CompilerServices.Unsafe;
-using Stride.Core;
+using System.Runtime.CompilerServices;
 using Stride.Rendering;
 using Stride.Updater;
 

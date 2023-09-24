@@ -7,7 +7,7 @@ using Stride.Core.Reflection;
 namespace Stride.Core.Assets.Quantum.Tests
 {
     // Somehow it helps Resharper NUnit to run module initializer first (to determine unit test configuration).
-    public class Module
+    internal static class Module
     {
         [ModuleInitializer]
         internal static void Initialize()

@@ -11,7 +11,6 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Rendering;
-using Color = Stride.Core.Mathematics.Color;
 
 namespace Stride.Profiling
 {
@@ -60,7 +59,7 @@ namespace Stride.Profiling
         private uint drawCallsCount;
 
         /// <summary>
-        /// The render target where the profiling results should be rendered into. If null, the <see cref="Game.GraphicsDevice.Presenter.BackBuffer"/> is used.
+        /// The render target where the profiling results should be rendered into. If null, the <see cref="GraphicsDevice.Presenter.BackBuffer"/> is used.
         /// </summary>
         public Texture RenderTarget { get; set; }
 

@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Stride.Core.Assets;
-using Stride.Core;
-using Stride.Core.Serialization;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Rendering;
+using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Editor.Build;
 using Stride.Engine;
 using Stride.Engine.Processors;

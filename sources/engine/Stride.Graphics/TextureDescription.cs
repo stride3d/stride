@@ -23,6 +23,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using SharpDX.Direct3D11;
 
 namespace Stride.Graphics
 {
