@@ -209,22 +209,6 @@ void CreateMixin()
     Console.WriteLine(code);
     Console.WriteLine($"Cross compilation took : {stopwatch.ElapsedMilliseconds}ms");
 
-    // var mB = new Mixin("MixinB");
-    // mB.AddType<sbyte>();
-    // mB.AddType<Half>();
-
-    // MixinSourceProvider.Register(mA);
-    // MixinSourceProvider.Register(mB);
-
-    // var mC = new Mixin("MixinC");
-    // mC.AddMixin("MixinA");
-    // mC.AddMixin("MixinB");
-
-    // foreach(var mix in mC)
-    // {
-    //     Console.WriteLine(mix.Name);
-    // }
-
     var y = 0;
 }
 

@@ -15,3 +15,8 @@ SDSL is a superset of the HLSL Shading language, bringing advanced and higher le
 * **modularity** to provide a set modular shaders each focusing on a single rendering technique, more easily manageable
 
 * **reusability** to maximize code reuse between shaders
+
+
+## Contribute
+
+You can fork the repository, clone it with submodules and create PRs.
