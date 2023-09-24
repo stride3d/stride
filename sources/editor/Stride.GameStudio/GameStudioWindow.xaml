@@ -732,7 +732,7 @@
                               Visibility="{Binding Session.EditSelectedContentCommand.IsEnabled, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
                         <Grid>
                           <DockPanel Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sd:VisibleOrCollapsed}}">
-                            <Image Source="{StaticResource ImageEditAsset}" Margin="4" DockPanel.Dock="Left" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            <Image Source="{StaticResource ImageEditAsset}" Margin="4" DockPanel.Dock="Left" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                             <TextBlock Text="{sd:Localize Open this asset in editor}" Margin="0,4,4,4" VerticalAlignment="Center" />
                           </DockPanel>
                           <TextBlock Text="{sd:Localize Show this asset in editor}" Margin="0,4,4,4" VerticalAlignment="Center"
@@ -937,7 +937,7 @@
           </xcad:LayoutPanel>
         </xcad:LayoutRoot>
       </xcad:DockingManager>
-      <StatusBar Grid.Row="2" Background="#007ACC" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
+      <StatusBar Grid.Row="2" Background="{StaticResource StatusBarBackgroundBrush}" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
         <StatusBar.Resources>
           <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
             <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>
