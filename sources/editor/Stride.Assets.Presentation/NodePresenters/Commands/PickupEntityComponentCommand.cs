@@ -6,7 +6,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.SceneEditor.Services;
-using Stride.Assets.Presentation.ViewModel.Commands;
+using Stride.Core.Extensions;
 using Stride.Engine;
 
 namespace Stride.Assets.Presentation.NodePresenters.Commands
@@ -33,7 +33,10 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
         /// <inheritdoc/>
         public override bool CanAttach(INodePresenter nodePresenter)
         {
-            return typeof(EntityComponent).IsAssignableFrom(nodePresenter.Type);
+            if (typeof(EntityComponent).IsAssignableFrom(nodePresenter.Type))
+                return true;
+
+            return nodePresenter.Type.IsInterface && nodePresenter.Type.IsImplementedOnAny<EntityComponent>();
         }
 
         /// <inheritdoc/>

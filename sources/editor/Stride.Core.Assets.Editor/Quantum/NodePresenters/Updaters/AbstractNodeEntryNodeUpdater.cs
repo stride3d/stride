@@ -60,7 +60,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
         protected override void UpdateNode(IAssetNodePresenter node)
         {
             var type = node.Descriptor.GetInnerCollectionType();
-            if (type.IsAbstract && !IsReferenceType(type) && !node.IsObjectReference(node.Value) && IsInstantiable(type))
+            if (type.IsAbstract && !IsReferenceType(type) && IsInstantiable(type))
             {
                 var abstractNodeEntries = FillDefaultAbstractNodeEntry(node);
                 node.AttachedProperties.Add(AbstractNodeEntryData.Key, abstractNodeEntries);
