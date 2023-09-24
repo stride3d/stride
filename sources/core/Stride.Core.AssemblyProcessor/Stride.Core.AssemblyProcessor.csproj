@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProductVersion>16.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net6</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
