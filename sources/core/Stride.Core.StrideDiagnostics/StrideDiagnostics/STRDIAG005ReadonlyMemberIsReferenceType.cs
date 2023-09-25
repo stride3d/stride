@@ -15,7 +15,7 @@ public class ReadOnlyDataMemberAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG005";
     private const string Title = "ReadOnlyMemberIsReferenceType";
-    private const string MessageFormat = "[DataMember] applied to read-only member '{0}' of value type '{1}' is not allowed. Use a reference type instead.";
+    private const string MessageFormat = "[DataMember] applied to read-only member '{0}' of type '{1}' is not allowed. Use a reference type instead.";
     private const string Category = "CompilerServices";
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -46,8 +46,9 @@ public class ReadOnlyDataMemberAnalyzer : DiagnosticAnalyzer
                 fieldSymbol.IsReadOnly)
             {
                 var fieldType = fieldSymbol.Type;
-
-                if (fieldType != null && !fieldType.IsReferenceType && fieldType.SpecialType != SpecialType.System_String)
+                if (fieldType is null)
+                    return;
+                if (fieldType.SpecialType == SpecialType.System_String || !fieldType.IsReferenceType)
                 {
                     var diagnostic = Diagnostic.Create(Rule, fieldSymbol.Locations.First(), fieldSymbol.Name, fieldType);
                     context.ReportDiagnostic(diagnostic);
@@ -65,8 +66,9 @@ public class ReadOnlyDataMemberAnalyzer : DiagnosticAnalyzer
             if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
             {
                 var propertyType = propertySymbol.Type;
-
-                if (propertyType != null && !propertyType.IsReferenceType && propertyType.SpecialType != SpecialType.System_String)
+                if (propertyType == null)
+                    return;
+                if (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType)
                 {
                     var diagnostic = Diagnostic.Create(Rule, propertySymbol.Locations.First(), propertySymbol.Name, propertyType);
                     context.ReportDiagnostic(diagnostic);
