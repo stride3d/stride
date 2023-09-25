@@ -31,6 +31,8 @@ namespace Stride.Physics
 
         private readonly BulletSharp.DispatcherInfo dispatchInfo;
 
+        private SimulationTickEvent preSimulationTick, postSimulationTick;
+
         internal readonly bool CanCcd;
 
 #if DEBUG
@@ -65,6 +67,8 @@ namespace Stride.Physics
         public static bool DisableSimulation = false;
 
         public delegate PhysicsEngineFlags OnSimulationCreationDelegate();
+
+        public delegate void SimulationTickEvent(Simulation sender, float tick);
 
         /// <summary>
         /// Temporary solution to inject engine flags
@@ -1023,23 +1027,6 @@ namespace Stride.Physics
             }
         }
 
-        public class SimulationArgs : EventArgs
-        {
-            public float DeltaTime;
-        }
-
-        /// <summary>
-        /// Called right before the physics simulation.
-        /// This event might not be fired by the main thread.
-        /// </summary>
-        public event EventHandler<SimulationArgs> SimulationBegin;
-
-        protected virtual void OnSimulationBegin(SimulationArgs e)
-        {
-            var handler = SimulationBegin;
-            handler?.Invoke(this, e);
-        }
-
         internal int UpdatedRigidbodies;
 
         private readonly SimulationArgs simulationArgs = new SimulationArgs();
@@ -1066,11 +1053,66 @@ namespace Stride.Physics
             OnSimulationEnd(simulationArgs);
         }
 
+        public class SimulationArgs : EventArgs
+        {
+            public float DeltaTime;
+        }
+
         /// <summary>
-        /// Called right after the physics simulation.
+        /// Called before the physics simulation.
         /// This event might not be fired by the main thread.
         /// </summary>
+        [Obsolete($"The simulation is not guaranteed to tick following this call, use {nameof(PreTick)} instead. This is the same thing as Update")]
+        public event EventHandler<SimulationArgs> SimulationBegin;
+
+        /// <summary>
+        /// Called after the physics simulation.
+        /// This event might not be fired by the main thread.
+        /// </summary>
+        [Obsolete($"The simulation is not guaranteed to have ticked before this call, use {nameof(PostTick)} instead. This is the same thing as Update")]
         public event EventHandler<SimulationArgs> SimulationEnd;
+
+        /// <summary>
+        /// Called right before processing a tick of the physics simulation,
+        /// this may occur from zero up to <see cref="MaxSubSteps"/> time per update.
+        /// </summary>
+        public event SimulationTickEvent PreTick
+        {
+            add
+            {
+                if (preSimulationTick is null)
+                    discreteDynamicsWorld.SetInternalTickCallback((world, step) => preSimulationTick?.Invoke(this, step), isPreTick:true);
+                preSimulationTick += value;
+            }
+            remove
+            {
+                preSimulationTick -= value;
+            }
+        }
+
+        /// <summary>
+        /// Called right after processing a tick of the physics simulation,
+        /// this may occur from zero up to <see cref="MaxSubSteps"/> time per update.
+        /// </summary>
+        public event SimulationTickEvent PostTick
+        {
+            add
+            {
+                if (postSimulationTick is null)
+                    discreteDynamicsWorld.SetInternalTickCallback((world, step) => postSimulationTick?.Invoke(this, step), isPreTick:false);
+                postSimulationTick += value;
+            }
+            remove
+            {
+                postSimulationTick -= value;
+            }
+        }
+
+        protected virtual void OnSimulationBegin(SimulationArgs e)
+        {
+            var handler = SimulationBegin;
+            handler?.Invoke(this, e);
+        }
 
         protected virtual void OnSimulationEnd(SimulationArgs e)
         {
