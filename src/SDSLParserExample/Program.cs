@@ -190,6 +190,7 @@ void CreateMixin()
     //Console.WriteLine(mB);
     //Console.WriteLine(mD.Disassemble());
 
+    Console.WriteLine(mD);
     var processed = PostProcessor.Process("MixinD");
     processed.Dispose();
     Stopwatch stopwatch = Stopwatch.StartNew();
