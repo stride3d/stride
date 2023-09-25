@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using BepuPhysics;
 using Stride.Engine;
-using static BepuPhysics.Collidables.CompoundBuilder;
 
-namespace PhysicsSample
+namespace BepuPhysicIntegrationTest
 {
     public static class Extensions
     {
@@ -55,7 +49,7 @@ namespace PhysicsSample
             var childrens = entity.GetChildren();
             foreach (var child in childrens)
             {
-                res = GetInMeOrChilds<T>(child);
+                res = child.GetInMeOrChilds<T>();
                 if (res != null)
                     return res;
             }
@@ -79,7 +73,7 @@ namespace PhysicsSample
             var childrens = entity.GetChildren();
             foreach (var child in childrens)
             {
-                var res = GetInMeOrChilds<T>(child);
+                var res = child.GetInMeOrChilds<T>();
                 if (res != null)
                     return res;
             }

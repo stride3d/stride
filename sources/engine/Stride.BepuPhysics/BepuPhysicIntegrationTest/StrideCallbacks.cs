@@ -1,14 +1,13 @@
-﻿using BepuUtilities;
-using BepuUtilities.Memory;
+﻿using System;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.Constraints;
-using System;
-using System.Runtime.CompilerServices;
-using System.Numerics;
+using BepuUtilities;
 
-namespace PhysicsSample.Physics
+namespace BepuPhysicIntegrationTest
 {
     public struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {

@@ -1,0 +1,7 @@
+!Texture
+Id: 920bb089-5b12-40a0-abe4-8524e64d17c8
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../../../../Desktop/GithubNicogo.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

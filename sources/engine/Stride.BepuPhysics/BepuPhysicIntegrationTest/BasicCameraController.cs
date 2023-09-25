@@ -39,7 +39,6 @@ namespace BepuPhysicIntegrationTest
         public override void Start()
         {
             base.Start();
-
             // Default up-direction
             upVector = Vector3.UnitY;
 
