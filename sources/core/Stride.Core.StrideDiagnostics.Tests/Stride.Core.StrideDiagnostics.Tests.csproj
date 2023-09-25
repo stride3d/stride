@@ -9,7 +9,7 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
-    <Using Include="Xunit"/>
+    <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.StrideDiagnostics\Stride.Core.StrideDiagnostics.csproj" ReferenceOutputAssembly="true" />
