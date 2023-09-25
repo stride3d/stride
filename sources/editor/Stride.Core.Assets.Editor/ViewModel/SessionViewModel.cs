@@ -286,7 +286,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
 
             var solutionName = !string.IsNullOrWhiteSpace(newSessionParameters.SolutionName) ? newSessionParameters.SolutionName : newSessionParameters.OutputName;
-            solutionName = solutionName.ToLowerInvariant().EndsWith(SolutionExtension) ? solutionName : solutionName + SolutionExtension;
+            solutionName = solutionName.ToLowerInvariant().EndsWith(SolutionExtension, StringComparison.Ordinal) ? solutionName : solutionName + SolutionExtension;
             session.SolutionPath = UPath.Combine<UFile>(solutionDir, solutionName);
             session.VisualStudioVersion = PackageSession.DefaultVisualStudioVersion;
 

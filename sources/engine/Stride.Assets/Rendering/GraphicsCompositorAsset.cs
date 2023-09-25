@@ -134,7 +134,7 @@ namespace Stride.Assets.Rendering
                 YamlNode assetNode = asset.Node;
                 foreach (var node in assetNode.AllNodes)
                 {
-                    if (node.Tag != null && node.Tag.EndsWith(",Stride.Engine")
+                    if (node.Tag != null && node.Tag.EndsWith(",Stride.Engine", StringComparison.Ordinal)
                         // Several types are still in Stride.Engine
                         && node.Tag != "!Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine"
                         && node.Tag != "!Stride.Rendering.Compositing.SceneCameraRenderer,Stride.Engine")

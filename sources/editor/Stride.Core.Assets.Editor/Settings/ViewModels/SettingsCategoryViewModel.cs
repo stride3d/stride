@@ -39,7 +39,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
             // Get all settings key and sort them by display name
             var settingsKeys = profile.Container.GetAllSettingsKeys();
             var settingsPath = Path;
-            if (!settingsPath.EndsWith("/"))
+            if (!settingsPath.EndsWith('/'))
                 settingsPath += "/";
             int pathLength = settingsPath.Length;
             settingsKeys.Sort(new AnonymousComparer<SettingsKey>((x, y) => x.DisplayName.CompareTo(y.DisplayName)));
@@ -48,7 +48,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
             foreach (SettingsKey key in settingsKeys)
             {
                 var displayName = key.DisplayName.ToString();
-                if (displayName.StartsWith(settingsPath) && !displayName.Substring(pathLength).Contains("/"))
+                if (displayName.StartsWith(settingsPath, StringComparison.Ordinal) && !displayName[pathLength..].Contains('/'))
                 {
                     var settingsObject = PackageSettingsWrapper.SettingsKeyWrapper.Create(key, profile);
                     settingsList.Add(key.DisplayName.GetFileName(), settingsObject);
@@ -60,7 +60,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
             foreach (SettingsCommand command in commands)
             {
                 var displayName = command.DisplayName.ToString();
-                if (displayName.StartsWith(settingsPath) && !displayName.Substring(pathLength).Contains("/"))
+                if (displayName.StartsWith(settingsPath, StringComparison.Ordinal) && !displayName[pathLength..].Contains('/'))
                 {
                     settingsList.Add(command.DisplayName.GetFileName(), command);
                 }

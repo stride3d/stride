@@ -179,8 +179,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 renderEffect.FallbackParameters = new ParameterCollection(renderMesh.MaterialPass.Parameters);
 
                 // Don't show selection wireframe/highlights as compiling
-                var ignoreState = renderEffect.EffectSelector.EffectName.EndsWith(".Wireframe") || renderEffect.EffectSelector.EffectName.EndsWith(".Highlight") ||
-                                  renderEffect.EffectSelector.EffectName.EndsWith(".Picking");
+                var ignoreState = renderEffect.EffectSelector.EffectName.EndsWith(".Wireframe", StringComparison.Ordinal) || renderEffect.EffectSelector.EffectName.EndsWith(".Highlight", StringComparison.Ordinal) ||
+                                  renderEffect.EffectSelector.EffectName.EndsWith(".Picking", StringComparison.Ordinal);
 
                 // Also set a value so that we know something is loading (green glowing FX) or error (red glowing FX)
                 if (!ignoreState)

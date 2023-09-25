@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -57,7 +59,7 @@ namespace Stride.Core.BuildEngine
             {
                 // Avoid processing system assemblies
                 // TODO: Scan what is actually in framework folders (and unify it with ProcessDataSerializerGlobalAttributes)
-                if (referencedAssemblyName.Name == "mscorlib" || referencedAssemblyName.Name.StartsWith("System")
+                if (referencedAssemblyName.Name == "mscorlib" || referencedAssemblyName.Name.StartsWith("System", StringComparison.Ordinal)
                     || referencedAssemblyName.FullName.Contains("PublicKeyToken=31bf3856ad364e35")) // Signed with Microsoft public key (likely part of system libraries)
                     continue;
 

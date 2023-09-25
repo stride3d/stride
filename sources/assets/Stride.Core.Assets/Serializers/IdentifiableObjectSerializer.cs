@@ -32,7 +32,7 @@ namespace Stride.Core.Assets.Serializers
             if (objectContext.Reader.Accept<Scalar>())
             {
                 var next = objectContext.Reader.Peek<Scalar>();
-                if (next.Value.StartsWith(Prefix))
+                if (next.Value.StartsWith(Prefix, StringComparison.Ordinal))
                 {
                     return scalarRedirectSerializer.ReadYaml(ref objectContext);
                 }
@@ -66,7 +66,7 @@ namespace Stride.Core.Assets.Serializers
 
         private static bool TryParse(string text, out Guid identifier)
         {
-            if (!text.StartsWith(Prefix))
+            if (!text.StartsWith(Prefix, StringComparison.Ordinal))
             {
                 identifier = Guid.Empty;
                 return false;
