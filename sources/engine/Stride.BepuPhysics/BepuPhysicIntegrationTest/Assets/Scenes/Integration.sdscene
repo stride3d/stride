@@ -111,7 +111,7 @@ Hierarchy:
                         TouchRotationSpeed: {X: 1.0, Y: 0.7}
                     bcdaba5b1e131c243e518f824fbf1ee5: !BepuPhysicIntegrationTest.GameProfiler,BepuPhysicIntegrationTest
                         Id: bec30282-90a3-4a00-99a1-7f0a1d4277b4
-                        Enabled: false
+                        Enabled: true
                         TextColor: {R: 144, G: 238, B: 144, A: 255}
                         RefreshTime: 500.0
                         SortingMode: ByTime
