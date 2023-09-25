@@ -1081,7 +1081,7 @@ namespace Stride.Physics
             add
             {
                 if (preSimulationTick is null)
-                    discreteDynamicsWorld.SetInternalTickCallback((world, step) => preSimulationTick?.Invoke(this, step), new object(), isPreTick:true);
+                    discreteDynamicsWorld.SetInternalTickCallback((world, step) => preSimulationTick?.Invoke(this, step), isPreTick:true);
                 preSimulationTick += value;
             }
             remove
@@ -1099,7 +1099,7 @@ namespace Stride.Physics
             add
             {
                 if (postSimulationTick is null)
-                    discreteDynamicsWorld.SetInternalTickCallback((world, step) => postSimulationTick?.Invoke(this, step), new object(), isPreTick:false);
+                    discreteDynamicsWorld.SetInternalTickCallback((world, step) => postSimulationTick?.Invoke(this, step), isPreTick:false);
                 postSimulationTick += value;
             }
             remove
