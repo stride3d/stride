@@ -44,7 +44,7 @@ Hierarchy:
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 9c9678c5-1834-4e3a-9cc0-4604bdaced33
-                        Position: {X: 0.0, Y: 10.0, Z: 20.0}
+                        Position: {X: 0.0, Y: 10.0, Z: -50.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -168,7 +168,15 @@ Hierarchy:
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/BepuCube
                         Instancing: ref!! 7b575973-f575-4c46-ad83-7e80a3655acc
                         SpawnPosition: ref!! 65fcb2f6-453c-4f32-b23a-17f74897d19a
-                        Count: 1000
+                        Count: 20000
                         SpawnByFrame: 1
                         SpawnVelocity: {X: 0.0, Y: 20.0, Z: 0.0}
                         SpawnVelocityRange: {X: 2.0, Y: 0.0, Z: 2.0}
+                    23ae0b56c8d5f2afb0c247d176e67cbd: !BepuPhysicIntegrationTest.GameProfiler,BepuPhysicIntegrationTest
+                        Id: e661a39a-f3bd-4050-80c8-edd2cb385f08
+                        Enabled: true
+                        TextColor: {R: 144, G: 238, B: 144, A: 255}
+                        RefreshTime: 50.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1

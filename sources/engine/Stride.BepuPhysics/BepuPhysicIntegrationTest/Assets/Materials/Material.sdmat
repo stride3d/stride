@@ -8,7 +8,7 @@ Attributes:
             Value: 0.65
     Diffuse: !MaterialDiffuseMapFeature
         DiffuseMap: !ComputeTextureColor
-            Texture: 920bb089-5b12-40a0-abe4-8524e64d17c8:Textures/GithubNicogo
+            Texture: 3f223a83-71ab-4072-949e-201a25f102cd:Textures/GithubNicogo
             FallbackValue:
                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
             Scale: {X: 1.0, Y: 1.0}
