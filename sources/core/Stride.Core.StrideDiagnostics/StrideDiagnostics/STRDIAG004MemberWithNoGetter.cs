@@ -8,7 +8,7 @@ using System.Text;
 
 namespace StrideDiagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class PropertyDataMemberAnalyzer : DiagnosticAnalyzer
+public class STRDIAG004MemberWithNoGetter : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG004";
     private const string Title = "MemberWithNoGetter";

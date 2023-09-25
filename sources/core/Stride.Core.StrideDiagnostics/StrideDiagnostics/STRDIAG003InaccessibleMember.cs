@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace StrideDiagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class PrivateDataMemberAnalyzer : DiagnosticAnalyzer
+public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG003";
     private const string Title = "InaccessibleMember";

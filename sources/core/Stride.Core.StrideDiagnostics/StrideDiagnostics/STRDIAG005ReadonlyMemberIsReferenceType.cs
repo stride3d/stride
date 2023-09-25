@@ -11,7 +11,7 @@ using System.Runtime.Serialization;
 
 namespace Stride.Core.StrideDiagnostics.StrideDiagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class ReadOnlyDataMemberAnalyzer : DiagnosticAnalyzer
+public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG005";
     private const string Title = "ReadOnlyMemberIsReferenceType";
