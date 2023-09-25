@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Stride.Core.Reflection;
 
 namespace Stride.Core.Mathematics
@@ -8,7 +10,7 @@ namespace Stride.Core.Mathematics
     /// <summary>
     /// Module initializer.
     /// </summary>
-    internal class Module
+    internal static class Module
     {
         /// <summary>
         /// Module initializer.

@@ -3,10 +3,11 @@
 
 using System.Linq;
 using SharpDX.DirectWrite;
-using Stride.Core.Assets.Compiler;
-using Stride.Core;
-using Stride.Core.Diagnostics;
 using Stride.Assets.SpriteFont.Compiler;
+using Stride.Audio;
+using Stride.Core;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Diagnostics;
 using Stride.Graphics.Font;
 
 namespace Stride.Assets.SpriteFont
@@ -30,7 +31,7 @@ namespace Stride.Assets.SpriteFont
         }
 
         /// <summary>
-        /// Gets or sets the name of the font family to use when the <see cref="Source"/> is not specified.
+        /// Gets or sets the name of the font family to use when the <see cref="AudioLayer.Source"/> is not specified.
         /// </summary>
         /// <userdoc>
         /// The name of the font family to use. Only the fonts installed on the system can be used here.

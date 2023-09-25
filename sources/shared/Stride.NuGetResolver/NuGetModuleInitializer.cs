@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Core.Assets
 {
     class NuGetModuleInitializer
     {
-        [ModuleInitializer(-100000)]
+        [ModuleInitializer]
         internal static void __Initialize__()
         {
             // Only perform this for entry assembly

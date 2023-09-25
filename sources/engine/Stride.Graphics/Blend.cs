@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 
 namespace Stride.Graphics
@@ -69,7 +70,7 @@ namespace Stride.Graphics
         SourceAlphaSaturate = 11,
 
         /// <summary>
-        /// The data source is the blend factor set with <see cref="GraphicsDevice.BlendStates"/>. No pre-blend operation.
+        /// The data source is the blend factor set with <see cref="BlendStates"/>. No pre-blend operation.
         /// </summary>
         BlendFactor = 14,
 

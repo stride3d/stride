@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Windows;
+using System.Windows.Media;
 
 namespace Stride.Core.Presentation.Themes
 {
@@ -12,7 +13,7 @@ namespace Stride.Core.Presentation.Themes
     {
         /// <summary>
         /// The main purpose of this property is for Luminosity Check feature of
-        /// <see cref="ImageThemingUtilities.TransformDrawing(Media.Drawing, IconTheme, bool)"/>.
+        /// <see cref="ImageThemingUtilities.TransformDrawing(Drawing, IconTheme, bool)"/>.
         /// </summary>
         public static readonly DependencyProperty IsDarkProperty =
             DependencyProperty.RegisterAttached("IsDark", typeof(bool), typeof(ThemeController), new PropertyMetadata(false));

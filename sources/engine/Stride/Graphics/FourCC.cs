@@ -22,9 +22,7 @@
 // THE SOFTWARE.
 using System;
 using System.Runtime.InteropServices;
-
 using Stride.Core.Serialization;
-using Stride.Core.Serialization.Serializers;
 
 namespace Stride
 {
@@ -79,7 +77,7 @@ namespace Stride
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="SharpDX.Multimedia.FourCC"/> to <see cref="int"/>.
+        /// Performs an implicit conversion from <see cref="FourCC"/> to <see cref="int"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>
@@ -91,7 +89,7 @@ namespace Stride
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="SharpDX.Multimedia.FourCC"/> to <see cref="int"/>.
+        /// Performs an implicit conversion from <see cref="FourCC"/> to <see cref="int"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>
@@ -103,7 +101,7 @@ namespace Stride
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="int"/> to <see cref="SharpDX.Multimedia.FourCC"/>.
+        /// Performs an implicit conversion from <see cref="int"/> to <see cref="FourCC"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>
@@ -115,7 +113,7 @@ namespace Stride
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="int"/> to <see cref="SharpDX.Multimedia.FourCC"/>.
+        /// Performs an implicit conversion from <see cref="int"/> to <see cref="FourCC"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>
@@ -127,7 +125,7 @@ namespace Stride
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="SharpDX.Multimedia.FourCC"/> to <see cref="System.String"/>.
+        /// Performs an implicit conversion from <see cref="FourCC"/> to <see cref="System.String"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>
@@ -139,7 +137,7 @@ namespace Stride
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="System.String"/> to <see cref="SharpDX.Multimedia.FourCC"/>.
+        /// Performs an implicit conversion from <see cref="System.String"/> to <see cref="FourCC"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>

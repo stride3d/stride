@@ -2,15 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.TypeConverters;
-using Half = Stride.Core.Mathematics.Half;
 
 namespace Stride.Core
 {
-    internal class Module
+    internal static class Module
     {
         [ModuleInitializer]
         public static void Initialize()

@@ -22,12 +22,9 @@
 // THE SOFTWARE.
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
-using System.Globalization;
 using System.Windows.Forms;
 #if !STRIDE_GRAPHICS_API_OPENGL && !STRIDE_GRAPHICS_API_VULKAN && !STRIDE_GRAPHICS_API_NULL
-using SharpDX.Win32;
 #endif
-using System.Runtime.InteropServices;
 
 namespace Stride.Games
 {
@@ -35,7 +32,7 @@ namespace Stride.Games
     /// RenderLoop provides a rendering loop infrastructure. See remarks for usage. 
     /// </summary>
     /// <remarks>
-    /// Use static <see cref="Run(System.Windows.Forms.Control,SharpDX.Windows.RenderLoop.RenderCallback)"/>  
+    /// Use static <see cref="System.Windows.Documents.Run"/>  
     /// method to directly use a renderloop with a render callback or use your own loop:
     /// <code>
     /// control.Show();

@@ -22,8 +22,8 @@
 // THE SOFTWARE.
 
 using System;
+using SharpDX.DXGI;
 using Stride.Core;
-using Stride.Core.ReferenceCounting;
 
 namespace Stride.Graphics
 {

@@ -3,11 +3,11 @@
 
 using System;
 using System.IO;
-using Stride.Core;
+using System.Runtime.CompilerServices;
 
 namespace Stride.TextureConverter.Tests
 {
-    public static class Module
+    internal static class Module
     {
         public static readonly string ApplicationPath = AppDomain.CurrentDomain.BaseDirectory;
         public static readonly string PathToInputImages = Path.Combine(ApplicationPath, "InputImages") + Path.DirectorySeparatorChar;
@@ -21,7 +21,7 @@ namespace Stride.TextureConverter.Tests
 
         public static void LoadLibraries()
         {
-            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(TextureTool).TypeHandle);
+            RuntimeHelpers.RunClassConstructor(typeof(TextureTool).TypeHandle);
         }
     }
 }

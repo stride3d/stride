@@ -10,7 +10,7 @@ namespace Stride.Engine
     /// <summary>
     /// Ordered collection of <see cref="EntityProcessor"/> based on the <see cref="EntityProcessor.Order"/> property.
     /// </summary>
-    /// <seealso cref="Stride.Core.Collections.OrderedCollection{Stride.Engine.EntityProcessor}" />
+    /// <seealso cref="EntityProcessor" />
     public class EntityProcessorCollection : OrderedCollection<EntityProcessor>
     {
         /// <summary>

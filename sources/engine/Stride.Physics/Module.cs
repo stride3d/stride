@@ -2,12 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Reflection;
 
 namespace Stride.Engine
 {
-    internal class Module
+    internal static class Module
     {
         [ModuleInitializer]
         public static void Initialize()

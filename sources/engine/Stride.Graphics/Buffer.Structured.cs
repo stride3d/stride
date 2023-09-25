@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using Stride.Games;
+using SharpDX.Direct3D11;
 
 namespace Stride.Graphics
 {

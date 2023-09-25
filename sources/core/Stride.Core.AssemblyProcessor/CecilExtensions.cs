@@ -42,18 +42,14 @@ namespace Stride.Core.AssemblyProcessor
             return strideCoreModule;
         }
 
-        public static void AddModuleInitializer(this MethodDefinition initializeMethod, int order = 0)
+        public static void AddModuleInitializer(this MethodDefinition initializeMethod)
         {
             var assembly = initializeMethod.Module.Assembly;
-            var strideCoreModule = GetStrideCoreModule(assembly);
-
-            var moduleInitializerAttribute = strideCoreModule.GetType("Stride.Core.ModuleInitializerAttribute");
-            var moduleInitializerCtor = moduleInitializerAttribute.GetConstructors().Single(x => !x.IsStatic && x.Parameters.Count == 1);
+            var corlibAssembly = FindCorlibAssembly(assembly);
+            var moduleInitializerAttribute = corlibAssembly.MainModule.GetType("System.Runtime.CompilerServices.ModuleInitializerAttribute");
+            var moduleInitializerCtor = moduleInitializerAttribute.GetConstructors().Single(x => !x.IsStatic && x.Parameters.Count == 0);
             initializeMethod.CustomAttributes.Add(
-                new CustomAttribute(assembly.MainModule.ImportReference(moduleInitializerCtor))
-                {
-                    ConstructorArguments = { new CustomAttributeArgument(assembly.MainModule.TypeSystem.Int32, order) }
-                });
+                new CustomAttribute(assembly.MainModule.ImportReference(moduleInitializerCtor)));
         }
 
         public static TypeReference MakeGenericType(this TypeReference self, params TypeReference[] arguments)

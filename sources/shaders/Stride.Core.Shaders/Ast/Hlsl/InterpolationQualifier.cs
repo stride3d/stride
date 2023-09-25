@@ -7,7 +7,7 @@ namespace Stride.Core.Shaders.Ast.Hlsl
     /// <summary>
     /// A parameter interpolation qualifier.
     /// </summary>
-    /// <seealso cref="Stride.Core.Shaders.Ast.Qualifier" />
+    /// <seealso cref="Qualifier" />
     public class InterpolationQualifier : Qualifier
     {
         #region Constants and Fields

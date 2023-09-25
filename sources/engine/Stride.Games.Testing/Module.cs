@@ -2,15 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Stride.Core;
-using Stride.Core.Mathematics;
 using Stride.Engine;
 
 namespace Stride.Games.Testing
 {
     //This is how we inject the assembly to run automatically at game start, paired with Stride.targets and the msbuild property StrideAutoTesting
-    internal class Module
+    internal static class Module
     {
         [ModuleInitializer]
         public static void Initialize()

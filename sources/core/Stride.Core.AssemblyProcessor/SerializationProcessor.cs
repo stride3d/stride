@@ -20,12 +20,6 @@ namespace Stride.Core.AssemblyProcessor
 {
     internal class SerializationProcessor : IAssemblyDefinitionProcessor
     {
-        public delegate void RegisterSourceCode(string code, string name = null);
-
-        public SerializationProcessor()
-        {
-        }
-
         public bool Process(AssemblyProcessorContext context)
         {
             var registry = new ComplexSerializerRegistry(context.Platform, context.Assembly, context.Log);
@@ -50,6 +44,7 @@ namespace Stride.Core.AssemblyProcessor
         /// Note: we might want something more fluent? (probably lot of work to get the system working, but would make changes easier to do -- not sure if worth it considering it didn't change much recently)
         /// </summary>
         /// <param name="registry"></param>
+        /// <param name="serializationHash"></param>
         private static void GenerateSerializerCode(ComplexSerializerRegistry registry, out ObjectId serializationHash)
         {
             var hash = new ObjectIdBuilder();
@@ -297,9 +292,6 @@ namespace Stride.Core.AssemblyProcessor
             var mscorlibAssembly = CecilExtensions.FindCorlibAssembly(assembly);
             var reflectionAssembly = CecilExtensions.FindReflectionAssembly(assembly);
 
-            // String
-            var stringType = mscorlibAssembly.MainModule.GetTypeResolved(typeof(string).FullName);
-            var stringTypeRef = assembly.MainModule.ImportReference(stringType);
             // Type
             var typeType = mscorlibAssembly.MainModule.GetTypeResolved(typeof(Type).FullName);
             var typeTypeRef = assembly.MainModule.ImportReference(typeType);
@@ -374,7 +366,7 @@ namespace Stride.Core.AssemblyProcessor
             serializerFactoryType.Methods.Add(initializeMethod);
 
             // Make sure it is called at module startup
-            initializeMethod.AddModuleInitializer(-1000);
+            initializeMethod.AddModuleInitializer();
 
             var initializeMethodIL = initializeMethod.Body.GetILProcessor();
 
@@ -451,16 +443,16 @@ namespace Stride.Core.AssemblyProcessor
                     // Generating: assemblySerializersProfile.Add(new AssemblySerializerEntry(<#=type.Key.ConvertTypeId()#>, typeof(<#= type.Key.ConvertCSharp() #>), <# if (type.Value.SerializerType != null) { #>typeof(<#= type.Value.SerializerType.ConvertCSharp() #>)<# } else { #>null<# } #>));
                     initializeMethodIL.Emit(OpCodes.Dup);
 
-                    var typeName = type.Key.ConvertCSharp(false);
+                    var typeName = type.Key.ConvertCSharp();
                     var typeId = ObjectId.FromBytes(Encoding.UTF8.GetBytes(typeName));
 
                     unsafe
                     {
-                            var typeIdHash = (int*)&typeId;
+                        var typeIdHash = (int*)&typeId;
 
-                            for (int i = 0; i < ObjectId.HashSize / 4; ++i)
-                                initializeMethodIL.Emit(OpCodes.Ldc_I4, typeIdHash[i]);
-                        }
+                        for (int i = 0; i < ObjectId.HashSize / 4; ++i)
+                            initializeMethodIL.Emit(OpCodes.Ldc_I4, typeIdHash[i]);
+                    }
 
                     initializeMethodIL.Emit(OpCodes.Newobj, objectIdCtorRef);
 
@@ -508,7 +500,7 @@ namespace Stride.Core.AssemblyProcessor
             initializeMethodIL.Emit(OpCodes.Newarr, assembly.MainModule.TypeSystem.String);
             initializeMethodIL.Emit(OpCodes.Dup);
             initializeMethodIL.Emit(OpCodes.Ldc_I4_0);
-            initializeMethodIL.Emit(OpCodes.Ldstr, Core.Reflection.AssemblyCommonCategories.Engine);
+            initializeMethodIL.Emit(OpCodes.Ldstr, Reflection.AssemblyCommonCategories.Engine);
             initializeMethodIL.Emit(OpCodes.Stelem_Ref);
 
             var assemblyRegistryRegisterMethodRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Reflection.AssemblyRegistry").Methods.Single(x => x.Name == "Register" && x.Parameters[1].ParameterType.IsArray));
@@ -570,18 +562,6 @@ namespace Stride.Core.AssemblyProcessor
                                                                                mscorlibAssembly.MainModule.GetTypeResolved(typeof(KeyValuePair<,>).FullName)));
             registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.DictionaryInterfaceSerializer`2",
                                                                                mscorlibAssembly.MainModule.GetTypeResolved(typeof(KeyValuePair<,>).FullName)));
-        }
-    }
-
-    public static class HashExtensions
-    {
-        public static unsafe void Write(this ObjectIdBuilder objectIdBuilder, int i)
-        {
-            objectIdBuilder.Write((byte*)&i, sizeof(int));
-        }
-        public static unsafe void Write(this ObjectIdBuilder objectIdBuilder, bool b)
-        {
-            objectIdBuilder.WriteByte((byte)(b ? 1 : 0));
         }
     }
 }
