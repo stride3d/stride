@@ -10,18 +10,16 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ColliderProcessor : EntityProcessor<ColliderComponent>
     {
-        private readonly List<ColliderComponent> _collidersComponents = new();
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ColliderComponent component, [NotNull] ColliderComponent data)
         {
             base.OnEntityComponentAdding(entity, component, data);
-            _collidersComponents.Add(component);
+            component.Container?.ContainerData?.Update();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ColliderComponent component, [NotNull] ColliderComponent data)
         {
             base.OnEntityComponentRemoved(entity, component, data);
-            _collidersComponents.Remove(component);
-            component.Container.ContainerData.Update();
+            component.Container?.ContainerData?.Update();
         }
 
         public override void Update(GameTime time)

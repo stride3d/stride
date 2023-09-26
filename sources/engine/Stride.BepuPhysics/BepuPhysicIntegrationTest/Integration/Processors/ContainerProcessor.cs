@@ -16,24 +16,19 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
-        private readonly List<ContainerComponent> _containersComponents = new();
-
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
             base.OnEntityComponentAdding(entity, component, data);
-            _containersComponents.Add(component);
             component.ContainerData = new(component);
             component.ContainerData.Update();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
             base.OnEntityComponentRemoved(entity, component, data);
-            _containersComponents.Remove(component);
         }
 
         public override void Update(GameTime time)
         {
-            //_containersComponents.ForEach(e => e.ContainerData.Update());
             base.Update(time);
         }
 

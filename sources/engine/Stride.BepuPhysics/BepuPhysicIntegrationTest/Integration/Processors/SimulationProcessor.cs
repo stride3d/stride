@@ -8,7 +8,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class SimulationProcessor : EntityProcessor<SimulationComponent>
     {
-        private readonly List<SimulationComponent> _simulationComponents = new List<SimulationComponent>();
+        private readonly List<SimulationComponent> _simulationComponents = new(Extensions.LIST_SIZE);
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] SimulationComponent component, [NotNull] SimulationComponent data)
         {
@@ -28,7 +28,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             if (dt == 0f)
                 return;
 
-            foreach (var item in _simulationComponents.ToArray())
+            foreach (var item in _simulationComponents)
             {
                 item.Simulation.Timestep(dt, item.ThreadDispatcher);
                 for (int i = 0; i < item.Bodies.Count; i++)

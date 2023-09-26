@@ -13,8 +13,5 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     {
         public Vector3 Size = new(1, 1, 1);
 
-        public override void Update()
-        {
-        }
     }
 }

@@ -26,9 +26,5 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
         public SphereColliderComponent()
         {
         }
-        public override void Update()
-        {
-        }
-
     }
 }

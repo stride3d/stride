@@ -28,8 +28,9 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void Update()
         {
-            DebugText.Print("0 => blockchain", new(1000, 100));
-            DebugText.Print("1 => Cube fontain", new(1000, 130));
+            DebugText.Print("USE NUMPAD number :", new(1000, 100));
+            DebugText.Print("0 => blockchain", new(1000, 125));
+            DebugText.Print("1 => Cube fontain", new(1000, 150));
 
             if (Input.IsKeyPressed(Keys.NumPad0))
             {

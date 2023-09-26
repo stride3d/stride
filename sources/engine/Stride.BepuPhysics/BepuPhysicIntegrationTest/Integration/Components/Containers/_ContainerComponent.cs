@@ -15,7 +15,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
         public SimulationComponent BepuSimulation => Entity.GetInMeOrParents<SimulationComponent>();
         internal ContainerData ContainerData { get; set; }
 
-
         public override void Start()
         {
             base.Start();

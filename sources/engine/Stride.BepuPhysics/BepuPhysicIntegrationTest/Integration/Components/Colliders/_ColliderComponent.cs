@@ -10,7 +10,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Colliders")]
-    public abstract class ColliderComponent : SyncScript
+    public abstract class ColliderComponent : StartupScript
     {
         public float Mass { get; set; } = 1f;
 
