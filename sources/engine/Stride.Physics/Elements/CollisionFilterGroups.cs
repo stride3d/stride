@@ -79,4 +79,31 @@ namespace Stride.Physics
 
         AllFilter = 0xFFFF,
     }
+
+    /// <summary>
+    /// Flags that control how ray tests are performed
+    /// </summary>
+    [Flags]
+    public enum EFlags : uint
+    {
+        None = 0,
+        /// <summary>
+        /// Do not return a hit when when a ray traverses a back-facing triangle
+        /// </summary>
+        FilterBackfaces = 1 << 0,
+        /// <summary>
+        /// Prevents returned face normal getting flipped when a ray hits a back-facing triangle
+        /// </summary>
+        KeepUnflippedNormal = 1 << 1,
+        /// <summary>
+        /// Uses an approximate but faster ray versus convex intersection algorithm
+        /// SubSimplexConvexCastRaytest is the default, even if kF_None is set.
+        /// </summary>
+        UseSubSimplexConvexCastRaytest = 1 << 2,
+        UseGjkConvexCastRaytest = 1 << 3,
+        /// <summary>
+        /// don't use the heightfield raycast accelerator. See https://github.com/bulletphysics/bullet3/pull/2062
+        /// </summary>
+        DisableHeightfieldAccelerator  = 1 << 4
+    }
 }
