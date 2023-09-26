@@ -12,9 +12,10 @@ using Stride.Engine.Design;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Simulations
 {
+    [DataContract]
     [DefaultEntityComponentProcessor(typeof(SimulationProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Simulations")]
-    public class SimulationComponent : StartupScript
+    public class SimulationComponent : EntityComponent
     {
         internal ThreadDispatcher ThreadDispatcher { get; private set; }
         internal BufferPool BufferPool { get; private set; }
@@ -49,13 +50,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Simulations
         {
             get => Simulation.Solver.SubstepCount;
             init => Simulation.Solver.SubstepCount = value;
-        }
-
-        public override void Start()
-        {
-            base.Start();
-        }
-
+        }       
         public SimulationComponent()
         {
             var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);

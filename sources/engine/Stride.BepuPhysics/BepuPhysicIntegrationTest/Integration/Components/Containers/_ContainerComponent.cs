@@ -10,14 +10,9 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
     [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Containers")]
 
-    public abstract class ContainerComponent : StartupScript
+    public abstract class ContainerComponent : EntityComponent
     {
         public SimulationComponent BepuSimulation => Entity.GetInMeOrParents<SimulationComponent>();
         internal ContainerData ContainerData { get; set; }
-
-        public override void Start()
-        {
-            base.Start();
-        }
     }
 }
