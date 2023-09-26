@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.MicroThreading;
@@ -34,6 +35,8 @@ namespace Stride.Physics
         private SimulationTickEvent preSimulationTick, postSimulationTick;
 
         internal readonly bool CanCcd;
+
+        private float carriedDelta;
 
 #if DEBUG
         private static readonly Logger Log = GlobalLogger.GetLogger(typeof(Simulation).FullName);
@@ -90,7 +93,7 @@ namespace Stride.Physics
                 configuration.Flags = OnSimulationCreation?.Invoke() ?? configuration.Flags;
             }
 
-            MaxSubSteps = configuration.MaxSubSteps;
+            MaxTickDuration = configuration.MaxTickDuration;
             FixedTimeStep = configuration.FixedTimeStep;
 
             collisionConfiguration = new BulletSharp.DefaultCollisionConfiguration();
@@ -999,7 +1002,16 @@ namespace Stride.Physics
         /// If the engine is running slow (large deltaTime), then you must increase the number of maxSubSteps to compensate for this, otherwise your simulation is “losing” time.
         /// It's important that frame DeltaTime is always less than MaxSubSteps*FixedTimeStep, otherwise you are losing time.
         /// </summary>
+        [Obsolete($"Value is ignored, use {nameof(MaxTickDuration)} instead")]
         public int MaxSubSteps { get; set; }
+
+        /// <userdoc>
+        /// Amount of time in seconds allotted to update the physics simulation when the update rate is lower than <see cref="FixedTimeStep"/>.
+        /// When the whole game takes longer than <see cref="FixedTimeStep"/> to display one frame, the simulation has to tick multiple times to catch up.
+        /// Those additional ticks may themselves make the current frame take longer, leading to a negative feedback loop for your game's performances.
+        /// This variable will 'slow down' the simulation instead.
+        /// </userdoc>
+        public float MaxTickDuration { get; set; }
 
         /// <summary>
         /// By decreasing the size of fixedTimeStep, you are increasing the “resolution” of the simulation.
@@ -1045,8 +1057,25 @@ namespace Stride.Physics
 
             SimulationProfiler = Profiler.Begin(PhysicsProfilingKeys.SimulationProfilingKey);
 
-            if (discreteDynamicsWorld != null) discreteDynamicsWorld.StepSimulation(deltaTime, MaxSubSteps, FixedTimeStep);
-            else collisionWorld.PerformDiscreteCollisionDetection();
+            if (discreteDynamicsWorld != null)
+            {
+                carriedDelta += deltaTime;
+                for (; carriedDelta > FixedTimeStep; )
+                {
+                    var ts = Stopwatch.GetTimestamp();
+                    discreteDynamicsWorld.StepSimulation(FixedTimeStep, 0, FixedTimeStep);
+                    carriedDelta -= FixedTimeStep;
+                    if (carriedDelta > FixedTimeStep && (Stopwatch.GetTimestamp() - ts) / (double)Stopwatch.Frequency > MaxTickDuration)
+                    {
+                        carriedDelta = 0f;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                collisionWorld.PerformDiscreteCollisionDetection();
+            }
 
             SimulationProfiler.End("Alive rigidbodies: {0}", UpdatedRigidbodies);
 
@@ -1074,7 +1103,7 @@ namespace Stride.Physics
 
         /// <summary>
         /// Called right before processing a tick of the physics simulation,
-        /// this may occur from zero up to <see cref="MaxSubSteps"/> time per update.
+        /// this may never occur before many updates, or occur multiple times between updates depending on this <see cref="Simulation"/> properties
         /// </summary>
         public event SimulationTickEvent PreTick
         {
@@ -1092,7 +1121,7 @@ namespace Stride.Physics
 
         /// <summary>
         /// Called right after processing a tick of the physics simulation,
-        /// this may occur from zero up to <see cref="MaxSubSteps"/> time per update.
+        /// this may never occur before many updates, or occur multiple times between updates depending on this <see cref="Simulation"/> properties
         /// </summary>
         public event SimulationTickEvent PostTick
         {
