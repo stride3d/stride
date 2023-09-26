@@ -1,9 +1,9 @@
 using Microsoft.CodeAnalysis;
 
-namespace Stride.Core.CompilerServices
+namespace Stride.Core.CompilerServices.Generators
 {
     [Generator]
-    public class InfoPrintTest : ISourceGenerator
+    public class TestGenerator : ISourceGenerator
     {
         private static readonly DiagnosticDescriptor testDescriptor = new DiagnosticDescriptor("TEST01", "Test", "This is a test", "Test", DiagnosticSeverity.Info, true);
         public void Initialize(GeneratorInitializationContext context)
