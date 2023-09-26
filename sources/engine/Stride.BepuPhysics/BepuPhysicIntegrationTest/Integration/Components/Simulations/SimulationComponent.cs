@@ -37,9 +37,9 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Simulations
         public float PoseAngularDamping = 0.5f;
 
         [Display(5, "SolveIteration")]
-        public int SolveIteration = 1; //4
+        public int SolveIteration = 2; //4
         [Display(6, "SolveSubStep")]
-        public int SolveSubStep = 1; //8
+        public int SolveSubStep = 4; //8
 
 
         public override void Start()

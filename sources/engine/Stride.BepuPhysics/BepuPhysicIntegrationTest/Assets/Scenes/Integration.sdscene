@@ -175,8 +175,8 @@ Hierarchy:
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/BepuCube
                         Instancing: ref!! 7b575973-f575-4c46-ad83-7e80a3655acc
                         SpawnPosition: ref!! 65fcb2f6-453c-4f32-b23a-17f74897d19a
-                        Count: 20000
-                        SpawnByFrame: 20
+                        Count: 50000
+                        SpawnByFrame: 10
                         SpawnVelocity: {X: 0.0, Y: 20.0, Z: 0.0}
                         SpawnVelocityRange: {X: 2.0, Y: 0.0, Z: 2.0}
                     23ae0b56c8d5f2afb0c247d176e67cbd: !BepuPhysicIntegrationTest.GameProfiler,BepuPhysicIntegrationTest
