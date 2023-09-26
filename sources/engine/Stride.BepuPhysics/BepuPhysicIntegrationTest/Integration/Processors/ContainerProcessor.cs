@@ -20,18 +20,14 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         {
             base.OnEntityComponentAdding(entity, component, data);
             component.ContainerData = new(component);
-            component.ContainerData.Update();
+            component.ContainerData.BuildShape();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
             base.OnEntityComponentRemoved(entity, component, data);
+            component.ContainerData.DestroyShape();
+            component.ContainerData = null;
         }
-
-        public override void Update(GameTime time)
-        {
-            base.Update(time);
-        }
-
     }
 
     public class ContainerData
@@ -51,7 +47,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             ContainerComponent = containerComponent;
         }
 
-        internal void Update()
+        internal void BuildShape()
         {
             if (ContainerComponent.BepuSimulation == null)
                 throw new Exception("Container must be inside a simulationBepu or be linked to one from the editor.");
@@ -62,33 +58,6 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             {
                 return;
             }
-            //else if (colliders.Count() == 1)
-            //{
-            //    var collider = colliders.First();
-            //    switch (collider.ColliderData.Shape)
-            //    {
-            //        case Box box:
-            //            ShapeIndex = ContainerComponent.BepuSimulation.Simulation.Shapes.Add(box, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-            //            break;
-            //        case Sphere sphere:
-            //            compoundBuilder.Add(sphere, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-            //            break;
-            //        case Capsule capsule:
-            //            compoundBuilder.Add(capsule, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-            //            break;
-            //        case ConvexHull convexHull:
-            //            compoundBuilder.Add(convexHull, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-            //            break;
-            //        case Cylinder cylinder:
-            //            compoundBuilder.Add(cylinder, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-            //            break;
-            //        case Triangle triangle:
-            //            compoundBuilder.Add(triangle, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-            //            break;
-            //        default:
-            //            throw new Exception("Empty Shape");
-            //    }
-            //}
             else
             {
                 using (var compoundBuilder = new CompoundBuilder(ContainerComponent.BepuSimulation.BufferPool, ContainerComponent.BepuSimulation.Simulation.Shapes, colliders.Count()))
@@ -131,7 +100,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             switch (ContainerComponent)
             {
                 case BodyContainerComponent _c:
-                   
+
 
                     if (_c.Kinematic)
                     {
@@ -157,10 +126,18 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     break;
             }
 
-
-
         }
+        internal void DestroyShape()
+        {
+            if (ShapeIndex.Exists == true)
+                ContainerComponent.BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
 
+            if (Handle.Value != -1)
+            {
+                ContainerComponent.BepuSimulation.Simulation.Bodies.Remove(Handle);
+                ContainerComponent.BepuSimulation.Bodies.RemoveAll(e => e.handle == Handle);
+            }
+        }
     }
 
 }

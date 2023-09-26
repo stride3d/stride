@@ -21,7 +21,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
         public override void Start()
         {
             Game.Window.AllowUserResizing = true;
-            Game.Window.IsFullscreen = true;
+            //Game.Window.IsFullscreen = true;
             Game.Window.Title = "Bepu Physics V2 - test";
             base.Start();
         }

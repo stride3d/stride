@@ -31,11 +31,19 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             foreach (var item in _simulationComponents)
             {
                 item.Simulation.Timestep(dt, item.ThreadDispatcher);
+                //item.Simulation.Bodies.ActiveSet ??
+                //TODO : get only bodies from ActiveSet(only body that are awake) and change item.Bodies to Dictionary<Handle, Entity> so we no longer need to foreach each bodies
                 for (int i = 0; i < item.Bodies.Count; i++)
                 {
-                    var strideTransform = item.Bodies[i].entity.Transform;
-                    strideTransform.Position = item.Simulation.Bodies[item.Bodies[i].handle].Pose.Position.ToStrideVector();
-                    strideTransform.Rotation = item.Simulation.Bodies[item.Bodies[i].handle].Pose.Orientation.ToStrideQuaternion();
+                    var handleAndEntity = item.Bodies[i];
+                    var body = item.Simulation.Bodies[handleAndEntity.handle];
+
+                    if (!body.Awake)
+                        continue;
+
+                    var strideTransform = handleAndEntity.entity.Transform;
+                    strideTransform.Position = body.Pose.Position.ToStrideVector();
+                    strideTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
                     strideTransform.UpdateWorldMatrix(); //Not sure if needed (it should make the position updated for this frame and not the next one)
                 }
             }
