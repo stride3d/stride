@@ -18,7 +18,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void Update()
         {
-            DebugText.Print("t - throw", new(1000, 10));
+            DebugText.Print("Throw a prefab (T)", new(Extensions.X_TEXT_POS, 125));
             if (Input.IsKeyPressed(Keys.T))
             {
                 var camera = Game.Services.GetService<SceneSystem>().GraphicsCompositor.Cameras[0].Camera;

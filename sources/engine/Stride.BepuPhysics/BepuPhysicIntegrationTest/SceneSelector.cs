@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Security.Policy;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Components.Simulations;
@@ -22,15 +23,18 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
         {
             Game.Window.AllowUserResizing = true;
             //Game.Window.IsFullscreen = true;
-            Game.Window.Title = "Bepu Physics V2 - test";
+            Game.Window.Title = "Bepu Physics V2";
+
+            ((Stride.Games.GameBase)Game).MinimizedMinimumUpdateRate.MinimumElapsedTime = new TimeSpan(100000);
+            ((Stride.Games.GameBase)Game).WindowMinimumUpdateRate.MinimumElapsedTime = new TimeSpan(100000);
             base.Start();
         }
 
         public override void Update()
         {
-            DebugText.Print("USE NUMPAD number :", new(1000, 100));
-            DebugText.Print("0 => blockchain", new(1000, 125));
-            DebugText.Print("1 => Cube fontain", new(1000, 150));
+            DebugText.Print("USE NUMPAD number :", new(Extensions.X_TEXT_POS, 500));
+            DebugText.Print("0 => blockchain", new(Extensions.X_TEXT_POS, 525));
+            DebugText.Print("1 => Cube fontain", new(Extensions.X_TEXT_POS, 550));
 
             if (Input.IsKeyPressed(Keys.NumPad0))
             {

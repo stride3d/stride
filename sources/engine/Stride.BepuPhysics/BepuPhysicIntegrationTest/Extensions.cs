@@ -8,6 +8,7 @@ namespace BepuPhysicIntegrationTest
     public static class Extensions
     {
         public const int LIST_SIZE = 50000;
+        public const int X_TEXT_POS = 1200;
 
         public static Vector3 ToNumericVector(this Stride.Core.Mathematics.Vector3 vec)
         {

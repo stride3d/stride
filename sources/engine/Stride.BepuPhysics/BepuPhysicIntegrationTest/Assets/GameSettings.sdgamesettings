@@ -20,7 +20,7 @@ Defaults:
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000
     - !Stride.Assets.Textures.TextureSettings,Stride.Assets
-        TextureQuality: Fast
+        TextureQuality: Normal
 Overrides: []
 PlatformFilters:
     - PowerVR SGX 54[0-9]

@@ -24,13 +24,13 @@ namespace BepuPhysicIntegrationTest
 
         public bool Gamepad { get; set; } = false;
 
-        public Vector3 KeyboardMovementSpeed { get; set; } = new Vector3(5.0f);
+        public Vector3 KeyboardMovementSpeed { get; set; } = new Vector3(10.0f);
 
         public Vector3 TouchMovementSpeed { get; set; } = new Vector3(0.7f, 0.7f, 0.3f);
 
         public float SpeedFactor { get; set; } = 5.0f;
 
-        public Vector2 KeyboardRotationSpeed { get; set; } = new Vector2(3.0f);
+        public Vector2 KeyboardRotationSpeed { get; set; } = new Vector2(5.0f);
 
         public Vector2 MouseRotationSpeed { get; set; } = new Vector2(1.0f, 1.0f);
 
@@ -101,7 +101,7 @@ namespace BepuPhysicIntegrationTest
                 {
                     // Move with keyboard
                     // Forward/Backward
-                    if (Input.IsKeyDown(Keys.W) || Input.IsKeyDown(Keys.Up))
+                    if (Input.IsKeyDown(Keys.Z) || Input.IsKeyDown(Keys.Up))
                     {
                         dir.Z += 1;
                     }
@@ -111,7 +111,7 @@ namespace BepuPhysicIntegrationTest
                     }
 
                     // Left/Right
-                    if (Input.IsKeyDown(Keys.A) || Input.IsKeyDown(Keys.Left))
+                    if (Input.IsKeyDown(Keys.Q) || Input.IsKeyDown(Keys.Left))
                     {
                         dir.X -= 1;
                     }
@@ -121,7 +121,7 @@ namespace BepuPhysicIntegrationTest
                     }
 
                     // Down/Up
-                    if (Input.IsKeyDown(Keys.Q))
+                    if (Input.IsKeyDown(Keys.A))
                     {
                         dir.Y -= 1;
                     }

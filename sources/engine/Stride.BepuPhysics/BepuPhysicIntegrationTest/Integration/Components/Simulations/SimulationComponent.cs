@@ -19,47 +19,62 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Simulations
     {
         internal ThreadDispatcher ThreadDispatcher { get; private set; }
         internal BufferPool BufferPool { get; private set; }
+
+        internal StrideNarrowPhaseCallbacks StrideNarrowPhaseCallbacks { get; private set; }
+        internal StridePoseIntegratorCallbacks StridePoseIntegratorCallbacks { get; private set; }
+        internal SolveDescription SolveDescription { get; private set; }
+
+
         internal Simulation Simulation { get; private set; }
 
-        internal List<(BodyHandle handle, Entity entity)> Bodies { get; } = new(Extensions.LIST_SIZE);
-        internal List<(StaticHandle handle, Entity entity)> Statics { get; } = new(Extensions.LIST_SIZE);
+        internal Dictionary<BodyHandle, Entity> Bodies { get; } = new(Extensions.LIST_SIZE);
+        //internal Dictionary<StaticHandle, Entity> Statics { get; } = new(Extensions.LIST_SIZE);
 
-        //Not working in editor since i'm using it in constructor !!!
-        [Display(0, "SpringFreq")]
+        [Display(0, "TimeWrap")]
+        public bool Enabled { get; set; } = true;
+        [Display(1, "TimeWrap")]
+        public float TimeWrap { get; set; } = 1f;
+
+
+        //Not working in editor since i'm using it in constructor !!! (i just need to replace autoproperty to StrideNarrowPhaseCallbacks...)
+        [Display(10, "SpringFreq")]
         public float SpringFreq { get; init; } = 30f;
-        [Display(1, "SpringDamping")]
+        [Display(11, "SpringDamping")]
         public float SpringDamping { get; init; } = 3f;
 
-        [Display(2, "PoseGravity")]
+        [Display(12, "PoseGravity")]
         public Vector3 PoseGravity { get; init; } = new Vector3(0, -10, 0);
-        [Display(3, "PoseLinearDamping")]
+        [Display(13, "PoseLinearDamping")]
         public float PoseLinearDamping { get; init; } = 0.1f;
-        [Display(4, "PoseAngularDamping")]
+        [Display(14, "PoseAngularDamping")]
         public float PoseAngularDamping { get; init; } = 0.5f;
 
         //This work in editor
-        [Display(5, "SolveIteration")]
+        [Display(15, "SolveIteration")]
         public int SolveIteration
         {
             get => Simulation.Solver.VelocityIterationCount;
             init => Simulation.Solver.VelocityIterationCount = value;
         }
 
-        [Display(6, "SolveSubStep")]
+        [Display(16, "SolveSubStep")]
         public int SolveSubStep
         {
             get => Simulation.Solver.SubstepCount;
             init => Simulation.Solver.SubstepCount = value;
-        }       
+        }
+
         public SimulationComponent()
         {
             var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
             ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
             BufferPool = new BufferPool();
-            Simulation = Simulation.Create(BufferPool, new StrideNarrowPhaseCallbacks(
-                new SpringSettings(SpringFreq, SpringDamping)),
-                new StridePoseIntegratorCallbacks(PoseGravity.ToNumericVector(), PoseLinearDamping, PoseAngularDamping),
-                new SolveDescription(2, 4)); //4, 8
+
+            StrideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(new SpringSettings(SpringFreq, SpringDamping));
+            StridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks(PoseGravity.ToNumericVector(), PoseLinearDamping, PoseAngularDamping);
+            SolveDescription = new SolveDescription(2, 4); //4, 8
+
+            Simulation = Simulation.Create(BufferPool, StrideNarrowPhaseCallbacks, StridePoseIntegratorCallbacks, SolveDescription);
         }
 
     }

@@ -29,16 +29,16 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void Update()
         {
-            if (Input.IsKeyPressed(Keys.Add))
+            if (Input.IsKeyPressed(Keys.P))
             {
                 SpawnByFrame++;
             }
-            if (Input.IsKeyPressed(Keys.Subtract))
+            if (Input.IsKeyPressed(Keys.M))
             {
                 SpawnByFrame--;
             }
-            DebugText.Print($"C : {currentCount}/{Count}", new(1000, 25));
-            DebugText.Print($"Sbp : {SpawnByFrame}", new(1000, 50));
+            DebugText.Print($"Prefab : {currentCount}/{Count}", new(Extensions.X_TEXT_POS, 25));
+            DebugText.Print($"Spawn by frame : {SpawnByFrame} (p & m)", new(Extensions.X_TEXT_POS, 50));
 
             if (currentCount >= Count)
                 return;

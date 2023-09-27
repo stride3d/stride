@@ -164,44 +164,51 @@ SharedRenderers:
     34ecb9b2633eacfc439ba8744fe05102: !PostProcessingEffects
         Id: 32bdacca-fac5-4112-8f1f-960e0b5bb0e6
         Outline:
-            Enabled: false
+            Enabled*: false
             NormalWeight: 2.0
             DepthWeight: 0.2
             NormalNearCutoff: 0.1
         Fog:
-            Enabled: false
+            Enabled*: false
             Density: 0.1
             Color: {R: 1.0, G: 1.0, B: 1.0}
             FogStart: 10.0
             SkipBackground: false
         AmbientOcclusion:
-            Enabled: false
+            Enabled*: true
         LocalReflections:
-            Enabled: false
+            Enabled*: true
             ResolvePassResolution: Full
             DepthResolution: Half
         DepthOfField:
             Enabled: false
             DOFAreas: {X: 0.5, Y: 6.0, Z: 50.0, W: 200.0}
         BrightFilter:
+            Enabled*: true
             Color: {R: 1.0, G: 1.0, B: 1.0}
         Bloom:
+            Enabled*: true
             Distortion: {X: 1.0, Y: 1.0}
             Afterimage:
                 Enabled: false
         LightStreak:
+            Enabled*: true
             Attenuation: 0.7
-        LensFlare: {}
+        LensFlare:
+            Enabled*: true
         ColorTransforms:
+            Enabled*: true
             Transforms:
                 1e06f805f8b2e949a06c30d45fe413ef: !ToneMap
+                    Enabled*: false
                     Operator: !ToneMapHejl2Operator {}
                 c57351444609d14ea258b3f511ec8a74: !FilmGrain
-                    Enabled: false
+                    Enabled*: false
                 e86e22e9a5d65545b8b55fca26e0afee: !Vignetting
-                    Enabled: false
+                    Enabled*: true
                     Color: {R: 0.0, G: 0.0, B: 0.0}
-        Antialiasing: !FXAAEffect {}
+        Antialiasing: !FXAAEffect
+            Quality*: 8
     ee80a20a9bd99f2d70711114e15fe7ca: !Stride.Rendering.Compositing.DebugRenderer,Stride.Rendering
         Id: 872ee539-3cfb-423a-a199-66acca2f7263
         DebugRenderStages: {}

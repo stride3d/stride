@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Components.Simulations;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.Core.Annotations;
 using Stride.Engine;
-using Stride.Games;
-using static BulletSharp.Dbvt;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
@@ -72,18 +68,18 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                             case SphereColliderComponent sphere:
                                 compoundBuilder.Add(new Sphere(sphere.Radius), collider.Entity.Transform.ToBepuPose(), collider.Mass);
                                 break;
-                            //case Capsule capsule:
-                            //    compoundBuilder.Add(capsule, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-                            //    break;
-                            //case ConvexHull convexHull:
-                            //    compoundBuilder.Add(convexHull, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-                            //    break;
-                            //case Cylinder cylinder:
-                            //    compoundBuilder.Add(cylinder, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-                            //    break;
-                            //case Triangle triangle:
-                            //    compoundBuilder.Add(triangle, collider.Entity.Transform.ToBepuPose(), collider.Mass);
-                            //    break;
+                            case CapsuleColliderComponent capsule:
+                                compoundBuilder.Add(new Capsule(capsule.Radius, capsule.Length), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                break;
+                            case ConvexHullColliderComponent convexHull: //TODO
+                                compoundBuilder.Add(new ConvexHull(), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                break;
+                            case CylinderColliderComponent cylinder:
+                                compoundBuilder.Add(new Cylinder(cylinder.Radius, cylinder.Length), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                break;
+                            case TriangleColliderComponent triangle:
+                                compoundBuilder.Add(new Triangle(triangle.A.ToNumericVector(), triangle.B.ToNumericVector(), triangle.C.ToNumericVector()), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                break;
                             default:
                                 throw new Exception("Empty Shape");
                         }
@@ -113,11 +109,11 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     if (Handle.Value != -1)
                     {
                         ContainerComponent.BepuSimulation.Simulation.Bodies.Remove(Handle);
-                        ContainerComponent.BepuSimulation.Bodies.RemoveAll(e => e.handle == Handle);
+                        ContainerComponent.BepuSimulation.Bodies.Remove(Handle);
                     }
 
                     Handle = _c.BepuSimulation.Simulation.Bodies.Add(Description);
-                    ContainerComponent.BepuSimulation.Bodies.Add((Handle, _c.Entity));
+                    ContainerComponent.BepuSimulation.Bodies.Add(Handle, _c.Entity);
                     break;
                 case StaticContainerComponent _c:
 
@@ -135,7 +131,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             if (Handle.Value != -1)
             {
                 ContainerComponent.BepuSimulation.Simulation.Bodies.Remove(Handle);
-                ContainerComponent.BepuSimulation.Bodies.RemoveAll(e => e.handle == Handle);
+                ContainerComponent.BepuSimulation.Bodies.Remove(Handle);
             }
         }
     }
