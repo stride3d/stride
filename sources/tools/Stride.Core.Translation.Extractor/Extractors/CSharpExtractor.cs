@@ -179,7 +179,7 @@ namespace Stride.Core.Translation.Extractor
 
             string Unescape(string str)
             {
-                return str.StartsWith("@", StringComparison.Ordinal) ? str.Trim(@"@""".ToCharArray()) : Regex.Unescape(str.Trim(@"@""".ToCharArray()));
+                return str.StartsWith('@') ? str.Trim(@"@""".ToCharArray()) : Regex.Unescape(str.Trim(@"@""".ToCharArray()));
             }
         }
 

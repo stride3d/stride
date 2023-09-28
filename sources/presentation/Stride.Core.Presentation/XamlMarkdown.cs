@@ -425,7 +425,7 @@ namespace Stride.Core.Presentation
             
             var url = match.Groups[3].Value;
 
-            if (url.StartsWith("<", StringComparison.Ordinal) && url.EndsWith(">", StringComparison.Ordinal))
+            if (url.StartsWith('<') && url.EndsWith('>'))
                 url = url.Substring(1, url.Length - 2);    // Remove <>'s surrounding URL, if present
 
             return ImageTag(url, null, null);
@@ -440,7 +440,7 @@ namespace Stride.Core.Presentation
             var url = match.Groups[3].Value;
             var title = match.Groups[6].Value;
 
-            if (url.StartsWith("<", StringComparison.Ordinal) && url.EndsWith(">", StringComparison.Ordinal))
+            if (url.StartsWith('<') && url.EndsWith('>'))
                 url = url.Substring(1, url.Length - 2);    // Remove <>'s surrounding URL, if present
 
             return ImageTag(url, altText, title);

@@ -1220,7 +1220,7 @@ namespace Stride.Core.Assets
                     foreach (var filePath in files)
                     {
                         // Don't load package via this method
-                        if (filePath.FullName.EndsWith(PackageFileExtension, StringComparison.Ordinal))
+                        if (filePath.FullName.EndsWith(PackageFileExtension, StringComparison.OrdinalIgnoreCase))
                         {
                             continue;
                         }

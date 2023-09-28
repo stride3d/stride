@@ -2976,7 +2976,7 @@ namespace Stride.Core.Shaders.Convertor
             // http://msdn.microsoft.com/en-us/library/bb219850%28v=vs.85%29.aspx
             foreach (var semanticModifier in SemanticModifiers)
             {
-                if (semantic.ToLowerInvariant().EndsWith(semanticModifier, StringComparison.Ordinal))
+                if (semantic.EndsWith(semanticModifier, StringComparison.OrdinalIgnoreCase))
                 {
                     // Console.WriteLine("Warning, unsupported semantic modifier [{0}] for semantic [{1}]", semanticModifier, semantic);
                     semantic = semantic[..^semanticModifier.Length];

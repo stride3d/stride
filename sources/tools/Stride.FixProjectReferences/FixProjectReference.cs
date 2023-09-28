@@ -84,7 +84,7 @@ namespace Stride.FixProjectReferences
             foreach (var solutionProject in solution.Projects.ToArray())
             {
                 // Is it really a project?
-                if (!solutionProject.FullPath.EndsWith(".csproj", StringComparison.Ordinal) && !solutionProject.FullPath.EndsWith(".vcxproj", StringComparison.Ordinal))
+                if (!solutionProject.FullPath.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) && !solutionProject.FullPath.EndsWith(".vcxproj", StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 // Load XML project
@@ -103,7 +103,7 @@ namespace Stride.FixProjectReferences
                     foreach (var referenceNode in allElements.Where(element => element.Name.LocalName == "ProjectReference"))
                     {
                         var attr = referenceNode.Attribute("Include");
-                        if (attr != null && (attr.Value.EndsWith(".csproj", StringComparison.Ordinal) || attr.Value.EndsWith(".vcxproj", StringComparison.Ordinal)))
+                        if (attr != null && (attr.Value.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) || attr.Value.EndsWith(".vcxproj", StringComparison.OrdinalIgnoreCase)))
                         {
                             var isPrivate = referenceNode.DescendantNodes().OfType<XElement>().FirstOrDefault(element => element.Name.LocalName == "Private");
                             bool referenceUpdated = false;

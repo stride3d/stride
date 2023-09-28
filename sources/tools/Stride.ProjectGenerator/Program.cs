@@ -377,7 +377,7 @@ namespace Stride.ProjectGenerator
             foreach (var solutionProject in solution.Projects.ToArray())
             {
                 // Is it really a project?
-                if (!solutionProject.FullPath.EndsWith(".csproj", StringComparison.Ordinal) && !solutionProject.FullPath.EndsWith(".vcxproj", StringComparison.Ordinal) && !solutionProject.FullPath.EndsWith(".shproj", StringComparison.Ordinal))
+                if (!solutionProject.FullPath.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) && !solutionProject.FullPath.EndsWith(".vcxproj", StringComparison.OrdinalIgnoreCase) && !solutionProject.FullPath.EndsWith(".shproj", StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 // Load XML project

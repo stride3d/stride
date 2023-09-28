@@ -196,7 +196,7 @@ namespace Stride.Assets.Templates
             // Special case for sdfx files
             foreach (var file in generatedFiles)
             {
-                if (file.EndsWith(".sdfx", StringComparison.Ordinal))
+                if (file.EndsWith(".sdfx", StringComparison.OrdinalIgnoreCase))
                 {
                     ConvertXkfxToCSharp(file);
                 }
