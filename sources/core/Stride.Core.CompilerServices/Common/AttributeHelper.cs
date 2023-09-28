@@ -10,8 +10,8 @@ public static class AttributeHelper
         if(symbol == null)
             return true;
         var ignoreAttribute = WellKnownReferences.DataMemberIgnoreAttribute(compilation);
-        var updateableAttribute = WellKnownReferences.DataMemberUpdatableAttribute(compilation);
-        if (ignoreAttribute is null || updateableAttribute is null)
+        
+        if (ignoreAttribute is null )
             return true;
 
         if(SerializationContext.YamlSerializer == context)
@@ -26,6 +26,9 @@ public static class AttributeHelper
         {
             if (WellKnownReferences.HasAttribute(symbol, ignoreAttribute))
             {
+                var updateableAttribute = WellKnownReferences.DataMemberUpdatableAttribute(compilation);
+                if(updateableAttribute is null)
+                    return true;
                 // UpdateableAttribute negates the Effect of DataMemberIgnoreAttribute
                 if (WellKnownReferences.HasAttribute(symbol, updateableAttribute))
                 {

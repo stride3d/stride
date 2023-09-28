@@ -9,7 +9,7 @@ namespace Stride.Core.CompilerServices.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
 {
-    public const string DiagnosticId = "STRDIAG007";
+    public const string DiagnosticId = "STRDIAG008";
     private const string Title = "Invalid Struct Member";
     private const string MessageFormat = "Struct members with the 'fixed' Modifier are not allowed as a Serialization target on member '{0}'.";
     private const string Category = "CompilerServices";
@@ -35,19 +35,22 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
     {
         var fieldSymbol = (IFieldSymbol)context.Symbol;
         var dataContractAttribute = WellKnownReferences.DataContractAttribute(context.Compilation);
-        if (dataContractAttribute is null)
+        var dataMemberIgnore = WellKnownReferences.DataMemberIgnoreAttribute(context.Compilation);
+        if (dataContractAttribute is null || dataMemberIgnore is null)
             return;
         var containingType = fieldSymbol.ContainingType;
-        // only structs can have a declared fixed member
-        if (!containingType.IsValueType)
+
+
+        if (containingType is null)
             return;
 
-        if (WellKnownReferences.HasAttribute(containingType, dataContractAttribute))
+        if(WellKnownReferences.HasDataContractAttribute(containingType)) 
         {
-            if(fieldSymbol.DeclaredAccessibility == Accessibility.Public && fieldSymbol.IsFixedSizeBuffer && !AttributeHelper.ShouldBeIgnored(context.Compilation,fieldSymbol,AttributeHelper.SerializationContext.YamlSerializer))
+            if (fieldSymbol.DeclaredAccessibility == Accessibility.Public && fieldSymbol.IsFixedSizeBuffer && !WellKnownReferences.HasAttribute(fieldSymbol, dataMemberIgnore))
             {
                 this.ReportDiagnostics(Rule, context, null, fieldSymbol);
             }
         }
     }
+
 }
