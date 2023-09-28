@@ -35,7 +35,8 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
             return;
         if(!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute)) 
             return;
-
+        if(propertySymbol.DeclaredAccessibility != Accessibility.Public && propertySymbol.DeclaredAccessibility != Accessibility.Internal) 
+            return;
         if (propertySymbol.GetMethod is null)
         {
             this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
