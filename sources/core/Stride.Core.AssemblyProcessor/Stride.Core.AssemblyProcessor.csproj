@@ -3,7 +3,7 @@
     <ProductVersion>16.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net6</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
@@ -70,42 +70,50 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <!--<PackageReference Include="ILRepack" Version="2.0.15" PrivateAssets="All" />-->
     <PackageReference Include="ILRepack" Version="2.0.18" PrivateAssets="All" />
-    <!--<PackageReference Include="Mono.Cecil" Version="0.11.2" />-->
-    <PackageReference Include="Mono.Cecil" Version="0.11.4" />
-    <!--<PackageReference Include="Mono.Options" Version="5.3.0.1" />-->
+    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
 
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.3.2" ExcludeAssets="runtime" />
   </ItemGroup>
-  <!-- Generate hash file for assembly -->
+  
+  <!-- Define a custom task for writing text to a file -->
   <UsingTask
-  TaskName="WriteAllText"
-  TaskFactory="RoslynCodeTaskFactory"
-  AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+    TaskName="WriteAllText"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
-      <Path ParameterType="System.String" />
-      <Contents ParameterType="System.String" />
+      <Path ParameterType="System.String"/>
+      <Contents ParameterType="System.String"/>
     </ParameterGroup>
     <Task>
       <Using Namespace="System"/>
       <Using Namespace="System.IO"/>
       <Code Type="Fragment" Language="cs">
         <![CDATA[
-File.WriteAllText(Path, Contents);
-]]>
+          File.WriteAllText(Path, Contents);
+        ]]>
       </Code>
     </Task>
   </UsingTask>
-  <!--<UsingTask TaskName="Microsoft.Build.Tasks.GetFileHash" AssemblyName="Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/>
-  <UsingTask TaskName="Microsoft.Build.Tasks.VerifyFileHash" AssemblyName="Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/>-->
 
+  <ItemGroup>
+    <BuiltItems Include="$(TargetDir)*" />
+  </ItemGroup>
 
-  <Target Name="GenerateHash" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\
-cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\
-$(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
+  <!-- Copy the built items to the deps folder -->
+  <Target Name="CopyFiles" AfterTargets="PostBuildEvent">
+    <Copy
+      SourceFiles="@(BuiltItems)"
+      DestinationFolder="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)"
+    />
+  </Target>
+  
+  <Target Name="GenerateHash" AfterTargets="CopyFiles">
+    <!-- Repack the assemblies into a single file -->
+    <Exec Command="cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)
+    $(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.* Mono.Options.* /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
+    <!-- Generate the hash and then write it to disk with the .hash extension -->
     <GetFileHash Files="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
       <Output
           TaskParameter="Hash"

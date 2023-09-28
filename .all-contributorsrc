@@ -382,6 +382,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "cNoNim",
+      "name": "Oleg Ageev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/523048?v=4",
+      "profile": "http://cnonim.name",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "SeleDreams",
+      "name": "SeleDreams",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16335601?v=4",
+      "profile": "https://github.com/SeleDreams",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
