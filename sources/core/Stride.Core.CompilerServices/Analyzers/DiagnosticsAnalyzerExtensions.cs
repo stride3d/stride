@@ -8,7 +8,7 @@ public static class DiagnosticsAnalyzerExtensions
             var identifier = symbol.Locations;
             foreach (var location in identifier)
             {
-                var diagnostic = Diagnostic.Create(rule, location, symbol.Name, symbol.DeclaredAccessibility, symbol.Kind);
+                var diagnostic = Diagnostic.Create(rule, location, symbol.Name);
                 context.ReportDiagnostic(diagnostic);
             }
     }

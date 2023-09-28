@@ -16,7 +16,7 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG005";
     private const string Title = "ReadOnlyMemberIsReferenceType";
-    private const string MessageFormat = "[DataMember] applied to read-only member '{0}' of type '{1}' is not allowed. Use a reference type instead.";
+    private const string MessageFormat = "The [DataMember] Attribute is applied to a read-only member '{0}' with a non allowed Type. Use a reference type instead, string isn't allowed either.";
     private const string Category = "CompilerServices";
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -59,7 +59,7 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
             }
         }
     }
-    private static void AnalyzeProperty(SymbolAnalysisContext context)
+    private void AnalyzeProperty(SymbolAnalysisContext context)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
@@ -67,18 +67,19 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
             return;
         if (!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute))
             return;
-        
-            if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
+
+        var propertyType = propertySymbol.Type;
+        if (propertyType is null)
+            return;
+
+        if (propertySymbol.GetMethod != null && (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType))
+        {
+            var setMethod = propertySymbol.SetMethod;
+            if (setMethod is null || (setMethod.DeclaredAccessibility != Accessibility.Public && setMethod.DeclaredAccessibility != Accessibility.Internal))
             {
-                var propertyType = propertySymbol.Type;
-                if (propertyType is null)
-                    return;
-                if (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType)
-                {
-                    var diagnostic = Diagnostic.Create(Rule, propertySymbol.Locations.First(), propertySymbol.Name, propertyType);
-                    context.ReportDiagnostic(diagnostic);
-                }
+                this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
             }
-        
+        }
+
     }
 }
