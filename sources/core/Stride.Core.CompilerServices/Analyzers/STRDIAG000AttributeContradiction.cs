@@ -41,7 +41,7 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
             return;
         if(WellKnownReferences.HasAttribute(symbol, dataMemberAttribute) && WellKnownReferences.HasAttribute(symbol,dataMemberIgnoreAttribute))
         {
-            if(!WellKnownReferences.HasAttribute(dataMemberUpdatableAttribute, dataMemberAttribute))
+            if(!WellKnownReferences.HasAttribute(symbol, dataMemberUpdatableAttribute))
             {
                 this.ReportDiagnostics(Rule, context, dataMemberAttribute, symbol);
             }
