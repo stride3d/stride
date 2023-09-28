@@ -23,6 +23,11 @@
     </ItemGroup>
   </Target>
 
+  <!-- Linux Compatibility Properties -->
+  <PropertyGroup>
+    <TEMP>$([System.IO.Path]::GetTempPath())</TEMP>
+  </PropertyGroup>
+
   <!-- Code Analysis -->
   <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>
