@@ -1,16 +1,15 @@
+
 namespace Stride.Core.CompilerServices.Analyzers;
 public static class DiagnosticsAnalyzerExtensions
 {
     public static void ReportDiagnostics(this DiagnosticAnalyzer analyzer,DiagnosticDescriptor rule,SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, ISymbol symbol)
     {
-        if (symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(dataMemberAttribute, SymbolEqualityComparer.Default)))
-        {
+
             var identifier = symbol.Locations;
             foreach (var location in identifier)
             {
                 var diagnostic = Diagnostic.Create(rule, location, symbol.Name, symbol.DeclaredAccessibility, symbol.Kind);
                 context.ReportDiagnostic(diagnostic);
             }
-        }
     }
 }

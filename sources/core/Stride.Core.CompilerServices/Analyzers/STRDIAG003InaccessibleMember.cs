@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
 /// <summary>
@@ -34,6 +35,8 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
         var symbol = context.Symbol;
         var dataMemberAttribute = context.Compilation.GetTypeByMetadataName("Stride.Core.DataMemberAttribute");
         if (dataMemberAttribute is null)
+            return;
+        if (!WellKnownReferences.HasAttribute(symbol, dataMemberAttribute))
             return;
 
         if (symbol.DeclaredAccessibility != Accessibility.Public &&

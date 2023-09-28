@@ -8,9 +8,9 @@
     <!--<DefineConstants>LAUNCH_DEBUGGER;$(DefineConstants)</DefineConstants>-->
 	</PropertyGroup>
   <ItemGroup>
-    <Using Include="System.Linq"/>
-    <Using Include="Microsoft.CodeAnalysis"/>
-    <Using Include="Microsoft.CodeAnalysis.Diagnostics"/>
+    <Using Include="System.Linq" />
+    <Using Include="Microsoft.CodeAnalysis" />
+    <Using Include="Microsoft.CodeAnalysis.Diagnostics" />
   </ItemGroup>
 	<ItemGroup>
 		<Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -25,7 +25,6 @@
 
 	<ItemGroup>
 	  <Folder Include="CodeFixes\" />
-	  <Folder Include="Common\" />
 	  <Folder Include="NewFolder\" />
 	</ItemGroup>
 	<Import Project="$(StrideSdkTargets)" />

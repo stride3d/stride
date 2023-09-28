@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Runtime.Serialization;
+using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -38,13 +39,13 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
     private static void AnalyzeField(SymbolAnalysisContext context)
     {
         var symbol = context.Symbol;
-        var dataMemberAttribute = context.Compilation.GetTypeByMetadataName("Stride.Core.DataMemberAttribute");
+        var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         if (dataMemberAttribute is null)
             return;
 
         if (symbol is IFieldSymbol fieldSymbol)
         {
-            if (fieldSymbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(dataMemberAttribute, SymbolEqualityComparer.Default)) &&
+            if (fieldSymbol.GetAttributes().Any(attr => attr.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false) &&
                 fieldSymbol.IsReadOnly)
             {
                 var fieldType = fieldSymbol.Type;
@@ -61,16 +62,16 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        var dataMemberAttribute = context.Compilation.GetTypeByMetadataName("Stride.Core.DataMemberAttribute");
+        var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         if (dataMemberAttribute is null)
             return;
-
-        if (propertySymbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(dataMemberAttribute, SymbolEqualityComparer.Default)))
-        {
+        if (!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute))
+            return;
+        
             if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
             {
                 var propertyType = propertySymbol.Type;
-                if (propertyType == null)
+                if (propertyType is null)
                     return;
                 if (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType)
                 {
@@ -78,6 +79,6 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
                     context.ReportDiagnostic(diagnostic);
                 }
             }
-        }
+        
     }
 }

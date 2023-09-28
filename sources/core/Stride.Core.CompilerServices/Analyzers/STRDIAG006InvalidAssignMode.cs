@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using System.Diagnostics;
+using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -33,23 +34,28 @@ public class DataMemberModeAnalyzer : DiagnosticAnalyzer
         context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Property);
     }
 
-    private static void AnalyzeSymbol(SymbolAnalysisContext context)
+    private void AnalyzeSymbol(SymbolAnalysisContext context)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        var dataMemberAttribute = context.Compilation.GetTypeByMetadataName("Stride.Core.DataMemberAttribute");
-        var dataMemberMode = context.Compilation.GetTypeByMetadataName("Stride.Core.DataMemberMode");
-        if (propertySymbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(dataMemberAttribute, SymbolEqualityComparer.Default)))
+        var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
+        if (dataMemberAttribute is null)
+            return;
+
+        var dataMemberMode = WellKnownReferences.DataMemberMode(context.Compilation);
+        if (dataMemberMode is null)
+            return;
+
+        if (!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute))
+            return;
+
+        var modeParamter = propertySymbol.GetAttributes().ToList().FirstOrDefault(attr => attr.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false)?
+            .ConstructorArguments.First(x => x.Type?.Equals(dataMemberMode, SymbolEqualityComparer.Default) ?? false);
+        // 1 is the Enums Value of DataMemberMode for Assign
+        if (modeParamter is not null && modeParamter.HasValue && (int)modeParamter.Value.Value == 1)
         {
-            var modeParamter = propertySymbol.GetAttributes().ToList().FirstOrDefault(attr => attr.AttributeClass.Equals(dataMemberAttribute, SymbolEqualityComparer.Default))?
-                .ConstructorArguments.First(x => x.Type.Equals(dataMemberMode, SymbolEqualityComparer.Default));
-            // 1 is the Enums Value of DataMemberMode for Assign
-            if (modeParamter is not null && modeParamter.HasValue && (int)modeParamter.Value.Value == 1)
+            if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
             {
-                if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
-                {
-                    var diagnostic = Diagnostic.Create(Rule, propertySymbol.Locations.First(), "DataMemberMode.Assign", propertySymbol.Name);
-                    context.ReportDiagnostic(diagnostic);
-                }
+                this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
             }
         }
     }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -29,21 +30,21 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
     private void AnalyzeProperty(SymbolAnalysisContext context)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        var dataMemberAttribute = context.Compilation.GetTypeByMetadataName("Stride.Core.DataMemberAttribute");
+        var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         if (dataMemberAttribute is null)
             return;
-        if (propertySymbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(dataMemberAttribute, SymbolEqualityComparer.Default)))
-        {
-            if (propertySymbol.GetMethod != null)
-            {
-                var getterAccessibility = propertySymbol.GetMethod.DeclaredAccessibility;
+        if(!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute)) 
+            return;
 
-                if (getterAccessibility != Accessibility.Public && getterAccessibility != Accessibility.Internal)
-                {
-                    this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
-                }
-            }
-            else
+        if (propertySymbol.GetMethod is null)
+        {
+            this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+        }
+        else
+        {
+            var getterAccessibility = propertySymbol.GetMethod.DeclaredAccessibility;
+
+            if (getterAccessibility != Accessibility.Public && getterAccessibility != Accessibility.Internal)
             {
                 this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
             }
