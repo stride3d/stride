@@ -37,11 +37,11 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
         var dataMemberIgnoreAttribute = WellKnownReferences.DataMemberIgnoreAttribute(context.Compilation);
         var dataMemberUpdatableAttribute = WellKnownReferences.DataMemberUpdatableAttribute(context.Compilation);
 
-        if (dataMemberAttribute is null || dataMemberIgnoreAttribute is null || dataMemberUpdatableAttribute is null)
+        if (dataMemberAttribute is null || dataMemberIgnoreAttribute is null)
             return;
         if(WellKnownReferences.HasAttribute(symbol, dataMemberAttribute) && WellKnownReferences.HasAttribute(symbol,dataMemberIgnoreAttribute))
         {
-            if(!WellKnownReferences.HasAttribute(symbol, dataMemberUpdatableAttribute))
+            if(dataMemberIgnoreAttribute is null || !WellKnownReferences.HasAttribute(symbol, dataMemberUpdatableAttribute))
             {
                 this.ReportDiagnostics(Rule, context, dataMemberAttribute, symbol);
             }
