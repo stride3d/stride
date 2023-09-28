@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Linq;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Components.Simulations;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Silk.NET.OpenXR;
@@ -12,7 +11,7 @@ using Stride.Input;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 {
-    public abstract class Spawner : SyncScript
+    public abstract class Spawner : SimulationUpdateComponent
     {
         public Prefab SpawnPrefab { get; set; }
         public InstancingComponent Instancing { get; set; }
@@ -32,7 +31,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             var container = entity.Get<ContainerComponent>();
             if (container != null)
             {
-                container.BepuSimulation.Simulation.Bodies[container.ContainerData.Handle].ApplyImpulse(Impulse.ToNumericVector(), ImpulsePos.ToNumericVector());
+                container.BepuSimulation.Simulation.Bodies[container.ContainerData.BHandle].ApplyImpulse(Impulse.ToNumericVector(), ImpulsePos.ToNumericVector());
             }
         }
 

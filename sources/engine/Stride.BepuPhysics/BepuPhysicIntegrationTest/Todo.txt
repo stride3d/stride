@@ -1,0 +1,10 @@
+Fix World pos / local pos
+Do Shape/Constraints updating
+
+Add all constraints with examples in the scene
+Add Shape instancing 
+
+Add Newt generation system (using marching cube and voxel ?)
+Add Chain generation system (to make ropes, chains, bridges, ..)
+
+Make a new Scene with a big demo of everything

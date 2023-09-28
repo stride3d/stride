@@ -1,16 +1,18 @@
-﻿using BepuPhysicIntegrationTest.Integration.Components.Simulations;
+﻿using BepuPhysicIntegrationTest.Integration.Components.Containers;
+using BepuPhysicIntegrationTest.Integration.Components.Simulations;
 using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
 
-namespace BepuPhysicIntegrationTest.Integration.Components.Containers
+namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
 {
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Containers")]
+    [ComponentCategory("Bepu - Constraint")]
+    [AllowMultipleComponents]
 
-    public abstract class ContainerComponent : EntityComponent
+    public abstract class ConstraintComponent : EntityComponent
     {
         private SimulationComponent _bepuSimulation = null;
 
@@ -22,16 +24,20 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
             get => _bepuSimulation ?? Entity.GetInMeOrParents<SimulationComponent>();
             set
             {
-                ContainerData?.DestroyShape();
+                ConstraintData?.DestroyConstraint();
                 _bepuSimulation = value;
-                ContainerData?.BuildShape();
+                ConstraintData?.BuildConstraint();
             }
         }
+
+        public BodyContainerComponent BodyA { get; set; }
+        public BodyContainerComponent BodyB { get; set; }
+
 
         /// <summary>
         /// ContainerData is the bridge to Bepu.
         /// Automatically set by processor.
         /// </summary>
-        internal ContainerData ContainerData { get; set; }
+        internal ConstraintData ConstraintData { get; set; }
     }
 }

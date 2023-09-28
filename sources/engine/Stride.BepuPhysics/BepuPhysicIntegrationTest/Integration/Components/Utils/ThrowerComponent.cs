@@ -16,9 +16,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public float Speed { get; set; } = 20f;
 
-        public override void Update()
+        public override void SimulationUpdate(float timeStep)
         {
-            DebugText.Print("Throw a prefab (T)", new(Extensions.X_TEXT_POS, 125));
             if (Input.IsKeyPressed(Keys.T))
             {
                 var camera = Game.Services.GetService<SceneSystem>().GraphicsCompositor.Cameras[0].Camera;
@@ -26,6 +25,11 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
                 Spawn(SpawnPosition.Transform.Position, (forward * Speed).ToStrideVector(), new());
             }
+        }
+
+        public override void Update()
+        {
+            DebugText.Print("Throw a prefab (T)", new(Extensions.X_DEBUG_TEXT_POS, 125));
         }
     }
 }

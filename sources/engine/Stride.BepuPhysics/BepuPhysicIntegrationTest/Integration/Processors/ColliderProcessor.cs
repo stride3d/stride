@@ -11,6 +11,11 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
     public class ColliderProcessor : EntityProcessor<ColliderComponent>
     {
 
+        public ColliderProcessor()
+        {
+            Order = 10020;
+        }
+
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ColliderComponent component, [NotNull] ColliderComponent data)
         {
             base.OnEntityComponentAdding(entity, component, data);

@@ -87,7 +87,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    6c965a83d60cf70cc9b02da758400ab5: !BepuPhysicIntegrationTest.SingleUse.BlockChainSimulationScript,BepuPhysicIntegrationTest
-                        Id: fd97fe2d-d260-44f6-a54b-1f079c08688c
-                        Cube: 911900c6-8d54-41b5-a767-60a39cde577a:Prefabs/CubePrefab
+                    a2bb3d5537917e0b412e40b07bb9680d: !BepuPhysicIntegrationTest.DirectUse.BlockChainSimulationScript,BepuPhysicIntegrationTest
+                        Id: 6243b75b-84b3-4a90-8b1a-2d5a2d543895
+                        Cube: 911900c6-8d54-41b5-a767-60a39cde577a:Prefabs/Basic/CubePrefab
                         Camera: ref!! 57df2312-3b0b-4068-8344-38eb59e592eb

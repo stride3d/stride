@@ -205,7 +205,7 @@ SharedRenderers:
                 c57351444609d14ea258b3f511ec8a74: !FilmGrain
                     Enabled*: false
                 e86e22e9a5d65545b8b55fca26e0afee: !Vignetting
-                    Enabled*: true
+                    Enabled*: false
                     Color: {R: 0.0, G: 0.0, B: 0.0}
         Antialiasing: !FXAAEffect
             Quality*: 8

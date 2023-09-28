@@ -18,8 +18,16 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    01a69e8167d68d1626d430ce536dc132: !BepuPhysicIntegrationTest.Integration.Components.Utils.SceneSelector,BepuPhysicIntegrationTest
-                        Id: d8080387-2822-48e9-945b-8b21d0aa38c0
-                        Me: c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
-                        Scene0: dc36c11d-e807-43a4-9d48-900b092845df:Scenes/SingleUse
-                        Scene1: aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/Integration
+                    5cf97cba2e3502e8731ac5594e226524: !BepuPhysicIntegrationTest.SceneSelector,BepuPhysicIntegrationTest
+                        Id: 5cad9763-9b53-4373-bdf7-1ba4e98e9905
+                        MainScene: c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
+                        Scene0: dc36c11d-e807-43a4-9d48-900b092845df:Scenes/DirectBepuUsingScene
+                        Scene1: aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/CubeFontainScene
+                        Scene2: effd55be-d7a3-4d2a-89d7-7ef55924d9e1:Scenes/Constraint
+                        Scene3: null
+                        Scene4: null
+                        Scene5: null
+                        Scene6: null
+                        Scene7: null
+                        Scene8: null
+                        Scene9: null

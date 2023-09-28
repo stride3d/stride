@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using BepuPhysicIntegrationTest.Integration.Components.Utils;
 using BepuPhysicIntegrationTest.Integration.Processors;
 using BepuPhysics;
 using BepuPhysics.Constraints;
@@ -15,8 +16,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Simulations
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(SimulationProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Simulations")]
-    public class SimulationComponent : EntityComponent
+    public class SimulationComponent : SimulationComponentBase
     {
+        private List<SimulationUpdateComponent> _simulationUpdateComponents = new();
+
         internal ThreadDispatcher ThreadDispatcher { get; private set; }
         internal BufferPool BufferPool { get; private set; }
 
@@ -28,7 +31,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Simulations
         internal Simulation Simulation { get; private set; }
 
         internal Dictionary<BodyHandle, Entity> Bodies { get; } = new(Extensions.LIST_SIZE);
-        //internal Dictionary<StaticHandle, Entity> Statics { get; } = new(Extensions.LIST_SIZE);
+        internal Dictionary<StaticHandle, Entity> Statics { get; } = new(Extensions.LIST_SIZE);
 
         [Display(0, "TimeWrap")]
         public bool Enabled { get; set; } = true;
@@ -76,6 +79,29 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Simulations
 
             Simulation = Simulation.Create(BufferPool, StrideNarrowPhaseCallbacks, StridePoseIntegratorCallbacks, SolveDescription);
         }
+        internal void Destroy()
+        {
+            Bodies.Clear();
+            Simulation.Dispose();
+            ThreadDispatcher.Dispose();
+            BufferPool.Clear();
+        }
+        public override void Update()
+        {
+        }
 
+        internal void CallSimulationUpdate(float simTimeStep)
+        {
+            _simulationUpdateComponents.ForEach(e => e.SimulationUpdate(simTimeStep));
+        }
+
+        internal void Register(SimulationUpdateComponent simulationUpdateComponent)
+        {
+            _simulationUpdateComponents.Add(simulationUpdateComponent);
+        }
+        internal void Unregister(SimulationUpdateComponent simulationUpdateComponent)
+        {
+            _simulationUpdateComponents.Remove(simulationUpdateComponent);
+        }
     }
 }

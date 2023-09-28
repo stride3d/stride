@@ -164,32 +164,32 @@ namespace BepuPhysicIntegrationTest
                     rotation.Y += -padState.RightThumb.X;
                 }
 
-                if (Input.HasKeyboard)
-                {
-                    if (Input.IsKeyDown(Keys.NumPad2))
-                    {
-                        rotation.X += 1;
-                    }
-                    if (Input.IsKeyDown(Keys.NumPad8))
-                    {
-                        rotation.X -= 1;
-                    }
+                //if (Input.HasKeyboard)
+                //{
+                //    if (Input.IsKeyDown(Keys.NumPad2))
+                //    {
+                //        rotation.X += 1;
+                //    }
+                //    if (Input.IsKeyDown(Keys.NumPad8))
+                //    {
+                //        rotation.X -= 1;
+                //    }
 
-                    if (Input.IsKeyDown(Keys.NumPad4))
-                    {
-                        rotation.Y += 1;
-                    }
-                    if (Input.IsKeyDown(Keys.NumPad6))
-                    {
-                        rotation.Y -= 1;
-                    }
+                //    if (Input.IsKeyDown(Keys.NumPad4))
+                //    {
+                //        rotation.Y += 1;
+                //    }
+                //    if (Input.IsKeyDown(Keys.NumPad6))
+                //    {
+                //        rotation.Y -= 1;
+                //    }
 
-                    // See Keyboard & Gamepad translation's Normalize() usage
-                    if (rotation.Length() > 1f)
-                    {
-                        rotation = Vector2.Normalize(rotation);
-                    }
-                }
+                //    // See Keyboard & Gamepad translation's Normalize() usage
+                //    if (rotation.Length() > 1f)
+                //    {
+                //        rotation = Vector2.Normalize(rotation);
+                //    }
+                //}
 
                 // Modulate by speed
                 rotation *= KeyboardRotationSpeed * speed;

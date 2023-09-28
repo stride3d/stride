@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using BepuPhysicIntegrationTest.Integration;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
@@ -12,7 +13,7 @@ using BepuUtilities.Memory;
 using Stride.Engine;
 using Stride.Input;
 
-namespace BepuPhysicIntegrationTest.SingleUse
+namespace BepuPhysicIntegrationTest.DirectUse
 {
     public class BlockChainSimulationScript : SyncScript
     {

@@ -7,7 +7,9 @@ using BepuPhysics.CollisionDetection;
 using BepuPhysics.Constraints;
 using BepuUtilities;
 
-namespace BepuPhysicIntegrationTest
+//TODO : allow in editor modifications
+
+namespace BepuPhysicIntegrationTest.Integration
 {
     public struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {

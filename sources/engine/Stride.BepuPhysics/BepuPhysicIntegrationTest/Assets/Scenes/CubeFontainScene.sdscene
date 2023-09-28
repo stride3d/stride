@@ -132,14 +132,13 @@ Hierarchy:
                         Id: f092cb31-b02b-40c2-9e5f-a2c832a52f9e
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    439e977e5fa3a80d24745dd9a08c2884: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
-                        Id: f68f8063-0abc-49ac-9903-6797f75f0c6d
-                        BepuSimulation: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
-                        Kinematic: true
                     43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: b9e4d565-3a65-4411-81a1-024fd964710b
                         Mass: 1.0
                         Size: {X: 250.0, Y: 0.1, Z: 250.0}
+                    b18e400f6ef857c50bac5d706493e368: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
+                        Id: 805641b3-f967-41df-b273-a1063faecd6b
+                        BepuSimulation: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
         -   Entity:
                 Id: 73e4d569-78a9-4069-ab9f-516c51ddfc35
                 Name: Spot light
@@ -185,7 +184,6 @@ Hierarchy:
                             UVScale: {X: 1.0, Y: 1.0}
                             UVOffset: {X: 0.0, Y: 0.0}
                             Shadow:
-                                Enabled: true
                                 BiasParameters:
                                     DepthBias: 0.001
                                 Debug: true
@@ -285,23 +283,25 @@ Hierarchy:
                         PoseGravity: {X: 0.0, Y: -10.0, Z: 0.0}
                         PoseLinearDamping: 0.1
                         PoseAngularDamping: 0.5
-                        SolveIteration: 2
+                        SolveIteration: 4
                         SolveSubStep: 8
-                    91b15f0b49b968246811a6605a104810: !BepuPhysicIntegrationTest.Integration.Components.Utils.SpawnerComponent,BepuPhysicIntegrationTest
-                        Id: 187898e0-9420-43ec-9cb8-3538f9d7954b
-                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/BepuCube
+                    2a98c48e5b96344a0ab24da7de9a794b: !BepuPhysicIntegrationTest.Integration.Components.Utils.SpawnerComponent,BepuPhysicIntegrationTest
+                        Id: 5d1c032b-80ba-4ea6-8334-aeea1908898b
+                        BepuSimulation: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
                         Instancing: ref!! 7b575973-f575-4c46-ad83-7e80a3655acc
                         SpawnPosition: ref!! 65fcb2f6-453c-4f32-b23a-17f74897d19a
-                        Count: 40000
-                        SpawnByFrame: -100
+                        Count: 50000
+                        SpawnRate: 1.0
                         SpawnVelocity: {X: 0.0, Y: 20.0, Z: 0.0}
-                        SpawnVelocityRange: {X: 20.0, Y: 5.0, Z: 20.0}
-                    e61408f5f874c2028a9de8b8942c2078: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
-                        Id: 2509f00e-bf40-4059-aafb-17a142115dc1
-                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/BepuCube
+                        SpawnVelocityRange: {X: 10.0, Y: 0.0, Z: 10.0}
+                    eeabfda15ef248d6bb1e4f6914eb65e5: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
+                        Id: 30cbd757-728a-4f16-a523-d799697c18dc
+                        BepuSimulation: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
                         Instancing: ref!! 7b575973-f575-4c46-ad83-7e80a3655acc
                         SpawnPosition: ref!! b155c235-5d9a-4749-a9b7-733d3b0b5d1e
-                        Speed: 20.0
-                    f5c782a21bc74140ca7c361bbac4baf7: !BepuPhysicIntegrationTest.Integration.Components.Utils.TimeControlComponent,BepuPhysicIntegrationTest
-                        Id: 423fecc2-6d90-4b19-b51b-ea99fd2c80a2
-                        SimulationComponent: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
+                        Speed: 50.0
+                    8ff30ff71af73fad50d330cdb9500d9a: !BepuPhysicIntegrationTest.Integration.Components.Utils.TimeControlComponent,BepuPhysicIntegrationTest
+                        Id: 7fa029b1-b416-4d48-a3bf-9208daf856cc
+                        BepuSimulation: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9

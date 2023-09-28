@@ -3,12 +3,12 @@ using System.Runtime.CompilerServices;
 using BepuPhysics;
 using Stride.Engine;
 
-namespace BepuPhysicIntegrationTest
+namespace BepuPhysicIntegrationTest.Integration
 {
     public static class Extensions
     {
         public const int LIST_SIZE = 50000;
-        public const int X_TEXT_POS = 1200;
+        public const int X_DEBUG_TEXT_POS = 1200;
 
         public static Vector3 ToNumericVector(this Stride.Core.Mathematics.Vector3 vec)
         {
@@ -17,18 +17,18 @@ namespace BepuPhysicIntegrationTest
         }
         public static Stride.Core.Mathematics.Vector3 ToStrideVector(this Vector3 vec)
         {
-            return Unsafe.As<Vector3, Stride.Core.Mathematics.Vector3 > (ref vec);
+            return Unsafe.As<Vector3, Stride.Core.Mathematics.Vector3>(ref vec);
             //return new Stride.Core.Mathematics.Vector3(vec.X, vec.Y, vec.Z);
         }
 
         public static Quaternion ToNumericQuaternion(this Stride.Core.Mathematics.Quaternion qua)
         {
-            return Unsafe.As<Stride.Core.Mathematics.Quaternion, Quaternion> (ref qua);
+            return Unsafe.As<Stride.Core.Mathematics.Quaternion, Quaternion>(ref qua);
             //return new Quaternion(qua.X, qua.Y, qua.Z, qua.W);
         }
         public static Stride.Core.Mathematics.Quaternion ToStrideQuaternion(this Quaternion qua)
         {
-            return Unsafe.As<Quaternion, Stride.Core.Mathematics.Quaternion> (ref qua);
+            return Unsafe.As<Quaternion, Stride.Core.Mathematics.Quaternion>(ref qua);
             //return new Stride.Core.Mathematics.Quaternion(qua.X, qua.Y, qua.Z, qua.W);
         }
 
