@@ -53,7 +53,7 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
         if (fieldType is null)
             return;
 
-        if (fieldType.SpecialType == SpecialType.System_Delegate)
+        if (fieldType.TypeKind == TypeKind.Delegate)
         {
             DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, fieldSymbol);
         }
