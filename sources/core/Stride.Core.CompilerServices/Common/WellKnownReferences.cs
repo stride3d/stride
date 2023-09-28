@@ -29,16 +29,10 @@ internal class WellKnownReferences
     }
     public static bool HasAttribute(ISymbol symbol, INamedTypeSymbol attribute)
     {
-        if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.Equals(attribute, SymbolEqualityComparer.Default) ?? false))
+        if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false))
         {
             return true;
         }
         return false;
-    }
-    public static bool HasDataContractAttribute(INamedTypeSymbol baseType)
-    {
-        return baseType.GetAttributes().Any(attr =>
-                    attr.AttributeClass?.Name == "DataContractAttribute"
-                     && attr.AttributeClass.ContainingNamespace.ContainingModule.Name == "Stride.Core.dll");
     }
 }
