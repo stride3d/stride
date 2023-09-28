@@ -27,23 +27,27 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-        context.RegisterSymbolAction(AnalyzeNode, SymbolKind.Field, SymbolKind.Property);
+        context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
-
-    private void AnalyzeNode(SymbolAnalysisContext context)
+    private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
-        var symbol = context.Symbol;
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         var dataMemberIgnoreAttribute = WellKnownReferences.DataMemberIgnoreAttribute(context.Compilation);
-        var dataMemberUpdatableAttribute = WellKnownReferences.DataMemberUpdatableAttribute(context.Compilation);
-
+        var dataMemberUpdatableAttribute = WellKnownReferences.DataMemberUpdatableAttribute (context.Compilation);
         if (dataMemberAttribute is null || dataMemberIgnoreAttribute is null)
             return;
+
+        context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataMemberAttribute, dataMemberIgnoreAttribute, dataMemberUpdatableAttribute), SymbolKind.Property, SymbolKind.Field);
+    }
+    private static void AnalyzeSymbol(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMemberIgnoreAttribute, INamedTypeSymbol? dataMemberUpdatableAttribute)
+    {
+        var symbol = context.Symbol;
+
         if(WellKnownReferences.HasAttribute(symbol, dataMemberAttribute) && WellKnownReferences.HasAttribute(symbol,dataMemberIgnoreAttribute))
         {
-            if(dataMemberIgnoreAttribute is null || !WellKnownReferences.HasAttribute(symbol, dataMemberUpdatableAttribute))
+            if(dataMemberUpdatableAttribute is null || !WellKnownReferences.HasAttribute(symbol, dataMemberUpdatableAttribute))
             {
-                this.ReportDiagnostics(Rule, context, dataMemberAttribute, symbol);
+                DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, symbol);
             }
         }        
     }

@@ -24,22 +24,28 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-        context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
+        context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
-
-    private void AnalyzeProperty(SymbolAnalysisContext context)
+    private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
-        var propertySymbol = (IPropertySymbol)context.Symbol;
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         if (dataMemberAttribute is null)
+        {
             return;
+        }
+
+        context.RegisterSymbolAction(symbolContext => AnalyzeProperty(symbolContext, dataMemberAttribute), SymbolKind.Property);
+    }
+    private static void AnalyzeProperty(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute)
+    {
+        var propertySymbol = (IPropertySymbol)context.Symbol;
         if(!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute)) 
             return;
         if(propertySymbol.DeclaredAccessibility != Accessibility.Public && propertySymbol.DeclaredAccessibility != Accessibility.Internal) 
             return;
         if (propertySymbol.GetMethod is null)
         {
-            this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
         }
         else
         {
@@ -47,7 +53,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 
             if (getterAccessibility != Accessibility.Public && getterAccessibility != Accessibility.Internal)
             {
-                this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+                DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
             }
         }
     }

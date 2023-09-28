@@ -31,20 +31,23 @@ public class DataMemberModeAnalyzer : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-        context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Property);
+        context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+    private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
+    {
+        var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
+        var dataMemberMode = WellKnownReferences.DataMemberMode(context.Compilation);
+        if (dataMemberAttribute is null || dataMemberMode is null)
+        {
+            return;
+        }
 
-    private void AnalyzeSymbol(SymbolAnalysisContext context)
+        context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataMemberAttribute, dataMemberMode), SymbolKind.Property);
+    }
+    private static void AnalyzeSymbol(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute,INamedTypeSymbol dataMemberMode)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
         if (propertySymbol is null)
-            return;
-        var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
-        if (dataMemberAttribute is null)
-            return;
-
-        var dataMemberMode = WellKnownReferences.DataMemberMode(context.Compilation);
-        if (dataMemberMode is null)
             return;
 
         if (!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute))
@@ -63,7 +66,7 @@ public class DataMemberModeAnalyzer : DiagnosticAnalyzer
                     {
                         if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
                         {
-                            this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+                            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
                         }
                     }
                     break;

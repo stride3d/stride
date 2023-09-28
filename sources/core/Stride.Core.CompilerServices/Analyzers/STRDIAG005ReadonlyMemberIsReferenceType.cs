@@ -33,15 +33,22 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-        context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
-        context.RegisterSymbolAction(AnalyzeField, SymbolKind.Field);
+        context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
-    private static void AnalyzeField(SymbolAnalysisContext context)
+    private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
-        var symbol = context.Symbol;
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         if (dataMemberAttribute is null)
+        {
             return;
+        }
+
+        context.RegisterSymbolAction(symbolContext => AnalyzeProperty(symbolContext, dataMemberAttribute), SymbolKind.Property);
+        context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataMemberAttribute), SymbolKind.Field);
+    }
+    private static void AnalyzeField(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute)
+    {
+        var symbol = context.Symbol;
 
         if (symbol is IFieldSymbol fieldSymbol)
         {
@@ -59,12 +66,9 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
             }
         }
     }
-    private void AnalyzeProperty(SymbolAnalysisContext context)
+    private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
-        if (dataMemberAttribute is null)
-            return;
         if (!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute))
             return;
 
@@ -77,7 +81,7 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
             var setMethod = propertySymbol.SetMethod;
             if (setMethod is null || (setMethod.DeclaredAccessibility != Accessibility.Public && setMethod.DeclaredAccessibility != Accessibility.Internal))
             {
-                this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+                DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
             }
         }
 

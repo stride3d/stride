@@ -28,29 +28,33 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-        context.RegisterSymbolAction(AnalyzeField, SymbolKind.Field); 
+        context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+    private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
+    {
+        var dataContractAttribute = WellKnownReferences.DataContractAttribute(context.Compilation);
+        var dataMemberIgnoreAttribute = WellKnownReferences.DataMemberIgnoreAttribute(context.Compilation);
+        if (dataContractAttribute is null || dataMemberIgnoreAttribute is null)
+        {
+            return;
+        }
 
-    private void AnalyzeField(SymbolAnalysisContext context)
+        context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataContractAttribute,dataMemberIgnoreAttribute), SymbolKind.Field);
+    }
+    private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute,INamedTypeSymbol dataMemberIgnoreAttribute)
     {
         var fieldSymbol = (IFieldSymbol)context.Symbol;
-        var dataContractAttribute = WellKnownReferences.DataContractAttribute(context.Compilation);
-        var dataMemberIgnore = WellKnownReferences.DataMemberIgnoreAttribute(context.Compilation);
-        if (dataContractAttribute is null || dataMemberIgnore is null)
-            return;
         var containingType = fieldSymbol.ContainingType;
-
 
         if (containingType is null)
             return;
 
         if(WellKnownReferences.HasAttribute(containingType,dataContractAttribute)) 
         {
-            if (fieldSymbol.DeclaredAccessibility == Accessibility.Public && fieldSymbol.IsFixedSizeBuffer && !WellKnownReferences.HasAttribute(fieldSymbol, dataMemberIgnore))
+            if (fieldSymbol.DeclaredAccessibility == Accessibility.Public && fieldSymbol.IsFixedSizeBuffer && !WellKnownReferences.HasAttribute(fieldSymbol, dataMemberIgnoreAttribute))
             {
-                this.ReportDiagnostics(Rule, context, null, fieldSymbol);
+                DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, null, fieldSymbol);
             }
         }
     }
-
 }

@@ -27,22 +27,28 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-        context.RegisterSymbolAction(AnalyzeNode, SymbolKind.Field, SymbolKind.Property);
+        context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+    private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
+    {
+        var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
+        if (dataMemberAttribute is null)
+        {
+            return;
+        }
 
-    private void AnalyzeNode(SymbolAnalysisContext context)
+        context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataMemberAttribute), SymbolKind.Property,SymbolKind.Field);
+    }
+    private static void AnalyzeSymbol(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute)
     {
         var symbol = context.Symbol;
-        var dataMemberAttribute = context.Compilation.GetTypeByMetadataName("Stride.Core.DataMemberAttribute");
-        if (dataMemberAttribute is null)
-            return;
         if (!WellKnownReferences.HasAttribute(symbol, dataMemberAttribute))
             return;
 
         if (symbol.DeclaredAccessibility != Accessibility.Public &&
             symbol.DeclaredAccessibility != Accessibility.Internal)
         {
-            this.ReportDiagnostics(Rule,context, dataMemberAttribute, symbol);
+            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule,context, dataMemberAttribute, symbol);
         }
     }
 }
