@@ -37,6 +37,8 @@ public class DataMemberModeAnalyzer : DiagnosticAnalyzer
     private void AnalyzeSymbol(SymbolAnalysisContext context)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
+        if (propertySymbol is null)
+            return;
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         if (dataMemberAttribute is null)
             return;
@@ -48,15 +50,30 @@ public class DataMemberModeAnalyzer : DiagnosticAnalyzer
         if (!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute))
             return;
 
-        var modeParamter = propertySymbol.GetAttributes().ToList().FirstOrDefault(attr => attr.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false)?
-            .ConstructorArguments.First(x => x.Type?.Equals(dataMemberMode, SymbolEqualityComparer.Default) ?? false);
-        // 1 is the Enums Value of DataMemberMode for Assign
-        if (modeParamter is not null && modeParamter.HasValue && (int)modeParamter.Value.Value == 1)
+        var attributes = propertySymbol.GetAttributes();
+        foreach (var attribute in attributes)
         {
-            if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
+            if (attribute.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false)
             {
-                this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+                var modeParameter = attribute.ConstructorArguments.FirstOrDefault(x => x.Type?.Equals(dataMemberMode, SymbolEqualityComparer.Default) ?? false);
+                // 1 is the Enums Value of DataMemberMode for Assign
+                try
+                {
+                    if ((int)modeParameter.Value == 1)
+                    {
+                        if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
+                        {
+                            this.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+                        }
+                    }
+                    break;
+                }
+                catch (Exception)
+                {
+                }
+
             }
         }
     }
 }
+
