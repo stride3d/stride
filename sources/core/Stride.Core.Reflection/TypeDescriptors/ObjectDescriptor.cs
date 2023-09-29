@@ -265,14 +265,12 @@ namespace Stride.Core.Reflection
             if (memberAttribute != null)
             {
                 ((IMemberDescriptor)member).Mask = memberAttribute.Mask;
+                member.Mode = memberAttribute.Mode;
                 if (!member.HasSet)
                 {
-                    if (memberAttribute.Mode == DataMemberMode.Assign ||
-                        (memberType.IsValueType && member.Mode == DataMemberMode.Content))
-                        throw new ArgumentException($"{memberType.FullName} {member.OriginalName} is not writeable by {memberAttribute.Mode.ToString()}.");
+                    if (memberAttribute.Mode == DataMemberMode.Assign || memberType.IsValueType || memberType == typeof(string))
+                        member.Mode = DataMemberMode.Never;
                 }
-
-                member.Mode = memberAttribute.Mode;
                 member.Order = memberAttribute.Order;
             }
 
