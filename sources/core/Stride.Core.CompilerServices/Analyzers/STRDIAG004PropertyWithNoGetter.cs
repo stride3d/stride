@@ -46,10 +46,12 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if(!propertySymbol.HasAttribute(dataMemberAttribute)) 
+        if (!propertySymbol.IsVisibleToSerializer())
             return;
-        if(propertySymbol.DeclaredAccessibility != Accessibility.Public && propertySymbol.DeclaredAccessibility != Accessibility.Internal) 
+
+        if (!propertySymbol.HasAttribute(dataMemberAttribute)) 
             return;
+
         if (propertySymbol.GetMethod is null)
         {
             DiagnosticsAnalyzerExtensions.ReportDiagnostics(NonExistentGetterRule, context, dataMemberAttribute, propertySymbol);

@@ -49,8 +49,9 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
     private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var symbol = (IFieldSymbol)context.Symbol;
-        if (symbol.DeclaredAccessibility != Accessibility.Public || symbol.DeclaredAccessibility != Accessibility.Internal)
+        if (!symbol.IsVisibleToSerializer())
             return;
+
         if (!symbol.HasAttribute(dataMemberAttribute) && symbol.IsReadOnly)
             return;
 
@@ -65,7 +66,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if (propertySymbol.DeclaredAccessibility != Accessibility.Public || propertySymbol.DeclaredAccessibility != Accessibility.Internal)
+        if (!propertySymbol.IsVisibleToSerializer())
             return;
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))

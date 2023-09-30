@@ -45,8 +45,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
         if (!symbol.HasAttribute(dataMemberAttribute))
             return;
 
-        if (symbol.DeclaredAccessibility != Accessibility.Public &&
-            symbol.DeclaredAccessibility != Accessibility.Internal)
+        if (!symbol.IsVisibleToSerializer())
         {
             DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule,context, dataMemberAttribute, symbol);
         }

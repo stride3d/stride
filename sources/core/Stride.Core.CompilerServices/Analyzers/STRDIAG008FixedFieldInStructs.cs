@@ -44,11 +44,13 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
     private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute,INamedTypeSymbol dataMemberIgnoreAttribute)
     {
         var fieldSymbol = (IFieldSymbol)context.Symbol;
+        if (!fieldSymbol.IsVisibleToSerializer())
+            return;
         var containingType = fieldSymbol.ContainingType;
 
         if(containingType.HasAttribute(dataContractAttribute)) 
         {
-            if (fieldSymbol.DeclaredAccessibility == Accessibility.Public && fieldSymbol.IsFixedSizeBuffer && !fieldSymbol.HasAttribute(dataMemberIgnoreAttribute))
+            if (fieldSymbol.IsFixedSizeBuffer && !fieldSymbol.HasAttribute(dataMemberIgnoreAttribute))
             {
                 DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, null, fieldSymbol);
             }
