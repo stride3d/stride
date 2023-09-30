@@ -12,7 +12,7 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
     public const string DiagnosticId = "STRDIAG007";
     private const string Title = "Invalid DataMemberAttribute";
     private const string MessageFormat = "Invalid DataMembermode for the specified member '{0}'. A Delegate can't be a Delegate.";
-    private const string Category = "CompilerServices";
+    private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,

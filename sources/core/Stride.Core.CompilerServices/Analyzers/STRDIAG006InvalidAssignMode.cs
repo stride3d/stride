@@ -15,7 +15,7 @@ public class DataMemberModeAnalyzer : DiagnosticAnalyzer
     public const string DiagnosticId = "STRDIAG006";
     private const string Title = "Invalid Assign Mode";
     private const string MessageFormat = "Invalid DataMembermode for the specified [DataMember] member '{0}'. A public or internal setter is required for 'DataMemberMode.Assign'.";
-    private const string Category = "CompilerServices";
+    private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
