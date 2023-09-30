@@ -886,10 +886,19 @@ namespace Stride.Physics
         /// <param name="filterGroup">The collision group of this raycast</param>
         /// <param name="filterFlags">The collision group that this raycast can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
+        /// <param name="eFlags">Flags that control how this ray test is performed</param>
         /// <returns>The result of this test</returns>
-        public HitResult Raycast(Vector3 from, Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
+        public HitResult Raycast(Vector3 from, Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false, EFlags eFlags = EFlags.None)
         {
-            var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, filterGroup, filterFlags);
+            RayParams parameters;
+            parameters.From = from;
+            parameters.To = to;
+            parameters.FilterGroup = filterGroup;
+            parameters.FilterMask = filterFlags;
+            parameters.HitsNoContactResponseObjects = hitTriggers;
+            parameters.EFlags = eFlags;
+
+            var callback = StrideClosestRayResultCallback.Shared(parameters);
             collisionWorld.RayTest(from, to, callback);
             return callback.Result;
         }
@@ -903,10 +912,19 @@ namespace Stride.Physics
         /// <param name="filterGroup">The collision group of this raycast</param>
         /// <param name="filterFlags">The collision group that this raycast can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
+        /// <param name="eFlags">Flags that control how this ray test is performed</param>
         /// <returns>True if the test collided with an object in the simulation</returns>
-        public bool Raycast(Vector3 from, Vector3 to, out HitResult result, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
+        public bool Raycast(Vector3 from, Vector3 to, out HitResult result, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false, EFlags eFlags = EFlags.None)
         {
-            var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, filterGroup, filterFlags);
+            RayParams parameters;
+            parameters.From = from;
+            parameters.To = to;
+            parameters.FilterGroup = filterGroup;
+            parameters.FilterMask = filterFlags;
+            parameters.HitsNoContactResponseObjects = hitTriggers;
+            parameters.EFlags = eFlags;
+
+            var callback = StrideClosestRayResultCallback.Shared(parameters);
             collisionWorld.RayTest(from, to, callback);
             result = callback.Result;
             return result.Succeeded;
@@ -922,9 +940,18 @@ namespace Stride.Physics
         /// <param name="filterGroup">The collision group of this raycast</param>
         /// <param name="filterFlags">The collision group that this raycast can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
-        public void RaycastPenetrating(Vector3 from, Vector3 to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
+        /// <param name="eFlags">Flags that control how this ray test is performed</param>
+        public void RaycastPenetrating(Vector3 from, Vector3 to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false, EFlags eFlags = EFlags.None)
         {
-            var callback = StrideAllHitsRayResultCallback.Shared(ref from, ref to, hitTriggers, resultsOutput, filterGroup, filterFlags);
+            RayParams parameters;
+            parameters.From = from;
+            parameters.To = to;
+            parameters.FilterGroup = filterGroup;
+            parameters.FilterMask = filterFlags;
+            parameters.HitsNoContactResponseObjects = hitTriggers;
+            parameters.EFlags = eFlags;
+
+            var callback = StrideAllHitsRayResultCallback.Shared(resultsOutput, parameters);
             collisionWorld.RayTest(from, to, callback);
         }
 
@@ -1226,11 +1253,11 @@ namespace Stride.Physics
                 return rayResult.m_hitFraction;
             }
 
-            public static StrideAllHitsRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, ICollection<HitResult> buffer, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            public static StrideAllHitsRayResultCallback Shared(ICollection<HitResult> buffer, in RayParams parameters)
             {
                 shared ??= new StrideAllHitsRayResultCallback();
                 shared.resultsList = buffer;
-                shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
+                shared.Recycle(parameters);
                 return shared;
             }
         }
@@ -1260,16 +1287,16 @@ namespace Stride.Physics
                 return fraction;
             }
 
-            protected override void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            protected override void Recycle(in RayParams parameters)
             {
-                base.Recycle(ref from, ref to, hitNoContResp, filterGroup, filterMask);
+                base.Recycle(parameters);
                 closestHit = default;
             }
 
-            public static StrideClosestRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            public static StrideClosestRayResultCallback Shared(in RayParams parameters)
             {
                 shared ??= new StrideClosestRayResultCallback();
-                shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
+                shared.Recycle(parameters);
                 return shared;
             }
         }
@@ -1310,15 +1337,15 @@ namespace Stride.Physics
                 };
             }
 
-            protected virtual void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            protected virtual void Recycle(in RayParams parameters)
             {
-                rayFromWorld = from;
-                rayToWorld = to;
+                rayFromWorld = parameters.From;
+                rayToWorld = parameters.To;
                 ClosestHitFraction = float.PositiveInfinity;
-                Flags = 0;
-                CollisionFilterGroup = (int)filterGroup;
-                CollisionFilterMask = (int)filterMask;
-                hitNoContactResponseObjects = hitNoContResp;
+                Flags = (uint)parameters.EFlags;
+                CollisionFilterGroup = (int)parameters.FilterGroup;
+                CollisionFilterMask = (int)parameters.FilterMask;
+                hitNoContactResponseObjects = parameters.HitsNoContactResponseObjects;
             }
 
             public override bool NeedsCollision(BulletSharp.BroadphaseProxy proxy0)
@@ -1387,6 +1414,16 @@ namespace Stride.Physics
 
                 return base.NeedsCollision(proxy0);
             }
+        }
+
+        ref struct RayParams
+        {
+            public Vector3 From;
+            public Vector3 To;
+            public bool HitsNoContactResponseObjects;
+            public CollisionFilterGroups FilterGroup;
+            public CollisionFilterGroupFlags FilterMask;
+            public EFlags EFlags;
         }
     }
 }
