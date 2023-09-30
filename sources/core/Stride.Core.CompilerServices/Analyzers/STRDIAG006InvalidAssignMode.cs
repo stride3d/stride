@@ -47,6 +47,8 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
     private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMemberMode)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
+        if (propertySymbol.DeclaredAccessibility != Accessibility.Public || propertySymbol.DeclaredAccessibility != Accessibility.Internal)
+            return;
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
