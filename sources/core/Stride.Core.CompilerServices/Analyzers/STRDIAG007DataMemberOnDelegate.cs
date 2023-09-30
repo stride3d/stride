@@ -70,7 +70,7 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
         if (propertyType is null) 
             return;
 
-        if(propertyType.SpecialType == SpecialType.System_Delegate)
+        if(propertyType.TypeKind == TypeKind.Delegate)
         {
             DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
         }
