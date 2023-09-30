@@ -111,7 +111,7 @@ namespace Stride.Core.Serialization.Contents
             while ((line = reader.ReadLine()) != null)
             {
                 line = line.Trim();
-                if (line == string.Empty || line.StartsWith("#"))
+                if (line == string.Empty || line.StartsWith('#'))
                     continue;
 
                 var match = RegexEntry.Match(line);

@@ -117,7 +117,7 @@ namespace Stride.Assets.Presentation.Templates
                 foreach (var file in directory.GetFiles())
                 {
                     // If the file is ending with the Template extension or a directory with the sample extension, don;t copy it
-                    if (file.FullName.EndsWith(TemplateDescription.FileExtension) ||
+                    if (file.FullName.EndsWith(TemplateDescription.FileExtension, StringComparison.OrdinalIgnoreCase) ||
                         string.Compare(directory.Name, TemplateDescription.FileExtension, StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         continue;
@@ -136,7 +136,7 @@ namespace Stride.Assets.Presentation.Templates
                     var outputFileDirectory = outputFile.GetParent();
 
                     // Determine if we are processing the main game project
-                    var isPackageFile = (projectOutputFile == null && Path.GetExtension(file.FullName).ToLowerInvariant() == ".csproj" && !Path.GetFileNameWithoutExtension(file.FullName).EndsWith(".Windows"));
+                    var isPackageFile = (projectOutputFile == null && string.Equals(Path.GetExtension(file.FullName), ".csproj", StringComparison.OrdinalIgnoreCase) && !Path.GetFileNameWithoutExtension(file.FullName).EndsWith(".Windows", StringComparison.OrdinalIgnoreCase));
 
                     if (isPackageFile)
                     {
@@ -188,7 +188,7 @@ namespace Stride.Assets.Presentation.Templates
                         foreach (var file in directory.GetFiles())
                         {
                             // If the file is ending with the Template extension or a directory with the sample extension, don`t copy it
-                            if (file.FullName.EndsWith(TemplateDescription.FileExtension) ||
+                            if (file.FullName.EndsWith(TemplateDescription.FileExtension, StringComparison.OrdinalIgnoreCase) ||
                                 string.Compare(directory.Name, TemplateDescription.FileExtension, StringComparison.OrdinalIgnoreCase) == 0)
                             {
                                 continue;

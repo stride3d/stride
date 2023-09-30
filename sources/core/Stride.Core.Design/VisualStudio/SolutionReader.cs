@@ -237,7 +237,7 @@ namespace Stride.Core.VisualStudio
 
         private void ReadGlobal()
         {
-            for (var line = ReadLine(); !line.StartsWith("EndGlobal"); line = ReadLine())
+            for (var line = ReadLine(); !line.StartsWith("EndGlobal", StringComparison.Ordinal); line = ReadLine())
             {
                 ReadGlobalSection(line);
             }
@@ -297,7 +297,7 @@ namespace Stride.Core.VisualStudio
             {
                 var line = ReadLine();
                 solution.Headers.Add(line);
-                if (line.StartsWith("#"))
+                if (line.StartsWith('#'))
                 {
                     return;
                 }
@@ -332,7 +332,7 @@ namespace Stride.Core.VisualStudio
             var projectGuid = new Guid(match.Groups["PROJECTGUID"].Value.Trim());
 
             var projectSections = new List<Section>();
-            for (var line = ReadLine(); !line.StartsWith("EndProject"); line = ReadLine())
+            for (var line = ReadLine(); !line.StartsWith("EndProject", StringComparison.Ordinal); line = ReadLine())
             {
                 projectSections.Add(ReadProjectSection(line));
             }

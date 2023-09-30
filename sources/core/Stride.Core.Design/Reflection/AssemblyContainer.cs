@@ -287,7 +287,7 @@ namespace Stride.Core.Reflection
                                         .Select(runtime => Path.Combine(globalPackagesFolder, library.Path, "runtimes", runtime))
                                         .Where(Directory.Exists)
                                         .SelectMany(folder => Directory.EnumerateDirectories(Path.Combine(folder, "lib")))
-                                        .FirstOrDefault(file => Path.GetFileName(file).StartsWith("net")); // Only consider framework netXX and netstandardX.X
+                                        .FirstOrDefault(file => Path.GetFileName(file).StartsWith("net", StringComparison.Ordinal)); // Only consider framework netXX and netstandardX.X
                                     if (runtimeFolder != null)
                                     {
                                         foreach (var runtimeFile in Directory.EnumerateFiles(runtimeFolder, "*.dll"))

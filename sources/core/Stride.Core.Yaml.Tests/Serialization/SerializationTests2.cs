@@ -1127,7 +1127,7 @@ G_ListCustom: {Name: name4, ~Items: [1, 2, 3, 4, 5, 6, 7]}
             public override string ReadMemberName(ref ObjectContext objectContext, string memberName, out bool skipMember)
             {
                 skipMember = false;
-                if (memberName.EndsWith("!"))
+                if (memberName.EndsWith('!'))
                 {
                     memberName = memberName.Substring(0, memberName.Length - 1);
                     SpecialKeys.Add(new Tuple<object, object>(objectContext.Instance, objectContext.Descriptor[memberName]));
@@ -1138,9 +1138,9 @@ G_ListCustom: {Name: name4, ~Items: [1, 2, 3, 4, 5, 6, 7]}
             public override object ReadDictionaryKey(ref ObjectContext objectContext, Type keyType)
             {
                 var itemKey = base.ReadDictionaryKey(ref objectContext, keyType) as string;
-                if (itemKey != null && itemKey.EndsWith("!"))
+                if (itemKey != null && itemKey.EndsWith('!'))
                 {
-                    itemKey = itemKey.Substring(0, itemKey.Length - 1);
+                    itemKey = itemKey[..^1];
                     SpecialKeys.Add(new Tuple<object, object>(objectContext.Instance, itemKey));
                 }
                 return itemKey;

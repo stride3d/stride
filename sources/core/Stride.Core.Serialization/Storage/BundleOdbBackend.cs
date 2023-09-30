@@ -242,7 +242,7 @@ namespace Stride.Core.Storage
             BundleDescription bundle;
 
             // If there is a .bundle, add incremental id before it
-            var currentBundleExtensionUrl = bundleUrl.Length - (bundleUrl.EndsWith(BundleExtension) ? BundleExtension.Length : 0);
+            var currentBundleExtensionUrl = bundleUrl.Length - (bundleUrl.EndsWith(BundleExtension, StringComparison.OrdinalIgnoreCase) ? BundleExtension.Length : 0);
 
             // Process incremental bundles one by one
             using (var packStream = VirtualFileSystem.OpenStream(bundleUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
@@ -441,7 +441,7 @@ namespace Stride.Core.Storage
             var incrementalBundles = new List<ObjectId>();
 
             // If there is a .bundle, add incremental id before it
-            var bundleExtensionLength = (bundleUrl.EndsWith(BundleExtension) ? BundleExtension.Length : 0);
+            var bundleExtensionLength = (bundleUrl.EndsWith(BundleExtension, StringComparison.OrdinalIgnoreCase) ? BundleExtension.Length : 0);
 
             // Early exit if package didn't change (header-check only)
             if (VirtualFileSystem.FileExists(bundleUrl))
@@ -967,7 +967,7 @@ namespace Stride.Core.Storage
                 // Remove incremental ID from bundle url
                 ObjectId incrementalId;
                 var filename = VirtualFileSystem.GetFileName(bundleUrl);
-                var bundleExtensionLength = filename.EndsWith(BundleExtension) ? BundleExtension.Length : 0;
+                var bundleExtensionLength = filename.EndsWith(BundleExtension, StringComparison.OrdinalIgnoreCase) ? BundleExtension.Length : 0;
                 if (filename.Length - bundleExtensionLength >= ObjectId.HashStringLength + 1 && filename[filename.Length - bundleExtensionLength - ObjectId.HashStringLength - 1] == '.'
                     && ObjectId.TryParse(filename.Substring(filename.Length - bundleExtensionLength - ObjectId.HashStringLength, ObjectId.HashStringLength), out incrementalId))
                 {

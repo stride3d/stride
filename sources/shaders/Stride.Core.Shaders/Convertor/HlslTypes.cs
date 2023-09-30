@@ -16,9 +16,9 @@ namespace Stride.Core.Shaders.Convertor
         public static Tuple<TypeBase, int, int> GetType(string type)
         {
             string prefix = null;
-            if (type.StartsWith("matrix"))
+            if (type.StartsWith("matrix", StringComparison.Ordinal))
             {
-                var dimStr = type.Substring("matrix".Length);
+                var dimStr = type["matrix".Length..];
                 if (dimStr.Length == 0)
                 {
                     return new Tuple<TypeBase, int, int>(new MatrixType(), 4, 4);
@@ -29,32 +29,32 @@ namespace Stride.Core.Shaders.Convertor
 
             TypeBase declaration = null;
 
-            if (type.StartsWith("float"))
+            if (type.StartsWith("float", StringComparison.Ordinal))
             {
                 prefix = "float";
                 declaration = ScalarType.Float;
             }
-            else if (type.StartsWith("int"))
+            else if (type.StartsWith("int", StringComparison.Ordinal))
             {
                 prefix = "int";
                 declaration = ScalarType.Int;
             }
-            else if (type.StartsWith("half"))
+            else if (type.StartsWith("half", StringComparison.Ordinal))
             {
                 prefix = "half";
                 declaration = ScalarType.Half;
             }
-            else if (type.StartsWith("uint"))
+            else if (type.StartsWith("uint", StringComparison.Ordinal))
             {
                 prefix = "uint";
                 declaration = ScalarType.UInt;
             }
-            else if (type.StartsWith("bool"))
+            else if (type.StartsWith("bool", StringComparison.Ordinal))
             {
                 prefix = "bool";
                 declaration = ScalarType.Bool;
             }
-            else if (type.StartsWith("double"))
+            else if (type.StartsWith("double", StringComparison.Ordinal))
             {
                 prefix = "double";
                 declaration = ScalarType.Double;

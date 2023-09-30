@@ -66,7 +66,7 @@ namespace Stride.Core.Assets
             }
 
             fileExtension = fileExtension.ToLowerInvariant();
-            if (fileExtension.StartsWith("."))
+            if (fileExtension.StartsWith('.'))
             {
                 return fileExtension;
             }
