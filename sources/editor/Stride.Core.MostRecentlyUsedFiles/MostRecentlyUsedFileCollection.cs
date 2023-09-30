@@ -61,9 +61,7 @@ namespace Stride.Core.MostRecentlyUsedFiles
         {
             // Reload settings in case concurrent Game Studio instances are running.
             LoadFromSettings();
-            // Remove it if it was already in the list
-            mostRecentlyUsedFiles.RemoveWhere(x => string.Equals(x.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
-            // Add it on top of the list
+            // Add it on top of the list only if element is not present.
             mostRecentlyUsedFiles.Insert(0, new MostRecentlyUsedFile(filePath) { Version = strideVersion });
             // Save immediately
             SaveToSettings(strideVersion);
