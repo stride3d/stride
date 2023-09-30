@@ -45,7 +45,7 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
     {
         var fieldSymbol = (IFieldSymbol)context.Symbol;
 
-        if (!WellKnownReferences.HasAttribute(fieldSymbol, dataMemberAttribute))
+        if (!fieldSymbol.HasAttribute(dataMemberAttribute))
             return;
 
         var fieldType = fieldSymbol.Type;
@@ -63,7 +63,7 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
 
-        if (!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute))
+        if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
         var propertyType = propertySymbol.Type;
 

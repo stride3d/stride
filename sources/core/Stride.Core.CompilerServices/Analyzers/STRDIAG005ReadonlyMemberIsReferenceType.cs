@@ -69,7 +69,7 @@ public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if (!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute))
+        if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
 
         var propertyType = propertySymbol.Type;

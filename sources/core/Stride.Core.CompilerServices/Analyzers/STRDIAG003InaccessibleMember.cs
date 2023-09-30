@@ -42,7 +42,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
     private static void AnalyzeSymbol(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute)
     {
         var symbol = context.Symbol;
-        if (!WellKnownReferences.HasAttribute(symbol, dataMemberAttribute))
+        if (!symbol.HasAttribute(dataMemberAttribute))
             return;
 
         if (symbol.DeclaredAccessibility != Accessibility.Public &&

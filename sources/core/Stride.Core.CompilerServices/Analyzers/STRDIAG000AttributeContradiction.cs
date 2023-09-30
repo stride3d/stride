@@ -52,9 +52,9 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
     {
         var symbol = context.Symbol;
 
-        if(WellKnownReferences.HasAttribute(symbol, dataMemberAttribute) && WellKnownReferences.HasAttribute(symbol,dataMemberIgnoreAttribute))
+        if(symbol.HasAttribute(dataMemberAttribute) && symbol.HasAttribute(dataMemberIgnoreAttribute))
         {
-            if(dataMemberUpdatableAttribute is null || !WellKnownReferences.HasAttribute(symbol, dataMemberUpdatableAttribute))
+            if(dataMemberUpdatableAttribute is null || !symbol.HasAttribute(dataMemberUpdatableAttribute))
             {
                 DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, symbol);
             }

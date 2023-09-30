@@ -39,7 +39,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if(!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute)) 
+        if(!propertySymbol.HasAttribute(dataMemberAttribute)) 
             return;
         if(propertySymbol.DeclaredAccessibility != Accessibility.Public && propertySymbol.DeclaredAccessibility != Accessibility.Internal) 
             return;

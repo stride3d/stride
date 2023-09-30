@@ -49,9 +49,9 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
         if (containingType is null)
             return;
 
-        if(WellKnownReferences.HasAttribute(containingType,dataContractAttribute)) 
+        if(containingType.HasAttribute(dataContractAttribute)) 
         {
-            if (fieldSymbol.DeclaredAccessibility == Accessibility.Public && fieldSymbol.IsFixedSizeBuffer && !WellKnownReferences.HasAttribute(fieldSymbol, dataMemberIgnoreAttribute))
+            if (fieldSymbol.DeclaredAccessibility == Accessibility.Public && fieldSymbol.IsFixedSizeBuffer && !fieldSymbol.HasAttribute(dataMemberIgnoreAttribute))
             {
                 DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, null, fieldSymbol);
             }

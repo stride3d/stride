@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using System.Text;
 
 namespace Stride.Core.CompilerServices.Common;
-internal class WellKnownReferences
+internal static class WellKnownReferences
 {
     public static INamedTypeSymbol? DataMemberAttribute(Compilation compilation)
     {
@@ -27,7 +27,7 @@ internal class WellKnownReferences
     {
         return compilation.GetTypeByMetadataName("Stride.Core.DataContractAttribute");
     }
-    public static bool HasAttribute(ISymbol symbol, INamedTypeSymbol attribute)
+    public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
     {
         if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false))
         {

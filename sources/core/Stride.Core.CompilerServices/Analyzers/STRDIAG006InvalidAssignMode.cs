@@ -50,7 +50,7 @@ public class DataMemberModeAnalyzer : DiagnosticAnalyzer
         if (propertySymbol is null)
             return;
 
-        if (!WellKnownReferences.HasAttribute(propertySymbol, dataMemberAttribute))
+        if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
 
         var attributes = propertySymbol.GetAttributes();
