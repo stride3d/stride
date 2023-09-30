@@ -17,6 +17,7 @@ namespace Stride.Physics
     {
         const CollisionFilterGroups DefaultGroup = (CollisionFilterGroups)BulletSharp.CollisionFilterGroups.DefaultFilter;
         const CollisionFilterGroupFlags DefaultFlags = (CollisionFilterGroupFlags)BulletSharp.CollisionFilterGroups.AllFilter;
+        private static readonly double OneOverFrequency = 1d / Stopwatch.Frequency;
 
         private readonly PhysicsProcessor processor;
 
@@ -1059,15 +1060,17 @@ namespace Stride.Physics
 
             if (discreteDynamicsWorld != null)
             {
-                carriedDelta += deltaTime;
-                for (; carriedDelta > FixedTimeStep; )
+                var timestamp = Stopwatch.GetTimestamp();
+                // Runs as many ticks of the simulation as possible to catch up with game time as long as sim doesn't take too long
+                for (carriedDelta += deltaTime; carriedDelta >= FixedTimeStep; )
                 {
-                    var ts = Stopwatch.GetTimestamp();
                     discreteDynamicsWorld.StepSimulation(FixedTimeStep, 0, FixedTimeStep);
                     carriedDelta -= FixedTimeStep;
-                    if (carriedDelta > FixedTimeStep && (Stopwatch.GetTimestamp() - ts) / (double)Stopwatch.Frequency > MaxTickDuration)
+
+                    if (carriedDelta >= FixedTimeStep && (Stopwatch.GetTimestamp() - timestamp) * OneOverFrequency > MaxTickDuration)
                     {
-                        carriedDelta = 0f;
+                        // Pretend we caught up by removing the time the ticks would have taken away if we were to run all of them
+                        carriedDelta %= FixedTimeStep;
                         break;
                     }
                 }
