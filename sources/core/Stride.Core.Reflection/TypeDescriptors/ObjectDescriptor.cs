@@ -273,6 +273,20 @@ namespace Stride.Core.Reflection
                 }
                 member.Order = memberAttribute.Order;
             }
+            else
+            {
+                if (!member.HasSet && member is PropertyDescriptor descriptor)
+                {
+                    var getMethod = descriptor.PropertyInfo.GetMethod;
+                    if (getMethod != null)
+                    {
+                        if (GetBackingField(getMethod) == null)
+                        {
+                            member.Mode = DataMemberMode.Never;
+                        }
+                    }
+                }
+            }
 
             // If mode is Default, let's resolve to the actual mode depending on getter/setter existence and object type
             if (member.Mode == DataMemberMode.Default)
@@ -380,7 +394,18 @@ namespace Stride.Core.Reflection
 
             return true;
         }
+        public FieldInfo GetBackingField(this MethodInfo getMethod)
+        {
+            if (getMethod == null || !getMethod.IsSpecialName)
+            {
+                return null;
+            }
 
+            var propertyName = getMethod.Name.Substring(4); // Remove "get_"
+            FieldInfo field = getMethod.DeclaringType.GetField($"<{propertyName}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            return field;
+        }
         protected bool IsMemberToVisit(MemberInfo memberInfo)
         {
             // Remove all SyncRoot from members
