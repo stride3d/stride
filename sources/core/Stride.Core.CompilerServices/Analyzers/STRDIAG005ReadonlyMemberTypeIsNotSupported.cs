@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -49,10 +50,9 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
             return;
         var fieldType = symbol.Type;
 
-        if (fieldType.SpecialType == SpecialType.System_String || !fieldType.IsReferenceType)
+        if (HasImmutableType(fieldType))
         {
-            var diagnostic = Diagnostic.Create(Rule, symbol.Locations.First(), symbol.Name, fieldType);
-            context.ReportDiagnostic(diagnostic);
+            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, fieldType);
         }
     }
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
@@ -71,10 +71,15 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         if(setMethod is null || (setMethod.DeclaredAccessibility != Accessibility.Public && setMethod.DeclaredAccessibility != Accessibility.Internal))
         {
             var propertyType = propertySymbol.Type;
-            if (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType)
+            if (HasImmutableType(propertyType))
             {
                 DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
             }
         }
+    }
+
+    private static bool HasImmutableType(ITypeSymbol propertyType)
+    {
+        return propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType;
     }
 }
