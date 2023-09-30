@@ -37,9 +37,9 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
             return;
         }
 
-        context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataMemberAttribute), SymbolKind.Property,SymbolKind.Field);
+        context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataMemberAttribute), SymbolKind.Property, SymbolKind.Field);
     }
-    private static void AnalyzeSymbol(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute)
+    private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var symbol = context.Symbol;
         if (!symbol.HasAttribute(dataMemberAttribute))
@@ -47,7 +47,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
 
         if (!symbol.IsVisibleToSerializer())
         {
-            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule,context, dataMemberAttribute, symbol);
+            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, symbol);
         }
     }
 }

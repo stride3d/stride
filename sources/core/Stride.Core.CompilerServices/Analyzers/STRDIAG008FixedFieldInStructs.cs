@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -39,16 +35,16 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
             return;
         }
 
-        context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataContractAttribute,dataMemberIgnoreAttribute), SymbolKind.Field);
+        context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataContractAttribute, dataMemberIgnoreAttribute), SymbolKind.Field);
     }
-    private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute,INamedTypeSymbol dataMemberIgnoreAttribute)
+    private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberIgnoreAttribute)
     {
         var fieldSymbol = (IFieldSymbol)context.Symbol;
         if (!fieldSymbol.IsVisibleToSerializer())
             return;
         var containingType = fieldSymbol.ContainingType;
 
-        if(containingType.HasAttribute(dataContractAttribute)) 
+        if (containingType.HasAttribute(dataContractAttribute))
         {
             if (fieldSymbol.IsFixedSizeBuffer && !fieldSymbol.HasAttribute(dataMemberIgnoreAttribute))
             {

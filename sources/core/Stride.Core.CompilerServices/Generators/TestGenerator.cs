@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis;
-
 namespace Stride.Core.CompilerServices.Generators
 {
     [Generator]

@@ -1,13 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Runtime.Serialization;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -72,7 +63,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
-        
+
         var propertyType = propertySymbol.Type;
 
         if (propertySymbol.GetMethod != null && (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType))

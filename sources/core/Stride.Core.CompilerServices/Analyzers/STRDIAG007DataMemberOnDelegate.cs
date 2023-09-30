@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -61,14 +57,14 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if(!propertySymbol.IsVisibleToSerializer())
+        if (!propertySymbol.IsVisibleToSerializer())
             return;
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
         var propertyType = propertySymbol.Type;
 
-        if(propertyType.TypeKind == TypeKind.Delegate)
+        if (propertyType.TypeKind == TypeKind.Delegate)
         {
             DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
         }

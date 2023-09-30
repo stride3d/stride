@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Text;
-
 namespace Stride.Core.CompilerServices.Common;
 internal static class WellKnownReferences
 {
@@ -18,7 +13,7 @@ internal static class WellKnownReferences
     public static INamedTypeSymbol? DataMemberMode(Compilation compilation)
     {
         return compilation.GetTypeByMetadataName("Stride.Core.DataMemberMode");
-    }    
+    }
     public static INamedTypeSymbol? DataMemberUpdatableAttribute(Compilation compilation)
     {
         return compilation.GetTypeByMetadataName("Stride.Updater.DataMemberUpdatableAttribute");

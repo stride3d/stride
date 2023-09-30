@@ -25,7 +25,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
         Category,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(NonExistentGetterRule,InvalidAccesibilityRule); } }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(NonExistentGetterRule, InvalidAccesibilityRule); } }
 
     public override void Initialize(AnalysisContext context)
     {
@@ -43,13 +43,13 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 
         context.RegisterSymbolAction(symbolContext => AnalyzeProperty(symbolContext, dataMemberAttribute), SymbolKind.Property);
     }
-    private static void AnalyzeProperty(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute)
+    private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
         if (!propertySymbol.IsVisibleToSerializer())
             return;
 
-        if (!propertySymbol.HasAttribute(dataMemberAttribute)) 
+        if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
 
         if (propertySymbol.GetMethod is null)

@@ -1,11 +1,4 @@
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis;
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using System.Diagnostics;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -59,20 +52,19 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
             if (!attribute.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false)
                 continue;
 
-                var modeParameter = attribute.ConstructorArguments.FirstOrDefault(x => x.Type?.Equals(dataMemberMode, SymbolEqualityComparer.Default) ?? false);
+            var modeParameter = attribute.ConstructorArguments.FirstOrDefault(x => x.Type?.Equals(dataMemberMode, SymbolEqualityComparer.Default) ?? false);
 
-                if (modeParameter.Value is null)
-                    return;
-                // 1 is the Enums Value of DataMemberMode for Assign
-                if ((int)modeParameter.Value == 1)
+            if (modeParameter.Value is null)
+                return;
+            // 1 is the Enums Value of DataMemberMode for Assign
+            if ((int)modeParameter.Value == 1)
+            {
+                if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
                 {
-                    if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
-                    {
-                        DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
-                    }
+                    DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
                 }
-                break;
             }
+            break;
         }
     }
 }

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -33,7 +30,7 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
     {
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         var dataMemberIgnoreAttribute = WellKnownReferences.DataMemberIgnoreAttribute(context.Compilation);
-        var dataMemberUpdatableAttribute = WellKnownReferences.DataMemberUpdatableAttribute (context.Compilation);
+        var dataMemberUpdatableAttribute = WellKnownReferences.DataMemberUpdatableAttribute(context.Compilation);
         if (dataMemberAttribute is null || dataMemberIgnoreAttribute is null)
             return;
 
@@ -48,16 +45,16 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
     /// <param name="dataMemberAttribute">The DataMember Attribute of the <see cref="Compilation"/></param>
     /// <param name="dataMemberIgnoreAttribute">The DataMemberIgnore Attribute of the  <see cref="Compilation"/></param>
     /// <param name="dataMemberUpdatableAttribute">The DataMemberUpdatable Attribute of the <see cref="Compilation"/>. It may be null when the target Project doesn't reference Stride.Engine as it's not located in Stride.Core which must be there</param>
-    private static void AnalyzeSymbol(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMemberIgnoreAttribute, INamedTypeSymbol? dataMemberUpdatableAttribute)
+    private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMemberIgnoreAttribute, INamedTypeSymbol? dataMemberUpdatableAttribute)
     {
         var symbol = context.Symbol;
 
-        if(symbol.HasAttribute(dataMemberAttribute) && symbol.HasAttribute(dataMemberIgnoreAttribute))
+        if (symbol.HasAttribute(dataMemberAttribute) && symbol.HasAttribute(dataMemberIgnoreAttribute))
         {
-            if(dataMemberUpdatableAttribute is null || !symbol.HasAttribute(dataMemberUpdatableAttribute))
+            if (dataMemberUpdatableAttribute is null || !symbol.HasAttribute(dataMemberUpdatableAttribute))
             {
                 DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, symbol);
             }
-        }        
+        }
     }
 }
