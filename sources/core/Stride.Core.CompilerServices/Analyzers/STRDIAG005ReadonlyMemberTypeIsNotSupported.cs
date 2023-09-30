@@ -66,7 +66,8 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         var propertySymbol = (IPropertySymbol)context.Symbol;
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
-
+        if (propertySymbol.DeclaredAccessibility != Accessibility.Public || propertySymbol.DeclaredAccessibility != Accessibility.Internal)
+            return;
         var propertyType = propertySymbol.Type;
 
         if (propertySymbol.GetMethod != null && (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType))
