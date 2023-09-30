@@ -2,11 +2,14 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
+using System.IO;
 
 namespace Stride.Core.CompilerServices.Tests
 {
     public static class CompilerUtils
     {
+        private static string assembliesDirectory = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
+
         /// <summary>
         /// Runs compilation over <paramref name="source"/> and applies generator <typeparamref name="TGenerator"/> over it.
         /// </summary>
@@ -25,11 +28,11 @@ namespace Stride.Core.CompilerServices.Tests
                 new[]
                 {
                     // System.Runtime.dll
-                    MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location.Replace("Private.CoreLib", "Runtime")),
+                    MetadataReference.CreateFromFile($"{assembliesDirectory}/System.Runtime.dll"),
                     // System.Private.CoreLib.dll
-                    MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
+                    MetadataReference.CreateFromFile($"{assembliesDirectory}/System.Private.CoreLib.dll"),
                     // Stride.Core.dll
-                    MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location.Replace("System.Private.CoreLib", "Stride.Core")),
+                    MetadataReference.CreateFromFile($"{assembliesDirectory}/Stride.Core.dll"),
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
