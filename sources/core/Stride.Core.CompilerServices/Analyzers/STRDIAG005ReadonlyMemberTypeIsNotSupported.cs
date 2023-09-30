@@ -12,7 +12,7 @@ using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class STRDIAG005ReadonlyMemberIsReferenceType : DiagnosticAnalyzer
+public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG005";
     private const string Title = "ReadOnlyMemberIsReferenceType";
