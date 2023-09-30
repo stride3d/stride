@@ -10,7 +10,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG003";
     private const string Title = "Inaccessible Member";
-    private const string MessageFormat = "The [Stride.Core.DataMemberAttribute] is invalid on the '{0}' Member";
+    private const string MessageFormat = "The member '{0}' with [DataMember] is not accesssible to the serializer. Only public/internal visibility is supported.";
     private const string Category = "CompilerServices";
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
