@@ -100,7 +100,7 @@ namespace Stride.Core.Yaml
                     string assemblyName = null;
                     if (tag != null)
                     {
-                        var tagAsType = tag.StartsWith("!") ? tag.Substring(1) : tag;
+                        var tagAsType = tag.StartsWith('!') ? tag[1..] : tag;
                         objectContext.SerializerContext.ParseType(tagAsType, out typeName, out assemblyName);
                     }
 

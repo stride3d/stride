@@ -17,7 +17,7 @@ namespace Stride.Core.Mathematics
         /// <returns>True if the string can be converted, false otherwise.</returns>
         public static bool CanConvertStringToRgba([CanBeNull] string stringColor)
         {
-            return stringColor?.StartsWith("#") ?? false;
+            return stringColor?.StartsWith('#') ?? false;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Stride.Core.Mathematics
             var intValue = 0xFF000000;
             if (stringColor != null)
             {
-                if (stringColor.StartsWith("#"))
+                if (stringColor.StartsWith('#'))
                 {
                     if (stringColor.Length == "#000".Length && uint.TryParse(stringColor.Substring(1, 3), NumberStyles.HexNumber, null, out intValue))
                     {

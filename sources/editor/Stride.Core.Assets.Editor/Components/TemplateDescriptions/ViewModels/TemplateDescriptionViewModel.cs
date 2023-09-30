@@ -63,7 +63,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
         {
             try
             {
-                if (!path.StartsWith("pack:") && !File.Exists(path))
+                if (!path.StartsWith("pack:", StringComparison.Ordinal) && !File.Exists(path))
                 {
                     return null;
                 }

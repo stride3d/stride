@@ -470,7 +470,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
                             if (assembly.Name.Contains("Stride"))
                                 return 1;
 
-                            if (assembly.Name == "mscorlib" || assembly.Name.StartsWith("System"))
+                            if (assembly.Name == "mscorlib" || assembly.Name.StartsWith("System", StringComparison.Ordinal))
                                 return 3;
 
                             return 2;

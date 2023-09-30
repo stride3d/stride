@@ -122,8 +122,9 @@ namespace Stride.Assets.Presentation.Templates
 
         private static UFile GenerateLocation(string assetName, AssetTemplateGeneratorParameters parameters)
         {
-            var location = assetName.StartsWith(parameters.TargetLocation) ? new UFile(assetName)
-                                    : UPath.Combine(parameters.TargetLocation, new UFile(assetName));
+            var location = assetName.StartsWith(parameters.TargetLocation, StringComparison.Ordinal)
+                ? new UFile(assetName)
+                : UPath.Combine(parameters.TargetLocation, new UFile(assetName));
 
             return NamingHelper.ComputeNewName(location, x => parameters.Package.Assets.Find(x) != null, "{0}_{1}");
         }

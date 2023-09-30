@@ -258,7 +258,7 @@ namespace Stride.Core.Presentation.Windows
                     // Some external processes might attach a window to ours, we want to discard them.
                     foreach (var debugWindowTypeName in DebugWindowTypeNames)
                     {
-                        if (windowInfo.Window?.GetType().FullName.StartsWith(debugWindowTypeName) ?? false)
+                        if (windowInfo.Window?.GetType().FullName.StartsWith(debugWindowTypeName, StringComparison.Ordinal) ?? false)
                         {
                             Logger.Debug($"Discarding debug/diagnostics window '{windowInfo.Window.GetType().FullName}' ({hwnd})");
                             return;

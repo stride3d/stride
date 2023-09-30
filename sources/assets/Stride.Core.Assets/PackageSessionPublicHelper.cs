@@ -36,7 +36,7 @@ namespace Stride.Core.Assets
             if (MSBuildInstance == null && Interlocked.Increment(ref MSBuildLocatorCount) == 1)
             {
                 // Detect either .NET Core SDK or Visual Studio depending on current runtime
-                var isNETCore = !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework");
+                var isNETCore = !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework", StringComparison.Ordinal);
                 MSBuildInstance = MSBuildLocator.QueryVisualStudioInstances().FirstOrDefault(x => isNETCore
                     ? x.DiscoveryType == DiscoveryType.DotNetSdk && x.Version.Major == 6
                     : (x.DiscoveryType == DiscoveryType.VisualStudioSetup || x.DiscoveryType == DiscoveryType.DeveloperConsole) && x.Version.Major >= 16);
