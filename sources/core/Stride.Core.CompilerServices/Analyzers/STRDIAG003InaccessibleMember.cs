@@ -47,7 +47,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
 
         if (!symbol.IsVisibleToSerializer())
         {
-            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, symbol);
+            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, symbol);
         }
     }
 }

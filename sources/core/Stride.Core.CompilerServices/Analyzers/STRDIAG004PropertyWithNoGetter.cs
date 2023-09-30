@@ -54,7 +54,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 
         if (propertySymbol.GetMethod is null)
         {
-            DiagnosticsAnalyzerExtensions.ReportDiagnostics(NonExistentGetterRule, context, dataMemberAttribute, propertySymbol);
+            DiagnosticsAnalyzerExtensions.ReportDiagnostics(NonExistentGetterRule, context, propertySymbol);
         }
         else
         {
@@ -62,7 +62,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 
             if (getterAccessibility != Accessibility.Public && getterAccessibility != Accessibility.Internal)
             {
-                DiagnosticsAnalyzerExtensions.ReportDiagnostics(InvalidAccesibilityRule, context, dataMemberAttribute, propertySymbol);
+                DiagnosticsAnalyzerExtensions.ReportDiagnostics(InvalidAccesibilityRule, context, propertySymbol);
             }
         }
     }

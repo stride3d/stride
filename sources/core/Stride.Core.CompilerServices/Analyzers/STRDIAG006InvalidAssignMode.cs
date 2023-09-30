@@ -61,7 +61,7 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
             {
                 if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
                 {
-                    DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+                    DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, propertySymbol);
                 }
             }
             break;

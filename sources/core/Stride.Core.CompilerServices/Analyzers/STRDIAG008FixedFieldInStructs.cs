@@ -48,7 +48,7 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
         {
             if (fieldSymbol.IsFixedSizeBuffer && !fieldSymbol.HasAttribute(dataMemberIgnoreAttribute))
             {
-                DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, null, fieldSymbol);
+                DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, fieldSymbol);
             }
         }
     }
