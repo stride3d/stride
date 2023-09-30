@@ -64,16 +64,17 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
 
-        var propertyType = propertySymbol.Type;
 
-        if (propertySymbol.GetMethod != null && (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType))
+        if (propertySymbol.GetMethod is null)
+            return;
+        var setMethod = propertySymbol.SetMethod;
+        if(setMethod is null || (setMethod.DeclaredAccessibility != Accessibility.Public && setMethod.DeclaredAccessibility != Accessibility.Internal))
         {
-            var setMethod = propertySymbol.SetMethod;
-            if (setMethod is null || (setMethod.DeclaredAccessibility != Accessibility.Public && setMethod.DeclaredAccessibility != Accessibility.Internal))
+            var propertyType = propertySymbol.Type;
+            if (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType)
             {
                 DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
             }
         }
-
     }
 }
