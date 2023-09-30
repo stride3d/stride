@@ -40,7 +40,7 @@ namespace Stride.Core.Extensions
         /// </summary>
         /// <typeparam name="T">Type of items provided by the enumerator.</typeparam>
         /// <param name="enumerator">Enumerator instance to iterate on.</param>
-        /// <returns>Returns an enumerable that can be consume in a foreach statement.</returns>
+        /// <returns>Returns an enumerable that can be consumed in a foreach statement.</returns>
         [NotNull, Pure]
         public static IEnumerable<T> Enumerate<T>([NotNull] this IEnumerator<T> enumerator)
         {
@@ -53,7 +53,7 @@ namespace Stride.Core.Extensions
         /// </summary>
         /// <typeparam name="T">Type of items provided by the enumerator.</typeparam>
         /// <param name="enumerator">Enumerator instance to iterate on. (subtype is casted to T)</param>
-        /// <returns>Returns a typed enumerable that can be consume in a foreach statement.</returns>
+        /// <returns>Returns a typed enumerable that can be consumed in a foreach statement.</returns>
         [NotNull, Pure]
         public static IEnumerable<T> Enumerate<T>([NotNull] this IEnumerator enumerator)
         {
@@ -61,6 +61,14 @@ namespace Stride.Core.Extensions
                 yield return (T)enumerator.Current;
         }
 
+        /// <summary>
+        /// Zips two sequences together into a sequence of tuples.
+        /// </summary>
+        /// <typeparam name="T1">Type of elements in the first sequence.</typeparam>
+        /// <typeparam name="T2">Type of elements in the second sequence.</typeparam>
+        /// <param name="enumerable1">The first sequence to be zipped.</param>
+        /// <param name="enumerable2">The second sequence to be zipped.</param>
+        /// <returns>An enumerable sequence of tuples containing elements from both sequences.</returns>
         [NotNull, Pure]
         public static IEnumerable<Tuple<T1, T2>> Zip<T1, T2>([NotNull] this IEnumerable<T1> enumerable1, [NotNull] IEnumerable<T2> enumerable2)
         {
@@ -91,10 +99,10 @@ namespace Stride.Core.Extensions
         /// <summary>
         /// Iterates over all elements of source and their children recursively.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="source">The source.</param>
-        /// <param name="childrenSelector">The children selector.</param>
-        /// <returns></returns>
+        /// <typeparam name="T">The type of elements.</typeparam>
+        /// <param name="source">The source enumeration.</param>
+        /// <param name="childrenSelector">A function that returns the children of an element.</param>
+        /// <returns>An enumeration of all elements of source and their children in depth-first order.</returns>
         [NotNull, Pure]
         public static IEnumerable<T> SelectDeep<T>(this IEnumerable<T> source, [NotNull] Func<T, IEnumerable<T>> childrenSelector)
         {
@@ -174,12 +182,28 @@ namespace Stride.Core.Extensions
             }
         }
 
+        /// <summary>
+        /// Returns distinct elements from a sequence using a specified key selector.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+        /// <typeparam name="TKey">The type of the key used for comparison.</typeparam>
+        /// <param name="source">The sequence from which to retrieve distinct elements.</param>
+        /// <param name="selector">A function to extract a key from each element.</param>
+        /// <returns>An enumeration of distinct elements from the source sequence based on the selected key.</returns>
         [NotNull, Pure]
         public static IEnumerable<T> Distinct<T, TKey>([NotNull] this IEnumerable<T> source, [NotNull] Func<T, TKey> selector)
         {
             return source.Distinct(new SelectorEqualityComparer<T, TKey>(selector));
         }
 
+        /// <summary>
+        /// Determines whether two sequences are equal by comparing their elements using the default equality comparer.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the sequences.</typeparam>
+        /// <param name="a1">The first sequence to compare.</param>
+        /// <param name="a2">The second sequence to compare.</param>
+        /// <param name="comparer">An optional equality comparer for elements.</param>
+        /// <returns>True if the sequences are equal, otherwise false.</returns>
         [Pure]
         public static bool Equals<T>(IEnumerable<T> a1, IEnumerable<T> a2, IEqualityComparer<T> comparer = null)
         {
@@ -215,6 +239,12 @@ namespace Stride.Core.Extensions
             }
         }
 
+        /// <summary>
+        /// Determines whether two sequences are equal by comparing their elements using the default equality comparer.
+        /// </summary>
+        /// <param name="a1">The first sequence to compare.</param>
+        /// <param name="a2">The second sequence to compare.</param>
+        /// <returns>True if the sequences are equal, otherwise false.</returns>
         [Pure]
         public static bool SequenceEqual(this IEnumerable a1, IEnumerable a2)
         {
@@ -250,6 +280,12 @@ namespace Stride.Core.Extensions
             }
         }
 
+        /// <summary>
+        /// Determines whether all elements in a sequence are equal.
+        /// </summary>
+        /// <param name="values">The sequence of values to compare.</param>
+        /// <param name="value">The common value if all elements are equal; otherwise, null.</param>
+        /// <returns>True if all elements are equal; otherwise, false.</returns>
         [Pure]
         public static bool AllEqual([NotNull] this IEnumerable<object> values, [CanBeNull] out object value)
         {
@@ -299,6 +335,13 @@ namespace Stride.Core.Extensions
             return value;
         }
 
+        /// <summary>
+        /// Removes elements from the list based on a predicate.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the list.</typeparam>
+        /// <param name="list">The list to remove elements from.</param>
+        /// <param name="predicate">A predicate function that determines which elements to remove.</param>
+        /// <returns>The number of elements removed from the list.</returns>
         public static int RemoveWhere<T>([NotNull] this IList<T> list, [NotNull] Predicate<T> predicate)
         {
             var count = 0;
@@ -313,6 +356,44 @@ namespace Stride.Core.Extensions
             return count;
         }
 
+        /// <summary>
+        /// Moves items in the list that match a predicate to a new index.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the list.</typeparam>
+        /// <param name="list">The list to move items within.</param>
+        /// <param name="predicate">A predicate function that determines which items to move.</param>
+        /// <param name="newIndex">The new index to move the matching items to.</param>
+        /// <returns>The number of items moved.</returns>
+        public static int MoveMatchingItemToIndex<T>([NotNull] this IList<T> list, [NotNull] Predicate<T> predicate, int newIndex)
+        {
+            var count = 0;
+            var index = newIndex;
+
+            for (var i = 0; i < list.Count; ++i)
+            {
+                if (predicate(list[i]))
+                {
+                    if (index != i)
+                    {
+                        var itemToMove = list[i];
+                        list.RemoveAt(i);
+                        list.Insert(index, itemToMove);
+                    }
+                    ++index;
+                    ++count;
+                }
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Removes elements from the collection based on a predicate.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the collection.</typeparam>
+        /// <param name="collection">The collection to remove elements from.</param>
+        /// <param name="predicate">A predicate function that determines which elements to remove.</param>
+        /// <returns>The number of elements removed from the collection.</returns>
         public static int RemoveWhere<T>([NotNull] this ICollection<T> collection, [NotNull] Predicate<T> predicate)
         {
             var count = 0;

@@ -61,12 +61,25 @@ namespace Stride.Core.MostRecentlyUsedFiles
         {
             // Reload settings in case concurrent Game Studio instances are running.
             LoadFromSettings();
-            // Add it on top of the list only if element is not present.
-            mostRecentlyUsedFiles.Insert(0, new MostRecentlyUsedFile(filePath) { Version = strideVersion });
-            // Save immediately
+
+            // Create a new MostRecentlyUsedFile instance.
+            var fileToAdd = new MostRecentlyUsedFile(filePath) { Version = strideVersion };
+
+            // Check if the file already exists in the mostRecentlyUsedFiles.
+            if (mostRecentlyUsedFiles.Contains(fileToAdd))
+            {
+                // If it exists, move it to the top of the list.
+                mostRecentlyUsedFiles.MoveMatchingItemToIndex(x => string.Equals(x.FilePath, filePath, StringComparison.OrdinalIgnoreCase), 0);
+            }
+            else
+            {
+                // If it doesn't exist, insert it at the top of the list.
+                mostRecentlyUsedFiles.Insert(0, fileToAdd);
+            }
+
+            // Save the updated list to settings.
             SaveToSettings(strideVersion);
         }
-
         public void RemoveFile(UFile filePath, string strideVersion)
         {
             // Reload settings in case concurrent Game Studio instances are running.
