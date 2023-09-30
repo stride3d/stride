@@ -49,10 +49,10 @@ namespace Stride.Core.IO
             if (mode == VirtualFileMode.Open)
             {
                 ObjectId objectId;
-                if (url.StartsWith(ObjectIdUrl))
-                    ObjectId.TryParse(url.Substring(ObjectIdUrl.Length), out objectId);
+                if (url.StartsWith(ObjectIdUrl, StringComparison.Ordinal))
+                    ObjectId.TryParse(url[ObjectIdUrl.Length..], out objectId);
                 else if (!contentIndexMap.TryGetValue(url, out objectId))
-                    throw new FileNotFoundException(string.Format("Unable to find the file [{0}]", url));
+                    throw new FileNotFoundException($"Unable to find the file [{url}]");
 
                 var result = objectDatabase.OpenStream(objectId, mode, access, share);
 
@@ -69,7 +69,7 @@ namespace Stride.Core.IO
 
             if (mode == VirtualFileMode.Create)
             {
-                if (url.StartsWith(ObjectIdUrl))
+                if (url.StartsWith(ObjectIdUrl, StringComparison.Ordinal))
                     throw new NotSupportedException();
 
                 var stream = objectDatabase.CreateStream();

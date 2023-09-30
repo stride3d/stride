@@ -16,6 +16,7 @@ namespace Stride.Core.Extensions
         private static readonly List<Assembly> AllAssemblies = new List<Assembly>();
         private static readonly Dictionary<Type, List<Type>> InheritableInstantiableTypes = new Dictionary<Type, List<Type>>();
         private static readonly Dictionary<Type, List<Type>> InheritableTypes = new Dictionary<Type, List<Type>>();
+        private static readonly Dictionary<(Type, Type), bool> InterfacesWithCompCache = new();
 
         static TypeDescriptorExtensions()
         {
@@ -50,6 +51,29 @@ namespace Stride.Core.Extensions
                     InheritableInstantiableTypes.Add(type, result);
                 }
                 return result;
+            }
+        }
+
+        public static bool IsImplementedOnAny<T>([NotNull] this Type type)
+        {
+            var key = (typeof(T), type);
+            lock (AllAssemblies)
+            {
+                if (InterfacesWithCompCache.TryGetValue(key, out var hasComp))
+                {
+                    return hasComp;
+                }
+
+                foreach (var concreteType in type.GetInheritedInstantiableTypes())
+                {
+                    if (typeof(T).IsAssignableFrom(concreteType))
+                    {
+                        InterfacesWithCompCache.Add(key, true);
+                        return true;
+                    }
+                }
+                InterfacesWithCompCache.Add(key, false);
+                return false;
             }
         }
 
@@ -110,6 +134,7 @@ namespace Stride.Core.Extensions
                 AllTypes.Clear();
                 InheritableTypes.Clear();
                 InheritableInstantiableTypes.Clear();
+                InterfacesWithCompCache.Clear();
             }
         }
 

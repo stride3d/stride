@@ -92,7 +92,7 @@ namespace Stride.Shaders.Parser.Mixins
 
             foreach (var maskRef in masks)
             {
-                var index = maskRef.IndexOf(mask);
+                var index = maskRef.IndexOf(mask, StringComparison.Ordinal);
                 if (index != -1)
                 {
                     componentCount = (byte)mask.Length;

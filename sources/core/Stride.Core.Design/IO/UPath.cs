@@ -61,7 +61,7 @@ namespace Stride.Core.IO
         /// <param name="isDirectory">if set to <c>true</c> the filePath is considered as a directory and not a filename.</param>
         internal UPath(string filePath, bool isDirectory)
         {
-            if (!isDirectory && filePath != null && (filePath.EndsWith(DirectorySeparatorString) || filePath.EndsWith(DirectorySeparatorStringAlt) || filePath.EndsWith(Path.VolumeSeparatorChar)))
+            if (!isDirectory && filePath != null && (filePath.EndsWith(DirectorySeparatorChar) || filePath.EndsWith(DirectorySeparatorCharAlt) || filePath.EndsWith(Path.VolumeSeparatorChar)))
             {
                 throw new ArgumentException("A file path cannot end with with directory char '\\' or '/', or a volume separator ':'.");
             }

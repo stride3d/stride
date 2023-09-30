@@ -1218,7 +1218,7 @@ public:
 		// First try to get the texture filename by relative path, if not valid then use absolute path
 		// (According to FBX doc, resolved first by absolute name, and relative name if absolute name is not valid)
 		auto fileNameToUse = Path::Combine(inputPath, relFileName);
-		if(fileNameToUse->StartsWith("\\\\"))
+		if(fileNameToUse->StartsWith("\\\\", StringComparison::Ordinal))
 		{
 			logger->Warning(String::Format("Importer detected a network address in referenced assets. This may temporary block the build if the file does not exist. [Address='{0}']", fileNameToUse), (CallerInfo^)nullptr);
 		}

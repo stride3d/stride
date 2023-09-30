@@ -838,7 +838,7 @@ namespace Stride.Rendering
                 foreach (var parameterKeyInfo in destination.Layout.LayoutParameterKeyInfos)
                 {
                     var sourceKey = parameterKeyInfo.Key;
-                    if (subKey != null && sourceKey.Name.EndsWith(subKey))
+                    if (subKey != null && sourceKey.Name.EndsWith(subKey, StringComparison.Ordinal))
                     {
                         // That's a match
                         var subkeyName = parameterKeyInfo.Key.Name.Substring(0, parameterKeyInfo.Key.Name.Length - subKey.Length);
@@ -927,10 +927,10 @@ namespace Stride.Rendering
                     bool isResource = parameterKeyInfo.BindingSlot != -1;
                     bool isData = parameterKeyInfo.Offset != -1;
 
-                    if (parameterKeyInfo.Key.Name.EndsWith(keyRoot))
+                    if (parameterKeyInfo.Key.Name.EndsWith(keyRoot, StringComparison.Ordinal))
                     {
                         // That's a match
-                        var subkeyName = parameterKeyInfo.Key.Name.Substring(0, parameterKeyInfo.Key.Name.Length - keyRoot.Length);
+                        var subkeyName = parameterKeyInfo.Key.Name[..^keyRoot.Length];
                         var subkey = ParameterKeys.FindByName(subkeyName);
 
                         if (isData)
