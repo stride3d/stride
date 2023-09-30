@@ -10,7 +10,7 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG000";
     private const string Title = "Inaccessible Member";
-    private const string MessageFormat = "There is an Attribute Contradiction on '{0}' Member. [DataMemberIgnoreAttribute] on a [DataMember] is not allowed. Except if it has also [DataMemberUpdatableAttribute] Attribute";
+    private const string MessageFormat = "There is an Attribute Contradiction on '{0}' Member. [DataMemberIgnore] Attribute on a [DataMember] is not supported. Except if it has also [DataMemberUpdatable] Attribute";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
