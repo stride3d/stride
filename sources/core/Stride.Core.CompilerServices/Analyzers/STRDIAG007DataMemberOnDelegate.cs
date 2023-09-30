@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
 {
@@ -26,6 +27,7 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+
     private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
@@ -37,6 +39,7 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
         context.RegisterSymbolAction(symbolContext => AnalyzeProperty(symbolContext, dataMemberAttribute), SymbolKind.Property);
         context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataMemberAttribute), SymbolKind.Field);
     }
+
     private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var fieldSymbol = (IFieldSymbol)context.Symbol;

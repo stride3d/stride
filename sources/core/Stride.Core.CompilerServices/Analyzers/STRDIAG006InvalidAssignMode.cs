@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
 {
@@ -26,6 +27,7 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+
     private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
@@ -37,6 +39,7 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
 
         context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataMemberAttribute, dataMemberMode), SymbolKind.Property);
     }
+
     private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMemberMode)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;

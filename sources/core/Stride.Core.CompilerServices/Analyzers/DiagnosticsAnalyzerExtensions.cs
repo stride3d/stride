@@ -1,5 +1,6 @@
 
 namespace Stride.Core.CompilerServices.Analyzers;
+
 public static class DiagnosticsAnalyzerExtensions
 {
     public static void ReportDiagnostics(DiagnosticDescriptor rule, SymbolAnalysisContext context, ISymbol symbol)

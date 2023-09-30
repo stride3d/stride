@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 {
@@ -18,6 +19,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
         Category,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
+
     private static DiagnosticDescriptor InvalidAccesibilityRule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
@@ -33,6 +35,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+
     private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
@@ -43,6 +46,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 
         context.RegisterSymbolAction(symbolContext => AnalyzeProperty(symbolContext, dataMemberAttribute), SymbolKind.Property);
     }
+
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;

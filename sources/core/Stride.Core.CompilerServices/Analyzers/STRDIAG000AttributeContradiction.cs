@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
 {
@@ -26,6 +27,7 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+
     private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
@@ -36,6 +38,7 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
 
         context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataMemberAttribute, dataMemberIgnoreAttribute, dataMemberUpdatableAttribute), SymbolKind.Property, SymbolKind.Field);
     }
+
     /// <summary>
     /// Analyzes the Symbol for a Attribute Contradiction.
     /// An invalid combination would be [DataMember] with [DataMemberIgnore].

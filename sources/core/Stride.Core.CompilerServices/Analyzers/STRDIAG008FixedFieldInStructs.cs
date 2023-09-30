@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
 {
@@ -26,6 +27,7 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+
     private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
         var dataContractAttribute = WellKnownReferences.DataContractAttribute(context.Compilation);
@@ -37,6 +39,7 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
 
         context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataContractAttribute, dataMemberIgnoreAttribute), SymbolKind.Field);
     }
+
     private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberIgnoreAttribute)
     {
         var fieldSymbol = (IFieldSymbol)context.Symbol;

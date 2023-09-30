@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
+
 /// <summary>
 /// An Analyzer which verfifys that the [DataMember] Attribute can't be put on fields/properties that don't have a public/internal Accessor.
 /// </summary>
@@ -29,6 +30,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+
     private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
@@ -39,6 +41,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
 
         context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataMemberAttribute), SymbolKind.Property, SymbolKind.Field);
     }
+
     private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var symbol = context.Symbol;

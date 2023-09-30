@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
 {
@@ -27,6 +28,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.RegisterCompilationStartAction(AnalyzeCompilationStart);
     }
+
     private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
@@ -38,6 +40,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         context.RegisterSymbolAction(symbolContext => AnalyzeProperty(symbolContext, dataMemberAttribute), SymbolKind.Property);
         context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataMemberAttribute), SymbolKind.Field);
     }
+
     private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var symbol = (IFieldSymbol)context.Symbol;
@@ -55,6 +58,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
             DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, fieldType);
         }
     }
+
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
@@ -68,7 +72,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
             return;
 
         var setMethod = propertySymbol.SetMethod;
-        if(setMethod is null || (setMethod.DeclaredAccessibility != Accessibility.Public && setMethod.DeclaredAccessibility != Accessibility.Internal))
+        if (setMethod is null || (setMethod.DeclaredAccessibility != Accessibility.Public && setMethod.DeclaredAccessibility != Accessibility.Internal))
         {
             var propertyType = propertySymbol.Type;
             if (HasImmutableType(propertyType))
