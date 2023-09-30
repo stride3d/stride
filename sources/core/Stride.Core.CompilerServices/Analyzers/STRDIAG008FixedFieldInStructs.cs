@@ -46,9 +46,6 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
         var fieldSymbol = (IFieldSymbol)context.Symbol;
         var containingType = fieldSymbol.ContainingType;
 
-        if (containingType is null)
-            return;
-
         if(containingType.HasAttribute(dataContractAttribute)) 
         {
             if (fieldSymbol.DeclaredAccessibility == Accessibility.Public && fieldSymbol.IsFixedSizeBuffer && !fieldSymbol.HasAttribute(dataMemberIgnoreAttribute))

@@ -54,8 +54,6 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
             return;
 
         var fieldType = symbol.Type;
-        if (fieldType is null)
-            return;
 
         if (fieldType.SpecialType == SpecialType.System_String || !fieldType.IsReferenceType)
         {
@@ -70,8 +68,6 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
             return;
 
         var propertyType = propertySymbol.Type;
-        if (propertyType is null)
-            return;
 
         if (propertySymbol.GetMethod != null && (propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType))
         {

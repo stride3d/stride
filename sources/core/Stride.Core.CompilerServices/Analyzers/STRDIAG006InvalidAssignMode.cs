@@ -47,8 +47,6 @@ public class DataMemberModeAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeSymbol(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute,INamedTypeSymbol dataMemberMode)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if (propertySymbol is null)
-            return;
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;

@@ -50,9 +50,6 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
 
         var fieldType = fieldSymbol.Type;
 
-        if (fieldType is null)
-            return;
-
         if (fieldType.TypeKind == TypeKind.Delegate)
         {
             DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, fieldSymbol);
@@ -66,9 +63,6 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
         var propertyType = propertySymbol.Type;
-
-        if (propertyType is null) 
-            return;
 
         if(propertyType.TypeKind == TypeKind.Delegate)
         {
