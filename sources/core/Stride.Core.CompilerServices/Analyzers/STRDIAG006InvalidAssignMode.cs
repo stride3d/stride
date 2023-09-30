@@ -56,9 +56,11 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
         var attributes = propertySymbol.GetAttributes();
         foreach (var attribute in attributes)
         {
-            if (attribute.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false)
-            {
+            if (!attribute.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false)
+                continue;
+
                 var modeParameter = attribute.ConstructorArguments.FirstOrDefault(x => x.Type?.Equals(dataMemberMode, SymbolEqualityComparer.Default) ?? false);
+
                 if (modeParameter.Value is null)
                     return;
                 // 1 is the Enums Value of DataMemberMode for Assign
