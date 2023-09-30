@@ -10,7 +10,7 @@ using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class DataMemberModeAnalyzer : DiagnosticAnalyzer
+public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG006";
     private const string Title = "Invalid Assign Mode";
