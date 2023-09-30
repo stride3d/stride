@@ -97,8 +97,10 @@ namespace Stride.Core.Assets.Serializers
                 // Return default(T)
                 //return !context.Descriptor.Type.IsValueType ? null : Activator.CreateInstance(context.Descriptor.Type);
                 // Return temporary proxy instance
-                var proxy = (IIdentifiable)AbstractObjectInstantiator.CreateConcreteInstance(context.Descriptor.Type);
-                proxy.Id = identifier;
+                var proxy = AbstractObjectInstantiator.CreateConcreteInstance(context.Descriptor.Type);
+                // Filtering out interface and abstracts here as they're using a proxy type which doesn't have Id implemented
+                if (context.Descriptor.Type.IsInterface == false && context.Descriptor.Type.IsAbstract == false && proxy is IIdentifiable identifiable)
+                    identifiable.Id = identifier;
                 return proxy;
             }
 
