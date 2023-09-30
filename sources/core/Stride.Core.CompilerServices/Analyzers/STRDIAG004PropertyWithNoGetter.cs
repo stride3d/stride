@@ -7,18 +7,25 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG004";
     private const string Title = "Property with no Getter";
-    private const string MessageFormat = "The [DataMember] Attribute is applied to property '{0}' with an invalid getter accessibility level. Expected is a public/internal getter.";
+    private const string NonExistentGetterMessageFormat = "The property '{0}' with [DataMember] does not have a getter which is required for serialization.";
+    private const string InvalidAccessibilityOnGetterMessageFormat = "The property '{0}' with [DataMember] does not have an accessible getter which is required for serialization. A public/internal getter is expected.";
     private const string Category = "CompilerServices";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static DiagnosticDescriptor NonExistentGetterRule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
-        MessageFormat,
+        NonExistentGetterMessageFormat,
         Category,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+    private static DiagnosticDescriptor InvalidAccesibilityRule = new DiagnosticDescriptor(
+        DiagnosticId,
+        Title,
+        InvalidAccessibilityOnGetterMessageFormat,
+        Category,
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(NonExistentGetterRule,InvalidAccesibilityRule); } }
 
     public override void Initialize(AnalysisContext context)
     {
@@ -45,7 +52,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
             return;
         if (propertySymbol.GetMethod is null)
         {
-            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+            DiagnosticsAnalyzerExtensions.ReportDiagnostics(NonExistentGetterRule, context, dataMemberAttribute, propertySymbol);
         }
         else
         {
@@ -53,7 +60,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 
             if (getterAccessibility != Accessibility.Public && getterAccessibility != Accessibility.Internal)
             {
-                DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
+                DiagnosticsAnalyzerExtensions.ReportDiagnostics(InvalidAccesibilityRule, context, dataMemberAttribute, propertySymbol);
             }
         }
     }
