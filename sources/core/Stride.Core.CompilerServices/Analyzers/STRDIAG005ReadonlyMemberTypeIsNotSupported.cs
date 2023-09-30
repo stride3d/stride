@@ -46,24 +46,21 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         context.RegisterSymbolAction(symbolContext => AnalyzeProperty(symbolContext, dataMemberAttribute), SymbolKind.Property);
         context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataMemberAttribute), SymbolKind.Field);
     }
-    private static void AnalyzeField(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute)
+    private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
-        var symbol = context.Symbol;
+        var symbol = (IFieldSymbol)context.Symbol;
 
-        if (symbol is IFieldSymbol fieldSymbol)
+        if (!symbol.HasAttribute(dataMemberAttribute) && symbol.IsReadOnly)
+            return;
+
+        var fieldType = symbol.Type;
+        if (fieldType is null)
+            return;
+
+        if (fieldType.SpecialType == SpecialType.System_String || !fieldType.IsReferenceType)
         {
-            if (fieldSymbol.GetAttributes().Any(attr => attr.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false) &&
-                fieldSymbol.IsReadOnly)
-            {
-                var fieldType = fieldSymbol.Type;
-                if (fieldType is null)
-                    return;
-                if (fieldType.SpecialType == SpecialType.System_String || !fieldType.IsReferenceType)
-                {
-                    var diagnostic = Diagnostic.Create(Rule, fieldSymbol.Locations.First(), fieldSymbol.Name, fieldType);
-                    context.ReportDiagnostic(diagnostic);
-                }
-            }
+            var diagnostic = Diagnostic.Create(Rule, symbol.Locations.First(), symbol.Name, fieldType);
+            context.ReportDiagnostic(diagnostic);
         }
     }
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
