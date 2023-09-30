@@ -44,7 +44,7 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
 
         context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataMemberAttribute, dataMemberMode), SymbolKind.Property);
     }
-    private static void AnalyzeSymbol(SymbolAnalysisContext context,INamedTypeSymbol dataMemberAttribute,INamedTypeSymbol dataMemberMode)
+    private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMemberMode)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
 
@@ -57,22 +57,17 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
             if (attribute.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false)
             {
                 var modeParameter = attribute.ConstructorArguments.FirstOrDefault(x => x.Type?.Equals(dataMemberMode, SymbolEqualityComparer.Default) ?? false);
+                if (modeParameter.Value is null)
+                    return;
                 // 1 is the Enums Value of DataMemberMode for Assign
-                try
+                if ((int)modeParameter.Value == 1)
                 {
-                    if ((int)modeParameter.Value == 1)
+                    if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
                     {
-                        if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
-                        {
-                            DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
-                        }
+                        DiagnosticsAnalyzerExtensions.ReportDiagnostics(Rule, context, dataMemberAttribute, propertySymbol);
                     }
-                    break;
                 }
-                catch (Exception)
-                {
-                }
-
+                break;
             }
         }
     }
