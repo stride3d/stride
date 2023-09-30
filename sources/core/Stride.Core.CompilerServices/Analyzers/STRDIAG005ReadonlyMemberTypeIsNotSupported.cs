@@ -52,9 +52,10 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         if (!symbol.IsVisibleToSerializer())
             return;
 
-        if (!symbol.HasAttribute(dataMemberAttribute) && symbol.IsReadOnly)
+        if (!symbol.HasAttribute(dataMemberAttribute))
             return;
-
+        if (!symbol.IsReadOnly)
+            return;
         var fieldType = symbol.Type;
 
         if (fieldType.SpecialType == SpecialType.System_String || !fieldType.IsReferenceType)
