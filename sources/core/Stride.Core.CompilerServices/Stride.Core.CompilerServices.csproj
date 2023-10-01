@@ -20,6 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="Analyzers\" />
 	  <Folder Include="CodeFixes\" />
 	  <Folder Include="Common\" />
 	  <Folder Include="Generators\" />
