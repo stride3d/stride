@@ -28,9 +28,6 @@ namespace Stride.Rendering
     [DataContract]
     public class Model : IEnumerable
     {
-        private List<Mesh> meshes = new List<Mesh>();
-        private readonly List<MaterialInstance> materials = new List<MaterialInstance>();
-        private IList<Model> children;
         private Model parent;
 
         /// <summary>
@@ -40,11 +37,7 @@ namespace Stride.Rendering
         /// The views.
         /// </value>
         [MemberCollection(NotNullItems = true)]
-        public IList<Model> Children
-        {
-            get { return children; }
-            set { children = value; }
-        }
+        public IList<Model> Children { get; set; }
 
         /// <summary>
         /// Gets the materials.
@@ -53,10 +46,7 @@ namespace Stride.Rendering
         /// The materials.
         /// </value>
         [MemberCollection(NotNullItems = true)]
-        public List<MaterialInstance> Materials
-        {
-            get { return materials; }
-        }
+        public List<MaterialInstance> Materials { get; } = new();
 
         /// <summary>
         /// Gets the meshes.
@@ -65,11 +55,7 @@ namespace Stride.Rendering
         /// The meshes.
         /// </value>
         [MemberCollection(NotNullItems = true)]
-        public List<Mesh> Meshes
-        {
-            get { return meshes; }
-            set { meshes = value; }
-        }
+        public List<Mesh> Meshes { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the hierarchy definition, which describes nodes name, default transformation and hierarchical parent.
@@ -106,7 +92,7 @@ namespace Stride.Rendering
         /// <param name="model">The model view.</param>
         public void Add(Model model)
         {
-            children.Add(model);
+            Children.Add(model);
         }
 
         /// <summary>
@@ -129,7 +115,7 @@ namespace Stride.Rendering
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return meshes.Cast<object>().Concat(materials).GetEnumerator();
+            return Meshes.Cast<object>().Concat(Materials).GetEnumerator();
         }
 
         /// <summary>

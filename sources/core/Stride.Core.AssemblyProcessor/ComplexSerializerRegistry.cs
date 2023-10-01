@@ -10,7 +10,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Mono.Cecil;
-using Stride.Core;
 
 namespace Stride.Core.AssemblyProcessor
 {
@@ -296,11 +295,14 @@ namespace Stride.Core.AssemblyProcessor
             foreach (var property in type.Properties)
             {
                 // Need a non-static public get method
-                if (property.GetMethod == null || !property.GetMethod.IsPublic || property.GetMethod.IsStatic)
+                if (property.GetMethod.IsStatic)
                     continue;
 
-                // If it's a struct (!IsValueType), we need a public set method as well
-                if (property.PropertyType.IsValueType && (property.SetMethod == null || !(property.SetMethod.IsAssembly || property.SetMethod.IsPublic)))
+                if (IsAccessibleThroughAccessModifiers(property) == false)
+                    continue;
+
+                // If it's a struct (!IsValueType), we need a set method as well
+                if (property.PropertyType.IsValueType && property.SetMethod == null)
                     continue;
 
                 // Only take virtual properties (override ones will be handled by parent serializers)
@@ -380,6 +382,25 @@ namespace Stride.Core.AssemblyProcessor
                     yield return new SerializableItem { MemberInfo = property, Type = property.PropertyType, Name = property.Name, Attributes = attributes, AssignBack = assignBack, NeedReference = !type.IsClass || type.IsValueType };
                 }
             }
+        }
+
+        static bool IsAccessibleThroughAccessModifiers(PropertyDefinition property)
+        {
+            var get = property.GetMethod;
+            var set = property.SetMethod;
+
+            if (get == null)
+                return false;
+
+            bool forced = property.CustomAttributes.Any(a => a.AttributeType.FullName == "Stride.Core.DataMemberAttribute");
+
+            if (forced && (get.IsPublic || get.IsAssembly))
+                return true;
+
+            if (get.IsPublic)
+                return set?.IsPublic == true || set == null && property.DeclaringType.Fields.Any(x => x.Name == $"<{property.Name}>k__BackingField");
+
+            return false;
         }
 
         internal static bool IsMemberIgnored(ICollection<CustomAttribute> customAttributes, ComplexTypeSerializerFlags flags, DataMemberMode dataMemberMode)

@@ -32,8 +32,6 @@ namespace Stride.Engine
         private bool useTRS = true;
         private TransformComponent parent;
 
-        private readonly TransformChildrenCollection children;
-
         internal bool IsMovingInsideRootScene;
 
         /// <summary>
@@ -89,7 +87,7 @@ namespace Stride.Engine
         /// </summary>
         public TransformComponent()
         {
-            children = new TransformChildrenCollection(this);
+            Children = new TransformChildrenCollection(this);
 
             UseTRS = true;
             Scale = Vector3.One;
@@ -112,7 +110,7 @@ namespace Stride.Engine
         /// <summary>
         /// Gets the children of this <see cref="TransformComponent"/>.
         /// </summary>
-        public FastCollection<TransformComponent> Children => children;
+        public FastCollection<TransformComponent> Children { get; }
 
         /// <summary>
         /// Gets or sets the euler rotation, with XYZ order.
