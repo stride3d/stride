@@ -12,12 +12,11 @@ namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
 using System.Runtime.Serialization;
 using Stride.Core;
 
-public class STRDIAGG000_Test
+public class STRDIAG000_Test
 {
     [Fact]
     public void Error_On_Attribute_Contradiction_On_Property()
     {
-        // Define the source code for the Class1 class with an invalid property
         string sourceCode = @"
 using Stride.Core;
 [DataContract]
@@ -33,7 +32,6 @@ public class DoubleAnnotation
     [Fact]
     public void Error_On_Attribute_Contradiction_On_Field()
     {
-        // Define the source code for the Class1 class with an invalid property
         string sourceCode = @"
 using Stride.Core;
 [DataContract]

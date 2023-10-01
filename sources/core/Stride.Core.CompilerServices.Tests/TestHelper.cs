@@ -12,12 +12,12 @@ internal class TestHelper
     {
         var diagnostics = CompilerUtils.CompileAndGetAnalyzerDiagnostics(sourceCode, CompilerUtils.AllAnalyzers);
         bool hasError = diagnostics.Any();
-        Assert.False(hasError, $"The Test is valid and shouldn't throw Diagnostics. Thrown Diagnostics: {diagnostics.Select(x => x.Id)}");
+        Assert.False(hasError, $"The Test is valid and shouldn't throw Diagnostics. Thrown Diagnostics: {string.Concat(diagnostics.Select(x => x.Id),",")}");
     }
     public static void ExpectDiagnosticsError(string sourceCode,string diagnosticID)
     {
         var diagnostics = CompilerUtils.CompileAndGetAnalyzerDiagnostics(sourceCode, CompilerUtils.AllAnalyzers);
         bool hasError = diagnostics.Any();
-        Assert.False(hasError, $"The Test is invalid and should throw the '{diagnosticID}' Diagnostics. Thrown Diagnostics: {diagnostics.Select(x => x.Id)}");
+        Assert.True(hasError, $"The Test is invalid and should throw the '{diagnosticID}' Diagnostics. Thrown Diagnostics: {string.Concat(diagnostics.Select(x => x.Id), ",")}");
     }
 }
