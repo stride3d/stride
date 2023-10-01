@@ -320,8 +320,10 @@ namespace Stride.Core.Reflection
                 member.Mode = memberAttribute.Mode;
                 if (!member.HasSet)
                 {
-                    if (memberAttribute.Mode == DataMemberMode.Assign || memberType.IsValueType || memberType == typeof(string))
-                        member.Mode = DataMemberMode.Never;
+                    if (memberAttribute.Mode == DataMemberMode.Assign)
+                        throw new ArgumentException($"{memberType.FullName} {member.OriginalName} is not writeable by {memberAttribute.Mode.ToString()}, its {nameof(DataMemberMode)} must not be {memberAttribute.Mode}.");
+                    if (memberType.IsValueType || memberType == typeof(string))
+                        throw new ArgumentException($"{memberType.FullName} {member.OriginalName} is not writeable by {memberAttribute.Mode.ToString()}, {member.OriginalName} must have a setter.");
                 }
                 member.Order = memberAttribute.Order;
             }
