@@ -397,6 +397,8 @@ namespace Stride.Core.AssemblyProcessor
             if (forced && (get.IsPublic || get.IsAssembly))
                 return true;
 
+            // By default, allow access for get-only auto-property, i.e.: { get; } but not { get => }
+            // as the later may create side effects, and without a setter, we can't 'set' as a fallback for those exceptional cases.
             if (get.IsPublic)
                 return set?.IsPublic == true || set == null && property.DeclaringType.Fields.Any(x => x.Name == $"<{property.Name}>k__BackingField");
 

@@ -149,7 +149,6 @@ namespace Stride.Graphics
         /// <summary>
         /// Gets the value indicating if the image has unstretchable borders.
         /// </summary>
-        [DataMember]
         public bool HasBorders { get; private set; }
 
         /// <summary>
@@ -165,7 +164,6 @@ namespace Stride.Graphics
         /// Gets the size of the sprite in pixels. 
         /// Note that the orientation of the image is taken into account in this calculation.
         /// </summary>
-        [DataMember]
         public Vector2 SizeInPixels
         {
             get { return sizeInPixels; }
