@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
 
-public class Valid_Collection_Tests
+public class ValidCollections
 {
     [Fact]
     public void No_Error_On_GetOnly_public_Collection()
