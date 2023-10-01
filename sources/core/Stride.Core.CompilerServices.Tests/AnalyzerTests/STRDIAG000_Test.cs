@@ -44,4 +44,5 @@ public class DoubleAnnotation
 ";
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG000AttributeContradiction.DiagnosticId);
     }
+    // TODO missing test for DataMemberUpdatable as Stride.Engine isnt referenced
 }
