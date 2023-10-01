@@ -1,0 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Stride.Core.CompilerServices.Tests;
+internal class TestHelper
+{
+    public static void ExpectNoDiagnosticsErrors(string sourceCode)
+    {
+        var diagnostics = CompilerUtils.CompileAndGetAnalyzerDiagnostics(sourceCode, CompilerUtils.AllAnalyzers);
+        bool hasError = diagnostics.Any();
+        Assert.False(hasError, $"The Test is valid and shouldn't throw Diagnostics. Thrown Diagnostics: {diagnostics.Select(x => x.Id)}");
+    }
+}

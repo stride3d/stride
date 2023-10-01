@@ -20,10 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" ReferenceOutputAssembly="false" CopyToOutputDirectory="Always" />
-    <ProjectReference Include="..\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj"
-                     OutputItemType="Analyzer"
-                     SetTargetFramework="TargetFramework=netstandard2.0"
-                     ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj" />
 
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit " Version="1.1.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
