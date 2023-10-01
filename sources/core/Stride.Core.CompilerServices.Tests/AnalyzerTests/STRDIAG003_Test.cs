@@ -10,7 +10,7 @@ namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
 public class STRDIAG003_Test
 {
     [Fact]
-    public void Error_On_InaccessibleMember_On_Property()
+    public void Error_On_Datamember_With_InaccessibleMember_On_Property()
     {
         string sourceCode = @"
 using Stride.Core;
@@ -24,7 +24,7 @@ public class DoubleAnnotation
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG003InaccessibleMember.DiagnosticId);
     }
     [Fact]
-    public void Error_On_InaccessibleMember_On_Field()
+    public void Error_On_Datamember_With_InaccessibleMember_On_Field()
     {
         string sourceCode = @"
 using Stride.Core;
