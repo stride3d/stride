@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
-
+using Stride.Core;
 using Stride.Core.Shaders.Ast.Stride;
 using Stride.Shaders.Parser.Utility;
 using Stride.Core.Shaders.Ast;
@@ -18,21 +18,25 @@ namespace Stride.Shaders.Parser.Mixins
         /// <summary>
         /// List of all declared methods
         /// </summary>
+        [DataMember]
         public HashSet<MethodDeclarationShaderCouple> Methods { get; private set; }
 
         /// <summary>
         /// List of all declared Variables
         /// </summary>
+        [DataMember]
         public HashSet<VariableShaderCouple> Variables { get; private set; }
 
         /// <summary>
         /// List of all the structure definitions
         /// </summary>
+        [DataMember]
         public List<StructType> StructureTypes { get; private set; } // list instead of hashset because order can be important
 
         /// <summary>
         /// List of all the Typedefs
         /// </summary>
+        [DataMember]
         public List<Typedef> Typedefs { get; private set; } // list instead of hashset because order can be important
 
         #endregion

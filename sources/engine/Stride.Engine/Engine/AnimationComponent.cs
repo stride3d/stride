@@ -26,7 +26,6 @@ namespace Stride.Engine
     [ComponentCategory("Animation")]
     public sealed class AnimationComponent : EntityComponent
     {
-        private readonly Dictionary<string, AnimationClip> animations;
         private readonly TrackingCollection<PlayingAnimation> playingAnimations;
 
         [DataMemberIgnore]
@@ -34,7 +33,7 @@ namespace Stride.Engine
 
         public AnimationComponent()
         {
-            animations = new Dictionary<string, AnimationClip>();
+            Animations = new Dictionary<string, AnimationClip>();
             playingAnimations = new TrackingCollection<PlayingAnimation>();
             playingAnimations.CollectionChanged += PlayingAnimations_CollectionChanged;
         }
@@ -67,10 +66,8 @@ namespace Stride.Engine
         /// Gets the animations associated to the component.
         /// </summary>
         /// <userdoc>The list of the animation associated to the entity.</userdoc>
-        public Dictionary<string, AnimationClip> Animations
-        {
-            get { return animations; }
-        }
+        [DataMember]
+        public Dictionary<string, AnimationClip> Animations { get; private set; }
 
         /// <summary>
         /// Plays right away the animation with the specified name, instantly removing all other blended animations.

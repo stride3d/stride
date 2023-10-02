@@ -10,11 +10,13 @@ namespace Stride.Core.Settings
     [DataContract("AppSettings")]
     public sealed class AppSettings : IEnumerable<object>
     {
+        private FastCollection<object> settings = new();
+
         /// <summary>
         /// Application specific settings.
         /// </summary>
         [DataMember]
-        private FastCollection<object> Settings { get; set; }
+        public IReadOnlyCollection<object> Settings { get => settings; }
 
         /// <summary>
         /// Default constructor, used for deserialization.
@@ -25,7 +27,7 @@ namespace Stride.Core.Settings
         /// Creates a new <see cref="AppSettings"/> instance with a settings collection.
         /// </summary>
         /// <param name="settings">Settings collection.</param>
-        public AppSettings(IEnumerable<object> settings) => Settings = new FastCollection<object>(settings);
+        public AppSettings(IEnumerable<object> settings) => this.settings = new FastCollection<object>(settings);
 
         /// <summary>
         /// Finds a settings object of the specified type in the settings collection.
@@ -47,10 +49,10 @@ namespace Stride.Core.Settings
         /// Inline Enumerator used by foreach.
         /// </summary>
         /// <returns>Enumerator of the underlying settings collection.</returns>
-        public FastCollection<object>.Enumerator GetEnumerator() => Settings.GetEnumerator();
+        public FastCollection<object>.Enumerator GetEnumerator() => settings.GetEnumerator();
 
-        IEnumerator<object> IEnumerable<object>.GetEnumerator() => ((IEnumerable<object>)Settings).GetEnumerator();
+        IEnumerator<object> IEnumerable<object>.GetEnumerator() => ((IEnumerable<object>)settings).GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Settings).GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)settings).GetEnumerator();
     }
 }

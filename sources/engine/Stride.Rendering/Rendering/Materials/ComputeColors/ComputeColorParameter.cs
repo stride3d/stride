@@ -26,6 +26,7 @@ namespace Stride.Rendering.Materials.ComputeColors
             Texture = new ComputeTextureColor();
         }
 
+        [DataMember]
         public ComputeTextureColor Texture { get; private set; }
     }
 

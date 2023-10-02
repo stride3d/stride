@@ -33,12 +33,14 @@ namespace Stride.Core.Assets
         /// Gets the selectors used by this bundle.
         /// </summary>
         /// <value>The selectors.</value>
+        [DataMember]
         public List<AssetSelector> Selectors { get; private set; }
 
         /// <summary>
         /// Gets the bundle dependencies.
         /// </summary>
         /// <value>The dependencies.</value>
+        [DataMember]
         public List<string> Dependencies { get; private set; }
 
         /// <summary>

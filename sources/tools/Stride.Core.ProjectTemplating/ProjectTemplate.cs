@@ -36,6 +36,7 @@ namespace Stride.Core.ProjectTemplating
         /// Gets or sets the template file path.
         /// </summary>
         /// <value>The template path.</value>
+        [DataMember]
         public string FilePath { get; private set; }
 
         /// <summary>
@@ -43,6 +44,7 @@ namespace Stride.Core.ProjectTemplating
         /// generating content files)
         /// </summary>
         /// <value><c>true</c> if this instance is a dynamic template; otherwise, <c>false</c>.</value>
+        [DataMember]
         public bool IsDynamicTemplate { get; private set; }
 
         /// <summary>

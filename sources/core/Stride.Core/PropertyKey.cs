@@ -42,6 +42,7 @@ namespace Stride.Core
         /// <summary>
         /// Gets the name of this key.
         /// </summary>
+        [DataMember]
         public string Name { get; protected set; }
 
         /// <summary>
