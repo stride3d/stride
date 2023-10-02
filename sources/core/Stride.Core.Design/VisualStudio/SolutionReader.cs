@@ -297,7 +297,7 @@ namespace Stride.Core.VisualStudio
             {
                 var line = ReadLine();
                 solution.Headers.Add(line);
-                if (line.StartsWith('#'))
+                if (line.StartsWith("#"))
                 {
                     return;
                 }

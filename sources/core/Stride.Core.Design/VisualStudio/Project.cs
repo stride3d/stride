@@ -214,10 +214,10 @@ namespace Stride.Core.VisualStudio
                 // Example: "{GUID}|Infra.dll;{GUID2}|Services.dll;"
                 var propertyItem = sections["WebsiteProperties"].Properties["ProjectReferences"];
                 var value = propertyItem.Value;
-                if (value.StartsWith('\"'))
-                    value = value[1..];
-                if (value.EndsWith('\"'))
-                    value = value[..^1];
+                if (value.StartsWith("\""))
+                    value = value.Substring(1);
+                if (value.EndsWith("\""))
+                    value = value.Substring(0, value.Length - 1);
 
                 foreach (var dependency in value.Split(';'))
                 {
