@@ -47,7 +47,7 @@ namespace Stride.Core.Diagnostics
     ///  </code>
     /// To enable all profilers, use <c>Profiler.Enable()</c> method.
     /// 
-    /// When the profiler is enabled, it is logged using the logging system through the standard <see cref="Logger"/> infrastructure.
+    /// When the profiler is enabled, it is logged using the logging system through the standard <see cref="Diagnostics.Logger"/> infrastructure.
     /// The logger module name used is "Profile." concatenates with the name of the profile.
     /// 
     /// Note also that when profiling, it is possible to attach some property values (counters, indicators...etc.) to a profiler state. This 
