@@ -34,10 +34,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         private float revolutionRadius;
         private Vector3 targetPos;
 
-        //private float movementSpeedIncrement = 2.0f;
-        //private float minMovementSpeed = 0.2f;
-        //private float maxMovementSpeed => Camera.AvailableMovementSpeed.Length;
-
         public EditorGameEntityCameraService([NotNull] EntityHierarchyEditorViewModel editor, IEditorGameController controller)
             : base(controller)
         {
@@ -244,7 +240,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     z = 0f;
                 }
 
-                // Dynamically change MovementSpeed while moving around
+                // Dynamically change MovementSpeed of Camera by using MouseWheel while moving around
                 if (input.isRotating)
                 {
                     if (Game.Input.MouseWheelDelta > 0.0f)
