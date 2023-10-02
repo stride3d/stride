@@ -1,4 +1,10 @@
-![Stride](sources/data/images/Logo/stride-logo-readme.png)
+<p>
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-white.png">
+      <source media="(prefers-color-scheme: light)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
+      <img alt="The stride logo, a geometrical 'S' in the form of a cube" src="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
+    </picture>
+</p>
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord&logoColor=f2f2f2)](https://discord.gg/f6aerfE)
 [![All Contributors](https://img.shields.io/github/all-contributors/stride3d/stride?color=ee8449)](#contributors)
@@ -21,7 +27,7 @@ This project is supported by the [.NET Foundation](https://dotnetfoundation.org)
 
 ### License
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
-You can find the list of third party projects [here](THIRD%20PARTY.md).
+You can find the list of third-party projects [here](THIRD%20PARTY.md).
 Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
 
 ### Code of conduct
@@ -43,10 +49,11 @@ Find explanations and information about Stride:
 
 Ask for help or report issues:
 * [Chat with the community on Discord](https://discord.gg/f6aerfE)
-* [Discuss topics on Github discussions](https://github.com/stride3d/stride/discussions)
+* [Discuss topics on GitHub discussions](https://github.com/stride3d/stride/discussions)
 * [Report engine issues](https://github.com/stride3d/stride/issues)
 * [Donate to support the project](https://opencollective.com/stride3d/)
 * [List of Projects made by users](https://github.com/stride3d/stride/wiki/Community-Projects)
+* [Awesome Stride - Huge List of Stride Resources](https://github.com/Doprez/Awesome-Stride)
 * [Localization](docs/localization.md)
 
 ## Building from source
@@ -55,14 +62,14 @@ Ask for help or report issues:
 
 1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog.
 2. [DotNet SDK 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
-  * Run 'dotnet --info' in a console or powershell window to see which versions you have installed  
+   - Run `dotnet --info` in a console or powershell window to see which versions you have installed  
 3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
-  * `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
-  * `Desktop development with C++` with
-    * `Windows 10 SDK (10.0.18362.0)` (it's currently enabled by default but it might change)
-    * `MSVC v143 - VS2022 C++ x64/x86 build tools (v14.30)` or later version (should be enabled by default)
-    * `C++/CLI support for v143 build tools (v14.30)` or later version **(not enabled by default)**
-  * Optional (to target iOS/Android): `Mobile development with .NET` and `Android SDK setup (API level 27)` individual component, then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 19+) from `Tools` tab.
+   - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
+   - `Desktop development with C++` with
+     - `Windows 10 SDK (10.0.18362.0)` (it's currently enabled by default but it might change)
+     - `MSVC v143 - VS2022 C++ x64/x86 build tools (v14.30)` or later version (should be enabled by default)
+     - `C++/CLI support for v143 build tools (v14.30)` or later version **(not enabled by default)**
+   - Optional (to target iOS/Android): `Mobile development with .NET` and `Android SDK setup (API level 27)` individual component, then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 19+) from `Tools` tab.
 4. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
 
 ### Build Stride
@@ -171,6 +178,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/garychia"><img src="https://avatars.githubusercontent.com/u/88014292?v=4?s=100" width="100px;" alt="Chia-Hsiang Cheng"/><br /><sub><b>Chia-Hsiang Cheng</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=garychia" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://nicusorn5.github.io/"><img src="https://avatars.githubusercontent.com/u/20599225?v=4?s=100" width="100px;" alt="Nicolae Tugui"/><br /><sub><b>Nicolae Tugui</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=NicusorN5" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://mattiascibien.net"><img src="https://avatars.githubusercontent.com/u/1300681?v=4?s=100" width="100px;" alt="Mattias Cibien"/><br /><sub><b>Mattias Cibien</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=mattiascibien" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://cnonim.name"><img src="https://avatars.githubusercontent.com/u/523048?v=4?s=100" width="100px;" alt="Oleg Ageev"/><br /><sub><b>Oleg Ageev</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=cNoNim" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SeleDreams"><img src="https://avatars.githubusercontent.com/u/16335601?v=4?s=100" width="100px;" alt="SeleDreams"/><br /><sub><b>SeleDreams</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=SeleDreams" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

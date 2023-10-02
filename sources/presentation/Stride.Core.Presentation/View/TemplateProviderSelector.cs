@@ -141,7 +141,7 @@ namespace Stride.Core.Presentation.View
 
             lastContainers.Remove(item);
 
-            var availableSelectors = templateProviders.Where(x => x.Match(item)).ToList();
+            var availableSelectors = templateProviders.Where(x => x.Match(item));
 
             var result = availableSelectors.FirstOrDefault(x => !usedProvidersForItem.Contains(x.Name));
 

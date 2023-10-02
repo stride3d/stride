@@ -832,7 +832,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
 
                         session.LoadMissingDependencies(sessionResult, loadParameters);
                     }
-                    else if (Path.GetExtension(filePath).ToLowerInvariant() == ".csproj"
+                    else if (SupportedProgrammingLanguages.IsProjectExtensionSupported(Path.GetExtension(filePath).ToLowerInvariant())
                         || Path.GetExtension(filePath).ToLowerInvariant() == Package.PackageFileExtension)
                     {
                         var project = session.LoadProject(sessionResult, filePath, loadParameters);
@@ -841,7 +841,11 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                     }
                     else
                     {
-                        sessionResult.Error($"Unsupported file extension (only .sln, .csproj and .sdpkg are supported)");
+                        var supportedExtensions = SupportedProgrammingLanguages.Languages
+                            .Select(lang => lang.Extension)
+                            .ToArray();
+
+                        sessionResult.Error($"Unsupported file extension (only .sln, {string.Join(", ", supportedExtensions)} and .sdpkg are supported)");
                         return;
                     }
 

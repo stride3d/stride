@@ -192,27 +192,27 @@ namespace Stride.GameStudio.Debugging
                             foreach (var referencePath in referenceBuildResult.ProjectStateAfterBuild.Items.Where(x => x.ItemType == "ReferencePath"))
                             {
                                 assemblyProcessorApp.References.Add(referencePath.EvaluatedInclude);
-                                if (referencePath.EvaluatedInclude.EndsWith("Stride.SpriteStudio.Runtime.dll")) //todo hard-coded! needs to go when plug in system is in
+                                if (referencePath.EvaluatedInclude.EndsWith("Stride.SpriteStudio.Runtime.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Physics.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Physics.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Particles.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Particles.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Native.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Native.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.UI.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.UI.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Video.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Video.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }

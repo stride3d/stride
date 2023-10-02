@@ -220,7 +220,7 @@ namespace Stride.TextureConverter
         private int ParsePixelSize(string pixelSize, out bool isPercentage)
         {
             isPercentage = false;
-            if (pixelSize.EndsWith("p"))
+            if (pixelSize.EndsWith("p", StringComparison.Ordinal))
             {
                 pixelSize = pixelSize.TrimEnd('p');
                 isPercentage = true;

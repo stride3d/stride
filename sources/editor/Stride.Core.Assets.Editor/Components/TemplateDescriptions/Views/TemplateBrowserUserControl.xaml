@@ -15,7 +15,7 @@
         <ResourceDictionary Source="../../../View/CommonResources.xaml"/>
       </ResourceDictionary.MergedDictionaries>
 
-      <providers:DataTypeTemplateSelector x:Key="dataTypeTemplateSelector" >
+      <providers:DataTypeTemplateSelector x:Key="DataTypeTemplateSelector" >
         <providers:DataTypeTemplateSelector.TemplateDefinitions>
           <providers:TemplateDefinition DataType="viewModels:ExistingProjectViewModel">
             <providers:TemplateDefinition.DataTemplate>
@@ -57,7 +57,7 @@
                                   SelectedHierarchyItem="{Binding SelectedGroup, Mode=TwoWay}"
                                   ObjectItemsSource="{Binding Templates}"
                                   SelectedObjectItem="{Binding SelectedTemplate}"
-                                  ObjectItemTemplateSelector="{StaticResource dataTypeTemplateSelector}">
+                                  ObjectItemTemplateSelector="{StaticResource DataTypeTemplateSelector}">
     <views:ObjectBrowserUserControl.HierarchyItemContainerStyle>
       <Style TargetType="sd:TreeViewItem" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}">
         <Setter Property="IsExpanded" Value="True"/>

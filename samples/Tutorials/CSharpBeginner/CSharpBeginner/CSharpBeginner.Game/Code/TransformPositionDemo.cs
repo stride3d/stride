@@ -5,6 +5,9 @@ namespace CSharpBeginner.Code
 {
     /// <summary>
     /// This script demonstrates how to access the entity's local and world position and displays them on screen. 
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/transform-position.html
+    /// </para>
     /// </summary>
     public class TransformPositionDemo : SyncScript
     {

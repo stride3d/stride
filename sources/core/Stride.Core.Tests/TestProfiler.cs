@@ -148,7 +148,7 @@ namespace Stride.Core.Tests
                     matchFunction(message);
                 }
 
-                return message.StartsWith(text);
+                return message.StartsWith(text, StringComparison.Ordinal);
             };
         }
 

@@ -2724,7 +2724,7 @@ namespace Stride.Core.Shaders.Convertor
                         MemberReferenceExpression src;
 
                         var glVariableName = GetGlVariableNameFromSemantic(field.Semantic(), true);
-                        if (glVariableName != null && glVariableName.StartsWith("gl_"))
+                        if (glVariableName != null && glVariableName.StartsWith("gl_", StringComparison.Ordinal))
                         {
                             var newIndexerExpression = new IndexerExpression(new VariableReferenceExpression("gl_in"), new LiteralExpression(i));
                             src = new MemberReferenceExpression(newIndexerExpression, glVariableName);
@@ -2976,10 +2976,10 @@ namespace Stride.Core.Shaders.Convertor
             // http://msdn.microsoft.com/en-us/library/bb219850%28v=vs.85%29.aspx
             foreach (var semanticModifier in SemanticModifiers)
             {
-                if (semantic.ToLowerInvariant().EndsWith(semanticModifier))
+                if (semantic.EndsWith(semanticModifier, StringComparison.OrdinalIgnoreCase))
                 {
                     // Console.WriteLine("Warning, unsupported semantic modifier [{0}] for semantic [{1}]", semanticModifier, semantic);
-                    semantic = semantic.Substring(0, semantic.Length - semanticModifier.Length);
+                    semantic = semantic[..^semanticModifier.Length];
                     break;
                 }
             }
@@ -3003,8 +3003,8 @@ namespace Stride.Core.Shaders.Convertor
                 int registerIndex;
                 var register = registerLocation.Register.Text;
 
-                var allocatedRegister = register.StartsWith("s") ? allocatedRegistersForSamplers : allocatedRegistersForUniforms;
-                string registerIndexStr = register[1] != '[' ? register.Substring(1) : register.Substring(2, register.Length - 3);
+                var allocatedRegister = register.StartsWith('s') ? allocatedRegistersForSamplers : allocatedRegistersForUniforms;
+                string registerIndexStr = register[1] != '[' ? register[1..] : register.Substring(2, register.Length - 3);
 
                 if (!int.TryParse(registerIndexStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out registerIndex))
                 {
@@ -3048,10 +3048,10 @@ namespace Stride.Core.Shaders.Convertor
 
                 var layout = this.GetTagLayout(cBuffer, registerStr);
 
-                if (registerStr.StartsWith("b"))
+                if (registerStr.StartsWith('b'))
                 {
                     int registerIndex;
-                    string registerIndexStr = registerStr.Substring(1);
+                    string registerIndexStr = registerStr[1..];
 
                     if (!int.TryParse(registerIndexStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out registerIndex))
                     {
@@ -3100,7 +3100,7 @@ namespace Stride.Core.Shaders.Convertor
         private void AddGlobalDeclaration<T>(T declaration, bool forceToAdd = false) where T : Node, IDeclaration
         {
             // Don't add glsl variable 
-            if (!declaration.Name.Text.StartsWith("gl_") || forceToAdd)
+            if (!declaration.Name.Text.StartsWith("gl_", StringComparison.Ordinal) || forceToAdd)
             {
                 var index = shader.Declarations.IndexOf(entryPoint);
                 shader.Declarations.Insert(index, declaration);
@@ -3159,7 +3159,7 @@ namespace Stride.Core.Shaders.Convertor
         private Variable BindLocation(Semantic semantic, TypeBase typebase, bool isInput, string defaultName, ref int location, SourceSpan span)
         {
             var variableFromSemantic = GetVariableFromSemantic(semantic, typebase, isInput, defaultName, span);
-            if (!variableFromSemantic.Name.Text.StartsWith("gl_"))
+            if (!variableFromSemantic.Name.Text.StartsWith("gl_", StringComparison.Ordinal))
             {
                 var variableTag = this.GetTagLayout(variableFromSemantic);
 
@@ -3385,7 +3385,7 @@ namespace Stride.Core.Shaders.Convertor
                 var semanticVariable = GetVariableFromSemantic(field.Semantic(), fieldType, false, fieldRef.FieldNamePath, span);
 
                 // If this is a special semantic we need to convert each indices
-                if (fieldArrayType != null && semanticVariable.Name.Text.StartsWith("gl_"))
+                if (fieldArrayType != null && semanticVariable.Name.Text.StartsWith("gl_", StringComparison.Ordinal))
                 {
                     var arrayDimension = fieldArrayType.Dimensions[0] as LiteralExpression;
                     var arrayValue = arrayDimension != null ? Convert.ChangeType(arrayDimension.Literal.Value, typeof(int)) : null;
@@ -3992,7 +3992,7 @@ namespace Stride.Core.Shaders.Convertor
                         var variableRef = node as VariableReferenceExpression;
                         if (declaration != null && declaration.Name != null)
                         {
-                            if (!(declaration is Variable && ((Variable)declaration).Type.Name.Text.StartsWith("layout")))
+                            if (!(declaration is Variable variable && variable.Type.Name.Text.StartsWith("layout", StringComparison.Ordinal)))
                             {
                                 declaration.Name.Text = RenameGlslKeyword(declaration.Name.Text);
                             }
@@ -4026,12 +4026,12 @@ namespace Stride.Core.Shaders.Convertor
             semanticGlBase = semanticGl;
             semanticIndex = semantic.Value;
 
-            if (semanticGl != null && semanticGl.EndsWith("[]"))
+            if (semanticGl != null && semanticGl.EndsWith("[]", StringComparison.Ordinal))
             {
-                semanticGlBase = semanticGl.Substring(0, semanticGl.Length - 2);
+                semanticGlBase = semanticGl[..^2];
 
                 // If there is [] at the end of the string, insert semantic index within []
-                semanticGl = semanticGlBase + "[" + semantic.Value + "]";
+                semanticGl = $"{semanticGlBase}[{semantic.Value}]";
             }
 
             return semantic;
@@ -4200,15 +4200,14 @@ namespace Stride.Core.Shaders.Convertor
         {
             var targetTypeName = targetType.Name.Text;
 
-            if (targetTypeName.StartsWith("Texture"))
-                targetTypeName = "texture" + targetTypeName.Substring("Texture".Length);
-            else if (targetTypeName.StartsWith("Buffer"))
+            if (targetTypeName.StartsWith("Texture", StringComparison.Ordinal))
+                targetTypeName = "texture" + targetTypeName["Texture".Length..];
+            else if (targetTypeName.StartsWith("Buffer", StringComparison.Ordinal))
                 targetTypeName = "textureBuffer";
             else return null;
 
             // TODO: How do we support this on OpenGL ES 2.0? Cast to int/uint on Load()/Sample()?
-            var genericSamplerType = targetType as IGenerics;
-            if (genericSamplerType != null && genericSamplerType.GenericArguments.Count == 1)
+            if (targetType is IGenerics genericSamplerType && genericSamplerType.GenericArguments.Count == 1)
             {
                 var genericArgument = genericSamplerType.GenericArguments[0].ResolveType();
                 if (TypeBase.GetBaseType(genericArgument) == ScalarType.UInt)

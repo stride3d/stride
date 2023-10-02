@@ -30,7 +30,7 @@
   <SolidColorBrush x:Key="SubTabItemActiveBackground" Color="#F5F5F5" />
   <SolidColorBrush x:Key="SubTabItemActiveForeground" Color="#0066CC" />
 
-  <SolidColorBrush x:Key="BackgroundBrush" Color="#E7E7EA"/>
+  <SolidColorBrush x:Key="BackgroundBrush" Color="#DBDBDB"/>
   <SolidColorBrush x:Key="TextBrush" Color="#FF000000" />
   <SolidColorBrush x:Key="HyperlinkBrush" Color="#FF00A0FF" />
   <SolidColorBrush x:Key="NormalBrush" Color="#D1D5DA" />
@@ -49,7 +49,7 @@
 
   <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#FFF5F5F5" />
 
-  <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#007ACC"/>
+  <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#FF007ACC"/>
   <SolidColorBrush x:Key="SelectedTextBrush" Color="White"/>
 
   <Color x:Key="EmphasisGreenColor">#FF8ABB2E</Color>
@@ -61,7 +61,8 @@
   <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#888" />
   <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#FFD4D4D4" />
   <SolidColorBrush x:Key="DisabledBorderBrush" Color="#AAA" />
-  <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFFFFFFF" />
+  <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#92A0A9" />
+  <SolidColorBrush x:Key="StatusBarBackgroundBrush" Color="#007ACC" />
 
   <SolidColorBrush x:Key="ToggleButtonNormalBackground" Color="#FF808080"/>
   <SolidColorBrush x:Key="ComboToggleButtonBackground" Color="Transparent" />
@@ -75,7 +76,7 @@
   <SolidColorBrush x:Key="DefaultedBorderBrush" Color="{StaticResource DefaultColor}" />
   <SolidColorBrush x:Key="SolidBorderBrush" Color="#CCCEDB" />
   <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#FFCCCEDB"/>
-  <SolidColorBrush x:Key="ButtonHoverBackgroundBrush" Color="#C2D7ED"/>
+  <SolidColorBrush x:Key="ButtonHoverBackgroundBrush" Color="#98A8bA"/>
   <SolidColorBrush x:Key="MenuHoverBrush" Color="#C9DEF5"/>
   <SolidColorBrush x:Key="PropertyGridItemHoverBrush" Color="#FFC9DEF5" />
 
@@ -106,6 +107,9 @@
   <SolidColorBrush x:Key="CodeEditorBackgroundBrush" Color="White" />
 
   <SolidColorBrush x:Key="GraphicsCompositorNodeTextBrush" Color="#EBEBEB" />
+
+  <SolidColorBrush x:Key="LinkTextColor" Color="#FF8ABB2E" />
+  <SolidColorBrush x:Key="PrefabTextColor" Color="#FF7198D2" />
 
   <!--TextLogViewer colors-->
   <SolidColorBrush x:Key="TextLogDebugBrush" Color="DarkSlateGray"/>

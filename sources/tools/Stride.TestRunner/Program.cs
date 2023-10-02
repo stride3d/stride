@@ -265,7 +265,7 @@ namespace Stride.TestRunner
 
             foreach (var packageFile in commandArgs)
             {
-                if (!packageFile.EndsWith("-Signed.apk"))
+                if (!packageFile.EndsWith("-Signed.apk", StringComparison.Ordinal))
                     throw new OptionException("APK should end up with \"-Signed.apk\"", "apk");
 
                 // Remove -Signed.apk suffix

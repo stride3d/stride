@@ -5,6 +5,9 @@ namespace CSharpBeginner.Code
 {
     /// <summary>
     /// This script demonstrates how to remove an existing entity from the scene hierarchy.
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/removing-entities.html
+    /// </para>
     /// </summary>
     public class RemoveEntitiesDemo : SyncScript
     {

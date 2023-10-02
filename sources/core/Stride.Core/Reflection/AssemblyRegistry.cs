@@ -76,7 +76,7 @@ namespace Stride.Core.Reflection
         public static Type GetType([NotNull] string fullyQualifiedTypeName, bool throwOnError = true)
         {
             if (fullyQualifiedTypeName == null) throw new ArgumentNullException(nameof(fullyQualifiedTypeName));
-            var assemblyIndex = fullyQualifiedTypeName.IndexOf(",");
+            var assemblyIndex = fullyQualifiedTypeName.IndexOf(',');
             if (assemblyIndex < 0)
             {
                 throw new ArgumentException($"Invalid fulltype name [{fullyQualifiedTypeName}], expecting an assembly name", nameof(fullyQualifiedTypeName));

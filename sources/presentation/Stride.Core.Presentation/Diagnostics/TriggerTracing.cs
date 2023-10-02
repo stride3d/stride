@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if DEBUG
-
+using System;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Diagnostics;
@@ -166,10 +166,9 @@ namespace Stride.Core.Presentation.Diagnostics
             {
                 base.TraceEvent(eventCache, source, eventType, id, format, args);
 
-                if (format.StartsWith("Storyboard has begun;"))
+                if (format.StartsWith("Storyboard has begun;", StringComparison.Ordinal))
                 {
-                    var storyboard = args[1] as TriggerTraceStoryboard;
-                    if (storyboard != null)
+                    if (args[1] is TriggerTraceStoryboard storyboard)
                     {
                         // add a breakpoint here to see when your trigger has been
                         // entered or exited
