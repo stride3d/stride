@@ -28,16 +28,17 @@ namespace Stride.Assets.Tests
             // it would duplicate tests and it's more important to assert
             // that presence of the attribute gives a warning
             [MemberRequired] public object PublicField;
+            [DataMember][MemberRequired] internal object InternalField;
             [MemberRequired] public object PublicProp { get; set; }
             [MemberRequired]
-            [DataMember] private object PrivateProp { get; set; }
+            [DataMember] public object PrivateProp { get; private set; }
             [MemberRequired]
-            [DataMember] protected object ProtectedProp { get; set; }
+            [DataMember] internal object InternalProp { get; set; }
             public override object VirtualProp { get; set; } = new object();
-            public MemberRequiredComponent(object privateData, object protectedData)
+            public MemberRequiredComponent(object privateData, object internalData)
             {
                 PrivateProp = privateData;
-                ProtectedProp = protectedData;
+                InternalProp = internalData;
             }
         }
 
@@ -46,6 +47,7 @@ namespace Stride.Assets.Tests
         {
             var memberRequiredComponent = new MemberRequiredComponent(new object(), new object())
             {
+                InternalField = new object(),
                 PublicProp = new object(),
                 PublicField = new object(),
             };
@@ -65,6 +67,7 @@ namespace Stride.Assets.Tests
         {
             var memberRequiredComponent = new MemberRequiredComponent(new object(), new object())
             {
+                InternalField = new object(),
                 PublicProp = new object(),
                 PublicField = null,
             };
@@ -77,6 +80,7 @@ namespace Stride.Assets.Tests
         {
             var memberRequiredComponent = new MemberRequiredComponent(new object(), new object())
             {
+                InternalField = new object(),
                 PublicProp = null,
                 PublicField = new object(),
             };
@@ -89,22 +93,24 @@ namespace Stride.Assets.Tests
         {
             var memberRequiredComponent = new MemberRequiredComponent(null, new object())
             {
+                InternalField = new object(),
                 PublicProp = new object(),
                 PublicField = new object(),
             };
-            var memberName = "PrivateProp";
+            var memberName = nameof(MemberRequiredComponent.PrivateProp);
             TestSingle(memberRequiredComponent, memberName);
         }
 
         [Fact]
-        void EntityIsMissingRequiredMember_ProtectedProp()
+        void EntityIsMissingRequiredMember_InternalProp()
         {
             var memberRequiredComponent = new MemberRequiredComponent(new object(), null)
             {
+                InternalField = new object(),
                 PublicProp = new object(),
                 PublicField = new object(),
             };
-            var memberName = "ProtectedProp";
+            var memberName = nameof(MemberRequiredComponent.InternalProp);
             TestSingle(memberRequiredComponent, memberName);
         }
 
@@ -124,7 +130,7 @@ namespace Stride.Assets.Tests
 
             Assert.True(check.AppliesTo(memberRequiredComponent.GetType()));
             check.Check(memberRequiredComponent, entity, null, "", result);
-            Assert.Equal(4, result.Messages.Count);
+            Assert.Equal(5, result.Messages.Count);
         }
 
         [Fact]
@@ -132,6 +138,7 @@ namespace Stride.Assets.Tests
         {
             var memberRequiredComponent = new MemberRequiredComponent(new object(), new object())
             {
+                InternalField = new object(),
                 PublicProp = new object(),
                 PublicField = new object(),
                 VirtualProp = null,

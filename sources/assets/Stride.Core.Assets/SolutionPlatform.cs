@@ -283,6 +283,7 @@ namespace Stride.Core.Assets
         /// Gets or sets the configuration name (e.g. Debug, Release)
         /// </summary>
         /// <value>The name.</value>
+        [DataMember]
         public string Name { get; private set; }
 
         /// <summary>
@@ -295,6 +296,7 @@ namespace Stride.Core.Assets
         /// Gets the additional msbuild properties for a specific configuration (Debug or Release)
         /// </summary>
         /// <value>The msbuild configuration properties.</value>
+        [DataMember]
         public List<string> Properties { get; private set; }
     }
 }

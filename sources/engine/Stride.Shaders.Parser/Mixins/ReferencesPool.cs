@@ -18,11 +18,13 @@ namespace Stride.Shaders.Parser.Mixins
         /// <summary>
         /// List of all the variable references
         /// </summary>
+        [DataMember]
         public Dictionary<Variable, HashSet<ExpressionNodeCouple>> VariablesReferences { get; private set; }
 
         /// <summary>
         /// List of all the variable references
         /// </summary>
+        [DataMember]
         public Dictionary<MethodDeclaration, HashSet<MethodInvocationExpression>> MethodsReferences { get; private set; }
 
         public ReferencesPool()

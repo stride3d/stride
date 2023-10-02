@@ -25,6 +25,7 @@ namespace Stride.Core.Assets.Selectors
         /// Gets the tags that will be used to select an asset.
         /// </summary>
         /// <value>The tags.</value>
+        [DataMember]
         public TagCollection Tags { get; private set; }
 
         public override IEnumerable<string> Select(PackageSession packageSession, IContentIndexMap contentIndexMap)

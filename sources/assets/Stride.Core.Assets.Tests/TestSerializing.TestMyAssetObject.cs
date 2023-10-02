@@ -65,7 +65,8 @@ namespace Stride.Core.Assets.Tests
 
             public MyDictionaryPure MapItems3 { get; set; }
 
-            public object CustomObjectWithProtectedSet { get; protected set; }
+            [DataMember]
+            public CustomObject CustomObjectWithProtectedSet { get; protected set; }
         }
 
         [DataContract("CustomObject")]

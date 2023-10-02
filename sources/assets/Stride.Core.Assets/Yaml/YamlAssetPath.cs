@@ -127,6 +127,7 @@ namespace Stride.Core.Assets.Yaml
         /// <summary>
         /// The elements constituting this path.
         /// </summary>
+        [DataMember]
         public IReadOnlyList<Element> Elements => elements;
 
         /// <summary>

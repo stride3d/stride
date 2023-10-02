@@ -190,31 +190,7 @@ namespace Stride.Core.Reflection
 
         protected virtual List<IMemberDescriptor> PrepareMembers()
         {
-            if (Type == typeof(Type) || Type.IsAbstract || Type.IsInterface)
-            {
-                return EmptyMembers;
-            }
-
-            if (Type.IsClass)
-            {
-                bool hasAnyContract = false;
-                for (var type = Type; type != typeof(object); type = type.BaseType)
-                {
-                    if (type!.GetCustomAttribute<DataContractAttribute>(false) is {} dataContract)
-                    {
-                        hasAnyContract = dataContract.Inherited || Type == type;
-                        break;
-                    }
-                }
-
-                if (hasAnyContract == false)
-                    return EmptyMembers;
-            }
-            else if (Type.IsValueType && Type.GetCustomAttribute<DataContractAttribute>(false) is null)
-            {
-                return EmptyMembers;
-            }
-            else if (Type.IsEnum || Type.IsPrimitive)
+            if (Type == typeof(Type))
             {
                 return EmptyMembers;
             }
@@ -241,8 +217,8 @@ namespace Stride.Core.Reflection
                 bindingFlags |= BindingFlags.NonPublic;
 
             var memberList = (from propertyInfo in Type.GetProperties(bindingFlags)
-                              where IsAccessibleThroughAccessModifiers(propertyInfo)
-                              where propertyInfo.CanRead && propertyInfo.GetIndexParameters().Length == 0 && IsMemberToVisit(propertyInfo)
+                              where Type.IsAnonymous() || IsAccessibleThroughAccessModifiers(propertyInfo)
+                              where propertyInfo.GetIndexParameters().Length == 0 && IsMemberToVisit(propertyInfo)
                               select new PropertyDescriptor(factory.Find(propertyInfo.PropertyType), propertyInfo, NamingConvention.Comparer)
                               into member
                               where PrepareMember(member, metadataClassMemberInfos?.FirstOrDefault(x => x.MemberInfo.Name == member.OriginalName && x.MemberType == member.Type).MemberInfo)
