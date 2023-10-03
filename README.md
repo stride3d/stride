@@ -183,6 +183,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://cnonim.name"><img src="https://avatars.githubusercontent.com/u/523048?v=4?s=100" width="100px;" alt="Oleg Ageev"/><br /><sub><b>Oleg Ageev</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=cNoNim" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/SeleDreams"><img src="https://avatars.githubusercontent.com/u/16335601?v=4?s=100" width="100px;" alt="SeleDreams"/><br /><sub><b>SeleDreams</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=SeleDreams" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/acastrodev"><img src="https://avatars.githubusercontent.com/u/6575712?v=4?s=100" width="100px;" alt="Alexandre Castro"/><br /><sub><b>Alexandre Castro</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=acastrodev" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SVNMLR"><img src="https://avatars.githubusercontent.com/u/44621949?v=4?s=100" width="100px;" alt="SVNMLR"/><br /><sub><b>SVNMLR</b></sub></a><br /><a href="#design-SVNMLR" title="Design">🎨</a></td>
     </tr>
   </tbody>
 </table>
