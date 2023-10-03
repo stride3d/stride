@@ -418,6 +418,15 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "JeromyWalsh",
+      "name": "Jeromy Walsh",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17633767?v=4",
+      "profile": "https://chroniclesofelyria.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
