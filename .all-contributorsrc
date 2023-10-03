@@ -427,6 +427,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "parhamgholami",
+      "name": "Parham Gholami",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7075456?v=4",
+      "profile": "https://pa.rh.am/",
+      "contributions": [
+        "design"
+      ]
     }
   ],
   "contributorsPerLine": 7,
