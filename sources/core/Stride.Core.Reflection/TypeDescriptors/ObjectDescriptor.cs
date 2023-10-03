@@ -386,7 +386,7 @@ namespace Stride.Core.Reflection
         protected bool IsMemberToVisit(MemberInfo memberInfo)
         {
             // Remove all SyncRoot from members
-            if (memberInfo is PropertyInfo && memberInfo.Name == "SyncRoot" && memberInfo.DeclaringType != null && (memberInfo.DeclaringType.Namespace ?? string.Empty).StartsWith(SystemCollectionsNamespace))
+            if (memberInfo is PropertyInfo && memberInfo.Name == "SyncRoot" && memberInfo.DeclaringType != null && (memberInfo.DeclaringType.Namespace ?? string.Empty).StartsWith(SystemCollectionsNamespace, StringComparison.Ordinal))
             {
                 return false;
             }

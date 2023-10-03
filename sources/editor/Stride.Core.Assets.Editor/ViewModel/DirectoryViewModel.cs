@@ -186,7 +186,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 var normalized = UPath.Normalize(path);
                 var result = System.IO.Path.GetFullPath(normalized.ToString());
-                if (result.StartsWith("\\\\.\\"))
+                if (result.StartsWith("\\\\.\\", StringComparison.Ordinal))
                 {
                     message = Tr._p("Message", "Path is a device name");  // pipe, CON, NUL, COM1...
                     ok = false;

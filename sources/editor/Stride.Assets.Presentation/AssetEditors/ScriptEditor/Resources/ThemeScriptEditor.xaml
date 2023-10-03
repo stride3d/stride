@@ -193,8 +193,8 @@
   </Style>
 
   <Style TargetType="{x:Type ListBoxItem}" x:Key="CompletionListBoxItem">
-    <Setter Property="Background" Value="#FF1E1E1E"/>
-    <Setter Property="BorderBrush" Value="#FF1E1E1E"/>
+    <Setter Property="Background" Value="{DynamicResource Background}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type ListBoxItem}">

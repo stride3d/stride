@@ -86,14 +86,14 @@ namespace Stride.Core.Assets.IO
             if (extension.Contains(";") || extension.Contains(","))
                 throw new ArgumentException("Expecting a single extension");
 
-            if (extension.StartsWith("*."))
+            if (extension.StartsWith("*.", StringComparison.Ordinal))
             {
-                extension = extension.Substring(1);
+                extension = extension[1..];
             }
             if (extension.Any(x => x != '*' & Path.GetInvalidFileNameChars().Contains(x)))
                 throw new ArgumentException("Extension contains invalid characters");
 
-            if (!extension.StartsWith("."))
+            if (!extension.StartsWith('.'))
             {
                 extension = $".{extension}";
             }

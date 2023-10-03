@@ -72,8 +72,8 @@ namespace Stride.Assets.Templates
 
             // Sample templates still have .Game in their name
             var packageNameWithoutGame = package.Meta.Name;
-            if (packageNameWithoutGame.EndsWith(".Game"))
-                packageNameWithoutGame = packageNameWithoutGame.Substring(0, packageNameWithoutGame.Length - ".Game".Length);
+            if (packageNameWithoutGame.EndsWith(".Game", StringComparison.Ordinal))
+                packageNameWithoutGame = packageNameWithoutGame[..^".Game".Length];
 
             AddOption(parameters, "PackageGameName", packageNameWithoutGame);
             AddOption(parameters, "PackageGameDisplayName", package.Meta.Title ?? packageNameWithoutGame);
@@ -177,8 +177,8 @@ namespace Stride.Assets.Templates
         public static UFile GeneratePlatformProjectLocation(string name, Package package, SolutionPlatform platform)
         {
             // Remove .Game suffix
-            if (name.EndsWith(".Game"))
-                name = name.Substring(0, name.Length - ".Game".Length);
+            if (name.EndsWith(".Game", StringComparison.Ordinal))
+                name = name[..^".Game".Length];
 
             var projectName = Utilities.BuildValidNamespaceName(name) + "." + platform.Name;
             return UPath.Combine(UPath.Combine(package.RootDirectory.GetParent(), (UDirectory)projectName), (UFile)(projectName + ".csproj"));
@@ -196,7 +196,7 @@ namespace Stride.Assets.Templates
             // Special case for sdfx files
             foreach (var file in generatedFiles)
             {
-                if (file.EndsWith(".sdfx"))
+                if (file.EndsWith(".sdfx", StringComparison.OrdinalIgnoreCase))
                 {
                     ConvertXkfxToCSharp(file);
                 }

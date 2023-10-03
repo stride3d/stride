@@ -559,7 +559,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
                     var fullPath = Path.GetFullPath(fileDialog.FilePath);
 
-                    bool inResource = directory.Package.Package.ResourceFolders.Any(x => fullPath.StartsWith(Path.GetFullPath(x.FullPath)));
+                    bool inResource = directory.Package.Package.ResourceFolders.Any(x => fullPath.StartsWith(Path.GetFullPath(x.FullPath), StringComparison.Ordinal));
                     if (inResource)
                     {
                         return fullPath;
@@ -580,7 +580,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 for (int i = 0; i < files.Count; i++)
                 {
                     var file = files[i];
-                    bool inResourceFolder = directory.Package.Package.ResourceFolders.Any(x => file.FullPath.StartsWith(x.FullPath));
+                    bool inResourceFolder = directory.Package.Package.ResourceFolders.Any(x => file.FullPath.StartsWith(x.FullPath, StringComparison.Ordinal));
 
                     if (inResourceFolder)
                         continue;
@@ -989,7 +989,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             foreach (var asset in assets)
             {
-                if (asset.AssetItem.Location.HasDirectory && (directory.Parent == null || !asset.Url.StartsWith(directory.Parent.Path)))
+                if (asset.AssetItem.Location.HasDirectory && (directory.Parent == null || !asset.Url.StartsWith(directory.Parent.Path, StringComparison.Ordinal)))
                 {
                     throw new InvalidOperationException("One of the asset does not match the directory hierarchy.");
                 }

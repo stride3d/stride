@@ -32,7 +32,7 @@ namespace Stride.Core.Assets.Serializers
             if (objectContext.Reader.Accept<Scalar>())
             {
                 var next = objectContext.Reader.Peek<Scalar>();
-                if (next.Value.StartsWith(Prefix))
+                if (next.Value.StartsWith(Prefix, StringComparison.Ordinal))
                 {
                     return scalarRedirectSerializer.ReadYaml(ref objectContext);
                 }
@@ -66,7 +66,7 @@ namespace Stride.Core.Assets.Serializers
 
         private static bool TryParse(string text, out Guid identifier)
         {
-            if (!text.StartsWith(Prefix))
+            if (!text.StartsWith(Prefix, StringComparison.Ordinal))
             {
                 identifier = Guid.Empty;
                 return false;
@@ -97,8 +97,10 @@ namespace Stride.Core.Assets.Serializers
                 // Return default(T)
                 //return !context.Descriptor.Type.IsValueType ? null : Activator.CreateInstance(context.Descriptor.Type);
                 // Return temporary proxy instance
-                var proxy = (IIdentifiable)AbstractObjectInstantiator.CreateConcreteInstance(context.Descriptor.Type);
-                proxy.Id = identifier;
+                var proxy = AbstractObjectInstantiator.CreateConcreteInstance(context.Descriptor.Type);
+                // Filtering out interface and abstracts here as they're using a proxy type which doesn't have Id implemented
+                if (context.Descriptor.Type.IsInterface == false && context.Descriptor.Type.IsAbstract == false && proxy is IIdentifiable identifiable)
+                    identifiable.Id = identifier;
                 return proxy;
             }
 

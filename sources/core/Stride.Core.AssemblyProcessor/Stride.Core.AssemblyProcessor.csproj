@@ -24,6 +24,25 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  
+  <!-- Add support for building this project from the Project Directory -->
+  <PropertyGroup>
+    <SolutionDir Condition="'$(SolutionDir)' == ''">$(ProjectDir)..\..\..\build\</SolutionDir>
+  </PropertyGroup>
+
+  <!-- ======================================================================================== -->
+  <!-- Item Groups                                                                              -->
+  <!-- ======================================================================================== -->
+
+  <!-- Referenced Packages -->
+  <ItemGroup>
+    <PackageReference Include="ILRepack" Version="2.0.18" PrivateAssets="All" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
+    <PackageReference Include="Mono.Options" Version="6.12.0.148" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.3.2" ExcludeAssets="runtime" />
+  </ItemGroup>
+  
+  <!-- Compiled Items -->
   <ItemGroup>
     <Compile Include="..\Stride.Core\DataMemberMode.cs">
       <Link>Core\DataMemberMode.cs</Link>
@@ -63,19 +82,25 @@
       <DesignTime>True</DesignTime>
     </Compile>
   </ItemGroup>
+  
+  <!-- Items that have no role in the build process -->
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
+  
+  <!-- Indicates this Project is included in Unit Test Projects -->
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
+  
+  <!-- Define the full set of built items for later use -->
   <ItemGroup>
-    <PackageReference Include="ILRepack" Version="2.0.18" PrivateAssets="All" />
-    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
-    <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.3.2" ExcludeAssets="runtime" />
+    <BuiltItems Include="$(TargetDir)*" />
   </ItemGroup>
+
+  <!-- ======================================================================================== -->
+  <!-- Tasks & Targets                                                                          -->
+  <!-- ======================================================================================== -->
   
   <!-- Define a custom task for writing text to a file -->
   <UsingTask
@@ -97,11 +122,7 @@
     </Task>
   </UsingTask>
 
-  <ItemGroup>
-    <BuiltItems Include="$(TargetDir)*" />
-  </ItemGroup>
-
-  <!-- Copy the built items to the deps folder -->
+  <!-- Copies the built items to the deps folder -->
   <Target Name="CopyFiles" AfterTargets="PostBuildEvent">
     <Copy
       SourceFiles="@(BuiltItems)"
@@ -109,10 +130,11 @@
     />
   </Target>
   
+  <!-- Packs the BuildItems into a single .Packed DLL and generates a .hash file from it -->
   <Target Name="GenerateHash" AfterTargets="CopyFiles">
     <!-- Repack the assemblies into a single file -->
     <Exec Command="cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)
-    $(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.* Mono.Options.* /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
+    $(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
     <!-- Generate the hash and then write it to disk with the .hash extension -->
     <GetFileHash Files="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
       <Output

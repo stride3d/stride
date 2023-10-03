@@ -23,6 +23,11 @@
     </ItemGroup>
   </Target>
 
+  <!-- Linux Compatibility Properties -->
+  <PropertyGroup>
+    <TEMP>$([System.IO.Path]::GetTempPath())</TEMP>
+  </PropertyGroup>
+
   <!-- Code Analysis -->
   <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>
@@ -37,7 +42,10 @@
         BeforeTargets="CoreCompile"
         Condition="'$(StrideEnableCodeAnalysis)' != 'true'">
     <ItemGroup>
-      <Analyzer Remove="@(Analyzer)"/>
+      <!-- We want to include Stride analyzers by default -->
+      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Stride'))" />
+      <AnalyzersToRemove Include="@(Analyzer)" Exclude="@(AnalyzersNotToRemove)" />
+      <Analyzer Remove="@(AnalyzersToRemove)"/>
     </ItemGroup>
   </Target>
 
