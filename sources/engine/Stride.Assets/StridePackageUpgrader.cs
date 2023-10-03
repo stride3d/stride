@@ -164,7 +164,7 @@ namespace Stride.Assets
 
                     foreach (var packageReference in packageReferences)
                     {
-                        if (packageReference.EvaluatedInclude.StartsWith("Stride.", StringComparison.Ordinal) && packageReference.GetMetadataValue("Version") != CurrentVersion)
+                        if (packageReference.EvaluatedInclude.StartsWith("Stride.", StringComparison.Ordinal) && !packageReference.EvaluatedInclude.StartsWith("Stride.CommunityToolkit", StringComparison.Ordinal) && packageReference.GetMetadataValue("Version") != CurrentVersion)
                         {
                             packageReference.SetMetadataValue("Version", CurrentVersion).Xml.ExpressedAsAttribute = true;
                             foreach (var metadata in packageReference.Metadata)
