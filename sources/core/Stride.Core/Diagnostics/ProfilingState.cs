@@ -172,6 +172,8 @@ namespace Stride.Core.Diagnostics
             // Perform event only if the profiling is running
             if (!isEnabled) return;
 
+            TimeSpan deltaTime = TimeSpan.Zero;
+
             if (profilingType == ProfilingMessageType.Begin)
             {
                 startTime = timeStamp;
@@ -182,15 +184,15 @@ namespace Stride.Core.Diagnostics
                 if (message == null)
                     message = beginMessage;
 
+                deltaTime = timeStamp - startTime;
+
+                // Send profiler measurement to Histogram Meter
+                ProfilingKey.PerformanceMeasurement.Record(deltaTime.TotalMilliseconds, Attributes);
+
                 // upon end we disable this state
                 // one of the reasons is that we can call End(message) inside the `using() { }` and by disabling we prevent another End event to be emitted.
                 isEnabled = false;
             }
-
-            TimeSpan deltaTime = timeStamp - startTime;
-
-            // Send profiler measurement to Histogram Meter
-            ProfilingKey.PerformanceMeasurement.Record(deltaTime.TotalMilliseconds, Attributes);
 
             // Create profiler event
             var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, timeStamp, deltaTime, message, Attributes);

@@ -75,7 +75,8 @@ namespace Stride.Profiling
 
             public int Compare(ProfilingResult x, ProfilingResult y)
             {
-                return TimeSpan.Compare(x.AccumulatedTime, y.AccumulatedTime);
+                //Flip sign so we get descending order.
+                return -TimeSpan.Compare(x.AccumulatedTime, y.AccumulatedTime);
             }
         }
 
