@@ -522,7 +522,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioDownloadPage}" FontSize="12" TextAlignment="Left" VerticalAlignment="Center"/>
+                      <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioDownloadPage}" FontSize="12" TextAlignment="Left" VerticalAlignment="Center" Loaded="TextBlockVisualStudioDownloadPage_Loaded"/>
                     </StackPanel>
                   </Button>
                 </DockPanel>
