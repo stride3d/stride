@@ -221,8 +221,7 @@ Value: World!
 
             public int[] Array { get; set; }
 
-            [DataMember]
-            public int[] ArrayContent { get; private set; }
+            public int[] ArrayContent { get; }
         }
 
         [Fact]
@@ -577,8 +576,7 @@ c: true
             /// value of the list stored in this instance instead of 
             /// creating a new List&lt;T&gtl instance.
             /// </summary>
-            [DataMember]
-            public List<string> StringListByContent { get; private set; }
+            public List<string> StringListByContent { get; }
 
             /// <summary>
             /// Gets or sets the basic map.
@@ -597,8 +595,7 @@ c: true
             /// Idem as for <see cref="StringListByContent"/> but for dictionary.
             /// </summary>
             /// <value>The content of the string mapby.</value>
-            [DataMember]
-            public Dictionary<string, object> StringMapbyContent { get; private set; }
+            public Dictionary<string, object> StringMapbyContent { get; }
 
             /// <summary>
             /// For this property, the deserializer is using the actual
@@ -606,8 +603,7 @@ c: true
             /// creating a new List&lt;T&gtl instance.
             /// </summary>
             /// <value>The content of the list by.</value>
-            [DataMember]
-            public List<string> ListByContent { get; private set; }
+            public List<string> ListByContent { get; }
         }
 
         /// <summary>
@@ -1557,7 +1553,7 @@ Test: !ClassWithImplicitMemberTypeInner
             }
 
             [DataMember]
-            public object Test { get; protected set; }
+            public object Test { get; init; }
         }
 
         public class ClassWithNonImplicitMemberType

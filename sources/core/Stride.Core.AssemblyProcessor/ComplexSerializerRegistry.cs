@@ -281,24 +281,29 @@ namespace Stride.Core.AssemblyProcessor
             var fields = new List<FieldDefinition>();
             var properties = new List<PropertyDefinition>();
 
-            var fieldEnum = type.Fields.Where(x => (x.IsPublic || (x.IsAssembly && x.CustomAttributes.Any(a => a.AttributeType.FullName == "Stride.Core.DataMemberAttribute"))) && !x.IsStatic && !ignoredMembers.Contains(x));
+            foreach (var field in type.Fields)
+            {
+                if (field.IsStatic)
+                    continue;
+
+                if (ignoredMembers.Contains(field))
+                    continue;
+
+                if (field.IsPublic || (field.IsAssembly && field.CustomAttributes.Any(a => a.AttributeType.FullName == "Stride.Core.DataMemberAttribute")))
+                    fields.Add(field);
+            }
 
             // If there is a explicit or sequential layout, sort by offset
             if (type.IsSequentialLayout || type.IsExplicitLayout)
-                fieldEnum = fieldEnum.OrderBy(x => x.Offset);
-
-            foreach (var field in fieldEnum)
-            {
-                fields.Add(field);
-            }
+                fields.Sort((x,y) => x.Offset.CompareTo(y.Offset));
 
             foreach (var property in type.Properties)
             {
-                // Need a non-static public get method
-                if (property.GetMethod.IsStatic)
+                if (IsAccessibleThroughAccessModifiers(property) == false)
                     continue;
 
-                if (IsAccessibleThroughAccessModifiers(property) == false)
+                // Need a non-static public get method
+                if (property.GetMethod.IsStatic)
                     continue;
 
                 // If it's a struct (!IsValueType), we need a set method as well

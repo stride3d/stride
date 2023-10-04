@@ -31,13 +31,13 @@ namespace Stride.Assets.Tests
             [DataMember][MemberRequired] internal object InternalField;
             [MemberRequired] public object PublicProp { get; set; }
             [MemberRequired]
-            [DataMember] public object PrivateProp { get; private set; }
+            [DataMember] public object InitProp { get; init; }
             [MemberRequired]
             [DataMember] internal object InternalProp { get; set; }
             public override object VirtualProp { get; set; } = new object();
-            public MemberRequiredComponent(object privateData, object internalData)
+            public MemberRequiredComponent(object initData, object internalData)
             {
-                PrivateProp = privateData;
+                InitProp = initData;
                 InternalProp = internalData;
             }
         }
@@ -89,7 +89,7 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        void EntityIsMissingRequiredMember_PrivateProp()
+        void EntityIsMissingRequiredMember_InitProp()
         {
             var memberRequiredComponent = new MemberRequiredComponent(null, new object())
             {
@@ -97,7 +97,7 @@ namespace Stride.Assets.Tests
                 PublicProp = new object(),
                 PublicField = new object(),
             };
-            var memberName = nameof(MemberRequiredComponent.PrivateProp);
+            var memberName = nameof(MemberRequiredComponent.InitProp);
             TestSingle(memberRequiredComponent, memberName);
         }
 

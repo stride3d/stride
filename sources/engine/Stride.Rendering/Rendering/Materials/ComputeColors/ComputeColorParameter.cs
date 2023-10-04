@@ -21,13 +21,7 @@ namespace Stride.Rendering.Materials.ComputeColors
     [DataContract("ComputeColorParameterTexture")]
     public class ComputeColorParameterTexture : ComputeColorParameter
     {
-        public ComputeColorParameterTexture()
-        {
-            Texture = new ComputeTextureColor();
-        }
-
-        [DataMember]
-        public ComputeTextureColor Texture { get; private set; }
+        public ComputeTextureColor Texture { get; } = new ComputeTextureColor();
     }
 
     [DataContract]

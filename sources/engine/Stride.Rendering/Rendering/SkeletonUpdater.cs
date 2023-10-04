@@ -16,13 +16,16 @@ namespace Stride.Rendering
     [DataContract] // Here for update engine; TODO: better separation and different attribute?
     public class SkeletonUpdater
     {
+        private ModelNodeDefinition[] nodes;
+        private ModelNodeTransformation[] nodeTransformations;
+
         private int matrixCounter;
 
         [DataMember]
-        public ModelNodeDefinition[] Nodes { get; private set; }
+        public ModelNodeDefinition[] Nodes => nodes;
 
         [DataMember]
-        public ModelNodeTransformation[] NodeTransformations { get; private set; }
+        public ModelNodeTransformation[] NodeTransformations => nodeTransformations;
 
         private static ModelNodeDefinition[] GetDefaultNodeDefinitions()
         {
@@ -42,26 +45,26 @@ namespace Stride.Rendering
         {
             var newNodes = skeleton?.Nodes;
 
-            if (this.Nodes == newNodes && this.Nodes != null)
+            if (this.nodes == newNodes && this.nodes != null)
             {
                 return;
             }
 
-            this.Nodes = newNodes ?? GetDefaultNodeDefinitions();
+            this.nodes = newNodes ?? GetDefaultNodeDefinitions();
 
-            if (NodeTransformations == null || NodeTransformations.Length < this.Nodes.Length)
-                NodeTransformations = new ModelNodeTransformation[this.Nodes.Length];
+            if (nodeTransformations == null || nodeTransformations.Length < this.nodes.Length)
+                nodeTransformations = new ModelNodeTransformation[this.nodes.Length];
 
-            for (int index = 0; index < Nodes.Length; index++)
+            for (int index = 0; index < nodes.Length; index++)
             {
-                NodeTransformations[index].ParentIndex = Nodes[index].ParentIndex;
-                NodeTransformations[index].Transform = Nodes[index].Transform;
-                NodeTransformations[index].Flags = Nodes[index].Flags;
-                NodeTransformations[index].RenderingEnabledRecursive = true;
-                UpdateLocalMatrix(ref NodeTransformations[index]);
+                nodeTransformations[index].ParentIndex = nodes[index].ParentIndex;
+                nodeTransformations[index].Transform = nodes[index].Transform;
+                nodeTransformations[index].Flags = nodes[index].Flags;
+                nodeTransformations[index].RenderingEnabledRecursive = true;
+                UpdateLocalMatrix(ref nodeTransformations[index]);
             }
 
-            NodeTransformations[0].Flags &= ~ModelNodeFlags.EnableTransform;
+            nodeTransformations[0].Flags &= ~ModelNodeFlags.EnableTransform;
         }
 
         /// <summary>
@@ -69,10 +72,10 @@ namespace Stride.Rendering
         /// </summary>
         public void ResetInitialValues()
         {
-            var nodesLocal = Nodes;
+            var nodesLocal = nodes;
             for (int index = 0; index < nodesLocal.Length; index++)
             {
-                NodeTransformations[index].Transform = nodesLocal[index].Transform;
+                nodeTransformations[index].Transform = nodesLocal[index].Transform;
             }
         }
 
@@ -82,22 +85,22 @@ namespace Stride.Rendering
         public void UpdateMatrices()
         {
             // Compute transformations
-            var nodesLength = Nodes.Length;
+            var nodesLength = nodes.Length;
             for (int index = 0; index < nodesLength; index++)
             {
-                UpdateNode(ref NodeTransformations[index]);
+                UpdateNode(ref nodeTransformations[index]);
             }
             matrixCounter++;
         }
 
         public void GetWorldMatrix(int index, out Matrix matrix)
         {
-            matrix = NodeTransformations[index].WorldMatrix;
+            matrix = nodeTransformations[index].WorldMatrix;
         }
 
         public void GetLocalMatrix(int index, out Matrix matrix)
         {
-            matrix = NodeTransformations[index].LocalMatrix;
+            matrix = nodeTransformations[index].LocalMatrix;
         }
 
         private void UpdateNode(ref ModelNodeTransformation node)
@@ -108,7 +111,7 @@ namespace Stride.Rendering
                 UpdateLocalMatrix(ref node);
             }
 
-            var nodeTransformationsLocal = this.NodeTransformations;
+            var nodeTransformationsLocal = this.nodeTransformations;
 
             var parentIndex = node.ParentIndex;
 
