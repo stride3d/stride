@@ -18,10 +18,13 @@
 // limitations under the License.
 
 using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
+
+#if NETCOREAPP3_0_OR_GREATER
+using System.Numerics;
+#endif
 
 namespace Stride.Core.Storage
 {
@@ -174,7 +177,6 @@ namespace Stride.Core.Storage
             }
         }
 
-
         /// <summary>
         /// Writes a buffer of bytes to this builder.
         /// </summary>
@@ -264,14 +266,9 @@ namespace Stride.Core.Storage
                     if (partialLength > remainder)
                         partialLength = remainder;
 
-                    var dest = currentBlock + position;
-                    for (var copyLength = partialLength; copyLength > 0; --copyLength)
-                        *dest++ = *buffer++;
+                    CopyMemory(currentBlock + position, buffer, partialLength);
+                    buffer += partialLength;
                     length -= partialLength;
-
-                    //Utilities.CopyMemory((IntPtr)currentBlock + position, (IntPtr)buffer, partialLength);
-                    //buffer += partialLength;
-                    //length -= partialLength;
 
                     if (partialLength == remainder)
                     {
@@ -292,12 +289,8 @@ namespace Stride.Core.Storage
                     }
 
                     // Start partial block
-                    for (; length > 0; --length)
-                        *currentBlock++ = *buffer++;
-                    //if (length > 0)
-                    //{
-                    //    Utilities.CopyMemory((IntPtr)currentBlock, (IntPtr)buffer, length);
-                    //}
+                    CopyMemory(currentBlock, buffer, length);
+
                 }
             }
         }
@@ -326,13 +319,11 @@ namespace Stride.Core.Storage
                 if (partialLength > remainder)
                     partialLength = remainder;
 
-                #warning PERF: Do not copy byte-for-byte.
                 ref var dest = ref Unsafe.Add(ref currentBlock, position);
-                for (var copyLength = partialLength; copyLength > 0; --copyLength) {
-                    dest = buffer;
-                    dest = ref Unsafe.Add(ref dest, 1);
-                    buffer = ref Unsafe.Add(ref buffer, 1);
-                }
+
+                CopyMemory(ref dest, ref buffer, partialLength);
+
+                buffer = ref Unsafe.Add(ref buffer, partialLength);
                 length -= partialLength;
 
                 if (partialLength == remainder)
@@ -354,14 +345,10 @@ namespace Stride.Core.Storage
                 }
 
                 // Start partial block
-                #warning PERF: Do not copy byte-for-byte.
-                for (; length > 0; --length) {
-                    currentBlock = buffer;
-                    currentBlock = ref Unsafe.Add(ref currentBlock, 1);
-                    buffer = ref Unsafe.Add(ref buffer, 1);
-                }
+                CopyMemory(ref currentBlock, ref buffer, length);
             }
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Use BodyCore(ref byte)")]
         private void BodyCore(byte* data)
         {
@@ -407,6 +394,31 @@ namespace Stride.Core.Storage
             // K4 - consume fourth integer
             H4 ^= RotateLeft((b * C4), 18) * C1;
             H4 = (RotateLeft(H4, 13) + H1) * 5 + 0x32ac3b17;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void CopyMemory(byte* dst, byte* src, int length)
+        {
+            var dstSpan = new Span<byte>(dst, length);
+            var srcSpan = new Span<byte>(src, length);
+            srcSpan.CopyTo(dstSpan);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void CopyMemory(ref byte dst, ref byte src, int length)
+        {
+#if NETCOREAPP2_1_OR_GREATER
+            var dstSpan = MemoryMarshal.CreateSpan(ref dst, length);
+            var srcSpan = MemoryMarshal.CreateReadOnlySpan(ref src, length);
+            srcSpan.CopyTo(dstSpan);
+#else
+            for (; length > 0; --length)
+            {
+                dst = src;
+                dst = ref Unsafe.Add(ref dst, 1);
+                src = ref Unsafe.Add(ref src, 1);
+            }
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
