@@ -1,0 +1,221 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "Stride.Core.AssemblyProcessor/1.0.0": {
+        "dependencies": {
+          "ILRepack": "2.0.18",
+          "Microsoft.Build.Utilities.Core": "17.3.2",
+          "Mono.Cecil": "0.11.5",
+          "Mono.Options": "6.12.0.148"
+        },
+        "runtime": {
+          "Stride.Core.AssemblyProcessor.dll": {}
+        }
+      },
+      "ILRepack/2.0.18": {},
+      "Microsoft.Build.Framework/17.3.2": {
+        "dependencies": {
+          "System.Security.Permissions": "6.0.0"
+        }
+      },
+      "Microsoft.Build.Utilities.Core/17.3.2": {
+        "dependencies": {
+          "Microsoft.Build.Framework": "17.3.2",
+          "Microsoft.NET.StringTools": "17.3.2",
+          "System.Collections.Immutable": "6.0.0",
+          "System.Configuration.ConfigurationManager": "6.0.0"
+        }
+      },
+      "Microsoft.NET.StringTools/17.3.2": {
+        "dependencies": {
+          "System.Memory": "4.5.5",
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
+      },
+      "Microsoft.Win32.SystemEvents/6.0.0": {},
+      "Mono.Cecil/0.11.5": {
+        "runtime": {
+          "lib/netstandard2.0/Mono.Cecil.Mdb.dll": {
+            "assemblyVersion": "0.11.5.0",
+            "fileVersion": "0.11.5.0"
+          },
+          "lib/netstandard2.0/Mono.Cecil.Pdb.dll": {
+            "assemblyVersion": "0.11.5.0",
+            "fileVersion": "0.11.5.0"
+          },
+          "lib/netstandard2.0/Mono.Cecil.Rocks.dll": {
+            "assemblyVersion": "0.11.5.0",
+            "fileVersion": "0.11.5.0"
+          },
+          "lib/netstandard2.0/Mono.Cecil.dll": {
+            "assemblyVersion": "0.11.5.0",
+            "fileVersion": "0.11.5.0"
+          }
+        }
+      },
+      "Mono.Options/6.12.0.148": {
+        "runtime": {
+          "lib/netstandard2.0/Mono.Options.dll": {
+            "assemblyVersion": "6.0.0.0",
+            "fileVersion": "6.12.0.0"
+          }
+        }
+      },
+      "System.Collections.Immutable/6.0.0": {
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
+      },
+      "System.Configuration.ConfigurationManager/6.0.0": {
+        "dependencies": {
+          "System.Security.Cryptography.ProtectedData": "6.0.0",
+          "System.Security.Permissions": "6.0.0"
+        }
+      },
+      "System.Drawing.Common/6.0.0": {
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "6.0.0"
+        }
+      },
+      "System.Memory/4.5.5": {},
+      "System.Runtime.CompilerServices.Unsafe/6.0.0": {},
+      "System.Security.AccessControl/6.0.0": {},
+      "System.Security.Cryptography.ProtectedData/6.0.0": {},
+      "System.Security.Permissions/6.0.0": {
+        "dependencies": {
+          "System.Security.AccessControl": "6.0.0",
+          "System.Windows.Extensions": "6.0.0"
+        }
+      },
+      "System.Windows.Extensions/6.0.0": {
+        "dependencies": {
+          "System.Drawing.Common": "6.0.0"
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Stride.Core.AssemblyProcessor/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ILRepack/2.0.18": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-sR5Aj3JLDbA8JwESfWYfigSz5k1oNSHPN434W1LX8sboWJYEOSQP/KkvZGmJKPgajzSUKkl2jDar3LPZiMFU4Q==",
+      "path": "ilrepack/2.0.18",
+      "hashPath": "ilrepack.2.0.18.nupkg.sha512"
+    },
+    "Microsoft.Build.Framework/17.3.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-iGfJt6rm/vIEowBG6qNX2Udn7UagI6MzalDwwdkDUkSwhvvrGCnDLphyRABAwrrsWHTD/LJlUAJsbW1SkC4CUQ==",
+      "path": "microsoft.build.framework/17.3.2",
+      "hashPath": "microsoft.build.framework.17.3.2.nupkg.sha512"
+    },
+    "Microsoft.Build.Utilities.Core/17.3.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-XnAWKrJ2ewyVxAdi0gmk3GYqF02u+0zFGjF4A6f1FJy4/GUgfMJ/hz1N+RzUcjQ4Oi6hmwYHNFY3uIGAgckDig==",
+      "path": "microsoft.build.utilities.core/17.3.2",
+      "hashPath": "microsoft.build.utilities.core.17.3.2.nupkg.sha512"
+    },
+    "Microsoft.NET.StringTools/17.3.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3sIZECEDSY9kP7BqPLOSIHLsiqv0TSU5cIGAMung+NrefIooo1tBMVRt598CGz+kUF1xlbOsO8nPAYpgfokx/Q==",
+      "path": "microsoft.net.stringtools/17.3.2",
+      "hashPath": "microsoft.net.stringtools.17.3.2.nupkg.sha512"
+    },
+    "Microsoft.Win32.SystemEvents/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-hqTM5628jSsQiv+HGpiq3WKBl2c8v1KZfby2J6Pr7pEPlK9waPdgEO6b8A/+/xn/yZ9ulv8HuqK71ONy2tg67A==",
+      "path": "microsoft.win32.systemevents/6.0.0",
+      "hashPath": "microsoft.win32.systemevents.6.0.0.nupkg.sha512"
+    },
+    "Mono.Cecil/0.11.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-fxfX+0JGTZ8YQeu1MYjbBiK2CYTSzDyEeIixt+yqKKTn7FW8rv7JMY70qevup4ZJfD7Kk/VG/jDzQQTpfch87g==",
+      "path": "mono.cecil/0.11.5",
+      "hashPath": "mono.cecil.0.11.5.nupkg.sha512"
+    },
+    "Mono.Options/6.12.0.148": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-kf6bdXnP4IzqIp4bJ1YKPI3/PAcOV6qm4mznChJ3c92zHQUXTWJSp0+h+Cfcii0O6m/EgW7KA+tbCiB2al0DDA==",
+      "path": "mono.options/6.12.0.148",
+      "hashPath": "mono.options.6.12.0.148.nupkg.sha512"
+    },
+    "System.Collections.Immutable/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-l4zZJ1WU2hqpQQHXz1rvC3etVZN+2DLmQMO79FhOTZHMn8tDRr+WU287sbomD0BETlmKDn0ygUgVy9k5xkkJdA==",
+      "path": "system.collections.immutable/6.0.0",
+      "hashPath": "system.collections.immutable.6.0.0.nupkg.sha512"
+    },
+    "System.Configuration.ConfigurationManager/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7T+m0kDSlIPTHIkPMIu6m6tV6qsMqJpvQWW2jIc2qi7sn40qxFo0q+7mEQAhMPXZHMKnWrnv47ntGlM/ejvw3g==",
+      "path": "system.configuration.configurationmanager/6.0.0",
+      "hashPath": "system.configuration.configurationmanager.6.0.0.nupkg.sha512"
+    },
+    "System.Drawing.Common/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-NfuoKUiP2nUWwKZN6twGqXioIe1zVD0RIj2t976A+czLHr2nY454RwwXs6JU9Htc6mwqL6Dn/nEL3dpVf2jOhg==",
+      "path": "system.drawing.common/6.0.0",
+      "hashPath": "system.drawing.common.6.0.0.nupkg.sha512"
+    },
+    "System.Memory/4.5.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-XIWiDvKPXaTveaB7HVganDlOCRoj03l+jrwNvcge/t8vhGYKvqV+dMv6G4SAX2NoNmN0wZfVPTAlFwZcZvVOUw==",
+      "path": "system.memory/4.5.5",
+      "hashPath": "system.memory.4.5.5.nupkg.sha512"
+    },
+    "System.Runtime.CompilerServices.Unsafe/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/iUeP3tq1S0XdNNoMz5C9twLSrM/TH+qElHkXWaPvuNOt+99G75NrV0OS2EqHx5wMN7popYjpc8oTjC1y16DLg==",
+      "path": "system.runtime.compilerservices.unsafe/6.0.0",
+      "hashPath": "system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
+    },
+    "System.Security.AccessControl/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-AUADIc0LIEQe7MzC+I0cl0rAT8RrTAKFHl53yHjEUzNVIaUlhFY11vc2ebiVJzVBuOzun6F7FBA+8KAbGTTedQ==",
+      "path": "system.security.accesscontrol/6.0.0",
+      "hashPath": "system.security.accesscontrol.6.0.0.nupkg.sha512"
+    },
+    "System.Security.Cryptography.ProtectedData/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-rp1gMNEZpvx9vP0JW0oHLxlf8oSiQgtno77Y4PLUBjSiDYoD77Y8uXHr1Ea5XG4/pIKhqAdxZ8v8OTUtqo9PeQ==",
+      "path": "system.security.cryptography.protecteddata/6.0.0",
+      "hashPath": "system.security.cryptography.protecteddata.6.0.0.nupkg.sha512"
+    },
+    "System.Security.Permissions/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-T/uuc7AklkDoxmcJ7LGkyX1CcSviZuLCa4jg3PekfJ7SU0niF0IVTXwUiNVP9DSpzou2PpxJ+eNY2IfDM90ZCg==",
+      "path": "system.security.permissions/6.0.0",
+      "hashPath": "system.security.permissions.6.0.0.nupkg.sha512"
+    },
+    "System.Windows.Extensions/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-IXoJOXIqc39AIe+CIR7koBtRGMiCt/LPM3lI+PELtDIy9XdyeSrwXFdWV9dzJ2Awl0paLWUaknLxFQ5HpHZUog==",
+      "path": "system.windows.extensions/6.0.0",
+      "hashPath": "system.windows.extensions.6.0.0.nupkg.sha512"
+    }
+  }
+}
