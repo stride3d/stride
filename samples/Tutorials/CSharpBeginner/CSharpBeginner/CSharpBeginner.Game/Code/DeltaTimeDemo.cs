@@ -6,6 +6,9 @@ namespace CSharpBeginner.Code
     /// <summary>
     /// DeltaTime is used to calculate frame independent values. 
     /// DeltaTime can also be used for creating Timers.
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/delta-time.html
+    /// </para>
     /// </summary>
     public class DeltaTimeDemo : SyncScript
     {

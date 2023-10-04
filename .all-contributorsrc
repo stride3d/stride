@@ -382,6 +382,60 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "cNoNim",
+      "name": "Oleg Ageev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/523048?v=4",
+      "profile": "http://cnonim.name",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "SeleDreams",
+      "name": "SeleDreams",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16335601?v=4",
+      "profile": "https://github.com/SeleDreams",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "acastrodev",
+      "name": "Alexandre Castro",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6575712?v=4",
+      "profile": "https://github.com/acastrodev",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "SVNMLR",
+      "name": "SVNMLR",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44621949?v=4",
+      "profile": "https://github.com/SVNMLR",
+      "contributions": [
+        "design"
+      ]
+    },
+    {
+      "login": "JeromyWalsh",
+      "name": "Jeromy Walsh",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17633767?v=4",
+      "profile": "https://chroniclesofelyria.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "parhamgholami",
+      "name": "Parham Gholami",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7075456?v=4",
+      "profile": "https://pa.rh.am/",
+      "contributions": [
+        "design"
+      ]
     }
   ],
   "contributorsPerLine": 7,

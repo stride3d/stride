@@ -197,7 +197,7 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
-          <ToggleButton Grid.Column="1" Template="{StaticResource TreeExpanderToggleButton}" Width="12" Height="12" HorizontalAlignment="Left"
+          <ToggleButton Grid.Column="1" Template="{StaticResource TreeExpanderToggleButton}" Width="8" Height="8" HorizontalAlignment="Left"
                                         IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}}"
                                         Visibility="{Binding VisibleChildrenCount, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"/>
           <TextBlock x:Name="PropertyNameBlock" Grid.Column="2" Text="{Binding DisplayName}" HorizontalAlignment="Stretch" VerticalAlignment="Center"
@@ -230,7 +230,7 @@
                     Visibility="{Binding HasChild_Enabled, Converter={sd:VisibleOrCollapsed}}"/>
         </Grid>
       </Border>
-      <GridSplitter Grid.Column="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
+      <GridSplitter Grid.Column="2" Width="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource TextBoxBackgroundBrush}"/>
       <Border x:Name="PART_Editor" Grid.Column="3" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,0,5,0">
         <ContentControl x:Name="PART_ValueContainer" Content="{Binding}" ContentTemplateSelector="{x:Static edvw:PropertyViewHelper.EditorProviders}"
                         Focusable="False" VerticalAlignment="Center" d:DataContext="{d:DesignInstance qvm:NodeViewModel}"/>
@@ -259,7 +259,7 @@
     <Grid Visibility="{Binding IsVisible, Converter={sd:VisibleOrCollapsed}}" edvw:PropertyViewHelper.Increment="0"
               Margin="{Binding Offset, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 1,0,0,0},
                                RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}, Mode=OneWay}" x:Name="Grid">
-      <Border x:Name="PART_Name" MinHeight="26" Margin="6" Background="{StaticResource EmphasisColorBrush}"
+      <Border x:Name="PART_Name" MinHeight="20" Margin="6" Background="{StaticResource EmphasisColorBrush}"
                     VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ToolTip="{Binding Documentation}"/>
       <DockPanel Margin="10,8" x:Name="HeaderDockPanel">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
@@ -271,7 +271,7 @@
             </i:Interaction.Behaviors>
           </ComboBox>
         </StackPanel>
-        <ToggleButton DockPanel.Dock="Left" Template="{StaticResource PropertyGridHeaderExpanderToggleButton}" Width="16" Height="16"
+        <ToggleButton DockPanel.Dock="Left" Template="{StaticResource PropertyGridHeaderExpanderToggleButton}" Width="8" Height="8"
                                     IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}}"
                                     Visibility="{Binding VisibleChildrenCount, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"/>
         <StackPanel Orientation="Horizontal" Margin="8,0,0,0">

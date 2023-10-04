@@ -23,6 +23,11 @@
     </ItemGroup>
   </Target>
 
+  <!-- Linux Compatibility Properties -->
+  <PropertyGroup>
+    <TEMP>$([System.IO.Path]::GetTempPath())</TEMP>
+  </PropertyGroup>
+
   <!-- Code Analysis -->
   <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>
@@ -37,7 +42,10 @@
         BeforeTargets="CoreCompile"
         Condition="'$(StrideEnableCodeAnalysis)' != 'true'">
     <ItemGroup>
-      <Analyzer Remove="@(Analyzer)"/>
+      <!-- We want to include Stride analyzers by default -->
+      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Stride'))" />
+      <AnalyzersToRemove Include="@(Analyzer)" Exclude="@(AnalyzersNotToRemove)" />
+      <Analyzer Remove="@(AnalyzersToRemove)"/>
     </ItemGroup>
   </Target>
 
@@ -169,7 +177,7 @@
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
 
   <!-- Generate localization satellite assemblies -->
-  <Target Name="StrideGenerateLocalizationSatelliteDlls" BeforeTargets="SatelliteDllsProjectOutputGroup" Returns="@(SatelliteDllsProjectOutputGroupOutput)" Condition="'$(StrideLocalized)' == 'true' And '$(Configuration)' == 'Release'">
+  <Target Name="StrideGenerateLocalizationSatelliteDlls" BeforeTargets="SatelliteDllsProjectOutputGroup" Returns="@(SatelliteDllsProjectOutputGroupOutput)" Condition="'$(StrideLocalized)' == 'true'" AfterTargets="Build">
     <ItemGroup>
       <!-- Current list of languages to try to generate -->
       <StrideTraductions Include="fr;ja;es;de;ru;it;ko"/>
@@ -182,8 +190,7 @@
       </_StrideTraductions>
     </ItemGroup>
     <Message Importance="High" Text="Generating traduction for %(_StrideTraductions.Identity) %(_StrideTraductions.SourceFolder)"/>
-    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po')" Command="Path=$(RoslynTargetsPath);$(Path)
-&quot;$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; --lib-dir &quot;$(SolutionDir)..\deps\Gettext.Net&quot; --resource $(TargetName) -d &quot;$(TargetDir).&quot; --locale %(_StrideTraductions.Identity) &quot;$(MSBuildThisFileDirectory)..\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po&quot; --verbose" />
+    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po')" Command="$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe -r $(TargetName) -d $(TargetDir) -l %(_StrideTraductions.Identity) -L $(SolutionDir)..\deps\Gettext.Net\ $(MSBuildThisFileDirectory)..\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po" />
     <ItemGroup>
       <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll')">
         <TargetPath>%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll</TargetPath>

@@ -271,8 +271,8 @@ namespace Stride.Shaders.Compiler.OpenGL
                         || variable.Type.Name.Text.Contains("samplerBuffer"))
                     {
                         // TODO: Make more robust
-                        var textureBindingIndex = reflection.ResourceBindings.IndexOf(x => variable.Name.ToString().StartsWith(x.RawName));
-                        var samplerBindingIndex = reflection.ResourceBindings.IndexOf(x => variable.Name.ToString().EndsWith(x.RawName));
+                        var textureBindingIndex = reflection.ResourceBindings.IndexOf(x => variable.Name.ToString().StartsWith(x.RawName, StringComparison.Ordinal));
+                        var samplerBindingIndex = reflection.ResourceBindings.IndexOf(x => variable.Name.ToString().EndsWith(x.RawName, StringComparison.Ordinal));
 
                         if (textureBindingIndex != -1)
                             MarkResourceBindingAsUsed(reflection, textureBindingIndex, stage);
@@ -329,7 +329,7 @@ namespace Stride.Shaders.Compiler.OpenGL
                     // Add layout(set, bindings) qualifier to all other uniforms
                     foreach (var variable in glslShader.Declarations.OfType<Variable>().Where(x => (x.Qualifiers.Contains(StorageQualifier.Uniform))))
                     {
-                        var layoutBindingIndex = bindings.IndexOf(x => variable.Name.Text.StartsWith(x.Key.RawName));
+                        var layoutBindingIndex = bindings.IndexOf(x => variable.Name.Text.StartsWith(x.Key.RawName, StringComparison.Ordinal));
 
                         if (layoutBindingIndex != -1)
                         {

@@ -360,8 +360,8 @@
                     <TextBlock Style="{StaticResource NameStyle}"/>
                     <!-- FIXME uncomment this when we allow to load/unload a single entity -->
                     <!--<TextBlock Style="{StaticResource LoadingStyle}" />-->
-                    <TextBlock Text="{Binding Components, Converter={pvc:EntityComponentToTransformLinkInfo}, Mode=OneWay, StringFormat=(Link: {0}), FallbackValue={}}" Foreground="#FFB0D3FF" />
-                    <TextBlock Text="{Binding SourcePrefab.Name, Mode=OneWay, StringFormat=(Prefab: {0}), FallbackValue={}}" Foreground="#FFB0FFD3" />
+                    <TextBlock Text="{Binding Components, Converter={pvc:EntityComponentToTransformLinkInfo}, Mode=OneWay, StringFormat=(Link: {0}), FallbackValue={}}" Foreground="{DynamicResource LinkTextColor}" />
+                    <TextBlock Text="{Binding SourcePrefab.Name, Mode=OneWay, StringFormat=(Prefab: {0}), FallbackValue={}}" Foreground="{DynamicResource PrefabTextColor}" />
                   </StackPanel>
                 </DockPanel>
               </HierarchicalDataTemplate>
@@ -520,7 +520,7 @@
                                 ToolTip="{sd:Localize Compute lighting using light probes, Context=ToolTip}"
                                 Command="{Binding Lighting.RequestLightProbesComputeCommand}">
                           <StackPanel Orientation="Horizontal">
-                            <Image Source="{StaticResource ImageLightProbesCompute}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            <Image Source="{StaticResource ImageLightProbesCompute}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                             <TextBlock Text="Compute" VerticalAlignment="Center" Margin="4"/>
                           </StackPanel>
                         </Button>
@@ -528,7 +528,7 @@
                                 ToolTip="{sd:Localize Reset light probes, Context=ToolTip}"
                                 Command="{Binding Lighting.RequestLightProbesResetCommand}">
                           <StackPanel Orientation="Horizontal">
-                            <Image Source="{StaticResource ImageLightProbesReset}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            <Image Source="{StaticResource ImageLightProbesReset}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                             <TextBlock Text="{sd:Localize Reset}" VerticalAlignment="Center" Margin="4"/>
                           </StackPanel>
                         </Button>
@@ -542,7 +542,7 @@
                               ToolTip="{sd:Localize Generate a cubemap from the scene view and save as a texture, Context=ToolTip}"
                               Command="{Binding Lighting.CaptureCubemapCommand}">
                         <StackPanel Orientation="Horizontal">
-                          <Image Source="{StaticResource ImageGenerateCubeMap}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                          <Image Source="{StaticResource ImageGenerateCubeMap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                           <TextBlock Text="{sd:Localize Capture}" VerticalAlignment="Center" Margin="4"/>
                         </StackPanel>
                       </Button>

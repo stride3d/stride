@@ -140,7 +140,7 @@ namespace Stride.Core.Assets
 #if NETCOREAPP
                             // Add TargetPlatform to net8.0 TFM (i.e. net8.0 to net8.0-windows7.0)
                             var platform = metadataAssembly?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
-                            if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp) && platform != string.Empty)
+                            if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp, StringComparison.Ordinal) && platform != string.Empty)
                             {
                                 var platformParseResult = Regex.Match(platform, @"([a-zA-Z]+)(\d+.*)");
                                 if (platformParseResult.Success && Version.TryParse(platformParseResult.Groups[2].Value, out var platformVersion))
@@ -199,7 +199,7 @@ namespace Stride.Core.Assets
                 if (assemblies != null)
                 {
                     var aname = new AssemblyName(eventArgs.Name);
-                    if (aname.Name.StartsWith("Microsoft.Build") && aname.Name != "Microsoft.Build.Locator")
+                    if (aname.Name.StartsWith("Microsoft.Build", StringComparison.Ordinal) && aname.Name != "Microsoft.Build.Locator")
                         return null;
                     var assemblyPath = assemblies.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x) == aname.Name);
                     if (assemblyPath != null)
@@ -220,7 +220,7 @@ namespace Stride.Core.Assets
                 {
                     var path = packageSource.GetValueAsPath();
 
-                    if (packageSource.Key.StartsWith(prefixName))
+                    if (packageSource.Key.StartsWith(prefixName, StringComparison.Ordinal))
                     {
                         // Remove entry from packageSources
                         settings.Remove("packageSources", packageSource);
