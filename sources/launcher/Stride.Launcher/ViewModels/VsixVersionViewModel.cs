@@ -81,7 +81,7 @@ namespace Stride.LauncherApp.ViewModels
 
         private string FormatStatus(string status)
         {
-            string vsixTarget = "Visual Studio {0} Extension";
+            string vsixTarget = "Visual Studio {0} extension";
             switch (vsixSupportedVsVersion)
             {
                 case NugetStore.VsixSupportedVsVersion.VS2019:
