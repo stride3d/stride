@@ -29,6 +29,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             public bool isOrbiting;
             public bool isShiftDown;
         };
+        private const float panningSpeedModifier = 0.033f;
 
         private readonly EntityHierarchyEditorViewModel editor;
         private float revolutionRadius;
@@ -261,7 +262,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             if (input.isPanning)
             {
                 float panningSpeed = asOrthographic ? Component.OrthographicSize : revolutionRadius;
-                panningSpeed *= (MouseMoveSpeedFactor * baseSpeed) / 30f;
+                panningSpeed *= MouseMoveSpeedFactor * baseSpeed * panningSpeedModifier;
                 if (InvertPanningAxis.GetValue())
                     panningSpeed = -panningSpeed;
 
