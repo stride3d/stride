@@ -56,7 +56,7 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
         {
             if (propertySymbol.GetMethod != null && (propertySymbol.SetMethod == null || !propertySymbol.SetMethod.IsVisibleToSerializer(true)))
             {
-                DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, propertySymbol);
+                Rule.ReportDiagnostics(context, propertySymbol);
             }
         }
     }

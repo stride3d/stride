@@ -3,7 +3,7 @@ namespace Stride.Core.CompilerServices.Analyzers;
 
 public static class DiagnosticsAnalyzerHelper
 {
-    public static void ReportDiagnostics(DiagnosticDescriptor rule, SymbolAnalysisContext context, ISymbol symbol)
+    public static void ReportDiagnostics(this DiagnosticDescriptor rule, SymbolAnalysisContext context, ISymbol symbol)
     {
         var identifier = symbol.Locations;
         foreach (var location in identifier)

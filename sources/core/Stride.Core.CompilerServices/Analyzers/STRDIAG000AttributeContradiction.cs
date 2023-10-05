@@ -56,7 +56,7 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
         {
             if (dataMemberUpdatableAttribute is null || !symbol.HasAttribute(dataMemberUpdatableAttribute))
             {
-                DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, symbol);
+                Rule.ReportDiagnostics(context, symbol);
             }
         }
     }

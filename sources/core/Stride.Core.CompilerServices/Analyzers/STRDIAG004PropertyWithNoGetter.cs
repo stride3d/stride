@@ -56,11 +56,11 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 
         if (propertySymbol.GetMethod is null)
         {
-            DiagnosticsAnalyzerHelper.ReportDiagnostics(NonExistentGetterRule, context, propertySymbol);
+            NonExistentGetterRule.ReportDiagnostics(context, propertySymbol);
         }
         else if(!propertySymbol.GetMethod.IsVisibleToSerializer(true))
         {
-            DiagnosticsAnalyzerHelper.ReportDiagnostics(InvalidAccesibilityRule, context, propertySymbol);
+            InvalidAccesibilityRule.ReportDiagnostics(context, propertySymbol);
         }
     }
 }

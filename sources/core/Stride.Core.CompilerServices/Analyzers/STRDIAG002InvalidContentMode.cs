@@ -54,7 +54,7 @@ public class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
         var fieldType = symbol.Type;
         if (fieldType.IsImmutableType())
         {
-            DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, fieldType);
+            Rule.ReportDiagnostics(context, fieldType);
         }
     }
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMembermode)
@@ -72,7 +72,7 @@ public class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
         var fieldType = symbol.Type;
         if (fieldType.IsImmutableType())
         {
-            DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, fieldType);
+            Rule.ReportDiagnostics(context, fieldType);
         }
     }
 }

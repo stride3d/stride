@@ -58,7 +58,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
 
         if (fieldType.IsImmutableType())
         {
-            DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, fieldType);
+            Rule.ReportDiagnostics(context, fieldType);
         }
     }
 
@@ -82,7 +82,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
             var propertyType = propertySymbol.Type;
             if (propertyType.IsImmutableType())
             {
-                DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, propertySymbol);
+                Rule.ReportDiagnostics(context, propertySymbol);
             }
         }
     }

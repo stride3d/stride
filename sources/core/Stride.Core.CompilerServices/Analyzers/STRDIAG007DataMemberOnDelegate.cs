@@ -53,7 +53,7 @@ public class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
 
         if (fieldType.TypeKind == TypeKind.Delegate)
         {
-            DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, fieldSymbol);
+            Rule.ReportDiagnostics(context, fieldSymbol);
         }
     }
 
@@ -69,7 +69,7 @@ public class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
 
         if (propertyType.TypeKind == TypeKind.Delegate)
         {
-            DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, propertySymbol);
+            Rule.ReportDiagnostics(context, propertySymbol);
         }
     }
 }

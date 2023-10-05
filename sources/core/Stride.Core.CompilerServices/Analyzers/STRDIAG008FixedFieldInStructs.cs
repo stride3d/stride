@@ -52,7 +52,7 @@ public class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
         {
             if (fieldSymbol.IsFixedSizeBuffer && !fieldSymbol.HasAttribute(dataMemberIgnoreAttribute))
             {
-                DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, fieldSymbol);
+                Rule.ReportDiagnostics(context, fieldSymbol);
             }
         }
     }
