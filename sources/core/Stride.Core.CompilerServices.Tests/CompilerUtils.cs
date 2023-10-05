@@ -2,19 +2,19 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
+using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using Stride.Core.CompilerServices.Analyzers;
-using System;
+using Microsoft.CodeAnalysis.Text;
 using System.Linq;
-using System.Security.AccessControl;
+using System;
 
 namespace Stride.Core.CompilerServices.Tests
 {
     public static class CompilerUtils
     {
+        private static string assembliesDirectory = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
+
         /// <summary>
         /// Runs compilation over <paramref name="source"/> and applies generator <typeparamref name="TGenerator"/> over it.
         /// </summary>
@@ -33,42 +33,18 @@ namespace Stride.Core.CompilerServices.Tests
                 new[]
                 {
                     // System.Runtime.dll
-                    MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location.Replace("Private.CoreLib", "Runtime")),
+                    MetadataReference.CreateFromFile($"{assembliesDirectory}/System.Runtime.dll"),
                     // System.Private.CoreLib.dll
-                    MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
+                    MetadataReference.CreateFromFile($"{assembliesDirectory}/System.Private.CoreLib.dll"),
                     // Stride.Core.dll
-                    MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location.Replace("System.Private.CoreLib", "Stride.Core")),
+                    MetadataReference.CreateFromFile($"{assembliesDirectory}/Stride.Core.dll"),
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         public static DiagnosticAnalyzer[] AllAnalyzers => typeof(DiagnosticsAnalyzerHelper).Assembly.GetTypes()
             .Where(t => t.IsSubclassOf(typeof(DiagnosticAnalyzer)) && !t.IsAbstract)
             .Select(type => (DiagnosticAnalyzer)Activator.CreateInstance(type)).ToArray();
 
-        public static Compilation CreateCompilation(string sourceCode)
-        {
-            // Create a syntax tree from the source code
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(SourceText.From(sourceCode));
-
-            // Create a compilation with your syntax tree and necessary references
-            MetadataReference[] references = new[]
-            {
-                // System.Runtime.dll
-                MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location.Replace("Private.CoreLib", "Runtime")),
-                // System.Private.CoreLib.dll
-                MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
-                // Stride.Core.dll
-                MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location.Replace("System.Private.CoreLib", "Stride.Core")),
-
-            };
-
-            CSharpCompilation compilation = CSharpCompilation.Create(
-                "TestAssembly",
-                syntaxTrees: new[] { syntaxTree },
-                references: references,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-            return compilation;
-        }
+        public static Compilation CreateCompilation(string sourceCode) => CreateCompilation("TestAssembly", sourceCode);
 
         public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics(
             this Compilation compilation,
