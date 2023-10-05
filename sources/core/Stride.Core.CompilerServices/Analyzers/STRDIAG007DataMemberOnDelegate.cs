@@ -43,7 +43,7 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
     private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var fieldSymbol = (IFieldSymbol)context.Symbol;
-        if (!fieldSymbol.IsVisibleToSerializer())
+        if (!fieldSymbol.IsVisibleToSerializer(dataMemberAttribute))
             return;
 
         if (!fieldSymbol.HasAttribute(dataMemberAttribute))
@@ -60,7 +60,7 @@ internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if (!propertySymbol.IsVisibleToSerializer())
+        if (!propertySymbol.IsVisibleToSerializer(dataMemberAttribute))
             return;
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))

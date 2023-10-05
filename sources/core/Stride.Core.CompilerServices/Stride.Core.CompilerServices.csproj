@@ -25,6 +25,7 @@
 
 	<ItemGroup>
 	  <Folder Include="CodeFixes\" />
+	  <Folder Include="Generators\" />
 	  <Folder Include="NewFolder\" />
 	</ItemGroup>
 	<Import Project="$(StrideSdkTargets)" />

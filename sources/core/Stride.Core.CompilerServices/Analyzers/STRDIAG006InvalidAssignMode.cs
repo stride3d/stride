@@ -43,13 +43,16 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
     private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMemberMode)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if (!propertySymbol.IsVisibleToSerializer())
-            return;
+        
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
+
+        if (!propertySymbol.IsVisibleToSerializer(dataMemberAttribute))
+            return;
+
         // 1 is the Enums Value of DataMemberMode for Assign
-        if(propertySymbol.HasDataMemberMode(context, dataMemberAttribute, dataMemberMode, 1))
+        if (propertySymbol.HasDataMemberMode(context, dataMemberAttribute, dataMemberMode, 1))
         {
             if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
             {

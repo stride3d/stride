@@ -1,9 +1,12 @@
 namespace Stride.Core.CompilerServices.Common;
 internal static class SymbolExtensions
 {
-    public static bool IsVisibleToSerializer(this ISymbol symbol)
+    public static bool IsVisibleToSerializer(this ISymbol symbol, INamedTypeSymbol dataMemberAttribute)
     {
-        return symbol.DeclaredAccessibility == Accessibility.Public || symbol.DeclaredAccessibility == Accessibility.Internal;
+        var accessibility = symbol.DeclaredAccessibility;
+        if(symbol.HasAttribute(dataMemberAttribute))
+                return accessibility == Accessibility.Public || accessibility == Accessibility.Internal || accessibility == Accessibility.ProtectedOrInternal;
+        return accessibility == Accessibility.Public;
     }
     public static bool IsImmutableType(this ITypeSymbol type)
     {

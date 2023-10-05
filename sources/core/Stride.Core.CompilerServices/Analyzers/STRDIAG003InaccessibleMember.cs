@@ -11,7 +11,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG003";
     private const string Title = "Inaccessible Member";
-    private const string MessageFormat = "The member '{0}' with [DataMember] is not accesssible to the serializer. Only public/internal visibility is supported.";
+    private const string MessageFormat = "The member '{0}' with [DataMember] is not accesssible to the serializer. Only public/internal visibility is supported, when the [DataMember] attribute is applied.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -48,7 +48,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
         if (!symbol.HasAttribute(dataMemberAttribute))
             return;
 
-        if (!symbol.IsVisibleToSerializer())
+        if (!symbol.IsVisibleToSerializer(dataMemberAttribute))
         {
             DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, symbol);
         }

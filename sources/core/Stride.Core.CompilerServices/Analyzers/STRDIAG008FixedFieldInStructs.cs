@@ -31,19 +31,20 @@ internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
     private static void AnalyzeCompilationStart(CompilationStartAnalysisContext context)
     {
         var dataContractAttribute = WellKnownReferences.DataContractAttribute(context.Compilation);
+        var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         var dataMemberIgnoreAttribute = WellKnownReferences.DataMemberIgnoreAttribute(context.Compilation);
-        if (dataContractAttribute is null || dataMemberIgnoreAttribute is null)
+        if (dataContractAttribute is null || dataMemberIgnoreAttribute is null || dataMemberAttribute is null)
         {
             return;
         }
 
-        context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataContractAttribute, dataMemberIgnoreAttribute), SymbolKind.Field);
+        context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataContractAttribute, dataMemberIgnoreAttribute, dataMemberAttribute), SymbolKind.Field);
     }
 
-    private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberIgnoreAttribute)
+    private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberIgnoreAttribute, INamedTypeSymbol dataMemberAttribute)
     {
         var fieldSymbol = (IFieldSymbol)context.Symbol;
-        if (!fieldSymbol.IsVisibleToSerializer())
+        if (!fieldSymbol.IsVisibleToSerializer(dataMemberAttribute))
             return;
         var containingType = fieldSymbol.ContainingType;
 

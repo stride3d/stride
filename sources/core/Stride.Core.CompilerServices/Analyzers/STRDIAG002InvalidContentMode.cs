@@ -9,7 +9,7 @@ internal class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG002";
     private const string Title = "Invalid Content Mode";
-    private const string MessageFormat = "The DataMemberMode.Content is not valid for the member '{0}'.";
+    private const string MessageFormat = "The 'DataMemberMode.Content' is not valid for the member '{0}'.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -42,7 +42,7 @@ internal class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
     private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMembermode)
     {
         var symbol = (IFieldSymbol)context.Symbol;
-        if (!symbol.IsVisibleToSerializer())
+        if (!symbol.IsVisibleToSerializer(dataMemberAttribute))
             return;
 
         if (!symbol.HasAttribute(dataMemberAttribute))
@@ -60,7 +60,7 @@ internal class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMembermode)
     {
         var symbol = (IPropertySymbol)context.Symbol;
-        if (!symbol.IsVisibleToSerializer())
+        if (!symbol.IsVisibleToSerializer(dataMemberAttribute))
             return;
 
         if (!symbol.HasAttribute(dataMemberAttribute))
