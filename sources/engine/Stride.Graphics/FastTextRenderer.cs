@@ -214,7 +214,7 @@ namespace Stride.Graphics
                     var textLength = textInfo.Text.Length;
                     var textLengthPointer = new IntPtr(&textLength);
 
-                    Native.NativeInvoke.xnGraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, out textLengthPointer, out mappedVertexBufferPointer);
+                    //Native.NativeInvoke.xnGraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, out textLengthPointer, out mappedVertexBufferPointer);
 
                     charsToRenderCount += *(int*)textLengthPointer.ToPointer();
                 }
