@@ -15,6 +15,12 @@ internal static class SymbolExtensions
             return accessibility == Accessibility.Public || accessibility == Accessibility.Internal || accessibility == Accessibility.ProtectedOrInternal;
         return accessibility == Accessibility.Public || accessibility == Accessibility.Internal;
     }
+    /// <summary>
+    /// An Immutable Type is treated if its a non Reference Type ie class
+    /// A struct and a string are treated as Immutable as the Yaml Serializer can't handle value Types with it's reflection.
+    /// </summary>
+    /// <param name="type">The Type to check against</param>
+    /// <returns>true when it's an Immutable Type</returns>
     public static bool IsImmutableType(this ITypeSymbol type)
     {
         return type.SpecialType == SpecialType.System_String || !type.IsReferenceType;
