@@ -1080,10 +1080,10 @@ namespace Stride.Core.Shaders.Grammar
             // Check for Hexa decimal
             if (intStr.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase))
             {
-                intStr = intStr.Substring(2);
+                intStr = intStr[2..];
                 style = NumberStyles.HexNumber;
             }
-            else if (intStr.StartsWith("0") && intStr.Length > 1)
+            else if (intStr.StartsWith('0') && intStr.Length > 1)
             {
                 // Else parse Octal
                 isOctal = true;

@@ -347,7 +347,7 @@ namespace Stride.Core.Presentation
             var url = match.Groups[3].Value;
             var title = match.Groups[6].Value;
 
-            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute) && (!System.IO.Path.IsPathRooted(url) || !url.StartsWith("/") || !url.StartsWith("\\")))
+            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute) && (!System.IO.Path.IsPathRooted(url) || !url.StartsWith('/') || !url.StartsWith('\\')))
             {
                 // Make relative URL absolute
                 url = (BaseUrl ?? string.Empty) + url;
@@ -425,7 +425,7 @@ namespace Stride.Core.Presentation
             
             var url = match.Groups[3].Value;
 
-            if (url.StartsWith("<") && url.EndsWith(">"))
+            if (url.StartsWith('<') && url.EndsWith('>'))
                 url = url.Substring(1, url.Length - 2);    // Remove <>'s surrounding URL, if present
 
             return ImageTag(url, null, null);
@@ -440,7 +440,7 @@ namespace Stride.Core.Presentation
             var url = match.Groups[3].Value;
             var title = match.Groups[6].Value;
 
-            if (url.StartsWith("<") && url.EndsWith(">"))
+            if (url.StartsWith('<') && url.EndsWith('>'))
                 url = url.Substring(1, url.Length - 2);    // Remove <>'s surrounding URL, if present
 
             return ImageTag(url, altText, title);
@@ -452,7 +452,7 @@ namespace Stride.Core.Presentation
             var image = new Image();
             try
             {
-                if (!Uri.IsWellFormedUriString(url, UriKind.Absolute) && (!System.IO.Path.IsPathRooted(url) || !url.StartsWith("/") || !url.StartsWith("\\")))
+                if (!Uri.IsWellFormedUriString(url, UriKind.Absolute) && (!System.IO.Path.IsPathRooted(url) || !url.StartsWith('/') || !url.StartsWith('\\')))
                 {
                     // Make relative URL absolute
                     url = (BaseUrl ?? string.Empty) + url;
@@ -539,7 +539,7 @@ namespace Stride.Core.Presentation
             if (match == null) throw new ArgumentNullException(nameof(match));
 
             var header = match.Groups[1].Value;
-            var level = match.Groups[2].Value.StartsWith("=") ? 1 : 2;
+            var level = match.Groups[2].Value.StartsWith('=') ? 1 : 2;
             
             return CreateHeader(level, RunSpanGamut(header.Trim()));
         }

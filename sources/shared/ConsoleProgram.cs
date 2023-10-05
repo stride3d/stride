@@ -169,9 +169,9 @@ namespace Stride
 
         private bool ParseArgument(string arg)
         {
-            if (arg.StartsWith("/") || arg.StartsWith("-"))
+            if (arg.StartsWith('/') || arg.StartsWith('-'))
             {
-                string name = arg.Substring(1);
+                string name = arg[1..];
 
                 string value = null;
 

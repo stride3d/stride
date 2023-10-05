@@ -19,7 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" ReferenceOutputAssembly="false" CopyToOutputDirectory="Always" />
+    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" ReferenceOutputAssembly="false" OutputItemType="Content" CopyToOutputDirectory="Always" />
     <ProjectReference Include="..\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj" />
 
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit " Version="1.1.1" PrivateAssets="all" />

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -107,12 +108,12 @@ namespace Stride.Assets.Effect
                 var outputDirectory = UPath.Combine(package.RootDirectory, baseUrl);
 
                 var fieldName = compilerParameters.Get(EffectSourceCodeKeys.FieldName);
-                if (fieldName.StartsWith("binary"))
+                if (fieldName.StartsWith("binary", StringComparison.Ordinal))
                 {
                     fieldName = fieldName.Substring("binary".Length);
                     if (char.IsUpper(fieldName[0]))
                     {
-                        fieldName = char.ToLower(fieldName[0]) + fieldName.Substring(1);
+                        fieldName = char.ToLower(fieldName[0]) + fieldName[1..];
                     }
                 }
 
