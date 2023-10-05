@@ -1,13 +1,12 @@
-using System.Reflection;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
+using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Stride.Core.CompilerServices.Analyzers;
-using Microsoft.CodeAnalysis.Text;
-using System.Linq;
-using System;
 
 namespace Stride.Core.CompilerServices.Tests
 {
@@ -56,6 +55,7 @@ namespace Stride.Core.CompilerServices.Tests
 
             return diagnostics;
         }
+
         public static ImmutableArray<Diagnostic> CompileAndGetAnalyzerDiagnostics(string sourceCode, params DiagnosticAnalyzer[] analyzers)
         {
             Compilation compilation = CreateCompilation(sourceCode);

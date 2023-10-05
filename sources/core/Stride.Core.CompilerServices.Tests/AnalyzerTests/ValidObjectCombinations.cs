@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Stride.Core.CompilerServices.Analyzers;
 using Xunit;
 
 namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
@@ -12,8 +5,8 @@ namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
 public class ValidObjectCombinations
 {
     private string PublicFormat(string access) => string.Format(ClassTemplates.PublicClassTemplateNoDatamember, access, "object");
-    private string PublicFormatWithDataMember(string access) => string.Format(ClassTemplates.PublicClassTemplateDataMember, access,"object");
-    private string InternalFormat(string access) => string.Format(ClassTemplates.InternalClassTemplate, access,"object");
+    private string PublicFormatWithDataMember(string access) => string.Format(ClassTemplates.PublicClassTemplateDataMember, access, "object");
+    private string InternalFormat(string access) => string.Format(ClassTemplates.InternalClassTemplate, access, "object");
     [Fact]
     public void No_Error_On_Public_Properties_No_DataMember()
     {
@@ -33,6 +26,7 @@ public class ValidObjectCombinations
             TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
         }
     }
+
     [Fact]
     public void No_Error_On_Public_Properties_DataMember()
     {
@@ -55,6 +49,7 @@ public class ValidObjectCombinations
             TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
         }
     }
+
     [Fact]
     public void No_Error_On_internal_Properties()
     {
@@ -74,6 +69,7 @@ public class ValidObjectCombinations
             TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
         }
     }
+
     [Fact]
     public void No_Error_On_Inaccessible_properties()
     {
@@ -84,7 +80,7 @@ public class ValidObjectCombinations
         };
         foreach (var combination in combinations)
         {
-            string sourceCode = string.Format(ClassTemplates.AccessorTemplate,combination,"object");
+            string sourceCode = string.Format(ClassTemplates.AccessorTemplate, combination, "object");
             TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
         }
     }

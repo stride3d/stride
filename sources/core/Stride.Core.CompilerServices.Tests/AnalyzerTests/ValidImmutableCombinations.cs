@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
@@ -19,6 +14,7 @@ public class ValidImmutableCombinations
         "double",
         "String"
     };
+
     [Fact]
     public void No_Error_On_Public_Properties_No_DataMember()
     {
@@ -35,6 +31,7 @@ public class ValidImmutableCombinations
             }
         }
     }
+
     [Fact]
     public void No_Error_On_Public_Properties_DataMember()
     {
@@ -54,6 +51,7 @@ public class ValidImmutableCombinations
             }
         }
     }
+
     [Fact]
     public void No_Error_On_internal_Properties()
     {
@@ -71,6 +69,7 @@ public class ValidImmutableCombinations
             }
         }
     }
+
     [Fact]
     public void No_Error_On_Inaccessible_properties()
     {
@@ -88,6 +87,5 @@ public class ValidImmutableCombinations
             }
         }
     }
-
 }
 

@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using Stride.Core.CompilerServices.Analyzers;
 using Xunit;
 
 namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
+
 public class STRDIAG008_Test
 {
     [Fact]

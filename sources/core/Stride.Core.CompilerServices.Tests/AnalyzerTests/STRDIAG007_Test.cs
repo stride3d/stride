@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Stride.Core.CompilerServices.Analyzers;
 using Xunit;
 
 namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
+
 public class STRDIAG007_Test
 {
     [Fact]
@@ -15,6 +11,7 @@ public class STRDIAG007_Test
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMember] public Action Value;");
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG007DataMemberOnDelegate.DiagnosticId);
     }
+
     [Fact]
     public void Error_On_DataMembered_Delegate_Property()
     {

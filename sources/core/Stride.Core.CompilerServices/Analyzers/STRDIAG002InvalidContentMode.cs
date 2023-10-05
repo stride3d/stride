@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -32,13 +29,14 @@ public class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
     {
         var dataMemberAttribute = WellKnownReferences.DataMemberAttribute(context.Compilation);
         var dataMemberMode = WellKnownReferences.DataMemberMode(context.Compilation);
-        
+
         if (dataMemberAttribute is null || dataMemberMode is null)
             return;
 
         context.RegisterSymbolAction(symbolContext => AnalyzeField(symbolContext, dataMemberAttribute, dataMemberMode), SymbolKind.Field);
         context.RegisterSymbolAction(symbolContext => AnalyzeProperty(symbolContext, dataMemberAttribute, dataMemberMode), SymbolKind.Property);
     }
+
     private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMembermode)
     {
         var symbol = (IFieldSymbol)context.Symbol;
@@ -57,6 +55,7 @@ public class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
             Rule.ReportDiagnostics(context, fieldType);
         }
     }
+
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMembermode)
     {
         var symbol = (IPropertySymbol)context.Symbol;

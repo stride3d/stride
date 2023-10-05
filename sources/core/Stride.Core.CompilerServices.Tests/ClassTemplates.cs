@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Stride.Core.CompilerServices.Tests;
 internal class ClassTemplates
 {
@@ -16,6 +10,7 @@ public class ValidCollection
     public {1} X {{ {0} }}
 }}
 ";
+
     public const string PublicClassTemplateDataMember = @"
 using Stride.Core;
 using System;
@@ -26,6 +21,7 @@ public class ValidCollection
     public {1} X {{ {0} }}
 }}
 ";
+
     public const string InternalClassTemplate = @"
 using Stride.Core;
 using System;
@@ -36,6 +32,7 @@ public class ValidCollection
     internal {1} X {{ {0} }}
 }}
 ";
+
     public const string BasicClassTemplate = @"
 using Stride.Core;
 using System;
@@ -45,6 +42,7 @@ public class ValidCollection
     {0}
 }}
 ";
+
     public const string AccessorTemplate = @"
 using Stride.Core;
 using System;
@@ -55,4 +53,5 @@ public class ValidCollection
     {0} {1} X {{ get; set; }}
 }}
 ";
+
 }

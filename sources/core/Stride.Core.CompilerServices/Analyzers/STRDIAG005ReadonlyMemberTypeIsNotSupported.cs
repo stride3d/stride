@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -51,7 +50,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         if (!symbol.IsVisibleToSerializer(dataMemberAttribute))
             return;
 
-        
+
         if (!symbol.IsReadOnly)
             return;
         var fieldType = symbol.Type;
@@ -65,7 +64,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        
+
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
@@ -86,6 +85,4 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
             }
         }
     }
-
-
 }

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Stride.Core.CompilerServices.Analyzers;
 using Xunit;
 
@@ -15,12 +10,14 @@ public class STRDIAG006_Test
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMember(DataMemberMode.Assign)] public int Value { get; }");
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG006InvalidAssignMode.DiagnosticId);
     }
+
     [Fact]
     public void Error_On_private_Set_AssignMode()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMember(DataMemberMode.Assign)] public int Value {  get; private set; }");
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG006InvalidAssignMode.DiagnosticId);
     }
+
     [Fact]
     public void Error_On_protected_Set_AssignMode()
     {
@@ -28,6 +25,7 @@ public class STRDIAG006_Test
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG006InvalidAssignMode.DiagnosticId);
 
     }
+
     [Fact]
     public void Error_On_private_protected_Set_AssignMode()
     {

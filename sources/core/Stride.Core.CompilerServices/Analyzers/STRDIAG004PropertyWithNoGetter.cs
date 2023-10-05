@@ -58,7 +58,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
         {
             NonExistentGetterRule.ReportDiagnostics(context, propertySymbol);
         }
-        else if(!propertySymbol.GetMethod.IsVisibleToSerializer(true))
+        else if (!propertySymbol.GetMethod.IsVisibleToSerializer(true))
         {
             InvalidAccesibilityRule.ReportDiagnostics(context, propertySymbol);
         }

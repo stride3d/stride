@@ -3,10 +3,11 @@ internal static class SymbolExtensions
 {
     public static bool IsVisibleToSerializer(this ISymbol symbol, INamedTypeSymbol dataMemberAttribute)
     {
-        if(symbol.HasAttribute(dataMemberAttribute))
-                return IsVisibleToSerializer(symbol, true);
-        return IsVisibleToSerializer(symbol,false);
+        if (symbol.HasAttribute(dataMemberAttribute))
+            return IsVisibleToSerializer(symbol, true);
+        return IsVisibleToSerializer(symbol, false);
     }
+
     public static bool IsVisibleToSerializer(this ISymbol symbol, bool hasDataMemberAttribute)
     {
         var accessibility = symbol.DeclaredAccessibility;
@@ -15,6 +16,7 @@ internal static class SymbolExtensions
             return accessibility == Accessibility.Public || accessibility == Accessibility.Internal || accessibility == Accessibility.ProtectedOrInternal;
         return accessibility == Accessibility.Public || accessibility == Accessibility.Internal;
     }
+
     /// <summary>
     /// An Immutable Type is treated if its a non Reference Type ie class
     /// A struct and a string are treated as Immutable as the Yaml Serializer can't handle value Types with it's reflection.
@@ -25,6 +27,7 @@ internal static class SymbolExtensions
     {
         return type.SpecialType == SpecialType.System_String || !type.IsReferenceType;
     }
+
     public static bool HasDataMemberMode(this ISymbol symbol, SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMemberMode, int mode)
     {
         var attributes = symbol.GetAttributes();

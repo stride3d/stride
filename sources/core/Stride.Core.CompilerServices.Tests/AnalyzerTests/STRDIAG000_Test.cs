@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Analyzers;
 using Xunit;
 
@@ -17,12 +11,14 @@ public class STRDIAG000_Test
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMemberIgnore][DataMember]public int Value { get; set; }");
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG000AttributeContradiction.DiagnosticId);
     }
+
     [Fact]
     public void Error_On_Attribute_Contradiction_On_Field()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMemberIgnore][DataMember]public int Value;");
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG000AttributeContradiction.DiagnosticId);
     }
+
     [Fact]
     public void NoErrorOn_Attribute_Contradiction_With_Updatable()
     {
