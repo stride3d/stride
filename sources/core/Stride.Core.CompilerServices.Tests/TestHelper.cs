@@ -17,7 +17,7 @@ internal class TestHelper
     public static void ExpectDiagnosticsError(string sourceCode,string diagnosticID)
     {
         var diagnostics = CompilerUtils.CompileAndGetAnalyzerDiagnostics(sourceCode, CompilerUtils.AllAnalyzers);
-        bool hasError = diagnostics.Any();
-        Assert.True(hasError, $"The Test is invalid and should throw the '{diagnosticID}' Diagnostics. Thrown Diagnostics: {string.Concat(diagnostics.Select(x => x.Id), ",")}");
+        bool hasError = diagnostics.Any(x => x.Id == diagnosticID);
+        Assert.True(hasError, $"The Test is invalid and should throw the '{diagnosticID}' Diagnostics. Thrown Diagnostics: {string.Concat(diagnostics.Select(x => x.Id), ",")}, SourceCode: \n{sourceCode}");
     }
 }

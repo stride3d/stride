@@ -1,0 +1,45 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Stride.Core.CompilerServices.Tests;
+internal class ClassTemplates
+{
+    public const string PublicClassTemplateNoDatamember = @"
+using Stride.Core;
+[DataContract]
+public class ValidCollection
+{
+    public {1} X { {0} }
+}
+";
+    public const string PublicClassTemplateDataMember = @"
+using Stride.Core;
+[DataContract]
+public class ValidCollection
+{
+    [DataMember]
+    public {1} X { {0} }
+}
+";
+    public const string InternalClassTemplate = @"
+using Stride.Core;
+[DataContract]
+public class ValidCollection
+{
+    [DataMember]
+    internal {1} X { {0} }
+}
+";
+    public const string AccessorTemplate = @"
+using Stride.Core;
+[DataContract]
+public class ValidCollection
+{
+    
+    {0} {1} X { get; set; }
+}
+";
+}
