@@ -23,5 +23,33 @@ public class STRDIAG000_Test
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMemberIgnore][DataMember]public int Value;");
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG000AttributeContradiction.DiagnosticId);
     }
-    // TODO missing test for DataMemberUpdatable as Stride.Engine isnt referenced
+    [Fact]
+    public void NoErrorOn_Attribute_Contradiction_With_Updatable()
+    {
+        string sourceCode = @"
+using System;
+using Stride.Core;
+using Stride.Updater;
+namespace Stride.Updater
+{
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    public class DataMemberUpdatableAttribute : Attribute
+    {
+    }
+}
+
+namespace Test
+{
+    [DataContract]
+    public class TripleAnnotation
+    {
+        [DataMemberIgnore]
+        [DataMemberUpdatable]
+        [DataMember]
+        public int Value;
+    }
+}
+";
+        TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
+    }
 }
