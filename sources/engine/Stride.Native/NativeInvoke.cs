@@ -26,9 +26,5 @@ namespace Stride.Native
         {
             PreLoad();
         }
-
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void xnGraphicsFastTextRendererGenerateVertices(RectangleF constantInfos, RectangleF renderInfos, string text, out IntPtr textLength, out IntPtr vertexBufferPointer);
     }
 }
