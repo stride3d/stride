@@ -4,7 +4,7 @@ using Stride.Core.CompilerServices.Common;
 namespace Stride.Core.CompilerServices.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
+public class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG008";
     private const string Title = "Invalid Struct Member";

@@ -9,6 +9,7 @@ internal class ClassTemplates
 {
     public const string PublicClassTemplateNoDatamember = @"
 using Stride.Core;
+using System;
 [DataContract]
 public class ValidCollection
 {{
@@ -17,6 +18,7 @@ public class ValidCollection
 ";
     public const string PublicClassTemplateDataMember = @"
 using Stride.Core;
+using System;
 [DataContract]
 public class ValidCollection
 {{
@@ -26,6 +28,7 @@ public class ValidCollection
 ";
     public const string InternalClassTemplate = @"
 using Stride.Core;
+using System;
 [DataContract]
 public class ValidCollection
 {{
@@ -35,6 +38,7 @@ public class ValidCollection
 ";
     public const string BasicClassTemplate = @"
 using Stride.Core;
+using System;
 [DataContract]
 public class ValidCollection
 {{
@@ -43,6 +47,7 @@ public class ValidCollection
 ";
     public const string AccessorTemplate = @"
 using Stride.Core;
+using System;
 [DataContract]
 public class ValidCollection
 {{

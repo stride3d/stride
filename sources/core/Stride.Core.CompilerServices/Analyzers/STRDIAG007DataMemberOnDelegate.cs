@@ -4,7 +4,7 @@ using Stride.Core.CompilerServices.Common;
 namespace Stride.Core.CompilerServices.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
+public class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG007";
     private const string Title = "Invalid DataMemberAttribute";
