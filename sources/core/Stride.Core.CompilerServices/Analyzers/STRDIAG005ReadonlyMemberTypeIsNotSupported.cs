@@ -53,7 +53,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
             return;
         var fieldType = symbol.Type;
 
-        if (HasImmutableType(fieldType))
+        if (fieldType.IsImmutableType())
         {
             DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, fieldType);
         }
@@ -72,18 +72,15 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
             return;
 
         var setMethod = propertySymbol.SetMethod;
-        if (setMethod is null || (setMethod.DeclaredAccessibility != Accessibility.Public && setMethod.DeclaredAccessibility != Accessibility.Internal))
+        if (setMethod is null || setMethod.IsVisibleToSerializer())
         {
             var propertyType = propertySymbol.Type;
-            if (HasImmutableType(propertyType))
+            if (propertyType.IsImmutableType())
             {
                 DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, propertySymbol);
             }
         }
     }
 
-    private static bool HasImmutableType(ITypeSymbol propertyType)
-    {
-        return propertyType.SpecialType == SpecialType.System_String || !propertyType.IsReferenceType;
-    }
+
 }

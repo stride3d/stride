@@ -48,27 +48,16 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
-
-        var attributes = propertySymbol.GetAttributes();
-        foreach (var attribute in attributes)
+        // 1 is the Enums Value of DataMemberMode for Assign
+        if(propertySymbol.HasDataMemberMode(context, dataMemberAttribute, dataMemberMode, 1))
         {
-            if (!attribute.AttributeClass?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false)
-                continue;
-
-            var modeParameter = attribute.ConstructorArguments.FirstOrDefault(x => x.Type?.Equals(dataMemberMode, SymbolEqualityComparer.Default) ?? false);
-
-            if (modeParameter.Value is null)
-                return;
-            // 1 is the Enums Value of DataMemberMode for Assign
-            if ((int)modeParameter.Value == 1)
+            if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
             {
-                if (propertySymbol.GetMethod != null && propertySymbol.SetMethod == null)
-                {
-                    DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, propertySymbol);
-                }
+                DiagnosticsAnalyzerHelper.ReportDiagnostics(Rule, context, propertySymbol);
             }
-            break;
         }
     }
+
+
 }
 
