@@ -44,11 +44,14 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
     private static void AnalyzeField(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var symbol = (IFieldSymbol)context.Symbol;
-        if (!symbol.IsVisibleToSerializer(dataMemberAttribute))
-            return;
 
         if (!symbol.HasAttribute(dataMemberAttribute))
             return;
+
+        if (!symbol.IsVisibleToSerializer(dataMemberAttribute))
+            return;
+
+        
         if (!symbol.IsReadOnly)
             return;
         var fieldType = symbol.Type;
@@ -62,17 +65,19 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if (!propertySymbol.IsVisibleToSerializer(dataMemberAttribute))
-            return;
+        
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
+            return;
+
+        if (!propertySymbol.IsVisibleToSerializer(true))
             return;
 
         if (propertySymbol.GetMethod is null)
             return;
 
         var setMethod = propertySymbol.SetMethod;
-        if (setMethod is null || setMethod.IsVisibleToSerializer(dataMemberAttribute))
+        if (setMethod is null || !setMethod.IsVisibleToSerializer(true))
         {
             var propertyType = propertySymbol.Type;
             if (propertyType.IsImmutableType())

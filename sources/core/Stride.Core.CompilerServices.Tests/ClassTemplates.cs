@@ -11,35 +11,35 @@ internal class ClassTemplates
 using Stride.Core;
 [DataContract]
 public class ValidCollection
-{
-    public {1} X { {0} }
-}
+{{
+    public {1} X {{ {0} }}
+}}
 ";
     public const string PublicClassTemplateDataMember = @"
 using Stride.Core;
 [DataContract]
 public class ValidCollection
-{
-    [DataMember]
-    public {1} X { {0} }
-}
+{{
+    [Stride.Core.DataMember]
+    public {1} X {{ {0} }}
+}}
 ";
     public const string InternalClassTemplate = @"
 using Stride.Core;
 [DataContract]
 public class ValidCollection
-{
-    [DataMember]
-    internal {1} X { {0} }
-}
+{{
+    [Stride.Core.DataMember]
+    internal {1} X {{ {0} }}
+}}
 ";
     public const string AccessorTemplate = @"
 using Stride.Core;
 [DataContract]
 public class ValidCollection
-{
+{{
     
-    {0} {1} X { get; set; }
-}
+    {0} {1} X {{ get; set; }}
+}}
 ";
 }

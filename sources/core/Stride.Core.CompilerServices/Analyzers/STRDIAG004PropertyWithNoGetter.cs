@@ -50,8 +50,6 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-        if (!propertySymbol.IsVisibleToSerializer(dataMemberAttribute))
-            return;
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
@@ -60,7 +58,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
         {
             DiagnosticsAnalyzerHelper.ReportDiagnostics(NonExistentGetterRule, context, propertySymbol);
         }
-        else if(!propertySymbol.GetMethod.IsVisibleToSerializer(dataMemberAttribute))
+        else if(!propertySymbol.GetMethod.IsVisibleToSerializer(true))
         {
             DiagnosticsAnalyzerHelper.ReportDiagnostics(InvalidAccesibilityRule, context, propertySymbol);
         }

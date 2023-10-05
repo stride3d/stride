@@ -3,10 +3,17 @@ internal static class SymbolExtensions
 {
     public static bool IsVisibleToSerializer(this ISymbol symbol, INamedTypeSymbol dataMemberAttribute)
     {
-        var accessibility = symbol.DeclaredAccessibility;
         if(symbol.HasAttribute(dataMemberAttribute))
-                return accessibility == Accessibility.Public || accessibility == Accessibility.Internal || accessibility == Accessibility.ProtectedOrInternal;
-        return accessibility == Accessibility.Public;
+                return IsVisibleToSerializer(symbol, true);
+        return IsVisibleToSerializer(symbol,false);
+    }
+    public static bool IsVisibleToSerializer(this ISymbol symbol, bool hasDataMemberAttribute)
+    {
+        var accessibility = symbol.DeclaredAccessibility;
+
+        if (hasDataMemberAttribute)
+            return accessibility == Accessibility.Public || accessibility == Accessibility.Internal || accessibility == Accessibility.ProtectedOrInternal;
+        return accessibility == Accessibility.Public || accessibility == Accessibility.Internal;
     }
     public static bool IsImmutableType(this ITypeSymbol type)
     {
