@@ -75,7 +75,8 @@ public class ValidImmutableCombinations
     {
         var combinations = new string[] {
             "private",
-            "protected"
+            "protected",
+            "private protected"
         };
         foreach (var combination in combinations)
         {
