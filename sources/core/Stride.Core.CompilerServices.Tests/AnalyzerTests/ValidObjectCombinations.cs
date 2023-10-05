@@ -39,6 +39,8 @@ public class ValidObjectCombinations
         var combinations = new string[] {
             "get;set;",
             "get => null;set {{ }}",
+            "internal get => null;set {{ }}",
+            "internal get;set;",
             "get;",
             "get => null;",
             "get;private set;",

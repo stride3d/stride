@@ -33,6 +33,14 @@ public class ValidCollection
     internal {1} X {{ {0} }}
 }}
 ";
+    public const string BasicClassTemplate = @"
+using Stride.Core;
+[DataContract]
+public class ValidCollection
+{{
+    {0}
+}}
+";
     public const string AccessorTemplate = @"
 using Stride.Core;
 [DataContract]

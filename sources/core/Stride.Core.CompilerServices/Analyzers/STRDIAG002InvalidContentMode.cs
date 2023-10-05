@@ -5,7 +5,7 @@ using System.Text;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
-internal class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
+public class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG002";
     private const string Title = "Invalid Content Mode";

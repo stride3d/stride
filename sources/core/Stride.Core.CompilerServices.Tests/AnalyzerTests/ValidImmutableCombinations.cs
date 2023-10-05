@@ -42,6 +42,7 @@ public class ValidImmutableCombinations
             "get;set;",
             "get => null;set { }",
             "get;internal set;",
+            "internal get;set;",
             "get;internal protected set;"
         };
         foreach (var combination in combinations)
