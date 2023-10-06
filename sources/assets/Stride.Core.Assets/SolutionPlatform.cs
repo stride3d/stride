@@ -265,7 +265,7 @@ namespace Stride.Core.Assets
         /// </summary>
         public SolutionConfiguration(string name)
         {
-            if (name == null) throw new ArgumentNullException("name");
+            if (name == null) throw new ArgumentNullException(nameof(name));
             Name = name;
         }
 
