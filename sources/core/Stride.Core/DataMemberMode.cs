@@ -15,7 +15,7 @@ namespace Stride.Core
         /// <summary>
         /// When restored, new object is created by using the parameters in
         /// the YAML data and assigned to the property / field. When the
-        /// property / filed is writeable, this is the default.
+        /// property / field is writeable, this is the default.
         /// </summary>
         Assign,
 
