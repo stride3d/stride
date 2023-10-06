@@ -148,7 +148,6 @@ namespace Stride.Core.Presentation.Controls
 
             // Hide window, clear parent
             NativeHelper.ShowWindow(Handle, NativeHelper.SW_HIDE);
-            NativeHelper.SetParent(Handle, IntPtr.Zero);
 
             // Unregister keyboard sink
             var site = ((IKeyboardInputSink)this).KeyboardInputSite;
