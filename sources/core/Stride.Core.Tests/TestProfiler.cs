@@ -132,7 +132,7 @@ namespace Stride.Core.Tests
         }
 
 
-        private static Regex matchElapsed = new Regex(@"Elapsed = ([\d\.]+)");
+        private static Regex matchElapsed = new Regex(@"Elapsed = ([\d.,]+)");
 
         // Maximum time difference accepted between elapsed time
         private const double ElapsedTimeEpsilon = 10;

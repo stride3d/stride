@@ -183,6 +183,10 @@ namespace Stride.Core.Diagnostics
                 startTime = timeStamp;
                 beginMessage = message;
             }
+            else if(profilingType == ProfilingMessageType.Mark)
+            {
+                deltaTime = timeStamp - startTime;
+            }
             else if (profilingType == ProfilingMessageType.End)
             {
                 if (message == null)
