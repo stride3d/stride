@@ -30,6 +30,16 @@
       StrideCompileAsset
     </PrepareForRunDependsOn>
 
+    <!--Semi-hack: Microsoft.Android.Sdk execs 'inner' MSBuild's for each Android RID if you do not explicity set any <RuntimeIdentifiers> in your game's Android.csproj,
+        which triggers this compiler to execute when this happens causing the compiler to run with the same 'build-path' but differing 'output-path' which ends up locking files.
+        There is no official way to detect when we're in an nested MSBuild, however as see done in this line in the source code
+        https://github.com/xamarin/xamarin-android/blob/95a9c28d10827c61bdf04a050b9020c11d78966d/src/Xamarin.Android.Build.Tasks/Microsoft.Android.Sdk/targets/Microsoft.Android.Sdk.AssemblyResolution.targets#L66-L71
+        '_ComputeFilesToPublishForRuntimeIdentifiers' is what they use.
+        If this breaks in the future, look around this file and adapt changes around it.
+    -->
+    <StrideCompilerSkipAndroidInnerBuild Condition="'$(_ComputeFilesToPublishForRuntimeIdentifiers)' == 'true' And '$(AndroidApplication)' == 'true'">true</StrideCompilerSkipAndroidInnerBuild>
+    <StrideCompilerSkipBuild Condition="'$(StrideCompilerSkipAndroidInnerBuild)' != ''">$(StrideCompilerSkipAndroidInnerBuild)</StrideCompilerSkipBuild>
+
     <!--This variable can be overriden by a platform specific targets (in case the executable is located into an assembly dll )-->
     <StrideIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</StrideIsExecutable>
     <StrideIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</StrideIsExecutable>
@@ -115,8 +125,12 @@
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
   </Target>
 
+  <Target Name="StrideSkipCompileAssetCheck" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' == 'true'" BeforeTargets="StrideCompileAsset">
+    <Message Importance="Normal" Text="Android inner MSBuild execution detected - skipping compilation" Condition="'$(StrideCompilerSkipAndroidInnerBuild)' == 'true'" />
+  </Target>
+
   <!--Compile assets for all StridePackage items and only for an executable-->
-  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true'" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
+  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
     <PropertyGroup>
       <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
 
@@ -138,7 +152,7 @@
   </Target>
 
   <!-- Clean assets -->
-  <Target Name="StrideCleanAsset" Condition="'$(StrideIsExecutable)' == 'true'">
+  <Target Name="StrideCleanAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'">
     <RemoveDir Condition="Exists('$(StrideCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetBuildPath)"/>
     <RemoveDir Condition="Exists('$(StrideCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetOutputPath)"/>
   </Target>
@@ -213,7 +227,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="StrideAssetUpdateGeneratedFiles">
+  <Target Name="StrideAssetUpdateGeneratedFiles" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
     <Exec Command="&quot;$(StrideCompileAssetCommand)&quot; --updated-generated-files --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 
