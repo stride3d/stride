@@ -89,7 +89,11 @@
     <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">net6.0</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' != 'Core'">netstandard2.0</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorExt>.dll</StrideAssemblyProcessorExt>
-    <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt).hash'))</StrideAssemblyProcessorHash>
+
+    <StrideAssemblyProcessorDir>$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorDir>
+    <StrideAssemblyProcessorHashFile>$(StrideAssemblyProcessorDir)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt).hash</StrideAssemblyProcessorHashFile>
+    <StrideAssemblyProcessorHash Condition="Exists($(StrideAssemblyProcessorHashFile))">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorHashFile)'))</StrideAssemblyProcessorHash>
+
     <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorTempBasePath>
     <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
