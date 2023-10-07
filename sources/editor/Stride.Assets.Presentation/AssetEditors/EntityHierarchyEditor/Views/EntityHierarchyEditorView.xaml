@@ -673,12 +673,12 @@
                     <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
                       <TextBlock Text="{sd:Localize Movement}" FontWeight="Bold"/>
                     </Border>
-                    <StackPanel Margin="4">
-                      <sd:KeyValueGrid>
-                        <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Speed:}" Margin="5"/>
-                        <Slider sd:KeyValueGrid.UseFullRow="True" HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0" Maximum="{Binding Camera.AvailableMovementSpeedCount}" Value="{Binding Camera.MoveSpeedIndex}"/>
-                      </sd:KeyValueGrid>
-                    </StackPanel>
+                    <UniformGrid Columns="3" Margin="4,4,4,2">
+                        <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Speed:}" Margin="5,5,5,2"/>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding Camera.MoveSpeed}" Margin="5,5,0,2" TextAlignment="Right"/>
+                        <TextBlock DockPanel.Dock="Left" Text="x" Margin="0,5,5,2" TextAlignment="Left"/>
+                    </UniformGrid>
+                      <Slider sd:KeyValueGrid.UseFullRow="True" HorizontalAlignment="Stretch" Height="18" Margin="5,2,5,5" Minimum="0" Maximum="{Binding Camera.AvailableMovementSpeedCount}" Value="{Binding Camera.MoveSpeedIndex}"/>
                     <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
                       <TextBlock Text="{sd:Localize Orientation}" FontWeight="Bold"/>
                     </Border>
