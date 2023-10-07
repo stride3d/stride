@@ -113,6 +113,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.BuildEngine.Common", "..\sources\buildengine\Stride.Core.BuildEngine.Common\Stride.Core.BuildEngine.Common.csproj", "{7732CB84-A39A-4ADF-B740-FD32A352FA8A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core", "..\sources\core\Stride.Core\Stride.Core.csproj", "{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387} = {FB0CABBB-4249-4F66-A44C-E2DC8F50A387}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Mathematics", "..\sources\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj", "{1677B922-CCF0-44DE-B57E-1CDD3D2B8E8A}"
 EndProject
@@ -325,6 +328,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Commands.Interfaces", "..\sources\tools\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj", "{09E29A89-A6D7-45C9-B7BA-CA6D643C246F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Commands", "..\sources\tools\Stride.VisualStudio.Commands\Stride.VisualStudio.Commands.csproj", "{A7FC60AE-BB54-47D3-8787-788EEC65AD45}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AssemblyProcessor", "AssemblyProcessor", "{D3ECFE62-8982-41A4-B661-1A81DE8C5472}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.AssemblyProcessor", "..\sources\core\Stride.Core.AssemblyProcessor\Stride.Core.AssemblyProcessor.csproj", "{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.AssemblyProcessor.Tests", "..\sources\core\Stride.Core.AssemblyProcessor.Tests\Stride.Core.AssemblyProcessor.Tests.csproj", "{EC2612BD-4BDB-4F40-9616-C80CF6B08337}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1461,6 +1470,30 @@ Global
 		{A7FC60AE-BB54-47D3-8787-788EEC65AD45}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A7FC60AE-BB54-47D3-8787-788EEC65AD45}.Release|Win32.ActiveCfg = Release|Any CPU
 		{A7FC60AE-BB54-47D3-8787-788EEC65AD45}.Release|Win32.Build.0 = Release|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Debug|Win32.Build.0 = Debug|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Release|Win32.ActiveCfg = Release|Any CPU
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387}.Release|Win32.Build.0 = Release|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Debug|Win32.Build.0 = Debug|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Release|Win32.ActiveCfg = Release|Any CPU
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1584,6 +1617,9 @@ Global
 		{DF9172C0-DEA3-4DCE-8AF1-39439ACB4BCD} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{09E29A89-A6D7-45C9-B7BA-CA6D643C246F} = {DF9172C0-DEA3-4DCE-8AF1-39439ACB4BCD}
 		{A7FC60AE-BB54-47D3-8787-788EEC65AD45} = {DF9172C0-DEA3-4DCE-8AF1-39439ACB4BCD}
+		{D3ECFE62-8982-41A4-B661-1A81DE8C5472} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
+		{FB0CABBB-4249-4F66-A44C-E2DC8F50A387} = {D3ECFE62-8982-41A4-B661-1A81DE8C5472}
+		{EC2612BD-4BDB-4F40-9616-C80CF6B08337} = {D3ECFE62-8982-41A4-B661-1A81DE8C5472}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
