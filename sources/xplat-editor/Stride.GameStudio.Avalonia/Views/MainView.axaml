@@ -11,6 +11,23 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <vm:MainViewModel />
   </Design.DataContext>
+  
+  <Grid RowDefinitions="Auto, *, 25"
+        Background="Transparent">
+    <Menu Grid.Row="0" Grid.Column="0"
+          VerticalAlignment="Top">
+      <MenuItem Header="_File">
+        <MenuItem Header="_Open..." Command="{Binding OpenCommand}" />
+        <Separator />
+        <MenuItem Header="E_xit" Command="{Binding ExitCommand}" />
+      </MenuItem>
+      <MenuItem Header="_Help">
+        <MenuItem Header="_About..." Command="{Binding AboutCommand}" />
+      </MenuItem>
+    </Menu>
+    <TextBlock Grid.Row="2"
+               Text="{Binding Message}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  </Grid>
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 </UserControl>
