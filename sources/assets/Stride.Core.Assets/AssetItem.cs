@@ -110,7 +110,7 @@ namespace Stride.Core.Assets
         /// <param name="newAsset">The new asset that will be used in the cloned <see cref="AssetItem"/>. If this parameter
         /// is null, it clones the original asset. otherwise, the specified asset is used as-is in the new <see cref="AssetItem"/>
         /// (no clone on newAsset is performed)</param>
-        /// <param name="flags">Flags used with <see cref="AssetCloner.Clone"/>.</param>
+        /// <param name="flags">Flags used with <see cref="AssetCloner.Clone(object, AssetClonerFlags)"/>.</param>
         /// <returns>A clone of this instance.</returns>
         [NotNull]
         public AssetItem Clone(UFile newLocation = null, Asset newAsset = null, AssetClonerFlags flags = AssetClonerFlags.None)
@@ -127,7 +127,7 @@ namespace Stride.Core.Assets
         /// <param name="newAsset">The new asset that will be used in the cloned <see cref="AssetItem" />. If this parameter
         /// is null, it clones the original asset. otherwise, the specified asset is used as-is in the new <see cref="AssetItem" />
         /// (no clone on newAsset is performed)</param>
-        /// <param name="flags">Flags used with <see cref="AssetCloner.Clone"/>.</param>
+        /// <param name="flags">Flags used with <see cref="AssetCloner.Clone(object, AssetClonerFlags)"/>.</param>
         /// <returns>A clone of this instance.</returns>
         [NotNull]
         public AssetItem Clone(bool keepPackage, UFile newLocation = null, Asset newAsset = null, AssetClonerFlags flags = AssetClonerFlags.None)
