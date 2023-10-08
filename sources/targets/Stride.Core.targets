@@ -177,24 +177,33 @@
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
 
   <!-- Generate localization satellite assemblies -->
-  <Target Name="StrideGenerateLocalizationSatelliteDlls" BeforeTargets="SatelliteDllsProjectOutputGroup" Returns="@(SatelliteDllsProjectOutputGroupOutput)" Condition="'$(StrideLocalized)' == 'true'" AfterTargets="Build">
+  <Target Name="StrideGenerateLocalizationSatelliteDlls"
+          BeforeTargets="SatelliteDllsProjectOutputGroup"
+          AfterTargets="Build"
+          Returns="@(SatelliteDllsProjectOutputGroupOutput)"
+          Condition="'$(StrideLocalized)' == 'true'">
+
     <ItemGroup>
       <!-- Current list of languages to try to generate -->
-      <StrideTraductions Include="fr;ja;es;de;ru;it;ko"/>
-      <StrideTraductions Include="zh-Hans">
+      <StrideTranslations Include="fr;ja;es;de;ru;it;ko"/>
+      <StrideTranslations Include="zh-Hans">
         <Source>zh_HANS-CN</Source>
-      </StrideTraductions>
+      </StrideTranslations>
 
-      <_StrideTraductions Include="@(StrideTraductions)">
-        <Source Condition="%(StrideTraductions.Source) == ''">%(StrideTraductions.Identity)</Source>
-      </_StrideTraductions>
+      <_StrideTranslations Include="@(StrideTranslations)">
+        <Source Condition="%(StrideTranslations.Source) == ''">%(StrideTranslations.Identity)</Source>
+      </_StrideTranslations>
     </ItemGroup>
-    <Message Importance="High" Text="Generating traduction for %(_StrideTraductions.Identity) %(_StrideTraductions.SourceFolder)"/>
-    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po')" Command="$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe -r $(TargetName) -d $(TargetDir) -l %(_StrideTraductions.Identity) -L $(SolutionDir)..\deps\Gettext.Net\ $(MSBuildThisFileDirectory)..\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po" />
+
+    <Message Importance="High" Text="Generating translation for %(_StrideTranslations.Identity) %(_StrideTranslations.SourceFolder)"/>
+
+    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po')"
+          Command="$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe -r $(TargetName) -d $(TargetDir) -l %(_StrideTranslations.Identity) -L $(SolutionDir)..\deps\Gettext.Net\ $(MSBuildThisFileDirectory)..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po" />
+
     <ItemGroup>
-      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll')">
-        <TargetPath>%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
-        <Culture>%(_StrideTraductions.Identity)</Culture>
+      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll')">
+        <TargetPath>%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
+        <Culture>%(_StrideTranslations.Identity)</Culture>
       </SatelliteDllsProjectOutputGroupOutputIntermediate>
     </ItemGroup>
   </Target>
