@@ -183,7 +183,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 return sessionResult.OperationCancelled ? (bool?)null : false;
             }
 
-            RemoveRecentFile(filePath);
             MRU.AddFile(filePath, EditorVersionMajor);
             Session = loadedSession;
 
