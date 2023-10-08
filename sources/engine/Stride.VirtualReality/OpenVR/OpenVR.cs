@@ -226,8 +226,8 @@ namespace Stride.VirtualReality
 
             InitDone = true;
 
-            //set Universe to Standing by default
-            Valve.VR.OpenVR.Compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseStanding);
+            //set Universe to Seated by default
+            Valve.VR.OpenVR.Compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseSeated);
 
             return true;
         }

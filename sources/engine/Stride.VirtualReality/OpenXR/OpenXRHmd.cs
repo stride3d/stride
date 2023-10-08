@@ -20,7 +20,7 @@ namespace Stride.VirtualReality
         public Swapchain globalSwapchain;
         public Space globalPlaySpace;
         public FrameState globalFrameState;
-        public ReferenceSpaceType play_space_type = ReferenceSpaceType.Stage; //XR_REFERENCE_SPACE_TYPE_STAGE;
+        public ReferenceSpaceType play_space_type = ReferenceSpaceType.Local; //XR_REFERENCE_SPACE_TYPE_LOCAL;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         public SwapchainImageD3D11KHR[] images;
         public SharpDX.Direct3D11.RenderTargetView[] render_targets;
