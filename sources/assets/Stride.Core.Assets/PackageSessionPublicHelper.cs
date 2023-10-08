@@ -44,7 +44,7 @@ namespace Stride.Core.Assets
                 if (MSBuildInstance == null)
                 {
                     throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later) " +
-                        "Please ensure you have the .NET 6 SDK installed from Microsoft's website");
+                        "Please ensure you have the .NET 8 SDK installed from Microsoft's website");
                 }
 
                 // Make sure it is not already loaded (otherwise MSBuildLocator.RegisterDefaults() throws an exception)
