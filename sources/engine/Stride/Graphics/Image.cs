@@ -1171,5 +1171,5 @@ namespace Stride.Graphics
 
             public ImageSaveDelegate Save;
         }
-    }
+   }
 }
