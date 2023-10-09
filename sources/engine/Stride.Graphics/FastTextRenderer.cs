@@ -219,8 +219,9 @@ namespace Stride.Graphics
                 var constantInfos = new RectangleF(GlyphWidth, GlyphHeight, DebugSpriteWidth, DebugSpriteHeight);
                 foreach (var textInfo in stringsToDraw)
                 {
+                    Span<VertexPositionNormalTexture> vertexPositionSpan = new((void*)mappedVertexBufferPointer, VertexBufferLength * sizeof(VertexPositionNormalTexture));
                     var textLength = textInfo.Text.Length;
-                    GraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, ref textLength,  mappedVertexBufferPointer);
+                    GraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, ref textLength,  vertexPositionSpan);
 
                     charsToRenderCount += textLength;
                 }
@@ -253,10 +254,8 @@ namespace Stride.Graphics
             graphicsContext.CommandList.DrawIndexed(charsToRenderCount * 6);
         }
 
-        public unsafe void GraphicsFastTextRendererGenerateVertices(RectangleF constantInfos, RectangleF renderInfos, string textPointer, ref int textLength, IntPtr vertexBufferPointer)
+        public unsafe void GraphicsFastTextRendererGenerateVertices(RectangleF constantInfos, RectangleF renderInfos, string textPointer, ref int textLength, Span<VertexPositionNormalTexture> vertexBuffer)
         {
-            var vertexBuffer = (VertexPositionNormalTexture**)vertexBufferPointer;
-            
             float fX = renderInfos.X / renderInfos.Width;
             float fY = renderInfos.Y / renderInfos.Height;
             float fW = constantInfos.X / renderInfos.Width;
@@ -268,77 +267,78 @@ namespace Stride.Graphics
             // Copy the array length (since it may change during an iteration)
             int textCharCount = textLength;
 
-            float scaledDestinationX = 0.0f;
-            float scaledDestinationY = -(destination.Y * 2.0f - 1.0f);
+            float scaledDestinationX;
+            float scaledDestinationY = -(destination.Y * 2f - 1f);
 
-            float invertedWidth = 1.0f / constantInfos.Width;
-            float invertedHeight = 1.0f / constantInfos.Height;
+            float invertedWidth = 1f / constantInfos.Width;
+            float invertedHeight = 1f / constantInfos.Height;
+
+            Span<(Vector2 Position, Vector2 TextureCoordinate)> baseData = stackalloc (Vector2, Vector2)[4]
+            {
+                ( new(-destination.Width, +destination.Height), new(0 * source.Width * invertedWidth, 0 * source.Height * invertedHeight) ),
+                ( new(+destination.Width, +destination.Height), new(1 * source.Width * invertedWidth, 0 * source.Height * invertedHeight) ),
+                ( new(-destination.Width, -destination.Height), new(0 * source.Width * invertedWidth, 1 * source.Height * invertedHeight) ),
+                ( new(+destination.Width, -destination.Height), new(1 * source.Width * invertedWidth, 1 * source.Height * invertedHeight) ),
+            };
+
+            int j = 0;
 
             for (int i = 0; i < textCharCount; i++)
             {
                 char currentChar = textPointer[i];
 
-                if (currentChar == 11)
+                if (currentChar == '\v')
                 {
                     // Tabulation
-                    destination.X+= 8 * fX;
+                    destination.X += 8 * fX;
                     --textLength;
                     continue;
                 }
-                else if (currentChar >= 10 && currentChar <= 13)
+                else if (currentChar >= 10 && currentChar <= 13) // '\n' '\v' '\f' '\r'
                 {
-                    // New Line
-                    destination.X= fX;
+                    destination.X = fX;
                     destination.Y += fH;
-                    scaledDestinationY = -(destination.Y * 2.0f - 1.0f);
+                    scaledDestinationY = -(destination.Y * 2f - 1f);
                     --textLength;
                     continue;
                 }
                 else if (currentChar < 32 || currentChar > 126)
                 {
-                    currentChar = (char)32;
+                    currentChar = ' ';
                 }
 
-                source.X= currentChar % 32 * constantInfos.X;
-                source.Y = currentChar / 32 % 4 * constantInfos.Y;
+                source.X = (currentChar % 32 * constantInfos.X) * invertedWidth;
+                source.Y = (currentChar / 32 % 4 * constantInfos.Y) * invertedHeight;
 
-                scaledDestinationX = destination.X * 2.0f - 1.0f;
+                scaledDestinationX = destination.X * 2f - 1f;
 
                 // 0
-                (*vertexBuffer)->Position.X = scaledDestinationX + BaseVertexBufferData[0].Position.X* destination.Width;
-                (*vertexBuffer)->Position.Y = scaledDestinationY + BaseVertexBufferData[0].Position.Y * destination.Height;
-
-                (*vertexBuffer)->TextureCoordinate.X= (source.X + BaseVertexBufferData[0].TextureCoordinate.X * source.Width) * invertedWidth;
-                (*vertexBuffer)->TextureCoordinate.Y = (source.Y + BaseVertexBufferData[0].TextureCoordinate.Y * source.Height) * invertedHeight;
-
-                ++(*vertexBuffer);
+                vertexBuffer[j].Position.X = scaledDestinationX + baseData[0].Position.X;
+                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[0].Position.Y;
+                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[0].TextureCoordinate.X;
+                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[0].TextureCoordinate.Y;
+                j++;
 
                 // 1
-                (*vertexBuffer)->Position.X = scaledDestinationX + BaseVertexBufferData[1].Position.X * destination.Width;
-                (*vertexBuffer)->Position.Y = scaledDestinationY + BaseVertexBufferData[1].Position.Y * destination.Height;
-
-                (*vertexBuffer)->TextureCoordinate.X = (source.X + BaseVertexBufferData[1].TextureCoordinate.X * source.Width) * invertedWidth;
-                (*vertexBuffer)->TextureCoordinate.Y = (source.Y + BaseVertexBufferData[1].TextureCoordinate.Y * source.Height) * invertedHeight;
-
-                ++(*vertexBuffer);
+                vertexBuffer[j].Position.X = scaledDestinationX + baseData[1].Position.X;
+                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[1].Position.Y;
+                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[1].TextureCoordinate.X;
+                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[1].TextureCoordinate.Y;
+                j++;
 
                 // 2
-                (*vertexBuffer)->Position.X = scaledDestinationX + BaseVertexBufferData[2].Position.X * destination.Width;
-                (*vertexBuffer)->Position.Y = scaledDestinationY + BaseVertexBufferData[2].Position.Y * destination.Height;
-
-                (*vertexBuffer)->TextureCoordinate.X = (source.X + BaseVertexBufferData[2].TextureCoordinate.X * source.Width) * invertedWidth;
-                (*vertexBuffer)->TextureCoordinate.Y = (source.Y + BaseVertexBufferData[2].TextureCoordinate.Y * source.Height) * invertedHeight;
-
-                ++(*vertexBuffer);
+                vertexBuffer[j].Position.X = scaledDestinationX + baseData[2].Position.X;
+                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[2].Position.Y;
+                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[2].TextureCoordinate.X;
+                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[2].TextureCoordinate.Y;
+                j++;
 
                 // 3
-                (*vertexBuffer)->Position.X = scaledDestinationX + BaseVertexBufferData[3].Position.X * destination.Width;
-                (*vertexBuffer)->Position.Y = scaledDestinationY + BaseVertexBufferData[3].Position.Y * destination.Height;
-
-                (*vertexBuffer)->TextureCoordinate.X = (source.X + BaseVertexBufferData[3].TextureCoordinate.X * source.Width) * invertedWidth;
-                (*vertexBuffer)->TextureCoordinate.Y = (source.Y + BaseVertexBufferData[3].TextureCoordinate.Y * source.Height) * invertedHeight;
-
-                ++(*vertexBuffer);
+                vertexBuffer[j].Position.X = scaledDestinationX + baseData[3].Position.X;
+                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[3].Position.Y;
+                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[3].TextureCoordinate.X;
+                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[3].TextureCoordinate.Y;
+                j++;
 
                 destination.X += destination.Width;
             }
