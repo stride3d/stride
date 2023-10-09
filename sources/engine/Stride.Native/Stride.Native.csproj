@@ -1,36 +1,123 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project>
-  <PropertyGroup>
-    <StrideRuntime>true</StrideRuntime>
-    <StrideNativeOutputName>libstride</StrideNativeOutputName>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
-    <StrideBuildTags>*</StrideBuildTags>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Stride.Native.Libs.targets">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="StrideNative.h" />
-    <None Include="LinuxAllocator.cpp" />
-	<None Include="FastTextRenderer\FastTextRenderer.c" />
-    <None Include="Sprite\SpriteBatchNative.c" />
-    <None Include="DirectInput\XInputChecker.cpp" />
-    <None Include="Lightprobes\predicates.c" />
-  </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\..\targets\Stride.Global.props" />
+
+    <PropertyGroup>
+	    <StrideRuntime>true</StrideRuntime>
+		<StrideNativeLibName>libstride</StrideNativeLibName>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <IncludeContentInPack>true</IncludeContentInPack>
+    </PropertyGroup>
+	
+	<ItemGroup>
+		<Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+		<Link>Properties\SharedAssemblyInfo.cs</Link>
+		</Compile>
+	</ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
+    </ItemGroup>
+
+	<!-- TODO - This could be useful to more projects, so move to shared location -->
+    <PropertyGroup>
+        <StrideNativeIsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</StrideNativeIsLinux>
+        <StrideNativeIsOsx Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</StrideNativeIsOsx>
+        <StrideNativeIsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</StrideNativeIsWindows>
+
+        <StrideNativeProcessorArch>$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)</StrideNativeProcessorArch>
+    </PropertyGroup>
+
+	<!-- TODO - Much of this could be moved to Props/Targets file and shared across the other native modules -->
+	<!-- This section installs the host platform Zig tooling. one time only to Nuget cache -->
+    <ItemGroup>
+        <PackageReference Include="Vezel.Zig.Toolsets.linux-x64" Version="0.11.0.1" Condition="'$(StrideNativeProcessorArch)' == 'X64' And '$(StrideNativeIsLinux)' == 'true'">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+
+        <PackageReference Include="Vezel.Zig.Toolsets.osx-x64" Version="0.11.0.1" Condition="'$(StrideNativeProcessorArch)' == 'X64' And '$(StrideNativeIsOsx)' == 'true'">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+
+        <PackageReference Include="Vezel.Zig.Toolsets.win-x64" Version="0.11.0.1" Condition="'$(StrideNativeProcessorArch)' == 'X64' And '$(StrideNativeIsWindows)' == 'true'">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+
+        <PackageReference Include="Vezel.Zig.Toolsets.linux-arm64" Version="0.11.0.1" Condition="'$(StrideNativeProcessorArch)' == 'Arm64' And '$(StrideNativeIsLinux)' == 'true'">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+
+        <PackageReference Include="Vezel.Zig.Toolsets.osx-arm64" Version="0.11.0.1" Condition="'$(StrideNativeProcessorArch)' == 'Arm64' And '$(StrideNativeIsOsx)' == 'true'">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+
+        <PackageReference Include="Vezel.Zig.Toolsets.win-arm64" Version="0.11.0.1" Condition="'$(StrideNativeProcessorArch)' == 'Arm64' And '$(StrideNativeIsWindows)' == 'true'">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Condition="'$(Configuration)' == 'Debug'" Include="debug/linux-x64/libstride.so" PackagePath="runtimes/linux-x64/native/libstride.so" />
+        <Content Condition="'$(Configuration)' == 'Debug'" Include="debug/linux-arm64/libstride.so" PackagePath="runtimes/linux-arm64/native/libstride.so" />
+        <Content Condition="'$(Configuration)' == 'Debug'" Include="debug/osx-x64/libstride.dylib" PackagePath="runtimes/osx-x64/native/libstride.dylib" />
+        <Content Condition="'$(Configuration)' == 'Debug'" Include="debug/osx-arm64/libstride.dylib" PackagePath="runtimes/osx-arm64/native/libstride.dylib" />
+        <Content Condition="'$(Configuration)' == 'Debug'" Include="debug/win-x64/libstride.dll" PackagePath="runtimes/win-x64/native/libstride.dll" />
+        <Content Condition="'$(Configuration)' == 'Debug'" Include="debug/win-x64/libstride.pdb" PackagePath="runtimes/win-x64/native/libstride.pdb" />
+        <Content Condition="'$(Configuration)' == 'Debug'" Include="debug/win-arm64/libstride.dll" PackagePath="runtimes/win-arm64/native/libstride.dll" />
+        <Content Condition="'$(Configuration)' == 'Debug'" Include="debug/win-arm64/libstride.pdb" PackagePath="runtimes/win-arm64/native/libstride.pdb" />
+
+        <Content Condition="'$(Configuration)' == 'Release'" Include="release/linux-x64/libstride.so" PackagePath="runtimes/linux-x64/native/libstride.so" />
+        <Content Condition="'$(Configuration)' == 'Release'" Include="release/linux-arm64/libstride.so" PackagePath="runtimes/linux-arm64/native/libstride.so" />
+        <Content Condition="'$(Configuration)' == 'Release'" Include="release/osx-x64/libstride.dylib" PackagePath="runtimes/osx-x64/native/libstride.dylib" />
+        <Content Condition="'$(Configuration)' == 'Release'" Include="release/osx-arm64/libstride.dylib" PackagePath="runtimes/osx-arm64/native/libstride.dylib" />
+        <Content Condition="'$(Configuration)' == 'Release'" Include="release/win-x64/libstride.dll" PackagePath="runtimes/win-x64/native/libstride.dll" />
+        <Content Condition="'$(Configuration)' == 'Release'" Include="release/win-arm64/libstride.dll" PackagePath="runtimes/win-arm64/native/libstride.dll" />
+    </ItemGroup>
+
+	<!-- Execute to the cross compile to all relevant platforms -->
+	<!-- Note this works from any host platform (Windows, Mac, Linux) -->
+    <Target Name="Compile Stride" AfterTargets="build">
+        <MakeDir Directories="debug/linux-x64" />
+        <MakeDir Directories="debug/linux-arm64" />
+        <MakeDir Directories="debug/osx-x64" />
+        <MakeDir Directories="debug/osx-arm64" />
+        <MakeDir Directories="debug/win-x64" />
+        <MakeDir Directories="debug/win-arm64" />
+
+        <MakeDir Directories="release/linux-x64" />
+        <MakeDir Directories="release/linux-arm64" />
+        <MakeDir Directories="release/osx-x64" />
+        <MakeDir Directories="release/osx-arm64" />
+        <MakeDir Directories="release/win-x64" />
+        <MakeDir Directories="release/win-arm64" />
+
+		<!-- Not supported yet -->
+        <!-- <MakeDir Directories="release/ios" /> -->
+        <!-- <MakeDir Directories="release/android" /> -->
+
+        <Exec Command="$(ZigExePath) c++ -g -shared StrideNative.cpp -o debug/linux-x64/$(StrideNativeLibName).so -target x86_64-linux-gnu -DPLATFORM_LINUX" />
+        <Exec Command="$(ZigExePath) c++ -g -shared StrideNative.cpp -o debug/linux-arm64/$(StrideNativeLibName).so  -target aarch64-linux-gnu -DPLATFORM_LINUX" />
+        <Exec Command="$(ZigExePath) c++ -g -shared StrideNative.cpp -o debug/osx-x64/$(StrideNativeLibName).dylib -target x86_64-macos -DPLATFORM_MACOS" />
+        <Exec Command="$(ZigExePath) c++ -g -shared StrideNative.cpp -o debug/osx-arm64/$(StrideNativeLibName).dylib -target aarch64-macos -DPLATFORM_MACOS" />
+        <Exec Command="$(ZigExePath) c++ -g -shared StrideNative.cpp -o debug/win-x64/$(StrideNativeLibName).dll -target x86_64-windows-gnu -lws2_32 -lOle32 -lOleAut32 -DWINDOWS_DESKTOP" />
+        <Exec Command="$(ZigExePath) c++ -g -shared StrideNative.cpp -o debug/win-arm64/$(StrideNativeLibName).dll -target aarch64-windows-gnu -lws2_32 -lOle32 -lOleAut32 -DWINDOWS_DESKTOP" />
+
+        <Exec Command="$(ZigExePath) c++ -s -shared -O3 -DNDEBUG StrideNative.cpp -o release/linux-x64/$(StrideNativeLibName).so -target x86_64-linux-gnu -DPLATFORM_LINUX" />
+        <Exec Command="$(ZigExePath) c++ -s -shared -O3 -DNDEBUG StrideNative.cpp -o release/linux-arm64/$(StrideNativeLibName).so -target aarch64-linux-gnu -DPLATFORM_LINUX" />
+        <Exec Command="$(ZigExePath) c++ -s -shared -O3 -DNDEBUG StrideNative.cpp -o release/osx-x64/$(StrideNativeLibName).dylib -target x86_64-macos -DPLATFORM_MACOS" />
+        <Exec Command="$(ZigExePath) c++ -s -shared -O3 -DNDEBUG StrideNative.cpp -o release/osx-arm64/$(StrideNativeLibName).dylib -target aarch64-macos -DPLATFORM_MACOS" />
+        <Exec Command="$(ZigExePath) c++ -s -shared -O3 -DNDEBUG StrideNative.cpp -o release/win-x64/$(StrideNativeLibName).dll -target x86_64-windows-gnu -lws2_32 -lOle32 -lOleAut32 -DWINDOWS_DESKTOP" />
+        <Exec Command="$(ZigExePath) c++ -s -shared -O3 -DNDEBUG StrideNative.cpp -o release/win-arm64/$(StrideNativeLibName).dll -target aarch64-windows-gnu -lws2_32 -lOle32 -lOleAut32 -DWINDOWS_DESKTOP" />
+
+		<!-- Not supported yet -->
+        <!-- <Exec Command="$(ZigExePath) c++ -s -shared -O3 -DNDEBUG StrideNative.cpp -o release/ios/libstride.dylib -target aarch64-ios" /> -->
+        <!-- <Exec Command="$(ZigExePath) c++ -s -shared -O3 -DNDEBUG StrideNative.cpp -o release/android/libstride.so -target aarch64-android" /> -->
+    </Target>
+
+	<!-- TODO - Bring back some of the Targets needed for Native libs, but not the whole Sdk Target -->
 </Project>

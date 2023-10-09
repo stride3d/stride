@@ -3,6 +3,22 @@
 
 #pragma once
 
+// With Zig CC we can bring in these std headers now
+#include <stdlib.h>
+#include <stdio.h>
+#include <memory.h>
+#include <math.h>
+
+#include "NativeMath.h"
+
+#if !__has_builtin(__builtin_shufflevector)
+#error \"shufflevector clang built-in not available\"
+// v.
+extern void shufflevector(...);
+#else
+#define shufflevector __builtin_shufflevector
+#endif
+
 /*
 * Some platforms requires a special declaration before the function declaration to export them
 * in the shared library. Defining NEED_DLL_EXPORT will define DLL_EXPORT_API to do the right thing
@@ -17,8 +33,6 @@
 #else
 #define DLL_EXPORT_API
 #endif
-
-#include "../../deps/NativePath/standard/math.h"
 
 #ifdef __cplusplus
 extern "C" {
