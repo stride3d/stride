@@ -438,12 +438,7 @@ namespace Stride.Core.Reflection
                 }
             }
 
-
-            // Member is not displayed if there is a YamlIgnore attribute on it
-            if (AttributeRegistry.GetAttribute<DataMemberIgnoreAttribute>(memberInfo) != null)
-                return false;
-
-            return true;
+            return AttributeRegistry.GetAttribute<DataMemberIgnoreAttribute>(memberInfo) is null;
         }
     }
 }
