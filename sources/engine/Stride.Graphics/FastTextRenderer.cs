@@ -219,7 +219,7 @@ namespace Stride.Graphics
                 var constantInfos = new RectangleF(GlyphWidth, GlyphHeight, DebugSpriteWidth, DebugSpriteHeight);
                 foreach (var textInfo in stringsToDraw)
                 {
-                    Span<VertexPositionNormalTexture> vertexPositionSpan = new((void*)mappedVertexBufferPointer, VertexBufferLength * sizeof(VertexPositionNormalTexture));
+                    Span<VertexPositionNormalTexture> vertexPositionSpan = new((void*)mappedVertexBufferPointer, VertexBufferLength);
                     var textLength = textInfo.Text.Length;
                     GraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, ref textLength,  vertexPositionSpan);
 
