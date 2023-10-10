@@ -1901,7 +1901,10 @@ private:
 		ret->Materials = gcnew Dictionary<String^, MaterialAsset^>();
 		for (int i = 0; i < materialInstantiations->Count; ++i)
 		{
-			ret->Materials->Add(materialInstantiations[i]->MaterialName, materialInstantiations[i]->Material);
+			if (!ret->Materials->ContainsKey(materialInstantiations[i]->MaterialName))
+			{
+				ret->Materials->Add(materialInstantiations[i]->MaterialName, materialInstantiations[i]->Material);
+			}
 		}
         
 		return ret;
