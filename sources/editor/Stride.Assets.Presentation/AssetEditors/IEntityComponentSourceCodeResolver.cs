@@ -11,13 +11,11 @@ namespace Stride.Assets.Presentation.AssetEditors
     /// <summary>
     /// Provides information about scripts in loaded assemblies.
     /// </summary>
-    public interface IScriptSourceCodeResolver
+    public interface IEntityComponentSourceCodeResolver
     {
         /// <summary>
         /// Gets script types that exist in a source file.
         /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
         IEnumerable<Type> GetTypesFromSourceFile(UFile file);
 
         Compilation LatestCompilation { get; }
