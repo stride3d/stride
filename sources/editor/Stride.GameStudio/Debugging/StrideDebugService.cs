@@ -17,7 +17,6 @@ using Stride.Debugger.Target;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
-using Stride.Core.VisualStudio;
 using Stride.Assets.Presentation.AssetEditors;
 
 namespace Stride.GameStudio.Debugging
@@ -95,63 +94,61 @@ namespace Stride.GameStudio.Debugging
             // Notify project could compile succesfully
             projectCouldFirstCompile.TrySetResult(true);
 
-            using (var debugHost = new DebugHost())
+            using var debugHost = new DebugHost();
+            // Start the debug host and wait for it to be available
+            debugHost.Start(executableOutputPath, debuggerProcess, logger);
+            var debugTarget = await debugHost.GameHost.Target;
+
+            bool firstLoad = true;
+
+            // List of currently loaded assemblies
+            var loadedAssemblies = new Dictionary<AssemblyRecompiler.SourceGroup, DebugAssembly>(AssemblyRecompiler.SourceGroupComparer.Default);
+
+            // Listen for game exited event
+            var gameExited = new CancellationTokenSource();
+            debugHost.GameHost.GameExited += gameExited.Cancel;
+
+            while (!gameExited.IsCancellationRequested)
             {
-                // Start the debug host and wait for it to be available
-                debugHost.Start(executableOutputPath, debuggerProcess, logger);
-                var debugTarget = await debugHost.GameHost.Target;
-
-                bool firstLoad = true;
-
-                // List of currently loaded assemblies
-                var loadedAssemblies = new Dictionary<AssemblyRecompiler.SourceGroup, DebugAssembly>(AssemblyRecompiler.SourceGroupComparer.Default);
-
-                // Listen for game exited event
-                var gameExited = new CancellationTokenSource();
-                debugHost.GameHost.GameExited += gameExited.Cancel;
-
-                while (!gameExited.IsCancellationRequested)
+                if (!updateResult.HasErrors)
                 {
-                    if (!updateResult.HasErrors)
+                    // Assemblies to unload, based on currently loaded ones
+                    var assembliesToUnload = updateResult.UnloadedProjects.Select(x => loadedAssemblies[x]).ToList();
+
+                    // Load new assemblies
+                    foreach (var loadedProject in updateResult.LoadedProjects)
                     {
-                        // Assemblies to unload, based on currently loaded ones
-                        var assembliesToUnload = updateResult.UnloadedProjects.Select(x => loadedAssemblies[x]).ToList();
-
-                        // Load new assemblies
-                        foreach (var loadedProject in updateResult.LoadedProjects)
-                        {
-                            var assembly = debugTarget.AssemblyLoadRaw(loadedProject.PE, loadedProject.PDB);
-                            loadedAssemblies[loadedProject] = assembly;
-                        }
-
-                        // Assemblies to load, based on the updated SourceGroup mapping
-                        var assembliesToLoad = updateResult.LoadedProjects.Select(x => loadedAssemblies[x]).ToList();
-
-                        // Update runtime game to use new assemblies
-                        debugTarget.AssemblyUpdate(assembliesToUnload, assembliesToLoad);
-
-                        // Start game on first load
-                        if (firstLoad)
-                        {
-                            // Arbitrarily launch first game (should be only one anyway?)
-                            // TODO: Maybe game is not even necessary anymore and we should just instantiate a "DefaultSceneGame"?
-                            var games = debugTarget.GameEnumerateTypeNames();
-                            debugTarget.GameLaunch(games.First());
-
-                            firstLoad = false;
-                        }
+                        var assembly = debugTarget.AssemblyLoadRaw(loadedProject.PE, loadedProject.PDB);
+                        loadedAssemblies[loadedProject] = assembly;
                     }
 
-                    // Wait for any file change that would trigger a recompilation (or a game exit event)
-                    await projectWatcher.ReceiveAndDiscardChanges(recompilationDelay, gameExited.Token);
+                    // Assemblies to load, based on the updated SourceGroup mapping
+                    var assembliesToLoad = updateResult.LoadedProjects.Select(x => loadedAssemblies[x]).ToList();
 
-                    // Check if live session exited to avoid recompiling for nothing
-                    if (gameExited.IsCancellationRequested)
-                        break;
+                    // Update runtime game to use new assemblies
+                    debugTarget.AssemblyUpdate(assembliesToUnload, assembliesToLoad);
 
-                    // Update result for next loop
-                    updateResult = await assemblyRecompiler.Recompile(projectWatcher.CurrentGameLibrary, logger);
+                    // Start game on first load
+                    if (firstLoad)
+                    {
+                        // Arbitrarily launch first game (should be only one anyway?)
+                        // TODO: Maybe game is not even necessary anymore and we should just instantiate a "DefaultSceneGame"?
+                        var games = debugTarget.GameEnumerateTypeNames();
+                        debugTarget.GameLaunch(games[0]);
+
+                        firstLoad = false;
+                    }
                 }
+
+                // Wait for any file change that would trigger a recompilation (or a game exit event)
+                await projectWatcher.ReceiveAndDiscardChanges(recompilationDelay, gameExited.Token);
+
+                // Check if live session exited to avoid recompiling for nothing
+                if (gameExited.IsCancellationRequested)
+                    break;
+
+                // Update result for next loop
+                updateResult = await assemblyRecompiler.Recompile(projectWatcher.CurrentGameLibrary, logger);
             }
         }
 

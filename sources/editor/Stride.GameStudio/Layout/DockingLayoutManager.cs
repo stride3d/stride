@@ -16,8 +16,11 @@ using AvalonDock;
 using AvalonDock.Layout;
 using AvalonDock.Layout.Serialization;
 using Microsoft.Xaml.Behaviors;
+using Stride.GameStudio.ViewModels;
+using Stride.GameStudio.Helpers;
+using Stride.GameStudio.View;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.Layout
 {
     /// <summary>
     /// A class that manages the docking layout of a <see cref="GameStudioWindow"/>, including switching between Editor and Normal mode, saving/loading
@@ -54,10 +57,8 @@ namespace Stride.GameStudio
         /// <param name="session">The session opened in the Game Studio.</param>
         public DockingLayoutManager(GameStudioWindow gameStudioWindow, SessionViewModel session)
         {
-            if (gameStudioWindow == null) throw new ArgumentNullException(nameof(gameStudioWindow));
-            if (session == null) throw new ArgumentNullException(nameof(session));
-            this.gameStudioWindow = gameStudioWindow;
-            this.session = session;
+            this.gameStudioWindow = gameStudioWindow ?? throw new ArgumentNullException(nameof(gameStudioWindow));
+            this.session = session ?? throw new ArgumentNullException(nameof(session));
         }
 
         /// <summary>
@@ -229,8 +230,7 @@ namespace Stride.GameStudio
             // Apply saved the binding expressions to the newly deserialized anchorables
             foreach (var anchorable in AvalonDockHelper.GetAllAnchorables(DockingManager).Where(x => !string.IsNullOrEmpty(x.ContentId)))
             {
-                List<BindingInfo> bindingInfos;
-                if (bindings.TryGetValue(anchorable.ContentId, out bindingInfos))
+                if (bindings.TryGetValue(anchorable.ContentId, out var bindingInfos))
                 {
                     foreach (var bindingInfo in bindingInfos)
                     {
@@ -263,16 +263,14 @@ namespace Stride.GameStudio
         {
             try
             {
-                using (var stream = new MemoryStream())
-                {
-                    var serializer = new XmlLayoutSerializer(DockingManager);
-                    serializer.Serialize(stream);
+                using var stream = new MemoryStream();
+                var serializer = new XmlLayoutSerializer(DockingManager);
+                serializer.Serialize(stream);
 
-                    stream.Seek(0, SeekOrigin.Begin);
-                    var reader = new StreamReader(stream);
-                    var text = reader.ReadToEnd();
-                    return text;
-                }
+                stream.Seek(0, SeekOrigin.Begin);
+                var reader = new StreamReader(stream);
+                var text = reader.ReadToEnd();
+                return text;
             }
             catch (Exception)
             {

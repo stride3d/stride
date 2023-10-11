@@ -23,13 +23,15 @@ using Stride.Animations;
 using Stride.Assets.Presentation.CurveEditor.ViewModels;
 using Stride.Assets.Presentation.CurveEditor.Views;
 using AvalonDock.Layout;
+using Stride.GameStudio.Helpers;
+using Stride.GameStudio.Layout;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.AssetsEditors
 {
     internal sealed class AssetEditorsManager : IAssetEditorsManager, IDestroyable
     {
         private readonly ConditionalWeakTable<IMultipleAssetEditorViewModel, NotifyCollectionChangedEventHandler> registeredHandlers = new();
-        private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = new Dictionary<IAssetEditorViewModel, LayoutAnchorable>();
+        private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = new();
         private readonly HashSet<AssetViewModel> openedAssets = new HashSet<AssetViewModel>();
         // TODO have a base interface for all editors and factorize to make curve editor not be a special case anymore
         private Tuple<CurveEditorViewModel, LayoutAnchorable> curveEditor;
@@ -40,11 +42,8 @@ namespace Stride.GameStudio
 
         public AssetEditorsManager([NotNull] DockingLayoutManager dockingLayoutManager, [NotNull] SessionViewModel session)
         {
-            if (dockingLayoutManager == null) throw new ArgumentNullException(nameof(dockingLayoutManager));
-            if (session == null) throw new ArgumentNullException(nameof(session));
-
-            this.dockingLayoutManager = dockingLayoutManager;
-            this.session = session;
+            this.dockingLayoutManager = dockingLayoutManager ?? throw new ArgumentNullException(nameof(dockingLayoutManager));
+            this.session = session ?? throw new ArgumentNullException(nameof(session));
             session.DeletedAssetsChanged += AssetsDeleted;
         }
 
@@ -79,35 +78,32 @@ namespace Stride.GameStudio
             }
 
             // Create the editor view model if needed
-            if (editorViewModel == null)
-            {
-                editorViewModel = new CurveEditorViewModel(session.ServiceProvider, session);
-            }
+            editorViewModel ??= new CurveEditorViewModel(session.ServiceProvider, session);
 
             // Populate the editor view model
-            if (curve is IComputeCurve<Color4>)
+            if (curve is IComputeCurve<Color4> color4curve)
             {
-                editorViewModel.AddCurve((IComputeCurve<Color4>)curve, name);
+                editorViewModel.AddCurve(color4curve, name);
             }
-            else if (curve is IComputeCurve<float>)
+            else if (curve is IComputeCurve<float> floatCurve)
             {
-                editorViewModel.AddCurve((IComputeCurve<float>)curve, name);
+                editorViewModel.AddCurve(floatCurve, name);
             }
-            else if (curve is IComputeCurve<Quaternion>)
+            else if (curve is IComputeCurve<Quaternion> quaternionCurve)
             {
-                editorViewModel.AddCurve((IComputeCurve<Quaternion>)curve, name);
+                editorViewModel.AddCurve(quaternionCurve, name);
             }
-            else if (curve is IComputeCurve<Vector2>)
+            else if (curve is IComputeCurve<Vector2> vec2curve)
             {
-                editorViewModel.AddCurve((IComputeCurve<Vector2>)curve, name);
+                editorViewModel.AddCurve(vec2curve, name);
             }
-            else if (curve is IComputeCurve<Vector3>)
+            else if (curve is IComputeCurve<Vector3> vec3curve)
             {
-                editorViewModel.AddCurve((IComputeCurve<Vector3>)curve, name);
+                editorViewModel.AddCurve(vec3curve, name);
             }
-            else if (curve is IComputeCurve<Vector4>)
+            else if (curve is IComputeCurve<Vector4> vec4curve)
             {
-                editorViewModel.AddCurve((IComputeCurve<Vector4>)curve, name);
+                editorViewModel.AddCurve(vec4curve, name);
             }
 
             editorViewModel.Focus();
@@ -123,14 +119,6 @@ namespace Stride.GameStudio
                 };
 
                 editorPane.Closed += CurveEditorClosed;
-
-                //editorPane.Closed += (s, e) =>
-                //{
-                //    if (((LayoutAnchorable)s).IsHidden)
-                //    {
-                //        RemoveCurveEditor(true);
-                //    }
-                //};
 
                 AvalonDockHelper.GetDocumentPane(dockingLayoutManager.DockingManager).Children.Add(editorPane);
             }
@@ -266,21 +254,17 @@ namespace Stride.GameStudio
             {
                 LayoutAnchorable editorPane = null;
                 IEditorView view;
-                // Asset already has an editor?
-                if (asset.Editor != null)
+                // Asset already has an editor? Then, Look for the corresponding panel
+                if (asset.Editor != null && !assetEditors.TryGetValue(asset.Editor, out editorPane))
                 {
-                    // Look for the corresponding pane
-                    if (!assetEditors.TryGetValue(asset.Editor, out editorPane))
+                    // Inconsistency, clean leaking editor
+                    RemoveAssetEditor(asset);
+                    // Try to find if another editor currently has this asset
+                    var editor = assetEditors.Keys.OfType<IMultipleAssetEditorViewModel>().FirstOrDefault(x => x.OpenedAssets.Contains(asset));
+                    if (editor != null)
                     {
-                        // Inconsistency, clean leaking editor
-                        RemoveAssetEditor(asset);
-                        // Try to find if another editor currently has this asset
-                        var editor = assetEditors.Keys.OfType<IMultipleAssetEditorViewModel>().FirstOrDefault(x => x.OpenedAssets.Contains(asset));
-                        if (editor != null)
-                        {
-                            editorPane = assetEditors[editor];
-                            asset.Editor = editor;
-                        }
+                        editorPane = assetEditors[editor];
+                        asset.Editor = editor;
                     }
                 }
                 // Existing editor?
@@ -437,8 +421,7 @@ namespace Stride.GameStudio
 
         private void RemoveEditor([NotNull] IAssetEditorViewModel editor)
         {
-            LayoutAnchorable editorPane;
-            assetEditors.TryGetValue(editor, out editorPane);
+            assetEditors.TryGetValue(editor, out var editorPane);
 
             if (editor is IMultipleAssetEditorViewModel multiEditor)
             {
@@ -530,8 +513,7 @@ namespace Stride.GameStudio
             var editorPane = (LayoutAnchorable)sender;
 
             var element = editorPane.Content as FrameworkElement;
-            var asset = element?.DataContext as AssetViewModel;
-            if (asset != null)
+            if (element?.DataContext is AssetViewModel asset)
             {
                 CloseEditorWindow(asset);
             }
@@ -548,9 +530,8 @@ namespace Stride.GameStudio
         private static void EditorPaneIsActiveChanged(object sender, EventArgs e)
         {
             var editorPane = (LayoutAnchorable)sender;
-            var element = editorPane.Content as FrameworkElement;
 
-            if (element != null)
+            if (editorPane.Content is FrameworkElement element)
             {
                 if (editorPane.IsActive)
                 {
@@ -576,9 +557,8 @@ namespace Stride.GameStudio
         private static void EditorPaneIsSelectedChanged(object sender, EventArgs e)
         {
             var editorPane = (LayoutAnchorable)sender;
-            var element = editorPane.Content as FrameworkElement;
 
-            if (element != null)
+            if (editorPane.Content is FrameworkElement element)
             {
                 var assetViewModel = element?.DataContext as AssetViewModel;
                 if (assetViewModel?.Editor is Assets.Presentation.AssetEditors.GameEditor.ViewModels.GameEditorViewModel gameEditor)

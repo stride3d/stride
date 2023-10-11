@@ -25,11 +25,15 @@ using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using AvalonDock.Layout;
+using Stride.GameStudio.ViewModels;
+using Stride.GameStudio.Helpers;
+using Stride.GameStudio.AssetsEditors;
+using Stride.GameStudio.Layout;
 #if DEBUG
 using Stride.Assets.Presentation.Test;
 #endif
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.View
 {
     /// <summary>
     /// Interaction logic for GameStudioWindow.xaml

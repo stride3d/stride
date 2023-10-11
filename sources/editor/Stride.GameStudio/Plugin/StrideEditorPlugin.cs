@@ -5,21 +5,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
-using Stride.Core.Extensions;
 using Stride.Core.IO;
-using Stride.Core.Packages;
 using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.Editor.Thumbnails;
 using Stride.GameStudio.Debugging;
+using Stride.GameStudio.Helpers;
+using Stride.GameStudio.ViewModels;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.Plugin
 {
     public class StrideEditorPlugin : StrideAssetsPlugin
     {

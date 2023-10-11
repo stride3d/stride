@@ -1,4 +1,4 @@
-<Window x:Class="Stride.GameStudio.GameStudioWindow"
+<Window x:Class="Stride.GameStudio.View.GameStudioWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -6,7 +6,9 @@
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:strings="clr-namespace:Stride.GameStudio.Resources.Strings"
         xmlns:stringsEd="clr-namespace:Stride.Core.Assets.Editor.Resources.Strings;assembly=Stride.Core.Assets.Editor"
-        xmlns:gs="clr-namespace:Stride.GameStudio"
+        xmlns:gl="clr-namespace:Stride.GameStudio.Layout.Behaviors"
+        xmlns:gh="clr-namespace:Stride.GameStudio.Helpers"
+        xmlns:vm="clr-namespace:Stride.GameStudio.ViewModels"
         xmlns:xcad="https://github.com/Dirkster99/AvalonDock"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:viewModels="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
@@ -14,11 +16,11 @@
         mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
         Title="{Binding EditorTitle, RelativeSource={RelativeSource Self}}" Width="1280" Height="900" Style="{DynamicResource WindowChromeStyle}"
         PreviewMouseDown="EditorWindowPreviewMouseDown"
-        d:DataContext="{d:DesignInstance gs:GameStudioViewModel}" x:Name="EditorWindow">
+        d:DataContext="{d:DesignInstance vm:GameStudioViewModel}" x:Name="EditorWindow">
   <Window.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="Theme.AvalonDock.xaml"/>
+        <ResourceDictionary Source="/Theme.AvalonDock.xaml"/>
         <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml" />
       </ResourceDictionary.MergedDictionaries>
       <DataTemplate x:Key="AvalonDock_GameStudio_TitleTemplate">
@@ -277,11 +279,11 @@
       </MenuItem>
       <!-- Help Menu -->
       <MenuItem Header="{sd:Localize Help, Context=Menu}">
-        <MenuItem Header="{sd:Localize Online documentation, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:StrideGameStudio.DocumentationUrl}"/>
+        <MenuItem Header="{sd:Localize Online documentation, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gh:StrideGameStudio.DocumentationUrl}"/>
         <Separator/>
-        <MenuItem Header="{sd:Localize Questions and answers, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:StrideGameStudio.AnswersUrl}"/>
-        <MenuItem Header="{sd:Localize Report an issue..., Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:StrideGameStudio.ReportIssueUrl}"/>
-        <MenuItem Header="{sd:Localize Community forums, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:StrideGameStudio.ForumsUrl}"/>
+        <MenuItem Header="{sd:Localize Questions and answers, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gh:StrideGameStudio.AnswersUrl}"/>
+        <MenuItem Header="{sd:Localize Report an issue..., Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gh:StrideGameStudio.ReportIssueUrl}"/>
+        <MenuItem Header="{sd:Localize Community forums, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gh:StrideGameStudio.ForumsUrl}"/>
         <Separator/>
         <MenuItem Header="{sd:Localize Show debug window, Context=Menu}" Command="{Binding OpenDebugWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}" InputGestureText="{x:Static strings:KeyGestures.OpenDebugWindow}"/>
         <Separator/>
@@ -433,8 +435,8 @@
                 <xcad:LayoutAnchorablePane DockWidth="300">
                   <!-- SOLUTION EXPLORER -->
                   <xcad:LayoutAnchorable AutoHideMinWidth="300" ContentId="SolutionExplorer" Title="{Binding Source={sd:Localize Solution explorer, Context=View}}"
-                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay,
-                                         Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
+                                         gh:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay,
+                                         Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
                     <DockPanel>
                       <ToolBarTray DockPanel.Dock="Top">
                         <ToolBar>
@@ -567,8 +569,8 @@
                 <xcad:LayoutDocumentPane>
                   <!-- ASSET VIEW -->
                   <xcad:LayoutAnchorable AutoHideMinWidth="300" ContentId="AssetView" Title="{Binding Source={sd:Localize Asset view, Context=View}}"
-                                           gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay,
-                                           Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
+                                           gh:AvalonDockHelper.IsVisible="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay,
+                                           Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
                     <sd:AssetViewUserControl AssetCollection="{Binding Session.ActiveAssetView}" AssetContextMenu="{StaticResource AssetContextMenu}"
                                            AssetDoubleClick="{Binding Session.EditSelectedContentCommand}">
                       <i:Interaction.Behaviors>
@@ -576,11 +578,11 @@
                         <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding Session.ActiveAssetView.CopyContentCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
                         <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding Session.ActiveAssetView.PasteCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
                         <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Session.ActiveAssetView.DeleteContentCommand}"/>
-                        <gs:ActivateParentPaneOnGotFocusBehavior/>
+                        <gl:ActivateParentPaneOnGotFocusBehavior/>
                       </i:Interaction.Behaviors>
                     </sd:AssetViewUserControl>
                     <i:Interaction.Behaviors>
-                      <gs:LayoutAnchorableActivateOnLocationChangedBehavior Collection="{Binding Session.ActiveAssetView.SelectedLocations}" />
+                      <gl:LayoutAnchorableActivateOnLocationChangedBehavior Collection="{Binding Session.ActiveAssetView.SelectedLocations}" />
                     </i:Interaction.Behaviors>
                   </xcad:LayoutAnchorable>
                 </xcad:LayoutDocumentPane>
@@ -588,8 +590,8 @@
               <xcad:LayoutAnchorablePane DockHeight="200">
                 <!-- REFERENCES -->
                 <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="References" Title="{Binding Source={sd:Localize References, Context=View}}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay,
-                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
+                                       gh:AvalonDockHelper.IsVisible="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay,
+                                       Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
                   <DockPanel LastChildFill="True" x:Name="RefViewDockPanel">
                     <!-- stats -->
                     <Border DockPanel.Dock="Bottom" Padding="10,5">
@@ -616,15 +618,15 @@
                 </xcad:LayoutAnchorable>
                 <!-- ASSET LOG -->
                 <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="AssetLog"
-                                       Title="{sd:Localize Asset error ({0}), Plural=Asset errors ({0}), Count={Binding Session.AssetLog.ErrorCount, Source={x:Static gs:GameStudioViewModel.GameStudio}}, IsStringFormat=True, Context=View}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay,
-                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
+                                       Title="{sd:Localize Asset error ({0}), Plural=Asset errors ({0}), Count={Binding Session.AssetLog.ErrorCount, Source={x:Static vm:GameStudioViewModel.GameStudio}}, IsStringFormat=True, Context=View}"
+                                       gh:AvalonDockHelper.IsVisible="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay,
+                                       Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
                   <sd:GridLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages}" Session="{Binding Session}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
                 </xcad:LayoutAnchorable>
                 <!-- BUILD LOG -->
-                <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="BuildLog" Title="{Binding Debugging.OutputTitle, Source={x:Static gs:GameStudioViewModel.GameStudio}}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay,
-                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
+                <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="BuildLog" Title="{Binding Debugging.OutputTitle, Source={x:Static vm:GameStudioViewModel.GameStudio}}"
+                                       gh:AvalonDockHelper.IsVisible="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay,
+                                       Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
                   <TabControl x:Name="LogTabControl">
                     <TabItem DataContext="{Binding Debugging.BuildLog}">
                       <TabItem.Header>
@@ -660,9 +662,9 @@
                     </i:Interaction.Behaviors>
                   </TabControl>
                   <i:Interaction.Behaviors>
-                    <sd:OnEventCommandBehavior Command="{Binding Debugging.ResetOutputTitleCommand, Source={x:Static gs:GameStudioViewModel.GameStudio}}" EventName="IsActiveChanged"/>
-                    <gs:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.BuildLog.Messages, Source={x:Static gs:GameStudioViewModel.GameStudio}}"/>
-                    <gs:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.LiveScriptingLog.Messages, Source={x:Static gs:GameStudioViewModel.GameStudio}}"/>
+                    <sd:OnEventCommandBehavior Command="{Binding Debugging.ResetOutputTitleCommand, Source={x:Static vm:GameStudioViewModel.GameStudio}}" EventName="IsActiveChanged"/>
+                    <gl:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.BuildLog.Messages, Source={x:Static vm:GameStudioViewModel.GameStudio}}"/>
+                    <gl:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.LiveScriptingLog.Messages, Source={x:Static vm:GameStudioViewModel.GameStudio}}"/>
                   </i:Interaction.Behaviors>
                 </xcad:LayoutAnchorable>
               </xcad:LayoutAnchorablePane>
@@ -671,8 +673,8 @@
               <xcad:LayoutAnchorablePane DockHeight="2*">
                 <!-- PROPERTY GRID -->
                 <xcad:LayoutAnchorable AutoHideMinWidth="400" ContentId="PropertyGrid" Title="{Binding Source={sd:Localize Property grid, Context=View}}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay,
-                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
+                                       gh:AvalonDockHelper.IsVisible="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay,
+                                       Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
                   <Grid Background="{StaticResource ToolBarBackgroundBrush}">
                     <Grid.RowDefinitions>
                       <RowDefinition Height="Auto"/>
@@ -897,16 +899,16 @@
                 <xcad:LayoutAnchorablePane>
                   <!-- ASSET PREVIEW -->
                   <xcad:LayoutAnchorable AutoHideMinWidth="400" ContentId="AssetPreview" Title="{Binding Source={sd:Localize Asset preview, Context=View}}"
-                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay,
-                                         Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
+                                         gh:AvalonDockHelper.IsVisible="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay,
+                                         Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
                     <DockPanel LastChildFill="True">
                       <ContentPresenter Content="{Binding Preview.PreviewObject}"/>
                     </DockPanel>
                   </xcad:LayoutAnchorable>
                   <!-- ACTION HISTORY -->
                   <xcad:LayoutAnchorable AutoHideMinWidth="400" ContentId="ActionHistory" Title="{Binding Source={sd:Localize Edit history, Context=View}}"
-                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay,
-                                         Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
+                                         gh:AvalonDockHelper.IsVisible="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay,
+                                         Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
                     <ListBox ItemsSource="{Binding Session.ActionHistory.Transactions}" HorizontalContentAlignment="Stretch">
                       <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">

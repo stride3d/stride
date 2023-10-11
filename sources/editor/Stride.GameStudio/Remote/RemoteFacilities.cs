@@ -16,7 +16,7 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Translation;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.Remote
 {
     /// <summary>
     /// Various feature for doing remote tasks: login, copying, executing, ...
@@ -170,63 +170,61 @@ namespace Stride.GameStudio
         private static bool SyncTo(ConnectionInfo connectInfo, UDirectory sourceDir, UDirectory destDir, LoggerResult logger)
         {
             // Copy files over
-            using (var sftp = new SftpClient(connectInfo))
+            using var sftp = new SftpClient(connectInfo);
+            try
             {
-                try
+                sftp.Connect();
+                if (!sftp.IsConnected)
                 {
-                    sftp.Connect();
-                    if (!sftp.IsConnected)
-                    {
-                        return false;
-                    }
-                }
-                catch
-                {
-                    logger.Error("Cannot connect");
                     return false;
                 }
-
-                // Perform recursive copy of all the folders under `sourceDir`. This is required
-                // as the sftp client only synchronize directories at their level only, no
-                // subdirectory.
-                var dirs = new Queue<DirectoryInfo>();
-                dirs.Enqueue(new DirectoryInfo(sourceDir));
-                var parentPath = sourceDir;
-                while (dirs.Count != 0)
-                {
-                    var currentDir = dirs.Dequeue();
-                    var currentPath = new UDirectory(currentDir.FullName);
-                    foreach (var subdir in currentDir.EnumerateDirectories())
-                    {
-                        dirs.Enqueue(subdir);
-                    }
-
-                    // Get the destination path by adding to `Location` the relative path of `sourceDir` to `currentDir`.
-                    var destination = UPath.Combine(destDir, currentPath.MakeRelative(parentPath));
-
-                    logger.Info("Synchronizing " + currentPath + " with " + destination.FullPath);
-                    // Try to create a remote directory. If it throws an exception, we will assume
-                    // for now that the directory already exists. See https://github.com/sshnet/SSH.NET/issues/25
-                    try
-                    {
-                        sftp.CreateDirectory(destination.FullPath);
-                        logger.Info("Creating remote directory " + destination.FullPath);
-                    }
-                    catch (SshException)
-                    {
-                        // Do nothing, as this is when the directory already exists
-                    }
-                    // Synchronize files.
-                    foreach (var file in sftp.SynchronizeDirectories(currentPath.FullPath, destination.FullPath, "*"))
-                    {
-                        logger.Info("Updating " + file.Name);
-                        // Some of our files needs executable rights, however we do not know in advance which one
-                        // need it. For now all files will be rwxr.xr.x (0755 in octal but written in decimal for readability).
-                        sftp.ChangePermissions(destination.FullPath + "/" + file.Name, 755);
-                    }
-                }
-                return true;
             }
+            catch
+            {
+                logger.Error("Cannot connect");
+                return false;
+            }
+
+            // Perform recursive copy of all the folders under `sourceDir`. This is required
+            // as the sftp client only synchronize directories at their level only, no
+            // subdirectory.
+            var dirs = new Queue<DirectoryInfo>();
+            dirs.Enqueue(new DirectoryInfo(sourceDir));
+            var parentPath = sourceDir;
+            while (dirs.Count != 0)
+            {
+                var currentDir = dirs.Dequeue();
+                var currentPath = new UDirectory(currentDir.FullName);
+                foreach (var subdir in currentDir.EnumerateDirectories())
+                {
+                    dirs.Enqueue(subdir);
+                }
+
+                // Get the destination path by adding to `Location` the relative path of `sourceDir` to `currentDir`.
+                var destination = UPath.Combine(destDir, currentPath.MakeRelative(parentPath));
+
+                logger.Info("Synchronizing " + currentPath + " with " + destination.FullPath);
+                // Try to create a remote directory. If it throws an exception, we will assume
+                // for now that the directory already exists. See https://github.com/sshnet/SSH.NET/issues/25
+                try
+                {
+                    sftp.CreateDirectory(destination.FullPath);
+                    logger.Info("Creating remote directory " + destination.FullPath);
+                }
+                catch (SshException)
+                {
+                    // Do nothing, as this is when the directory already exists
+                }
+                // Synchronize files.
+                foreach (var file in sftp.SynchronizeDirectories(currentPath.FullPath, destination.FullPath, "*"))
+                {
+                    logger.Info("Updating " + file.Name);
+                    // Some of our files needs executable rights, however we do not know in advance which one
+                    // need it. For now all files will be rwxr.xr.x (0755 in octal but written in decimal for readability).
+                    sftp.ChangePermissions(destination.FullPath + "/" + file.Name, 755);
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -238,7 +236,7 @@ namespace Stride.GameStudio
         {
             //encrypt data
             var data = Encoding.Unicode.GetBytes(plainText);
-            byte[] encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
+            var encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
 
             //return as base64 string
             return Convert.ToBase64String(encrypted);
@@ -254,10 +252,10 @@ namespace Stride.GameStudio
             try
             {
                 //parse base64 string
-                byte[] data = Convert.FromBase64String(cipher);
+                var data = Convert.FromBase64String(cipher);
 
                 //decrypt data
-                byte[] decrypted = ProtectedData.Unprotect(data, null, DataProtectionScope.CurrentUser);
+                var decrypted = ProtectedData.Unprotect(data, null, DataProtectionScope.CurrentUser);
                 return Encoding.Unicode.GetString(decrypted);
             }
             catch
@@ -276,11 +274,11 @@ namespace Stride.GameStudio
             var ipAddrList = new List<string>();
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if ((item.OperationalStatus == OperationalStatus.Up) && !item.GetIPProperties().DhcpServerAddresses.IsNullOrEmpty() && (
-                    (item.NetworkInterfaceType == NetworkInterfaceType.Ethernet) || (item.NetworkInterfaceType == NetworkInterfaceType.FastEthernetT)
-                    || (item.NetworkInterfaceType == NetworkInterfaceType.GigabitEthernet) || (item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211)))
+                if (item.OperationalStatus == OperationalStatus.Up && !item.GetIPProperties().DhcpServerAddresses.IsNullOrEmpty() && (
+                    item.NetworkInterfaceType == NetworkInterfaceType.Ethernet || item.NetworkInterfaceType == NetworkInterfaceType.FastEthernetT
+                    || item.NetworkInterfaceType == NetworkInterfaceType.GigabitEthernet || item.NetworkInterfaceType == NetworkInterfaceType.Wireless80211))
                 {
-                    foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses)
+                    foreach (var ip in item.GetIPProperties().UnicastAddresses)
                     {
                         if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
                         {

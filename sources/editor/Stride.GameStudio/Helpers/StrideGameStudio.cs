@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
 using Stride.Metrics;
 
-namespace Stride.GameStudio
+namespace Stride.GameStudio.Helpers
 {
     public static class StrideGameStudio
     {
@@ -26,7 +26,7 @@ namespace Stride.GameStudio
         [NotNull]
         public static string EditorVersionWithMetadata => StrideVersion.NuGetVersion + StrideVersion.BuildMetadata;
 
-        public static string EditorVersionMajor => new System.Version(StrideVersion.PublicVersion).ToString(2);
+        public static string EditorVersionMajor => new Version(StrideVersion.PublicVersion).ToString(2);
 
         [NotNull]
         public static string AnswersUrl => "https://gamedev.stackexchange.com/tags/stride"; // #706
