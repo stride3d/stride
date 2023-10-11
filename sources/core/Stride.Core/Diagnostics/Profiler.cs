@@ -10,6 +10,8 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Stride.Core.Annotations;
 
+using static Stride.Core.Extensions.TimeSpanExtensions;
+
 namespace Stride.Core.Diagnostics
 {
     /// <summary>
@@ -100,7 +102,7 @@ namespace Stride.Core.Diagnostics
         internal const int GpuThreadId = -1;
 
         internal static Logger Logger = GlobalLogger.GetLogger("Profiler"); // Global logger for all profiling
-        internal static TimeSpan StartTime = TimeSpanFromTimeStamp(Stopwatch.GetTimestamp());
+        internal static TimeSpan StartTime = FromTimeStamp(Stopwatch.GetTimestamp());
         internal static TimeSpan GpuStartTime = TimeSpan.Zero;
 
         private static readonly object Locker = new object();
@@ -115,34 +117,23 @@ namespace Stride.Core.Diagnostics
         //TODO: Use TicksPerMicrosecond once .NET7 is available
         public static TimeSpan MinimumProfileDuration { get; set; } = new TimeSpan(TimeSpan.TicksPerMillisecond / 1000);
 
-        public static void Init()
-        {
-            //TODO: Use TicksPerMicrosecond once .NET7 is available
-            Init(new TimeSpan(TimeSpan.TicksPerMillisecond / 1000));
-        }
-
-        public static void Init(TimeSpan minimumProfileDuration)
-        {
-            MinimumProfileDuration = minimumProfileDuration;
-
-            if (collectorTask == null || collectorTask.IsCompleted)
+        static Profiler()
+        {           
+            collectorTask = Task.Run(async () =>
             {
-                collectorTask = Task.Run(async () =>
+                await foreach (var item in collectorChannel.Reader.ReadAllAsync())
                 {
-                    await foreach (var item in collectorChannel.Reader.ReadAllAsync())
+                    await subscriberChannelLock.WaitAsync();
+                    try
                     {
-                        await subscriberChannelLock.WaitAsync();
-                        try
+                        foreach (var subscriber in subscriberChannels)
                         {
-                            foreach (var subscriber in subscriberChannels)
-                            {
-                                await subscriber.Writer.WriteAsync(item);
-                            }
+                            await subscriber.Writer.WriteAsync(item);
                         }
-                        finally { subscriberChannelLock.Release(); }
                     }
-                });
-            }
+                    finally { subscriberChannelLock.Release(); }
+                }
+            });
         }
 
         public static ChannelReader<ProfilingEvent> Subscribe()
@@ -308,7 +299,7 @@ namespace Stride.Core.Diagnostics
         {
             if (eventType == ProfilingEventType.GpuProfilingEvent && GpuStartTime == TimeSpan.Zero)
             {
-                GpuStartTime = profilingEvent.TimeStamp - (TimeSpanFromTimeStamp(Stopwatch.GetTimestamp()) - StartTime);
+                GpuStartTime = profilingEvent.TimeStamp - (FromTimeStamp(Stopwatch.GetTimestamp()) - StartTime);
             }
 
             if (profilingEvent.Type == ProfilingMessageType.End)
@@ -331,12 +322,27 @@ namespace Stride.Core.Diagnostics
             {
                 await foreach (var item in eventCollection.ReadEvents())
                 {
-                    if (subscriberChannels.Count == 1)
-                        subscriberChannels[0].Writer.TryWrite(item);
-                    if (subscriberChannels.Count > 1)
-                        collectorChannel.Writer.TryWrite(item);
+                    SendEventToSubscribers(item);
                 }
             });
+        }
+
+        /// <summary>
+        /// Sends the event to all existing subscribers.
+        /// If there are no subscribers the event is dropped.
+        /// </summary>
+        /// <param name="e">The event.</param>
+        private static void SendEventToSubscribers(ProfilingEvent e)
+        {
+            subscriberChannelLock.Wait();
+            try
+            {
+                if (subscriberChannels.Count == 1)
+                    subscriberChannels[0].Writer.TryWrite(e);
+                if (subscriberChannels.Count > 1)
+                    collectorChannel.Writer.TryWrite(e);
+            }
+            finally { subscriberChannelLock.Release(); }
         }
 
         static void EndProfile(ProfilingEvent e)
@@ -377,11 +383,6 @@ namespace Stride.Core.Diagnostics
             {
                 builder.AppendFormat("{0:000.000}ms", accumulatedTimeSpan.TotalMilliseconds);
             }
-        }
-
-        private static TimeSpan TimeSpanFromTimeStamp(long timeStamp)
-        {
-            return new TimeSpan((long)(timeStamp * ((double)10_000_000 / Stopwatch.Frequency)));
         }
     }
 }

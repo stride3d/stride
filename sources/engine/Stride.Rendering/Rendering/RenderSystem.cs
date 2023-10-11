@@ -29,18 +29,18 @@ namespace Stride.Rendering
 
         private readonly Dictionary<Type, List<RootRenderFeature>> renderFeaturesByType = new Dictionary<Type, List<RootRenderFeature>>();
 
-        private static readonly ProfilingKey CreateObjectNodesKey = new ProfilingKey("Create Object Nodes");
-        private static readonly ProfilingKey SortRenderObjectsKey = new ProfilingKey("Sort Render Objects");
-        private static readonly ProfilingKey CollectObjectKey = new ProfilingKey("Collect Object");
-        private static readonly ProfilingKey SortRenderNodesKey = new ProfilingKey("Sort Render Nodes");
-        private static readonly ProfilingKey RenderFeatureExtractKey = new ProfilingKey("RenderFeature.Extract");
-        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("PrepareEffectPermutations");
-        private static readonly ProfilingKey PrepareSortKey = new ProfilingKey("Prepare.Sort");
-        private static readonly ProfilingKey UpdateRenderViewsKey = new ProfilingKey("UpdateRenderViews");
-        private static readonly ProfilingKey DrawRootRenderFeaturesKey = new ProfilingKey("DrawRootRenderFeatures");
-        private static readonly ProfilingKey DrawRenderFeatureChunksKey = new ProfilingKey("DrawRenderFeatureChunks");
-        private static readonly ProfilingKey DrawKey = new ProfilingKey("RenderSystem.Draw");
-        private static readonly ProfilingKey PrepareDataArraysKey = new ProfilingKey("RenderSystem.PrepareDataArrays");
+        private static readonly ProfilingKey CreateObjectNodesKey = new ProfilingKey($"{nameof(RenderSystem)}.CreateObjectNodes");
+        private static readonly ProfilingKey SortRenderObjectsKey = new ProfilingKey($"{nameof(RenderSystem)}.Sort Render Objects");
+        private static readonly ProfilingKey CollectObjectKey = new ProfilingKey($"{nameof(RenderSystem)}.CollectObject");
+        private static readonly ProfilingKey SortRenderNodesKey = new ProfilingKey($"{nameof(RenderSystem)}.SortRenderNodes");
+        private static readonly ProfilingKey RenderFeatureExtractKey = new ProfilingKey($"{nameof(RenderSystem)}.RenderFeature.Extract");
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey($"{nameof(RenderSystem)}.PrepareEffectPermutations");
+        private static readonly ProfilingKey PrepareSortKey = new ProfilingKey($"{nameof(RenderSystem)}.Prepare.Sort");
+        private static readonly ProfilingKey UpdateRenderViewsKey = new ProfilingKey($"{nameof(RenderSystem)}.UpdateRenderViews");
+        private static readonly ProfilingKey DrawRootRenderFeaturesKey = new ProfilingKey($"{nameof(RenderSystem)}.DrawRootRenderFeatures");
+        private static readonly ProfilingKey DrawRenderFeatureChunksKey = new ProfilingKey($"{nameof(RenderSystem)}.DrawRenderFeatureChunks");
+        private static readonly ProfilingKey DrawKey = new ProfilingKey($"{nameof(RenderSystem)}.Draw");
+        private static readonly ProfilingKey PrepareDataArraysKey = new ProfilingKey($"{nameof(RenderSystem)}.PrepareDataArrays");
 
         private IServiceRegistry registry;
 
@@ -199,7 +199,7 @@ namespace Stride.Rendering
 
                 // Also sort view|stage per render feature
                 foreach (var renderViewStage in view.RenderStages)
-                {                    
+                {
                     renderViewStage.RenderNodes.Close();
                     using (Profiler.Begin(SortRenderNodesKey))
                     {
@@ -221,7 +221,7 @@ namespace Stride.Rendering
             foreach (var renderFeature in RenderFeatures)
             // We might be able to parallelize too as long as we resepect render feature dependency graph (probably very few dependencies in practice)
             {
-                using(Profiler.Begin(RenderFeatureExtractKey))
+                using var _ = Profiler.Begin(RenderFeatureExtractKey);
                 // Divide into task chunks for parallelism
                 renderFeature.Extract();
             }

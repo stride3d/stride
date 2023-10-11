@@ -1,10 +1,12 @@
 using System;
+using System.Diagnostics;
 
-namespace Stride.Audio
+namespace Stride.Core.Extensions
 {
     public static class TimeSpanExtensions
     {
         private const long TicksPerMicroSecond = TimeSpan.TicksPerMillisecond / 1000L;
+        private static readonly double timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
 
         public static TimeSpan FromMicroSeconds(long microSeconds)
         {
@@ -14,6 +16,16 @@ namespace Stride.Audio
         public static long TotalMicroSeconds(this TimeSpan timeSpan)
         {
             return timeSpan.Ticks / TicksPerMicroSecond;
+        }
+
+        public static TimeSpan FromTimeStamp(long timestamp)
+        {
+            return new TimeSpan((long)(timestamp * timestampToTicks));
+        }
+
+        public static TimeSpan FromTimeStamp(long timestamp, long frequency)
+        {
+            return new TimeSpan((long)(timestamp * (TimeSpan.TicksPerSecond / (double)frequency)));
         }
 
         public static TimeSpan Min(TimeSpan left, TimeSpan right)

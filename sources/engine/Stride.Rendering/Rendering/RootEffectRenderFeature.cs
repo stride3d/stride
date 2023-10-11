@@ -56,9 +56,9 @@ namespace Stride.Rendering
         private readonly List<NamedSlotDefinition> viewLogicalGroups = new List<NamedSlotDefinition>();
         private readonly List<NamedSlotDefinition> drawLogicalGroups = new List<NamedSlotDefinition>();
 
-        private static readonly ProfilingKey CompileEffectsKey = new ProfilingKey("Compile Effects");
-        private static readonly ProfilingKey UpdateReflectionInfosKey = new ProfilingKey("Update Reflection Infos");
-        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("RootEffectRenderFeature.PrepareEffectPermutations");
+        private static readonly ProfilingKey CompileEffectsKey = new ProfilingKey($"{nameof(RootEffectRenderFeature)}.CompileEffects");
+        private static readonly ProfilingKey UpdateReflectionInfosKey = new ProfilingKey($"{nameof(RootEffectRenderFeature)}.UpdateReflectionInfos");
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey($"{nameof(RootEffectRenderFeature)}.PrepareEffectPermutations");
 
         // Common slots
         private EffectDescriptorSetReference perFrameDescriptorSetSlot;

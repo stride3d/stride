@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
+using static Stride.Core.Extensions.TimeSpanExtensions;
+
 namespace Stride.Core.Diagnostics
 {
     /// <summary>
@@ -115,7 +117,7 @@ namespace Stride.Core.Diagnostics
             eventType = ProfilingEventType.GpuProfilingEvent;
             //TODO: Map GPU queues to thread ids
             threadId = Profiler.GpuThreadId;
-            EmitEventCore(ProfilingMessageType.Begin, TimeSpanFromTimeStamp(timeStamp));
+            EmitEventCore(ProfilingMessageType.Begin, FromTimeStamp(timeStamp, tickFrequency));
         }
 
         /// <summary>
@@ -168,7 +170,7 @@ namespace Stride.Core.Diagnostics
             // Perform event only if the profiling is running (to save on time calculations)
             if (!isEnabled) return;
 
-            EmitEventCore(ProfilingMessageType.End, TimeSpanFromTimeStamp(timeStamp));
+            EmitEventCore(ProfilingMessageType.End, FromTimeStamp(timeStamp, tickFrequency));
         }
 
         private void EmitEventCore(ProfilingMessageType profilingType, TimeSpan timeStamp, ProfilingEventMessage? message = null)
@@ -218,12 +220,7 @@ namespace Stride.Core.Diagnostics
             if (!isEnabled) return;
 
             var timeStamp = Stopwatch.GetTimestamp();
-            EmitEventCore(profilingType, TimeSpanFromTimeStamp(timeStamp), message);
-        }
-
-        private TimeSpan TimeSpanFromTimeStamp(long timeStamp)
-        {
-            return new TimeSpan((long)(timeStamp * ((double)10_000_000 / tickFrequency)));
+            EmitEventCore(profilingType, FromTimeStamp(timeStamp, tickFrequency), message);
         }
     }
 }

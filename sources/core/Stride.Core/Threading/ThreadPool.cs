@@ -26,7 +26,7 @@ namespace Stride.Core.Threading
         /// <summary> Is the thread reading this property a worker thread </summary>
         public static bool IsWorkedThread => isWorkedThread;
 
-        private static readonly ProfilingKey ProcessWorkItemKey = new ProfilingKey("Process Work Item");
+        private static readonly ProfilingKey ProcessWorkItemKey = new ProfilingKey($"{nameof(ThreadPool)}.ProcessWorkItem");
 
         private readonly ConcurrentQueue<Action> workItems = new ConcurrentQueue<Action>();
         private readonly SemaphoreW semaphore;

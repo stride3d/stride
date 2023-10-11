@@ -18,7 +18,7 @@ namespace Stride.Profiling
 {
     public class GameProfilingSystem : GameSystemBase
     {
-        private static readonly ProfilingKey UpdateStringsKey = new ProfilingKey("Update Profiling Strings");
+        private static readonly ProfilingKey UpdateStringsKey = new ProfilingKey($"{nameof(GameProfilingSystem)}.UpdateStrings");
 
         private readonly Point textDrawStartOffset = new Point(5, 10);
         private const int TextRowHeight = 16;
@@ -428,11 +428,12 @@ namespace Stride.Profiling
                 }
             }
 
-            Profiler.Init(MinimumProfileDuration);
-
             gcProfiler.Enable();
 
-            stringBuilderTask = Task.Run(ReadEventsAsync);
+            if (stringBuilderTask == null || stringBuilderTask.IsCompleted)
+            {
+                stringBuilderTask = Task.Run(ReadEventsAsync);
+            }
         }
 
         /// <summary>
@@ -483,6 +484,8 @@ namespace Stride.Profiling
             get => filteringMode;
             set
             {
+                // Only Cpu and Gpu modes need to subscribe to profiling events, so we
+                // subscribe when switching away from Fps mode and unsubscribe when switching to it.
                 if (filteringMode != value)
                 {
                     if (filteringMode == GameProfilingResults.Fps)
@@ -504,7 +507,5 @@ namespace Stride.Profiling
         /// Sets or gets the profiling result page to display.
         /// </summary>
         public uint CurrentResultPage { get; set; } = 1;
-
-        public TimeSpan MinimumProfileDuration => Profiler.MinimumProfileDuration;
     }
 }

@@ -24,7 +24,7 @@ namespace Stride.Rendering
         private readonly ConcurrentCollector<ViewObjectNode> viewObjectNodes = new ConcurrentCollector<ViewObjectNode>();
         private readonly ConcurrentCollector<ObjectNode> objectNodes = new ConcurrentCollector<ObjectNode>();
         
-        private static readonly ProfilingKey GetOrCreateObjectNodeKey = new ProfilingKey("GetOrCreateObjectNode");
+        private static readonly ProfilingKey GetOrCreateObjectNodeKey = new ProfilingKey($"{nameof(RootRenderFeature)}.GetOrCreateObjectNode");
 
         // storage for properties (struct of arrays)
         public RenderDataHolder RenderData;
