@@ -6,7 +6,7 @@ public class ValidObjectCombinations
 {
     private string PublicFormat(string access) => string.Format(ClassTemplates.PublicClassTemplateNoDatamember, access, "object");
     private string PublicFormatWithDataMember(string access) => string.Format(ClassTemplates.PublicClassTemplateDataMember, access, "object");
-    private string InternalFormat(string access) => string.Format(ClassTemplates.InternalClassTemplate, access, "object");
+    private string InternalFormatWithDataMember(string access) => string.Format(ClassTemplates.InternalClassTemplate, access, "object");
     [Fact]
     public void No_Error_On_Public_Properties_No_DataMember()
     {
@@ -65,7 +65,7 @@ public class ValidObjectCombinations
         };
         foreach (var combination in combinations)
         {
-            string sourceCode = InternalFormat(combination);
+            string sourceCode = InternalFormatWithDataMember(combination);
             TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
         }
     }
