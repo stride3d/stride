@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
 
-public class ValidObjectCombinations
+public class ValidModifiersOnMutableMemberTests
 {
     private string PublicFormat(string access) => string.Format(ClassTemplates.PublicClassTemplateNoDatamember, access, "object");
     private string PublicFormatWithDataMember(string access) => string.Format(ClassTemplates.PublicClassTemplateDataMember, access, "object");

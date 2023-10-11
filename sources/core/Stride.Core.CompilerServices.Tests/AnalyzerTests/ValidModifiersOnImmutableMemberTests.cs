@@ -1,7 +1,7 @@
 using Xunit;
 
 namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
-public class ValidImmutableCombinations
+public class ValidModifiersOnImmutableMemberTests
 {
     private string PublicFormat(string access, string type) => string.Format(ClassTemplates.PublicClassTemplateNoDatamember, access, type);
     private string PublicFormatWithDataMember(string access, string type) => string.Format(ClassTemplates.PublicClassTemplateDataMember, access, type);
