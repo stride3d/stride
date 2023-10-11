@@ -6,7 +6,7 @@ public class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG002";
     private const string Title = "Invalid Content Mode";
-    private const string MessageFormat = "The 'DataMemberMode.Content' is not valid for the member '{0}'.";
+    private const string MessageFormat = "The 'DataMemberMode.Content' is not valid for the member '{0}'. Only mutable reference types are supported for 'DataMemberMode.Content' Mode members.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
