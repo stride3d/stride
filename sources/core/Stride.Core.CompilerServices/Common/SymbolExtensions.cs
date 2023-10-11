@@ -14,7 +14,7 @@ internal static class SymbolExtensions
 
         if (hasDataMemberAttribute)
             return accessibility == Accessibility.Public || accessibility == Accessibility.Internal || accessibility == Accessibility.ProtectedOrInternal;
-        return accessibility == Accessibility.Public || accessibility == Accessibility.Internal;
+        return accessibility == Accessibility.Public;
     }
 
     /// <summary>
