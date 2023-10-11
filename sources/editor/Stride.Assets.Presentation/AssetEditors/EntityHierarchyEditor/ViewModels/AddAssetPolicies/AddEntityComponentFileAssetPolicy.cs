@@ -21,7 +21,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             var scriptType = FindScriptType(asset.ServiceProvider, asset.AssetItem)?.FirstOrDefault();
             if (scriptType == null)
             {
-                message = $"No scripts inheriting from {nameof(EntityComponent)} found in asset {asset.Url}";
+                message = $"No class inheriting from {nameof(EntityComponent)} found in file {asset.Url}";
                 return false;
             }
 

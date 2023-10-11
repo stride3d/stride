@@ -72,7 +72,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             var assemblyFullName = gameProjectCompilation.Assembly.Name;
 
-            var strideScriptType = typeof(EntityComponent);
+            var strideComponentType = typeof(EntityComponent);
 
             var symbols = gameProjectCompilation.GetSymbolsWithName(x => true, SymbolFilter.Type).Cast<ITypeSymbol>().ToList();
             if (!symbols.Any())
@@ -95,7 +95,7 @@ namespace Stride.Assets.Presentation.AssetEditors
             {
                 var realType = types.FirstOrDefault(x => x.Name == symbol.Name && x.Namespace == symbol.GetFullNamespace());
 
-                if (!strideScriptType.IsAssignableFrom(realType))
+                if (!strideComponentType.IsAssignableFrom(realType))
                 {
                     foreach (var location in symbol.Locations)
                         nonScriptsPaths.Add(location.SourceTree.FilePath);
