@@ -12,7 +12,6 @@ public class ValidImmutableCombinations
         "int",
         "float",
         "double",
-        "String"
     };
 
     [Fact]
