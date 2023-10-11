@@ -40,7 +40,7 @@ namespace Stride.GameStudio.ViewModels
         private readonly IDebugService debugService;
         private readonly GameStudioViewModel editor;
         private readonly Dictionary<PackageLoadedAssembly, ModifiedAssembly> modifiedAssemblies;
-        private readonly ScriptSourceCodeResolver scriptsSorter;
+        private readonly EntityComponentSourceCodeResolver entityComponentsSorter;
         private readonly CancellationTokenSource assemblyTrackingCancellation;
         private readonly LoggerResult assemblyReloadLogger = new LoggerResult();
         private bool assemblyChangesPending;
@@ -73,8 +73,8 @@ namespace Stride.GameStudio.ViewModels
             assemblyTrackingCancellation = new CancellationTokenSource();
 
             // Create script resolver
-            scriptsSorter = new ScriptSourceCodeResolver();
-            ServiceProvider.RegisterService(scriptsSorter);
+            entityComponentsSorter = new EntityComponentSourceCodeResolver();
+            ServiceProvider.RegisterService(entityComponentsSorter);
 
             assemblyReloadLogger.MessageLogged += (sender, e) => Dispatcher.InvokeAsync(() => OutputTitle = outputTitleBase + '*');
             editor.Session.PropertyChanged += SessionPropertyChanged;
@@ -83,7 +83,7 @@ namespace Stride.GameStudio.ViewModels
             Task.Run(async () =>
             {
                 var watcher = await editor.StrideAssets.Code.ProjectWatcher;
-                await scriptsSorter.Initialize(editor.Session, watcher, assemblyTrackingCancellation.Token);
+                await entityComponentsSorter.Initialize(editor.Session, watcher, assemblyTrackingCancellation.Token);
                 PullAssemblyChanges(watcher);
             });
         }
@@ -281,7 +281,7 @@ namespace Stride.GameStudio.ViewModels
                     {
                         foreach (var assemblyToReload in assemblyToAnalyze)
                         {
-                            await scriptsSorter.AnalyzeProject(Session, assemblyToReload.Key, assemblyTrackingCancellation.Token);
+                            await entityComponentsSorter.AnalyzeProject(Session, assemblyToReload.Key, assemblyTrackingCancellation.Token);
                         }
                         UpdateCommands();
                     }, () =>

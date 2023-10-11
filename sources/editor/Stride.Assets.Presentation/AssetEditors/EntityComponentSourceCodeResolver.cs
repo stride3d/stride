@@ -38,12 +38,12 @@ namespace Stride.Assets.Presentation.AssetEditors
         }
     }
 
-    public class ScriptSourceCodeResolver : IScriptSourceCodeResolver
+    public class EntityComponentSourceCodeResolver : IEntityComponentSourceCodeResolver
     {
         private ProjectWatcher watcher;
         private readonly Dictionary<string, List<Type>> typesForPath = new Dictionary<string, List<Type>>();
 
-        public ScriptSourceCodeResolver()
+        public EntityComponentSourceCodeResolver()
         {
         }
 
@@ -72,7 +72,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             var assemblyFullName = gameProjectCompilation.Assembly.Name;
 
-            var strideScriptType = typeof(ScriptComponent);
+            var strideComponentType = typeof(EntityComponent);
 
             var symbols = gameProjectCompilation.GetSymbolsWithName(x => true, SymbolFilter.Type).Cast<ITypeSymbol>().ToList();
             if (!symbols.Any())
@@ -80,7 +80,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 return;
             }
 
-            var assembly = AssemblyRegistry.FindAll()?.FirstOrDefault(x => x.GetName().Name == assemblyFullName);
+            var assembly = AssemblyRegistry.FindAll().FirstOrDefault(x => x.GetName().Name == assemblyFullName);
             if (assembly == null)
             {
                 return;
@@ -88,19 +88,24 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             var types = assembly.GetTypes();
 
+            var nonScriptsPaths = new HashSet<string>();
             var typesDict = new Dictionary<string, List<Type>>();
 
             foreach (var symbol in symbols)
             {
+                var realType = types.FirstOrDefault(x => x.Name == symbol.Name && x.Namespace == symbol.GetFullNamespace());
+
+                if (!strideComponentType.IsAssignableFrom(realType))
+                {
+                    foreach (var location in symbol.Locations)
+                        nonScriptsPaths.Add(location.SourceTree.FilePath);
+                    continue;
+                }
+
                 //find the script paths, (could be multiple in the case of partial)
                 foreach (var location in symbol.Locations)
                 {
-                    var csPath = new UFile(location.SourceTree.FilePath);
-
-                    //find the real type, and add to the dictionary
-                    var realType = types.FirstOrDefault(x => x.Name == symbol.Name && x.Namespace == symbol.GetFullNamespace());
-                    if (!strideScriptType.IsAssignableFrom(realType))
-                        continue;
+                    var csPath = new UFile(location.SourceTree.FilePath); // Normalize directory separator
 
                     if (!typesDict.ContainsKey(csPath))
                     {
@@ -115,12 +120,18 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             lock (this)
             {
+                // Ensure files that were previously components but not anymore are properly cleaned up
+                foreach (var nonScriptsPath in nonScriptsPaths)
+                {
+                    typesForPath.Remove(nonScriptsPath);
+                }
+
                 foreach (var x in typesDict)
                 {
                     typesForPath[x.Key] = x.Value;
                 }
 
-                //clean up paths that do not exist anymore
+                // Clean up paths that do not exist anymore
                 var toRemove = typesForPath.Where(x => !File.Exists(x.Key)).Select(x => x.Key).ToList();
                 typesForPath.RemoveWhere(x => toRemove.Contains(x.Key));
             } 
@@ -152,7 +163,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             lock (this)
             {
-                return !typesForPath.ContainsKey(file) ? Enumerable.Empty<Type>() : typesForPath[file];
+                return typesForPath.TryGetValue(file, out var types) ? types : Enumerable.Empty<Type>();
             }
         }
     }

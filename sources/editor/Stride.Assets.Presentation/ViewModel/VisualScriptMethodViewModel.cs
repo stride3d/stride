@@ -143,7 +143,7 @@ namespace Stride.Assets.Presentation.ViewModel
         public async Task RegenerateSlots(Block block, ILogger log = null)
         {
             var newSlots = new List<Slot>(block.Slots.Count);
-            var sourceResolver = ServiceProvider.Get<IScriptSourceCodeResolver>();
+            var sourceResolver = ServiceProvider.Get<IEntityComponentSourceCodeResolver>();
 
             try
             {

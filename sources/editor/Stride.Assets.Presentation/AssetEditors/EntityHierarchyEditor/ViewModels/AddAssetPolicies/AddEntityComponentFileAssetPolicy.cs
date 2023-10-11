@@ -13,7 +13,7 @@ using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {
-    internal class AddScriptSourceFileAssetPolicy : CreateComponentPolicyBase<ScriptSourceFileAsset, ScriptSourceFileAssetViewModel>
+    internal class AddEntityComponentFileAssetPolicy : CreateComponentPolicyBase<ScriptSourceFileAsset, ScriptSourceFileAssetViewModel>
     {
         /// <inheritdoc />
         protected override bool CanAddOrInsert(EntityHierarchyItemViewModel parent, ScriptSourceFileAssetViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)
@@ -21,7 +21,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             var scriptType = FindScriptType(asset.ServiceProvider, asset.AssetItem)?.FirstOrDefault();
             if (scriptType == null)
             {
-                message = $"No scripts inheriting from {nameof(ScriptComponent)} found in asset {asset.Url}";
+                message = $"No class inheriting from {nameof(EntityComponent)} found in file {asset.Url}";
                 return false;
             }
 
@@ -51,7 +51,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         [CanBeNull]
         private static IEnumerable<Type> FindScriptType([NotNull] IViewModelServiceProvider serviceProvider, [NotNull] AssetItem scriptAsset)
         {
-            return serviceProvider.TryGet<IScriptSourceCodeResolver>()?.GetTypesFromSourceFile(scriptAsset.FullPath);
+            return serviceProvider.TryGet<IEntityComponentSourceCodeResolver>()?.GetTypesFromSourceFile(scriptAsset.FullPath);
         }
     }
 }
