@@ -2,6 +2,8 @@ using System.Collections.Immutable;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class STRDIAG002InvalidContentMode : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG002";
