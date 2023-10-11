@@ -31,7 +31,6 @@
 	  <Folder Include="CodeFixes\" />
 	  <Folder Include="Common\" />
 	  <Folder Include="Generators\" />
-	  <Folder Include="NewFolder\" />
     <Using Include="System.Linq" />
     <Using Include="System.Collections.Generic" />
     <Using Include="System" />
