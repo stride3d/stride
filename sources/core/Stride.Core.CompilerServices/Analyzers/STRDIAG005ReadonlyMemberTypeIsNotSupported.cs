@@ -69,14 +69,14 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
 
-        if (!propertySymbol.IsVisibleToSerializer(true))
+        if (!propertySymbol.IsVisibleToSerializer(hasDataMemberAttribute: true))
             return;
 
         if (propertySymbol.GetMethod is null)
             return;
 
         var setMethod = propertySymbol.SetMethod;
-        if (setMethod is null || !setMethod.IsVisibleToSerializer(true))
+        if (setMethod is null || !setMethod.IsVisibleToSerializer(hasDataMemberAttribute: true))
         {
             var propertyType = propertySymbol.Type;
             if (propertyType.IsImmutableType())

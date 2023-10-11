@@ -54,7 +54,7 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
         // 1 is the Enums Value of DataMemberMode for Assign
         if (propertySymbol.HasDataMemberMode(context, dataMemberAttribute, dataMemberMode, 1))
         {
-            if (propertySymbol.GetMethod != null && (propertySymbol.SetMethod == null || !propertySymbol.SetMethod.IsVisibleToSerializer(true)))
+            if (propertySymbol.SetMethod == null || !propertySymbol.SetMethod.IsVisibleToSerializer(hasDataMemberAttribute: true))
             {
                 Rule.ReportDiagnostics(context, propertySymbol);
             }

@@ -4,8 +4,8 @@ internal static class SymbolExtensions
     public static bool IsVisibleToSerializer(this ISymbol symbol, INamedTypeSymbol dataMemberAttribute)
     {
         if (symbol.HasAttribute(dataMemberAttribute))
-            return IsVisibleToSerializer(symbol, true);
-        return IsVisibleToSerializer(symbol, false);
+            return IsVisibleToSerializer(symbol, hasDataMemberAttribute: true);
+        return IsVisibleToSerializer(symbol, hasDataMemberAttribute: false);
     }
 
     public static bool IsVisibleToSerializer(this ISymbol symbol, bool hasDataMemberAttribute)
