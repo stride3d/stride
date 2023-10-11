@@ -7,6 +7,12 @@ public class ValidModifiersOnMutableMemberTests
     private string PublicFormat(string access) => string.Format(ClassTemplates.PublicClassTemplateNoDatamember, access, "object");
     private string PublicFormatWithDataMember(string access) => string.Format(ClassTemplates.PublicClassTemplateDataMember, access, "object");
     private string InternalFormatWithDataMember(string access) => string.Format(ClassTemplates.InternalClassTemplate, access, "object");
+    /// <summary>
+    /// The Serializers serialize some Properties per default.
+    /// These don't require a [DataMember] Attribute
+    /// 
+    /// The Analyzers shouldn't ever throw on these Combinations
+    /// </summary>
     [Fact]
     public void No_Error_On_Public_Properties_No_DataMember()
     {
@@ -15,6 +21,7 @@ public class ValidModifiersOnMutableMemberTests
             "get => null;set {{ }}",
             "get;",
             "get;private set;",
+            // this will be treated as Content Mode
             "get;internal set;",
             "get;protected set;",
             "get;private protected set;",
@@ -26,7 +33,14 @@ public class ValidModifiersOnMutableMemberTests
             TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
         }
     }
-
+    /// <summary>
+    /// The Serializers serialize some Properties per default.
+    /// These don't require a [DataMember] Attribute
+    /// 
+    /// The Diagnostics shouldn't ever throw on these Combinations
+    /// The Major differences are compared to no [DataMember] is that get only Properties without a backingfield are serialized now
+    /// Also internal set will be treated as a valid set for assign mode
+    /// </summary>
     [Fact]
     public void No_Error_On_Public_Properties_DataMember()
     {
@@ -38,6 +52,7 @@ public class ValidModifiersOnMutableMemberTests
             "get;",
             "get => null;",
             "get;private set;",
+            // this will be treated as Assign Mode, if not tagged as Content Mode
             "get;internal set;",
             "get;protected set;",
             "get;private protected set;",
@@ -50,6 +65,10 @@ public class ValidModifiersOnMutableMemberTests
         }
     }
 
+    /// <summary>
+    /// internal properties won't get serialized per default
+    /// It's always necessary to tag them with [DataMember]
+    /// </summary>
     [Fact]
     public void No_Error_On_internal_Properties()
     {
@@ -69,7 +88,10 @@ public class ValidModifiersOnMutableMemberTests
             TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
         }
     }
-
+    /// <summary>
+    /// Properties that the Serializers can't access won't get serialized.
+    /// As long as there is no [DataMember] Attribute on them, the Analyzers should never throw on them
+    /// </summary>
     [Fact]
     public void No_Error_On_Inaccessible_properties()
     {

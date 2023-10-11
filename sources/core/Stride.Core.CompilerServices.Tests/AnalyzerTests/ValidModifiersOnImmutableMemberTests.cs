@@ -13,7 +13,10 @@ public class ValidModifiersOnImmutableMemberTests
         "float",
         "double",
     };
-
+    /// <summary>
+    /// Compared to public Properties with a mutable reference type, Content mode is never valid for Reference Types
+    /// So only Assign Mode combinations are per default serialized for ImmutableMembers
+    /// </summary>
     [Fact]
     public void No_Error_On_Public_Properties_No_DataMember()
     {
@@ -30,7 +33,10 @@ public class ValidModifiersOnImmutableMemberTests
             }
         }
     }
-
+    /// <summary>
+    /// With [DataMember] on ImmutableTypes combinations with internal get/set get also valid 
+    /// as the set and get get treated then as Visible to the serializers
+    /// </summary>
     [Fact]
     public void No_Error_On_Public_Properties_DataMember()
     {
@@ -50,7 +56,10 @@ public class ValidModifiersOnImmutableMemberTests
             }
         }
     }
-
+    /// <summary>
+    /// internal properties only get serialized with [DataMember] Attribute.
+    /// Only Assign Mode combinations are allowed.
+    /// </summary>
     [Fact]
     public void No_Error_On_internal_Properties()
     {
@@ -69,6 +78,10 @@ public class ValidModifiersOnImmutableMemberTests
         }
     }
 
+    /// <summary>
+    /// Properties that the Serializers can't access won't get serialized.
+    /// As long as there is no [DataMember] Attribute on them, the Analyzers should never throw on them
+    /// </summary>
     [Fact]
     public void No_Error_On_Inaccessible_properties()
     {
