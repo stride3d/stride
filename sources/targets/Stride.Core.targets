@@ -219,10 +219,7 @@
   <PropertyGroup>
     <_SdkLanguageSourceName Condition="'$(MSBuildProjectExtension)' == '.csproj'">CSharp</_SdkLanguageSourceName>
   </PropertyGroup>
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Inference.targets" />
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Platforms.targets" />
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\DefaultItems\ImplicitPackages.targets"/>
-
+  
     <!-- A workaround for https://github.com/microsoft/msbuild/issues/4584 and resolves https://github.com/onovotny/MSBuildSdkExtras/issues/176 -->
   <Target Name="_RemoveNativeReferencesManifest" Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'" AfterTargets="BuiltProjectOutputGroup">
     <ItemGroup>
