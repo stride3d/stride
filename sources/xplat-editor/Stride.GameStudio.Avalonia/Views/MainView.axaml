@@ -2,8 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:Stride.GameStudio.Avalonia.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:Stride.GameStudio.Avalonia.ViewModels"
+             xmlns:vw="using:Stride.GameStudio.Avalonia.Views"
+             mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
              x:Class="Stride.GameStudio.Avalonia.Views.MainView"
              x:DataType="vm:MainViewModel">
   <Design.DataContext>
@@ -25,6 +26,40 @@
         <MenuItem Header="_About..." Command="{Binding AboutCommand}" />
       </MenuItem>
     </Menu>
+    <Grid Grid.Row="1"
+          RowDefinitions="2*, 2, *">
+        <Grid Grid.Row="0"
+              ColumnDefinitions="3*, 2, *">
+          <vw:MainEditorView Grid.Column="0"
+                             BorderThickness="2"
+                             BorderBrush="Red"
+                             Padding="2" />
+          <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
+          <vw:PropertyGridView Grid.Column="2"
+                               BorderThickness="2"
+                               BorderBrush="Orange"
+                               Padding="2" />
+        </Grid>
+        <GridSplitter Grid.Row="1" ResizeDirection="Auto" />
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*, 2, 2*, 2, *">
+          <vw:SolutionExplorerView Grid.Column="0"
+                                   BorderThickness="2"
+                                   BorderBrush="Black"
+                                   Padding="2" />
+          <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
+          <vw:AssetExplorerView Grid.Column="2"
+                                BorderThickness="2"
+                                BorderBrush="Blue"
+                                Padding="2" />
+          <GridSplitter Grid.Column="3" ResizeDirection="Auto" />
+          <vw:AssetPreviewView Grid.Column="5"
+                               BorderThickness="2"
+                               BorderBrush="Cyan"
+                               Padding="2" />
+        </Grid>
+    </Grid>
+    
     <TextBlock Grid.Row="2"
                Text="{Binding Message}"
                HorizontalAlignment="Center" VerticalAlignment="Center"/>
