@@ -1,4 +1,3 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
@@ -42,6 +41,6 @@ namespace Stride.Physics
         /// Default gravity vector for physics simulation.
         /// </userdoc>
         [DataMember(50)]
-        public Vector3 Gravity = new Vector3(0, -9.81f, 0);
+        public Vector3 Gravity = new Vector3(0, -10, 0);
     }
 }
