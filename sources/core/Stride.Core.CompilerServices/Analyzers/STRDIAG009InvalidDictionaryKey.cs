@@ -11,7 +11,7 @@ public class STRDIAG009InvalidDictionaryKey : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG009";
     private const string Title = "Invalid Dictionary Key";
-    private const string MessageFormat = "The member '{0}' implements IDictionary<T,K> with an invalid type for the key. Only primitive types ( like int,float,.. ) are supported or string as the Dictionary Key.\nCustom Types can be implemented with a TypeConverter, if that is the case add a pragma ignore to ignore this warning.";
+    private const string MessageFormat = "The member '{0}' implements IDictionary<T,K> with an unsupported type for the key. Only primitive types ( like int,float,.. ) are supported or string as the Dictionary Key in asset serialization. When used in other contexts the warning may not apply and can be suppressed.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
