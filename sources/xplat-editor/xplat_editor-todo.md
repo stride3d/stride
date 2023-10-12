@@ -2,10 +2,15 @@
 
 ## MVP
 
+### Basic editor layout
+
+- [x] Fixed layout (e.g. Grid)
+- [ ] Docks (postponed)
+
 ### Open a Stride Project
 
 - [ ] Have a memory representation
-	- Use the MSBuild API? (latest .NET 6 is Microsoft.Build 17.3.2)
+	- Use the MSBuild API? (latest .NET 6 is Microsoft.Build 17.3.2)?
 - [ ] Have the explorer (read-only) in the UI
 
 ### Build a Stride project
