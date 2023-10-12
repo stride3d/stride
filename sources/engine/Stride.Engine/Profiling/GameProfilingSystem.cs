@@ -134,6 +134,10 @@ namespace Stride.Profiling
             {
                 profilingResults.Sort((x, y) => x.Compare(x, y));
             }
+            else if(SortingMode == GameProfilingSorting.ByAverageTime)
+            {
+                profilingResults.Sort((x, y) => -TimeSpan.Compare(x.AccumulatedTime / x.Count, y.AccumulatedTime / y.Count));
+            }
             else
             {
                 // Can't be null because we skip those events without values
@@ -147,7 +151,10 @@ namespace Stride.Profiling
             numberOfPages = (uint)Math.Ceiling(profilingResults.Count / (float)elementsPerPage);
             CurrentResultPage = Math.Min(CurrentResultPage, numberOfPages);
 
-            profilersStringBuilder.AppendFormat("TOTAL     | AVG/CALL  | MIN/CALL  | MAX/CALL  | CALLS | ");
+            char sortByTimeIndicator = SortingMode == GameProfilingSorting.ByTime ? 'v' : ' ';
+            char sortByAvgTimeIndicator = SortingMode == GameProfilingSorting.ByAverageTime ? 'v' : ' ';
+
+            profilersStringBuilder.AppendFormat("TOTAL    {0}| AVG/CALL {1}| MIN/CALL  | MAX/CALL  | CALLS  | ", sortByTimeIndicator, sortByAvgTimeIndicator);
             if (containsMarks)
                 profilersStringBuilder.AppendFormat("MARKS | ");
             profilersStringBuilder.AppendFormat("PROFILING KEY / EXTRA INFO\n");
@@ -285,7 +292,7 @@ namespace Stride.Profiling
             profilersStringBuilder.Append(" | ");
             Profiler.AppendTime(profilersStringBuilder, profilingResult.MaxTime);
             profilersStringBuilder.Append(" | ");
-            profilersStringBuilder.AppendFormat("{0:00.00}", profilingResult.Count / (double)elapsedFrames);
+            profilersStringBuilder.AppendFormat("{0,6:#00.00}", profilingResult.Count / (double)elapsedFrames);
             profilersStringBuilder.Append(" | ");
 
             if (displayMarkCount)
