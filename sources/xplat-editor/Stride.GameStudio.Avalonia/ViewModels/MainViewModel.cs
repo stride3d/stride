@@ -1,25 +1,33 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Threading.Tasks;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.Input;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.IO;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
-public partial class MainViewModel : ViewModelBase
+internal sealed class MainViewModel : ViewModelBase
 {
     private string? message;
+    private SessionViewModel? session;
 
     public MainViewModel()
     {
-        AboutCommand = new AsyncRelayCommand(OnAbout, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
-        ExitCommand = new RelayCommand(OnExit, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
-        OpenCommand = new RelayCommand(OnOpen);
+        var services = new List<object>
+        {
+            new DialogService()
+        };
+        ServiceProvider = new ViewModelServiceProvider(services);
+
+        AboutCommand = new AsyncRelayCommand(OnAbout, () => DialogService.MainWindow != null);
+        ExitCommand = new RelayCommand(OnExit, () => DialogService.MainWindow != null);
+        OpenCommand = new AsyncRelayCommand(OnOpen);
     }
 
     public string? Message
@@ -28,9 +36,33 @@ public partial class MainViewModel : ViewModelBase
         set => SetProperty(ref message, value);
     }
 
-    public ICommand AboutCommand { get; }
-    public ICommand ExitCommand { get; }
-    public ICommand OpenCommand { get; }
+    public SessionViewModel? Session
+    {
+        get => session;
+        set => SetProperty(ref session, value);
+    }
+
+    public IRelayCommand AboutCommand { get; }
+
+    public IRelayCommand ExitCommand { get; }
+
+    public IRelayCommand OpenCommand { get; }
+
+    public async Task<bool> OpenSession(UFile? filePath, CancellationToken token = default)
+    {
+        if (session != null)
+            throw new InvalidOperationException("A session is already open in this instance.");
+
+        if (filePath == null || !File.Exists(filePath))
+        {
+            filePath = await ServiceProvider.Get<IDialogService>().OpenFilePickerAsync();
+        }
+
+        if (filePath == null) return false;
+
+        Session = await SessionViewModel.OpenSessionAsync(filePath, ServiceProvider, token);
+        return true;
+    }
 
     private async Task OnAbout()
     {
@@ -44,8 +76,8 @@ public partial class MainViewModel : ViewModelBase
         ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).TryShutdown();
     }
 
-    private void OnOpen()
+    private Task OnOpen()
     {
-        Message = "Clicked on Open";
+        return OpenSession(null);
     }
 }
