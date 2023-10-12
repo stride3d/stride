@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Channels;
@@ -39,24 +38,27 @@ namespace Stride.Core.Diagnostics
     ///     profile.Mark("CriticalPart");
     /// 
     ///     // Adds an attribute that will be logged in End event
-    ///     profile.SetAttribute("ModelCount", modelCount);
+    ///     profile.Attributes.Add("ModelCount", modelCount);
     /// } // here a 'End' profiling event will be issued.
     /// </code>
-    /// By default, the profiler is not enabled, so there is a minimum performance impact leaving it in the code (it has
-    /// the costs of a lock and a dictionary lookup). It doesn't measure anything and doesn't produce any KPI.
+    /// By default, the profiler is not enabled, so there is a minimum performance impact leaving it in the code. 
+    /// It doesn't measure anything and doesn't produce any KPI.
     /// 
     /// To enable a particular profiler (before using <see cref="Begin"/> method):
     /// <code>
     /// Profiler.Enable(GameInitialization);
-    ///  </code>
-    /// To enable all profilers, use <c>Profiler.Enable()</c> method.
+    /// </code>
+    /// To enable all profilers, use <c>Profiler.EnableAll()</c> method.
     /// 
-    /// When the profiler is enabled, it is logged using the logging system through the standard <see cref="Logger"/> infrastructure.
-    /// The logger module name used is "Profile." concatenates with the name of the profile.
+    /// When the profiler is enabled, it is logged using the logging system through the standard <see cref="Diagnostics.Logger"/> infrastructure, 
+    /// if ProfilingKeyFlags.Log is set for the ProfilingKey. The logger module name used is "Profile." concatenates with the name of the profile.
     /// 
     /// Note also that when profiling, it is possible to attach some property values (counters, indicators...etc.) to a profiler state. This 
-    /// property values will be displayed along the standard profiler state. You can use <see cref="ProfilingState.SetAttribute"/> to attach
+    /// property values will be displayed along the standard profiler state. You can use <see cref="ProfilingState.Attributes"/> to attach
     /// a property value to a <see cref="ProfilingState"/>.
+    /// 
+    /// To register your own system to receive <see cref="ProfilingEvent">ProfilingEvents</see> use the <see cref="Subscribe"/> and 
+    /// <see cref="Unsubscribe"/> methods.
     /// </remarks>
     public static class Profiler
     {
@@ -115,6 +117,9 @@ namespace Stride.Core.Diagnostics
         private static Task collectorTask = null;
 
         //TODO: Use TicksPerMicrosecond once .NET7 is available
+        /// <summary>
+        /// The minimum duration of events that will be captured. Defaults to 1 µs.
+        /// </summary>
         public static TimeSpan MinimumProfileDuration { get; set; } = new TimeSpan(TimeSpan.TicksPerMillisecond / 1000);
 
         static Profiler()
@@ -136,6 +141,10 @@ namespace Stride.Core.Diagnostics
             });
         }
 
+        /// <summary>
+        /// Subscribes to the generated ProfilingEvents.
+        /// </summary>
+        /// <returns>The <see cref="System.Threading.Channels.ChannelReader{ProfilingEvent}"/> which will receive the events.</returns>
         public static ChannelReader<ProfilingEvent> Subscribe()
         {
             var channel = Channel.CreateUnbounded<ProfilingEvent>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
@@ -148,6 +157,10 @@ namespace Stride.Core.Diagnostics
             return channel;
         }
 
+        /// <summary>
+        /// Unsubscribes from receiving ProfilingEvents.
+        /// </summary>
+        /// <param name="eventReader">The reader previously returned by <see cref="Subscribe"/></param>
         public static void Unsubscribe(ChannelReader<ProfilingEvent> eventReader)
         {
             subscriberChannelLock.Wait();
@@ -238,8 +251,8 @@ namespace Stride.Core.Diagnostics
         /// </summary>
         /// <param name="profilingKey">The profile key.</param>
         /// <returns>A profiler state.</returns>
-        /// <remarks>It is recommended to call this method with <c>using (var profile = Profiler.Profile(...))</c> in order to make sure that the Dispose() method will be called on the
-        /// <see cref="ProfilingState" /> returned object.</remarks>
+        /// <remarks>It is recommended to call this method with <c>using (Profiler.Begin(...)) {...}</c> or <c>using var _ = Profiler.Begin(...);</c> 
+        /// in order to make sure that the Dispose() method will be called on the <see cref="ProfilingState" /> returned object.</remarks>
         public static ProfilingState New([NotNull] ProfilingKey profilingKey)
         {
             if (profilingKey == null) throw new ArgumentNullException(nameof(profilingKey));
@@ -257,8 +270,8 @@ namespace Stride.Core.Diagnostics
         /// <param name="profilingKey">The profile key.</param>
         /// <param name="text">The text to log with the profile.</param>
         /// <returns>A profiler state.</returns>
-        /// <remarks>It is recommended to call this method with <c>using (var profile = Profiler.Profile(...))</c> in order to make sure that the Dispose() method will be called on the
-        /// <see cref="ProfilingState" /> returned object.</remarks>
+        /// <remarks>It is recommended to call this method with <c>using (Profiler.Begin(...)) {...}</c> or <c>using var _ = Profiler.Begin(...);</c> 
+        /// in order to make sure that the Dispose() method will be called on the <see cref="ProfilingState" /> returned object.</remarks>
         public static ProfilingState Begin([NotNull] ProfilingKey profilingKey)
         {
             var profiler = New(profilingKey);
@@ -277,8 +290,8 @@ namespace Stride.Core.Diagnostics
         /// <param name="value2">Third value (can be int, float, long or double).</param>
         /// <param name="value3">Fourth value (can be int, float, long or double).</param>
         /// <returns>A profiler state.</returns>
-        /// <remarks>It is recommended to call this method with <c>using (var profile = Profiler.Profile(...))</c> in order to make sure that the Dispose() method will be called on the
-        /// <see cref="ProfilingState" /> returned object.</remarks>
+        /// <remarks>It is recommended to call this method with <c>using (Profiler.Begin(...)) {...}</c> or <c>using var _ = Profiler.Begin(...);</c> 
+        /// in order to make sure that the Dispose() method will be called on the <see cref="ProfilingState" /> returned object.</remarks>
         public static ProfilingState Begin([NotNull] ProfilingKey profilingKey, string textFormat, ProfilingCustomValue? value0 = null, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
             var profiler = New(profilingKey);
