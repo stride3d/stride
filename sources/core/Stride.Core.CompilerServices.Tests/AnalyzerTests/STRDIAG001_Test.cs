@@ -19,7 +19,7 @@ public class STRDIAG001_Test
     public void No_Error_On_Private_Inner_Class_without_DataContract()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "private class InnerClass { }");
-        TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG001InvalidDataContract.DiagnosticId);
+        TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
     }
     // TODO: Enable with .NET8 merge as we need a higher C# version
     [Fact(Skip = "file scoped classes won't compile")]
@@ -31,7 +31,7 @@ public class STRDIAG001_Test
     [Fact(Skip = "file scoped classes won't compile")]
     public void No_Error_On_file_scope_Class_without_DataContract()
     {
-        string sourceCode = "using Stride.Core; [DataContract] file class FileScopeClass { }";
-        TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG001InvalidDataContract.DiagnosticId);
+        string sourceCode = "using Stride.Core; file class FileScopeClass { }";
+        TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
     }
 }
