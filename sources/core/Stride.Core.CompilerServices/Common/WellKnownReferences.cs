@@ -5,7 +5,10 @@ internal static class WellKnownReferences
     {
         return compilation.GetTypeByMetadataName("Stride.Core.DataMemberAttribute");
     }
-
+    public static INamedTypeSymbol? IDictionary_generic(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName);
+    }
     public static INamedTypeSymbol? DataMemberIgnoreAttribute(Compilation compilation)
     {
         return compilation.GetTypeByMetadataName("Stride.Core.DataMemberIgnoreAttribute");
