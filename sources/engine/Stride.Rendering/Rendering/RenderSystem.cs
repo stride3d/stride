@@ -129,7 +129,7 @@ namespace Stride.Rendering
             {
                 // Sort per render feature (used for later sorting)
                 // We'll be able to process data more efficiently for the next steps
-                Dispatcher.Sort(view.RenderObjects, RenderObjectFeatureComparer.Default);
+                Array.Sort(view.RenderObjects.Items, 0, view.RenderObjects.Count, RenderObjectFeatureComparer.Default);
 
                 Dispatcher.ForEach(view.RenderObjects, () => extractThreadLocals.Value, (renderObject, batch) =>
                 {
@@ -180,7 +180,7 @@ namespace Stride.Rendering
                 {
                     renderViewStage.RenderNodes.Close();
 
-                    Dispatcher.Sort(renderViewStage.RenderNodes, RenderNodeFeatureReferenceComparer.Default);
+                    Array.Sort(renderViewStage.RenderNodes.Items, 0, renderViewStage.RenderNodes.Count, RenderNodeFeatureReferenceComparer.Default);
                 }
             });
 
@@ -268,7 +268,7 @@ namespace Stride.Rendering
                         fixed (SortKey* sortKeysPtr = local.SortKeys)
                             renderStage.SortMode.GenerateSortKey(view, renderViewStage, sortKeysPtr);
 
-                        Dispatcher.Sort(local.SortKeys, 0, renderNodes.Count, Comparer<SortKey>.Default);
+                        Array.Sort(local.SortKeys, 0, renderNodes.Count);
 
                         // Reorder list
                         for (int i = 0; i < renderNodes.Count; ++i)
