@@ -27,6 +27,12 @@ public class STRDIAG009_Test
         }
     }
     [Fact]
+    public void No_Error_On_Enum_As_Key()
+    {
+        string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, $"public enum TestEnumKey {{ Yes,No }}[DataMember] public System.Collections.Generic.Dictionary<TestEnumKey,object> Value {{ get; }}");
+        TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
+    }
+    [Fact]
     public void Error_On_Reference_Type()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMember] public System.Collections.Generic.Dictionary<object,object> Value { get; }");

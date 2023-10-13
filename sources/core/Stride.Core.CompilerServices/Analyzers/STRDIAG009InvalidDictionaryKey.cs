@@ -11,7 +11,7 @@ public class STRDIAG009InvalidDictionaryKey : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG009";
     private const string Title = "Invalid Dictionary Key";
-    private const string MessageFormat = "The member '{0}' implements IDictionary<T,K> with an unsupported type for the key. Only primitive types ( like int,float,.. ) are supported or string as the Dictionary Key in asset serialization. When used in other contexts the warning may not apply and can be suppressed.";
+    private const string MessageFormat = "The member '{0}' implements IDictionary<T,K> with an unsupported type for the key. Only primitive types ( like int,float,.. ) are supported or string or enums as the Dictionary Key in asset serialization. When used in other contexts the warning may not apply and can be suppressed.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -55,7 +55,7 @@ public class STRDIAG009InvalidDictionaryKey : DiagnosticAnalyzer
             if(i.OriginalDefinition.Equals(dictionaryInterface,SymbolEqualityComparer.Default))
             {
                 var types = i.TypeArguments;
-                if (!types[0].IsImmutableType())
+                if (!(types[0].TypeKind == TypeKind.Enum || types[0].IsImmutableType()))
                 {
                     Rule.ReportDiagnostics(context, symbol);
                 }
