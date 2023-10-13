@@ -166,7 +166,9 @@ void CreateMixin()
         Mixer.Create("MixinD")
         .Inherit("MixinB")
         .Inherit("MixinC")
-        .FinishInherit()
+        .FinishInherit();
+    var mixin =
+        mD
         .WithType("float4x3")
         .WithType("half3x3")
         .WithConstant("a", 5)
@@ -176,9 +178,11 @@ void CreateMixin()
         .WithOutput("float3", "out_color")
         .WithEntryPoint(ExecutionModel.Vertex, "VSMain")
             .FunctionStart()
-            .DeclareAssign("int", "a", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => new(mixer.CreateConstant("cs5", 5), true))
-            .DeclareAssign("int", "b", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => new(mixer.LocalVariables["a"], false))
-            .DeclareAssign("int", "c", static (Mixer mixer, ref Mixer.FunctionBuilder functionBuilder) => new(mixer.LocalVariables["a"], false))
+            .DeclareAssign("a", 5)
+            .Declare("int", "b")
+            .AssignConstant("b", 6)
+            .Declare("int", "c")
+            .AssignVariable("c","a")
             .Return()
             .FunctionEnd()
         .WithCapability(Capability.Shader)
@@ -190,8 +194,9 @@ void CreateMixin()
     //Console.WriteLine(mB);
     //Console.WriteLine(mD.Disassemble());
 
-    Console.WriteLine(mD);
+    Console.WriteLine(mixin);
     var processed = PostProcessor.Process("MixinD");
+    processed = PostProcessor.Process("MixinD");
     processed.Dispose();
     Stopwatch stopwatch = Stopwatch.StartNew();
     processed = PostProcessor.Process("MixinD");
@@ -255,6 +260,7 @@ static void CheckOrderedEnumerator()
 //CheckOrderedEnumerator();
 Console.WriteLine("working on " + Directory.GetCurrentDirectory());
 CreateMixin();
+var t = 0;
 
 
 //CrossShader();
