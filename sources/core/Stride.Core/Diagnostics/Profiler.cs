@@ -79,7 +79,6 @@ namespace Stride.Core.Diagnostics
 
         private class ThreadEventCollection
         {
-            //TODO (perf): Use an SPSC queue instead.
             private ProfilingEventChannel channel = ProfilingEventChannel.Create(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
 
             internal ThreadEventCollection()
@@ -123,7 +122,7 @@ namespace Stride.Core.Diagnostics
         public static TimeSpan MinimumProfileDuration { get; set; } = new TimeSpan(TimeSpan.TicksPerMillisecond / 1000);
 
         static Profiler()
-        {           
+        {
             collectorTask = Task.Run(async () =>
             {
                 await foreach (var item in collectorChannel.Reader.ReadAllAsync())
@@ -347,15 +346,8 @@ namespace Stride.Core.Diagnostics
         /// <param name="e">The event.</param>
         private static void SendEventToSubscribers(ProfilingEvent e)
         {
-            subscriberChannelLock.Wait();
-            try
-            {
-                if (subscriberChannels.Count == 1)
-                    subscriberChannels[0].Writer.TryWrite(e);
-                if (subscriberChannels.Count > 1)
-                    collectorChannel.Writer.TryWrite(e);
-            }
-            finally { subscriberChannelLock.Release(); }
+            if (subscriberChannels.Count >= 1)
+                collectorChannel.Writer.TryWrite(e);
         }
 
         static void EndProfile(ProfilingEvent e)
