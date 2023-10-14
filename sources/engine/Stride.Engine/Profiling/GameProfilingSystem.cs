@@ -282,6 +282,8 @@ namespace Stride.Profiling
 
         private void AppendEvent(ProfilingResult profilingResult, int elapsedFrames, bool displayMarkCount)
         {
+            elapsedFrames = Math.Max(elapsedFrames, 1);
+
             var profilingEvent = profilingResult.Event.Value;
 
             Profiler.AppendTime(profilersStringBuilder, profilingResult.AccumulatedTime / elapsedFrames);
