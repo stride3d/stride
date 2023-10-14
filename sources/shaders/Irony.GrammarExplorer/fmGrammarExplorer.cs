@@ -129,7 +129,7 @@ namespace Irony.GrammarExplorer
             gridParserTrace.Rows.Clear();
             foreach (var entry in _parser.Context.ParserTrace)
             {
-                int index = gridParserTrace.Rows.Add(entry.State, entry.StackTop, entry.Input, entry.Message);
+                gridParserTrace.Rows.Add(entry.State, entry.StackTop, entry.Input, entry.Message);
                 if (entry.IsError)
                     gridParserTrace.Rows[gridParserTrace.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.Red;
             }
@@ -184,8 +184,7 @@ namespace Irony.GrammarExplorer
             TreeNode newNode = (parent == null ?
               tvAst.Nodes.Add(txt) : parent.Nodes.Add(txt));
             newNode.Tag = astNode;
-            var iBrowsable = astNode as IBrowsableAstNode;
-            if (iBrowsable == null) return;
+            if (astNode is not IBrowsableAstNode iBrowsable) return;
             var childList = iBrowsable.GetChildNodes();
             foreach (var child in childList)
                 AddAstNodeRec(newNode, child);
@@ -224,12 +223,10 @@ namespace Irony.GrammarExplorer
             if (location.Position < 0) return;
             txtSource.SelectionStart = location.Position;
             txtSource.SelectionLength = length;
-            //txtSource.Select(location.Position, length);
             txtSource.ScrollToCaret();
             if (tabGrammar.SelectedTab != pageTest)
                 tabGrammar.SelectedTab = pageTest;
             txtSource.Focus();
-            //lblLoc.Text = location.ToString();
         }
         private void ShowSourceLocationAndTraceToken(SourceLocation location, int length)
         {
@@ -389,8 +386,7 @@ namespace Irony.GrammarExplorer
             }
             finally
             {
-                if (reader != null)
-                    reader.Close();
+                reader?.Close();
             }
         }
 
@@ -464,19 +460,14 @@ namespace Irony.GrammarExplorer
 
         public TextBoxBase GetSearchContentBox()
         {
-            switch (tabGrammar.SelectedIndex)
+            return tabGrammar.SelectedIndex switch
             {
-                case 0:
-                    return txtTerms;
-                case 1:
-                    return txtNonTerms;
-                case 2:
-                    return txtParserStates;
-                case 4:
-                    return txtSource;
-                default:
-                    return null;
-            }//switch
+                0 => txtTerms,
+                1 => txtNonTerms,
+                2 => txtParserStates,
+                4 => txtSource,
+                _ => null,
+            };
         }
 
         #endregion
@@ -497,8 +488,7 @@ namespace Irony.GrammarExplorer
         {
             var vtreeNode = tvParseTree.SelectedNode;
             if (vtreeNode == null) return;
-            var parseNode = vtreeNode.Tag as ParseTreeNode;
-            if (parseNode == null) return;
+            if (vtreeNode.Tag is not ParseTreeNode parseNode) return;
             ShowSourceLocation(parseNode.Span.Location, 1);
         }
 
@@ -506,8 +496,7 @@ namespace Irony.GrammarExplorer
         {
             var treeNode = tvAst.SelectedNode;
             if (treeNode == null) return;
-            var iBrowsable = treeNode.Tag as IBrowsableAstNode;
-            if (iBrowsable == null) return;
+            if (treeNode.Tag is not IBrowsableAstNode iBrowsable) return;
             ShowSourceLocation(iBrowsable.Location, 1);
         }
 
@@ -635,8 +624,7 @@ namespace Irony.GrammarExplorer
         private void gridGrammarErrors_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.RowIndex >= gridGrammarErrors.Rows.Count) return;
-            var state = gridGrammarErrors.Rows[e.RowIndex].Cells[2].Value as ParserState;
-            if (state != null)
+            if (gridGrammarErrors.Rows[e.RowIndex].Cells[2].Value is ParserState state)
                 LocateParserState(state);
         }
 

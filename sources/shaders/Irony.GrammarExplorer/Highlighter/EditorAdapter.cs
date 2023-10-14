@@ -24,19 +24,19 @@ namespace Irony.GrammarExplorer
 
     public class EditorAdapter
     {
-        Parsing.Parser _parser;
-        Scanner _scanner;
+        readonly Parser _parser;
+        readonly Scanner _scanner;
         ParseTree _parseTree;
         string _newText;
-        EditorViewAdapterList _views = new EditorViewAdapterList();
+        readonly EditorViewAdapterList _views = new EditorViewAdapterList();
         EditorViewAdapterList _viewsCopy; //copy used in refresh loop; set to null when views are added/removed
-        Thread _parserThread;
-        Thread _colorizerThread;
+        readonly Thread _parserThread;
+        readonly Thread _colorizerThread;
         bool _stopped;
 
         public EditorAdapter(LanguageData language)
         {
-            _parser = new Parsing.Parser(language);
+            _parser = new Parser(language);
             _scanner = _parser.Scanner;
             _colorizerThread = new Thread(ColorizerLoop);
             _colorizerThread.IsBackground = true;
@@ -59,20 +59,20 @@ namespace Irony.GrammarExplorer
                 _stopped = true;
                 _parserThread.Join(500);
                 if (_parserThread.IsAlive)
-                    _parserThread.Abort();
+                    _parserThread.Interrupt();
                 _colorizerThread.Join(500);
                 if (_colorizerThread.IsAlive)
-                    _colorizerThread.Abort();
+                    _colorizerThread.Interrupt();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Error when stopping EditorAdapter: " + ex.Message);
+                Debug.WriteLine("Error when stopping EditorAdapter: " + ex.Message);
             }
         }
 
         public void SetNewText(string text)
         {
-            text = text ?? string.Empty; //force it to become not null; null is special value meaning "no changes"
+            text ??= string.Empty; //force it to become not null; null is special value meaning "no changes"
             _newText = text;
         }
 
