@@ -46,7 +46,8 @@
           <vw:SolutionExplorerView Grid.Column="0"
                                    BorderThickness="2"
                                    BorderBrush="Black"
-                                   Padding="2" />
+                                   Padding="2"
+                                   DataContext="{Binding Session}" />
           <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
           <vw:AssetExplorerView Grid.Column="2"
                                 BorderThickness="2"
