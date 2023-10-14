@@ -12,8 +12,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 
 using Irony.Parsing;
@@ -59,7 +57,7 @@ namespace Irony.GrammarExplorer
         public ParseTree Tree;
         public ViewData(ParseTree tree)
         {
-            this.Tree = tree;
+            Tree = tree;
             if (tree == null) return;
             NotColoredTokens.AddRange(tree.Tokens);
         }
@@ -170,9 +168,7 @@ namespace Irony.GrammarExplorer
         {
             foreach (Token oldColored in oldColoredTokens)
             {
-                int index;
-                Token newColored;
-                if (FindMatchingToken(_data.NotColoredTokens, oldColored, 0, out index, out newColored) ||
+                if (FindMatchingToken(_data.NotColoredTokens, oldColored, 0, out var index, out var newColored) ||
                     FindMatchingToken(_data.NotColoredTokens, oldColored, shift, out index, out newColored))
                 {
                     _data.NotColoredTokens.RemoveAt(index);

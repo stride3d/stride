@@ -67,7 +67,7 @@ namespace Irony.GrammarExplorer
             Assembly asm = null;
             try
             {
-                asm = Assembly.LoadFrom(assemblyPath);
+                asm = GrammarLoader.LoadAssembly(assemblyPath);
                 // enforce loading every time, even if assembly name is not changed
                 //asm = Assembly.Load(File.ReadAllBytes(assemblyPath));
             }
@@ -80,7 +80,8 @@ namespace Irony.GrammarExplorer
             var grammars = new GrammarItemList();
             foreach (Type t in types)
             {
-                if (!t.IsSubclassOf(typeof(Parsing.Grammar))) continue;
+                if (t.IsAbstract) continue;
+                if (!t.IsSubclassOf(typeof(Grammar))) continue;
                 grammars.Add(new GrammarItem(t, assemblyPath));
             }
             if (grammars.Count == 0)
