@@ -12,8 +12,6 @@ namespace Stride.Rendering.Compositing
     /// </summary>
     public partial class SceneRendererCollection : SceneRendererBase, IEnumerable<ISceneRenderer>
     {
-        private static readonly ProfilingKey DrawChildKey = new ProfilingKey("SceneRendererCollection.DrawChild");
-
         [Display(Expand = ExpandRule.Always)]
         public List<ISceneRenderer> Children { get; } = new List<ISceneRenderer>();
 
@@ -29,10 +27,7 @@ namespace Stride.Rendering.Compositing
         {
             foreach (var child in Children)
             {
-                using (Profiler.Begin(DrawChildKey, $"{child.GetType().Name}.Draw"))
-                {
-                    child.Draw(drawContext);
-                }
+                child.Draw(drawContext);
             }
         }
 

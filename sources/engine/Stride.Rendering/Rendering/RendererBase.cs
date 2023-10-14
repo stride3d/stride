@@ -14,8 +14,6 @@ namespace Stride.Rendering
     [DataContract]
     public abstract class RendererBase : RendererCoreBase, IGraphicsRenderer
     {
-        private static readonly ProfilingKey DrawKey = new ProfilingKey("RendererBase.Draw");
-
         /// <summary>
         /// Initializes a new instance of the <see cref="RendererBase"/> class.
         /// </summary>
@@ -48,7 +46,7 @@ namespace Stride.Rendering
         {
             if (Enabled)
             {
-                using var _ = Profiler.Begin(DrawKey, $"{GetType().Name}.Draw");
+                using var _ = Profiler.Begin(CPUProfilingKey);
                 PreDrawCoreInternal(context);
                 DrawCore(context);
                 PostDrawCoreInternal(context);
