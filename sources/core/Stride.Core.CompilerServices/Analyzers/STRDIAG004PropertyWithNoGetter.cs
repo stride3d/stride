@@ -18,7 +18,8 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
         NonExistentGetterMessageFormat,
         Category,
         DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
+        isEnabledByDefault: true,
+        helpLinkUri: string.Format(DiagnosticCategory.LinkFormat, DiagnosticId));
 
     private static DiagnosticDescriptor InvalidAccesibilityRule = new DiagnosticDescriptor(
         DiagnosticId,

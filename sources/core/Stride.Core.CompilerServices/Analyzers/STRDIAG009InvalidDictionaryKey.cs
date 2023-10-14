@@ -20,7 +20,8 @@ public class STRDIAG009InvalidDictionaryKey : DiagnosticAnalyzer
         MessageFormat,
         Category,
         DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
+        isEnabledByDefault: true,
+        helpLinkUri: string.Format(DiagnosticCategory.LinkFormat, DiagnosticId));
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 
