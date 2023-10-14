@@ -12,7 +12,7 @@
 - [x] Have a memory representation
 	- [x] Use the MSBuild API? (latest .NET 6 is Microsoft.Build 17.3.2)?
 	- [x] Use the functionalities from Stride.Core.Assets
-- [ ] Have the explorer (read-only) in the UI
+- [x] Have the explorer (read-only) in the UI
 
 ### Build a Stride project
 
