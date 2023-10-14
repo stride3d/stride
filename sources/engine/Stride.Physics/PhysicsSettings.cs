@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Data;
 
 namespace Stride.Physics
@@ -35,5 +36,11 @@ namespace Stride.Physics
         /// </userdoc>
         [DataMember(40)]
         public float MaxTickDuration = 1f / 120f;
+
+        /// <userdoc>
+        /// Default gravity vector for physics simulation.
+        /// </userdoc>
+        [DataMember(50)]
+        public Vector3 Gravity = new Vector3(0, -10, 0);
     }
 }
