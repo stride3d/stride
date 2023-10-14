@@ -6,7 +6,7 @@ namespace Stride.Core.Presentation.ViewModels;
 /// <summary>
 /// Arguments of the events raised by <see cref="IViewModelServiceProvider"/> implementations.
 /// </summary>
-public class ServiceRegistrationEventArgs : EventArgs
+public sealed class ServiceRegistrationEventArgs : EventArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ServiceRegistrationEventArgs"/> class.

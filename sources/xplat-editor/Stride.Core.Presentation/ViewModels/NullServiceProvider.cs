@@ -6,7 +6,7 @@ namespace Stride.Core.Presentation.ViewModels;
 /// <summary>
 /// A service provider that is empty and immutable.
 /// </summary>
-internal class NullServiceProvider : IViewModelServiceProvider
+internal sealed class NullServiceProvider : IViewModelServiceProvider
 {
     // We provide an empty `add' and `remove' to avoid a warning about unused events that we have
     // to implement as they are part of the IViewModelServiceProvider definition.

@@ -9,7 +9,7 @@ using Avalonia.Platform.Storage;
 
 namespace Stride.Core.Presentation.Services;
 
-public class DialogService : IDialogService
+public sealed class DialogService : IDialogService
 {
     public static Window? MainWindow => (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow!;
 

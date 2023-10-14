@@ -5,7 +5,7 @@ using Stride.Core.IO;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
-public class ProjectViewModel : PackageViewModel
+public sealed class ProjectViewModel : PackageViewModel
 {
     public ProjectViewModel(ISessionViewModel session, SolutionProject project)
         : base(session, project)

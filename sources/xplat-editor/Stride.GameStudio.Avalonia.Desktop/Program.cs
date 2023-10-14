@@ -1,14 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-
 using Avalonia;
 using Microsoft.Build.Locator;
 
 namespace Stride.GameStudio.Avalonia.Desktop;
 
-class Program
+internal sealed class Program
 {
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized

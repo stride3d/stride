@@ -6,7 +6,7 @@ namespace Stride.Core.Presentation.ViewModels;
 /// <summary>
 /// A service provider class for view model objects.
 /// </summary>
-public class ViewModelServiceProvider : IViewModelServiceProvider
+public sealed class ViewModelServiceProvider : IViewModelServiceProvider
 {
     private readonly IViewModelServiceProvider? parentProvider;
     private readonly List<object> services = new();
