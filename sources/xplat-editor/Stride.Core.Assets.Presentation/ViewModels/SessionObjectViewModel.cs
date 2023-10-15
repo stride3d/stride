@@ -8,6 +8,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels;
 public abstract class SessionObjectViewModel : ViewModelBase
 {
     protected SessionObjectViewModel(ISessionViewModel session)
+        : base(session.ServiceProvider)
     {
         Session = session;
     }

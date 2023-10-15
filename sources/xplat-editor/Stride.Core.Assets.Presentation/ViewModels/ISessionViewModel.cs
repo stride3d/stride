@@ -1,10 +1,17 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Presentation.ViewModels;
+
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
 public interface ISessionViewModel
 {
+    AssetPropertyGraphContainer GraphContainer { get; }
+
+    IViewModelServiceProvider ServiceProvider { get; }
+
     /// <summary>
     /// Gets an <see cref="AssetViewModel"/> instance of the asset which as the given identifier, if available.
     /// </summary>

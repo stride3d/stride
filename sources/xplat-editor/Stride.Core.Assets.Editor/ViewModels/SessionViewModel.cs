@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Quantum;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.ViewModels;
@@ -20,6 +21,10 @@ public sealed class SessionViewModel : ViewModelBase, ISessionViewModel
     {
         this.session = session;
 
+        // Initialize the node container used for asset properties
+        AssetNodeContainer = new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } };
+
+        // Initialize the asset collection view model
         AssetCollection = new AssetCollectionViewModel(this);
 
         // Create package view models
@@ -28,11 +33,17 @@ public sealed class SessionViewModel : ViewModelBase, ISessionViewModel
             var package = CreateProjectViewModel(x, true);
             AllPackages.Add(package);
         });
+
+        GraphContainer = new AssetPropertyGraphContainer(AssetNodeContainer);
     }
 
     public ObservableCollection<PackageViewModel> AllPackages { get; } = new();
 
     public AssetCollectionViewModel AssetCollection { get; }
+
+    public AssetNodeContainer AssetNodeContainer { get; }
+
+    public AssetPropertyGraphContainer GraphContainer { get; }
 
     internal Dictionary<Type, Type> AssetViewModelTypes { get; } = new Dictionary<Type, Type>();
 
