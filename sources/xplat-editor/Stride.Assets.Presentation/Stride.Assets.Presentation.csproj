@@ -1,6 +1,11 @@
 <Project>
   <Import Project="..\..\targets\Stride.props" />
 
+  <PropertyGroup>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Presentation\Stride.Core.Assets.Presentation.csproj" />
