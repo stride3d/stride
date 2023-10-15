@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Quantum;
+
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
 public interface IAssetViewModel<out TAsset>
@@ -33,6 +35,7 @@ public abstract class AssetViewModel : SessionObjectViewModel
         this.assetItem = assetItem;
         this.directory = directory;
         name = Path.GetFileName(assetItem.Location);
+        PropertyGraph = Session.GraphContainer.TryGetGraph(assetItem.Id);
         Session.RegisterAsset(this);
     }
 
@@ -57,6 +60,8 @@ public abstract class AssetViewModel : SessionObjectViewModel
         get => name;
         set => SetValue(ref name, value); // TODO rename
     }
+
+    public AssetPropertyGraph PropertyGraph { get; }
 
     protected Package Package => Directory.Package.Package;
 }
