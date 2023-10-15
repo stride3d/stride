@@ -1,12 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <Import Project="..\..\targets\Stride.props" />
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
-    <!--If you are willing to use Windows/MacOS native APIs you will need to create 3 projects.
-    One for Windows with net7.0-windows TFM, one for MacOS with net7.0-macos and one with net7.0 TFM for Linux.-->
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
@@ -23,4 +20,6 @@
     <None Include="..\Directory.Build.props" Link="Directory.Build.props" />
     <None Include="..\xplat_editor-todo.md" Link="xplat_editor-todo.md" />
   </ItemGroup>
+
+  <Import Project="$(StrideSdkTargets)" />
 </Project>
