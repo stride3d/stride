@@ -160,7 +160,7 @@ void CreateMixin()
         .Build();
 
     
-    CompositionSourceProvider.CompileAndRegister("MixinC");
+    //CompositionSourceProvider.CompileAndRegister("MixinC");
 
     var mD =
         Mixer.Create("MixinD")
@@ -202,8 +202,8 @@ void CreateMixin()
     processed = PostProcessor.Process("MixinD");
     stopwatch.Stop();
 
-    Console.WriteLine(Disassembler.Disassemble(processed));
     Console.WriteLine($"Process took : {stopwatch.ElapsedMilliseconds}ms");
+    Console.WriteLine(Disassembler.Disassemble(processed));
 
 
     File.WriteAllBytes("./mixed.spv", processed.Bytes.ToArray());
