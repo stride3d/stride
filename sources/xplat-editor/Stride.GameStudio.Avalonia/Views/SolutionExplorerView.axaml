@@ -43,6 +43,12 @@
           <TextBlock Text="{Binding Name}" />
         </StackPanel>
       </TreeDataTemplate>
+      <DataTemplate DataType="{x:Type vm:AssetViewModel}">
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="Asset: " />
+          <TextBlock Text="{Binding Name}" />
+        </StackPanel>
+      </DataTemplate>
       <!-- Fallback -->
       <DataTemplate DataType="{x:Type vm:SessionObjectViewModel}">
         <StackPanel Orientation="Horizontal">
