@@ -32,6 +32,9 @@ namespace Stride.Rendering.Shadows
 
         private readonly List<LightShadowMapTexture> shadowMaps = new List<LightShadowMapTexture>();
         
+        private static readonly ProfilingKey CollectKey = new ProfilingKey("ShadowMapRenderer.Collect");
+        private static readonly ProfilingKey DrawKey = new ProfilingKey("ShadowMapRenderer.Draw");
+
         public ShadowMapRenderer()
         {
             atlases = new FastListStruct<ShadowMapAtlasTexture>(16);
@@ -71,6 +74,7 @@ namespace Stride.Rendering.Shadows
 
         public void Collect(RenderContext context, Dictionary<RenderView, ForwardLightingRenderFeature.RenderViewLightData> renderViewLightDatas)
         {
+            using var _ = Profiler.Begin(CollectKey);
             // Reset the state of renderers
             foreach (var renderer in Renderers)
             {
@@ -152,6 +156,7 @@ namespace Stride.Rendering.Shadows
 
         public void Draw(RenderDrawContext drawContext)
         {
+            using var _ = Profiler.Begin(DrawKey);
             var renderSystem = drawContext.RenderContext.RenderSystem;
 
             // Clear atlases

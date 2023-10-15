@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Collections;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Core.Diagnostics;
 using Stride.Engine;
 using Stride.Graphics;
 
@@ -29,6 +30,14 @@ namespace Stride.Rendering.Compositing
         public static readonly PropertyKey<GraphicsCompositor> Current = new PropertyKey<GraphicsCompositor>("GraphicsCompositor.Current", typeof(GraphicsCompositor));
 
         private readonly List<SceneInstance> initializedSceneInstances = new List<SceneInstance>();
+        private static readonly ProfilingKey RenderSystemCollectKey = new ProfilingKey("RenderSystem.Collect");
+        private static readonly ProfilingKey GameCollectKey = new ProfilingKey("Game.Collect");
+        private static readonly ProfilingKey RenderSystemExtractKey = new ProfilingKey("RenderSystem.Extract");
+        private static readonly ProfilingKey GameDrawKey = new ProfilingKey("Game.Draw");
+        private static readonly ProfilingKey RenderSystemPrepareKey = new ProfilingKey("RenderSystem.Prepare");
+        private static readonly ProfilingKey RenderSystemFlushKey = new ProfilingKey("RenderSystem.Flush");
+        private static readonly ProfilingKey RenderSystemResetKey = new ProfilingKey("RenderSystem.Reset");
+        private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("GraphicsCompositor.DrawCore");
 
         /// <summary>
         /// Gets the render system used with this graphics compositor.
@@ -115,6 +124,8 @@ namespace Stride.Rendering.Compositing
         {
             if (Game != null)
             {
+                using var _ = Profiler.Begin(DrawCoreKey);
+
                 // Get or create VisibilityGroup for this RenderSystem + SceneInstance
                 var sceneInstance = SceneInstance.GetCurrent(context.RenderContext);
                 VisibilityGroup visibilityGroup = null;
@@ -161,35 +172,56 @@ namespace Stride.Rendering.Compositing
 
                     try
                     {
-                        // Collect in the game graphics compositor: Setup features/stages, enumerate views and populates VisibilityGroup
-                        Game.Collect(context.RenderContext);
-
-                        // Collect in render features
-                        RenderSystem.Collect(context.RenderContext);
-
-                        // Collect visibile objects from each view (that were not properly collected previously)
-                        if (visibilityGroup != null)
+                        
+                        using (Profiler.Begin(GameCollectKey))
                         {
-                            foreach (var view in RenderSystem.Views)
-                                visibilityGroup.TryCollect(view);
+                            // Collect in the game graphics compositor: Setup features/stages, enumerate views and populates VisibilityGroup
+                            Game.Collect(context.RenderContext);
                         }
 
-                        // Extract
-                        RenderSystem.Extract(context.RenderContext);
+                        using (Profiler.Begin(RenderSystemCollectKey))
+                        {
+                            // Collect in render features
+                            RenderSystem.Collect(context.RenderContext);
 
-                        // Prepare
-                        RenderSystem.Prepare(context);
+                            // Collect visibile objects from each view (that were not properly collected previously)
+                            if (visibilityGroup != null)
+                            {
+                                foreach (var view in RenderSystem.Views)
+                                    visibilityGroup.TryCollect(view);
+                            }
+                        }
 
-                        // Draw using the game graphics compositor
-                        Game.Draw(context);
+                        using (Profiler.Begin(RenderSystemExtractKey))
+                        {
+                            // Extract
+                            RenderSystem.Extract(context.RenderContext);
+                        }
+                        using (Profiler.Begin(RenderSystemPrepareKey))
+                        {
+                            // Prepare
+                            RenderSystem.Prepare(context);
+                        }
 
-                        // Flush
-                        RenderSystem.Flush(context);
+                        using (Profiler.Begin(GameDrawKey))
+                        {
+                            // Draw using the game graphics compositor
+                            Game.Draw(context);
+                        }
+
+                        using (Profiler.Begin(RenderSystemFlushKey))
+                        {
+                            // Flush
+                            RenderSystem.Flush(context);
+                        }
                     }
                     finally
                     {
-                        // Reset render context data
-                        RenderSystem.Reset();
+                        using (Profiler.Begin(RenderSystemResetKey))
+                        {
+                            // Reset render context data
+                            RenderSystem.Reset();
+                        }
                     }
                 }
             }

@@ -26,6 +26,9 @@ namespace Stride.Rendering.Compositing
     [Display("Forward renderer")]
     public partial class ForwardRenderer : SceneRendererBase, ISharedRenderer
     {
+        private static readonly ProfilingKey CollectCoreKey = new ProfilingKey("ForwardRenderer.CollectCore");
+        private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("ForwardRenderer.DrawCore");
+
         // TODO: should we use GraphicsDeviceManager.PreferredBackBufferFormat?
         public const PixelFormat DepthBufferFormat = PixelFormat.D24_UNorm_S8_UInt;
 
@@ -293,6 +296,8 @@ namespace Stride.Rendering.Compositing
 
         protected override unsafe void CollectCore(RenderContext context)
         {
+            using var _ = Profiler.Begin(CollectCoreKey);
+
             var camera = context.GetCurrentCamera();
 
             if (context.RenderView == null)
@@ -614,6 +619,8 @@ namespace Stride.Rendering.Compositing
 
         protected override void DrawCore(RenderContext context, RenderDrawContext drawContext)
         {
+            using var _ = Profiler.Begin(DrawCoreKey);
+
             var viewport = drawContext.CommandList.Viewport;
 
             using (drawContext.PushRenderTargetsAndRestore())

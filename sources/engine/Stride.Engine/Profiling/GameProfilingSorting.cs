@@ -6,6 +6,9 @@ namespace Stride.Profiling
 {
     public enum GameProfilingSorting
     {
+        [Display("Average time")]
+        ByAverageTime,
+
         [Display("Total time")]
         ByTime,
 
