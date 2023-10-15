@@ -132,12 +132,9 @@
   
   <!-- Packs the BuildItems into a single .Packed DLL and generates a .hash file from it -->
   <Target Name="GenerateHash" AfterTargets="CopyFiles">
-    
     <!-- Repack the assemblies into a single file -->
     <Exec Command="cd &quot;$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)&quot;
-      &quot;$(ILRepack)&quot; Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)
-    "/>
-    
+    &quot;$(ILRepack)&quot; Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
     <!-- Generate the hash and then write it to disk with the .hash extension -->
     <GetFileHash Files="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
       <Output
