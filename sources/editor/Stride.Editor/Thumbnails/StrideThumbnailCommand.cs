@@ -20,10 +20,14 @@ namespace Stride.Editor.Thumbnails
 {
     /// <summary>
     /// The base command to build stride thumbnails.
-    /// - It uses the underlying <see cref="ThumbnailGenerator"/> to build thumbnail via scenes.
-    /// - It extracts and exposes the thumbnail services from the <see cref="ThumbnailCompilerContext"/>,
-    /// - It defines the <see cref="CreateScene"/>, <see cref="DestroyScene"/> base functions to be overridden.
     /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item>It uses the underlying <see cref="ThumbnailGenerator"/> to build thumbnail via scenes.</item>
+    /// <item>It extracts and exposes the thumbnail services from the <see cref="ThumbnailCompilerContext"/>.</item>
+    /// <item>It defines the <see cref="CreateScene"/>, <see cref="DestroyScene"/> base functions to be overridden.</item>
+    /// </list>
+    /// </remarks>
     public abstract class StrideThumbnailCommand<TRuntimeAsset> : ThumbnailCommand, IThumbnailCommand where TRuntimeAsset : class
     {
         private readonly AssetItem assetItem;

@@ -40,8 +40,10 @@ namespace Stride.Assets.Presentation
 
             /// <summary>
             /// Compares two component types and returns <c>true</c> if the types match, i.e.:
-            /// - both types are identical
-            /// - first type is a subclass of the second type (e.g. StartupScript is a subclass of ScriptComponent)
+            /// <list type="bullet">
+            /// <item>both types are identical</item>
+            /// <item>first type is a subclass of the second type (e.g. StartupScript is a subclass of ScriptComponent)</item>
+            /// </list>
             /// </summary>
             public override bool Equals([NotNull] Type x, [NotNull] Type y)
             {
