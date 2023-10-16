@@ -18,14 +18,14 @@ namespace Stride.Core.Diagnostics
             {
                 var pid = Process.GetCurrentProcess().Id;
 
-                using FileStream fs = File.Create(outputPath);
-                using var writer = new Utf8JsonWriter(fs, options: new JsonWriterOptions { Indented = indentOutput });
+                using FileStream fs = File.Create(outputPath, 1024*1024);
+                using var writer = new Utf8JsonWriter(fs, options: new JsonWriterOptions { Indented = indentOutput, SkipValidation = true });
 
                 JsonObject root = new JsonObject();
 
                 writer.WriteStartObject();
                 writer.WriteStartArray("traceEvents");
-  
+
                 writer.WriteStartObject();
                 writer.WriteString("name", "thread_name");
                 writer.WriteString("ph", "M");
@@ -46,7 +46,7 @@ namespace Stride.Core.Diagnostics
                 writer.WriteEndObject();
 
                 await foreach (var e in eventReader.ReadAllAsync())
-                {                    
+                {
                     //gc scopes currently start at negative timestamps and should be filtered out,
                     //because they don't represent durations.
                     if (e.TimeStamp.Ticks < 0)
@@ -72,10 +72,15 @@ namespace Stride.Core.Diagnostics
                         foreach (var (k,v) in e.Attributes)
                         {
                             writer.WriteString(k, v.ToString());
-                        }                        
+                        }
                         writer.WriteEndObject();
                     }
                     writer.WriteEndObject();
+
+                    if(writer.BytesPending >= 1024 * 1024)
+                    {
+                        await writer.FlushAsync();
+                    }
                 }
 
                 writer.WriteEndArray();
@@ -92,6 +97,7 @@ namespace Stride.Core.Diagnostics
                 writerTask?.Wait();
             }
         }
+
 #nullable enable
         ChannelReader<ProfilingEvent>? eventReader;
         Task? writerTask;
