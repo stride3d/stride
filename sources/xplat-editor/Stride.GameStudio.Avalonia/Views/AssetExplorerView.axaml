@@ -2,9 +2,31 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewModels="using:Stride.Core.Assets.Editor.Avalonia.ViewModels"
+             xmlns:vm="using:Stride.Core.Assets.Presentation.ViewModels"
+             xmlns:vm2="using:Stride.Core.Assets.Editor.Avalonia.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.AssetExplorerView"
-             x:DataType="viewModels:AssetCollectionViewModel">
-  Asset Explorer
+             x:DataType="vm2:AssetCollectionViewModel">
+  <DockPanel>
+    <Grid DockPanel.Dock="Top">
+      <TextBlock Text="Asset Explorer" />
+    </Grid>
+    <ListBox ItemsSource="{Binding Assets}"
+             SelectionMode="Multiple"
+             Margin="4">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="{x:Type vm:AssetViewModel}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Asset: " />
+            <TextBlock Text="{Binding Name}" />
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ListBox>
+  </DockPanel>
 </UserControl>
