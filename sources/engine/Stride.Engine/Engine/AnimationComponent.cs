@@ -193,11 +193,15 @@ namespace Stride.Engine
 
         /// <summary>
         /// Returns an awaitable object that will be completed when the animation is removed from the PlayingAnimation list.
-        /// This happens when:
-        /// - RepeatMode is PlayOnce and animation reached end
-        /// - Animation faded out completely (due to blend to 0.0 or crossfade out)
-        /// - Animation was manually removed from AnimationComponent.PlayingAnimations
         /// </summary>
+        /// <remarks>
+        /// This happens when:
+        /// <list type="bullet">
+        /// <item>RepeatMode is PlayOnce and animation reached end</item>
+        /// <item>Animation faded out completely (due to blend to 0.0 or crossfade out)</item>
+        /// <item>Animation was manually removed from AnimationComponent.PlayingAnimations</item>
+        /// </list>
+        /// </remarks>
         /// <returns></returns>
         public Task Ended(PlayingAnimation animation)
         {
