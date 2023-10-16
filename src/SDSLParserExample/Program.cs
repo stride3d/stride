@@ -202,7 +202,7 @@ void CreateMixin()
     processed = PostProcessor.Process("MixinD");
     stopwatch.Stop();
 
-    Console.WriteLine($"Process took : {stopwatch.ElapsedMilliseconds}ms");
+    Console.WriteLine($"Process took : {stopwatch.Elapsed.TotalNanoseconds / 1000}µs");
     Console.WriteLine(Disassembler.Disassemble(processed));
 
 
@@ -213,7 +213,7 @@ void CreateMixin()
     var code = processed.Bytes.ToArray().ToHlsl();
     stopwatch.Stop();
     Console.WriteLine(code);
-    Console.WriteLine($"Cross compilation took : {stopwatch.ElapsedMilliseconds}ms");
+    Console.WriteLine($"Cross compilation took : {stopwatch.Elapsed.TotalNanoseconds / 1000}µs");
 
     var y = 0;
 }
