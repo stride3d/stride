@@ -33,14 +33,14 @@ namespace Stride.Core.Assets
         /// </summary>
         /// <value>The unique identifier of the reference asset..</value>
         [DataMember(10)]
-        public AssetId Id { get; }
+        public AssetId Id { get; init; }
 
         /// <summary>
         /// Gets or sets the location of the asset.
         /// </summary>
         /// <value>The location.</value>
         [DataMember(20)]
-        public string Location { get; }
+        public string Location { get; init; }
 
         public bool Equals(AssetReference other)
         {

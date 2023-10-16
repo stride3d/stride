@@ -26,8 +26,6 @@ namespace Stride.Rendering.Shadows
         private readonly int maximumTextureSize = (int)(ReferenceShadowSize * ComputeSizeFactor(LightShadowMapSize.XLarge) * 2.0f);
         private const float ReferenceShadowSize = 1024;
 
-        private readonly List<RenderStage> shadowMapRenderStages;
-
         private FastListStruct<ShadowMapAtlasTexture> atlases;
 
         private readonly List<LightShadowMapTexture> shadowMaps = new List<LightShadowMapTexture>();
@@ -47,8 +45,10 @@ namespace Stride.Rendering.Shadows
 
         public HashSet<RenderView> RenderViewsWithShadows { get; } = new HashSet<RenderView>();
 
-        // TODO
-        public IReadOnlyList<RenderStage> ShadowMapRenderStages => shadowMapRenderStages;
+        /// <summary>
+        /// TODO
+        /// </summary>
+        public IReadOnlyList<RenderStage> ShadowMapRenderStages { get; }
 
         public ILightShadowMapRenderer FindRenderer(IDirectLight light)
         {

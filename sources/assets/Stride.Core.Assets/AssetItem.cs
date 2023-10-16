@@ -59,6 +59,7 @@ namespace Stride.Core.Assets
         /// </summary>
         /// <value>The location.</value>
         [NotNull]
+        [DataMember]
         public UFile Location { get => location; internal set => location = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
@@ -84,6 +85,7 @@ namespace Stride.Core.Assets
         /// Gets the package where this asset is stored.
         /// </summary>
         /// <value>The package.</value>
+        [DataMember]
         public Package Package { get; internal set; }
 
         /// <summary>
@@ -187,6 +189,7 @@ namespace Stride.Core.Assets
         /// </summary>
         /// <value>The asset.</value>
         [NotNull]
+        [DataMember]
         public Asset Asset { get => asset; internal set => asset = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
@@ -197,6 +200,7 @@ namespace Stride.Core.Assets
         /// By default, contains the last modified time of the asset from the disk. If IsDirty is also updated from false to true
         /// , this time will get current time of modification.
         /// </remarks>
+        [DataMember]
         public DateTime ModifiedTime { get; internal set; }
 
         private long version;
@@ -204,6 +208,7 @@ namespace Stride.Core.Assets
         /// <summary>
         /// Gets the asset version incremental counter, increased everytime the asset is edited.
         /// </summary>
+        [DataMember]
         public long Version { get => Interlocked.Read(ref version); internal set => Interlocked.Exchange(ref version, value); }
 
         /// <summary>
