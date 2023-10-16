@@ -51,7 +51,7 @@ namespace Stride.Profiling
         private Color4 textColor = Color.LightGreen;
 
         private GameProfilingResults filteringMode;
-        private Task stringBuilderTask;
+        private Task asyncUpdateTask;
         private Size2 renderTargetSize;
         private ChannelReader<ProfilingEvent> profilerChannel;
         private PresentInterval? userPresentInterval;
@@ -100,10 +100,6 @@ namespace Stride.Profiling
 
             gcProfiler = new GcProfiling();
         }
-
-        private readonly Stopwatch dumpTiming = Stopwatch.StartNew();
-        
-
 
         private void UpdateProfilingStrings(bool containsMarks)
         {
@@ -191,92 +187,95 @@ namespace Stride.Profiling
             }
         }
 
+        private async Task UpdateAsync()
+        {
+            while(Enabled)
+            {
+                //In Fps filtering mode wait until it is time to update the output.
+                await Task.Delay((int)RefreshTime).ConfigureAwait(false);
+
+                using (Profiler.Begin(UpdateStringsKey))
+                {
+                    UpdateProfilingStrings(false);
+                }
+
+                if (profilerChannel == null || profilerChannel.Completion.IsCompleted)
+                    continue;
+
+                //If we're subscribed to the Profiler (Cpu/Gpu mode) start receiving events.
+                //Control flow will only return here once the profilerChannel is closed.
+                await ReadEventsAsync();
+            }
+        }
+
         private async Task ReadEventsAsync()
         {
             var containsMarks = false;
+            Task delayTask = Task.Delay((int)RefreshTime);
 
-            //TODO: Untangle this a bit. Currently fps display (FilteringMode == GameProfilingResults.Fps)
-            //      depends on the timer/update logic, but it does not actually need the profiling events.
-            
-            while (Enabled)
+            await foreach (var e in profilerChannel.ReadAllAsync())
             {
-                if (dumpTiming.ElapsedMilliseconds > RefreshTime)
+                if (delayTask.IsCompleted)
                 {
                     using (Profiler.Begin(UpdateStringsKey))
                     {
                         UpdateProfilingStrings(containsMarks);
-                        dumpTiming.Restart();
+                        delayTask = Task.Delay((int)RefreshTime);
                         containsMarks = false;
                     }
                 }
 
-                if (profilerChannel == null)
+                if (FilteringMode == GameProfilingResults.Fps)
                     continue;
 
-                await foreach (var e in profilerChannel.ReadAllAsync())
+                if (e.IsGPUEvent() && FilteringMode != GameProfilingResults.GpuEvents)
+                    continue;
+                if (!e.IsGPUEvent() && FilteringMode != GameProfilingResults.CpuEvents)
+                    continue;
+
+                //gc profiling is a special case
+                if (e.Key == GcProfiling.GcMemoryKey)
                 {
-                    if (dumpTiming.ElapsedMilliseconds > RefreshTime)
-                    {
-                        using (Profiler.Begin(UpdateStringsKey))
-                        {
-                            UpdateProfilingStrings(containsMarks);
-                            dumpTiming.Restart();
-                            containsMarks = false;
-                        }
-                    }
-
-                    if (FilteringMode == GameProfilingResults.Fps)
-                        continue;
-
-                    if (e.IsGPUEvent() && FilteringMode != GameProfilingResults.GpuEvents)
-                        continue;
-                    if (!e.IsGPUEvent() && FilteringMode != GameProfilingResults.CpuEvents)
-                        continue;
-
-                    //gc profiling is a special case
-                    if (e.Key == GcProfiling.GcMemoryKey)
-                    {
-                        gcMemoryStringBuilder.Clear();
-                        e.Message?.ToString(gcMemoryStringBuilder);
-                        continue;
-                    }
-
-                    if (e.Key == GcProfiling.GcCollectionCountKey)
-                    {
-                        gcCollectionsStringBuilder.Clear();
-                        e.Message?.ToString(gcCollectionsStringBuilder);
-                        continue;
-                    }
-
-                    if (e.Key == GameProfilingKeys.GameDrawFPS && e.Type == ProfilingMessageType.End)
-                        continue;
-
-                    ProfilingResult profilingResult;
-                    if (!profilingResultsDictionary.TryGetValue(e.Key, out profilingResult))
-                    {
-                        profilingResult.MinTime = TimeSpan.MaxValue;
-                    }
-
-                    if (e.Type == ProfilingMessageType.End)
-                    {
-                        ++profilingResult.Count;
-                        profilingResult.AccumulatedTime += e.ElapsedTime;
-
-                        if (e.ElapsedTime < profilingResult.MinTime)
-                            profilingResult.MinTime = e.ElapsedTime;
-                        if (e.ElapsedTime > profilingResult.MaxTime)
-                            profilingResult.MaxTime = e.ElapsedTime;
-
-                        profilingResult.Event = e;
-                    }
-                    else if (e.Type == ProfilingMessageType.Mark)
-                    {
-                        profilingResult.MarkCount++;
-                        containsMarks = true;
-                    }
-
-                    profilingResultsDictionary[e.Key] = profilingResult;
+                    gcMemoryStringBuilder.Clear();
+                    e.Message?.ToString(gcMemoryStringBuilder);
+                    continue;
                 }
+
+                if (e.Key == GcProfiling.GcCollectionCountKey)
+                {
+                    gcCollectionsStringBuilder.Clear();
+                    e.Message?.ToString(gcCollectionsStringBuilder);
+                    continue;
+                }
+
+                if (e.Key == GameProfilingKeys.GameDrawFPS && e.Type == ProfilingMessageType.End)
+                    continue;
+
+                ProfilingResult profilingResult;
+                if (!profilingResultsDictionary.TryGetValue(e.Key, out profilingResult))
+                {
+                    profilingResult.MinTime = TimeSpan.MaxValue;
+                }
+
+                if (e.Type == ProfilingMessageType.End)
+                {
+                    ++profilingResult.Count;
+                    profilingResult.AccumulatedTime += e.ElapsedTime;
+
+                    if (e.ElapsedTime < profilingResult.MinTime)
+                        profilingResult.MinTime = e.ElapsedTime;
+                    if (e.ElapsedTime > profilingResult.MaxTime)
+                        profilingResult.MaxTime = e.ElapsedTime;
+
+                    profilingResult.Event = e;
+                }
+                else if (e.Type == ProfilingMessageType.Mark)
+                {
+                    profilingResult.MarkCount++;
+                    containsMarks = true;
+                }
+
+                profilingResultsDictionary[e.Key] = profilingResult;
             }
         }
 
@@ -323,9 +322,9 @@ namespace Stride.Profiling
 
             Profiler.Unsubscribe(profilerChannel);
 
-            if (stringBuilderTask != null && !stringBuilderTask.IsCompleted)
+            if (asyncUpdateTask != null && !asyncUpdateTask.IsCompleted)
             {
-                stringBuilderTask.Wait();
+                asyncUpdateTask.Wait();
             }
 
             gcProfiler.Dispose();
@@ -439,9 +438,9 @@ namespace Stride.Profiling
 
             gcProfiler.Enable();
 
-            if (stringBuilderTask == null || stringBuilderTask.IsCompleted)
+            if (asyncUpdateTask == null || asyncUpdateTask.IsCompleted)
             {
-                stringBuilderTask = Task.Run(ReadEventsAsync);
+                asyncUpdateTask = Task.Run(UpdateAsync);
             }
         }
 
