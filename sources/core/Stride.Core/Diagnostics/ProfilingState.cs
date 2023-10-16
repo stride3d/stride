@@ -2,7 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
-using System.Linq;
+using System.Threading;
+
+using static Stride.Core.Extensions.TimeSpanExtensions;
 
 namespace Stride.Core.Diagnostics
 {
@@ -19,6 +21,7 @@ namespace Stride.Core.Diagnostics
         private TimeSpan startTime;
         private ProfilingEventMessage? beginMessage;
         private ProfilingEventType eventType;
+        private int threadId;
         private long tickFrequency = Stopwatch.Frequency;
 
         internal ProfilingState(int profilingId, ProfilingKey profilingKey, bool isEnabled)
@@ -29,6 +32,7 @@ namespace Stride.Core.Diagnostics
             beginMessage = null;
             startTime = new TimeSpan();
             eventType = ProfilingEventType.CpuProfilingEvent;
+            threadId = Thread.CurrentThread.ManagedThreadId;
         }
 
         /// <summary>
@@ -111,7 +115,9 @@ namespace Stride.Core.Diagnostics
             if (!isEnabled) return;
 
             eventType = ProfilingEventType.GpuProfilingEvent;
-            EmitEventCore(ProfilingMessageType.Begin, TimeSpanFromTimeStamp(timeStamp));
+            //TODO: Map GPU queues to thread ids
+            threadId = Profiler.GpuThreadId;
+            EmitEventCore(ProfilingMessageType.Begin, FromTimeStamp(timeStamp, tickFrequency));
         }
 
         /// <summary>
@@ -164,7 +170,7 @@ namespace Stride.Core.Diagnostics
             // Perform event only if the profiling is running (to save on time calculations)
             if (!isEnabled) return;
 
-            EmitEventCore(ProfilingMessageType.End, TimeSpanFromTimeStamp(timeStamp));
+            EmitEventCore(ProfilingMessageType.End, FromTimeStamp(timeStamp, tickFrequency));
         }
 
         private void EmitEventCore(ProfilingMessageType profilingType, TimeSpan timeStamp, ProfilingEventMessage? message = null)
@@ -172,28 +178,37 @@ namespace Stride.Core.Diagnostics
             // Perform event only if the profiling is running
             if (!isEnabled) return;
 
+            TimeSpan deltaTime = TimeSpan.Zero;
+
             if (profilingType == ProfilingMessageType.Begin)
             {
                 startTime = timeStamp;
                 beginMessage = message;
+            }
+            else if(profilingType == ProfilingMessageType.Mark)
+            {
+                deltaTime = timeStamp - startTime;
             }
             else if (profilingType == ProfilingMessageType.End)
             {
                 if (message == null)
                     message = beginMessage;
 
+                deltaTime = timeStamp - startTime;
+
+                // Send profiler measurement to Histogram Meter
+                ProfilingKey.PerformanceMeasurement.Record(deltaTime.TotalMilliseconds, Attributes);
+
                 // upon end we disable this state
                 // one of the reasons is that we can call End(message) inside the `using() { }` and by disabling we prevent another End event to be emitted.
                 isEnabled = false;
             }
 
-            TimeSpan deltaTime = timeStamp - startTime;
-
-            // Send profiler measurement to Histogram Meter
-            ProfilingKey.PerformanceMeasurement.Record(deltaTime.TotalMilliseconds, Attributes);
+            //Offset start time by profiling start time
+            var offsetStartTime = startTime - ((eventType == ProfilingEventType.CpuProfilingEvent) ? Profiler.StartTime : Profiler.GpuStartTime);
 
             // Create profiler event
-            var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, timeStamp, deltaTime, message, Attributes);
+            var profilerEvent = new ProfilingEvent(ProfilingId, ProfilingKey, profilingType, offsetStartTime, deltaTime, threadId, message, Attributes);
 
             // Send profiler event to Profiler
             Profiler.ProcessEvent(ref profilerEvent, eventType);
@@ -205,12 +220,7 @@ namespace Stride.Core.Diagnostics
             if (!isEnabled) return;
 
             var timeStamp = Stopwatch.GetTimestamp();
-            EmitEventCore(profilingType, TimeSpanFromTimeStamp(timeStamp), message);
-        }
-
-        private TimeSpan TimeSpanFromTimeStamp(long timeStamp)
-        {
-            return new TimeSpan(timeStamp * 10000000 / tickFrequency);
+            EmitEventCore(profilingType, FromTimeStamp(timeStamp, tickFrequency), message);
         }
     }
 }

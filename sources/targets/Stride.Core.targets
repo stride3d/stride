@@ -180,24 +180,32 @@
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
 
   <!-- Generate localization satellite assemblies -->
-  <Target Name="StrideGenerateLocalizationSatelliteDlls" BeforeTargets="SatelliteDllsProjectOutputGroup" Returns="@(SatelliteDllsProjectOutputGroupOutput)" Condition="'$(StrideLocalized)' == 'true'" AfterTargets="Build">
+  <Target Name="StrideGenerateLocalizationSatelliteDlls"
+          BeforeTargets="SatelliteDllsProjectOutputGroup"
+          AfterTargets="Build"
+          Returns="@(SatelliteDllsProjectOutputGroupOutput)"
+          Condition="'$(StrideLocalized)' == 'true'">
+
     <ItemGroup>
       <!-- Current list of languages to try to generate -->
-      <StrideTraductions Include="fr;ja;es;de;ru;it;ko"/>
-      <StrideTraductions Include="zh-Hans">
+      <StrideTranslations Include="fr;ja;es;de;ru;it;ko"/>
+      <StrideTranslations Include="zh-Hans">
         <Source>zh_HANS-CN</Source>
-      </StrideTraductions>
+      </StrideTranslations>
 
-      <_StrideTraductions Include="@(StrideTraductions)">
-        <Source Condition="%(StrideTraductions.Source) == ''">%(StrideTraductions.Identity)</Source>
-      </_StrideTraductions>
+      <_StrideTranslations Include="@(StrideTranslations)">
+        <Source Condition="%(StrideTranslations.Source) == ''">%(StrideTranslations.Identity)</Source>
+      </_StrideTranslations>
     </ItemGroup>
-    <Message Importance="High" Text="Generating traduction for %(_StrideTraductions.Identity) %(_StrideTraductions.SourceFolder)"/>
-    <Exec Condition="Exists('$(SourceDir)\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po')" Command="$(DependencyDir)\Gettext.Net\GNU.Gettext.Msgfmt.exe -r $(TargetName) -d $(TargetDir) -l %(_StrideTraductions.Identity) -L $(DependencyDir)\Gettext.Net\ $(MSBuildThisFileDirectory)..\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po" />
+    <Message Importance="High" Text="Generating translation for %(_StrideTranslations.Identity) %(_StrideTranslations.SourceFolder)"/>
+
+    <Exec Condition="Exists('$(SourceDir)\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po')"
+          Command="&quot;$(DependencyDir)\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; -r $(TargetName) -d &quot;$(TargetDir)\&quot; -l %(_StrideTranslations.Identity) -L &quot;$(DependencyDir)\deps\Gettext.Net&quot; &quot;$(MSBuildThisFileDirectory)..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po&quot;" />
+
     <ItemGroup>
-      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll')">
-        <TargetPath>%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
-        <Culture>%(_StrideTraductions.Identity)</Culture>
+      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll')">
+        <TargetPath>%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
+        <Culture>%(_StrideTranslations.Identity)</Culture>
       </SatelliteDllsProjectOutputGroupOutputIntermediate>
     </ItemGroup>
   </Target>
@@ -213,10 +221,7 @@
   <PropertyGroup>
     <_SdkLanguageSourceName Condition="'$(MSBuildProjectExtension)' == '.csproj'">CSharp</_SdkLanguageSourceName>
   </PropertyGroup>
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Inference.targets" />
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Platforms.targets" />
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\DefaultItems\ImplicitPackages.targets"/>
-
+  
     <!-- A workaround for https://github.com/microsoft/msbuild/issues/4584 and resolves https://github.com/onovotny/MSBuildSdkExtras/issues/176 -->
   <Target Name="_RemoveNativeReferencesManifest" Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'" AfterTargets="BuiltProjectOutputGroup">
     <ItemGroup>

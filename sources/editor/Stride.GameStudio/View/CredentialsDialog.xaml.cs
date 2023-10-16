@@ -10,6 +10,7 @@ using Stride.GameStudio.Services;
 using Stride.Core.Translation;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
+using Stride.GameStudio.Remote;
 
 namespace Stride.GameStudio.View
 {

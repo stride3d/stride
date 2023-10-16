@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -23,6 +24,9 @@ namespace Stride.Rendering
         private ConstantBufferOffsetReference world;
         private ConstantBufferOffsetReference worldInverse;
         private ConstantBufferOffsetReference camera;
+        
+        private static readonly ProfilingKey ExtractKey = new ProfilingKey("TransformRenderFeature.Extract");
+        private static readonly ProfilingKey PrepareKey = new ProfilingKey("TransformRenderFeature.Prepare");
 
         internal struct RenderModelFrameInfo
         {
@@ -53,6 +57,7 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         public override void Extract()
         {
+            using var _ = Profiler.Begin(ExtractKey);
             var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
 
             //for (int index = 0; index < RootRenderFeature.ObjectNodeReferences.Count; index++)
@@ -70,6 +75,7 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareKey);
             // Compute WorldView, WorldViewProj
             var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
             var renderModelViewInfoData = RootRenderFeature.RenderData.GetData(RenderModelViewInfoKey);

@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideRuntimeWindowsNet6>true</StrideRuntimeWindowsNet6>
@@ -21,6 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
+    <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
     <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="$(TargetFramework.Contains('-windows'))" />
     <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="$(TargetFramework.Contains('-windows'))" />
