@@ -7,7 +7,7 @@ This project is the base project for the view models in an application that uses
 * It can only references *Core* libraries.
 * It should be platform-agnostic as well as UI-agnostic.
   In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) is allowed.
-* It will likely only reference `Stride.Core.Design` and `CommunityToolkit.Mvvm`.
+* It will likely only reference `Stride.Core.Design`.
 
 ## Implementations
 

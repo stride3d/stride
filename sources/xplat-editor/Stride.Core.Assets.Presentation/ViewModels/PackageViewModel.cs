@@ -66,7 +66,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     public UFile PackagePath
     {
         get => Package.FullPath;
-        set => SetProperty(Package.FullPath, value, x => Package.FullPath = x);
+        set => SetValue(() => Package.FullPath = value);
     }
 
     public UDirectory RootDirectory => Package.RootDirectory;

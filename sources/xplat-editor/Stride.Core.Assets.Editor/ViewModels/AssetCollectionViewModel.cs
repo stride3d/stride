@@ -18,6 +18,7 @@ public sealed class AssetCollectionViewModel : ViewModelBase
     private object? singleSelectedContent;
 
     public AssetCollectionViewModel(SessionViewModel session)
+        : base(session.ServiceProvider)
     {
         Session = session;
 
@@ -45,7 +46,7 @@ public sealed class AssetCollectionViewModel : ViewModelBase
     public object? SingleSelectedContent
     {
         get => singleSelectedContent;
-        private set => SetProperty(ref singleSelectedContent, value);
+        private set => SetValue(ref singleSelectedContent, value);
     }
  
     internal IReadOnlyCollection<DirectoryBaseViewModel> GetSelectedDirectories(bool includeSubDirectoriesOfSelected)

@@ -26,7 +26,7 @@ public sealed class DirectoryViewModel : DirectoryBaseViewModel
     public override DirectoryBaseViewModel Parent
     {
         get => parent;
-        set => SetProperty(ref parent, value);
+        set => SetValue(ref parent, value);
     }
 
     /// <summary>
@@ -35,7 +35,7 @@ public sealed class DirectoryViewModel : DirectoryBaseViewModel
     public override string Name
     {
         get => name;
-        set => SetProperty(ref name, value);
+        set => SetValue(ref name, value);
     }
 
     /// <summary>

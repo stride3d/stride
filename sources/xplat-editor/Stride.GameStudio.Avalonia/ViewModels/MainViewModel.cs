@@ -3,13 +3,13 @@
 
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using CommunityToolkit.Mvvm.Input;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.IO;
+using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
-using Stride.Core.Assets;
-using Stride.Core.IO;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
@@ -21,28 +21,28 @@ internal sealed class MainViewModel : ViewModelBase
     public MainViewModel(IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
-        AboutCommand = new AsyncRelayCommand(OnAbout, () => DialogService.MainWindow != null);
-        ExitCommand = new RelayCommand(OnExit, () => DialogService.MainWindow != null);
-        OpenCommand = new AsyncRelayCommand(OnOpen);
+        AboutCommand = new AnonymousTaskCommand(serviceProvider, OnAbout, () => DialogService.MainWindow != null);
+        ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.MainWindow != null);
+        OpenCommand = new AnonymousTaskCommand(serviceProvider, OnOpen);
     }
 
     public string? Message
     {
         get => message;
-        set => SetProperty(ref message, value);
+        set => SetValue(ref message, value);
     }
 
     public SessionViewModel? Session
     {
         get => session;
-        set => SetProperty(ref session, value);
+        set => SetValue(ref session, value);
     }
 
-    public IRelayCommand AboutCommand { get; }
+    public ICommandBase AboutCommand { get; }
 
-    public IRelayCommand ExitCommand { get; }
+    public ICommandBase ExitCommand { get; }
 
-    public IRelayCommand OpenCommand { get; }
+    public ICommandBase OpenCommand { get; }
 
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {

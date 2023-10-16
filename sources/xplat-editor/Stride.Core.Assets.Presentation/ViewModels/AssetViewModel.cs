@@ -44,7 +44,7 @@ public abstract class AssetViewModel : SessionObjectViewModel
     public AssetItem AssetItem
     {
         get => assetItem;
-        set => SetProperty(ref assetItem, value);
+        set => SetValue(ref assetItem, value);
     }
 
     public AssetId Id => AssetItem.Id;
@@ -52,13 +52,13 @@ public abstract class AssetViewModel : SessionObjectViewModel
     public DirectoryBaseViewModel Directory
     {
         get => directory;
-        private set => SetProperty(ref directory, value);
+        private set => SetValue(ref directory, value);
     }
 
     public override string Name
     {
         get => name;
-        set => SetProperty(ref name, value); // TODO rename
+        set => SetValue(ref name, value); // TODO rename
     }
 
     public AssetPropertyGraph PropertyGraph { get; }
