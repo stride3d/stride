@@ -9,7 +9,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
-public sealed class AssetCollectionViewModel : ViewModelBase
+public sealed class AssetCollectionViewModel : DispatcherViewModel
 {
     private readonly ObservableSet<AssetViewModel> assets = new();
     private readonly HashSet<DirectoryBaseViewModel> monitoredDirectories = new();

@@ -13,7 +13,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
-public sealed class SessionViewModel : ViewModelBase, ISessionViewModel
+public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 {
     private readonly ConcurrentDictionary<AssetId, AssetViewModel> assetIdMap = new();
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = new();

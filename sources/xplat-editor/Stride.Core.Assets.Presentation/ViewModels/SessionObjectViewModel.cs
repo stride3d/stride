@@ -5,7 +5,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
-public abstract class SessionObjectViewModel : ViewModelBase
+public abstract class SessionObjectViewModel : DispatcherViewModel
 {
     protected SessionObjectViewModel(ISessionViewModel session)
         : base(session.ServiceProvider)

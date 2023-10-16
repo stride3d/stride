@@ -8,7 +8,7 @@ namespace Stride.Core.Presentation.Commands;
 /// <summary>
 /// An abstract class that is the base implementation of the <see cref="ICommandBase"/> interface.
 /// </summary>
-public abstract class CommandBase : ViewModelBase, ICommandBase
+public abstract class CommandBase : DispatcherViewModel, ICommandBase
 {
     /// <summary>
     /// Backing field for the <see cref="IsEnabled"/> property.
