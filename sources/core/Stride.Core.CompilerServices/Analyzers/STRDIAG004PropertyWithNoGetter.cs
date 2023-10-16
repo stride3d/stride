@@ -27,7 +27,8 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
         InvalidAccessibilityOnGetterMessageFormat,
         Category,
         DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
+        isEnabledByDefault: true,
+        helpLinkUri: string.Format(DiagnosticCategory.LinkFormat, DiagnosticId));
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(NonExistentGetterRule, InvalidAccesibilityRule); } }
 
     public override void Initialize(AnalysisContext context)
