@@ -419,17 +419,17 @@ namespace Stride.Core.Presentation.Controls
         /// <param name="value">text value of the textbox</param>
         /// <param name="result">the resulting numeric value if parsing is successful</param>
         /// <returns>whether parsing the value was successful</returns>
-        private static bool TryParseValue(string value, out double result)
+        private static bool TryParseValue(ReadOnlySpan<char> value, out double result)
         {
             //thousands are disallowed as they might lead to decimal seperators falsely being interpreted as thousands
             const NumberStyles numberStyle = NumberStyles.Any & ~NumberStyles.AllowThousands;
 
             //try parsing a hex string
-            var x = value.TrimStart('0').ToLower();
-            if (x.StartsWith("x") || x.StartsWith("#"))
+            var span = value.TrimStart('0');
+            if (span.StartsWith("x", StringComparison.OrdinalIgnoreCase) || span.StartsWith("#", StringComparison.OrdinalIgnoreCase))
             {
-                x = x.TrimStart('x', '#');
-                if (double.TryParse(x, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result))
+                var span2 = span.TrimStart(stackalloc[] {'x', '#'});
+                if (double.TryParse(span2, NumberStyles.HexNumber, NumberFormatInfo.InvariantInfo, out result))
                     return true;
             }
             //Try parsing in the current culture
