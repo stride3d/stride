@@ -7,55 +7,56 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.SolutionExplorerView"
              x:DataType="vm2:SessionViewModel">
-  <TreeView ItemsSource="{Binding AllPackages}"
-            SelectedItems="{Binding AssetCollection.SelectedLocations}">
-    <Control.DataTemplates>
-      <TreeDataTemplate DataType="{x:Type vm:AssetMountPointViewModel}"
-                        ItemsSource="{Binding SubDirectories}">
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="{Binding Name}" />
-        </StackPanel>
-      </TreeDataTemplate>
-      <TreeDataTemplate DataType="{x:Type vm:DirectoryViewModel}"
-                        ItemsSource="{Binding SubDirectories}">
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="Directory: " />
-          <TextBlock Text="{Binding Name}" />
-        </StackPanel>
-      </TreeDataTemplate>
-      <TreeDataTemplate DataType="{x:Type vm:ProjectViewModel}"
-                        ItemsSource="{Binding Content}">
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="Project: " />
-          <TextBlock Text="{Binding Name}" />
-        </StackPanel>
-      </TreeDataTemplate>
-      <TreeDataTemplate DataType="{x:Type vm:PackageViewModel}"
-                        ItemsSource="{Binding Content}">
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="Package: " />
-          <TextBlock Text="{Binding Name}" />
-        </StackPanel>
-      </TreeDataTemplate>
-      <TreeDataTemplate DataType="{x:Type vm:ProjectCodeViewModel}"
-                        ItemsSource="{Binding SubDirectories}">
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="{Binding Name}" />
-        </StackPanel>
-      </TreeDataTemplate>
-      <DataTemplate DataType="{x:Type vm:AssetViewModel}">
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="Asset: " />
-          <TextBlock Text="{Binding Name}" />
-        </StackPanel>
-      </DataTemplate>
-      <!-- Fallback -->
-      <DataTemplate DataType="{x:Type vm:SessionObjectViewModel}">
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="Unknown type: " />
-          <TextBlock Text="{Binding Name}" />
-        </StackPanel>
-      </DataTemplate>
-    </Control.DataTemplates>
-  </TreeView>
+  <DockPanel>
+    <Grid DockPanel.Dock="Top">
+      <TextBlock Text="Solution Explorer" />
+    </Grid>
+    <TreeView ItemsSource="{Binding AllPackages}"
+              SelectedItems="{Binding AssetCollection.SelectedLocations}"
+              SelectionMode="Multiple"
+              Margin="4">
+      <Control.DataTemplates>
+        <TreeDataTemplate DataType="{x:Type vm:AssetMountPointViewModel}"
+                          ItemsSource="{Binding SubDirectories}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{Binding Name}" />
+          </StackPanel>
+        </TreeDataTemplate>
+        <TreeDataTemplate DataType="{x:Type vm:DirectoryViewModel}"
+                          ItemsSource="{Binding SubDirectories}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Directory: " />
+            <TextBlock Text="{Binding Name}" />
+          </StackPanel>
+        </TreeDataTemplate>
+        <TreeDataTemplate DataType="{x:Type vm:ProjectViewModel}"
+                          ItemsSource="{Binding Content}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Project: " />
+            <TextBlock Text="{Binding Name}" />
+          </StackPanel>
+        </TreeDataTemplate>
+        <TreeDataTemplate DataType="{x:Type vm:PackageViewModel}"
+                          ItemsSource="{Binding Content}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Package: " />
+            <TextBlock Text="{Binding Name}" />
+          </StackPanel>
+        </TreeDataTemplate>
+        <TreeDataTemplate DataType="{x:Type vm:ProjectCodeViewModel}"
+                          ItemsSource="{Binding SubDirectories}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{Binding Name}" />
+          </StackPanel>
+        </TreeDataTemplate>
+        <!-- Fallback -->
+        <DataTemplate DataType="{x:Type vm:SessionObjectViewModel}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Unknown type: " />
+            <TextBlock Text="{Binding Name}" />
+          </StackPanel>
+        </DataTemplate>
+      </Control.DataTemplates>
+    </TreeView>
+  </DockPanel>
 </UserControl>
