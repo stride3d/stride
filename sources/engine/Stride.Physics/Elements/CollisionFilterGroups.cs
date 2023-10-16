@@ -88,7 +88,7 @@ namespace Stride.Physics
     {
         None = 0,
         /// <summary>
-        /// Do not return a hit when when a ray traverses a back-facing triangle
+        /// Do not return a hit when a ray traverses a back-facing triangle
         /// </summary>
         FilterBackfaces = 1 << 0,
         /// <summary>
@@ -102,7 +102,7 @@ namespace Stride.Physics
         UseSubSimplexConvexCastRaytest = 1 << 2,
         UseGjkConvexCastRaytest = 1 << 3,
         /// <summary>
-        /// don't use the heightfield raycast accelerator. See https://github.com/bulletphysics/bullet3/pull/2062
+        /// Don't use the heightfield raycast accelerator. See https://github.com/bulletphysics/bullet3/pull/2062
         /// </summary>
         DisableHeightfieldAccelerator  = 1 << 4
     }

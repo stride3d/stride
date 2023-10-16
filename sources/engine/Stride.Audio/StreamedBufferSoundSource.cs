@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 
 using Stride.Core;
+using Stride.Core.Extensions;
 using Stride.Media;
 
 namespace Stride.Audio

@@ -108,9 +108,9 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             base.UpdateCamera();
 
             // Movement speed control
-            if (Game.Input.IsKeyPressed(Keys.OemPlus) || Game.Input.IsKeyPressed(Keys.Add))
+            if (Game.Input.IsKeyPressed(IncreaseCamSpeed.GetValue()) || Game.Input.IsKeyPressed(Keys.Add))
                 editor.Dispatcher.InvokeAsync(() => Camera.IncreaseMovementSpeed());
-            else if (Game.Input.IsKeyPressed(Keys.OemMinus) || Game.Input.IsKeyPressed(Keys.Subtract))
+            else if (Game.Input.IsKeyPressed(DecreaseCamSpeed.GetValue()) || Game.Input.IsKeyPressed(Keys.Subtract))
                 editor.Dispatcher.InvokeAsync(() => Camera.DecreaseMovementSpeed());
 
             var duplicating = Game.Input.IsKeyDown(Keys.LeftCtrl) || Game.Input.IsKeyDown(Keys.RightCtrl);

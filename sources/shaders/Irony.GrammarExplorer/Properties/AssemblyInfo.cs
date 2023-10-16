@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 /* **********************************************************************************
  * Copyright (c) Roman Ivantsov
  * This source code is subject to terms and conditions of the MIT License

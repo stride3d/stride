@@ -18,16 +18,20 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Irony.GrammarExplorer {
-  public partial class fmShowException : Form {
-    public fmShowException() {
-      InitializeComponent();
+namespace Irony.GrammarExplorer
+{
+    public partial class fmShowException : Form
+    {
+        public fmShowException()
+        {
+            InitializeComponent();
+        }
+        public static void ShowException(Exception ex)
+        {
+            fmShowException fm = new fmShowException();
+            fm.txtException.Text = ex.ToString();
+            fm.txtException.Select(0, 0);
+            fm.Show();
+        }
     }
-    public static void ShowException(Exception ex) {
-      fmShowException fm = new fmShowException();
-      fm.txtException.Text = ex.ToString();
-      fm.txtException.Select(0, 0);
-      fm.Show();
-    }
-  }
 }
