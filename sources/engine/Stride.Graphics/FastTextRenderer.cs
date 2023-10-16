@@ -217,13 +217,14 @@ namespace Stride.Graphics
 
                 //Draw the strings
                 var constantInfos = new RectangleF(GlyphWidth, GlyphHeight, DebugSpriteWidth, DebugSpriteHeight);
+                Span<VertexPositionNormalTexture> vertexPositionSpan = new(mappedVertexBufferPointer.ToPointer(), VertexBufferLength);
                 foreach (var textInfo in stringsToDraw)
                 {
-                    Span<VertexPositionNormalTexture> vertexPositionSpan = new((void*)mappedVertexBufferPointer, VertexBufferLength);
                     var textLength = textInfo.Text.Length;
                     GraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, ref textLength,  vertexPositionSpan);
 
                     charsToRenderCount += textLength;
+                    vertexPositionSpan = vertexPositionSpan.Slice(textLength*4);
                 }
             }
 
