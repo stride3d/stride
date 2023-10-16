@@ -52,7 +52,7 @@
   <!-- docfx doesn't like if there is no TargetFramework set by default -->
   <PropertyGroup Condition="'$(StrideBuildDoc)' == 'true'">
     <TargetFramework Condition="'$(TargetFramework)' == ''">$(TargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</TargetFramework>
-  </PropertyGroup>  
+  </PropertyGroup>
 
   <!-- Setup compiler targets per platform / language -->
   <PropertyGroup>
@@ -86,9 +86,14 @@
     <!-- If StrideCompilerTargetsEnable is set to false, override LanguageTargets to an empty one -->
     <LanguageTargets Condition="'$(StrideCompilerTargetsEnable)' == 'false'">$(MSBuildThisFileDirectory)Stride.Core.DisableBuild.targets</LanguageTargets>
 
-    <StrideAssemblyProcessorFramework>netstandard2.0</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">net6.0</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' != 'Core'">netstandard2.0</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorExt>.dll</StrideAssemblyProcessorExt>
-    <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt).hash'))</StrideAssemblyProcessorHash>
+
+    <StrideAssemblyProcessorDir>$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorDir>
+    <StrideAssemblyProcessorHashFile>$(StrideAssemblyProcessorDir)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt).hash</StrideAssemblyProcessorHashFile>
+    <StrideAssemblyProcessorHash Condition="Exists($(StrideAssemblyProcessorHashFile))">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorHashFile)'))</StrideAssemblyProcessorHash>
+
     <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorTempBasePath>
     <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
@@ -213,7 +218,7 @@
       <BuildOutputInPackage Update="@(BuildOutputInPackage)" Condition="'%(BuildOutputInPackage.FinalOutputPath)' == ''">
         <FinalOutputPath>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '%(BuildOutputInPackage.FullPath)'))</FinalOutputPath>
       </BuildOutputInPackage>
-    </ItemGroup>    
+    </ItemGroup>
   </Target>
 
   <PropertyGroup>

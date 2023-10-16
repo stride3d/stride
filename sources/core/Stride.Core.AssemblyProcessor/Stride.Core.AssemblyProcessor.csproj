@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProductVersion>16.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0; netstandard2.0</TargetFrameworks>
+
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
@@ -21,10 +20,7 @@
     <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_DESKTOP;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
-  
+
   <!-- Add support for building this project from the Project Directory -->
   <PropertyGroup>
     <SolutionDir Condition="'$(SolutionDir)' == ''">$(ProjectDir)..\..\..\build\</SolutionDir>
@@ -41,7 +37,7 @@
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.3.2" ExcludeAssets="runtime" />
   </ItemGroup>
-  
+
   <!-- Compiled Items -->
   <ItemGroup>
     <Compile Include="..\Stride.Core\DataMemberMode.cs">
@@ -82,17 +78,17 @@
       <DesignTime>True</DesignTime>
     </Compile>
   </ItemGroup>
-  
+
   <!-- Items that have no role in the build process -->
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
-  
+
   <!-- Indicates this Project is included in Unit Test Projects -->
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  
+
   <!-- Define the full set of built items for later use -->
   <ItemGroup>
     <BuiltItems Include="$(TargetDir)*" />
@@ -101,7 +97,7 @@
   <!-- ======================================================================================== -->
   <!-- Tasks & Targets                                                                          -->
   <!-- ======================================================================================== -->
-  
+
   <!-- Define a custom task for writing text to a file -->
   <UsingTask
     TaskName="WriteAllText"
@@ -129,7 +125,7 @@
       DestinationFolder="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)"
     />
   </Target>
-  
+
   <!-- Packs the BuildItems into a single .Packed DLL and generates a .hash file from it -->
   <Target Name="GenerateHash" AfterTargets="CopyFiles">
     <!-- Repack the assemblies into a single file -->

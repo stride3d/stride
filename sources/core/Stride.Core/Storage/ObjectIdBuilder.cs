@@ -16,11 +16,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
+
+#if NETCOREAPP3_0_OR_GREATER
+using System.Numerics;
+#endif
 
 namespace Stride.Core.Storage
 {
@@ -84,8 +88,7 @@ namespace Stride.Core.Storage
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ObjectId ComputeHash()
         {
-            ObjectId result;
-            ComputeHash(out result);
+            ComputeHash(out ObjectId result);
             return result;
         }
 
@@ -174,9 +177,8 @@ namespace Stride.Core.Storage
             }
         }
 
-
         /// <summary>
-        /// Writes a buffer of byte to this builder.
+        /// Writes a buffer of bytes to this builder.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
@@ -189,11 +191,11 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Writes a buffer of byte to this builder.
+        /// Writes a buffer of bytes to this builder.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="count">The count.</param>
+        /// <param name="offset">The offset in the buffer to start the copy from.</param>
+        /// <param name="count">The number of bytes to copy.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -204,47 +206,45 @@ namespace Stride.Core.Storage
         public void Write([NotNull] string str)
             => Write(str.AsSpan());
 
-        /// <summary>
-        /// Writes the specified buffer to this instance.
-        /// </summary>
-        /// <typeparam name="T">Type must be a struct</typeparam>
-        /// <param name="data">The data.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write<T>(T data) where T : unmanaged
-        {
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
-            Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>()));
-#else
-            fixed (byte* buffer = &Unsafe.As<T, byte>(ref data))
-                Write(new ReadOnlySpan<byte>(buffer, Unsafe.SizeOf<T>()));
-#endif
-        }
+#if !STRIDE_ASSEMBLY_PROCESSOR
+        // NOTE: The AssemblyProcessor can't access MemoryMarshal when compiled as `netstandard2.0`
+        //       This can be removed when Visual Studio's MSBuild can load `net6.0+` assemblies without consuming them as `netstandard2.0`
 
         /// <summary>
-        /// Writes the specified buffer to this instance.
+        /// Writes the specified data to this builder.
         /// </summary>
-        /// <typeparam name="T">Type must be a struct</typeparam>
+        /// <typeparam name="T">The type of the data to write. It must be an unmanaged struct.</typeparam>
+        /// <param name="data">The data to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write<T>(T data) where T : unmanaged
+            => Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>()));
+#endif
+
+        /// <summary>
+        /// Writes the specified buffer to this builder.
+        /// </summary>
+        /// <typeparam name="T">The type of the data buffer to write. It must be an unmanaged struct.</typeparam>
         /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="count">The count.</param>
+        /// <param name="offset">The offset in the buffer to start the copy from.</param>
+        /// <param name="count">The number of elements to copy.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T[] buffer, int offset, int count) where T : unmanaged
             => Write<T>(buffer.AsSpan(offset, count));
 
         /// <summary>
-        /// Writes the specified buffer to this instance.
+        /// Writes the specified span to this builder.
         /// </summary>
-        /// <typeparam name="T">Type must be a struct</typeparam>
-        /// <param name="buffer">The buffer.</param>
+        /// <typeparam name="T">The type of the data buffer to write. It must be an unmanaged struct.</typeparam>
+        /// <param name="buffer">The data span.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(ReadOnlySpan<T> buffer) where T : unmanaged
             => Write(MemoryMarshal.AsBytes(buffer));
 
         /// <summary>
-        /// Writes a buffer of byte to this builder.
+        /// Writes a buffer of bytes to this builder.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
-        /// <param name="length">The lenght.</param>
+        /// <param name="length">The length of the buffer.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
         [Obsolete("Use Write(ReadOnlySpan<byte>)")]
@@ -266,14 +266,9 @@ namespace Stride.Core.Storage
                     if (partialLength > remainder)
                         partialLength = remainder;
 
-                    var dest = currentBlock + position;
-                    for (var copyLength = partialLength; copyLength > 0; --copyLength)
-                        *dest++ = *buffer++;
+                    CopyMemory(currentBlock + position, buffer, partialLength);
+                    buffer += partialLength;
                     length -= partialLength;
-
-                    //Utilities.CopyMemory((IntPtr)currentBlock + position, (IntPtr)buffer, partialLength);
-                    //buffer += partialLength;
-                    //length -= partialLength;
 
                     if (partialLength == remainder)
                     {
@@ -294,18 +289,14 @@ namespace Stride.Core.Storage
                     }
 
                     // Start partial block
-                    for (; length > 0; --length)
-                        *currentBlock++ = *buffer++;
-                    //if (length > 0)
-                    //{
-                    //    Utilities.CopyMemory((IntPtr)currentBlock, (IntPtr)buffer, length);
-                    //}
+                    CopyMemory(currentBlock, buffer, length);
+
                 }
             }
         }
 
         /// <summary>
-        /// Writes a buffer of byte to this builder.
+        /// Writes a span of bytes to this builder.
         /// </summary>
         /// <param name="span">The readonly span.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
@@ -328,13 +319,11 @@ namespace Stride.Core.Storage
                 if (partialLength > remainder)
                     partialLength = remainder;
 
-                #warning PERF: Do not copy byte-for-byte.
                 ref var dest = ref Unsafe.Add(ref currentBlock, position);
-                for (var copyLength = partialLength; copyLength > 0; --copyLength) {
-                    dest = buffer;
-                    dest = ref Unsafe.Add(ref dest, 1);
-                    buffer = ref Unsafe.Add(ref buffer, 1);
-                }
+
+                CopyMemory(ref dest, ref buffer, partialLength);
+
+                buffer = ref Unsafe.Add(ref buffer, partialLength);
                 length -= partialLength;
 
                 if (partialLength == remainder)
@@ -356,14 +345,10 @@ namespace Stride.Core.Storage
                 }
 
                 // Start partial block
-                #warning PERF: Do not copy byte-for-byte.
-                for (; length > 0; --length) {
-                    currentBlock = buffer;
-                    currentBlock = ref Unsafe.Add(ref currentBlock, 1);
-                    buffer = ref Unsafe.Add(ref buffer, 1);
-                }
+                CopyMemory(ref currentBlock, ref buffer, length);
             }
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining), Obsolete("Use BodyCore(ref byte)")]
         private void BodyCore(byte* data)
         {
@@ -412,14 +397,38 @@ namespace Stride.Core.Storage
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static uint RotateLeft(uint x, byte r)
+        static void CopyMemory(byte* dst, byte* src, int length)
         {
-#if NETCOREAPP3_0_OR_GREATER              
-            return BitOperations.RotateLeft(x, r);
+            var dstSpan = new Span<byte>(dst, length);
+            var srcSpan = new Span<byte>(src, length);
+            srcSpan.CopyTo(dstSpan);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void CopyMemory(ref byte dst, ref byte src, int length)
+        {
+#if NETCOREAPP2_1_OR_GREATER
+            var dstSpan = MemoryMarshal.CreateSpan(ref dst, length);
+            var srcSpan = MemoryMarshal.CreateReadOnlySpan(ref src, length);
+            srcSpan.CopyTo(dstSpan);
 #else
-            return (x << r) | (x >> (32 - r));
+            for (; length > 0; --length)
+            {
+                dst = src;
+                dst = ref Unsafe.Add(ref dst, 1);
+                src = ref Unsafe.Add(ref src, 1);
+            }
 #endif
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if NETCOREAPP3_0_OR_GREATER
+        static uint RotateLeft(uint x, byte r) => BitOperations.RotateLeft(x, r);
+#else
+        // NOTE: This is a polyfill needed because BitOperations is .NET Core 3.0+
+        //       It can be removed when Visual Studio's MSBuild can load `net6.0+` assemblies without consuming them as `netstandard2.0`
+        static uint RotateLeft(uint x, byte r) => (x << r) | (x >> (32 - r));
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint FMix(uint h)
