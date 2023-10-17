@@ -200,7 +200,7 @@
     <Message Importance="High" Text="Generating translation for %(_StrideTranslations.Identity) %(_StrideTranslations.SourceFolder)"/>
 
     <Exec Condition="Exists('$(SourceDir)\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po')"
-          Command="&quot;$(DependencyDir)\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; -r $(TargetName) -d &quot;$(TargetDir)\&quot; -l %(_StrideTranslations.Identity) -L &quot;$(DependencyDir)\deps\Gettext.Net&quot; &quot;$(MSBuildThisFileDirectory)..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po&quot;" />
+          Command="&quot;$(DependencyDir)\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; -r $(TargetName) -d &quot;$(TargetDir)\&quot; -l %(_StrideTranslations.Identity) -L &quot;$(DependencyDir)\Gettext.Net&quot; &quot;$(MSBuildThisFileDirectory)..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po&quot;" />
 
     <ItemGroup>
       <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll')">
