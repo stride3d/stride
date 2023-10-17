@@ -198,14 +198,7 @@ namespace Stride.Core.Storage
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            fixed (uint* objPtr = &hash1)
-            {
-                var obj1 = (int*)objPtr;
-                return *obj1;
-            }
-        }
+        public override int GetHashCode() => (int)hash1;
 
         /// <inheritdoc/>
         public int CompareTo(ObjectId other)
