@@ -560,7 +560,7 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
         }
 
         [DataContract]
-        private class FixupContainer
+        internal class FixupContainer
         {
             // ReSharper disable once UnusedAutoPropertyAccessor.Local - used by Quantum
             public object Data { get; set; }
