@@ -182,7 +182,19 @@ void CreateMixin()
             .Declare("int", "b")
             .AssignConstant("b", 6)
             .Declare("int", "c")
-            .AssignVariable("c","a")
+            .Assign(
+                "c", 
+                (Mixer m,ref FunctionBuilder f) => 
+                    f.Add(
+                        "int", 
+                        f.Load("a"), 
+                        f.Mul(
+                            "int",
+                            f.Load("b"),
+                            f.Constant(3)
+                        )
+                    )
+            )
             .Return()
             .FunctionEnd()
         .WithCapability(Capability.Shader)
