@@ -18,6 +18,7 @@ namespace Stride.Core
         /// <param name="container">The container that will keep a reference to the component.</param>
         /// <returns>The same component instance</returns>
         public static T DisposeBy<T>(this T thisArg, ICollectorHolder container)
+            where T : IDisposable
         {
             if (ReferenceEquals(thisArg, null))
                 return default(T);
@@ -31,6 +32,7 @@ namespace Stride.Core
         /// <param name="thisArg">The component to remove.</param>
         /// <param name="container">The container that kept a reference to the component.</param>
         public static void RemoveDisposeBy<T>(this T thisArg, ICollectorHolder container)
+            where T : IDisposable
         {
             if (ReferenceEquals(thisArg, null))
                 return;
@@ -44,7 +46,8 @@ namespace Stride.Core
         /// <param name="thisArg">The component to add a reference to.</param>
         /// <returns>This component.</returns>
         /// <remarks>This method is equivalent to call <see cref="IReferencable.AddReference"/> and return this instance.</remarks>
-        public static T KeepReference<T>(this T thisArg) where T : IReferencable
+        public static T KeepReference<T>(this T thisArg)
+            where T : IReferencable
         {
             if (ReferenceEquals(thisArg, null))
                 return default(T);
