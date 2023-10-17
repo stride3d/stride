@@ -144,6 +144,16 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Vector3"/> struct given a <see cref="Stride.Core.Mathematics.Int3"/>.
+        /// </summary>
+        public Vector3(Int3 value)
+        {
+            X = value.X;
+            Y = value.Y;
+            Z = value.Z;
+        }
+
+        /// <summary>
         /// Gets a value indicting whether this instance is normalized.
         /// </summary>
         public readonly bool IsNormalized

@@ -144,6 +144,16 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Creates a new instance of the <see cref="Int3"/> struct by rounding the X, Y, and Z components of a <see cref="Vector3"/> struct to the nearest integer.
+        /// </summary>
+        public Int3 RoundToInt3(Vector3 value)
+        {
+            X = (int)Math.Round(value.X);
+            Y = (int)Math.Round(value.Y);
+            Z = (int)Math.Round(value.Z);
+        }
+
+        /// <summary>
         /// Gets or sets the component at the specified index.
         /// </summary>
         /// <value>The value of the X, Y, or Z component, depending on the index.</value>
@@ -187,6 +197,15 @@ namespace Stride.Core.Mathematics
         public int Length()
         {
             return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+        }
+
+        /// <summary>
+        /// Calculates the unrounded length of the vector.
+        /// </summary>
+        /// <returns>The length of the vector unrounded.</returns>
+        public float LengthUntruncated() 
+        {
+            return Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
         }
 
         /// <summary>
@@ -772,6 +791,14 @@ namespace Stride.Core.Mathematics
             z = Z;
         }
 
+        /// <summary>
+        /// Preforms an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="Stride.Core.Mathematics.Vector3"/>.
+        /// </summary>
+        public static implicit operator Vector3(Int3 value)
+        {
+            return new Vector3(value);
+        }
+        
 #if WPFInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="System.Windows.Media.Media3D.Int3D"/>.
