@@ -20,7 +20,7 @@ namespace GameMenu
         {
             IsRunning = true;
 
-            UIGame = (Game)Services.GetService<IGame>();
+            UIGame = (Game)Game;
 
             AdjustVirtualResolution(this, EventArgs.Empty);
             Game.Window.ClientSizeChanged += AdjustVirtualResolution;
