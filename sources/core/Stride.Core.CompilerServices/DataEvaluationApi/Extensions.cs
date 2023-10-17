@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace StrideSourceGenerator.NexIncremental;
+namespace Stride.Core.CompilerServices.DataEvaluationApi;
 
 public static class Extensions
 {
@@ -15,8 +15,8 @@ public static class Extensions
     public static bool HasInheritedDataContractAttributeInInheritanceHierarchy(this ITypeSymbol typeDeclaration, INamedTypeSymbol attribute)
     {
         if (typeDeclaration == null) return false;
-        ITypeSymbol baseType = typeDeclaration;
-        
+        var baseType = typeDeclaration;
+
         while (baseType != null)
         {
             if (baseType.HasAttribute(attribute))

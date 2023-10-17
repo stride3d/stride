@@ -2,19 +2,19 @@ using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Xml.Linq;
 
-namespace StrideSourceGenerator.NexAPI;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 internal class ClassInfo : IEquatable<ClassInfo>
 {
     private const string GeneratorPrefix = "StrideSourceGenerated_";
 
     public static ClassInfo CreateFrom(ITypeSymbol type, ImmutableList<SymbolInfo> members)
     {
-        bool isGeneric = false;
-        string generatorName = GeneratorPrefix + GetFullNamespace(type, '_') + type.Name;
-        string genericTypeName = "";
-        if(type is INamedTypeSymbol namedType)
+        var isGeneric = false;
+        var generatorName = GeneratorPrefix + GetFullNamespace(type, '_') + type.Name;
+        var genericTypeName = "";
+        if (type is INamedTypeSymbol namedType)
         {
-            if(namedType.TypeArguments != null)
+            if (namedType.TypeArguments != null)
             {
 
                 var genericcount = namedType.TypeArguments.Count();
@@ -25,7 +25,7 @@ internal class ClassInfo : IEquatable<ClassInfo>
                 }
             }
         }
-        string namespaceName = GetFullNamespace(type,'.');
+        var namespaceName = GetFullNamespace(type, '.');
         return new()
         {
             Name = type.Name,
@@ -39,10 +39,10 @@ internal class ClassInfo : IEquatable<ClassInfo>
             MemberSymbols = members
         };
     }
-    static string GetFullNamespace(ITypeSymbol typeSymbol,char separator)
+    static string GetFullNamespace(ITypeSymbol typeSymbol, char separator)
     {
-        INamespaceSymbol namespaceSymbol = typeSymbol.ContainingNamespace;
-        string fullNamespace = "";
+        var namespaceSymbol = typeSymbol.ContainingNamespace;
+        var fullNamespace = "";
 
         while (namespaceSymbol != null && !string.IsNullOrEmpty(namespaceSymbol.Name))
         {
@@ -56,7 +56,7 @@ internal class ClassInfo : IEquatable<ClassInfo>
 
     private ClassInfo() { }
     public bool IsGeneric { get; private set; }
-    public string GenericTypeName {  get; private set; } 
+    public string GenericTypeName { get; private set; }
     public string Name { get; set; }
     public string NameSpace { get; set; }
     public string GeneratorName { get; set; }
@@ -71,8 +71,8 @@ internal class ClassInfo : IEquatable<ClassInfo>
     }
     private static IReadOnlyList<string> FindAbstractClasses(ITypeSymbol typeSymbol)
     {
-        List<string> result = new List<string>();
-        INamedTypeSymbol baseType = typeSymbol.BaseType;
+        var result = new List<string>();
+        var baseType = typeSymbol.BaseType;
         while (baseType != null)
         {
             if (baseType.IsAbstract)

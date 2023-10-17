@@ -29,6 +29,7 @@
 	<ItemGroup>
 	  <Folder Include="CodeFixes\" />
 	  <Folder Include="Common\" />
+	  <Folder Include="DataEvaluationApi\NexAPI\Analysation\AnalyzerExtensions\" />
 	  <Folder Include="Generators\" />
     <Using Include="System.Linq" />
     <Using Include="System.Collections.Generic" />

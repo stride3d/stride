@@ -1,4 +1,4 @@
-namespace StrideSourceGenerator.NexAPI;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 internal interface IContentModeInfo
 {
     public string DataMemberMode { get; set; }

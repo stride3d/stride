@@ -1,7 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+using Microsoft.CodeAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 
-namespace StrideSourceGenerator.NexAPI.Implementations;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Symbols;
 internal class IsNonStatic<T>(IMemberSymbolAnalyzer<T> analyzer) : MemberSymbolAnalyzer<T>(analyzer)
     where T : ISymbol
 {

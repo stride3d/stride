@@ -1,12 +1,10 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Stride.Core.CompilerServices.Common;
-using StrideSourceGenerator.Core;
-using StrideSourceGenerator.NexAPI.Core;
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 using System.Collections.Immutable;
 
-namespace StrideSourceGenerator.NexAPI;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 internal class ClassInfoMemberProcessor(IMemberSelector selector, Compilation compilation)
 {
     public List<IMemberSymbolAnalyzer<IPropertySymbol>> PropertyAnalyzers { get; set; } = new();
@@ -16,11 +14,11 @@ internal class ClassInfoMemberProcessor(IMemberSelector selector, Compilation co
     private INamedTypeSymbol DataMemberIgnoreAttribute { get; } = WellKnownReferences.DataMemberIgnoreAttribute(compilation);
     public ImmutableList<SymbolInfo> Process(ITypeSymbol type)
     {
-        IReadOnlyList<ISymbol> symbols = selector.GetAllMembers(type);
-        List<SymbolInfo> result = new List<SymbolInfo>();
-        foreach (ISymbol symbol in symbols)
+        var symbols = selector.GetAllMembers(type);
+        var result = new List<SymbolInfo>();
+        foreach (var symbol in symbols)
         {
-            DataMemberContext context = DataMemberContext.Create(symbol, DataMemberAttribute, DataMemberMode, DataMemberIgnoreAttribute);
+            var context = DataMemberContext.Create(symbol, DataMemberAttribute, DataMemberMode, DataMemberIgnoreAttribute);
             if (symbol == null)
                 continue;
             if (symbol is IPropertySymbol property)
@@ -35,12 +33,12 @@ internal class ClassInfoMemberProcessor(IMemberSelector selector, Compilation co
     void ProcessAnalyzers<T>(List<IMemberSymbolAnalyzer<T>> analyzers, T symbol, List<SymbolInfo> result, DataMemberContext context)
         where T : ISymbol
     {
-        foreach (IMemberSymbolAnalyzer<T> analyzer in analyzers)
+        foreach (var analyzer in analyzers)
         {
-            MemberContext<T> memberContext = new MemberContext<T>(symbol, context);
+            var memberContext = new MemberContext<T>(symbol, context);
 
-            SymbolInfo temp = analyzer.Analyze(memberContext);
-            if(!temp.IsEmpty)
+            var temp = analyzer.Analyze(memberContext);
+            if (!temp.IsEmpty)
                 result.Add(temp);
         }
     }

@@ -1,12 +1,12 @@
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
-using StrideSourceGenerator.NexAPI.Core;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Core;
 
-namespace StrideSourceGenerator.NexAPI.Analysation.Analyzers;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Analyzers;
 internal class FieldAnalyzer : IMemberSymbolAnalyzer<IFieldSymbol>
 {
     protected readonly IContentModeInfo memberGenerator;
@@ -18,8 +18,8 @@ internal class FieldAnalyzer : IMemberSymbolAnalyzer<IFieldSymbol>
     public SymbolInfo Analyze(MemberContext<IFieldSymbol> context)
     {
         var names = context.Symbol.Type.ContainingNamespace;
-        string namespa = context.Symbol.Type.Name;
-        if(names != null)
+        var namespa = context.Symbol.Type.Name;
+        if (names != null)
         {
             namespa = context.Symbol.Type.GetFullNamespace('.') + "." + context.Symbol.Type.Name;
         }

@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
-using StrideSourceGenerator.NexAPI;
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 using System.Collections.Immutable;
 using System.Reflection;
 

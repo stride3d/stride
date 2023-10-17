@@ -1,18 +1,16 @@
-using Microsoft.CodeAnalysis;
-using StrideSourceGenerator.NexAPI;
-using StrideSourceGenerator.NexAPI.Core;
-using StrideSourceGenerator.NexIncremental;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Core;
 
-namespace StrideSourceGenerator.Core;
+namespace Stride.Core.CompilerServices.DataEvaluationApi;
 internal class MemberSelector(INamedTypeSymbol decidingAttribute) : IMemberSelector
 {
     public IReadOnlyList<ISymbol> GetAllMembers(ITypeSymbol type)
     {
-        List<ITypeSymbol> types = new List<ITypeSymbol>();
+        var types = new List<ITypeSymbol>();
         var trial = type.FindAttributeInInheritanceTree(decidingAttribute);
-        
+
         FindTypesRecursive(decidingAttribute, types, type);
- 
+
         return GetMembers(types);
     }
     private ITypeSymbol FindTypesRecursiveUnchecked(ITypeSymbol breakPoint, List<ITypeSymbol> members, ITypeSymbol baseType)
@@ -37,20 +35,20 @@ internal class MemberSelector(INamedTypeSymbol decidingAttribute) : IMemberSelec
 
     private IReadOnlyList<ISymbol> GetMembers(IReadOnlyList<ITypeSymbol> typeSymbols)
     {
-        List<ISymbol> result = new List<ISymbol>();
-        HashSet<string> seenMembers = new HashSet<string>();
+        var result = new List<ISymbol>();
+        var seenMembers = new HashSet<string>();
 
 
-        foreach (ITypeSymbol type in typeSymbols)
+        foreach (var type in typeSymbols)
         {
             foreach (var member in type.GetMembers())
             {
-                if(member is IPropertySymbol property && !property.IsIndexer && !seenMembers.Contains(member.Name))
+                if (member is IPropertySymbol property && !property.IsIndexer && !seenMembers.Contains(member.Name))
                 {
                     seenMembers.Add(member.Name);
                     result.Add(member);
                 }
-                if ((member is IFieldSymbol) && !seenMembers.Contains(member.Name))
+                if (member is IFieldSymbol && !seenMembers.Contains(member.Name))
                 {
                     seenMembers.Add(member.Name);
                     result.Add(member);

@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+using Microsoft.CodeAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 
-namespace StrideSourceGenerator.NexAPI.Implementations;
-internal class HasOriginalDefinition(IMemberSymbolAnalyzer<IPropertySymbol> analyzer, INamedTypeSymbol originalDefinition) : MemberSymbolAnalyzer<IPropertySymbol>(analyzer)
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Symbols;
+internal class OriginalDefinitionFinder(IMemberSymbolAnalyzer<IPropertySymbol> analyzer, INamedTypeSymbol originalDefinition) : MemberSymbolAnalyzer<IPropertySymbol>(analyzer)
 {
     private static readonly SymbolEqualityComparer Comparer = SymbolEqualityComparer.Default;
 

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 internal class MemberContext<T>
     where T : ISymbol
 {

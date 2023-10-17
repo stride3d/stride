@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace StrideSourceGenerator.NexAPI;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 internal interface IMemberSelector
 {
     IReadOnlyList<ISymbol> GetAllMembers(ITypeSymbol type);

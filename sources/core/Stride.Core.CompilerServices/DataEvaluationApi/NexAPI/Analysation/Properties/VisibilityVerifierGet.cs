@@ -1,8 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
-using StrideSourceGenerator.NexAPI.Core;
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 
-internal class HasVisibleGetter(IMemberSymbolAnalyzer<IPropertySymbol> analyzer) : MemberSymbolAnalyzer<IPropertySymbol>(analyzer)
+internal class VisibilityVerifierGet(IMemberSymbolAnalyzer<IPropertySymbol> analyzer) : MemberSymbolAnalyzer<IPropertySymbol>(analyzer)
 {
     public override bool AppliesTo(MemberContext<IPropertySymbol> context)
     {

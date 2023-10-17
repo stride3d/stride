@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace StrideSourceGenerator.NexAPI.Core;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Core;
 
 public static class Extensionss
 {
@@ -10,7 +10,7 @@ public static class Extensionss
             return true;
         return false;
     }
-    public static bool TryGetAttribute(this ISymbol symbol, INamedTypeSymbol attribute,out AttributeData attributeData)
+    public static bool TryGetAttribute(this ISymbol symbol, INamedTypeSymbol attribute, out AttributeData attributeData)
     {
         attributeData = symbol.GetAttributes().FirstOrDefault(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false);
         if (attributeData == null)
@@ -27,7 +27,7 @@ public static class Extensionss
     {
         if (typeDeclaration == null)
             return null;
-        INamedTypeSymbol baseType = typeDeclaration.BaseType;
+        var baseType = typeDeclaration.BaseType;
         while (baseType != null)
         {
             if (baseType.HasAttribute(attribute))
@@ -38,8 +38,8 @@ public static class Extensionss
     }
     public static string GetFullNamespace(this ITypeSymbol typeSymbol, char separator)
     {
-        INamespaceSymbol namespaceSymbol = typeSymbol.ContainingNamespace;
-        string fullNamespace = "";
+        var namespaceSymbol = typeSymbol.ContainingNamespace;
+        var fullNamespace = "";
 
         while (namespaceSymbol != null && !string.IsNullOrEmpty(namespaceSymbol.Name))
         {

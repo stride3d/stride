@@ -1,6 +1,6 @@
 ﻿
 using Microsoft.CodeAnalysis;
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 
 internal interface IMemberSymbolAnalyzer<T>
     where T : ISymbol

@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 
-namespace StrideSourceGenerator.NexAPI.Implementations;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Symbols;
 internal class WhenOne<T>(
         IMemberSymbolAnalyzer<T> analyzer
         , Func<IMemberSymbolAnalyzer<T>, IMemberSymbolAnalyzer<T>> first

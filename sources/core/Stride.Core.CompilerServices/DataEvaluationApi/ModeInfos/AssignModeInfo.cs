@@ -1,6 +1,6 @@
-using StrideSourceGenerator.NexAPI;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 
-namespace Stride.Core.CompilerServices.CodeFixes.ModeInfos;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.ModeInfos;
 internal class AssignModeInfo : IContentModeInfo
 {
     public bool IsContentMode { get; set; }

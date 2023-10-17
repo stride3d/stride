@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
-using Stride.Core.CompilerServices.CodeFixes.NexAPI.Analysation.Implementations;
-using StrideSourceGenerator.NexAPI.Implementations;
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Symbols;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 
 internal static class AnalyzerExtensions
 {

@@ -1,6 +1,6 @@
 ﻿
 using Microsoft.CodeAnalysis;
-using StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 
 internal class WhenNot<T>(
         IMemberSymbolAnalyzer<T> analyzer

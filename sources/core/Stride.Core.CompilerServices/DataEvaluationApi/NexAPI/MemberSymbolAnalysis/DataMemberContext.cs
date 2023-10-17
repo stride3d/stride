@@ -1,15 +1,15 @@
 using Microsoft.CodeAnalysis;
-using StrideSourceGenerator.NexAPI.Core;
+using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Core;
 using System.Runtime.Serialization;
 
-namespace StrideSourceGenerator.NexAPI.MemberSymbolAnalysis;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 
 internal class DataMemberContext
 {
     internal static DataMemberContext Create(ISymbol symbol, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol DataMemberMode, INamedTypeSymbol dataMemberIgnoreAttribute)
     {
-        DataMemberContext context = new DataMemberContext();
-        if (symbol.TryGetAttribute(dataMemberAttribute, out AttributeData attributeData))
+        var context = new DataMemberContext();
+        if (symbol.TryGetAttribute(dataMemberAttribute, out var attributeData))
         {
             context.Exists = true;
             context.Mode = GetDataMemberMode(attributeData, DataMemberMode);
@@ -39,7 +39,7 @@ internal class DataMemberContext
     }
     static int GetDataMemberMode(AttributeData attributeData, INamedTypeSymbol dataMemberAttribute)
     {
-        TypedConstant modeParameter = attributeData.ConstructorArguments.FirstOrDefault(x => x.Type?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false);
+        var modeParameter = attributeData.ConstructorArguments.FirstOrDefault(x => x.Type?.Equals(dataMemberAttribute, SymbolEqualityComparer.Default) ?? false);
 
         if (modeParameter.Value is null)
             return 0;
