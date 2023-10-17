@@ -237,27 +237,6 @@ namespace Stride.Core.Storage
                     span[i] = HexDigits[b];
                 }
             }
-            // TODO: swap to string.Create when assembly processor is higher than netstandard2.0
-            /*
-            {
-            fixed (uint* hashStart = &hash1)
-            {
-                return string.Create(HashStringLength, (IntPtr)hashStart, (c, state) => {
-            
-                    var hashBytes = (byte*)state;
-                    for (var i = 0; i < HashStringLength; ++i)
-                    {
-                        var index0 = i >> 1;
-                        var b = (byte)(hashBytes[index0] >> 4);
-                        c[i++] = HexDigits[b];
-
-                        b = (byte)(hashBytes[index0] & 0x0F);
-                        c[i] = HexDigits[b];
-                    }
- 
-                });
-            }
-             */
             return ((ReadOnlySpan<char>)span).ToString();
         }
 
