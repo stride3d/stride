@@ -229,7 +229,7 @@ namespace Stride.Core.Storage
 
         public override string ToString()
         {
-            var c = new char[HashStringLength];
+            Span<char> span = stackalloc char[HashStringLength];
 
             fixed (uint* hashStart = &hash1)
             {
@@ -238,15 +238,16 @@ namespace Stride.Core.Storage
                 {
                     var index0 = i >> 1;
                     var b = (byte)(hashBytes[index0] >> 4);
-                    c[i++] = HexDigits[b];
+                    span[i++] = HexDigits[b];
 
                     b = (byte)(hashBytes[index0] & 0x0F);
-                    c[i] = HexDigits[b];
+                    span[i] = HexDigits[b];
                 }
             }
-
-            return new string(c);
+            // TODO: swap to new string(span) when assembly processor is higher than netstandard2.0, new string(span) gets detected as new string(char*) in netstandard2.0
+            return ((ReadOnlySpan<char>)span).ToString();
         }
+
 
         /// <summary>
         /// Gets a <see cref="Guid"/> from this object identifier.
