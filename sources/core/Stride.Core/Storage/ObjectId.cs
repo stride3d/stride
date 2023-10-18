@@ -240,7 +240,6 @@ namespace Stride.Core.Storage
             return ((ReadOnlySpan<char>)span).ToString();
         }
 
-
         /// <summary>
         /// Gets a <see cref="Guid"/> from this object identifier.
         /// </summary>
