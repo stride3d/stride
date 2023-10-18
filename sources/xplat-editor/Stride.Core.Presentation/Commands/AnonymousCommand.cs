@@ -79,7 +79,7 @@ public class AnonymousTaskCommand : AnonymousCommand
     /// <param name="task">A method returning a task that will be called each time the command is executed.</param>
     /// <param name="canExecute">An anonymous method that will be called each time the command <see cref="CommandBase.CanExecute(object)"/> method is invoked.</param>
     public AnonymousTaskCommand(IViewModelServiceProvider serviceProvider, Func<Task> task, Func<bool>? canExecute = null)
-        : base(serviceProvider, x => task().Forget(), canExecute)
+        : base(serviceProvider, async x => await task(), canExecute)
     {
     }
 }
