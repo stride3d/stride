@@ -3,7 +3,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\editor\Stride.Core.Assets.Presentation\Stride.Core.Assets.Presentation.csproj" />
-    <ProjectReference Include="..\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />
