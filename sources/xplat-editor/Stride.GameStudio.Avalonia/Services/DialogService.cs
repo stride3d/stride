@@ -11,30 +11,43 @@ using Stride.GameStudio.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.Services;
 
-public sealed class DialogService : IDialogService
+internal sealed class DialogService : IDialogService
 {
+    public DialogService(IDispatcherService dispatcher)
+    {
+        Dispatcher = dispatcher;
+    }
+
     public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+
+    public IDispatcherService Dispatcher { get; }
 
     public async Task<UFile?> OpenFilePickerAsync()
     {
         if (MainWindow == null) return null;
 
-        var files = await MainWindow.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        return await Dispatcher.InvokeTask(async () =>
         {
-            AllowMultiple = false,
+            var files = await MainWindow.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                AllowMultiple = false,
+            });
+
+            var file = files?.Count > 0 ? files[0] : null;
+            var path = file?.TryGetLocalPath();
+            if (string.IsNullOrEmpty(path)) return null;
+
+            return path;
         });
-
-        var file = files?.Count > 0 ? files[0] : null;
-        var path = file?.TryGetLocalPath();
-        if (string.IsNullOrEmpty(path)) return null;
-
-        return path;
     }
 
     public async Task ShowAboutWindowAsync()
     {
         if (MainWindow == null) return;
 
-        await new AboutWindow().ShowDialog(MainWindow);
+        await Dispatcher.InvokeTask(async () =>
+        {
+            await new AboutWindow().ShowDialog(MainWindow);
+        });
     }
 }

@@ -54,11 +54,13 @@ public partial class App : Application
 
     private static IViewModelServiceProvider InitializeServiceProvider()
     {
-        var dialogService = new DialogService();
+        var dispatcherService = DispatcherService.Create();
+        var dialogService = new DialogService(dispatcherService);
         var pluginService = new PluginService();
         var services = new object[]
         {
             dialogService,
+            dispatcherService,
             pluginService
         };
         return new ViewModelServiceProvider(services);
