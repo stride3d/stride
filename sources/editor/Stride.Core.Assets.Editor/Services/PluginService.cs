@@ -1,16 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.Avalonia.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 
-namespace Stride.Core.Assets.Editor.Avalonia.Services;
-
-// FIXME: should the service by UI-agnostic and moved to Stride.Core.Assets.Editor?
-// Maybe when SessionViewModel is also moved there...
+namespace Stride.Core.Assets.Editor.Services;
 
 public sealed class PluginService
 {

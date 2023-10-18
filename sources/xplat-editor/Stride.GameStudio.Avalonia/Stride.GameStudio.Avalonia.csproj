@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
-    <ProjectReference Include="..\Stride.Core.Assets.Editor.Avalonia\Stride.Core.Assets.Editor.Avalonia.csproj" />
+    <ProjectReference Include="..\..\editor\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
     <ProjectReference Include="..\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
   </ItemGroup>
 

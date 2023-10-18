@@ -22,6 +22,7 @@
       "..\\sources\\editor\\Stride.Assets.Presentation.Wpf\\Stride.Assets.Presentation.Wpf.csproj",
       "..\\sources\\editor\\Stride.Assets.Presentation\\Stride.Assets.Presentation.csproj",
       "..\\sources\\editor\\Stride.Core.Assets.Editor.Wpf\\Stride.Core.Assets.Editor.Wpf.csproj",
+      "..\\sources\\editor\\Stride.Core.Assets.Editor\\Stride.Core.Assets.Editor.csproj",
       "..\\sources\\editor\\Stride.Core.Assets.Presentation\\Stride.Core.Assets.Presentation.csproj",
       "..\\sources\\editor\\Stride.Core.MostRecentlyUsedFiles\\Stride.Core.MostRecentlyUsedFiles.shproj",
       "..\\sources\\editor\\Stride.Editor.CrashReport\\Stride.Editor.CrashReport.shproj",
@@ -74,7 +75,6 @@
       "..\\sources\\tools\\Stride.Importer.Common\\Stride.Importer.Common.csproj",
       "..\\sources\\tools\\Stride.PackageInstall\\Stride.PackageInstall.csproj",
       "..\\sources\\tools\\Stride.TextureConverter\\Stride.TextureConverter.csproj",
-      "..\\sources\\xplat-editor\\Stride.Core.Assets.Editor.Avalonia\\Stride.Core.Assets.Editor.Avalonia.csproj",
       "..\\sources\\xplat-editor\\Stride.Core.Presentation.Avalonia\\Stride.Core.Presentation.Avalonia.csproj",
       "..\\sources\\xplat-editor\\Stride.GameStudio.Avalonia.Desktop\\Stride.GameStudio.Avalonia.Desktop.csproj",
       "..\\sources\\xplat-editor\\Stride.GameStudio.Avalonia\\Stride.GameStudio.Avalonia.csproj"

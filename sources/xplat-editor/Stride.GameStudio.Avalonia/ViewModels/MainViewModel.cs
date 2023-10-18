@@ -4,7 +4,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Avalonia.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;

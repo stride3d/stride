@@ -6,7 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Stride.Assets.Presentation;
-using Stride.Core.Assets.Editor.Avalonia.Services;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;

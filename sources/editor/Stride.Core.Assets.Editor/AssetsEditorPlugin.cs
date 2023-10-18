@@ -4,7 +4,7 @@
 using Stride.Core.Assets.Presentation;
 using Stride.Core.Diagnostics;
 
-namespace Stride.Core.Assets.Editor.Avalonia;
+namespace Stride.Core.Assets.Editor;
 
 internal sealed class AssetsEditorPlugin : AssetsPlugin
 {

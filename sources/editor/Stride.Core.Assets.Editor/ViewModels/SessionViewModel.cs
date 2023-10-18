@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Concurrent;
-using Stride.Core.Assets.Editor.Avalonia.Services;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
@@ -11,7 +11,7 @@ using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Avalonia.ViewModels;
+namespace Stride.Core.Assets.Editor.ViewModels;
 
 public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 {
