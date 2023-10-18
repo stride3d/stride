@@ -186,7 +186,7 @@ namespace Stride.Core.Mathematics
         /// </remarks>
         public int Length()
         {
-            return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+            return (int)MathF.Sqrt((X * X) + (Y * Y) + (Z * Z));
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace Stride.Core.Mathematics
         /// <returns>The length of the vector untruncated.</returns>
         public float LengthUntruncated() 
         {
-            return (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+            return (float)MathF.Sqrt((X * X) + (Y * Y) + (Z * Z));
         }
 
         /// <summary>
@@ -548,11 +548,11 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The source vector.</param>
         /// <param name="result">When the method completes, contains an new vector composed of the rounded values of the specified vector.</param>
         /// <param name="rounding">The rounding strategy to use.</param>
-        public static void Round(ref Vector3 value, out Int3 result, MidpointRounding rounding = default)
+        public static void Round(in Vector3 value, out Int3 result, MidpointRounding rounding = default)
         {
-            result.X = (int)Math.Round(value.X, rounding);
-            result.Y = (int)Math.Round(value.Y, rounding);
-            result.Z = (int)Math.Round(value.Z, rounding);
+            result.X = (int)MathF.Round(value.X, rounding);
+            result.Y = (int)MathF.Round(value.Y, rounding);
+            result.Z = (int)MathF.Round(value.Z, rounding);
         }
 
         /// <summary>
@@ -561,9 +561,9 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The source vector.</param>
         /// <param name="rounding">The rounding strategy to use.</param>
         /// <returns>A vector containing the rounded values of the source vector.</returns>
-        public static Int3 Round(Vector3 value, MidpointRounding rounding = default)
+        public static Int3 Round(in Vector3 value, MidpointRounding rounding = default)
         {
-            Round(ref value, out var result, rounding);
+            Round(in value, out var result, rounding);
             return result;
         }
 
