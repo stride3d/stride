@@ -32,6 +32,8 @@ namespace Stride.Core.Shaders.Grammar
         // ------------------------------------------------------------------------------------
         public readonly Terminal float_literal = new Terminal("float_literal") { AstNodeConfig = new TokenInfo(TokenCategory.Number) };
         public readonly Terminal integer_literal = new Terminal("integer_literal") { AstNodeConfig = new TokenInfo(TokenCategory.Number) };
+        public readonly NonTerminal negative_float_literal = new NonTerminal("negative_float_literal") { AstNodeConfig = new TokenInfo(TokenCategory.Number) };
+        public readonly NonTerminal negative_integer_literal = new NonTerminal("negative_integer_literal") { AstNodeConfig = new TokenInfo(TokenCategory.Number) };
         public readonly NonTerminal number = TT("number");
         public readonly Terminal identifier_raw = new Terminal("identifier") { AstNodeConfig = new TokenInfo(TokenCategory.Identifier) };
         public readonly NonTerminal identifier = TT("identifier");
@@ -283,10 +285,16 @@ namespace Stride.Core.Shaders.Grammar
             // Types
             // ------------------------------------------------------------------------------------
 
-            // Numnber rule
-            number.Rule = integer_literal | float_literal;
+            // Number rule
+            number.Rule = integer_literal | negative_integer_literal
+                            | float_literal | negative_float_literal;
             integer_literal.AstNodeCreator = CreateIntegerLiteral;
             float_literal.AstNodeCreator = CreateFloatLiteral;
+
+            negative_integer_literal.Rule = "-" + integer_literal;
+            negative_integer_literal.AstNodeCreator = CreateNegativeIntegerLiteral;
+            negative_float_literal.Rule =  "-" + float_literal;
+            negative_float_literal.AstNodeCreator = CreateNegativeFloatLiteral;
 
             // Boolean rule
             boolean.Rule = Keyword("true") | Keyword("false");

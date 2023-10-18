@@ -1056,6 +1056,21 @@ namespace Stride.Core.Shaders.Grammar
             }
         }
 
+        protected void CreateNegativeFloatLiteral(ParsingContext context, ParseTreeNode node)
+        {
+            var literalFloat = Ast<Literal>(node);
+            //// negative_float_literal.Rule =
+            ////    [0]       [1]
+            ////    "-" + float_literal;
+            var postiveValueNode = node.ChildNodes[1];
+            var positiveValueLiteral = (Literal)postiveValueNode.AstNode;
+            if (positiveValueLiteral.Value is float floatValue)
+            {
+                literalFloat.Value = -floatValue;
+            }
+            literalFloat.Text = "-" + postiveValueNode.Token.Text;
+        }
+
         /// <summary>
         /// The create integer literal.
         /// </summary>
@@ -1109,6 +1124,21 @@ namespace Stride.Core.Shaders.Grammar
 
             literalInt.Value = value;
             literalInt.Text = node.Token.Text;
+        }
+
+        protected void CreateNegativeIntegerLiteral(ParsingContext context, ParseTreeNode node)
+        {
+            var literalFloat = Ast<Literal>(node);
+            //// negative_integer_literal.Rule =
+            ////    [0]        [1]
+            ////    "-" + integer_literal;
+            var postiveValueNode = node.ChildNodes[1];
+            var positiveValueLiteral = (Literal)postiveValueNode.AstNode;
+            if (positiveValueLiteral.Value is int intValue)
+            {
+                literalFloat.Value = -intValue;
+            }
+            literalFloat.Text = "-" + postiveValueNode.Token.Text;
         }
 
         /// <summary>
