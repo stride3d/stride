@@ -5,4 +5,24 @@ namespace Stride.Core.Assets.Presentation.ViewModels;
 
 public interface ISessionViewModel
 {
+    /// <summary>
+    /// Gets an <see cref="AssetViewModel"/> instance of the asset which as the given identifier, if available.
+    /// </summary>
+    /// <param name="id">The identifier of the asset to look for.</param>
+    /// <returns>An <see cref="AssetViewModel"/> that matches the given identifier if available. Otherwise, <c>null</c>.</returns>
+    AssetViewModel? GetAssetById(AssetId id);
+
+    Type GetAssetViewModelType(AssetItem assetItem);
+
+    /// <summary>
+    /// Register an asset so it can be found using the <see cref="GetAssetById"/> method. This method is intended to be invoked only by <see cref="AssetViewModel"/>.
+    /// </summary>
+    /// <param name="asset">The asset to register.</param>
+    void RegisterAsset(AssetViewModel asset);
+
+    /// <summary>
+    /// Unregister an asset previously registered with <see cref="RegisterAsset"/>. This method is intended to be invoked only by <see cref="AssetViewModel"/>.
+    /// </summary>
+    /// <param name="asset">The asset to register.</param>
+    void UnregisterAsset(AssetViewModel asset);
 }

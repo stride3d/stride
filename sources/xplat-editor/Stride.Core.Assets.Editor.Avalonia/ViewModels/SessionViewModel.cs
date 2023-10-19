@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Concurrent;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -11,6 +12,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.ViewModels;
 
 public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 {
+    private readonly ConcurrentDictionary<AssetId, AssetViewModel> assetIdMap = [];
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = [];
     private readonly PackageSession session;
 
@@ -18,6 +20,10 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         : base(serviceProvider)
     {
         this.session = session;
+
+        AssetCollection = new AssetCollectionViewModel(this);
+
+        // Create package view models
         this.session.Projects.ForEach(x =>
         {
             var package = CreateProjectViewModel(x, true);
@@ -27,23 +33,81 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 
     public ObservableList<PackageViewModel> AllPackages { get; } = [];
 
-    public static async Task<SessionViewModel> OpenSessionAsync(UFile path, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
+    public AssetCollectionViewModel AssetCollection { get; }
+
+    internal Dictionary<Type, Type> AssetViewModelTypes { get; } = [];
+
+    /// <inheritdoc />
+    public AssetViewModel? GetAssetById(AssetId id)
+    {
+        assetIdMap.TryGetValue(id, out var result);
+        return result;
+    }
+
+    public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
         // TODO register a bunch of services
         //serviceProvider.RegisterService(new CopyPasteService());
 
-        var result = await Task.Run(
-            () => PackageSession.Load(path, new PackageLoadParameters
+        var sessionViewModel = await Task.Run(() =>
+        {
+            SessionViewModel? result = null;
+            try
             {
-                CancelToken = token,
-                AutoCompileProjects = false,
-                AutoLoadTemporaryAssets = false,
-                LoadAssemblyReferences = false,
-                LoadMissingDependencies = false
-            }), token);
+                var sessionResult = PackageSession.Load(path, new PackageLoadParameters
+                {
+                    CancelToken = token,
+                    AutoCompileProjects = false,
+                    LoadAssemblyReferences = false,
+                    LoadMissingDependencies = false,
+                });
+                if (!token.IsCancellationRequested)
+                {
+                    result = new SessionViewModel(serviceProvider, sessionResult.Session);
+                    
+                    // Build asset view models
+                    result.LoadAssetsFromPackages(token); 
+                }
+            }
+            catch (Exception)
+            {
+                result = null;
+            }
+            
+            return result;
 
-        var viewModel = new SessionViewModel(serviceProvider, result.Session);
-        return viewModel;
+        }, token);
+
+        return sessionViewModel;
+    }
+    
+    /// <inheritdoc />
+    public Type GetAssetViewModelType(AssetItem assetItem)
+    {
+        var assetType = assetItem.Asset.GetType();
+        Type? assetViewModelType;
+        do
+        {
+            if (AssetViewModelTypes.TryGetValue(assetType, out assetViewModelType))
+                break;
+
+            assetViewModelType = typeof(AssetViewModel<>);
+            assetType = assetType.BaseType;
+        } while (assetType != null);
+
+        return assetViewModelType;
+    }
+ 
+    /// <inheritdoc />
+    public void RegisterAsset(AssetViewModel asset)
+    {
+        ((IDictionary<AssetId, AssetViewModel>)assetIdMap).Add(asset.Id, asset);
+    }
+
+    /// <inheritdoc />
+    public void UnregisterAsset(AssetViewModel asset)
+    {
+        ((IDictionary<AssetId, AssetViewModel>)assetIdMap).Remove(asset.Id);
     }
 
     private PackageViewModel CreateProjectViewModel(PackageContainer packageContainer, bool packageAlreadyInSession)
@@ -68,6 +132,18 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
                 }
             default:
                 throw new ArgumentOutOfRangeException(nameof(packageContainer));
+        }
+    }
+
+    private void LoadAssetsFromPackages(CancellationToken token = default)
+    {
+        // Create directory and asset view models for each project
+        foreach (var package in AllPackages)
+        {
+            if (token.IsCancellationRequested)
+                return;
+
+            package.LoadPackageInformation(token);
         }
     }
 }

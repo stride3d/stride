@@ -52,7 +52,8 @@
           <vw:AssetExplorerView Grid.Column="2"
                                 BorderThickness="2"
                                 BorderBrush="Blue"
-                                Padding="2" />
+                                Padding="2"
+                                DataContext="{Binding Session.AssetCollection}"/>
           <GridSplitter Grid.Column="3" ResizeDirection="Auto" />
           <vw:AssetPreviewView Grid.Column="5"
                                BorderThickness="2"

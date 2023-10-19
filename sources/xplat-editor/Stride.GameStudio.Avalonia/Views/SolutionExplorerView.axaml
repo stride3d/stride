@@ -7,7 +7,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.SolutionExplorerView"
              x:DataType="vm2:SessionViewModel">
-  <TreeView ItemsSource="{Binding AllPackages}">
+  <TreeView ItemsSource="{Binding AllPackages}"
+            SelectedItems="{Binding AssetCollection.SelectedLocations}">
     <Control.DataTemplates>
       <TreeDataTemplate DataType="{x:Type vm:AssetMountPointViewModel}"
                         ItemsSource="{Binding SubDirectories}">

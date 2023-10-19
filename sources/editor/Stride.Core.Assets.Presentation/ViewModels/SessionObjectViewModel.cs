@@ -14,5 +14,8 @@ public abstract class SessionObjectViewModel : ViewModelBase
 
     public abstract string Name { get; set; }
 
+    /// <summary>
+    /// Gets the session in which this object is currently in.
+    /// </summary>
     public ISessionViewModel Session { get; }
 }
