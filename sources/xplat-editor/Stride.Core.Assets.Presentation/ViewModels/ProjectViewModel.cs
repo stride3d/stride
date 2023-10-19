@@ -18,4 +18,21 @@ public sealed class ProjectViewModel : PackageViewModel
     public SolutionProject Project => (SolutionProject)PackageContainer;
 
     public UFile ProjectPath => Project.FullPath;
+
+    /// <summary>
+    /// Gets asset directory view model for a given path and creates all missing parts.
+    /// </summary>
+    /// <param name="projectDirectory">Project directory path.</param>
+    /// <returns>Given directory view model.</returns>
+    public DirectoryBaseViewModel GetOrCreateProjectDirectory(string projectDirectory)
+    {
+        DirectoryBaseViewModel result = Code;
+        if (!string.IsNullOrEmpty(projectDirectory))
+        {
+            var directories = projectDirectory.Split(new[] { DirectoryBaseViewModel.Separator }, StringSplitOptions.RemoveEmptyEntries);
+            result = directories.Aggregate(result, (current, next) => current.SubDirectories.FirstOrDefault(x => x.Name == next) ?? new DirectoryViewModel(next, current));
+        }
+
+        return result;
+    }
 }
