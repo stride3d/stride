@@ -1,8 +1,12 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.Input;
+using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
