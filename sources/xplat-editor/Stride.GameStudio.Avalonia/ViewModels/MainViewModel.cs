@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
-using Stride.GameStudio.Avalonia.Views;
+using Stride.GameStudio.Avalonia.Services;
 using Stride.Core.Assets;
 using Stride.Core.IO;
 
@@ -72,9 +72,7 @@ internal sealed class MainViewModel : ViewModelBase
 
     private async Task OnAbout()
     {
-        // FIXME: hide implementation details through a dialog service
-        var window = new AboutWindow();
-        await window.ShowDialog(((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!);
+        await ServiceProvider.Get<IDialogService>().ShowAboutWindowAsync();
     }
 
     private void OnExit()

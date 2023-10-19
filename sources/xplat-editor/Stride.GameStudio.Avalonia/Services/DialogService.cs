@@ -1,17 +1,19 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls;
-using Stride.Core.IO;
-using Avalonia;
 using Avalonia.Platform.Storage;
+using Stride.Core.IO;
+using Stride.Core.Presentation.Services;
+using Stride.GameStudio.Avalonia.Views;
 
-namespace Stride.Core.Presentation.Services;
+namespace Stride.GameStudio.Avalonia.Services;
 
 public sealed class DialogService : IDialogService
 {
-    public static Window? MainWindow => (Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow!;
+    public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
     public async Task<UFile?> OpenFilePickerAsync()
     {
@@ -27,5 +29,12 @@ public sealed class DialogService : IDialogService
         if (string.IsNullOrEmpty(path)) return null;
 
         return path;
+    }
+
+    public async Task ShowAboutWindowAsync()
+    {
+        if (MainWindow == null) return;
+
+        await new AboutWindow().ShowDialog(MainWindow);
     }
 }

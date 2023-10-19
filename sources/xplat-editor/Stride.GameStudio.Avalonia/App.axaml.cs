@@ -8,8 +8,8 @@ using Avalonia.Markup.Xaml;
 using Stride.Assets.Presentation;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.ViewModels;
 using Stride.GameStudio.Avalonia.Views;
 

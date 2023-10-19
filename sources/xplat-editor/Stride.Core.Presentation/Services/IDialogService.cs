@@ -11,4 +11,6 @@ namespace Stride.Core.Presentation.Services;
 public interface IDialogService
 {
     Task<UFile?> OpenFilePickerAsync();
+
+    Task ShowAboutWindowAsync();
 }
