@@ -2,7 +2,7 @@
 using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 
 namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Symbols;
-internal class IgnoreEvaluator<T>(IMemberSymbolAnalyzer<T> analyzer, IgnoreContext ignoreContext, INamedTypeSymbol dataMemberIgnoreAttribute) : MemberSymbolAnalyzer<T>(analyzer)
+internal class DataMemberIgnoreEvaluator<T>(IMemberSymbolAnalyzer<T> analyzer, IgnoreContext ignoreContext, INamedTypeSymbol dataMemberIgnoreAttribute) : MemberSymbolAnalyzer<T>(analyzer)
     where T : ISymbol
 {
     public override bool AppliesTo(MemberContext<T> context)
