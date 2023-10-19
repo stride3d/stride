@@ -1,17 +1,10 @@
 using Microsoft.CodeAnalysis;
+using Stride.Core.CompilerServices.Common;
 
-namespace Stride.Core.CompilerServices.DataEvaluationApi;
+namespace Stride.Core.CompilerServices.DataEvaluationApi.DataApi;
 
 public static class Extensions
 {
-    public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
-    {
-        if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false))
-        {
-            return true;
-        }
-        return false;
-    }
     public static bool HasInheritedDataContractAttributeInInheritanceHierarchy(this ITypeSymbol typeDeclaration, INamedTypeSymbol attribute)
     {
         if (typeDeclaration == null) return false;

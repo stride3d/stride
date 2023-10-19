@@ -1,3 +1,4 @@
+using Stride.Core.CompilerServices.DataEvaluationApi.DataApi;
 using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Core;
 

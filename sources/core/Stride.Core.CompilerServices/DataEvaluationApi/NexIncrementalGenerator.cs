@@ -7,6 +7,7 @@ using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Fields;
 using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 using Stride.Core.CompilerServices.DataEvaluationApi.ModeInfos;
 using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Analyzers;
+using Stride.Core.CompilerServices.DataEvaluationApi.DataApi;
 
 namespace Stride.Core.CompilerServices.DataEvaluationApi;
 // [Generator]

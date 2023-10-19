@@ -1,8 +1,5 @@
-using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Stride.Core.CompilerServices.DataEvaluationApi.DataApi;
 
 namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.MemberSymbolAnalysis;
 internal class MemberContext<T>
