@@ -190,7 +190,7 @@ void CreateMixin()
                         f.Load("a"), 
                         f.Mul(
                             "int",
-                            f.Load("b"),
+                            f.Sin(f.Load("b")),
                             f.Constant(3)
                         )
                     )
