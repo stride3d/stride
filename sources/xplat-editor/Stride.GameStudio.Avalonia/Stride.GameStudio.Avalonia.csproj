@@ -15,8 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
-    <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
+    <ProjectReference Include="..\Stride.Assets.Editor\Stride.Assets.Editor.csproj" />
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />

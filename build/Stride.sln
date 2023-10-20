@@ -340,6 +340,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Presenta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Presentation", "..\sources\xplat-editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj", "{BB6F37DE-40E5-4AC6-B599-358D99EFD493}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Editor", "..\sources\xplat-editor\Stride.Assets.Editor\Stride.Assets.Editor.csproj", "{B7FD8293-7F32-46FF-AAF6-36D2C594760D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1547,6 +1549,18 @@ Global
 		{BB6F37DE-40E5-4AC6-B599-358D99EFD493}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BB6F37DE-40E5-4AC6-B599-358D99EFD493}.Release|Win32.ActiveCfg = Release|Any CPU
 		{BB6F37DE-40E5-4AC6-B599-358D99EFD493}.Release|Win32.Build.0 = Release|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Debug|Win32.Build.0 = Debug|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Release|Win32.ActiveCfg = Release|Any CPU
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1676,6 +1690,7 @@ Global
 		{E89E2254-A8BE-4A87-8C88-CCBED98509A3} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
 		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
 		{BB6F37DE-40E5-4AC6-B599-358D99EFD493} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
+		{B7FD8293-7F32-46FF-AAF6-36D2C594760D} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
