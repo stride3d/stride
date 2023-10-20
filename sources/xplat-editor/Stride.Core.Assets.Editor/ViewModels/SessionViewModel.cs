@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Avalonia.Collections;
+using System.Collections.ObjectModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -24,7 +24,7 @@ public sealed class SessionViewModel : ViewModelBase, ISessionViewModel
         });
     }
 
-    public AvaloniaList<PackageViewModel> AllPackages { get; } = new();
+    public ObservableCollection<PackageViewModel> AllPackages { get; } = new();
 
     public static async Task<SessionViewModel> OpenSessionAsync(UFile path, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
