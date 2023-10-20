@@ -1,20 +1,30 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia.Collections;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
-public sealed class SessionViewModel : ViewModelBase
+public sealed class SessionViewModel : ViewModelBase, ISessionViewModel
 {
-    private PackageSession? session;
+    private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = new();
+    private readonly PackageSession session;
 
-    public PackageSession? Session
+    private SessionViewModel(PackageSession session)
     {
-        get => session;
-        set => SetProperty(ref session, value);
+        this.session = session;
+        this.session.Projects.ForEach(x =>
+        {
+            var package = CreateProjectViewModel(x, true);
+            AllPackages.Add(package);
+        });
     }
+
+    public AvaloniaList<PackageViewModel> AllPackages { get; } = new();
 
     public static async Task<SessionViewModel> OpenSessionAsync(UFile path, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
@@ -31,10 +41,31 @@ public sealed class SessionViewModel : ViewModelBase
                 LoadMissingDependencies = false
             }), token);
 
-        var viewModel = new SessionViewModel
+        return new SessionViewModel(result.Session);
+    }
+
+    private PackageViewModel CreateProjectViewModel(PackageContainer packageContainer, bool packageAlreadyInSession)
+    {
+        switch (packageContainer)
         {
-            Session = result.Session
-        };
-        return viewModel;
+            case SolutionProject project:
+            {
+                var packageContainerViewModel = new ProjectViewModel(this, project);
+                packageMap.Add(packageContainerViewModel, project);
+                if (!packageAlreadyInSession)
+                    session.Projects.Add(project);
+                return packageContainerViewModel;
+            }
+            case StandalonePackage standalonePackage:
+            {
+                var packageContainerViewModel = new PackageViewModel(this, standalonePackage);
+                packageMap.Add(packageContainerViewModel, standalonePackage);
+                if (!packageAlreadyInSession)
+                    session.Projects.Add(standalonePackage);
+                return packageContainerViewModel;
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(packageContainer));
+        }
     }
 }
