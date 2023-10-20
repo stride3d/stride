@@ -19,6 +19,7 @@
       "..\\sources\\core\\Stride.Core.Translation\\Stride.Core.Translation.csproj",
       "..\\sources\\core\\Stride.Core.Yaml\\Stride.Core.Yaml.csproj",
       "..\\sources\\core\\Stride.Core\\Stride.Core.csproj",
+      "..\\sources\\editor\\Stride.Assets.Editor\\Stride.Assets.Editor.csproj",
       "..\\sources\\editor\\Stride.Assets.Presentation.Wpf\\Stride.Assets.Presentation.Wpf.csproj",
       "..\\sources\\editor\\Stride.Assets.Presentation\\Stride.Assets.Presentation.csproj",
       "..\\sources\\editor\\Stride.Core.Assets.Editor.Wpf\\Stride.Core.Assets.Editor.Wpf.csproj",
