@@ -6,39 +6,48 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
+/// <summary>
+/// An interface that represents the view model of an asset editor.
+/// </summary>
+/// <typeparam name="TAsset"></typeparam>
 public interface IAssetEditorViewModel<out TAsset>
     where TAsset : AssetViewModel
 {
+    /// <summary>
+    /// The asset related to this editor.
+    /// </summary>
     TAsset Asset { get; }
+
+    /// <summary>
+    /// The current session.
+    /// </summary>
+    ISessionViewModel Session => Asset.Session;
 }
 
+/// <summary>
+/// Base view model for asset editors.
+/// </summary>
+/// <typeparam name="TAsset"></typeparam>
 public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorViewModel<TAsset>
     where TAsset : AssetViewModel
 {
-    public AssetEditorViewModel(AssetViewModel asset)
-        : base(asset)
-    {
-    }
-
-    /// <inheritdoc />
-    public new TAsset Asset => (TAsset)base.Asset;
-}
-
-public abstract class AssetEditorViewModel : DispatcherViewModel
-{
-    protected AssetEditorViewModel(AssetViewModel asset)
+    public AssetEditorViewModel(TAsset asset)
         : base(asset.ServiceProvider)
     {
         Asset = asset;
     }
-    
-    /// <summary>
-    /// The asset related to this editor.
-    /// </summary>
-    public AssetViewModel Asset { get;}
-    
-    /// <summary>
-    /// The current session.
-    /// </summary>
-    public ISessionViewModel Session => Asset.Session;
+
+    /// <inheritdoc />
+    public TAsset Asset { get;}
+}
+
+/// <summary>
+/// Base view model for asset editors.
+/// </summary>
+public abstract class AssetEditorViewModel : DispatcherViewModel
+{
+    protected AssetEditorViewModel(IViewModelServiceProvider serviceProvider)
+        : base(serviceProvider)
+    {
+    }
 }
