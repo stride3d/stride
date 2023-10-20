@@ -10,7 +10,10 @@ public sealed class ProjectViewModel : PackageViewModel
     public ProjectViewModel(ISessionViewModel session, SolutionProject project)
         : base(session, project)
     {
+        content.Add(Code = new ProjectCodeViewModel(this));
     }
+
+    public ProjectCodeViewModel Code { get; }
 
     public SolutionProject Project => (SolutionProject)PackageContainer;
 

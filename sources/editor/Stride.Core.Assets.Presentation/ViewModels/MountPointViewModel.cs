@@ -3,12 +3,15 @@
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
-public sealed class MountPointViewModel : DirectoryBaseViewModel
+public abstract class MountPointViewModel : DirectoryBaseViewModel
 {
-    public MountPointViewModel(ISessionViewModel session)
-        : base(session)
+    protected MountPointViewModel(PackageViewModel package)
+        : base(package.Session)
     {
+        Package = package;
     }
+
+    public override PackageViewModel Package { get; }
 
     public override DirectoryBaseViewModel Parent
     {
