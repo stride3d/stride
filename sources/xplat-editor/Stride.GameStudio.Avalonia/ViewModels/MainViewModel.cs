@@ -3,9 +3,9 @@
 
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Avalonia.ViewModels;
 using Stride.Core.IO;
-using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
@@ -18,16 +18,9 @@ internal sealed class MainViewModel : ViewModelBase
     private string? message;
     private SessionViewModel? session;
 
-    public MainViewModel()
+    public MainViewModel(IViewModelServiceProvider serviceProvider)
+        : base(serviceProvider)
     {
-        var dispatcherService = DispatcherService.Create();
-        var services = new object[]
-        {
-            dispatcherService,
-        };
-        ServiceProvider = new ViewModelServiceProvider(services);
-        ServiceProvider.RegisterService(new EditorDialogService(ServiceProvider));
-
         AboutCommand = new AnonymousTaskCommand(ServiceProvider, OnAbout, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
         ExitCommand = new AnonymousCommand(ServiceProvider, OnExit, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
         OpenCommand = new AnonymousTaskCommand(ServiceProvider, OnOpen);
@@ -53,7 +46,7 @@ internal sealed class MainViewModel : ViewModelBase
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
     
-    public async Task<bool> OpenSession(UFile? filePath, CancellationToken token = default)
+    public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {
         if (session != null)
             throw new InvalidOperationException("A session is already open in this instance.");
@@ -65,7 +58,17 @@ internal sealed class MainViewModel : ViewModelBase
 
         if (filePath == null) return false;
 
-        Session = await SessionViewModel.OpenSessionAsync(filePath, ServiceProvider, token);
+        var sessionResult = new PackageSessionResult();
+        var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, sessionResult, ServiceProvider, token);
+        
+        // Loading has failed
+        if (loadedSession == null)
+        {
+            // Null means the user has cancelled the loading operation.
+            return sessionResult.OperationCancelled ? null : false;
+        }
+
+        Session = loadedSession;
         return true;
     }
 

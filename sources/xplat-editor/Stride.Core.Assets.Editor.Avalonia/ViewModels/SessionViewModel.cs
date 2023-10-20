@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Concurrent;
+using Stride.Core.Assets.Editor.Avalonia.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
@@ -17,10 +19,14 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = [];
     private readonly PackageSession session;
 
-    private SessionViewModel(IViewModelServiceProvider serviceProvider, PackageSession session)
+    private SessionViewModel(IViewModelServiceProvider serviceProvider, PackageSession session, ILogger logger)
         : base(serviceProvider)
     {
         this.session = session;
+
+        // Gather all data from plugins
+        var pluginService = ServiceProvider.Get<PluginService>();
+        pluginService.RegisterSession(this, logger);
 
         // Initialize the node container used for asset properties
         AssetNodeContainer = new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } };
@@ -55,7 +61,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         return result;
     }
 
-    public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
+    public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
         // TODO register a bunch of services
         //serviceProvider.RegisterService(new CopyPasteService());
@@ -65,7 +71,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
             SessionViewModel? result = null;
             try
             {
-                var sessionResult = PackageSession.Load(path, new PackageLoadParameters
+                PackageSession.Load(path, sessionResult, new PackageLoadParameters
                 {
                     CancelToken = token,
                     AutoCompileProjects = false,
@@ -74,14 +80,15 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
                 });
                 if (!token.IsCancellationRequested)
                 {
-                    result = new SessionViewModel(serviceProvider, sessionResult.Session);
+                    result = new SessionViewModel(serviceProvider, sessionResult.Session, sessionResult);
                     
                     // Build asset view models
                     result.LoadAssetsFromPackages(token); 
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                sessionResult.Error("There was a problem opening the solution.", ex);
                 result = null;
             }
             
