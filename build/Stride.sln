@@ -336,6 +336,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Editor",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\xplat-editor\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{E89E2254-A8BE-4A87-8C88-CCBED98509A3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Presentation", "..\sources\xplat-editor\Stride.Core.Assets.Presentation\Stride.Core.Assets.Presentation.csproj", "{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1519,6 +1521,18 @@ Global
 		{E89E2254-A8BE-4A87-8C88-CCBED98509A3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E89E2254-A8BE-4A87-8C88-CCBED98509A3}.Release|Win32.ActiveCfg = Release|Any CPU
 		{E89E2254-A8BE-4A87-8C88-CCBED98509A3}.Release|Win32.Build.0 = Release|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Debug|Win32.Build.0 = Debug|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Release|Win32.ActiveCfg = Release|Any CPU
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1646,6 +1660,7 @@ Global
 		{19838BC4-E889-422B-B234-B94A3996A4AA} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
 		{CF5D2741-B515-467F-B8E2-31F450AE5531} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
 		{E89E2254-A8BE-4A87-8C88-CCBED98509A3} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
+		{2C4CA75F-7FC5-465B-BA9B-70A90EF2A0FE} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
