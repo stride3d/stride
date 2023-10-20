@@ -17,6 +17,7 @@ public abstract class AssetViewModelAttribute : Attribute
 [AttributeUsage(AttributeTargets.Class)]
 [BaseTypeRequired(typeof(AssetViewModel))]
 public sealed class AssetViewModelAttribute<T> : AssetViewModelAttribute
+    where T : Asset
 {
     public override Type AssetType => typeof(T);
 }

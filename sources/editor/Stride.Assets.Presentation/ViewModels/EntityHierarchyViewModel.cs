@@ -14,4 +14,10 @@ public abstract class EntityHierarchyViewModel : AssetCompositeHierarchyViewMode
         : base(assetItem, directory)
     {
     }
+
+    /// <inheritdoc />
+    public override EntityViewModel CreatePartViewModel(EntityDesign partDesign)
+    {
+        return new EntityViewModel(this, partDesign);
+    }
 }

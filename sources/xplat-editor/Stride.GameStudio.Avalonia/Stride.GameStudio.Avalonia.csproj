@@ -13,8 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
-    <ProjectReference Include="..\..\editor\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
+    <ProjectReference Include="..\..\editor\Stride.Assets.Editor\Stride.Assets.Editor.csproj" />
     <ProjectReference Include="..\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
   </ItemGroup>
 

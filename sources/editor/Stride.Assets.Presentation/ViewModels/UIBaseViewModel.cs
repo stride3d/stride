@@ -17,4 +17,10 @@ public abstract class UIBaseViewModel : AssetCompositeHierarchyViewModel<UIEleme
         : base(assetItem, directory)
     {
     }
+
+    /// <inheritdoc />
+    public override UIElementViewModel CreatePartViewModel(UIElementDesign elementDesign)
+    {
+        return new UIElementViewModel(this, elementDesign);
+    }
 }

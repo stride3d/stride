@@ -3,6 +3,7 @@
 
 using Stride.Core.Annotations;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Annotations;
 
@@ -17,6 +18,7 @@ public abstract class AssetEditorViewModelAttribute : Attribute
 [AttributeUsage(AttributeTargets.Class)]
 [BaseTypeRequired(typeof(AssetEditorViewModel))]
 public sealed class AssetEditorViewModelAttribute<T> : AssetEditorViewModelAttribute
+    where T : AssetViewModel
 {
     /// <summary>
     /// The asset type described by this attribute.
