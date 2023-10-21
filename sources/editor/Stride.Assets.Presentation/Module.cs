@@ -3,6 +3,7 @@
 
 using System.Runtime.CompilerServices;
 using Stride.Assets.Materials;
+using Stride.Core.Assets.Quantum;
 using Stride.Core.Reflection;
 
 namespace Stride.Assets.Presentation;
@@ -14,5 +15,6 @@ internal class Module
     {
         RuntimeHelpers.RunModuleConstructor(typeof(MaterialAsset).Module.ModuleHandle);
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
+        AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
     }
 }

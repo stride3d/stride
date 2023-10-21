@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
@@ -138,8 +139,10 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         throw new InvalidOperationException("Unable to sort the given items for the Content collection of PackageViewModel");
     }
 
-    private AssetViewModel CreateAsset(AssetItem assetItem, DirectoryBaseViewModel directory)
+    private AssetViewModel CreateAsset(AssetItem assetItem, DirectoryBaseViewModel directory, ILogger? logger = null)
     {
+        AssetCollectionItemIdHelper.GenerateMissingItemIds(assetItem.Asset);
+        Session.GraphContainer.InitializeAsset(assetItem, logger);
         var assetViewModelType = Session.GetAssetViewModelType(assetItem);
         if (assetViewModelType.IsGenericType)
         {
