@@ -66,8 +66,6 @@ namespace Stride.Core.AssemblyProcessor
 
         public List<string> ReferencesToAdd { get; set; }
 
-        public string SignKeyFile { get; set; }
-
         public bool UseSymbols { get; set; }
         
         public bool DeleteOutputOnError { get; set; }

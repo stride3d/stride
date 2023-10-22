@@ -116,7 +116,6 @@ namespace Stride.Core.AssemblyProcessor
                 { "docfile=", "Generate user documentation from XML file", v => app.DocumentationFile = v },
                 { "d|directory=", "Additional search directory for assemblies", app.SearchDirectories.Add },
                 { "a|assembly=", "Additional assembly (for now, it will add the assembly directory to search path)", v => app.SearchDirectories.Add(Path.GetDirectoryName(v)) },
-                { "signkeyfile=", "Signing Key File", v => app.SignKeyFile = v },
                 { "references-file=", "Project reference stored in a path", v => app.References.AddRange(File.ReadAllLines(v)) },
                 { "add-reference=", "References to explicitely add", v => app.ReferencesToAdd.Add(v) },
                 { "delete-output-on-error", "Delete output file if an error happened", v => app.DeleteOutputOnError = true },
