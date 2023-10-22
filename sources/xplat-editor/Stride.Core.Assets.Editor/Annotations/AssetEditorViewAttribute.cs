@@ -3,23 +3,25 @@
 
 using Stride.Core.Annotations;
 using Stride.Core.Assets.Editor.Editors;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Annotations;
 
 public abstract class AssetEditorViewAttribute : Attribute
 {
-    public abstract Type AssetType { get; }
+    public abstract Type EditorViewModelType { get; }
 }
 
 /// <summary>
-/// This attribute is used to register an editor view class and associate it to an asset type.
+/// This attribute is used to register an editor view class and associate it to an editor view model type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
 [BaseTypeRequired(typeof(IAssetEditorView))]
 public sealed class AssetEditorViewAttribute<T> : AssetEditorViewAttribute
+    where T : AssetEditorViewModel
 {
     /// <summary>
-    /// The asset type described by this attribute.
+    /// The editor view model type described by this attribute.
     /// </summary>
-    public override Type AssetType => typeof(T);
+    public override Type EditorViewModelType => typeof(T);
 }

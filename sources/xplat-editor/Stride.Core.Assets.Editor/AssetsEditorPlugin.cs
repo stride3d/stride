@@ -6,17 +6,11 @@ using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation;
-using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Assets.Editor;
 
-internal sealed class AssetsEditorPlugin : AssetsPlugin
+public abstract class AssetsEditorPlugin : AssetsPlugin
 {
-    public override void InitializePlugin(ILogger logger)
-    {
-        // nothing for now
-    }
-
     public void RegisterAssetEditorViewTypes(IDictionary<Type, Type> assetEditorViewModelTypes)
     {
         var pluginAssembly = GetType().Assembly;
@@ -27,7 +21,7 @@ internal sealed class AssetsEditorPlugin : AssetsPlugin
                 var attribute = type.GetCustomAttribute<AssetEditorViewAttribute>();
                 if (attribute != null)
                 {
-                    assetEditorViewModelTypes.Add(attribute.AssetType, type);
+                    assetEditorViewModelTypes.Add(attribute.EditorViewModelType, type);
                 }
             }
         }
@@ -43,7 +37,7 @@ internal sealed class AssetsEditorPlugin : AssetsPlugin
                 var attribute = type.GetCustomAttribute<AssetEditorViewModelAttribute>();
                 if (attribute != null)
                 {
-                    assetEditorViewModelTypes.Add(attribute.AssetType, type);
+                    assetEditorViewModelTypes.Add(attribute.ViewModelType, type);
                 }
             }
         }
