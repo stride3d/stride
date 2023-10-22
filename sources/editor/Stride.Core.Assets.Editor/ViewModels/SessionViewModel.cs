@@ -12,6 +12,7 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
@@ -94,6 +95,9 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     {
         // TODO register a bunch of services
         //serviceProvider.RegisterService(new CopyPasteService());
+        // Create the undo/redo service for this session. We use an initial size of 0 to prevent asset upgrade to be cancellable.
+        var undoRedoService = new UndoRedoService(0);
+        serviceProvider.RegisterService(undoRedoService);
 
         var sessionViewModel = await Task.Run(() =>
         {
