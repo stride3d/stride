@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\presentation\Stride.Core.Quantum\Stride.Core.Quantum.csproj" />
+    <ProjectReference Include="..\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
+  </ItemGroup>
+
+</Project>

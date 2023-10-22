@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" />
+    <ProjectReference Include="..\Stride.Core.Presentation.Quantum\Stride.Core.Presentation.Quantum.csproj" />
     <ProjectReference Include="..\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
   </ItemGroup>
 
