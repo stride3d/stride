@@ -30,10 +30,11 @@
           RowDefinitions="2*, 2, *">
         <Grid Grid.Row="0"
               ColumnDefinitions="3*, 2, *">
-          <vw:MainEditorView Grid.Column="0"
-                             BorderThickness="2"
-                             BorderBrush="Red"
-                             Padding="2" />
+          <vw:EditorCollectionView Grid.Column="0"
+                                   BorderThickness="2"
+                                   BorderBrush="Red"
+                                   Padding="2"
+                                   DataContext="{Binding Session.EditorCollection}" />
           <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
           <vw:PropertyGridView Grid.Column="2"
                                BorderThickness="2"

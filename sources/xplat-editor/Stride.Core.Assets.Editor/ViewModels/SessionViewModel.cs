@@ -3,12 +3,14 @@
 
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
+using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
@@ -34,6 +36,12 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         // Initialize the asset collection view model
         AssetCollection = new AssetCollectionViewModel(this);
 
+        // Initialize the asset collection view model
+        EditorCollection = new EditorCollectionViewModel(this);
+
+        // Initialize commands
+        EditSelectedContentCommand = new AnonymousCommand(serviceProvider, OnEditSelectedContent);
+
         // Create package view models
         this.session.Projects.ForEach(x =>
         {
@@ -50,7 +58,11 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 
     public AssetNodeContainer AssetNodeContainer { get; }
 
+    public EditorCollectionViewModel EditorCollection { get; }
+
     public AssetPropertyGraphContainer GraphContainer { get; }
+
+    public ICommandBase EditSelectedContentCommand { get; }
 
     internal Dictionary<Type, Type> AssetViewModelTypes { get; } = new Dictionary<Type, Type>();
 
@@ -103,17 +115,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     public Type GetAssetViewModelType(AssetItem assetItem)
     {
         var assetType = assetItem.Asset.GetType();
-        Type? assetViewModelType;
-        do
-        {
-            if (AssetViewModelTypes.TryGetValue(assetType, out assetViewModelType))
-                break;
-
-            assetViewModelType = typeof(AssetViewModel<>);
-            assetType = assetType.BaseType;
-        } while (assetType != null);
-
-        return assetViewModelType;
+        return TypeHelpers.TryGetTypeOrBase(assetType, AssetViewModelTypes) ?? typeof(AssetViewModel<>);
     }
  
     /// <inheritdoc />
@@ -164,4 +166,27 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
             package.LoadPackageInformation(token);
         }
     }
+
+    #region Commands
+    private void OnEditSelectedContent()
+    {
+        // Cannot edit multi-selection
+        if (AssetCollection.SingleSelectedContent == null)
+            return;
+
+        // Asset
+        var asset = AssetCollection.SingleSelectedAsset;
+        if (asset != null)
+        {
+            EditorCollection.OpenAssetEditor(asset);
+        }
+
+        // Folder
+        if (AssetCollection.SingleSelectedContent is DirectoryViewModel folder)
+        {
+            AssetCollection.SelectedLocations.Clear();
+            AssetCollection.SelectedLocations.Add(folder);
+        }
+    }
+    #endregion // Commands
 }

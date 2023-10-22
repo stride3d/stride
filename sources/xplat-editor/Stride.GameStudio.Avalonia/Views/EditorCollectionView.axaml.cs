@@ -6,9 +6,9 @@ using Avalonia.Markup.Xaml;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
-public partial class MainEditorView : UserControl
+public partial class EditorCollectionView : UserControl
 {
-    public MainEditorView()
+    public EditorCollectionView()
     {
         InitializeComponent();
     }
