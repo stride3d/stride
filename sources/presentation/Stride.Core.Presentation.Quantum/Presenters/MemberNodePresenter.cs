@@ -1,10 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Stride.Core;
-using Stride.Core.Annotations;
+
 using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 
@@ -13,9 +9,9 @@ namespace Stride.Core.Presentation.Quantum.Presenters
     public class MemberNodePresenter : NodePresenterBase
     {
         protected readonly IMemberNode Member;
-        private readonly List<Attribute> memberAttributes = new List<Attribute>();
+        private readonly List<Attribute> memberAttributes = new();
 
-        public MemberNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, [NotNull] IMemberNode member)
+        public MemberNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter parent, IMemberNode member)
             : base(factory, propertyProvider, parent)
         {
             if (factory == null) throw new ArgumentNullException(nameof(factory));
@@ -41,16 +37,19 @@ namespace Stride.Core.Presentation.Quantum.Presenters
             AttachCommands();
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
-            Member.ValueChanging -= OnMemberChanging;
-            Member.ValueChanged -= OnMemberChanged;
-            if (Member.Target != null)
+            if (disposing)
             {
-                Member.Target.ItemChanging -= OnItemChanging;
-                Member.Target.ItemChanged -= OnItemChanged;
+                Member.ValueChanging -= OnMemberChanging;
+                Member.ValueChanged -= OnMemberChanged;
+                if (Member.Target != null)
+                {
+                    Member.Target.ItemChanging -= OnItemChanging;
+                    Member.Target.ItemChanged -= OnItemChanged;
+                }
             }
+            base.Dispose(disposing);
         }
 
         public override Type Type => Member.Type;
@@ -59,12 +58,10 @@ namespace Stride.Core.Presentation.Quantum.Presenters
 
         public override NodeIndex Index => NodeIndex.Empty;
 
-        [NotNull]
         public override ITypeDescriptor Descriptor => Member.Descriptor;
 
         public override object Value => Member.Retrieve();
 
-        [NotNull]
         public IMemberDescriptor MemberDescriptor => Member.MemberDescriptor;
 
         public IReadOnlyList<Attribute> MemberAttributes => memberAttributes;
@@ -75,7 +72,7 @@ namespace Stride.Core.Presentation.Quantum.Presenters
         {
             // Do not update member node presenter value to null if it does not
             // allow null values (related to issue #668)
-            if ((newValue == null) && (memberAttributes.Any(x => x is NotNullAttribute)))
+            if ((newValue == null) && (memberAttributes.Any(x => x is Annotations.NotNullAttribute)))
                 return;
 
             try
@@ -138,7 +135,7 @@ namespace Stride.Core.Presentation.Quantum.Presenters
             return new NodeAccessor(Member, NodeIndex.Empty);
         }
 
-        private void OnMemberChanging(object sender, MemberNodeChangeEventArgs e)
+        private void OnMemberChanging(object? sender, MemberNodeChangeEventArgs e)
         {
             RaiseValueChanging(Value);
             if (Member.Target != null)
@@ -148,7 +145,7 @@ namespace Stride.Core.Presentation.Quantum.Presenters
             }
         }
 
-        private void OnMemberChanged(object sender, MemberNodeChangeEventArgs e)
+        private void OnMemberChanged(object? sender, MemberNodeChangeEventArgs e)
         {
             Refresh();
             if (Member.Target != null)
@@ -159,12 +156,12 @@ namespace Stride.Core.Presentation.Quantum.Presenters
             RaiseValueChanged(Value);
         }
 
-        private void OnItemChanging(object sender, ItemChangeEventArgs e)
+        private void OnItemChanging(object? sender, ItemChangeEventArgs e)
         {
             RaiseValueChanging(Value);
         }
 
-        private void OnItemChanged(object sender, ItemChangeEventArgs e)
+        private void OnItemChanged(object? sender, ItemChangeEventArgs e)
         {
             Refresh();
             RaiseValueChanged(Value);

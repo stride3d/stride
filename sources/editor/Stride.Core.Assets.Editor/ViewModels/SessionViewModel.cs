@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
@@ -17,6 +18,7 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 
 public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 {
+    private SessionObjectPropertiesViewModel? activeProperties;
     private readonly ConcurrentDictionary<AssetId, AssetViewModel> assetIdMap = [];
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = [];
     private readonly PackageSession session;
@@ -50,6 +52,21 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         });
 
         GraphContainer = new AssetPropertyGraphContainer(AssetNodeContainer);
+    }
+
+    /// <summary>
+    /// Gets the currently active <see cref="SessionObjectPropertiesViewModel"/>.
+    /// </summary>
+    public SessionObjectPropertiesViewModel? ActiveProperties
+    {
+        get { return activeProperties; }
+        set
+        {
+            if (SetValue(ref activeProperties, value))
+            {
+                //ActiveAssetsChanged?.Invoke(this, new ActiveAssetsChangedArgs(value?.GetRelatedAssets().ToList()));
+            }
+        }
     }
 
     public ObservableList<PackageViewModel> AllPackages { get; } = [];

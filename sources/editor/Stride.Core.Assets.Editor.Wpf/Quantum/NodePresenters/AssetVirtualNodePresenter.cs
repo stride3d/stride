@@ -25,10 +25,11 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
             this.isOverridden = isOverridden;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
-            if (AssociatedNode.Node != null)
+            base.Dispose(disposing);
+
+            if (disposing && AssociatedNode.Node != null)
             {
                 ((IAssetNode)AssociatedNode.Node).OverrideChanging -= OnOverrideChanging;
                 ((IAssetNode)AssociatedNode.Node).OverrideChanged -= OnOverrideChanged;
