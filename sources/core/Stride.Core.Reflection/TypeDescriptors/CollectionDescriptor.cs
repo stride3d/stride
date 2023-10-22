@@ -13,7 +13,7 @@ namespace Stride.Core.Reflection
     /// </summary>
     public abstract class CollectionDescriptor : ObjectDescriptor
     {
-        public CollectionDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public CollectionDescriptor(IStrideTypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         { }
 

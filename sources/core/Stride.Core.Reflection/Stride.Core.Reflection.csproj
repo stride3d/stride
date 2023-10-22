@@ -17,5 +17,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="MemberDescriptors\" />
+  </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

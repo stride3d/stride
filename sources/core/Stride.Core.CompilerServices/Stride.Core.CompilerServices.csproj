@@ -30,7 +30,6 @@
 	  <Folder Include="CodeFixes\" />
 	  <Folder Include="Common\" />
 	  <Folder Include="DataEvaluationApi\ContractApi\Analysation\AnalyzerExtensions\" />
-	  <Folder Include="Generators\" />
     <Using Include="System.Linq" />
     <Using Include="System.Collections.Generic" />
     <Using Include="System" />

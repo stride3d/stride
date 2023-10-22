@@ -42,7 +42,7 @@ namespace Stride.Core.Assets
             }
         }
 
-        public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
+        public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IStrideMemberDescriptor member, object value)
         {
             if (member.GetCustomAttributes<NonIdentifiableCollectionItemsAttribute>(true).Any())
             {

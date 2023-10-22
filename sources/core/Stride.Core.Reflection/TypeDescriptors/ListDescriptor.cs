@@ -33,7 +33,7 @@ namespace Stride.Core.Reflection
         /// <param name="factory">The factory.</param>
         /// <param name="type">The type.</param>
         /// <exception cref="System.ArgumentException">Expecting a type inheriting from System.Collections.IList;type</exception>
-        public ListDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public ListDescriptor(IStrideTypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsList(type))
@@ -242,10 +242,10 @@ namespace Stride.Core.Reflection
             return false;
         }
 
-        protected override bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
+        protected override bool PrepareMember(StrideMemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
         {
             // Filter members
-            if (member is PropertyDescriptor && ListOfMembersToRemove.Contains(member.OriginalName))
+            if (member is StridePropertyDescriptor && ListOfMembersToRemove.Contains(member.OriginalName))
             {
                 return false;
             }

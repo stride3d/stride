@@ -722,7 +722,7 @@ namespace Stride.Core.Assets.Analysis
                 }
             }
 
-            public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
+            public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IStrideMemberDescriptor member, object value)
             {
                 if (typeof(Asset).IsAssignableFrom(member.DeclaringType) && member.Name == nameof(Asset.Archetype) && value != null)
                 {

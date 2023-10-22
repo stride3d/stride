@@ -41,7 +41,7 @@ namespace Stride.Core.Assets.Tracking
             return result;
         }
 
-        public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
+        public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IStrideMemberDescriptor member, object value)
         {
             if (sourceFiles != null)
             {

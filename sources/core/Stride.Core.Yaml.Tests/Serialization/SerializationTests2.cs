@@ -288,14 +288,6 @@ ArrayContent: [1, 2]
 
             var dynamicMember = new MyDynamicMember();
 
-            settings.Attributes.PrepareMembersCallback = (typeDesc, list) =>
-            {
-                if (typeof(MyObject) == typeDesc.Type)
-                {
-                    // Add our dynamic member
-                    list.Add(dynamicMember);
-                }
-            };
             settings.RegisterTagMapping("MyObject", typeof(MyObject));
 
             var serializer = new Serializer(settings);
@@ -1156,7 +1148,7 @@ G_ListCustom: {Name: name4, ~Items: [1, 2, 3, 4, 5, 6, 7]}
                 base.WriteDictionaryKey(ref objectContext, itemKey, keyType);
             }
 
-            public override void WriteMemberName(ref ObjectContext objectContext, IMemberDescriptor member, string name)
+            public override void WriteMemberName(ref ObjectContext objectContext, IStrideMemberDescriptor member, string name)
             {
                 name = (name.Contains("Name") || name.Contains("Test")) ? name + "!" : name;
                 base.WriteMemberName(ref objectContext, member, name);
@@ -1195,9 +1187,9 @@ G_ListCustom: {Name: name4, ~Items: [1, 2, 3, 4, 5, 6, 7]}
             Assert.Equal("Test2", specialTransform.SpecialKeys[2].Item2);
 
             Assert.Equal(myCustomObject2, specialTransform.SpecialKeys[0].Item1);
-            Assert.True(specialTransform.SpecialKeys[0].Item2 is IMemberDescriptor);
+            Assert.True(specialTransform.SpecialKeys[0].Item2 is IStrideMemberDescriptor);
 
-            Assert.Equal("Name", ((IMemberDescriptor) specialTransform.SpecialKeys[0].Item2).Name);
+            Assert.Equal("Name", ((IStrideMemberDescriptor) specialTransform.SpecialKeys[0].Item2).Name);
         }
 
 

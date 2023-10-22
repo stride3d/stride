@@ -7,11 +7,11 @@ using System.Reflection;
 namespace Stride.Core.Reflection
 {
     /// <summary>
-    /// A <see cref="IMemberDescriptor"/> for a <see cref="FieldInfo"/>
+    /// A <see cref="IStrideMemberDescriptor"/> for a <see cref="FieldInfo"/>
     /// </summary>
-    public class FieldDescriptor : MemberDescriptorBase
+    public class StrideFieldDescriptor : StrideMemberDescriptorBase
     {
-        public FieldDescriptor(ITypeDescriptor typeDescriptor, FieldInfo fieldInfo, StringComparer defaultNameComparer)
+        public StrideFieldDescriptor(ITypeDescriptor typeDescriptor, FieldInfo fieldInfo, StringComparer defaultNameComparer)
             : base(fieldInfo, defaultNameComparer)
         {
             if (fieldInfo == null) throw new ArgumentNullException(nameof(fieldInfo));
@@ -30,7 +30,7 @@ namespace Stride.Core.Reflection
 
         public override bool IsPublic => FieldInfo.IsPublic;
 
-        public override bool HasSet => !FieldInfo.IsInitOnly;
+        public override bool HasSet => true;
 
         public override object Get(object thisObject)
         {

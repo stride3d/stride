@@ -24,13 +24,13 @@ namespace Stride.Core.Assets.Editor.Services
         private readonly object lockObj = new object();
 
         [CanBeNull]
-        public string GetMemberDocumentation([NotNull] IMemberDescriptor member, Type rootType)
+        public string GetMemberDocumentation([NotNull] IStrideMemberDescriptor member, Type rootType)
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
             string result;
             string key;
 
-            var prefix = member is FieldDescriptor ? 'F' : 'P';
+            var prefix = member is StrideFieldDescriptor ? 'F' : 'P';
             if (rootType != null && CacheAssemblyDocumentation(rootType.Assembly))
             {
                 // Remove generic type arguments specifications

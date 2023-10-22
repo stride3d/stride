@@ -183,7 +183,7 @@ namespace Stride.Core.Yaml.Serialization
         public bool EmitDefaultValues { get; set; }
 
         /// <summary>
-        /// Gets or sets the default key comparer used to sort members (<see cref="IMemberDescriptor"/>) or
+        /// Gets or sets the default key comparer used to sort members (<see cref="IStrideMemberDescriptor"/>) or
         /// dictionary keys, when serializing objects as YAML mappings. Default is <see cref="DefaultMemberComparer"/>. 
         /// To disable the default comparer, this value can be set to null.
         /// </summary>

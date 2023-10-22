@@ -95,7 +95,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         }
 
         /// <inheritdoc/>
-        public virtual object ReadMemberValue(ref ObjectContext objectContext, IMemberDescriptor memberDescriptor, object memberValue,
+        public virtual object ReadMemberValue(ref ObjectContext objectContext, IStrideMemberDescriptor memberDescriptor, object memberValue,
             Type memberType)
         {
             var memberObjectContext = new ObjectContext(objectContext.SerializerContext, memberValue, objectContext.SerializerContext.FindTypeDescriptor(memberType));
@@ -124,7 +124,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         }
 
         /// <inheritdoc/>
-        public virtual void WriteMemberName(ref ObjectContext objectContext, IMemberDescriptor member, string name)
+        public virtual void WriteMemberName(ref ObjectContext objectContext, IStrideMemberDescriptor member, string name)
         {
             // Emit the key name
             objectContext.Writer.Emit(new ScalarEventInfo(name, typeof(string))
@@ -136,7 +136,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         }
 
         /// <inheritdoc/>
-        public virtual void WriteMemberValue(ref ObjectContext objectContext, IMemberDescriptor memberDescriptor, object memberValue, Type memberType)
+        public virtual void WriteMemberValue(ref ObjectContext objectContext, IStrideMemberDescriptor memberDescriptor, object memberValue, Type memberType)
         {
             // Push the style of the current member
             var memberObjectContext = new ObjectContext(objectContext.SerializerContext, memberValue, objectContext.SerializerContext.FindTypeDescriptor(memberType), objectContext.ParentTypeDescriptor, memberDescriptor)
@@ -169,7 +169,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         }
 
         /// <inheritdoc/>
-        public virtual bool ShouldSerialize(IMemberDescriptor member, ref ObjectContext objectContext) => member.ShouldSerialize(objectContext.Instance, objectContext.ParentTypeMemberDescriptor);
+        public virtual bool ShouldSerialize(IStrideMemberDescriptor member, ref ObjectContext objectContext) => member.ShouldSerialize(objectContext.Instance, objectContext.ParentTypeMemberDescriptor);
 
         protected object ReadYaml(ref ObjectContext objectContext)
         {

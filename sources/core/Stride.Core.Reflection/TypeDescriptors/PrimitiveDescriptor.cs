@@ -12,10 +12,10 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class PrimitiveDescriptor : ObjectDescriptor
     {
-        private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
+        private static readonly List<IStrideMemberDescriptor> EmptyMembers = new List<IStrideMemberDescriptor>();
         private readonly Dictionary<string, object> enumRemap;
 
-        public PrimitiveDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public PrimitiveDescriptor(IStrideTypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsPrimitive(type))
@@ -80,7 +80,7 @@ namespace Stride.Core.Reflection
             return true;
         }
 
-        protected override List<IMemberDescriptor> PrepareMembers()
+        protected override List<IStrideMemberDescriptor> PrepareMembers()
         {
             return EmptyMembers;
         }

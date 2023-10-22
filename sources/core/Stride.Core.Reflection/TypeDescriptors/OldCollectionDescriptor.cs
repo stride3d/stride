@@ -34,7 +34,7 @@ namespace Stride.Core.Reflection
         /// <param name="factory">The factory.</param>
         /// <param name="type">The type.</param>
         /// <exception cref="System.ArgumentException">Expecting a type inheriting from System.Collections.ICollection;type</exception>
-        public OldCollectionDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public OldCollectionDescriptor(IStrideTypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             // Gets the element type
@@ -243,10 +243,10 @@ namespace Stride.Core.Reflection
             return collection == null || GetCollectionCountFunction == null ? -1 : GetCollectionCountFunction(collection);
         }
 
-        protected override bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
+        protected override bool PrepareMember(StrideMemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
         {
             // Filter members
-            if (member is PropertyDescriptor && ListOfMembersToRemove.Contains(member.OriginalName))
+            if (member is StridePropertyDescriptor && ListOfMembersToRemove.Contains(member.OriginalName))
             //if (member is PropertyDescriptor && (member.DeclaringType.Namespace ?? string.Empty).StartsWith(SystemCollectionsNamespace) && ListOfMembersToRemove.Contains(member.Name))
             {
                 return false;

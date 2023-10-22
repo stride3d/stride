@@ -40,7 +40,7 @@ namespace Stride.Core.Yaml.Serialization
         /// <param name="instance">The instance.</param>
         /// <param name="descriptor">The descriptor.</param>
         public ObjectContext(SerializerContext serializerContext, object instance, ITypeDescriptor descriptor,
-            ITypeDescriptor parentTypeDescriptor = null, IMemberDescriptor parentTypeMemberDescriptor = null) : this()
+            ITypeDescriptor parentTypeDescriptor = null, IStrideMemberDescriptor parentTypeMemberDescriptor = null) : this()
         {
             SerializerContext = serializerContext;
             Instance = instance;
@@ -97,7 +97,7 @@ namespace Stride.Core.Yaml.Serialization
         /// <summary>
         /// The type descriptor of the parent's member that generates this type of instance.
         /// </summary>
-        public IMemberDescriptor ParentTypeMemberDescriptor { get; set; }
+        public IStrideMemberDescriptor ParentTypeMemberDescriptor { get; set; }
 
         /// <summary>
         /// The tag used when serializing.

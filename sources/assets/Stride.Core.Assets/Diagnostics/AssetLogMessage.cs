@@ -129,7 +129,7 @@ namespace Stride.Core.Assets.Diagnostics
         /// Gets or sets the member of the asset this message applies to. May be null.
         /// </summary>
         /// <value>The member.</value>
-        public IMemberDescriptor Member { get; set; }
+        public IStrideMemberDescriptor Member { get; set; }
 
         /// <summary>
         /// Gets or sets the related references.

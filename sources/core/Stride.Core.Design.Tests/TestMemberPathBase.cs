@@ -10,13 +10,13 @@ namespace Stride.Core.Design.Tests
 {
     public class TestMemberPathBase
     {
-        protected IMemberDescriptor MemberValue;
-        protected IMemberDescriptor MemberSub;
-        protected IMemberDescriptor MemberStruct;
-        protected IMemberDescriptor MemberSubs;
-        protected IMemberDescriptor MemberMaps;
-        protected IMemberDescriptor MemberX;
-        protected IMemberDescriptor MemberClass;
+        protected IStrideMemberDescriptor MemberValue;
+        protected IStrideMemberDescriptor MemberSub;
+        protected IStrideMemberDescriptor MemberStruct;
+        protected IStrideMemberDescriptor MemberSubs;
+        protected IStrideMemberDescriptor MemberMaps;
+        protected IStrideMemberDescriptor MemberX;
+        protected IStrideMemberDescriptor MemberClass;
 
         protected CollectionDescriptor ListClassDesc;
         protected DictionaryDescriptor MapClassDesc;
@@ -60,13 +60,13 @@ namespace Stride.Core.Design.Tests
             ListClassDesc = (CollectionDescriptor)TypeFactory.Find(typeof(List<MyClass>));
             MapClassDesc = (DictionaryDescriptor)TypeFactory.Find(typeof(Dictionary<string, MyClass>));
 
-            MemberValue = (IMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Value");
-            MemberSub = (IMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Sub");
-            MemberStruct = (IMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Struct");
-            MemberSubs = (IMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Subs");
-            MemberMaps = (IMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Maps");
-            MemberX = (IMemberDescriptor)myStructDesc.Members.FirstOrDefault(member => member.Name == "X");
-            MemberClass = (IMemberDescriptor)myStructDesc.Members.FirstOrDefault(member => member.Name == "Class");
+            MemberValue = (IStrideMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Value");
+            MemberSub = (IStrideMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Sub");
+            MemberStruct = (IStrideMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Struct");
+            MemberSubs = (IStrideMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Subs");
+            MemberMaps = (IStrideMemberDescriptor)myClassDesc.Members.FirstOrDefault(member => member.Name == "Maps");
+            MemberX = (IStrideMemberDescriptor)myStructDesc.Members.FirstOrDefault(member => member.Name == "X");
+            MemberClass = (IStrideMemberDescriptor)myStructDesc.Members.FirstOrDefault(member => member.Name == "Class");
         }
          
     }
