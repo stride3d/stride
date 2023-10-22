@@ -119,7 +119,6 @@ namespace Stride.Core.AssemblyProcessor
                 { "signkeyfile=", "Signing Key File", v => app.SignKeyFile = v },
                 { "references-file=", "Project reference stored in a path", v => app.References.AddRange(File.ReadAllLines(v)) },
                 { "add-reference=", "References to explicitely add", v => app.ReferencesToAdd.Add(v) },
-                { "Werror", "Promote warnings to errors", v => app.TreatWarningsAsErrors = true },
                 { "delete-output-on-error", "Delete output file if an error happened", v => app.DeleteOutputOnError = true },
                 { "keep-original", "Keep copy of the original assembly", v => app.KeepOriginal = true },
             };

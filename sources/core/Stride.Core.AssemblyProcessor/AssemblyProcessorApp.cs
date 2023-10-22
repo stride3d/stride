@@ -69,8 +69,7 @@ namespace Stride.Core.AssemblyProcessor
         public string SignKeyFile { get; set; }
 
         public bool UseSymbols { get; set; }
-
-        public bool TreatWarningsAsErrors { get; set; }
+        
         public bool DeleteOutputOnError { get; set; }
 
         /// <summary>
