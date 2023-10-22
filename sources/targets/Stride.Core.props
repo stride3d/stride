@@ -126,7 +126,7 @@
   <!-- Default values -->
   <PropertyGroup>
     <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">false</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-notify-property --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''"> --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 
   <!-- 
