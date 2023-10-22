@@ -56,8 +56,6 @@ namespace Stride.Core.AssemblyProcessor
 
         internal PlatformType Platform { get; set; }
 
-        public string TargetFramework { get; set; }
-
         public List<string> SearchDirectories { get; set; }
 
         public List<string> References { get; set; }
@@ -67,7 +65,7 @@ namespace Stride.Core.AssemblyProcessor
         public List<string> ReferencesToAdd { get; set; }
 
         public bool UseSymbols { get; set; }
-        
+
         public bool DeleteOutputOnError { get; set; }
 
         /// <summary>
