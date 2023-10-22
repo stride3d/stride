@@ -44,8 +44,6 @@ namespace Stride.Core.AssemblyProcessor
             ModuleInitializer = true;
         }
 
-        public bool AutoNotifyProperty { get; set; }
-
         public bool ParameterKey { get; set; }
 
         public bool ModuleInitializer { get; set; }
@@ -193,12 +191,6 @@ namespace Stride.Core.AssemblyProcessor
                 assemblyResolver.Register(assemblyDefinition);
 
                 var processors = new List<IAssemblyDefinitionProcessor>();
-
-                // We are no longer using it so we are deactivating it for now to avoid processing
-                //if (AutoNotifyProperty)
-                //{
-                //    processors.Add(new NotifyPropertyProcessor());
-                //}
 
                 processors.Add(new AddReferenceProcessor(ReferencesToAdd));
 
