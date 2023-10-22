@@ -3,7 +3,7 @@
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <StrideProjectType>Cpp</StrideProjectType>
-    <TargetFramework>$(StrideEditorAppTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessorOptions>
     </StrideAssemblyProcessorOptions>
