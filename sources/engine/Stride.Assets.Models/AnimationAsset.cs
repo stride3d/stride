@@ -60,6 +60,16 @@ namespace Stride.Assets.Models
         public override UFile MainSource => Source;
 
         /// <summary>
+        /// Index for FbxAnimStack.
+        /// </summary>
+        /// <userdoc>
+        /// Index of animation to import if multiple are present in the FBX file
+        /// </userdoc>
+        [DataMember(-10)]
+        [Display("Animation Index")]
+        public int AnimationStack { get; set; }
+
+        /// <summary>
         /// Enable clipping of the animation duration
         /// </summary>
         /// <userdoc>

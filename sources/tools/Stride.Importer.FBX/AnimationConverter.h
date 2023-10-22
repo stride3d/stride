@@ -64,22 +64,25 @@ namespace Stride {
 					return false;
 				}
 
-				AnimationInfo^ ProcessAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations)
+				AnimationInfo^ ProcessAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations, int animationStack)
 				{
 					auto animationData = gcnew AnimationInfo();
 
 					int animStackCount = scene->GetMemberCount<FbxAnimStack>();
 					if (animStackCount == 0)
 						return animationData;
+
+					if (animationStack == 0)
+						animationStack = 0;
 						
-					// We support only anim stack count == 1
-					if (animStackCount > 1)
+					if (animationStack >= animStackCount)
 					{
-						logger->Warning(String::Format("Multiple FBX animation stacks detected in '{0}', exporting only the first one to '{1}",
+						animationStack = animStackCount - 1;
+						logger->Warning(String::Format("Animation stack count in '{0}' greater than specified stack index, exporting last available stack to '{1}",
 							gcnew String(inputFilename), gcnew String(vfsOutputFilename)), (CallerInfo^)nullptr);
 					}
 
-					FbxAnimStack* animStack = scene->GetMember<FbxAnimStack>(0);
+					FbxAnimStack* animStack = scene->GetMember<FbxAnimStack>(animationStack);
 					int animLayerCount = animStack->GetMemberCount<FbxAnimLayer>();
 
 					// We support only anim layer count == 1
