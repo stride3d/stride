@@ -6,7 +6,7 @@ This project is the base project for the core assets in the editor.
 
 * It can only references *Core.Assets* libraries.
 * It should be platform-agnostic as well as UI-agnostic.
-  In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) is allowed.
+  In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) are allowed.
 * It will likely only reference `Stride.Core.Assets.Presentation`.
 
 ## Implementations
