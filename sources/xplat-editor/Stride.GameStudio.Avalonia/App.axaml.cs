@@ -5,11 +5,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using Stride.Assets.Editor;
-using Stride.Assets.Editor.Avalonia;
-using Stride.Assets.Presentation;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Presentation;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
@@ -52,9 +48,14 @@ public partial class App : Application
 
     private static void InitializePlugins()
     {
-        AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
-        AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
-        AssetsPlugin.RegisterPlugin(typeof(StrideEditorViewPlugin));
+        // TODO: load plugins from path, and ideally remove direct dependencies to these assemblies in this project.
+        // Until then, use a hack to force loading the assemblies.
+        string _;
+        _ = typeof(Assets.Presentation.StrideDefaultAssetsPlugin).Name;
+        _ = typeof(Assets.Editor.StrideEditorPlugin).Name;
+        _ = typeof(Assets.Editor.Avalonia.StrideEditorViewPlugin).Name;
+        // Note: it doesn't have to be done here. The only constraint is to do it before AssetsPlugin.RegisteredPlugins is accessed for the first time.
+        // So it could be delayed until after a windows is opened and even display progress.
     }
 
     private static IViewModelServiceProvider InitializeServiceProvider()
