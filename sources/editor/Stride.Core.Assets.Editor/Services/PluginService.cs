@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Editors;
+using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation;
 using Stride.Core.Assets.Presentation.ViewModels;
@@ -10,10 +11,14 @@ using Stride.Core.Extensions;
 
 namespace Stride.Core.Assets.Editor.Services;
 
-public sealed class PluginService
+public sealed class PluginService : IAssetsPluginService
 {
     private readonly Dictionary<Type, Type> assetEditorViewModelTypes = [];
     private readonly Dictionary<Type, Type> assetEditorViewTypes = [];
+
+    public Type? GetEditorViewModelType(Type viewModelType) => TypeHelpers.TryGetTypeOrBase(viewModelType, assetEditorViewModelTypes);
+
+    public Type? GetEditorViewType(Type editorViewModelType) => TypeHelpers.TryGetTypeOrBase(editorViewModelType, assetEditorViewTypes);
 
     internal void RegisterSession(SessionViewModel session, ILogger logger)
     {

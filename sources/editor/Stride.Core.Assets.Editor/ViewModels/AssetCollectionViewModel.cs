@@ -43,6 +43,8 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
 
     public SessionViewModel Session { get; }
 
+    public AssetViewModel? SingleSelectedAsset => SingleSelectedContent as AssetViewModel;
+
     public object? SingleSelectedContent
     {
         get => singleSelectedContent;
