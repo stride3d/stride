@@ -7,11 +7,12 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
-using Stride.GameStudio.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.Services;
 
-internal sealed class DialogService : IDialogService
+// TODO: consider moving it to a new assembly (such as Stride.Core.Presentation.Avalonia)
+//       to make it reusable outside the context of an editor
+internal class DialogService : IDialogService
 {
     public DialogService(IDispatcherService dispatcher)
     {
@@ -20,7 +21,7 @@ internal sealed class DialogService : IDialogService
 
     public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
-    public IDispatcherService Dispatcher { get; }
+    protected IDispatcherService Dispatcher { get; }
 
     public async Task<UFile?> OpenFilePickerAsync()
     {
@@ -38,16 +39,6 @@ internal sealed class DialogService : IDialogService
             if (string.IsNullOrEmpty(path)) return null;
 
             return path;
-        });
-    }
-
-    public async Task ShowAboutWindowAsync()
-    {
-        if (MainWindow == null) return;
-
-        await Dispatcher.InvokeTask(async () =>
-        {
-            await new AboutWindow().ShowDialog(MainWindow);
         });
     }
 }

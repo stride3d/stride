@@ -4,6 +4,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
@@ -72,7 +73,7 @@ internal sealed class MainViewModel : ViewModelBase
 
     private async Task OnAbout()
     {
-        await ServiceProvider.Get<IDialogService>().ShowAboutWindowAsync();
+        await ServiceProvider.Get<IEditorDialogService>().ShowAboutWindowAsync();
     }
 
     private void OnExit()
