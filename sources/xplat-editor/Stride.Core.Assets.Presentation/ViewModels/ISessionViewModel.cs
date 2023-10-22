@@ -11,6 +11,8 @@ public interface ISessionViewModel
 {
     SessionObjectPropertiesViewModel? ActiveProperties { get; set; }
 
+    AssetNodeContainer AssetNodeContainer { get; }
+
     AssetPropertyGraphContainer GraphContainer { get; }
 
     IViewModelServiceProvider ServiceProvider { get; }
