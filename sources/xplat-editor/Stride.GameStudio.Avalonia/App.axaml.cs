@@ -5,6 +5,8 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Stride.Assets.Editor;
+using Stride.Assets.Editor.Avalonia;
 using Stride.Assets.Presentation;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation;
@@ -51,6 +53,8 @@ public partial class App : Application
     private static void InitializePlugins()
     {
         AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
+        AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
+        AssetsPlugin.RegisterPlugin(typeof(StrideEditorViewPlugin));
     }
 
     private static IViewModelServiceProvider InitializeServiceProvider()

@@ -9,11 +9,11 @@ namespace Stride.Core.Assets.Editor.Annotations;
 
 public abstract class AssetEditorViewModelAttribute : Attribute
 {
-    public abstract Type AssetType { get; }
+    public abstract Type ViewModelType { get; }
 }
 
 /// <summary>
-/// This attribute is used to register an editor view model class and associate it to an asset type.
+/// This attribute is used to register an editor view model class and associate it to an asset view model type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
 [BaseTypeRequired(typeof(AssetEditorViewModel))]
@@ -21,7 +21,7 @@ public sealed class AssetEditorViewModelAttribute<T> : AssetEditorViewModelAttri
     where T : AssetViewModel
 {
     /// <summary>
-    /// The asset type described by this attribute.
+    /// The asset view model type described by this attribute.
     /// </summary>
-    public override Type AssetType => typeof(T);
+    public override Type ViewModelType => typeof(T);
 }
