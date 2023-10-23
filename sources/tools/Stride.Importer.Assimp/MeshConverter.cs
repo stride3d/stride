@@ -142,14 +142,14 @@ namespace Stride.Importer.Assimp
             return ConvertAssimpScene(scene);
         }
 
-        public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename)
+        public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename, int animationIndex)
         {
             uint importFlags = 0;
             var postProcessFlags = PostProcessSteps.None;
 
             var scene = Initialize(inputFilename, outputFilename, importFlags, (uint)postProcessFlags);
 
-            return ProcessAnimations(scene);
+            return ProcessAnimations(scene, animationIndex);
         }
 
         public unsafe Rendering.Skeleton ConvertSkeleton(string inputFilename, string outputFilename)
@@ -250,13 +250,10 @@ namespace Stride.Importer.Assimp
             };
         }
 
-        private unsafe AnimationInfo ProcessAnimations(Scene* scene)
+        private unsafe AnimationInfo ProcessAnimations(Scene* scene, int animationIndex)
         {
             var animationData = new AnimationInfo();
             var visitedNodeNames = new HashSet<string>();
-
-            if (scene->MNumAnimations > 1)
-                Logger.Warning($"There are {scene->MNumAnimations} animations in this file, using only the first one.");
 
             var nodeNames = new Dictionary<IntPtr, string>();
             GenerateNodeNames(scene, nodeNames);
@@ -265,9 +262,20 @@ namespace Stride.Importer.Assimp
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
             RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
 
-            for (uint i = 0; i < Math.Min(1, scene->MNumAnimations); ++i)
+            if (scene->MNumAnimations > 0)
             {
-                var aiAnim = scene->MAnimations[i];
+                if (animationIndex < 0)
+                {
+                    animationIndex = 0;
+                }
+
+                if (animationIndex >= scene->MNumAnimations)
+                {
+                    animationIndex = (int)scene->MNumAnimations - 1;
+                    Logger.Warning($"There less animations in the file than the animation index, using the last animation.");
+                }
+
+                var aiAnim = scene->MAnimations[animationIndex];
 
                 // animation speed
                 var ticksPerSec = aiAnim->MTicksPerSecond;
