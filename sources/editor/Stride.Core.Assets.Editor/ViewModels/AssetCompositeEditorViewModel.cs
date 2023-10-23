@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Presentation.Collections;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -18,4 +19,6 @@ public abstract class AssetCompositeEditorViewModel<TAsset, TAssetViewModel> : A
         : base(asset)
     {
     }
+
+    public ObservableSet<object> SelectedContent { get; } = new ObservableSet<object>();
 }

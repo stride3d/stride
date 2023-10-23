@@ -11,4 +11,7 @@ public abstract class EntityHierarchyRootViewModel : EntityHierarchyItemViewMode
         : base(asset, asset.Asset.Hierarchy.EnumerateRootPartDesigns())
     {
     }
+
+    /// <inheritdoc/>
+    public override IEnumerable<EntityViewModel> InnerSubEntities => Children.SelectMany(x => x.InnerSubEntities);
 }

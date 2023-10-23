@@ -2,14 +2,47 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
+             xmlns:vm2="using:Stride.Assets.Presentation.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.EntityHierarchyEditorView"
              x:DataType="vm:EntityHierarchyEditorViewModel">
-  <DockPanel>
-    <Grid DockPanel.Dock="Top">
-      <TextBlock Text="EntityHierarchy Editor" />
-    </Grid>
-    <TextBlock Text="{Binding Asset.Name}" />
-  </DockPanel>
+  <Grid ColumnDefinitions="*, 4, 3*">
+    <DockPanel Grid.Column="0">
+      <TreeView ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sd:Yield}}"
+                SelectedItems="{Binding SelectedContent}"
+                SelectionMode="Multiple">
+        <Control.DataTemplates>
+          <!-- Default template -->
+          <TreeDataTemplate DataType="{x:Type vm2:EntityHierarchyItemViewModel}"
+                            ItemsSource="{Binding Children}">
+            <TextBlock Text="{Binding Name}" />
+          </TreeDataTemplate>
+          <!-- Entity template -->
+          <TreeDataTemplate DataType="{x:Type vm2:EntityViewModel}"
+                            ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal">
+              <!-- TODO icon -->
+              <TextBlock Text="{Binding Name}" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <!-- Scene template -->
+          <TreeDataTemplate DataType="{x:Type vm2:SceneRootViewModel}"
+                            ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal">
+              <!-- TODO icon -->
+              <TextBlock Text="{Binding Name}" />
+            </StackPanel>
+          </TreeDataTemplate>
+        </Control.DataTemplates>
+      </TreeView>
+    </DockPanel>
+
+    <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
+
+    <DockPanel Grid.Column="2">
+      <TextBlock Text="Scene View" />
+    </DockPanel>
+  </Grid>
 </UserControl>

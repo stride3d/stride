@@ -20,7 +20,10 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel
         var assetNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign.Entity);
         nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(Entity.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>());     
     }
-    
+
+    /// <inheritdoc/>
+    public override IEnumerable<EntityViewModel> InnerSubEntities { get { yield return this; } }
+
     /// <inheritdoc/>
     public override string? Name
     {
