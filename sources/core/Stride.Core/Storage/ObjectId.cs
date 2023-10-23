@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
 
@@ -67,7 +68,7 @@ namespace Stride.Core.Storage
 
         public static unsafe explicit operator ObjectId(Guid guid)
         {
-            return *(ObjectId*)&guid;
+            return Unsafe.As<Guid, ObjectId>(ref guid);
         }
 
         public static ObjectId Combine(ObjectId left, ObjectId right)
@@ -246,10 +247,7 @@ namespace Stride.Core.Storage
         /// <returns>Guid.</returns>
         public Guid ToGuid()
         {
-            fixed (void* hashStart = &hash1)
-            {
-                return *(Guid*)hashStart;
-            }
+            return Unsafe.As<ObjectId, Guid>(ref this)
         }
 
         /// <summary>
