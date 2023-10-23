@@ -227,8 +227,8 @@ namespace Stride.Core.Storage
 #if NET6_0_OR_GREATER
             fixed (uint* hashStart = &hash1)
             {
-                return string.Create(HashStringLength, (IntPtr)hashStart, (c, state) => {
-
+                return string.Create(HashStringLength, (IntPtr)hashStart, (c, state) =>
+                {
                     var hashBytes = (byte*)state;
                     for (var i = 0; i < HashStringLength; ++i)
                     {
@@ -239,7 +239,6 @@ namespace Stride.Core.Storage
                         b = (byte)(hashBytes[index0] & 0x0F);
                         c[i] = HexDigits[b];
                     }
-
                 });
             }
 #else
