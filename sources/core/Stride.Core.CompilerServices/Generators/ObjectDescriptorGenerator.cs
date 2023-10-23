@@ -8,10 +8,12 @@ using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 using Stride.Core.CompilerServices.DataEvaluationApi.ModeInfos;
 using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Analyzers;
 using Stride.Core.CompilerServices.DataEvaluationApi.DataApi;
+using Stride.Core.CompilerServices.Modules.ObjectDescription;
+using Stride.Core.CompilerServices.DataEvaluationApi;
 
-namespace Stride.Core.CompilerServices.DataEvaluationApi;
-// [Generator]
-internal class NexIncrementalGenerator : IIncrementalGenerator
+namespace Stride.Core.CompilerServices.Generators;
+[Generator]
+internal class ObjectDescriptorGenerator : IIncrementalGenerator
 {
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -64,7 +66,7 @@ internal class NexIncrementalGenerator : IIncrementalGenerator
              .HasVisibleGetter()
              .WhenNot(x => x.HasVisibleSetter())
              .IsNotIgnored(IgnoreContext.Yaml, dataMemberIgnoreAttribute);
-        IMemberSymbolAnalyzer<IFieldSymbol> standardField = new FieldAnalyzer(assignMode)
+        var standardField = new FieldAnalyzer(assignMode)
              .IsVisibleToSerializer()
              .WhenNot(FieldExtensions.IsReadOnly)
              .IsNotIgnored(IgnoreContext.Yaml, dataMemberIgnoreAttribute);

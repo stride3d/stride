@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 using System.Text;
 
-namespace Stride.Core.CompilerServices.DataEvaluationApi;
+namespace Stride.Core.CompilerServices.Modules.ObjectDescription;
 
 internal class SourceCreator
 {

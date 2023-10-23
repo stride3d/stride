@@ -45,6 +45,26 @@ internal class DataMemberContext
             return 0;
         return (int)modeParameter.Value;
     }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is DataMemberContext context &&
+               MemberMode == context.MemberMode &&
+               Exists == context.Exists &&
+               Mode == context.Mode &&
+               Order == context.Order;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 43144658;
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(MemberMode);
+        hashCode = hashCode * -1521134295 + Exists.GetHashCode();
+        hashCode = hashCode * -1521134295 + Mode.GetHashCode();
+        hashCode = hashCode * -1521134295 + Order.GetHashCode();
+        return hashCode;
+    }
+
     public bool Exists { get; set; }
     public int Mode { get; set; }
     public int Order { get; set; }
