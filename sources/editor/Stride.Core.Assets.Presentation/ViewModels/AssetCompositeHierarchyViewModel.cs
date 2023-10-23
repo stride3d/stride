@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Quantum;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
@@ -44,5 +45,29 @@ public abstract class AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetP
         }
 
         return baseAssets;
+    }
+
+    /// <inheritdoc />
+    protected override bool ShouldConstructPropertyItem(IObjectNode collection, NodeIndex index)
+    {
+        // Don't construct properties for item referencing child parts.
+        if (AssetHierarchyPropertyGraph.IsChildPartReference(collection, index))
+            return false;
+
+        return base.ShouldConstructPropertyItem(collection, index);
+    }
+
+    /// <inheritdoc />
+    protected override bool ShouldConstructPropertyMember(IMemberNode member)
+    {
+        // Don't construct properties of the Hierarchy object.
+        if (member.MemberDescriptor.DeclaringType == typeof(AssetCompositeHierarchyData<TAssetPartDesign, TAssetPart>))
+            return false;
+
+        // Don't construct properties for member referencing child parts.
+        if (AssetHierarchyPropertyGraph.IsChildPartReference(member, NodeIndex.Empty))
+            return false;
+
+        return base.ShouldConstructPropertyMember(member);
     }
 }

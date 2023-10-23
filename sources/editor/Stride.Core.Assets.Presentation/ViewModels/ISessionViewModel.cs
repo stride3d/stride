@@ -9,7 +9,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels;
 
 public interface ISessionViewModel
 {
-    SessionObjectPropertiesViewModel? ActiveProperties { get; set; }
+    SessionObjectPropertiesViewModel ActiveProperties { get; set; }
 
     AssetNodeContainer AssetNodeContainer { get; }
 

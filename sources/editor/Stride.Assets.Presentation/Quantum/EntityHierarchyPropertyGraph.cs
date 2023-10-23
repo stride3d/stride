@@ -81,8 +81,7 @@ public class EntityHierarchyPropertyGraph : AssetCompositeHierarchyPropertyGraph
         }
 
         var clone = base.CloneValueFromBase(value, node);
-        var component = clone as EntityComponent;
-        if (component != null)
+        if (clone is EntityComponent component)
         {
             // Components need their Entity to be cleared first because subsequent actions will try to restore it and safeguards might throw if it's not null beforehand
             component.Entity = null;

@@ -21,14 +21,14 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 {
     internal class DifferentValuesObject { public readonly string Name = "DifferentValues"; };
 
-    protected static readonly HashSet<string> ReservedNames = new HashSet<string>();
-    private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new AutoUpdatingSortedObservableCollection<NodeViewModel>(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(NodeIndex), nameof(Order));
-    private readonly ObservableCollection<NodePresenterCommandWrapper> commands = new ObservableCollection<NodePresenterCommandWrapper>();
-    private readonly Dictionary<string, object> associatedData = new Dictionary<string, object>();
-    private readonly List<string> changingProperties = new List<string>();
+    protected static readonly HashSet<string> ReservedNames = [];
+    private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(NodeIndex), nameof(Order));
+    private readonly ObservableCollection<NodePresenterCommandWrapper> commands = [];
+    private readonly Dictionary<string, object> associatedData = [];
+    private readonly List<string> changingProperties = [];
     private readonly GraphViewModel owner;
     private readonly List<INodePresenter> nodePresenters;
-    private List<NodeViewModel> initializingChildren = new List<NodeViewModel>();
+    private List<NodeViewModel> initializingChildren = [];
     private bool isVisible;
     private bool isReadOnly;
     private string displayName;
@@ -149,7 +149,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets the list of children nodes.
     /// </summary>
-    public IReadOnlyCollection<NodeViewModel> Children => initializingChildren != null ? (IReadOnlyCollection<NodeViewModel>)initializingChildren : children;
+    public IReadOnlyCollection<NodeViewModel> Children => initializingChildren != null ? initializingChildren : children;
 
     /// <summary>
     /// Gets the list of commands available in this node.

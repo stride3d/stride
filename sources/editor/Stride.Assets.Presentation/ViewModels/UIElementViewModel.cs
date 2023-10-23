@@ -2,12 +2,18 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.UI;
+using Stride.Core;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Quantum;
+using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
-public class UIElementViewModel : UIHierarchyItemViewModel
+public class UIElementViewModel : UIHierarchyItemViewModel, IAssetPropertyProviderViewModel
 {
     private string? name;
 
@@ -15,7 +21,14 @@ public class UIElementViewModel : UIHierarchyItemViewModel
         : base(asset, GetOrCreateChildPartDesigns((UIAssetBase)asset.Asset, elementDesign))
     {
         UIElementDesign = elementDesign;
+        ElementType = AssetSideUIElement.GetType();
     }
+
+    public UIElement AssetSideUIElement => UIElementDesign.UIElement;
+
+    public Type ElementType { get; }
+
+    public AbsoluteId Id => new(Asset.Id, AssetSideUIElement.Id);
 
     public override string? Name
     {
@@ -23,7 +36,25 @@ public class UIElementViewModel : UIHierarchyItemViewModel
         set => SetValue(ref name, value);
     }
 
+    /// <inheritdoc />
+    public override GraphNodePath GetNodePath()
+    {
+        var node = new GraphNodePath(GetNode());
+        node.PushMember(nameof(UIAsset.Hierarchy));
+        node.PushTarget();
+        node.PushMember(nameof(UIAsset.Hierarchy.Parts));
+        node.PushTarget();
+        node.PushIndex(new NodeIndex(Id.ObjectId));
+        node.PushMember(nameof(UIElementDesign.UIElement));
+        node.PushTarget();
+        return node;
+    }
+
     internal UIElementDesign UIElementDesign { get; }
+
+    AssetViewModel IAssetPropertyProviderViewModel.RelatedAsset => Asset;
+
+    bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true;
 
     private static IEnumerable<UIElementDesign> GetOrCreateChildPartDesigns( UIAssetBase asset, UIElementDesign elementDesign)
     {
@@ -54,4 +85,28 @@ public class UIElementViewModel : UIHierarchyItemViewModel
                 break;
         }
     }
+
+    GraphNodePath IAssetPropertyProviderViewModel.GetAbsolutePathToRootNode()
+    {
+        return GetNodePath();
+    }
+
+    IObjectNode IPropertyProviderViewModel.GetRootNode()
+    {
+        return Asset.Session.AssetNodeContainer.GetOrCreateNode(AssetSideUIElement);
+    }
+
+    bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member)
+    {
+        if (typeof(PropertyContainerClass).IsAssignableFrom(member.Type))
+        {
+            // Do not show property container and attached properties in the property grid.
+            // Note: when relevant those properties will be available through virtual nodes.
+            return false;
+        }
+        var assetPropertyProvider = (IPropertyProviderViewModel)Asset;
+        return assetPropertyProvider.ShouldConstructMember(member);
+    }
+
+    bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => ((IPropertyProviderViewModel)Asset).ShouldConstructItem(collection, index);
 }

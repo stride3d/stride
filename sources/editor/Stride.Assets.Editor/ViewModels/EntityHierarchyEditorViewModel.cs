@@ -19,6 +19,13 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     public EntityHierarchyRootViewModel HierarchyRoot => (EntityHierarchyRootViewModel)RootPart;
 
     /// <inheritdoc />
+    protected override async Task RefreshEditorProperties()
+    {
+        EditorProperties.UpdateTypeAndName(SelectedItems, x => "Entity", x => x.Name, "entities");
+        await EditorProperties.GenerateSelectionPropertiesAsync(SelectedItems.OfType<EntityViewModel>());
+    }
+
+    /// <inheritdoc />
     protected override void SelectedContentCollectionChanged(NotifyCollectionChangedAction action)
     {
         SelectedItems.Clear();

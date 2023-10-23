@@ -20,7 +20,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
 {
     private static bool contextLock;
     private string typeDescription;
-    private string name;
+    private string? name;
     private bool showOverridesOnly;
 
     public SessionObjectPropertiesViewModel(ISessionViewModel session)
@@ -65,7 +65,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
     /// <summary>
     /// Gets or sets the name of the selected objects.
     /// </summary>
-    public string Name { get => name; set => SetValue(ref name, value); }
+    public string Name { get => name ?? string.Empty; set => SetValue(ref name, value); }
 
     /// <summary>
     /// Gets or sets whether to display only overridden properties when the displayed asset has a base.
@@ -84,28 +84,35 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
         return Selection.OfType<IAssetPropertyProviderViewModel>().Select(x => x.RelatedAsset);
     }
 
-    public void UpdateTypeAndName<T>(IReadOnlyCollection<T> selection, Func<T, string> getObjType, Func<T, string> getObjName, string objTypePlural)
+    public void UpdateTypeAndName<T>(IEnumerable<T> selection, int count, Func<T, string> getObjType, Func<T, string> getObjName, string objTypePlural)
     {
-        if (selection.Count == 0)
+        switch (count)
         {
-            TypeDescription = "No selection";
-            Name = "";
-        }
-        else if (selection.Count == 1)
-        {
-            var obj = selection.First();
-            TypeDescription = getObjType(obj);
-            Name = getObjName(obj);
-        }
-        else
-        {
-            var types = selection.Select(getObjType).Distinct().ToList();
-            TypeDescription = types.Count == 1 ? types.First() : "Multi-selection";
-            Name = $"{selection.Count} {objTypePlural} selected";
+            case 0:
+                TypeDescription = "No selection";
+                Name = "";
+                break;
+
+            case 1:
+                var obj = selection.First();
+                TypeDescription = getObjType(obj);
+                Name = getObjName(obj);
+                break;
+
+            default:
+                var types = selection.Select(getObjType).Distinct().ToList();
+                TypeDescription = types.Count == 1 ? types.First() : "Multi-selection";
+                Name = $"{count} {objTypePlural} selected";
+                break;
         }
     }
 
-    protected sealed override bool CanDisplaySelectedObjects(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, out string fallbackMessage)
+    public void UpdateTypeAndName<T>(IReadOnlyCollection<T> selection, Func<T, string> getObjType, Func<T, string> getObjName, string objTypePlural)
+    {
+        UpdateTypeAndName(selection, selection.Count, getObjType, getObjName, objTypePlural);
+    }
+
+    protected sealed override bool CanDisplaySelectedObjects(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, out string? fallbackMessage)
     {
         foreach (var provider in selectedObjects.OfType<IAssetPropertyProviderViewModel>())
         {
@@ -113,7 +120,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
 
             // TODO: Support read-only mode
             //if (!asset.IsEditable)
-            if (true)
+            if (false)
             {
                 fallbackMessage = selectedObjects.Count == 1 ? "This asset is not editable." : "Some of the selected assets are not editable.";
                 return false;
@@ -123,7 +130,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
         return true;
     }
 
-    protected sealed override void FeedbackException(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, Exception exception, out string fallbackMessage)
+    protected sealed override void FeedbackException(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, Exception exception, out string? fallbackMessage)
     {
         fallbackMessage = Tr._p("Properties", "There was a problem loading properties of the selection.");
     }

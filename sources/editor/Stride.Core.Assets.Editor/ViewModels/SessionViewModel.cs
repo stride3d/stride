@@ -19,7 +19,7 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 
 public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 {
-    private SessionObjectPropertiesViewModel? activeProperties;
+    private SessionObjectPropertiesViewModel activeProperties;
     private readonly ConcurrentDictionary<AssetId, AssetViewModel> assetIdMap = [];
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = [];
     private readonly PackageSession session;
@@ -42,6 +42,8 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         // Initialize the asset collection view model
         EditorCollection = new EditorCollectionViewModel(this);
 
+        ActiveProperties = AssetCollection.AssetViewProperties;
+
         // Initialize commands
         EditSelectedContentCommand = new AnonymousCommand(serviceProvider, OnEditSelectedContent);
 
@@ -58,7 +60,8 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     /// <summary>
     /// Gets the currently active <see cref="SessionObjectPropertiesViewModel"/>.
     /// </summary>
-    public SessionObjectPropertiesViewModel? ActiveProperties
+    // FIXME: do we need both ActiveProperties and AssetCollection.AssetViewProperties?
+    public SessionObjectPropertiesViewModel ActiveProperties
     {
         get { return activeProperties; }
         set

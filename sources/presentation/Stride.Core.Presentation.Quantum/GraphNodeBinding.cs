@@ -12,13 +12,13 @@ public abstract class GraphNodeBinding<TTargetType, TContentType> : IDisposable
 
     protected readonly IUndoRedoService? ActionService;
     protected readonly string PropertyName;
-    protected readonly Func<TTargetType, TContentType> Converter;
+    protected readonly Func<TTargetType?, TContentType?> Converter;
 
     private readonly PropertyChangeDelegate propertyChanging;
     private readonly PropertyChangeDelegate propertyChanged;
     private readonly bool notifyChangesOnly;
 
-    internal GraphNodeBinding(string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, Func<TTargetType, TContentType> converter, IUndoRedoService? actionService, bool notifyChangesOnly = true)
+    internal GraphNodeBinding(string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, Func<TTargetType?, TContentType?> converter, IUndoRedoService? actionService, bool notifyChangesOnly = true)
     {
         PropertyName = propertyName;
         this.propertyChanging = propertyChanging;
@@ -40,7 +40,7 @@ public abstract class GraphNodeBinding<TTargetType, TContentType> : IDisposable
     /// </summary>
     /// <returns>The current value of the graph node.</returns>
     /// <remarks>This method can be invoked from a property getter.</remarks>
-    public abstract TContentType GetNodeValue();
+    public abstract TContentType? GetNodeValue();
 
     /// <summary>
     /// Sets the current value of the graph node.
@@ -48,7 +48,7 @@ public abstract class GraphNodeBinding<TTargetType, TContentType> : IDisposable
     /// <param name="value">The value to set for the graph node content.</param>
     /// <remarks>This method can be invoked from a property setter.</remarks>
     /// <remarks>This method will invoke the delegates passed to the constructor of this instance if the new value is different from the previous one.</remarks>
-    public abstract void SetNodeValue(TTargetType value);
+    public abstract void SetNodeValue(TTargetType? value);
 
     protected abstract void Dispose(bool disposing);
 

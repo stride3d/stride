@@ -19,7 +19,7 @@ public interface IPropertyProviderViewModel
     /// Retrieves the root <see cref="IGraphNode"/> to use to generate properties.
     /// </summary>
     /// <returns>The root <see cref="IGraphNode"/> to use to generate properties.</returns>
-    IObjectNode GetRootNode();
+    IObjectNode? GetRootNode();
 
     /// <summary>
     /// Indicates whether the view model of a specific member should be constructed.

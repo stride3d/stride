@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.ViewModels;
 
@@ -38,6 +39,8 @@ public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorVi
 
     /// <inheritdoc cref="IAssetEditorViewModel{T}.Asset" />
     public override TAsset Asset => (TAsset)base.Asset;
+
+    public SessionObjectPropertiesViewModel EditorProperties => Asset.Session.ActiveProperties;
 }
 
 /// <summary>

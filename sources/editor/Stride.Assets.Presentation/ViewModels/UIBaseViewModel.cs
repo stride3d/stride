@@ -4,6 +4,7 @@
 using Stride.Assets.UI;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Quantum;
 using Stride.UI;
 
 namespace Stride.Assets.Presentation.ViewModels;
@@ -22,5 +23,20 @@ public abstract class UIBaseViewModel : AssetCompositeHierarchyViewModel<UIEleme
     public override UIElementViewModel CreatePartViewModel(UIElementDesign elementDesign)
     {
         return new UIElementViewModel(this, elementDesign);
+    }
+
+    /// <inheritdoc />
+    protected override GraphNodePath GetPathToPropertiesRootNode()
+    {
+        var path = base.GetPathToPropertiesRootNode();
+        path.PushMember(nameof(UIAssetBase.Design));
+        path.PushTarget();
+        return path;
+    }
+
+    /// <inheritdoc />
+    protected override IObjectNode? GetPropertiesRootNode()
+    {
+        return Session.AssetNodeContainer.GetNode(((UIAssetBase)Asset).Design);
     }
 }

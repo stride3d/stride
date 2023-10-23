@@ -1,7 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Quantum;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
@@ -23,7 +26,7 @@ public class AssetViewModel<TAsset> : AssetViewModel, IAssetViewModel<TAsset>
     public new TAsset Asset => (TAsset)base.Asset;
 }
 
-public abstract class AssetViewModel : SessionObjectViewModel
+public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyProviderViewModel
 {
     private AssetItem assetItem;
     private DirectoryBaseViewModel directory;
@@ -47,6 +50,8 @@ public abstract class AssetViewModel : SessionObjectViewModel
         set => SetValue(ref assetItem, value);
     }
 
+    public Type AssetType => AssetItem.Asset.GetType();
+
     public AssetId Id => AssetItem.Id;
 
     public DirectoryBaseViewModel Directory
@@ -61,7 +66,45 @@ public abstract class AssetViewModel : SessionObjectViewModel
         set => SetValue(ref name, value); // TODO rename
     }
 
-    public AssetPropertyGraph PropertyGraph { get; }
+    public AssetPropertyGraph? PropertyGraph { get; }
+
+    /// <summary>
+    /// Gets the url of this asset.
+    /// </summary>
+    public string Url => AssetItem.Location;
+
+    /// <summary>
+    /// Gets the display name of the type of this asset.
+    /// </summary>
+    public string TypeDisplayName { get { var desc = DisplayAttribute.GetDisplay(AssetType); return desc != null ? desc.Name : AssetType.Name; } }
 
     protected Package Package => Directory.Package.Package;
+
+    protected internal IAssetObjectNode? AssetRootNode => PropertyGraph?.RootNode;
+    
+    protected virtual GraphNodePath GetPathToPropertiesRootNode()
+    {
+        return new GraphNodePath(AssetRootNode);
+    }
+
+    protected virtual IObjectNode? GetPropertiesRootNode()
+    {
+        return AssetRootNode;
+    }
+
+    protected virtual bool ShouldConstructPropertyItem(IObjectNode collection, NodeIndex index) => true;
+
+    protected virtual bool ShouldConstructPropertyMember(IMemberNode member) => true;
+
+    AssetViewModel IAssetPropertyProviderViewModel.RelatedAsset => this;
+
+    bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true; //!IsDeleted && IsEditable;
+
+    GraphNodePath IAssetPropertyProviderViewModel.GetAbsolutePathToRootNode() => GetPathToPropertiesRootNode();
+
+    IObjectNode? IPropertyProviderViewModel.GetRootNode() => GetPropertiesRootNode();
+
+    bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => ShouldConstructPropertyItem(collection, index);
+
+    bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => ShouldConstructPropertyMember(member);
 }

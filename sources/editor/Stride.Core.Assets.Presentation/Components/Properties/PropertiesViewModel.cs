@@ -89,7 +89,7 @@ public abstract class PropertiesViewModel : DispatcherViewModel
     public void UnregisterNodePresenterUpdater(INodePresenterUpdater nodeUpdater) => ViewModelService.AvailableUpdaters.Remove(nodeUpdater);
 
     // TODO: remove processViewModel
-    public async Task<GraphViewModel> GenerateSelectionPropertiesAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects)
+    public async Task<GraphViewModel?> GenerateSelectionPropertiesAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects)
     {
         // This method must be called from the UI thread to avoid concurrency in the beginning part (before awaiting)
         Dispatcher.EnsureAccess();
@@ -157,9 +157,9 @@ public abstract class PropertiesViewModel : DispatcherViewModel
         return Selection != null ? GenerateSelectionPropertiesAsync(Selection) : Task.CompletedTask;
     }
 
-    protected abstract bool CanDisplaySelectedObjects(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, out string fallbackMessage);
+    protected abstract bool CanDisplaySelectedObjects(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, out string? fallbackMessage);
 
-    protected abstract void FeedbackException(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, Exception exception, out string fallbackMessage);
+    protected abstract void FeedbackException(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, Exception exception, out string? fallbackMessage);
 
     private Task<GraphViewModel> InitializeViewModel(IReadOnlyCollection<IPropertyProviderViewModel> objects, int localToken)
     {

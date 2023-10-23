@@ -22,4 +22,6 @@ public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel
     /// </remarks>
     // FIXME: find a better name
     public abstract IEnumerable<EntityViewModel> InnerSubEntities { get; }
+
+    protected EntityHierarchyAssetBase EntityHierarchy => (EntityHierarchyAssetBase)Asset.Asset;
 }
