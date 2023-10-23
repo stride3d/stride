@@ -13,4 +13,13 @@ public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel
     {
         AddItems(childEntities.Select(asset.CreatePartViewModel));
     }
+
+    /// <summary>
+    /// An enumeration of the items represented by this item.
+    /// </summary>
+    /// <remarks>
+    /// In case of an <see cref="EntityViewModel"/> it is equivalent to <c>this</c>.
+    /// </remarks>
+    // FIXME: find a better name
+    public abstract IEnumerable<EntityViewModel> InnerSubEntities { get; }
 }
