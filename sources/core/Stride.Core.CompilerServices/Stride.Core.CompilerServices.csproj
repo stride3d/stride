@@ -3,11 +3,16 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Description>Code generators for Stride.Core and its dependents</Description>
+    <LangVersion>preview</LangVersion>
 		<StrideSkipAutoPack>true</StrideSkipAutoPack>
     <Nullable>enable</Nullable>
     <!--<DefineConstants>LAUNCH_DEBUGGER;$(DefineConstants)</DefineConstants>-->
 	</PropertyGroup>
-
+  <ItemGroup>
+    <Using Include="System.Linq" />
+    <Using Include="Microsoft.CodeAnalysis" />
+    <Using Include="Microsoft.CodeAnalysis.Diagnostics" />
+  </ItemGroup>
 	<ItemGroup>
 		<Compile Include="..\..\shared\SharedAssemblyInfo.cs">
 			<Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -15,15 +20,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
+
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
+
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Analyzers\" />
 	  <Folder Include="CodeFixes\" />
 	  <Folder Include="Common\" />
 	  <Folder Include="Generators\" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System" />
 	</ItemGroup>
 	<Import Project="$(StrideSdkTargets)" />
 </Project>
