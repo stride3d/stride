@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
-    <TargetFramework>$(StrideEditorAppTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
