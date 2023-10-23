@@ -147,7 +147,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets the list of children nodes.
     /// </summary>
-    public IReadOnlyCollection<NodeViewModel> Children => initializingChildren != null ? (IReadOnlyCollection<NodeViewModel>)initializingChildren : children;
+    public IReadOnlyCollection<NodeViewModel> Children => initializingChildren != null ? initializingChildren : children;
 
     /// <summary>
     /// Gets the list of commands available in this node.

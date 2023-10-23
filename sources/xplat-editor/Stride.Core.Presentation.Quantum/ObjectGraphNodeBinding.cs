@@ -12,11 +12,11 @@ namespace Stride.Core.Presentation.Quantum;
 /// </summary>
 /// <typeparam name="TTargetType">The type of property bound to the graph node.</typeparam>
 /// <typeparam name="TContentType">The type of content in the graph node.</typeparam>
-public class ObjectGraphNodeBinding<TTargetType, TContentType> : GraphNodeBinding<TTargetType, TContentType>
+public class ObjectGraphNodeBinding<TTargetType, TContentType> : GraphNodeBinding<TTargetType?, TContentType?>
 {
     protected IObjectNode Node;
 
-    public ObjectGraphNodeBinding(IObjectNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, Func<TTargetType, TContentType> converter, IUndoRedoService actionService, bool notifyChangesOnly = true)
+    public ObjectGraphNodeBinding(IObjectNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, Func<TTargetType?, TContentType?> converter, IUndoRedoService actionService, bool notifyChangesOnly = true)
         : base(propertyName, propertyChanging, propertyChanged, converter, actionService, notifyChangesOnly)
     {
         Node = node;
@@ -33,13 +33,13 @@ public class ObjectGraphNodeBinding<TTargetType, TContentType> : GraphNodeBindin
         }
     }
 
-    public override TContentType GetNodeValue()
+    public override TContentType? GetNodeValue()
     {
-        var value = (TContentType)Node.Retrieve();
+        var value = (TContentType?)Node.Retrieve();
         return value;
     }
 
-    public override void SetNodeValue(TTargetType value)
+    public override void SetNodeValue(TTargetType? value)
     {
         using var transaction = ActionService?.CreateTransaction();
         Node.Update(Converter(value), NodeIndex.Empty);
@@ -54,7 +54,7 @@ public class ObjectGraphNodeBinding<TTargetType, TContentType> : GraphNodeBindin
 /// when the node value is modified.
 /// </summary>
 /// <typeparam name="TContentType">The type of the node content and the property bound to the graph node.</typeparam>
-public class ObjectGraphNodeBinding<TContentType> : ObjectGraphNodeBinding<TContentType, TContentType>
+public class ObjectGraphNodeBinding<TContentType> : ObjectGraphNodeBinding<TContentType?, TContentType?>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ObjectGraphNodeBinding{TContentType}"/> class.
@@ -74,5 +74,5 @@ public class ObjectGraphNodeBinding<TContentType> : ObjectGraphNodeBinding<TCont
     /// Gets or sets the current node value.
     /// </summary>
     /// <remarks>The setter of this property will invoke the delegates passed to the constructor of this instance if the new value is different from the previous one.</remarks>
-    public TContentType Value { get => GetNodeValue(); set => SetNodeValue(value); }
+    public TContentType? Value { get => GetNodeValue(); set => SetNodeValue(value); }
 }

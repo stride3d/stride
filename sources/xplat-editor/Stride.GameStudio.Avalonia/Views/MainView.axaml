@@ -39,7 +39,8 @@
           <vw:PropertyGridView Grid.Column="2"
                                BorderThickness="2"
                                BorderBrush="Orange"
-                               Padding="2" />
+                               Padding="2"
+                               DataContext="{Binding Session.ActiveProperties}" />
         </Grid>
         <GridSplitter Grid.Row="1" ResizeDirection="Auto" />
         <Grid Grid.Row="2"

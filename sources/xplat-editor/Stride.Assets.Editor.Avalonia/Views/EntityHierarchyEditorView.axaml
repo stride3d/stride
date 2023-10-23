@@ -36,6 +36,11 @@
             </StackPanel>
           </TreeDataTemplate>
         </Control.DataTemplates>
+        <StyledElement.Styles>
+          <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="True"/>
+          </Style>
+        </StyledElement.Styles>
       </TreeView>
     </DockPanel>
 

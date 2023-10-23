@@ -1,8 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Quantum;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
@@ -23,6 +25,15 @@ public abstract class AssetCompositeItemViewModel : DispatcherViewModel
     /// Gets or sets the name of this item.
     /// </summary>
     public abstract string? Name { get; set; }
+
+    /// <summary>
+    /// Gets the path to this item in the asset.
+    /// </summary>
+    /// <remarks>In case of a virtual node, this method should return an equivalent path if possible; otherwise the path the the closest non-virtual ancestor item.</remarks>
+    /// <seealso cref="IAssetPropertyProviderViewModel.GetAbsolutePathToRootNode"/>>
+    public abstract GraphNodePath GetNodePath();
+
+    protected IObjectNode GetNode() => Asset.Session.AssetNodeContainer.GetNode(Asset.Asset);
 }
 
 public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewModel> : AssetCompositeItemViewModel

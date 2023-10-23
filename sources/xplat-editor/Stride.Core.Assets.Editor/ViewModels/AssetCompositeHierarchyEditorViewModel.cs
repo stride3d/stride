@@ -39,6 +39,8 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
 
     protected abstract TItemViewModel CreateRootPartViewModel();
 
+    protected abstract Task RefreshEditorProperties();
+
     /// <summary>
     /// Called when the content of <see cref="AssetCompositeEditorViewModel.SelectedContent"/> changed.
     /// </summary>
@@ -65,7 +67,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         SelectedContent.AddRange(SelectedItems);
     }
 
-    private void SelectedContentCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
+    private async void SelectedContentCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
     {
         if (updateSelectionGuard)
             return;
@@ -74,6 +76,8 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         {
             updateSelectionGuard = true;
             SelectedContentCollectionChanged(args.Action);
+            // Refresh the property grid
+            await RefreshEditorProperties();
         }
         finally
         {
@@ -81,7 +85,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         }
     }
 
-    private void SelectedItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
+    private async void SelectedItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
     {
         if (updateSelectionGuard)
             return;
@@ -90,6 +94,8 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         {
             updateSelectionGuard = true;
             SelectedItemsCollectionChanged(args.Action);
+            // Refresh the property grid
+            await RefreshEditorProperties();
         }
         finally
         {

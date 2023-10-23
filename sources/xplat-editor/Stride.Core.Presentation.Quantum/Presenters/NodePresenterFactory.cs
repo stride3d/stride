@@ -13,9 +13,8 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
     public NodePresenterFactory(INodeBuilder nodeBuilder, IReadOnlyCollection<INodePresenterCommand> availableCommands, IReadOnlyCollection<INodePresenterUpdater> availableUpdaters)
     {
         this.nodeBuilder = nodeBuilder;
-        if (nodeBuilder == null) throw new ArgumentNullException(nameof(nodeBuilder));
-        AvailableCommands = availableCommands ?? throw new ArgumentNullException(nameof(availableCommands));
-        AvailableUpdaters = availableUpdaters ?? throw new ArgumentNullException(nameof(availableUpdaters));
+        AvailableCommands = availableCommands;
+        AvailableUpdaters = availableUpdaters;
     }
 
     public IReadOnlyCollection<INodePresenterCommand> AvailableCommands { get; }
@@ -27,9 +26,8 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
         return nodeBuilder.IsPrimitiveType(type);
     }
 
-    public INodePresenter CreateNodeHierarchy(IObjectNode rootNode, GraphNodePath rootNodePath, IPropertyProviderViewModel propertyProvider)
+    public INodePresenter CreateNodeHierarchy(IObjectNode rootNode, GraphNodePath rootNodePath, IPropertyProviderViewModel? propertyProvider)
     {
-        if (rootNode == null) throw new ArgumentNullException(nameof(rootNode));
         buildingNodes.Value = true;
         var rootPresenter = CreateRootPresenter(propertyProvider, rootNode);
         GenerateChildren(rootPresenter, rootNode, propertyProvider);
@@ -39,7 +37,7 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
         return rootPresenter;
     }
 
-    public void CreateChildren(IInitializingNodePresenter parentPresenter, IObjectNode objectNode, IPropertyProviderViewModel propertyProvider)
+    public void CreateChildren(IInitializingNodePresenter parentPresenter, IObjectNode objectNode, IPropertyProviderViewModel? propertyProvider)
     {
         buildingNodes.Value = true;
         if (objectNode != null)
@@ -51,27 +49,25 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
         FinalizeTree(parentPresenter.Root);
     }
 
-    private void GenerateChildren(IInitializingNodePresenter parentPresenter, IObjectNode objectNode, IPropertyProviderViewModel propertyProvider)
+    private void GenerateChildren(IInitializingNodePresenter parentPresenter, IObjectNode objectNode, IPropertyProviderViewModel? propertyProvider)
     {
         CreateMembers(propertyProvider, parentPresenter, objectNode);
         CreateItems(propertyProvider, parentPresenter, objectNode);
         parentPresenter.FinalizeInitialization();
     }
 
-    protected virtual IInitializingNodePresenter CreateRootPresenter(IPropertyProviderViewModel propertyProvider, IObjectNode rootNode)
+    protected virtual IInitializingNodePresenter CreateRootPresenter(IPropertyProviderViewModel? propertyProvider, IObjectNode rootNode)
     {
         return new RootNodePresenter(this, propertyProvider, rootNode);
     }
 
     protected virtual bool ShouldCreateMemberPresenter(INodePresenter parent, IMemberNode member, IPropertyProviderViewModel? propertyProvider)
     {
-        if (parent == null) throw new ArgumentNullException(nameof(parent));
-        if (member == null) throw new ArgumentNullException(nameof(member));
         // Ask the property provider if we have one, otherwise always construct.
         return propertyProvider?.ShouldConstructMember(member) ?? true;
     }
 
-    protected virtual IInitializingNodePresenter CreateMember(IPropertyProviderViewModel propertyProvider, INodePresenter parentPresenter, IMemberNode member)
+    protected virtual IInitializingNodePresenter CreateMember(IPropertyProviderViewModel? propertyProvider, INodePresenter parentPresenter, IMemberNode member)
     {
         return new MemberNodePresenter(this, propertyProvider, parentPresenter, member);
     }
@@ -82,12 +78,12 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
         return propertyProvider?.ShouldConstructItem(collectionNode, index) ?? true;
     }
 
-    protected virtual IInitializingNodePresenter CreateItem(IPropertyProviderViewModel propertyProvider, INodePresenter containerPresenter, IObjectNode containerNode, NodeIndex index)
+    protected virtual IInitializingNodePresenter CreateItem(IPropertyProviderViewModel? propertyProvider, INodePresenter containerPresenter, IObjectNode containerNode, NodeIndex index)
     {
         return new ItemNodePresenter(this, propertyProvider, containerPresenter, containerNode, index);
     }
 
-    private void CreateMembers(IPropertyProviderViewModel propertyProvider, IInitializingNodePresenter parentPresenter, IObjectNode objectNode)
+    private void CreateMembers(IPropertyProviderViewModel? propertyProvider, IInitializingNodePresenter parentPresenter, IObjectNode objectNode)
     {
         foreach (var member in objectNode.Members)
         {
@@ -104,7 +100,7 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
         }
     }
 
-    private void CreateItems(IPropertyProviderViewModel propertyProvider, IInitializingNodePresenter parentPresenter, IObjectNode objectNode)
+    private void CreateItems(IPropertyProviderViewModel? propertyProvider, IInitializingNodePresenter parentPresenter, IObjectNode objectNode)
     {
         if (objectNode.IsEnumerable)
         {
@@ -149,8 +145,6 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
 
     protected void FinalizeTree(INodePresenter rootPresenter)
     {
-        if (rootPresenter == null) throw new ArgumentNullException(nameof(rootPresenter));
-
         // We might enter here while we're still constructing the hierarchy, if for example we create
         // a virtual node in one updater. In this case we skip this call because our hierarchy is still
         // incomplete. It's guaranteed that this method will be called again at the end of the creation.

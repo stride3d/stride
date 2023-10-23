@@ -3,6 +3,7 @@
 
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
@@ -22,11 +23,21 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
     {
         Session = session;
 
+        // Initialize the view model that will manage the properties of the assets selected on the main asset view
+        AssetViewProperties = new SessionObjectPropertiesViewModel(session);
+
         selectedContent.CollectionChanged += SelectedContentCollectionChanged;
         SelectedLocations.CollectionChanged += SelectedLocationCollectionChanged;
     }
 
     public IReadOnlyObservableCollection<AssetViewModel> Assets => assets;
+
+    /// <summary>
+    /// Gets the <see cref="SessionObjectPropertiesViewModel"/> associated to the current selection in the collection.
+    /// </summary>
+    // FIXME: do we need both ActiveProperties and AssetCollection.AssetViewProperties?
+    //        could be related to reusing this class for ReferencesViewModel and EditorDialogService
+    public SessionObjectPropertiesViewModel AssetViewProperties { get; }
 
     /// <remarks>
     /// <see cref="SelectedAssets"/> is a sub-collection of <see cref="SelectedContent"/>.
@@ -124,7 +135,7 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
         }
     }
 
-    private void SelectedContentCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private async void SelectedContentCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         UpdateSingleSelectedContent();
 
@@ -149,6 +160,9 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
                 selectedAssets.AddRange(e.NewItems.OfType<AssetViewModel>());
             }
         }
+
+        AssetViewProperties.UpdateTypeAndName(SelectedAssets, x => x.TypeDisplayName, x => x.Url, "assets");
+        await AssetViewProperties.GenerateSelectionPropertiesAsync(SelectedAssets);            
     }
 
     private void SelectedLocationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

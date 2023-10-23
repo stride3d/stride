@@ -13,4 +13,6 @@ public abstract class UIHierarchyItemViewModel : AssetCompositeItemViewModel<UIB
     {
         AddItems(childElements.Select(asset.CreatePartViewModel));
     }
+
+    protected UIAssetBase UIAsset => (UIAssetBase)Asset.Asset;
 }
