@@ -151,7 +151,7 @@ namespace Stride.Core.Storage
                 return false;
             }
 
-            var hash = new byte[HashSize];
+            var hash = stackalloc byte[HashSize];
             for (var i = 0; i < HashStringLength; i += 2)
             {
                 var c1 = input[i];
@@ -168,7 +168,8 @@ namespace Stride.Core.Storage
                 hash[i >> 1] = (byte)((digit1 << 4) | digit2);
             }
 
-            result = new ObjectId(hash);
+            var hashSpan = new Span<uint>(hash, HashSizeInUInt);
+            result = new ObjectId(hashSpan[0], hashSpan[1], hashSpan[2], hashSpan[3]);
             return true;
         }
 
@@ -223,6 +224,25 @@ namespace Stride.Core.Storage
 
         public override string ToString()
         {
+#if NET6_0_OR_GREATER
+            fixed (uint* hashStart = &hash1)
+            {
+                return string.Create(HashStringLength, (IntPtr)hashStart, (c, state) => {
+
+                    var hashBytes = (byte*)state;
+                    for (var i = 0; i < HashStringLength; ++i)
+                    {
+                        var index0 = i >> 1;
+                        var b = (byte)(hashBytes[index0] >> 4);
+                        c[i++] = HexDigits[b];
+
+                        b = (byte)(hashBytes[index0] & 0x0F);
+                        c[i] = HexDigits[b];
+                    }
+
+                });
+            }
+#else
             Span<char> span = stackalloc char[HashStringLength];
 
             fixed (uint* hashStart = &hash1)
@@ -239,6 +259,7 @@ namespace Stride.Core.Storage
                 }
             }
             return ((ReadOnlySpan<char>)span).ToString();
+#endif
         }
 
         /// <summary>
@@ -247,7 +268,7 @@ namespace Stride.Core.Storage
         /// <returns>Guid.</returns>
         public Guid ToGuid()
         {
-            return Unsafe.As<ObjectId, Guid>(ref this)
+            return Unsafe.As<ObjectId, Guid>(ref this);
         }
 
         /// <summary>
