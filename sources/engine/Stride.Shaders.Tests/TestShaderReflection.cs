@@ -190,6 +190,122 @@ namespace Stride.Shaders.Tests
             }
         }
 
+        /// <summary>
+        /// Tests whether unary expressions are evaluated correctly. For example float x = -1
+        /// Regression test for https://github.com/stride3d/stride/issues/1963
+        /// </summary>
+        [Fact]
+        public void TestDefaultValuesWithUnaryExpressionGetEvaluatedCorrectly()
+        {
+            Init();
+
+            var shaderClassName = "DefaultValuesUsingUnaryExpressionTest";
+
+            var variables = new List<(string name, string type, string value, object clrValue)>();
+            variables.Add((name: "floatVar", type: "float", value: "-1", clrValue: -1f));
+            variables.Add((name: "doubleVar", type: "double", value: "-1", clrValue: -1d));
+            variables.Add((name: "intVar", type: "int", value: "-1", clrValue: -1));
+            variables.Add((name: "uintVar", type: "uint", value: "~1", clrValue: ~1u));
+            variables.Add((name: "boolVar", type: "bool", value: "!true", clrValue: !true));
+            AddVectorVariable(VectorType.Float2, -1f, "-1", Vector2.One * -1);
+            AddVectorVariable(VectorType.Float3, -1f, "-1", Vector3.One * -1);
+            AddVectorVariable(VectorType.Float4, -1f, "-1", Vector4.One * -1);
+            AddVectorVariable(VectorType.Double2, -1d, "-1", Double2.One * -1);
+            AddVectorVariable(VectorType.Double3, -1d, "-1", Double3.One * -1);
+            AddVectorVariable(VectorType.Double4, -1d, "-1", Double4.One * -1);
+            // error X3650: global variables cannot use the 'half' type in vs_5_0. To treat this variable as a float, use the backwards compatibility flag.
+            //AddVectorVariable(VectorType.Half2, (Half)-1f, Half2.One * -1);
+            //AddVectorVariable(VectorType.Half3, (Half)-1f, Half3.One * -1);
+            //AddVectorVariable(VectorType.Half4, (Half)-1f, Half4.One * -1);
+            AddVectorVariable(VectorType.Int2, -1, "-1", Int2.One * -1);
+            AddVectorVariable(VectorType.Int3, -1, "-1", Int3.One * -1);
+            AddVectorVariable(VectorType.Int4, -1, "-1", Int4.One * -1);
+            AddVectorVariable(VectorType.UInt4, ~1u, "~1", new UInt4(~1u));
+            AddVectorVariable(new MatrixType(ScalarType.Float, 4, 4), -1f, "-1", new Matrix(1f) * -1);
+
+            var assignments = new StringBuilder();
+            foreach (var v in variables)
+            {
+                assignments.AppendLine($"{v.type} {v.name} = {v.value};");
+            }
+
+            var mixinSource = new ShaderMixinSource() { Name = shaderClassName };
+            mixinSource.Mixins.Add(CreateShaderClassCode(shaderClassName, assignments.ToString()));
+            var byteCodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
+
+            Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
+
+            var byteCode = byteCodeTask.Result.Bytecode;
+            var members = byteCode.Reflection.ConstantBuffers[0].Members;
+            foreach (var v in variables)
+            {
+                var defaultValue = members.FirstOrDefault(k => k.KeyInfo.KeyName == $"{shaderClassName}.{v.name}").DefaultValue;
+                Assert.NotNull(defaultValue);
+                Assert.Equal(v.clrValue, defaultValue);
+            }
+
+            unsafe void AddVectorVariable<TVector, TComponent>(TypeBase type, TComponent component, string literal, TVector vectorValue)
+                where TVector : unmanaged
+                where TComponent : unmanaged
+            {
+                var name = $"{typeof(TVector).Name}Var";
+                var dimension = sizeof(TVector) / sizeof(TComponent);
+                var components = string.Join(", ", Enumerable.Repeat(literal, dimension));
+                variables.Add((
+                    name: name,
+                    type: type.ToString(),
+                    value: $"{type}({components})",
+                    clrValue: vectorValue));
+
+                variables.Add((
+                    name: $"{name}_Promoted",
+                    type: type.ToString(),
+                    value: $"{literal}",
+                    clrValue: vectorValue));
+
+                variables.Add((
+                    name: $"{name}_Array",
+                    type: type.ToString(),
+                    value: $"{{{components}}}",
+                    clrValue: vectorValue));
+
+                var aliasType =
+                    type is MatrixType m ? $"{m.Type}{m.RowCount}x{m.ColumnCount}" :
+                    type is VectorType v ? $"{v.Type}{v.Dimension}" :
+                    default;
+                if (aliasType != null)
+                {
+                    // Check type alias like float4 for vector<float, 4>
+                    variables.Add((
+                        name: $"{name}_Alias",
+                        type: aliasType,
+                        value: $"{{{components}}}",
+                        clrValue: vectorValue));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tests whether unkown expressions in an intializer are ignored in the default value. For example float x = 1 + 3 should result in DefaultValue = null
+        /// </summary>
+        [Fact]
+        public void TestDefaultValuesWithUnknownExpressionAreIgnored()
+        {
+            Init();
+
+            var shaderClassName = "DefaultValuesWithUnknownExpressionAreIgnoredTest";
+
+            var mixinSource = new ShaderMixinSource() { Name = shaderClassName };
+            mixinSource.Mixins.Add(CreateShaderClassCode(shaderClassName, "float x = 3 + 4;"));
+            var byteCodeTask = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
+
+            Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
+
+            var byteCode = byteCodeTask.Result.Bytecode;
+            var member = byteCode.Reflection.ConstantBuffers[0].Members[0];
+            Assert.Null(member.DefaultValue);
+        }
+
         static ShaderClassCode CreateShaderClassCode(string className, string initializer)
         {
             return new ShaderClassString(className, @"
