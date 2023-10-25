@@ -60,7 +60,7 @@ Ask for help or report issues:
 
 ### Prerequisites
 
-1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog.
+1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog and for convenience a git UI client like [GitExtensions](https://gitextensions.github.io/).
 2. [DotNet SDK 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
    - Run `dotnet --info` in a console or powershell window to see which versions you have installed  
 3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
@@ -74,8 +74,8 @@ Ask for help or report issues:
 
 ### Build Stride
 
-1. Open a command prompt, point it to a directory and clone Stride to it: `git clone https://github.com/stride3d/stride.git`
-   - Note that when you use GitHub -> Code -> Download ZIP, this doesn't support Large File Support ```lfs```, make sure you use the command above or that your git client does it for you
+1. Clone the repo with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
+   - **Do NOT use GitHub -> Code -> Download ZIP**, this won't include the ```lfs``` files.
 2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 and build `Stride.GameStudio` in the 60-Editor solution folder (it should be the default startup project) or run it from VS's toolbar.
    - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
@@ -83,10 +83,12 @@ Ask for help or report issues:
 
 1. Install [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above
 2. Add MSBuild's directory to your system's *PATH* (ex: `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`)
-3. Open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
+3. Clone the repo with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
 4. Navigate to `/Build` with the command prompt, input `msbuild /t:Restore Stride.sln` then `compile.bat`
 
 If building failed:
+* Some errors for test projects are normal, GameStudio will start anyway.
+* The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2022), but GameStudio will start anyway.
 * If you skipped one of the `Prerequisites` thinking that you already have the latest version, update to the latest anyway just to be sure.
 * Visual Studio might have issues properly building if an anterior version is present alongside 2022. If you want to keep those version make sure that they are up to date and that you are building Stride through VS 2022.
 * Your system's *PATH* should not contain older versions of MSBuild (ex: `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed)
