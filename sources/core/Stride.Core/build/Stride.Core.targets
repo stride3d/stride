@@ -72,7 +72,7 @@
       <StrideAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)' == ''"/>
     </ItemGroup>
     <PropertyGroup>
-      <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''"> --parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
       <!-- Physics, Particles and SpriteStudio assembly is actually hard coded/referenced here, remove once a better system is in place! -->
       <!-- Please keep in sync with AssemblyRecompiler.cs -->
