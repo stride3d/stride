@@ -243,10 +243,15 @@ namespace Stride.Assets
                     if (dependency.Version.MinVersion < new PackageVersion("4.2.0.0") && solutionProject != null)
                     {
                         var tfm = project.GetProperty("TargetFramework");
+                        //check if plural is required to find value
+                        if (tfm.Xml == null)
+                        {
+                            tfm = project.GetProperty("TargetFrameworks");
+                        }
                         if (tfm != null)
                         {
                             // Library
-                            if (tfm.EvaluatedValue == "net6.0" && solutionProject.Type == ProjectType.Library)
+                            if (tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
                             {
                                 // In case it's a single TargetFramework, add the "s" at the end
                                 tfm.Xml.Name = "TargetFrameworks";
