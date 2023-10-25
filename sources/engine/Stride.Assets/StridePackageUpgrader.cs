@@ -228,11 +228,33 @@ namespace Stride.Assets
                             {
                                 // In case it's a single TargetFramework, add the "s" at the end
                                 tfm.Xml.Name = "TargetFrameworks";
-                                tfm.Xml.Value = "net8.0";
+                                tfm.Xml.Value = "net6.0";
                                 isProjectDirty = true;
                             }
                             // Executable
                             else if ((tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) || tfm.EvaluatedValue.StartsWith("net5", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
+                            {
+                                tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net6.0-windows" : "net6.0";
+                                isProjectDirty = true;
+                            }
+                        }
+                    }
+
+                    if (dependency.Version.MinVersion < new PackageVersion("4.2.0.0") && solutionProject != null)
+                    {
+                        var tfm = project.GetProperty("TargetFramework");
+                        if (tfm != null)
+                        {
+                            // Library
+                            if (tfm.EvaluatedValue == "net6.0" && solutionProject.Type == ProjectType.Library)
+                            {
+                                // In case it's a single TargetFramework, add the "s" at the end
+                                tfm.Xml.Name = "TargetFrameworks";
+                                tfm.Xml.Value = "net8.0";
+                                isProjectDirty = true;
+                            }
+                            // Executable
+                            else if ((tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
                             {
                                 tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net8.0-windows" : "net8.0";
                                 isProjectDirty = true;
