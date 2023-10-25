@@ -25,7 +25,7 @@ namespace Stride
         /// <summary>
         /// The version used by editor for display purpose. The 4th digit will automatically be replaced by the git height when building packages with Stride.Build.
         /// </summary>
-        public const string PublicVersion = "4.1.0.1";
+        public const string PublicVersion = "4.2.0.1";
 
         /// <summary>
         /// The current assembly version as text, currently same as <see cref="PublicVersion"/>.
