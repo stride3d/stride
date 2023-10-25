@@ -72,8 +72,12 @@ namespace Stride {
 					if (animStackCount == 0)
 						return animationData;
 
-					if (animationStack == 0)
+					if (animationStack < 0)
+					{
 						animationStack = 0;
+						logger->Warning(String::Format("Animation stack specified in '{0}' less than zero, exporting first stack to '{1}",
+							gcnew String(inputFilename), gcnew String(vfsOutputFilename)), (CallerInfo^)nullptr);
+					}
 						
 					if (animationStack >= animStackCount)
 					{

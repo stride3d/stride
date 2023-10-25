@@ -267,12 +267,13 @@ namespace Stride.Importer.Assimp
                 if (animationIndex < 0)
                 {
                     animationIndex = 0;
+                    Logger.Warning("Specified animation index less than zero, using the first animation.");
                 }
 
                 if (animationIndex >= scene->MNumAnimations)
                 {
                     animationIndex = (int)scene->MNumAnimations - 1;
-                    Logger.Warning($"There less animations in the file than the animation index, using the last animation.");
+                    Logger.Warning("There less animations in the file than the animation index, using the last animation.");
                 }
 
                 var aiAnim = scene->MAnimations[animationIndex];
