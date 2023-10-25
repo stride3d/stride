@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
@@ -184,7 +185,8 @@ namespace Stride.LauncherApp.ViewModels
 ```";
                         await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
                         // We do not want our users to use the old launcher when a new one is available.
-                        Environment.Exit(1);
+                        if (e is not HttpRequestException) // Prevent launcher closing when the user does not have internet access
+                            Environment.Exit(1);
                     }
                 });
                 // Run news task early so that it can run while we fetch package versions

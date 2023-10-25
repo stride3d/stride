@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="StrideGraphicsApis">
   <!--Import Unit Tests Local Settings for the solution being loaded -->
-  <Import Project="$(SolutionDir)$(SolutionName).UnitTests.Build.targets" Condition="Exists('$(SolutionDir)$(SolutionName).UnitTests.Build.targets')" />
+  <Import Project="$(MSBuildThisFileDirectory)../../build/$(SolutionName).UnitTests.Build.targets" Condition="Exists('$(MSBuildThisFileDirectory)../../build/$(SolutionName).UnitTests.Build.targets')" />
 
   <!-- Setup GraphicsApi (we do it even if StrideGraphicsApiDependent is not set to true, so that ProjectReference works) -->
   <PropertyGroup>
@@ -37,11 +37,6 @@
 
     <!-- Unit tests are executables (execute asset compiler, embed native libraries, etc... -->
     <StrideIsExecutable>true</StrideIsExecutable>
-
-    <!-- Setup Asset Compiler MSBuild SolutionDir and SolutionName to point to Stride Windows
-         Also disable BuildProjectReferences, otherwise it would try to recompile assemblies currently locked by the CompilerApp itself.
-         However, that means that Tests dependencies must be compiled properly on Windows (should be the case usually).
-    -->
     <StrideCompileAssetOptions>--compile-property:BuildProjectReferences=false</StrideCompileAssetOptions>
   </PropertyGroup>
 

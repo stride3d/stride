@@ -21,6 +21,9 @@ Stride comes with an editor that allows you to create and manage the content of 
 
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
+## Earn money by contributing
+If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on OpenCollective and can pay for work on certain projects. [More info about this here](https://github.com/stride3d/stride/wiki/Bounty).
+
 ## License and governance
 ### .NET Foundation
 This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
@@ -33,9 +36,6 @@ Contributors need to sign the following [Contribution License Agreement](docs/Co
 ### Code of conduct
 Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
 For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct). 
-
-### Earn money by contributing
-If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on OpenCollective and can pay for work on certain projects. [More info about this here](https://github.com/stride3d/stride/wiki/Bounty).
 
 ## Documentation
 
@@ -186,6 +186,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/SVNMLR"><img src="https://avatars.githubusercontent.com/u/44621949?v=4?s=100" width="100px;" alt="SVNMLR"/><br /><sub><b>SVNMLR</b></sub></a><br /><a href="#design-SVNMLR" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://chroniclesofelyria.com"><img src="https://avatars.githubusercontent.com/u/17633767?v=4?s=100" width="100px;" alt="Jeromy Walsh"/><br /><sub><b>Jeromy Walsh</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=JeromyWalsh" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://pa.rh.am/"><img src="https://avatars.githubusercontent.com/u/7075456?v=4?s=100" width="100px;" alt="Parham Gholami"/><br /><sub><b>Parham Gholami</b></sub></a><br /><a href="#design-parhamgholami" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/adrsch"><img src="https://avatars.githubusercontent.com/u/35346279?v=4?s=100" width="100px;" alt="adrsch"/><br /><sub><b>adrsch</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=adrsch" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

@@ -186,7 +186,16 @@ namespace Stride.Core.Mathematics
         /// </remarks>
         public int Length()
         {
-            return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+            return (int)MathF.Sqrt((X * X) + (Y * Y) + (Z * Z));
+        }
+
+        /// <summary>
+        /// Calculates the untruncated length of the vector.
+        /// </summary>
+        /// <returns>The length of the vector untruncated.</returns>
+        public float LengthUntruncated() 
+        {
+            return (float)MathF.Sqrt((X * X) + (Y * Y) + (Z * Z));
         }
 
         /// <summary>
@@ -532,7 +541,32 @@ namespace Stride.Core.Mathematics
             Min(ref left, ref right, out result);
             return result;
         }
-   
+
+        /// <summary>
+        /// Returns a vector containing the rounded values of the specified vector.
+        /// </summary>
+        /// <param name="value">The source vector.</param>
+        /// <param name="result">When the method completes, contains an new vector composed of the rounded values of the specified vector.</param>
+        /// <param name="rounding">The rounding strategy to use.</param>
+        public static void Round(in Vector3 value, out Int3 result, MidpointRounding rounding = default)
+        {
+            result.X = (int)MathF.Round(value.X, rounding);
+            result.Y = (int)MathF.Round(value.Y, rounding);
+            result.Z = (int)MathF.Round(value.Z, rounding);
+        }
+
+        /// <summary>
+        /// Returns a vector containing the rounded values of the specified vector.
+        /// </summary>
+        /// <param name="value">The source vector.</param>
+        /// <param name="rounding">The rounding strategy to use.</param>
+        /// <returns>A vector containing the rounded values of the source vector.</returns>
+        public static Int3 Round(in Vector3 value, MidpointRounding rounding = default)
+        {
+            Round(in value, out var result, rounding);
+            return result;
+        }
+
         /// <summary>
         /// Adds two vectors.
         /// </summary>
@@ -771,7 +805,7 @@ namespace Stride.Core.Mathematics
             y = Y;
             z = Z;
         }
-
+        
 #if WPFInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="System.Windows.Media.Media3D.Int3D"/>.

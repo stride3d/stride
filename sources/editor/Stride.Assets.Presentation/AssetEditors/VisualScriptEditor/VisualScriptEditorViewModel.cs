@@ -46,7 +46,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 
         private GraphViewModel properties;
 
-        private IScriptSourceCodeResolver sourceResolver;
+        private IEntityComponentSourceCodeResolver sourceResolver;
         private SemanticModel semanticModel;
 
         private bool symbolSearchOpen;
@@ -85,7 +85,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
         /// <inheritdoc/>
         public sealed override async Task<bool> Initialize()
         {
-            sourceResolver = ServiceProvider.Get<IScriptSourceCodeResolver>();
+            sourceResolver = ServiceProvider.Get<IEntityComponentSourceCodeResolver>();
             if (sourceResolver.LatestCompilation == null)
             {
                 // Wait for initial compilation to be done before continuing initialization
@@ -400,7 +400,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
         {
             private const int MaxResults = 100;
             private readonly VisualScriptEditorViewModel viewModel;
-            private readonly IScriptSourceCodeResolver sourceResolver;
+            private readonly IEntityComponentSourceCodeResolver sourceResolver;
             private CancellationTokenSource symbolSearchCancellationToken;
 
             public SymbolSearchHelper(VisualScriptEditorViewModel viewModel)
@@ -411,7 +411,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
                 viewModel.SymbolSearchValues.Clear();
                 viewModel.SymbolSearchOpen = true;
 
-                sourceResolver = viewModel.ServiceProvider.Get<IScriptSourceCodeResolver>();
+                sourceResolver = viewModel.ServiceProvider.Get<IEntityComponentSourceCodeResolver>();
 
                 // Start initial search
                 symbolSearchCancellationToken = new CancellationTokenSource();

@@ -37,6 +37,11 @@ namespace Stride.Core.Diagnostics
         public readonly TimeSpan ElapsedTime;
 
         /// <summary>
+        /// The thread id.
+        /// </summary>
+        public readonly int ThreadId;
+
+        /// <summary>
         /// The message.
         /// </summary>
         public readonly ProfilingEventMessage? Message;
@@ -62,6 +67,7 @@ namespace Stride.Core.Diagnostics
             ProfilingMessageType profilingType, 
             TimeSpan timeStamp, 
             TimeSpan elapsedTime, 
+            int threadId,
             ProfilingEventMessage? message,
             TagList attributes)
         {
@@ -70,8 +76,11 @@ namespace Stride.Core.Diagnostics
             Type = profilingType;
             TimeStamp = timeStamp;
             ElapsedTime = elapsedTime;
+            ThreadId = threadId;
             Message = message;
             Attributes = attributes;
         }
+
+        public bool IsGPUEvent() => ThreadId == Profiler.GpuThreadId;
     }
 }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProductVersion>16.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -27,7 +27,7 @@
   
   <!-- Add support for building this project from the Project Directory -->
   <PropertyGroup>
-    <SolutionDir Condition="'$(SolutionDir)' == ''">$(ProjectDir)..\..\..\build\</SolutionDir>
+    <DependencyDir>$(ProjectDir)..\..\..\deps</DependencyDir>
   </PropertyGroup>
 
   <!-- ======================================================================================== -->
@@ -126,21 +126,21 @@
   <Target Name="CopyFiles" AfterTargets="PostBuildEvent">
     <Copy
       SourceFiles="@(BuiltItems)"
-      DestinationFolder="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)"
+      DestinationFolder="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)"
     />
   </Target>
   
   <!-- Packs the BuildItems into a single .Packed DLL and generates a .hash file from it -->
   <Target Name="GenerateHash" AfterTargets="CopyFiles">
     <!-- Repack the assemblies into a single file -->
-    <Exec Command="cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)
-    $(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
+    <Exec Command="cd &quot;$(DependencyDir)\AssemblyProcessor\$(TargetFramework)&quot;
+    &quot;$(ILRepack)&quot; Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
     <!-- Generate the hash and then write it to disk with the .hash extension -->
-    <GetFileHash Files="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
+    <GetFileHash Files="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
       <Output
           TaskParameter="Hash"
           PropertyName="PackedAssemblyHash" />
     </GetFileHash>
-    <WriteAllText Path="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt).hash" Contents="$(PackedAssemblyHash)"/>
+    <WriteAllText Path="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt).hash" Contents="$(PackedAssemblyHash)"/>
   </Target>
 </Project>

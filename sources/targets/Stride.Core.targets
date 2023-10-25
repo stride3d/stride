@@ -10,9 +10,17 @@
   <Target Name="GetNativeManifest"/>
   <Target Name="GetPackagingOutputs"/>
 
+  <!-- OS Compatibility Properties -->
+  <PropertyGroup>
+    <TEMP>$([System.IO.Path]::GetTempPath())</TEMP>
+    <DependencyDir>$(MSBuildThisFileDirectory)../../deps</DependencyDir>
+    <BuildDir>$(MSBuildThisFileDirectory)../../build/</BuildDir>
+    <SourceDir>$(MSBuildThisFileDirectory)../../sources</SourceDir>
+  </PropertyGroup>
+
   <!--Import Local Post Settings for the solution being loaded -->
-  <Import Project="$(SolutionDir)$(SolutionName).Build.targets" Condition="Exists('$(SolutionDir)$(SolutionName).Build.targets')" />
-  <Import Project="$(SolutionDir)Stride.Core.Build.targets" Condition="Exists('$(SolutionDir)Stride.Core.Build.targets')" />
+  <Import Project="$(BuildDir)/$(SolutionName).Build.targets" Condition="Exists('$(BuildDir)/$(SolutionName).Build.targets')" />
+  <Import Project="$(BuildDir)/Stride.Core.Build.targets" Condition="Exists('$(BuildDir)/Stride.Core.Build.targets')" />
 
   <!-- Workaround: GetPackagingOutputs from UWP (uap) try to build ProjectReference with current TFM, and that's the only way I could find to skip it -->
   <Target Name="_StrideRemoveTargetFrameworkBeforeGetPackagingOutputs" BeforeTargets="GetPackagingOutputs">
@@ -22,11 +30,6 @@
       </ProjectReferenceWithConfiguration>
     </ItemGroup>
   </Target>
-
-  <!-- Linux Compatibility Properties -->
-  <PropertyGroup>
-    <TEMP>$([System.IO.Path]::GetTempPath())</TEMP>
-  </PropertyGroup>
 
   <!-- Code Analysis -->
   <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
@@ -194,11 +197,10 @@
         <Source Condition="%(StrideTranslations.Source) == ''">%(StrideTranslations.Identity)</Source>
       </_StrideTranslations>
     </ItemGroup>
-
     <Message Importance="High" Text="Generating translation for %(_StrideTranslations.Identity) %(_StrideTranslations.SourceFolder)"/>
 
-    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po')"
-          Command="$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe -r $(TargetName) -d $(TargetDir) -l %(_StrideTranslations.Identity) -L $(SolutionDir)..\deps\Gettext.Net\ $(MSBuildThisFileDirectory)..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po" />
+    <Exec Condition="Exists('$(SourceDir)\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po')"
+          Command="&quot;$(DependencyDir)\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; -r $(TargetName) -d &quot;$(TargetDir)\&quot; -l %(_StrideTranslations.Identity) -L &quot;$(DependencyDir)\Gettext.Net&quot; &quot;$(MSBuildThisFileDirectory)..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po&quot;" />
 
     <ItemGroup>
       <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll')">
@@ -219,10 +221,7 @@
   <PropertyGroup>
     <_SdkLanguageSourceName Condition="'$(MSBuildProjectExtension)' == '.csproj'">CSharp</_SdkLanguageSourceName>
   </PropertyGroup>
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Inference.targets" />
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Platforms.targets" />
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\DefaultItems\ImplicitPackages.targets"/>
-
+  
     <!-- A workaround for https://github.com/microsoft/msbuild/issues/4584 and resolves https://github.com/onovotny/MSBuildSdkExtras/issues/176 -->
   <Target Name="_RemoveNativeReferencesManifest" Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'" AfterTargets="BuiltProjectOutputGroup">
     <ItemGroup>

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -30,6 +31,8 @@ namespace Stride.Rendering
     {
         [DataMemberIgnore]
         public static readonly PropertyKey<Dictionary<RenderModel, RenderInstancing>> ModelToInstancingMap = new PropertyKey<Dictionary<RenderModel, RenderInstancing>>("InstancingRenderFeature.ModelToInstancingMap", typeof(InstancingRenderFeature));
+
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("InstancingRenderFeature.PrepareEffectPermutations");
 
         private StaticObjectPropertyKey<InstancingData> renderObjectInstancingDataInfoKey;
 
@@ -107,6 +110,7 @@ namespace Stride.Rendering
 
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareEffectPermutationsKey);
             var renderObjectInstancingData = RootRenderFeature.RenderData.GetData(renderObjectInstancingDataInfoKey);
 
             var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);

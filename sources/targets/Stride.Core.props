@@ -2,9 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Setup this part according to your project if you want your .csproj to compile individually without going through the .sln file -->
   <PropertyGroup>
-    <SolutionDir Condition=" '$(SolutionDir)' == '' ">$(MSBuildThisFileDirectory)..\..\build\</SolutionDir>
     <SolutionName Condition=" '$(SolutionName)' == '' ">Stride</SolutionName>
-    <SolutionPath Condition=" '$(SolutionPath)' == '' ">$(SolutionDir)$(SolutionName).sln</SolutionPath>
   </PropertyGroup>
 
   <!-- Setup StridePlatform according to current TargetFramework -->
@@ -35,9 +33,8 @@
   </PropertyGroup>
 
   <!--Import Local Pre Settings for the solution being loaded -->
-  <Import Project="$(SolutionDir)$(SolutionName).Build.props" Condition="Exists('$(SolutionDir)$(SolutionName).Build.props')" />
-  <Import Project="$(SolutionDir)Stride.Core.Build.props" Condition="Exists('$(SolutionDir)Stride.Core.Build.props')" />
-
+  <Import Project="$(MSBuildThisFileDirectory)..\..\build\$(SolutionName).Build.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\build\$(SolutionName).Build.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\build\Stride.Core.Build.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\build\Stride.Core.Build.props')" />
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.TargetFrameworks.Editor.props" />
   
   <!-- 

@@ -1,4 +1,4 @@
-<Project Sdk="MSBuild.Sdk.Extras/3.0.22" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\targets\Stride.Core.TargetFrameworks.Editor.props" />
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>

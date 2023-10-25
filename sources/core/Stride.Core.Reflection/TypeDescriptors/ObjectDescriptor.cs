@@ -213,11 +213,12 @@ namespace Stride.Core.Reflection
             }
 
             // TODO: we might want an option to disable non-public.
-            if (Category == DescriptorCategory.Object || Category == DescriptorCategory.NotSupportedObject)
+            if (Category is DescriptorCategory.Object or DescriptorCategory.NotSupportedObject)
                 bindingFlags |= BindingFlags.NonPublic;
 
             var memberList = (from propertyInfo in Type.GetProperties(bindingFlags)
-                              where propertyInfo.CanRead && propertyInfo.GetIndexParameters().Length == 0 && IsMemberToVisit(propertyInfo)
+                              where Type.IsAnonymous() || IsAccessibleThroughAccessModifiers(propertyInfo)
+                              where propertyInfo.GetIndexParameters().Length == 0 && IsMemberToVisit(propertyInfo)
                               select new PropertyDescriptor(factory.Find(propertyInfo.PropertyType), propertyInfo, NamingConvention.Comparer)
                               into member
                               where PrepareMember(member, metadataClassMemberInfos?.FirstOrDefault(x => x.MemberInfo.Name == member.OriginalName && x.MemberType == member.Type).MemberInfo)
@@ -225,7 +226,8 @@ namespace Stride.Core.Reflection
 
             // Add all public fields
             memberList.AddRange(from fieldInfo in Type.GetFields(bindingFlags)
-                                where fieldInfo.IsPublic && IsMemberToVisit(fieldInfo)
+                                where (fieldInfo.IsPublic || (fieldInfo.IsAssembly && fieldInfo.GetCustomAttribute<DataMemberAttribute>() != null))
+                                where IsMemberToVisit(fieldInfo)
                                 select new FieldDescriptor(factory.Find(fieldInfo.FieldType), fieldInfo, NamingConvention.Comparer)
                                 into member
                                 where PrepareMember(member, metadataClassMemberInfos?.FirstOrDefault(x => x.MemberInfo.Name == member.OriginalName && x.MemberType == member.Type).MemberInfo)
@@ -235,6 +237,33 @@ namespace Stride.Core.Reflection
             (AttributeRegistry as AttributeRegistry)?.PrepareMembersCallback?.Invoke(this, memberList);
 
             return memberList;
+        }
+
+        static bool IsAccessibleThroughAccessModifiers(PropertyInfo property)
+        {
+            var get = property.GetMethod;
+            var set = property.SetMethod;
+
+            if (get == null)
+                return false;
+
+            bool forced = property.GetCustomAttribute<DataMemberAttribute>() is not null;
+
+            if (forced && (get.IsPublic || get.IsAssembly))
+                return true;
+
+            // By default, allow access for get-only auto-property, i.e.: { get; } but not { get => }
+            // as the later may create side effects, and without a setter, we can't 'set' as a fallback for those exceptional cases.
+            if (get.IsPublic)
+                return set?.IsPublic == true || set == null && TryGetBackingField(property, out _);
+
+            return false;
+        }
+
+        static bool TryGetBackingField(PropertyInfo property, out FieldInfo backingField)
+        {
+            backingField = property.DeclaringType.GetField($"<{property.Name}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+            return backingField != null;
         }
 
         protected virtual bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
@@ -253,8 +282,7 @@ namespace Stride.Core.Reflection
             }
 
             // Gets the style
-            var styleAttribute = attributes.FirstOrDefault(x => x is DataStyleAttribute) as DataStyleAttribute;
-            if (styleAttribute != null)
+            if (attributes.FirstOrDefault(x => x is DataStyleAttribute) is DataStyleAttribute styleAttribute)
             {
                 member.Style = styleAttribute.Style;
                 member.ScalarStyle = styleAttribute.ScalarStyle;
@@ -265,14 +293,12 @@ namespace Stride.Core.Reflection
             if (memberAttribute != null)
             {
                 ((IMemberDescriptor)member).Mask = memberAttribute.Mask;
+                member.Mode = memberAttribute.Mode;
                 if (!member.HasSet)
                 {
-                    if (memberAttribute.Mode == DataMemberMode.Assign ||
-                        (memberType.IsValueType && member.Mode == DataMemberMode.Content))
-                        throw new ArgumentException($"{memberType.FullName} {member.OriginalName} is not writeable by {memberAttribute.Mode.ToString()}.");
+                    if (memberAttribute.Mode == DataMemberMode.Assign || memberType.IsValueType || memberType == typeof(string))
+                        member.Mode = DataMemberMode.Never;
                 }
-
-                member.Mode = memberAttribute.Mode;
                 member.Order = memberAttribute.Order;
             }
 
@@ -292,16 +318,14 @@ namespace Stride.Core.Reflection
             DefaultValueAttribute defaultValueAttribute = null;
             foreach (var attribute in attributes)
             {
-                var valueAttribute = attribute as DefaultValueAttribute;
-                if (valueAttribute != null)
+                if (attribute is DefaultValueAttribute valueAttribute)
                 {
                     // If we've already found one, don't overwrite it
                     defaultValueAttribute = defaultValueAttribute ?? valueAttribute;
                     continue;
                 }
 
-                var yamlRemap = attribute as DataAliasAttribute;
-                if (yamlRemap != null)
+                if (attribute is DataAliasAttribute yamlRemap)
                 {
                     if (member.AlternativeNames == null)
                     {
@@ -414,12 +438,7 @@ namespace Stride.Core.Reflection
                 }
             }
 
-
-            // Member is not displayed if there is a YamlIgnore attribute on it
-            if (AttributeRegistry.GetAttribute<DataMemberIgnoreAttribute>(memberInfo) != null)
-                return false;
-
-            return true;
+            return AttributeRegistry.GetAttribute<DataMemberIgnoreAttribute>(memberInfo) is null;
         }
     }
 }

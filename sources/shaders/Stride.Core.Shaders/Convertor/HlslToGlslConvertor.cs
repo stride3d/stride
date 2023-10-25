@@ -21,12 +21,17 @@ using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
 namespace Stride.Core.Shaders.Convertor
 {
     /// <summary>
-    /// HLSL to GLSL conversion requires several steps:
-    /// - Replace input/output structure access by varying variables.
-    /// - Replace common types such as float4 =&gt; vec4.
-    /// - Change main signature.
-    /// - Convert return statements into GLSL out assignments.
+    /// A converter for transforming HLSL into GLSL.
     /// </summary>
+    /// <remarks>
+    /// HLSL to GLSL conversion requires several steps:
+    /// <list type="bullet">
+    /// <item>Replace input/output structure access by varying variables.</item>
+    /// <item>Replace common types such as float4 =&gt; vec4.</item>
+    /// <item>Change main signature.</item>
+    /// <item>Convert return statements into GLSL out assignments.</item>
+    /// </list>
+    /// </remarks>
     public class HlslToGlslConvertor : ShaderRewriter
     {
         // Each sampler+texture pair will map to a GLSL sampler.

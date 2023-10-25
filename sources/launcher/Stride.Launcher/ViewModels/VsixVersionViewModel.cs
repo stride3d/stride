@@ -81,14 +81,14 @@ namespace Stride.LauncherApp.ViewModels
 
         private string FormatStatus(string status)
         {
-            string vsixTarget = "Visual Studio ";
+            string vsixTarget = "Visual Studio {0} extension";
             switch (vsixSupportedVsVersion)
             {
                 case NugetStore.VsixSupportedVsVersion.VS2019:
-                    vsixTarget += "2019";
+                    vsixTarget = string.Format(vsixTarget,"2019");
                     break;
                 case NugetStore.VsixSupportedVsVersion.VS2022:
-                    vsixTarget += "2022";
+                    vsixTarget = string.Format(vsixTarget, "2022"); ;
                     break;
             }
             return $"{vsixTarget}: {status}";
