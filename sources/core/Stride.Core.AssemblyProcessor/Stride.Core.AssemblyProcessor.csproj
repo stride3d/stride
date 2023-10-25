@@ -27,7 +27,7 @@
   
   <!-- Add support for building this project from the Project Directory -->
   <PropertyGroup>
-    <DependencyDir>$(ProjectDir)..\..\..\..\deps</DependencyDir>
+    <DependencyDir>$(ProjectDir)..\..\..\deps</DependencyDir>
   </PropertyGroup>
 
   <!-- ======================================================================================== -->
