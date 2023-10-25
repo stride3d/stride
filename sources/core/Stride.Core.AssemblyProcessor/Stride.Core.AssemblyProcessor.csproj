@@ -1,7 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProductVersion>16.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Library</OutputType>
     <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -36,7 +34,6 @@
 
   <!-- Referenced Packages -->
   <ItemGroup>
-    <PackageReference Include="ILRepack" Version="2.0.18" PrivateAssets="All" />
     <PackageReference Include="Mono.Cecil" Version="0.11.5" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.3.2" ExcludeAssets="runtime" />
@@ -130,17 +127,14 @@
     />
   </Target>
   
-  <!-- Packs the BuildItems into a single .Packed DLL and generates a .hash file from it -->
+  <!-- Packs the BuildItems into a single  DLL and generates a .hash file from it -->
   <Target Name="GenerateHash" AfterTargets="CopyFiles">
-    <!-- Repack the assemblies into a single file -->
-    <Exec Command="cd &quot;$(DependencyDir)\AssemblyProcessor\$(TargetFramework)&quot;
-    &quot;$(ILRepack)&quot; Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
-    <!-- Generate the hash and then write it to disk with the .hash extension -->
-    <GetFileHash Files="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
+   <!-- Generate the hash and then write it to disk with the .hash extension -->
+    <GetFileHash Files="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor$(TargetExt)">
       <Output
           TaskParameter="Hash"
           PropertyName="PackedAssemblyHash" />
     </GetFileHash>
-    <WriteAllText Path="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt).hash" Contents="$(PackedAssemblyHash)"/>
+    <WriteAllText Path="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor$(TargetExt).hash" Contents="$(PackedAssemblyHash)"/>
   </Target>
 </Project>
