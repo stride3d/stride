@@ -28,6 +28,7 @@
       "..\\sources\\editor\\Stride.Core.MostRecentlyUsedFiles\\Stride.Core.MostRecentlyUsedFiles.shproj",
       "..\\sources\\editor\\Stride.Editor.CrashReport\\Stride.Editor.CrashReport.shproj",
       "..\\sources\\editor\\Stride.Editor.Wpf\\Stride.Editor.Wpf.csproj",
+      "..\\sources\\editor\\Stride.Editor\\Stride.Editor.csproj",
       "..\\sources\\editor\\Stride.GameStudio\\Stride.GameStudio.csproj",
       "..\\sources\\editor\\Stride.PrivacyPolicy\\Stride.PrivacyPolicy.shproj",
       "..\\sources\\editor\\Stride.Samples.Templates\\Stride.Samples.Templates.csproj",
