@@ -1,0 +1,5 @@
+<Project>
+  <Import Project="..\..\targets\Stride.props" />
+
+  <Import Project="$(StrideSdkTargets)" />
+</Project>
