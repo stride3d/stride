@@ -356,6 +356,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Editor.Avalon
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Editor", "..\sources\editor\Stride.Editor\Stride.Editor.csproj", "{CC16DE9A-F346-4AE3-9BF0-EE8A4D385B14}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Editor.Avalonia", "..\sources\xplat-editor\Stride.Editor.Avalonia\Stride.Editor.Avalonia.csproj", "{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1613,6 +1615,18 @@ Global
 		{CC16DE9A-F346-4AE3-9BF0-EE8A4D385B14}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{CC16DE9A-F346-4AE3-9BF0-EE8A4D385B14}.Release|Win32.ActiveCfg = Release|Any CPU
 		{CC16DE9A-F346-4AE3-9BF0-EE8A4D385B14}.Release|Win32.Build.0 = Release|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Debug|Win32.Build.0 = Debug|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Release|Win32.ActiveCfg = Release|Any CPU
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1749,6 +1763,7 @@ Global
 		{B7FD8293-7F32-46FF-AAF6-36D2C594760D} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
 		{6F5A1D7F-15A0-4439-86AE-7102478DAA8B} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
 		{CC16DE9A-F346-4AE3-9BF0-EE8A4D385B14} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
+		{2C7C4631-CCB2-4BDD-9D9B-7E5ABCCD51EB} = {BD3F1AB2-28DA-4C23-B819-B5873C74E962}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
