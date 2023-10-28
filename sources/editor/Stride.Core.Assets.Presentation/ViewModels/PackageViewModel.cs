@@ -14,8 +14,6 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     // FIXME should only contain editable viewmodels
     protected readonly SortedObservableCollection<ViewModelBase> content = new(ComparePackageContent);
 
-    protected readonly ObservableSet<AssetViewModel> rootAssets = new();
-
     public PackageViewModel(ISessionViewModel session, PackageContainer packageContainer)
         : base(session)
     {
@@ -69,6 +67,11 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         get => Package.FullPath;
         set => SetValue(() => Package.FullPath = value);
     }
+    
+    /// <summary>
+    /// Gets the collection of root assets for this package.
+    /// </summary>
+    public ObservableSet<AssetViewModel> RootAssets { get; } = new ObservableSet<AssetViewModel>();
 
     public UDirectory RootDirectory => Package.RootDirectory;
 
@@ -119,6 +122,19 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
             GetOrCreateAssetDirectory(explicitDirectory);
         }
     }
+    
+    /// <summary>
+    /// Indicates whether the given asset in within the scope of this package, either by being part of this package or part of
+    /// one of its dependencies.
+    /// </summary>
+    /// <param name="asset">The asset for which to check if it's in the scope of this package</param>
+    /// <returns><c>True</c> if the asset is in scope, <c>False</c> otherwise.</returns>
+    public bool IsInScope(AssetViewModel asset)
+    {
+        var assetPackage = asset.Directory.Package;
+        // Note: Would be better to switch to Dependencies view model as soon as we have FlattenedDependencies in those
+        return assetPackage == this || Package.Container.FlattenedDependencies.Any(x => x.Package == assetPackage.Package);
+    }
 
     private static int ComparePackageContent(ViewModelBase x, ViewModelBase y)
     {
@@ -153,12 +169,12 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     
     private void FillRootAssetCollection()
     {
-        rootAssets.Clear();
-        rootAssets.AddRange(Package.RootAssets.Select(x => Session.GetAssetById(x.Id)).NotNull()!);
+        RootAssets.Clear();
+        RootAssets.AddRange(Package.RootAssets.Select(x => Session.GetAssetById(x.Id)).NotNull()!);
         foreach (var dependency in PackageContainer.FlattenedDependencies)
         {
             if (dependency.Package != null)
-                rootAssets.AddRange(dependency.Package.RootAssets.Select(x => Session.GetAssetById(x.Id)).NotNull()!);
+                RootAssets.AddRange(dependency.Package.RootAssets.Select(x => Session.GetAssetById(x.Id)).NotNull()!);
         }
     }
 }

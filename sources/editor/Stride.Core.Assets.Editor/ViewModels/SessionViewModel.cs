@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Concurrent;
+using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.Components.Properties;
@@ -21,6 +22,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 {
     private SessionObjectPropertiesViewModel activeProperties;
     private readonly ConcurrentDictionary<AssetId, AssetViewModel> assetIdMap = [];
+    private ProjectViewModel? currentProject;
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = [];
     private readonly PackageSession session;
 
@@ -42,17 +44,16 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         // Initialize the asset collection view model
         EditorCollection = new EditorCollectionViewModel(this);
 
-        ActiveProperties = AssetCollection.AssetViewProperties;
+        activeProperties = AssetCollection.AssetViewProperties;
 
         // Initialize commands
         EditSelectedContentCommand = new AnonymousCommand(serviceProvider, OnEditSelectedContent);
 
         // Create package view models
-        this.session.Projects.ForEach(x =>
-        {
-            var package = CreateProjectViewModel(x, true);
-            AllPackages.Add(package);
-        });
+        this.session.Projects.ForEach(x => CreateProjectViewModel(x, true));
+
+        // Initialize other sub view models
+        Thumbnails = new ThumbnailsViewModel(this);
 
         GraphContainer = new AssetPropertyGraphContainer(AssetNodeContainer);
     }
@@ -68,24 +69,61 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         {
             if (SetValue(ref activeProperties, value))
             {
+                // FIXME xplat-editor
                 //ActiveAssetsChanged?.Invoke(this, new ActiveAssetsChangedArgs(value?.GetRelatedAssets().ToList()));
             }
         }
     }
 
-    public ObservableList<PackageViewModel> AllPackages { get; } = [];
+    public IEnumerable<AssetViewModel> AllAssets => AllPackages.SelectMany(x => x.Assets);
+
+    public IEnumerable<PackageViewModel> AllPackages => packageMap.Keys;
 
     public AssetCollectionViewModel AssetCollection { get; }
 
     public AssetNodeContainer AssetNodeContainer { get; }
+    
+    /// <summary>
+    /// Gets the current active project for build/startup operations.
+    /// </summary>
+    // TODO: this property should become cancellable to maintain action stack consistency! Undoing a "mark as root" operation after changing the current package wouldn't work.
+    public ProjectViewModel? CurrentProject
+    {
+        get => currentProject;
+        private set
+        {
+            var oldValue = currentProject; 
+            //SetValueUncancellable(ref currentProject, value, () => UpdateCurrentProject(oldValue, value));
+            SetValue(ref currentProject, value, () => UpdateCurrentProject(oldValue, value));
+        }
+    }
+    
+    /// <summary>
+    /// Gets the dependency manager associated to this session.
+    /// </summary>
+    public IAssetDependencyManager DependencyManager => session.DependencyManager;
 
     public EditorCollectionViewModel EditorCollection { get; }
 
     public AssetPropertyGraphContainer GraphContainer { get; }
 
+    public ThumbnailsViewModel Thumbnails { get; }
+
     public ICommandBase EditSelectedContentCommand { get; }
 
     internal Dictionary<Type, Type> AssetViewModelTypes { get; } = [];
+
+    internal IUndoRedoService? UndoRedoService => ServiceProvider.TryGet<IUndoRedoService>();
+
+    /// <summary>
+    /// Raised when some assets are modified.
+    /// </summary>
+    public event EventHandler<AssetChangedEventArgs>? AssetPropertiesChanged;
+
+    /// <summary>
+    /// Raised when the session state changed (e.g. current package).
+    /// </summary>
+    public event EventHandler<SessionStateChangedEventArgs>? SessionStateChanged;
 
     /// <inheritdoc />
     public AssetViewModel? GetAssetById(AssetId id)
@@ -135,6 +173,16 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         return sessionViewModel;
     }
     
+    /// <inheritdoc />
+    public override void Destroy()
+    {
+        EnsureNotDestroyed(nameof(SessionViewModel));
+
+        Thumbnails.Destroy();
+
+        base.Destroy();
+    }
+
     /// <inheritdoc />
     public Type GetAssetViewModelType(AssetItem assetItem)
     {
@@ -189,6 +237,47 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 
             package.LoadPackageInformation(token);
         }
+
+        // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
+        using var transaction = UndoRedoService?.CreateTransaction();
+        ProcessAddedPackages(AllPackages).Forget();
+    }
+    
+    private async Task ProcessAddedPackages(IEnumerable<PackageViewModel> packages)
+    {
+        var packageList = packages.ToList();
+        // We must refresh asset bases after all packages have been added, because we might have cross-packages references here.
+        packageList.SelectMany(x => x.Assets).ForEach(x => x.Initialize());
+        await AssetDependenciesViewModel.TriggerInitialReferenceBuild(this);
+        await Dispatcher.InvokeAsync(() => packageList.ForEach(x => Thumbnails.StartInitialBuild(x)));
+    }
+
+    private void SetCurrentProject(object selectedItem)
+    {
+        if (selectedItem is not ProjectViewModel project)
+        {
+            // Editor.MessageBox(Resources.Strings.SessionViewModel.SelectExecutableAsCurrentProject, MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        CurrentProject = project;
+        AllAssets.ForEach(x => x.Dependencies.NotifyRootAssetChange(false));
+        // FIXME xplat-editor
+        //SelectionIsRoot = ActiveAssetView.SelectedAssets.All(x => x.Dependencies.IsRoot);
+    }
+
+    private void UpdateCurrentProject(ProjectViewModel? oldValue, ProjectViewModel? newValue)
+    {
+        //if (oldValue != null)
+        //{
+        //    oldValue.IsCurrentProject = false;
+        //}
+        //if (newValue != null)
+        //{
+        //    newValue.IsCurrentProject = true;
+        //}
+        //ToggleIsRootOnSelectedAssetCommand.IsEnabled = CurrentProject != null;
+        //UpdateSessionState();
     }
 
     #region Commands

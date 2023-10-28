@@ -14,5 +14,22 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\engine\Stride.Assets.Models\Stride.Assets.Models.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Particles\Stride.Particles.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj" />
+    <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
+  </ItemGroup>
+
+  <!-- Resources -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\appbar.box.png" />
+    <EmbeddedResource Include="Resources\appbar.checkmark.cross.png" />
+    <EmbeddedResource Include="Resources\appbar.page.delete.png" />
+    <EmbeddedResource Include="Resources\appbar.resource.png" />
+    <EmbeddedResource Include="Resources\ThumbnailDependencyError.png" />
+    <EmbeddedResource Include="Resources\ThumbnailDependencyWarning.png" />
+  </ItemGroup>
+
   <Import Project="$(StrideSdkTargets)" />
 </Project>
