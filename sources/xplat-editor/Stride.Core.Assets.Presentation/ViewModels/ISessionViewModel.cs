@@ -1,8 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
@@ -11,11 +13,25 @@ public interface ISessionViewModel
 {
     SessionObjectPropertiesViewModel ActiveProperties { get; set; }
 
+    IEnumerable<AssetViewModel> AllAssets { get; }
+
+    IEnumerable<PackageViewModel> AllPackages { get; }
+
     AssetNodeContainer AssetNodeContainer { get; }
+
+    ProjectViewModel? CurrentProject { get; }
+
+    IAssetDependencyManager DependencyManager { get; }
+
+    IDispatcherService Dispatcher { get; }
 
     AssetPropertyGraphContainer GraphContainer { get; }
 
     IViewModelServiceProvider ServiceProvider { get; }
+
+    event EventHandler<AssetChangedEventArgs>? AssetPropertiesChanged;
+
+    event EventHandler<SessionStateChangedEventArgs>? SessionStateChanged;
 
     /// <summary>
     /// Gets an <see cref="AssetViewModel"/> instance of the asset which as the given identifier, if available.

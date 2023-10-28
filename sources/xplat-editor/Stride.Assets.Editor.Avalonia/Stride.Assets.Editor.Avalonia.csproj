@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Assets.Editor\Stride.Assets.Editor.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Avalonia\Stride.Core.Assets.Editor.Avalonia.csproj" />
+    <ProjectReference Include="..\Stride.Editor.Avalonia\Stride.Editor.Avalonia.csproj" />
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />

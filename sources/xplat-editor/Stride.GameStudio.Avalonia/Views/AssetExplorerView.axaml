@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Stride.Core.Assets.Presentation.ViewModels"
              xmlns:vm2="using:Stride.Core.Assets.Editor.ViewModels"
+             xmlns:cv="using:Stride.GameStudio.Avalonia.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.AssetExplorerView"
              x:DataType="vm2:AssetCollectionViewModel">
@@ -30,6 +31,8 @@
             </Interaction.Behaviors>
             <TextBlock Text="Asset: " />
             <TextBlock Text="{Binding Name}" />
+            <Image Source="{Binding ThumbnailData.Presenter, Converter={cv:StrideImage}}"
+                   Width="64" Height="64"/>
           </StackPanel>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
