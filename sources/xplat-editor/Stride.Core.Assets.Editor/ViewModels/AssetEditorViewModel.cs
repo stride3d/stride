@@ -33,13 +33,13 @@ public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorVi
     where TAsset : AssetViewModel
 {
     public AssetEditorViewModel(TAsset asset)
-        : base(asset.ServiceProvider)
+        : base(asset)
     {
         Asset = asset;
     }
 
     /// <inheritdoc />
-    public TAsset Asset { get;}
+    public new TAsset Asset { get;}
 
     public SessionObjectPropertiesViewModel EditorProperties => Asset.Session.ActiveProperties;
 }
@@ -49,8 +49,14 @@ public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorVi
 /// </summary>
 public abstract class AssetEditorViewModel : DispatcherViewModel
 {
-    protected AssetEditorViewModel(IViewModelServiceProvider serviceProvider)
-        : base(serviceProvider)
+    protected AssetEditorViewModel(AssetViewModel asset)
+        : base(asset.ServiceProvider)
     {
+        Asset = asset;
     }
+
+    /// <summary>
+    /// The asset related to this editor.
+    /// </summary>
+    public AssetViewModel Asset { get; }
 }
