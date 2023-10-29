@@ -3,7 +3,6 @@
 
 using System.Collections.Concurrent;
 using Stride.Core.Assets.Analysis;
-using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
@@ -31,9 +30,8 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     {
         this.session = session;
 
-        // Gather all data from plugins
-        var pluginService = ServiceProvider.Get<PluginService>();
-        pluginService.RegisterSession(this, logger);
+        // Make sure plugins are initialized
+        PluginService.EnsureInitialized(logger);
 
         // Initialize the node container used for asset properties
         AssetNodeContainer = new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } };
@@ -56,6 +54,12 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         Thumbnails = new ThumbnailsViewModel(this);
 
         GraphContainer = new AssetPropertyGraphContainer(AssetNodeContainer);
+
+        // Initialize session itself in plugins
+        foreach (var plugin in PluginService.Plugins)
+        {
+            plugin.InitializeSession(this);
+        }
     }
 
     /// <summary>
@@ -111,7 +115,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 
     public ICommandBase EditSelectedContentCommand { get; }
 
-    internal Dictionary<Type, Type> AssetViewModelTypes { get; } = [];
+    internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
 
     internal IUndoRedoService? UndoRedoService => ServiceProvider.TryGet<IUndoRedoService>();
 
@@ -187,7 +191,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     public Type GetAssetViewModelType(AssetItem assetItem)
     {
         var assetType = assetItem.Asset.GetType();
-        return TypeHelpers.TryGetTypeOrBase(assetType, AssetViewModelTypes) ?? typeof(AssetViewModel<>);
+        return PluginService.GetAssetViewModelType(assetType) ?? typeof(AssetViewModel<>);
     }
  
     /// <inheritdoc />

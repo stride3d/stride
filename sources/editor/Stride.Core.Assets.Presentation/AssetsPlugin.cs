@@ -16,6 +16,8 @@ public abstract class AssetsPlugin
 
     public abstract void InitializePlugin(ILogger logger);
 
+    public abstract void InitializeSession(ISessionViewModel session);
+
     public static void RegisterPlugin(Type type)
     {
         if (type.GetConstructor(Type.EmptyTypes) == null)

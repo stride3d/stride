@@ -8,11 +8,17 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.Xaml.Interactions" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <!--<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />-->
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Stride.Editor.Avalonia\Stride.Editor.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- TODO xplat-editor that reference shouldn't be explicit and such assembly should be loaded as external plugins -->
     <ProjectReference Include="..\Stride.Assets.Editor.Avalonia\Stride.Assets.Editor.Avalonia.csproj" />
   </ItemGroup>
 

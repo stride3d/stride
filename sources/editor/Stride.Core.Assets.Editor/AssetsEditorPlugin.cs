@@ -11,19 +11,6 @@ namespace Stride.Core.Assets.Editor;
 
 public abstract class AssetsEditorPlugin : AssetsPlugin
 {
-    public void RegisterAssetEditorViewTypes(IDictionary<Type, Type> assetEditorViewModelTypes)
-    {
-        var pluginAssembly = GetType().Assembly;
-        foreach (var type in pluginAssembly.GetTypes())
-        {
-            if (typeof(IAssetEditorView).IsAssignableFrom(type) &&
-                type.GetCustomAttribute<AssetEditorViewAttribute>() is { } attribute)
-            {
-                assetEditorViewModelTypes.Add(attribute.EditorViewModelType, type);
-            }
-        }
-    }
-    
     public void RegisterAssetEditorViewModelTypes(IDictionary<Type, Type> assetEditorViewModelTypes)
     {
         var pluginAssembly = GetType().Assembly;
@@ -36,4 +23,21 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
             }
         }
     }
+
+    public void RegisterAssetEditorViewTypes(IDictionary<Type, Type> assetEditorViewTypes)
+    {
+        var pluginAssembly = GetType().Assembly;
+        foreach (var type in pluginAssembly.GetTypes())
+        {
+            if (typeof(IAssetEditorView).IsAssignableFrom(type) &&
+                type.GetCustomAttribute<AssetEditorViewAttribute>() is { } attribute)
+            {
+                assetEditorViewTypes.Add(attribute.EditorViewModelType, type);
+            }
+        }
+    }
+
+    public abstract void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes);
+
+    public abstract void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes);
 }

@@ -5,7 +5,6 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
@@ -48,7 +47,7 @@ public partial class App : Application
 
     private static void InitializePlugins()
     {
-        // TODO: load plugins from path, and ideally remove direct dependencies to these assemblies in this project.
+        // TODO xplat-editor load plugins from path, and ideally remove direct dependencies to these assemblies in this project.
         // Until then, use a hack to force loading the assemblies.
         string _;
         _ = typeof(Assets.Presentation.StrideDefaultAssetsPlugin).Name;

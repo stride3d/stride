@@ -8,6 +8,7 @@ This project is the main project for the `Game` support in the editor.
 * It should be platform-agnostic as well as UI-agnostic.
   In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) are allowed.
 * It will likely reference `Stride.Core.Assets.Editor` as well as Stride runtime libraries.
+* Ideally, it shouldn't reference `Stride.Assets`, but that currently isn't the case.
 
 ## Implementations
 
