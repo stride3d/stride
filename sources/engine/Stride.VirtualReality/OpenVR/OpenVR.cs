@@ -435,6 +435,12 @@ namespace Stride.VirtualReality
             return tex;
         }
 
+        public static void GetRecommendedRenderTargetSize(out (uint x, uint y) size)
+        {
+            size = default;
+            Valve.VR.OpenVR.System.GetRecommendedRenderTargetSize(ref size.x, ref size.y);
+        }
+
         public static ulong CreateOverlay()
         {
             var layerKeyName = Guid.NewGuid().ToString();
