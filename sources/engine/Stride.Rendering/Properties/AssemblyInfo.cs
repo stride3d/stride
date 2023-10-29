@@ -3,5 +3,6 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Stride.Engine" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Editor" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Editor.Wpf" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets.Presentation.Wpf" + Stride.PublicKeys.Default)]

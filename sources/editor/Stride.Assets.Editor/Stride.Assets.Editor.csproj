@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 
   <ItemGroup>

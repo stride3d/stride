@@ -48,11 +48,12 @@ public sealed class StrideEditorPlugin : AssetsEditorPlugin
         var settingsProvider = new GameSettingsProviderService(session);
         session.ServiceProvider.RegisterService(settingsProvider);
 
-        var builderService = new GameStudioBuilderService(session, settingsProvider, buildDirectory);
-        session.ServiceProvider.RegisterService(builderService);
+        // FIXME xplat-editor broken for now
+        //var builderService = new GameStudioBuilderService(session, settingsProvider, buildDirectory);
+        //session.ServiceProvider.RegisterService(builderService);
 
-        var thumbnailService = new GameStudioThumbnailService(session, settingsProvider, builderService);
-        session.ServiceProvider.RegisterService(thumbnailService);
+        //var thumbnailService = new GameStudioThumbnailService(session, settingsProvider, builderService);
+        //session.ServiceProvider.RegisterService(thumbnailService);
     }
 
     public override void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
