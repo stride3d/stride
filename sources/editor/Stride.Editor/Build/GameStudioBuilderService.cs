@@ -4,40 +4,45 @@
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.BuildEngine;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Shaders.Compiler;
 
 namespace Stride.Editor.Build;
 
-public class GameStudioBuilderService : AssetBuilderService
+public sealed class GameStudioBuilderService : AssetBuilderService
 {
     public static string GlobalEffectLogPath;
     private readonly ManualResetEvent shaderLoadedEvent = new(false);
     private readonly EffectPriorityScheduler taskScheduler;
     private readonly EffectCompilerBase effectCompiler;
-    // FIXME xplat-editor
-    //private readonly IDebugPage assetBuilderServiceDebugPage;
-    //private readonly IDebugPage effectCompilerServiceDebugPage;
+    private readonly IEditorDebugService? debugService;
+    private readonly IDebugPage? assetBuilderServiceDebugPage;
+    private readonly IDebugPage? effectCompilerServiceDebugPage;
     private readonly bool createDebugTools;
     private int currentJobToken = -1;
 
-    public GameStudioBuilderService(ISessionViewModel sessionViewModel, GameSettingsProviderService settingsProvider, string buildDirectory, bool createDebugTools = true)
+    public GameStudioBuilderService(ISessionViewModel session, GameSettingsProviderService settingsProvider, string buildDirectory, bool createDebugTools = true)
         : base(buildDirectory)
     {
         this.createDebugTools = createDebugTools;
         if (createDebugTools)
         {
-            // FIXME xplat-editor
-            //assetBuilderServiceDebugPage = EditorDebugTools.CreateLogDebugPage(GlobalLogger.GetLogger("AssetBuilderService"), "AssetBuilderService");
-            //effectCompilerServiceDebugPage = EditorDebugTools.CreateLogDebugPage(GlobalLogger.GetLogger("EffectCompilerCache"), "EffectCompilerCache");
+            debugService = session.ServiceProvider.TryGet<IEditorDebugService>();
+            assetBuilderServiceDebugPage = debugService?.CreateLogDebugPage(GlobalLogger.GetLogger("AssetBuilderService"), "AssetBuilderService");
+            effectCompilerServiceDebugPage = debugService?.CreateLogDebugPage(GlobalLogger.GetLogger("EffectCompilerCache"), "EffectCompilerCache");
         }
 
-        Session = sessionViewModel ?? throw new ArgumentNullException(nameof(sessionViewModel));
+        Session = session;
 
+        // FIXME xplat-editor crashes
         var shaderImporter = new StrideShaderImporter();
-        var shaderBuildSteps = shaderImporter.CreateSystemShaderBuildSteps(sessionViewModel);
-        shaderBuildSteps.StepProcessed += ShaderBuildStepsStepProcessed;
-        PushBuildUnit(new PrecompiledAssetBuildUnit(AssetBuildUnitIdentifier.Default, shaderBuildSteps, true));
+        var shaderBuildSteps = shaderImporter.CreateSystemShaderBuildSteps(session);
+        if (shaderBuildSteps !=  null)
+        {
+            shaderBuildSteps.StepProcessed += ShaderBuildStepsStepProcessed;
+            PushBuildUnit(new PrecompiledAssetBuildUnit(AssetBuildUnitIdentifier.Default, shaderBuildSteps, true));
+        }
 
         Database = new GameStudioDatabase(this, settingsProvider);
 
@@ -84,9 +89,8 @@ public class GameStudioBuilderService : AssetBuilderService
         base.Dispose();
         if (createDebugTools)
         {
-            // FIXME xplat-editor
-            //EditorDebugTools.UnregisterDebugPage(assetBuilderServiceDebugPage);
-            //EditorDebugTools.UnregisterDebugPage(effectCompilerServiceDebugPage);
+            debugService?.UnregisterDebugPage(assetBuilderServiceDebugPage!);
+            debugService?.UnregisterDebugPage(effectCompilerServiceDebugPage!);
         }
         if (!IsDisposed)
         {

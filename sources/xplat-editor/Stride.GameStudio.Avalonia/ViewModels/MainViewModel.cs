@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
@@ -21,9 +19,10 @@ internal sealed class MainViewModel : ViewModelBase
     public MainViewModel(IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
-        AboutCommand = new AnonymousTaskCommand(ServiceProvider, OnAbout, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
-        ExitCommand = new AnonymousCommand(ServiceProvider, OnExit, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
-        OpenCommand = new AnonymousTaskCommand(ServiceProvider, OnOpen);
+        AboutCommand = new AnonymousTaskCommand(serviceProvider, OnAbout, () => DialogService.HasMainWindow);
+        ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
+        OpenCommand = new AnonymousTaskCommand(serviceProvider, OnOpen);
+        OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
     }
 
     public string? Message
@@ -46,6 +45,8 @@ internal sealed class MainViewModel : ViewModelBase
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
     
+    public ICommandBase OpenDebugWindowCommand { get; }
+
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {
         if (session != null)
@@ -53,14 +54,14 @@ internal sealed class MainViewModel : ViewModelBase
 
         if (filePath == null || !File.Exists(filePath))
         {
-            filePath = await ServiceProvider.Get<IDialogService>().OpenFilePickerAsync();
+            filePath = await DialogService.OpenFilePickerAsync();
         }
 
         if (filePath == null) return false;
 
         var sessionResult = new PackageSessionResult();
         var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, sessionResult, ServiceProvider, token);
-        
+
         // Loading has failed
         if (loadedSession == null)
         {
@@ -85,5 +86,10 @@ internal sealed class MainViewModel : ViewModelBase
     private Task OnOpen()
     {
         return OpenSession(null);
+    }
+
+    private async Task OnOpenDebugWindow()
+    {
+        await DialogService.ShowDebugWindowAsync();
     }
 }

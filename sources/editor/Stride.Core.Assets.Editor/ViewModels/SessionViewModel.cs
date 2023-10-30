@@ -10,8 +10,8 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
-using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
@@ -24,6 +24,10 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     private ProjectViewModel? currentProject;
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = [];
     private readonly PackageSession session;
+
+    private readonly IDebugPage? assetNodesDebugPage;
+    private readonly IDebugPage? quantumDebugPage;
+    private readonly IDebugPage? undoRedoStackPage;
 
     private SessionViewModel(IViewModelServiceProvider serviceProvider, PackageSession session, ILogger logger)
         : base(serviceProvider)
@@ -42,7 +46,16 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         // Initialize the asset collection view model
         EditorCollection = new EditorCollectionViewModel(this);
 
-        activeProperties = AssetCollection.AssetViewProperties;
+        // Initialize debug pages
+        var debugService = serviceProvider.Get<IEditorDebugService>();
+        assetNodesDebugPage = debugService.CreateAssetNodesDebugPage(this, "Asset nodes visualizer");
+        quantumDebugPage = debugService.CreateLogDebugPage(GlobalLogger.GetLogger(GraphViewModel.DefaultLoggerName), "Quantum log");
+        if (ActionService is { } actionService)
+        {
+            undoRedoStackPage = debugService.CreateUndoRedoDebugPage(actionService, "Undo/redo stack");
+        }
+
+        ActiveProperties = AssetCollection.AssetViewProperties;
 
         // Initialize commands
         EditSelectedContentCommand = new AnonymousCommand(serviceProvider, OnEditSelectedContent);
@@ -86,7 +99,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     public AssetCollectionViewModel AssetCollection { get; }
 
     public AssetNodeContainer AssetNodeContainer { get; }
-    
+
     /// <summary>
     /// Gets the current active project for build/startup operations.
     /// </summary>
@@ -96,12 +109,12 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         get => currentProject;
         private set
         {
-            var oldValue = currentProject; 
+            var oldValue = currentProject;
             //SetValueUncancellable(ref currentProject, value, () => UpdateCurrentProject(oldValue, value));
             SetValue(ref currentProject, value, () => UpdateCurrentProject(oldValue, value));
         }
     }
-    
+
     /// <summary>
     /// Gets the dependency manager associated to this session.
     /// </summary>
@@ -117,7 +130,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 
     internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
 
-    internal IUndoRedoService? UndoRedoService => ServiceProvider.TryGet<IUndoRedoService>();
+    internal IUndoRedoService? ActionService => ServiceProvider.TryGet<IUndoRedoService>();
 
     /// <summary>
     /// Raised when some assets are modified.
@@ -141,8 +154,8 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         // TODO register a bunch of services
         //serviceProvider.RegisterService(new CopyPasteService());
         // Create the undo/redo service for this session. We use an initial size of 0 to prevent asset upgrade to be cancellable.
-        var undoRedoService = new UndoRedoService(0);
-        serviceProvider.RegisterService(undoRedoService);
+        var actionService = new UndoRedoService(0);
+        serviceProvider.RegisterService(actionService);
 
         var sessionViewModel = await Task.Run(() =>
         {
@@ -159,9 +172,9 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
                 if (!token.IsCancellationRequested)
                 {
                     result = new SessionViewModel(serviceProvider, sessionResult.Session, sessionResult);
-                    
+
                     // Build asset view models
-                    result.LoadAssetsFromPackages(token); 
+                    result.LoadAssetsFromPackages(token);
                 }
             }
             catch (Exception ex)
@@ -169,20 +182,25 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
                 sessionResult.Error("There was a problem opening the solution.", ex);
                 result = null;
             }
-            
+
             return result;
 
         }, token);
 
         return sessionViewModel;
     }
-    
+
     /// <inheritdoc />
     public override void Destroy()
     {
         EnsureNotDestroyed(nameof(SessionViewModel));
 
         Thumbnails.Destroy();
+
+        var debugService = ServiceProvider.Get<IEditorDebugService>();
+        debugService.UnregisterDebugPage(undoRedoStackPage);
+        debugService.UnregisterDebugPage(assetNodesDebugPage);
+        debugService.UnregisterDebugPage(quantumDebugPage);
 
         base.Destroy();
     }
@@ -193,7 +211,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         var assetType = assetItem.Asset.GetType();
         return PluginService.GetAssetViewModelType(assetType) ?? typeof(AssetViewModel<>);
     }
- 
+
     /// <inheritdoc />
     public void RegisterAsset(AssetViewModel asset)
     {
@@ -243,10 +261,10 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         }
 
         // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
-        using var transaction = UndoRedoService?.CreateTransaction();
+        using var transaction = ActionService?.CreateTransaction();
         ProcessAddedPackages(AllPackages).Forget();
     }
-    
+
     private async Task ProcessAddedPackages(IEnumerable<PackageViewModel> packages)
     {
         var packageList = packages.ToList();

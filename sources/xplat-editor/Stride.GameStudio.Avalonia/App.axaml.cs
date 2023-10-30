@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
@@ -66,6 +67,7 @@ public partial class App : Application
             new PluginService()
         };
         var serviceProvider = new ViewModelServiceProvider(services);
+        serviceProvider.RegisterService(new EditorDebugService(serviceProvider));
         serviceProvider.RegisterService(new EditorDialogService(serviceProvider));
         return serviceProvider;
     }

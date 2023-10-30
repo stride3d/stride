@@ -18,12 +18,18 @@
     <Menu Grid.Row="0" Grid.Column="0"
           VerticalAlignment="Top">
       <MenuItem Header="_File">
-        <MenuItem Header="_Open..." Command="{Binding OpenCommand}" />
+        <MenuItem Header="_Open..."
+                  Command="{Binding OpenCommand}" />
         <Separator />
-        <MenuItem Header="E_xit" Command="{Binding ExitCommand}" />
+        <MenuItem Header="E_xit"
+                  Command="{Binding ExitCommand}" />
       </MenuItem>
       <MenuItem Header="_Help">
-        <MenuItem Header="_About..." Command="{Binding AboutCommand}" />
+        <MenuItem Header="Show debug window"
+                  Command="{Binding OpenDebugWindowCommand}" />
+        <Separator/>
+        <MenuItem Header="_About..."
+                  Command="{Binding AboutCommand}" />
       </MenuItem>
     </Menu>
     <Grid Grid.Row="1"
