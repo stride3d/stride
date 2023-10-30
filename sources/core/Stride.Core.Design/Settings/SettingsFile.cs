@@ -23,6 +23,6 @@ namespace Stride.Core.Settings
         /// Gets the settings profile to serialize.
         /// </summary>
         [DataMemberCustomSerializer]
-        public SettingsProfile Settings { get; private set; }
+        public SettingsProfile Settings { get; init; }
     }
 }

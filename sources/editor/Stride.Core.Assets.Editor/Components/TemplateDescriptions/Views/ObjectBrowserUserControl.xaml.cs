@@ -53,7 +53,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
 
         public DataTemplate ObjectItemTemplate { get { return (DataTemplate)GetValue(ObjectItemTemplateProperty); } set { SetValue(ObjectItemTemplateProperty, value); } }
 
-        public DataTemplate ObjectItemTemplateSelector { get { return (DataTemplate)GetValue(ObjectItemTemplateSelectorProperty); } set { SetValue(ObjectItemTemplateSelectorProperty, value); } }
+        public DataTemplateSelector ObjectItemTemplateSelector { get { return (DataTemplateSelector)GetValue(ObjectItemTemplateSelectorProperty); } set { SetValue(ObjectItemTemplateSelectorProperty, value); } }
 
         public Style ObjectItemContainerStyle { get { return (Style)GetValue(ObjectItemContainerStyleProperty); } set { SetValue(ObjectItemContainerStyleProperty, value); } }
 

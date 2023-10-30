@@ -9,6 +9,9 @@ namespace CSharpBeginner.Code
 {
     /// <summary>
     /// This script demonstrates how we can load contect from code, and attach it to an entity
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/loading-content.html
+    /// </para>
     /// </summary>
     public class LoadingContentDemo : SyncScript
     {

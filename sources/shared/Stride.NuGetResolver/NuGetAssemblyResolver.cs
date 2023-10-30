@@ -7,20 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Loader;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-//using Newtonsoft.Json.Linq;
-using NuGet.Commands;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
-using NuGet.LibraryModel;
-using NuGet.ProjectModel;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
 namespace Stride.Core.Assets
@@ -30,7 +23,7 @@ namespace Stride.Core.Assets
         public const string DevSource = @"%LocalAppData%\Stride\NugetDev";
 
         static bool assembliesResolved;
-        static object assembliesLock = new object();
+        static readonly object assembliesLock = new object();
         static List<string> assemblies;
 
         internal static void DisableAssemblyResolve()
@@ -71,7 +64,7 @@ namespace Stride.Core.Assets
             {
                 // Check if already loaded.
                 // Somehow it happens for Microsoft.NET.Build.Tasks -> NuGet.ProjectModel, probably due to the specific way it's loaded.
-                var matchingAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName == eventArgs.Name);
+                var matchingAssembly = Array.Find(AppDomain.CurrentDomain.GetAssemblies(), x => x.FullName == eventArgs.Name);
                 if (matchingAssembly != null)
                     return matchingAssembly;
 
@@ -140,7 +133,7 @@ namespace Stride.Core.Assets
 #if NETCOREAPP
                             // Add TargetPlatform to net6.0 TFM (i.e. net6.0 to net6.0-windows7.0)
                             var platform = metadataAssembly?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
-                            if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp) && platform != string.Empty)
+                            if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp, StringComparison.Ordinal) && platform != string.Empty)
                             {
                                 var platformParseResult = Regex.Match(platform, @"([a-zA-Z]+)(\d+.*)");
                                 if (platformParseResult.Success && Version.TryParse(platformParseResult.Groups[2].Value, out var platformVersion))
@@ -199,9 +192,9 @@ namespace Stride.Core.Assets
                 if (assemblies != null)
                 {
                     var aname = new AssemblyName(eventArgs.Name);
-                    if (aname.Name.StartsWith("Microsoft.Build") && aname.Name != "Microsoft.Build.Locator")
+                    if (aname.Name.StartsWith("Microsoft.Build", StringComparison.Ordinal) && aname.Name != "Microsoft.Build.Locator")
                         return null;
-                    var assemblyPath = assemblies.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x) == aname.Name);
+                    var assemblyPath = assemblies.Find(x => Path.GetFileNameWithoutExtension(x) == aname.Name);
                     if (assemblyPath != null)
                     {
                         return Assembly.LoadFrom(assemblyPath);
@@ -218,9 +211,7 @@ namespace Stride.Core.Assets
             {
                 foreach (var packageSource in packageSources.Items.OfType<SourceItem>().ToList())
                 {
-                    var path = packageSource.GetValueAsPath();
-
-                    if (packageSource.Key.StartsWith(prefixName))
+                    if (packageSource.Key.StartsWith(prefixName, StringComparison.Ordinal))
                     {
                         // Remove entry from packageSources
                         settings.Remove("packageSources", packageSource);
@@ -239,7 +230,7 @@ namespace Stride.Core.Assets
         /// </summary>
         private static void RegisterNativeDependencies(List<string> assemblies, List<string> nativeLibs)
         {
-            var strideCoreAssembly = Assembly.LoadFrom(assemblies.FirstOrDefault(a => Path.GetFileNameWithoutExtension(a) == "Stride.Core"));
+            var strideCoreAssembly = Assembly.LoadFrom(assemblies.Find(a => Path.GetFileNameWithoutExtension(a) == "Stride.Core"));
             if (strideCoreAssembly is null)
                 throw new InvalidOperationException($"Couldn't find assembly 'Stride.Core' in restored packages");
 
@@ -257,7 +248,7 @@ namespace Stride.Core.Assets
 
         public class Logger : ILogger
         {
-            private object logLock = new object();
+            private readonly object logLock = new object();
             private Action<LogLevel, string> action;
             public List<(LogLevel Level, string Message)> Logs { get; } = new List<(LogLevel, string)>();
 

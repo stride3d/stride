@@ -26,17 +26,27 @@ namespace Stride.Engine
     [ComponentCategory("Animation")]
     public sealed class AnimationComponent : EntityComponent
     {
-        private readonly Dictionary<string, AnimationClip> animations;
-        private readonly TrackingCollection<PlayingAnimation> playingAnimations;
+        /// <summary>
+        /// Gets the animations associated to the component.
+        /// </summary>
+        /// <userdoc>The list of the animation associated to the entity.</userdoc>
+        public Dictionary<string, AnimationClip> Animations { get; } = new();
+
+        /// <summary>
+        /// Gets list of active animations. Use this to customize startup animations.
+        /// </summary>
+        [DataMemberIgnore]
+        public TrackingCollection<PlayingAnimation> PlayingAnimations { get; } = new();
 
         [DataMemberIgnore]
-        public AnimationBlender Blender { get; internal set; } = new AnimationBlender();
+        public AnimationBlender Blender { get; internal set; } = new();
+
+        [DataMemberIgnore]
+        public IBlendTreeBuilder BlendTreeBuilder { get; set; }
 
         public AnimationComponent()
         {
-            animations = new Dictionary<string, AnimationClip>();
-            playingAnimations = new TrackingCollection<PlayingAnimation>();
-            playingAnimations.CollectionChanged += PlayingAnimations_CollectionChanged;
+            PlayingAnimations.CollectionChanged += PlayingAnimations_CollectionChanged;
         }
 
         private void PlayingAnimations_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
@@ -64,23 +74,14 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Gets the animations associated to the component.
-        /// </summary>
-        /// <userdoc>The list of the animation associated to the entity.</userdoc>
-        public Dictionary<string, AnimationClip> Animations
-        {
-            get { return animations; }
-        }
-
-        /// <summary>
         /// Plays right away the animation with the specified name, instantly removing all other blended animations.
         /// </summary>
         /// <param name="name">The animation name.</param>
         public PlayingAnimation Play(string name)
         {
-            playingAnimations.Clear();
+            PlayingAnimations.Clear();
             var playingAnimation = new PlayingAnimation(name, Animations[name]) { CurrentTime = TimeSpan.Zero, Weight = 1.0f };
-            playingAnimations.Add(playingAnimation);
+            PlayingAnimations.Add(playingAnimation);
             return playingAnimation;
         }
 
@@ -91,7 +92,7 @@ namespace Stride.Engine
         /// <returns><c>true</c> if the animation is playing, <c>false</c> otherwise</returns>
         public bool IsPlaying(string name)
         {
-            foreach (var playingAnimation in playingAnimations)
+            foreach (var playingAnimation in PlayingAnimations)
             {
                 if (playingAnimation.Name.Equals(name))
                     return true;
@@ -122,7 +123,7 @@ namespace Stride.Engine
                 RepeatMode = repeatMode ?? clip.RepeatMode,
             };
 
-            playingAnimations.Add(playingAnimation);
+            PlayingAnimations.Add(playingAnimation);
 
             return playingAnimation;
         }
@@ -139,7 +140,7 @@ namespace Stride.Engine
                 throw new ArgumentException(nameof(name));
 
             // Fade all animations
-            foreach (var otherPlayingAnimation in playingAnimations)
+            foreach (var otherPlayingAnimation in PlayingAnimations)
             {
                 otherPlayingAnimation.WeightTarget = 0.0f;
                 otherPlayingAnimation.CrossfadeRemainingTime = fadeTimeSpan;
@@ -162,7 +163,7 @@ namespace Stride.Engine
                 throw new ArgumentException("name");
 
             var playingAnimation = new PlayingAnimation(name, Animations[name]) { CurrentTime = TimeSpan.Zero, Weight = 0.0f };
-            playingAnimations.Add(playingAnimation);
+            PlayingAnimations.Add(playingAnimation);
 
             if (fadeTimeSpan > TimeSpan.Zero)
             {
@@ -183,25 +184,20 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Gets list of active animations. Use this to customize startup animations.
-        /// </summary>
-        [DataMemberIgnore]
-        public TrackingCollection<PlayingAnimation> PlayingAnimations => playingAnimations;
-
-        [DataMemberIgnore]
-        public IBlendTreeBuilder BlendTreeBuilder { get; set; }
-
-        /// <summary>
         /// Returns an awaitable object that will be completed when the animation is removed from the PlayingAnimation list.
-        /// This happens when:
-        /// - RepeatMode is PlayOnce and animation reached end
-        /// - Animation faded out completely (due to blend to 0.0 or crossfade out)
-        /// - Animation was manually removed from AnimationComponent.PlayingAnimations
         /// </summary>
+        /// <remarks>
+        /// This happens when:
+        /// <list type="bullet">
+        /// <item>RepeatMode is PlayOnce and animation reached end</item>
+        /// <item>Animation faded out completely (due to blend to 0.0 or crossfade out)</item>
+        /// <item>Animation was manually removed from AnimationComponent.PlayingAnimations</item>
+        /// </list>
+        /// </remarks>
         /// <returns></returns>
         public Task Ended(PlayingAnimation animation)
         {
-            if (!playingAnimations.Contains(animation))
+            if (!PlayingAnimations.Contains(animation))
                 throw new InvalidOperationException("Trying to await end of an animation which is not playing");
 
             if (animation.EndedTCS == null)

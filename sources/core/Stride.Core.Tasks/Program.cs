@@ -20,7 +20,7 @@ namespace Stride.Core.Tasks
             {
                 MSBuildLocator.RegisterDefaults();
             }
-            catch (InvalidOperationException e) when (e.Message.StartsWith("No instances of MSBuild could be detected."))
+            catch (InvalidOperationException e) when (e.Message.StartsWith("No instances of MSBuild could be detected.", StringComparison.Ordinal))
             {
                 // When tasks running through build tools throw, it logs an obtuse 'The command [...]/Stride.Core.Tasks.exe [...] exited with code - x'
                 // message requiring the user to dig in the output to figure out what happened.

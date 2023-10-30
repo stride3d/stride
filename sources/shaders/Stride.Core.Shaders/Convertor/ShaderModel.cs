@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using System.Globalization;
 
 namespace Stride.Core.Shaders.Convertor
@@ -86,24 +88,24 @@ namespace Stride.Core.Shaders.Convertor
         {
             profile = CultureInfo.InvariantCulture.TextInfo.ToLower(profile);
 
-            if (profile.StartsWith("vs"))
+            if (profile.StartsWith("vs", StringComparison.Ordinal))
                 stage = PipelineStage.Vertex;
-            else if (profile.StartsWith("ps"))
+            else if (profile.StartsWith("ps", StringComparison.Ordinal))
                 stage = PipelineStage.Pixel;
-            else if (profile.StartsWith("gs"))
+            else if (profile.StartsWith("gs", StringComparison.Ordinal))
                 stage = PipelineStage.Geometry;
-            else if (profile.StartsWith("cs"))
+            else if (profile.StartsWith("cs", StringComparison.Ordinal))
                 stage = PipelineStage.Compute;
-            else if (profile.StartsWith("hs"))
+            else if (profile.StartsWith("hs", StringComparison.Ordinal))
                 stage = PipelineStage.Hull;
-            else if (profile.StartsWith("ds"))
+            else if (profile.StartsWith("ds", StringComparison.Ordinal))
                 stage = PipelineStage.Domain;
             else
             {
                 stage = PipelineStage.None;
             }
 
-            return profile.Length > 4 ? Parse(profile.Substring(3)) : ShaderModel.Model30;
+            return profile.Length > 4 ? Parse(profile[3..]) : ShaderModel.Model30;
         }
     }
 }

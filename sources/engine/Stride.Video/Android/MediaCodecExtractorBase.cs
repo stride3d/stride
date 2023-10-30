@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using Stride.Core.Diagnostics;
 using Stride.Core;
+using Stride.Core.Extensions;
 using Stride.Media;
 
 using Android.Media;

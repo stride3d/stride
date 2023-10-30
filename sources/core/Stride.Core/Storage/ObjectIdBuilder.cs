@@ -17,7 +17,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 using System;
-using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -212,7 +211,14 @@ namespace Stride.Core.Storage
         /// <param name="data">The data.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T data) where T : unmanaged
-            => Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>()));
+        {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_1_OR_GREATER
+            Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref data), Unsafe.SizeOf<T>()));
+#else
+            fixed (byte* buffer = &Unsafe.As<T, byte>(ref data))
+                Write(new ReadOnlySpan<byte>(buffer, Unsafe.SizeOf<T>()));
+#endif
+        }
 
         /// <summary>
         /// Writes the specified buffer to this instance.
@@ -238,7 +244,7 @@ namespace Stride.Core.Storage
         /// Writes a buffer of byte to this builder.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
-        /// <param name="count">The count.</param>
+        /// <param name="length">The lenght.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
         [Obsolete("Use Write(ReadOnlySpan<byte>)")]
@@ -301,8 +307,7 @@ namespace Stride.Core.Storage
         /// <summary>
         /// Writes a buffer of byte to this builder.
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="count">The count.</param>
+        /// <param name="span">The readonly span.</param>
         /// <exception cref="System.ArgumentNullException">buffer</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">count;Offset + Count is out of range</exception>
         public void Write(ReadOnlySpan<byte> span)
@@ -407,7 +412,14 @@ namespace Stride.Core.Storage
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static uint RotateLeft(uint x, byte r) => BitOperations.RotateLeft(x, r);
+        static uint RotateLeft(uint x, byte r)
+        {
+#if NETCOREAPP3_0_OR_GREATER              
+            return BitOperations.RotateLeft(x, r);
+#else
+            return (x << r) | (x >> (32 - r));
+#endif
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint FMix(uint h)

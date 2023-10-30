@@ -113,10 +113,10 @@ namespace Stride
             {
                 var device = devices[i];
                 //TODO: doing a grep instead will be better
-                var deviceNameOutputs = ShellHelper.RunProcessAndGetOutput(adbPath, string.Format(@"-s {0} shell cat /system/build.prop", device.Serial));
+                var deviceNameOutputs = ShellHelper.RunProcessAndGetOutput(adbPath, $@"-s {device.Serial} shell cat /system/build.prop");
                 foreach (var line in deviceNameOutputs.OutputLines)
                 {
-                    if (line != null && line.StartsWith(@"ro.product.model")) // correct line
+                    if (line != null && line.StartsWith(@"ro.product.model", StringComparison.Ordinal)) // correct line
                     {
                         var parts = line.Split('=');
 

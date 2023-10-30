@@ -226,7 +226,7 @@ namespace Stride.VirtualReality
 
             InitDone = true;
 
-            //this makes the camera behave like oculus rift default!
+            //set Universe to Seated by default
             Valve.VR.OpenVR.Compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseSeated);
 
             return true;

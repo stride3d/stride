@@ -418,7 +418,7 @@ namespace Stride.Importer.Assimp
                     itemName = itemName.Substring(0, itemNameSplitPosition);
                 }
 
-                itemNameSplitPosition = itemName.IndexOf("__");
+                itemNameSplitPosition = itemName.IndexOf("__", StringComparison.Ordinal);
                 if (itemNameSplitPosition != -1)
                 {
                     itemName = itemName.Substring(0, itemNameSplitPosition);

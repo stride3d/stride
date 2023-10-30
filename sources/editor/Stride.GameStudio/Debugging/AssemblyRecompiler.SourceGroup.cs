@@ -59,7 +59,7 @@ namespace Stride.GameStudio.Debugging
             /// <summary>
             /// Gets the default.
             /// </summary>
-            public new static SourceGroupComparer Default
+            public static new SourceGroupComparer Default
             {
                 get { return _default; }
             }
