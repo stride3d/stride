@@ -69,8 +69,8 @@ namespace Stride.Core.Assets.Editor.Settings
             };
             EnableMetrics = new SettingsKey<bool>("Interface/ToggleMetrics", SettingsContainer, true)
             {
-                DisplayName = $"{Interface}/{Tr._p("Settings", "Enable use of metrics")}",
-                Description = Tr._p("Settings", "Enable collecting data such as uptime, software usage")
+                DisplayName = $"{Interface}/{Tr._p("Settings", "Usage Analytics")}",
+                Description = Tr._p("Settings", "Anonymous usage analytics to help the Stride community improve the software. Statistics on installation, version-specific usage, and platform popularity. The data is open-source at https://metrics.stride3d.net")
             };
             StoreCrashEmail = new SettingsKey<string>("Interface/StoreCrashEmail", SettingsContainer, "")
             {
