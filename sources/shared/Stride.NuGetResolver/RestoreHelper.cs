@@ -109,7 +109,7 @@ namespace Stride.Core.Assets
             {
                 if (path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
                     || path.EndsWith(".so", StringComparison.OrdinalIgnoreCase)
-                    || path.Contains(".so.", StringComparison.OrdinalIgnoreCase)    // Linux allows for files like 'libnativedep.so.6'
+                    || path.IndexOf(".so.", StringComparison.OrdinalIgnoreCase) >= 0    // Linux allows for files like 'libnativedep.so.6'
                     || path.EndsWith(".dylib", StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
