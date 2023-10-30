@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Stride.Core.Assets.Editor.ViewModels"
+             mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
+             x:Class="Stride.GameStudio.Avalonia.Controls.DebugAssetNodesUserControl"
+             x:DataType="vm:DebugAssetNodeCollectionViewModel">
+  <!--<UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+
+      <Style x:Key="BreakButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource TransparentButtonStyle}">
+        <Setter Property="Content" Value="Break here..." />
+        <Setter Property="Margin" Value="4,0" />
+        <Setter Property="ToolTip" Value="Break on this node with the debugger (if attached)" />
+      </Style>
+
+
+    </ResourceDictionary>
+  </UserControl.Resources>-->
+  
+  <DockPanel>
+    <TextBlock Text="Toolbar placeholder (asset nodes)" />
+    <TreeView ItemsSource="{Binding AssetNodes}"
+              SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
+              SelectionMode="Single">
+      <Control.DataTemplates>
+        <TreeDataTemplate DataType="{x:Type vm:DebugAssetRootNodeViewModel}"
+                          ItemsSource="{Binding Children}">
+          <DockPanel>
+            <!--<Button DockPanel.Dock="Right" Command="{Binding BreakCommand}" Style="{StaticResource BreakButtonStyle}" />
+            <TextBlock x:Name="TextBlock">
+            [<Run Text="{Binding AssetType.Name, Mode=OneWay}"/>]
+            <Run Text="{Binding AssetName, Mode=OneWay}" FontWeight="Bold" Foreground="Gold"/>
+          </TextBlock>-->
+          </DockPanel>
+        </TreeDataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:DebugAssetBaseNodeViewModel}">
+          <DockPanel>
+            <!--<Button DockPanel.Dock="Right" Command="{Binding BreakCommand}" Style="{StaticResource BreakButtonStyle}" />-->
+            <TextBlock x:Name="TextBlock" FontStyle="Italic">
+            ---
+            <!--<Run Text="Base:" FontWeight="Bold" Foreground="Orchid"/>
+            <Run Text="{Binding Name, Mode=OneWay}" FontWeight="Bold" Foreground="Gold"/>
+            = <Run Text="{Binding Value, Mode=OneWay}" FontWeight="Bold" Foreground="PowderBlue"/>
+            from <Run Text="{Binding Asset.Url, Mode=OneWay}"/>-->
+          </TextBlock>
+          </DockPanel>
+        </DataTemplate>
+
+        <TreeDataTemplate DataType="{x:Type vm:DebugAssetChildNodeViewModel}"
+                          ItemsSource="{Binding Children}">
+          <DockPanel>
+            <!--<TextBlock x:Name="TextBlock" DockPanel.Dock="Left">
+              [<Run Text="{Binding LinkFromParent, Mode=OneWay}"/>/<Run Text="{Binding ContentType, Mode=OneWay}"/>]
+              <Run Text="{Binding Index, StringFormat=[{0}], Mode=OneWay}" x:Name="IndexRun" Foreground="LightGreen"/>
+              <Run Text="{Binding ItemId, StringFormat=[{0}], Mode=OneWay}" x:Name="ItemIdRun" Foreground="LightCyan"/>
+              <Run Text="{Binding Name, Mode=OneWay}" FontWeight="Bold" Foreground="Gold"/>
+              = <Run Text="{Binding Value, Mode=OneWay}" FontWeight="Bold" Foreground="PowderBlue"/>
+              <Run Text="{Binding Type.Name, StringFormat=({0}), Mode=OneWay}"/>
+            </TextBlock>
+            <Button DockPanel.Dock="Right" Command="{Binding BreakCommand}" Style="{StaticResource BreakButtonStyle}" />
+            <ContentPresenter Content="{Binding Base}"/>-->
+          </DockPanel>
+          <!--<DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Registered}" Value="False">
+              <Setter Property="Foreground" TargetName="TextBlock" Value="Red"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Index}" Value="{x:Static q:NodeIndex.Empty}">
+              <Setter Property="Text" TargetName="IndexRun" Value=""/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ItemId}" Value="{x:Null}">
+              <Setter Property="Text" TargetName="ItemIdRun" Value=""/>
+            </DataTrigger>
+          </DataTemplate.Triggers>-->
+        </TreeDataTemplate>
+      </Control.DataTemplates>
+      <!--<ItemsControl.ItemContainerStyle>
+        <Style TargetType="{x:Type sd:TreeViewItem}" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}">
+          <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        </Style>
+      </ItemsControl.ItemContainerStyle>-->
+    </TreeView>
+  </DockPanel>
+</UserControl>

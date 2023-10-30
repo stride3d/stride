@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"             
+             xmlns:ctrl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Stride.GameStudio.Avalonia.Controls.DebugLogUserControl">
+  <UserControl.Styles>
+    <Style Selector="ctrl|TextLogViewer">
+      <Setter Property="DebugBrush">
+        <SolidColorBrush Color="DarkGray"/>
+      </Setter>
+      <Setter Property="VerboseBrush">
+        <SolidColorBrush Color="White"/>
+      </Setter>
+      <Setter Property="InfoBrush">
+        <SolidColorBrush Color="LightGreen"/>
+      </Setter>
+      <Setter Property="WarningBrush">
+        <SolidColorBrush Color="Gold"/>
+      </Setter>
+      <Setter Property="ErrorBrush">
+        <SolidColorBrush Color="Tomato"/>
+      </Setter>
+      <Setter Property="FatalBrush">
+        <SolidColorBrush Color="Red"/>
+      </Setter>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top"
+                       Text="ToolBar placeholder (log viewer)" />
+            <ScrollViewer>
+              <SelectableTextBlock Name="PART_LogText" Background="Transparent" />
+            </ScrollViewer>
+          </DockPanel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+  <Grid>
+    <ctrl:TextLogViewer LogMessages="{Binding Messages}" />
+  </Grid>
+</UserControl>

@@ -11,11 +11,13 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
+using Stride.GameStudio.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
 internal sealed class MainViewModel : ViewModelBase
 {
+    private DebugWindow? debugWindow;
     private string? message;
     private SessionViewModel? session;
 
@@ -25,6 +27,7 @@ internal sealed class MainViewModel : ViewModelBase
         AboutCommand = new AnonymousTaskCommand(serviceProvider, OnAbout, () => DialogService.MainWindow != null);
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.MainWindow != null);
         OpenCommand = new AnonymousTaskCommand(serviceProvider, OnOpen);
+        OpenDebugWindowCommand = new AnonymousCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.MainWindow != null);
     }
 
     public string? Message
@@ -45,6 +48,8 @@ internal sealed class MainViewModel : ViewModelBase
 
     public ICommandBase OpenCommand { get; }
 
+    public ICommandBase OpenDebugWindowCommand { get; }
+
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {
         if (session != null)
@@ -59,7 +64,7 @@ internal sealed class MainViewModel : ViewModelBase
 
         var sessionResult = new PackageSessionResult();
         var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, sessionResult, ServiceProvider, token);
-        
+
         // Loading has failed
         if (loadedSession == null)
         {
@@ -84,5 +89,15 @@ internal sealed class MainViewModel : ViewModelBase
     private Task OnOpen()
     {
         return OpenSession(null);
+    }
+
+    private void OnOpenDebugWindow()
+    {
+        if (debugWindow == null)
+        {
+            debugWindow = new DebugWindow(new DebugWindowViewModel(ServiceProvider));
+            debugWindow.Show();
+            debugWindow.Closed += (s, e) => debugWindow = null;
+        }
     }
 }

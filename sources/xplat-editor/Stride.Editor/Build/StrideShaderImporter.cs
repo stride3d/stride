@@ -57,9 +57,8 @@ public class StrideShaderImporter
     /// </summary>
     /// <param name="session">The session used to retrieve currently used system packages.</param>
     /// <returns>A <see cref="ListBuildStep"/> containing the steps to build all shaders from system packages.</returns>
-    public ListBuildStep CreateSystemShaderBuildSteps(ISessionViewModel session)
+    public ListBuildStep? CreateSystemShaderBuildSteps(ISessionViewModel session)
     {
-        if (session == null) throw new ArgumentNullException(nameof(session));
         // Check if there are any new system projects to preload
         // TODO: PDX-1251: For now, allow non-system project as well (which means they will be loaded only once at startup)
         // Later, they should be imported depending on what project the currently previewed/built asset is

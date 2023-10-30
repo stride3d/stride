@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.ViewModels;
@@ -59,14 +60,14 @@ public partial class App : Application
     private static IViewModelServiceProvider InitializeServiceProvider()
     {
         var dispatcherService = DispatcherService.Create();
-        var dialogService = new EditorDialogService(dispatcherService);
-        var pluginService = new PluginService();
         var services = new object[]
         {
-            dialogService,
             dispatcherService,
-            pluginService
+            new EditorDialogService(dispatcherService),
+            new PluginService()
         };
-        return new ViewModelServiceProvider(services);
+        var serviceProvider = new ViewModelServiceProvider(services);
+        serviceProvider.RegisterService(new EditorDebugService(serviceProvider));
+        return serviceProvider;
     }
 }

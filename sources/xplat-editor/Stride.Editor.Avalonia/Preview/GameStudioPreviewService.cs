@@ -27,8 +27,7 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
 
     private readonly AutoResetEvent initializationSignal = new(false);
     private readonly GameEngineHost host;
-    // FIXME xplat-editor
-    //private readonly IDebugPage loggerDebugPage;
+    private readonly IDebugPage? loggerDebugPage;
     private IAssetPreview currentPreview;
     private IntPtr windowHandle;
     private EmbeddedGameForm gameForm;
@@ -57,8 +56,7 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
         gameSettingsProvider = session.ServiceProvider.Get<GameSettingsProviderService>();
 
         Logger = GlobalLogger.GetLogger("Preview");
-        // FIXME xplat-editor
-        //loggerDebugPage = EditorDebugTools.CreateLogDebugPage(Logger, "Preview");
+        loggerDebugPage = session.ServiceProvider.TryGet<IEditorDebugService>()?.CreateLogDebugPage(Logger, "Preview");
 
         previewGameSettings = GameSettingsFactory.Create();
         previewGameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = GraphicsProfile.Level_11_0;
@@ -119,8 +117,7 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
             //windowHandle = IntPtr.Zero;
             previewCompileContext?.Dispose();
 
-            // FIXME xplat-editor
-            //EditorDebugTools.UnregisterDebugPage(loggerDebugPage);
+            session.ServiceProvider.TryGet<IEditorDebugService>()?.UnregisterDebugPage(loggerDebugPage);
 
             IsDisposed = true;
         }
