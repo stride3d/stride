@@ -25,7 +25,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="StrideNative.h" />
-    <None Include="DirectInput\XInputChecker.cpp" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

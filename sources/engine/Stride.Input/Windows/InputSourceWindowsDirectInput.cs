@@ -4,9 +4,11 @@
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Collections.Generic;
+using Microsoft.Management.Infrastructure;
 using SharpDX;
 using SharpDX.DirectInput;
-using Stride.Native.DirectInput;
+using Microsoft.Management.Infrastructure.Options;
+using System.Text.RegularExpressions;
 
 namespace Stride.Input
 {
@@ -76,7 +78,7 @@ namespace Stride.Input
         public void OpenDevice(DeviceInstance deviceInstance)
         {
             // Ignore XInput devices since they are handled by XInput
-            if (XInputChecker.IsXInputDevice(ref deviceInstance.ProductGuid))
+            if (IsXInputDevice(ref deviceInstance.ProductGuid))
                 return;
 
             if (Devices.ContainsKey(deviceInstance.InstanceGuid))
@@ -115,6 +117,44 @@ namespace Stride.Input
                 };
                 RegisterDevice(controller);
             }
+        }
+
+        private bool IsXInputDevice(Guid productGuid)
+        {
+            // Set security level to IMPERSONATE
+
+            DComSessionOptions DComOptions = new DComSessionOptions();
+            DComOptions.Impersonation = ImpersonationType.Impersonate;
+
+            var mySession = CimSession.Create(null, DComOptions);
+
+            IEnumerable<CimInstance> allDevices = mySession.QueryInstances(@"root\cimv2", "WQL", "SELECT * FROM Win32_PNPEntity");
+
+            var regex = new Regex(@"VID_(\w+)?&PID_(\w+)?&IG_");
+
+            // Loop over all devices
+            foreach (var device in allDevices)
+            {
+                var deviceId = device.CimInstanceProperties["DeviceID"].Value.ToString();
+                
+                var match = regex.Match(deviceId);
+
+                // Check if the device ID contains "IG_".  If it does, then it's an XInput device
+                // This information can not be found from DirectInput 
+                
+                if (match.Success)
+                {
+                    string guidPart = (match.Groups[1].ToString()+match.Groups[2].ToString()).ToLower();
+
+                    if (productGuid.ToString().StartsWith(guidPart))
+                    {
+                        return true;
+                    }
+                }
+                 
+            }
+
+            return false;
         }
     }
 }
