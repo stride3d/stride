@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Transactions;
 
 namespace Stride.Core.Presentation.Services;
@@ -9,7 +10,7 @@ public class UndoRedoService : IUndoRedoService
 {
     private readonly ITransactionStack stack;
     private readonly Dictionary<Guid, string> operationNames = new();
-    //private readonly DirtiableManager dirtiableManager;
+    private readonly DirtiableManager dirtiableManager;
     private TaskCompletionSource<int>? undoRedoCompletion;
     private TaskCompletionSource<int>? transactionCompletion;
 
@@ -17,7 +18,7 @@ public class UndoRedoService : IUndoRedoService
     {
         stack = TransactionStackFactory.Create(stackCapacity);
         stack.TransactionCompleted += TransactionCompleted;
-        //dirtiableManager = new DirtiableManager(stack);
+        dirtiableManager = new DirtiableManager(stack);
     }
 
     public int Capacity => stack.Capacity;
@@ -99,7 +100,7 @@ public class UndoRedoService : IUndoRedoService
 
     public void NotifySave()
     {
-        //dirtiableManager.CreateSnapshot();
+        dirtiableManager.CreateSnapshot();
     }
 
     public void Resize(int newCapacity)

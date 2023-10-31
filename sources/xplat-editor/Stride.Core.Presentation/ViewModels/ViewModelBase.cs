@@ -249,8 +249,7 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
 
             propertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
 
-            string[] dependentProperties;
-            if (DependentProperties.TryGetValue(propertyName, out dependentProperties))
+            if (DependentProperties.TryGetValue(propertyName, out var dependentProperties))
             {
                 OnPropertyChanging(dependentProperties);
             }
@@ -268,8 +267,7 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
         for (var i = 0 ; i < propertyNames.Length; ++i)
         {
             var propertyName = propertyNames[propertyNames.Length - 1 - i];
-            string[] dependentProperties;
-            if (DependentProperties.TryGetValue(propertyName, out dependentProperties))
+            if (DependentProperties.TryGetValue(propertyName, out var dependentProperties))
             {
                 var reverseList = new string[dependentProperties.Length];
                 for (var j = 0; j < dependentProperties.Length; ++j)
