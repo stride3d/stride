@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:vm="using:Stride.GameStudio.Avalonia.ViewModels"
              xmlns:vw="using:Stride.GameStudio.Avalonia.Views"
              mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
@@ -12,23 +13,23 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <vm:MainViewModel />
   </Design.DataContext>
-  
+
   <Grid RowDefinitions="Auto, *, 25"
         Background="Transparent">
     <Menu Grid.Row="0" Grid.Column="0"
           VerticalAlignment="Top">
-      <MenuItem Header="_File">
-        <MenuItem Header="_Open..."
+      <MenuItem Header="{sd:Localize _File, Context=Menu}">
+        <MenuItem Header="{sd:Localize _Open..., Context=Menu}"
                   Command="{Binding OpenCommand}" />
         <Separator />
-        <MenuItem Header="E_xit"
+        <MenuItem Header="{sd:Localize E_xit, Context=Menu}"
                   Command="{Binding ExitCommand}" />
       </MenuItem>
-      <MenuItem Header="_Help">
-        <MenuItem Header="Show debug window"
+      <MenuItem Header="{sd:Localize _Help, Context=Menu}">
+        <MenuItem Header="{sd:Localize Show debug window, Context=Menu}"
                   Command="{Binding OpenDebugWindowCommand}" />
         <Separator/>
-        <MenuItem Header="_About..."
+        <MenuItem Header="{sd:Localize _About..., Context=Menu}"
                   Command="{Binding AboutCommand}" />
       </MenuItem>
       <MenuItem Header="Debug">
@@ -38,42 +39,42 @@
     </Menu>
     <Grid Grid.Row="1"
           RowDefinitions="2*, 2, *">
-        <Grid Grid.Row="0"
-              ColumnDefinitions="3*, 2, *">
-          <vw:EditorCollectionView Grid.Column="0"
-                                   BorderThickness="2"
-                                   BorderBrush="Red"
-                                   Padding="2"
-                                   DataContext="{Binding Session.EditorCollection}" />
-          <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
-          <vw:PropertyGridView Grid.Column="2"
-                               BorderThickness="2"
-                               BorderBrush="Orange"
-                               Padding="2"
-                               DataContext="{Binding Session.ActiveProperties}" />
-        </Grid>
-        <GridSplitter Grid.Row="1" ResizeDirection="Auto" />
-        <Grid Grid.Row="2"
-              ColumnDefinitions="*, 2, 2*, 2, *">
-          <vw:SolutionExplorerView Grid.Column="0"
-                                   BorderThickness="2"
-                                   BorderBrush="Black"
-                                   Padding="2"
-                                   DataContext="{Binding Session}" />
-          <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
-          <vw:AssetExplorerView Grid.Column="2"
-                                BorderThickness="2"
-                                BorderBrush="Blue"
-                                Padding="2"
-                                DataContext="{Binding Session.AssetCollection}"/>
-          <GridSplitter Grid.Column="3" ResizeDirection="Auto" />
-          <vw:AssetPreviewView Grid.Column="5"
-                               BorderThickness="2"
-                               BorderBrush="Cyan"
-                               Padding="2" />
-        </Grid>
+      <Grid Grid.Row="0"
+            ColumnDefinitions="3*, 2, *">
+        <vw:EditorCollectionView Grid.Column="0"
+                                 BorderThickness="2"
+                                 BorderBrush="Red"
+                                 Padding="2"
+                                 DataContext="{Binding Session.EditorCollection}" />
+        <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
+        <vw:PropertyGridView Grid.Column="2"
+                             BorderThickness="2"
+                             BorderBrush="Orange"
+                             Padding="2"
+                             DataContext="{Binding Session.ActiveProperties}" />
+      </Grid>
+      <GridSplitter Grid.Row="1" ResizeDirection="Auto" />
+      <Grid Grid.Row="2"
+            ColumnDefinitions="*, 2, 2*, 2, *">
+        <vw:SolutionExplorerView Grid.Column="0"
+                                 BorderThickness="2"
+                                 BorderBrush="Black"
+                                 Padding="2"
+                                 DataContext="{Binding Session}" />
+        <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
+        <vw:AssetExplorerView Grid.Column="2"
+                              BorderThickness="2"
+                              BorderBrush="Blue"
+                              Padding="2"
+                              DataContext="{Binding Session.AssetCollection}"/>
+        <GridSplitter Grid.Column="3" ResizeDirection="Auto" />
+        <vw:AssetPreviewView Grid.Column="4"
+                             BorderThickness="2"
+                             BorderBrush="Cyan"
+                             Padding="2" />
+      </Grid>
     </Grid>
-    
+
     <TextBlock Grid.Row="2"
                Text="{Binding Message}"
                HorizontalAlignment="Center" VerticalAlignment="Center"/>
