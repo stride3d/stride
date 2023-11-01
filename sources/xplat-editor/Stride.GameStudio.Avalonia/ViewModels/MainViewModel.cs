@@ -1,38 +1,32 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
-using Stride.GameStudio.Avalonia.Services;
-using Stride.GameStudio.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
 internal sealed class MainViewModel : ViewModelBase
 {
-    private DebugWindow? debugWindow;
     private string? message;
     private SessionViewModel? session;
 
     public MainViewModel(IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
-        AboutCommand = new AnonymousTaskCommand(serviceProvider, OnAbout, () => DialogService.MainWindow != null);
+        AboutCommand = new AnonymousTaskCommand(serviceProvider, OnAbout, () => DialogService.HasMainWindow);
 #if DEBUG
         CrashCommand = new AnonymousCommand(serviceProvider, () => throw new Exception("Boom!"));
 #else
         CrashCommand = DisabledCommand.Instance;
 #endif
-        ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.MainWindow != null);
+        ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
         OpenCommand = new AnonymousTaskCommand(serviceProvider, OnOpen);
-        OpenDebugWindowCommand = new AnonymousCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.MainWindow != null);
+        OpenDebugWindowCommand = new AnonymousCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
     }
 
     public string? Message
@@ -57,6 +51,8 @@ internal sealed class MainViewModel : ViewModelBase
 
     public ICommandBase OpenDebugWindowCommand { get; }
 
+    private IEditorDialogService DialogService => ServiceProvider.Get<IEditorDialogService>();
+
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {
         if (session != null)
@@ -64,7 +60,7 @@ internal sealed class MainViewModel : ViewModelBase
 
         if (filePath == null || !File.Exists(filePath))
         {
-            filePath = await ServiceProvider.Get<IDialogService>().OpenFilePickerAsync();
+            filePath = await DialogService.OpenFilePickerAsync();
         }
 
         if (filePath == null) return false;
@@ -85,12 +81,12 @@ internal sealed class MainViewModel : ViewModelBase
 
     private async Task OnAbout()
     {
-        await ServiceProvider.Get<IEditorDialogService>().ShowAboutWindowAsync();
+        await DialogService.ShowAboutWindowAsync();
     }
 
     private void OnExit()
     {
-        ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).TryShutdown();
+        DialogService.Exit();
     }
 
     private Task OnOpen()
@@ -100,11 +96,6 @@ internal sealed class MainViewModel : ViewModelBase
 
     private void OnOpenDebugWindow()
     {
-        if (debugWindow == null)
-        {
-            debugWindow = new DebugWindow(new DebugWindowViewModel(ServiceProvider));
-            debugWindow.Show();
-            debugWindow.Closed += (s, e) => debugWindow = null;
-        }
+        DialogService.ShowDebugWindow();
     }
 }

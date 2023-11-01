@@ -8,4 +8,6 @@ namespace Stride.Core.Assets.Editor.Services;
 public interface IEditorDialogService : IDialogService
 {
     Task ShowAboutWindowAsync();
+
+    void ShowDebugWindow();
 }

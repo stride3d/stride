@@ -19,9 +19,23 @@ internal class DialogService : IDialogService
         Dispatcher = dispatcher;
     }
 
+    public bool HasMainWindow => MainWindow != null;
+
     public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
     protected IDispatcherService Dispatcher { get; }
+
+    public void Exit(int exitCode)
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        {
+            lifetime.Shutdown(exitCode);
+        }
+        else
+        {
+            Environment.Exit(exitCode);
+        }
+    }
 
     public async Task<UFile?> OpenFilePickerAsync()
     {

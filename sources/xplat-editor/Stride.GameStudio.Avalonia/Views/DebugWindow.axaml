@@ -6,7 +6,8 @@
         xmlns:vm="using:Stride.Core.Assets.Editor.ViewModels"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Stride.GameStudio.Avalonia.Views.DebugWindow"
-        Title="Debug Window" Height="768" Width="1024">
+        Title="Debug Window" Width="1024" Height="768"
+        WindowStartupLocation="CenterOwner">
   <Grid>
     <TabControl ItemsSource="{Binding Pages}">
       <ItemsControl.ItemTemplate>

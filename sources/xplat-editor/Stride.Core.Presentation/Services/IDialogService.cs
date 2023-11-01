@@ -10,5 +10,9 @@ namespace Stride.Core.Presentation.Services;
 /// </summary>
 public interface IDialogService
 {
+    bool HasMainWindow { get; }
+
+    void Exit(int exitCode = 0);
+
     Task<UFile?> OpenFilePickerAsync();
 }

@@ -21,6 +21,11 @@ public partial class App : Application
         InitializePlugins();
     }
 
+    public override void RegisterServices()
+    {
+        base.RegisterServices();
+    }
+
     public override void OnFrameworkInitializationCompleted()
     {
         // Line below is needed to remove Avalonia data validation.
@@ -63,10 +68,10 @@ public partial class App : Application
         var services = new object[]
         {
             dispatcherService,
-            new EditorDialogService(dispatcherService),
             new PluginService()
         };
         var serviceProvider = new ViewModelServiceProvider(services);
+        serviceProvider.RegisterService(new EditorDialogService(serviceProvider));
         serviceProvider.RegisterService(new EditorDebugService(serviceProvider));
         return serviceProvider;
     }
