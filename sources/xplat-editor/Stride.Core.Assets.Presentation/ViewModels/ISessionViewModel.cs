@@ -4,6 +4,7 @@
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
@@ -27,7 +28,13 @@ public interface ISessionViewModel
 
     AssetPropertyGraphContainer GraphContainer { get; }
 
+    IObservableCollection<PackageViewModel> LocalPackages { get; }
+
+    IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories { get; }
+
     IViewModelServiceProvider ServiceProvider { get; }
+
+    IObservableCollection<PackageViewModel> StorePackages { get; }
 
     event EventHandler<AssetChangedEventArgs>? AssetPropertiesChanged;
 

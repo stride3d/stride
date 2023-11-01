@@ -10,6 +10,10 @@ public sealed class AssetMountPointViewModel : MountPointViewModel
     {
     }
 
+    /// <inheritdoc/>
+    public override bool IsEditable => false;
+
+    /// <inheritdoc/>
     public override string Name
     {
         get => "Assets";

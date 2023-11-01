@@ -16,6 +16,11 @@ public sealed class DirectoryViewModel : DirectoryBaseViewModel
     }
 
     /// <summary>
+    /// Gets whether this directory is editable.
+    /// </summary>
+    public override bool IsEditable => Package.IsEditable;
+
+    /// <summary>
     /// Gets the package containing this directory.
     /// </summary>
     public override PackageViewModel Package => Parent.Package;
@@ -45,4 +50,12 @@ public sealed class DirectoryViewModel : DirectoryBaseViewModel
 
     /// <inheritdoc/>
     public override MountPointViewModel Root => Parent.Root;
+
+    /// <inheritdoc/>
+    public override string TypeDisplayName => "Folder";
+
+    protected override void UpdateIsDeletedStatus()
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -11,7 +11,7 @@
     <Grid DockPanel.Dock="Top">
       <TextBlock Text="Solution Explorer" />
     </Grid>
-    <TreeView ItemsSource="{Binding AllPackages}"
+    <TreeView ItemsSource="{Binding PackageCategories.Values}"
               SelectedItems="{Binding AssetCollection.SelectedLocations}"
               SelectionMode="Multiple"
               Margin="4">
@@ -19,6 +19,13 @@
         <TreeDataTemplate DataType="{x:Type vm:AssetMountPointViewModel}"
                           ItemsSource="{Binding SubDirectories}">
           <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{Binding Name}" />
+          </StackPanel>
+        </TreeDataTemplate>
+        <TreeDataTemplate DataType="{x:Type vm:ICategoryViewModel}"
+                           ItemsSource="{Binding Content}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Category: " />
             <TextBlock Text="{Binding Name}" />
           </StackPanel>
         </TreeDataTemplate>
@@ -43,6 +50,12 @@
             <TextBlock Text="{Binding Name}" />
           </StackPanel>
         </TreeDataTemplate>
+        <DataTemplate DataType="{x:Type vm:PackageReferenceViewModel}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Reference: " />
+            <TextBlock Text="{Binding Name}" />
+          </StackPanel>
+        </DataTemplate>
         <TreeDataTemplate DataType="{x:Type vm:ProjectCodeViewModel}"
                           ItemsSource="{Binding SubDirectories}">
           <StackPanel Orientation="Horizontal">
