@@ -31,6 +31,10 @@
         <MenuItem Header="_About..."
                   Command="{Binding AboutCommand}" />
       </MenuItem>
+      <MenuItem Header="Debug">
+        <MenuItem Header="Simulate a crash"
+                  Command="{Binding CrashCommand}" />
+      </MenuItem>
     </Menu>
     <Grid Grid.Row="1"
           RowDefinitions="2*, 2, *">

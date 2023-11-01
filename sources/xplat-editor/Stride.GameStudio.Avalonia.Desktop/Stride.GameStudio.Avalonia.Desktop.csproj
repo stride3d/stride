@@ -9,13 +9,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Stride.CrashReport" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.GameStudio.Avalonia\Stride.GameStudio.Avalonia.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="..\Directory.Build.props" Link="Directory.Build.props" />
     <None Include="..\xplat_editor-todo.md" Link="xplat_editor-todo.md" />
