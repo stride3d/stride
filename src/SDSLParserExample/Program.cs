@@ -171,34 +171,37 @@ void CreateMixin()
         mD
         .WithType("float4x3")
         .WithType("half3x3")
-        .WithConstant("a", 5)
+        .WithConstant("a", 5f)
         .WithInput("float3", "in_position", "SV_Position")
         .WithInput("float3", "in_normal", "Normal")
         .WithInput("float3", "in_color", "Color")
         .WithOutput("float3", "out_color", "Color")
-        .WithFunction("void", "DoNothing", static (ref FunctionBuilder.ParameterBuilder b) => b.With("int", "myInt").With("int", "otherInt"))
+        .WithFunction("void", "DoNothing", static b => b.With("float", "myInt").With("float", "otherInt"))
             .Return()
+            .FunctionEnd()
+        .WithFunction("float", "ReturnOne", static b => b)
+            .Return((m, f) => f.Constant(1f))
             .FunctionEnd()
         .WithEntryPoint(ExecutionModel.Vertex, "VSMain")
             .FunctionStart()
-            .DeclareAssign("a", 5)
-            .Declare("int", "b")
-            .AssignConstant("b", 6)
-            .Declare("int", "c")
+            .DeclareAssign("a", 5f)
+            .Declare("float", "b")
+            .AssignConstant("b", 6f)
+            .Declare("float", "c")
             .Assign(
                 "c", 
-                (Mixer m,ref FunctionBuilder f) => 
+                (m, f) => 
                     f.Add(
-                        "int", 
+                        "float", 
                         f.Load("a"), 
                         f.Mul(
-                            "int",
+                            "float",
                             f.Sin(f.Load("b")),
-                            f.Constant(3)
+                            f.Call("ReturnOne", x => x)
                         )
                     )
             )
-            .CallFunction("DoNothing", (ref FunctionCallerParameters p) => p.With(p.Builder.Load("a")).With(p.Builder.Add("int" ,p.Builder.Constant(8), p.Builder.Load("a"))))
+            .CallFunction("DoNothing", (FunctionCallerParameters p) => p.With(p.Builder.Load("a")).With(p.Builder.Add("float" ,p.Builder.Constant(8f), p.Builder.Load("a"))))
             .Return()
             .FunctionEnd()
         
