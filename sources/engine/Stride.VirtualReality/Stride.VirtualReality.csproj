@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
@@ -14,15 +14,6 @@
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
-      <ItemGroup>
-        <Reference Include="GoogleVRJava">
-          <HintPath>..\..\..\deps\GoogleVR\lib\Android\GoogleVRJava.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
   <Choose>
     <When Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' ">
       <ItemGroup>
@@ -58,22 +49,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="GoogleVR\GoogleVR.cpp" />
     <None Include="OculusOVR\OculusOVR.cpp" />
-    <None Include="Fove\Fove.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Silk.NET.OpenXR" Version="2.15.0" />
+    <PackageReference Include="Silk.NET.OpenXR" Version="2.17.1" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
-
-  </PropertyGroup>
-  <Target Name="_StrideIncludeExtraAssemblies">
-    <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)GoogleVRJava.dll" Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' " />
-    </ItemGroup>
-  </Target>
 </Project>

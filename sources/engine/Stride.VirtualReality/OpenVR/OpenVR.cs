@@ -226,7 +226,7 @@ namespace Stride.VirtualReality
 
             InitDone = true;
 
-            //this makes the camera behave like oculus rift default!
+            //set Universe to Seated by default
             Valve.VR.OpenVR.Compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseSeated);
 
             return true;
@@ -433,6 +433,12 @@ namespace Stride.VirtualReality
             tex.InitializeFromImpl(srv);
 
             return tex;
+        }
+
+        public static void GetRecommendedRenderTargetSize(out (uint x, uint y) size)
+        {
+            size = default;
+            Valve.VR.OpenVR.System.GetRecommendedRenderTargetSize(ref size.x, ref size.y);
         }
 
         public static ulong CreateOverlay()
