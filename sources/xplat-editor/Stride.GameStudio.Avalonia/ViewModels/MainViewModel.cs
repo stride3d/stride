@@ -25,6 +25,11 @@ internal sealed class MainViewModel : ViewModelBase
         : base(serviceProvider)
     {
         AboutCommand = new AnonymousTaskCommand(serviceProvider, OnAbout, () => DialogService.MainWindow != null);
+#if DEBUG
+        CrashCommand = new AnonymousCommand(serviceProvider, () => throw new Exception("Boom!"));
+#else
+        CrashCommand = DisabledCommand.Instance;
+#endif
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.MainWindow != null);
         OpenCommand = new AnonymousTaskCommand(serviceProvider, OnOpen);
         OpenDebugWindowCommand = new AnonymousCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.MainWindow != null);
@@ -43,6 +48,8 @@ internal sealed class MainViewModel : ViewModelBase
     }
 
     public ICommandBase AboutCommand { get; }
+
+    public ICommandBase CrashCommand { get; }
 
     public ICommandBase ExitCommand { get; }
 

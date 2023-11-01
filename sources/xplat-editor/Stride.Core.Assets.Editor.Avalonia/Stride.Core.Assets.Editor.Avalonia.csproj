@@ -1,4 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <Import Project="..\..\targets\Stride.Core.props" />
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -11,4 +12,5 @@
     <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
   </ItemGroup>
 
+  <Import Project="$(StrideSdkTargets)" />
 </Project>

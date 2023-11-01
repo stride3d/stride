@@ -1,7 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <Import Project="..\..\targets\Stride.Core.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.Assets.Presentation\Stride.Core.Assets.Presentation.csproj" />
   </ItemGroup>
 
+  <Import Project="$(StrideSdkTargets)" />
 </Project>

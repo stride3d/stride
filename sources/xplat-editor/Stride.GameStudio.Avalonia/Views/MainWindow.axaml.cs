@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
@@ -12,6 +13,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
     }
+
+    public string EditorTitle => $"Stride Game Studio {StrideVersion.NuGetVersion} ({RuntimeInformation.FrameworkDescription})";
 
     public void InitializeComponent(bool loadXaml = true)
     {

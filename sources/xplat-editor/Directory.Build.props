@@ -9,4 +9,10 @@
     <AvaloniaVersion>11.0.4</AvaloniaVersion> 
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
 </Project>
