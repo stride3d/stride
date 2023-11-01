@@ -2,8 +2,73 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+        xmlns:controls="using:Stride.Core.Assets.Editor.Avalonia.Controls"
+        xmlns:ctxt="using:ColorTextBlock.Avalonia"
+        xmlns:me="using:Stride.Core.Assets.Editor.Avalonia.MarkupExtensions"
+        xmlns:sd="using:Stride"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Stride.GameStudio.Avalonia.Views.AboutWindow"
-        Title="About Stride">
-  Welcome to Stride!
+        Icon="/Assets/GameStudio.ico"
+        Title="{me:Localize About Stride, Context=About}" ShowInTaskbar="False"
+        CanResize="False" SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterOwner">
+  <Window.Resources>
+    <me:Double x:Key="ControlWidth" Value="512" />
+  </Window.Resources>
+  <StackPanel Margin="20">
+    <!-- Stride logo -->
+    <Image DockPanel.Dock="Top" x:Name="Logo"
+           HorizontalAlignment="Center" VerticalAlignment="Center"
+           Width="{StaticResource ControlWidth}"
+           Source="{StaticResource StrideLogo}"/>
+    <Grid Margin="20"
+          ColumnDefinitions="*,20,*"
+          RowDefinitions="*, 20, *">
+      <!-- Copyright info -->
+      <TextBlock Grid.Row="0" Grid.Column="0">
+        <Run Text="{me:Localize Stride version, Context=About}" />
+        <Run Text="{x:Static sd:StrideVersion.NuGetVersion}" />
+        <LineBreak />
+        <Run Text="© Stride contributors" />
+        <LineBreak />
+        <!-- License -->
+        <controls:Hyperlink Click="License_OnClick">
+          <TextBlock Text="{me:Localize MIT License, Context=About}" />
+        </controls:Hyperlink>
+      </TextBlock>
+      <!-- Notices -->
+      <TextBlock Grid.Row="0" Grid.Column="2"
+                 HorizontalAlignment="Right" VerticalAlignment="Top"
+                 FlowDirection="RightToLeft">
+        <!-- Open-source notice -->
+        <Run Text="{me:Localize Stride uses open-source software, Context=About}" />
+        <LineBreak />
+        <controls:Hyperlink Click="ThirdParty_OnClick">
+          <TextBlock Text="{me:Localize See the list, Context=About}" />
+        </controls:Hyperlink>
+        <LineBreak />
+        <LineBreak />
+        <!-- Privacy policy -->
+        <controls:Hyperlink Click="Privacy_OnClick">
+          <TextBlock Text="{me:Localize Privacy policy, Context=About}" />
+        </controls:Hyperlink>
+      </TextBlock>
+      <!-- Backers -->
+      <md:MarkdownScrollViewer Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                               x:Name="BackersView"
+                               MaxHeight="300" Width="{StaticResource ControlWidth}"
+                               Source="avares://Stride.GameStudio.Avalonia/Assets/BACKERS.md">
+        <Control.Styles>
+          <Style Selector="ctxt|CHyperlink">
+            <Setter Property="IsUnderline" Value="False"/>
+          </Style>
+          <Style Selector="ctxt|CHyperlink:pointerover">
+            <Setter Property="Foreground" Value="#00A0FF" />
+            <Setter Property="IsUnderline" Value="True"/>
+          </Style>
+        </Control.Styles>
+      </md:MarkdownScrollViewer>
+    </Grid>
+  </StackPanel>
 </Window>
