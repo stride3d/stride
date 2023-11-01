@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Collections.Specialized;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.Components.Properties;
@@ -10,18 +11,24 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
+using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
 public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 {
+    public static readonly string StorePackageCategoryName = "External packages"; // FIXME xplat-editor Tr._("External packages");
+    public static readonly string LocalPackageCategoryName = "Local packages"; // FIXME xplat-editor Tr._("Local packages");
+
     private SessionObjectPropertiesViewModel activeProperties;
     private readonly ConcurrentDictionary<AssetId, AssetViewModel> assetIdMap = [];
     private ProjectViewModel? currentProject;
+    private readonly Dictionary<string, PackageCategoryViewModel> packageCategories = [];
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = [];
     private readonly PackageSession session;
 
@@ -56,9 +63,18 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         }
 
         ActiveProperties = AssetCollection.AssetViewProperties;
+        
+        // Construct package categories
+        var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
+        packageCategories.Add(LocalPackageCategoryName, new PackageCategoryViewModel(localPackageName, this));
+        packageCategories.Add(StorePackageCategoryName, new PackageCategoryViewModel(StorePackageCategoryName, this));
+        LocalPackages.CollectionChanged += LocalPackagesCollectionChanged;
 
         // Initialize commands
         EditSelectedContentCommand = new AnonymousCommand(serviceProvider, OnEditSelectedContent);
+        
+        // This event must be subscribed before we create the package view models
+        PackageCategories.ForEach(x => x.Value.Content.CollectionChanged += PackageCollectionChanged);
 
         // Create package view models
         this.session.Projects.ForEach(x => CreateProjectViewModel(x, true));
@@ -78,7 +94,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     /// <summary>
     /// Gets the currently active <see cref="SessionObjectPropertiesViewModel"/>.
     /// </summary>
-    // FIXME: do we need both ActiveProperties and AssetCollection.AssetViewProperties?
+    // FIXME xplat-editor do we need both ActiveProperties and AssetCollection.AssetViewProperties?
     public SessionObjectPropertiesViewModel ActiveProperties
     {
         get { return activeProperties; }
@@ -94,7 +110,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 
     public IEnumerable<AssetViewModel> AllAssets => AllPackages.SelectMany(x => x.Assets);
 
-    public IEnumerable<PackageViewModel> AllPackages => packageMap.Keys;
+    public IEnumerable<PackageViewModel> AllPackages => PackageCategories.Values.SelectMany(x => x.Content);
 
     public AssetCollectionViewModel AssetCollection { get; }
 
@@ -123,6 +139,12 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     public EditorCollectionViewModel EditorCollection { get; }
 
     public AssetPropertyGraphContainer GraphContainer { get; }
+
+    public IObservableCollection<PackageViewModel> LocalPackages => PackageCategories[LocalPackageCategoryName].Content;
+
+    public IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories => packageCategories;
+
+    public IObservableCollection<PackageViewModel> StorePackages => PackageCategories[StorePackageCategoryName].Content;
 
     public ThumbnailsViewModel Thumbnails { get; }
 
@@ -187,6 +209,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 
         }, token);
 
+        sessionViewModel?.AutoSelectCurrentProject();
         return sessionViewModel;
     }
 
@@ -224,13 +247,22 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         ((IDictionary<AssetId, AssetViewModel>)assetIdMap).Remove(asset.Id);
     }
 
+    private void AutoSelectCurrentProject()
+    {
+        var currentProject = LocalPackages.OfType<ProjectViewModel>().FirstOrDefault(/* FIXME sxplat-editor x => x.Type == ProjectType.Executable && x.Platform == PlatformType.Windows*/) ?? LocalPackages.FirstOrDefault();
+        if (currentProject != null)
+        {
+            SetCurrentProject(currentProject);
+        }
+    }
+
     private PackageViewModel CreateProjectViewModel(PackageContainer packageContainer, bool packageAlreadyInSession)
     {
         switch (packageContainer)
         {
             case SolutionProject project:
                 {
-                    var packageContainerViewModel = new ProjectViewModel(this, project);
+                    var packageContainerViewModel = new ProjectViewModel(this, project, packageAlreadyInSession);
                     packageMap.Add(packageContainerViewModel, project);
                     if (!packageAlreadyInSession)
                         session.Projects.Add(project);
@@ -238,7 +270,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
                 }
             case StandalonePackage standalonePackage:
                 {
-                    var packageContainerViewModel = new PackageViewModel(this, standalonePackage);
+                    var packageContainerViewModel = new PackageViewModel(this, standalonePackage, packageAlreadyInSession);
                     packageMap.Add(packageContainerViewModel, standalonePackage);
                     if (!packageAlreadyInSession)
                         session.Projects.Add(standalonePackage);
@@ -263,6 +295,28 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
         using var transaction = ActionService?.CreateTransaction();
         ProcessAddedPackages(AllPackages).Forget();
+    }
+    
+    private void LocalPackagesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            session.Projects.RemoveWhere(x => !x.Package.IsSystem);
+        }
+        if (e.NewItems != null)
+        {
+            // When a PackageViewModel is built, we will add it before the Package instance is added to the package map.
+            // So we can't assume that the view model will always exists in the packageMap.
+            packageMap.Where(x => e.NewItems.Cast<PackageViewModel>().Contains(x.Key)).ForEach(x => session.Projects.Add(x.Value));
+        }
+        e.OldItems?.Cast<PackageViewModel>().Select(x => packageMap[x]).ForEach(x => session.Projects.Remove(x));
+    }
+    
+    private void PackageCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        // FIXME xplat-editor
+        //e.NewItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged += DeletedAssetChanged);
+        //e.OldItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged -= DeletedAssetChanged);
     }
 
     private async Task ProcessAddedPackages(IEnumerable<PackageViewModel> packages)

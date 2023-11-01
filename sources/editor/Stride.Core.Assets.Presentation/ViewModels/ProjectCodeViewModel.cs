@@ -10,6 +10,8 @@ public sealed class ProjectCodeViewModel : MountPointViewModel
     {
     }
 
+    public override bool IsEditable => false;
+
     public override string Name
     {
         get => "Code";

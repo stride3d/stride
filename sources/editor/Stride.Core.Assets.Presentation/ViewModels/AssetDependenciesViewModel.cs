@@ -66,8 +66,7 @@ public sealed class AssetDependenciesViewModel : DispatcherViewModel
     /// </summary>
     public bool IsRoot
     {
-        // FIXME xplat-editor
-        get { return /*!Asset.IsDeleted &&*/ (Session.CurrentProject?.IsInScope(Asset) ?? false) && (ForcedRoot || (Session.CurrentProject?.RootAssets.Contains(Asset) ?? false)); }
+        get { return !Asset.IsDeleted && (Session.CurrentProject?.IsInScope(Asset) ?? false) && (ForcedRoot || (Session.CurrentProject?.RootAssets.Contains(Asset) ?? false)); }
         set
         {
             if ((Session.CurrentProject?.IsInScope(Asset) ?? false) && !ForcedRoot)
@@ -84,7 +83,7 @@ public sealed class AssetDependenciesViewModel : DispatcherViewModel
     /// Gets whether this asset will be compiled as a dependency of an asset that has <see cref="IsRoot"/> set to <c>true</c>.
     /// </summary>
     // FIXME xplat-editor
-    public bool IsIndirectlyIncluded => !IsRoot /*&& !Asset.IsDeleted*/ && RecursiveReferencerAssets.Any(x => x.Dependencies.IsRoot);
+    public bool IsIndirectlyIncluded => !IsRoot && !Asset.IsDeleted && RecursiveReferencerAssets.Any(x => x.Dependencies.IsRoot);
 
     /// <summary>
     /// Gets whether this asset will be excluded from compilation.
@@ -162,9 +161,7 @@ public sealed class AssetDependenciesViewModel : DispatcherViewModel
                 referencerAssets.Clear();
                 referencedAssets.Clear();
 
-                // FIXME xplat-editor
-                //if (!asset.IsDeleted)
-                if (true)
+                if (!asset.IsDeleted)
                 {
                     var dependencyManager = session.DependencyManager;
                     var dependencies = dependencyManager.ComputeDependencies(asset.AssetItem.Id, AssetDependencySearchOptions.In | AssetDependencySearchOptions.Out, ContentLinkType.Reference); // TODO: Change ContentLinkType.Reference to handle other types

@@ -33,7 +33,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     private AssetItem assetItem;
     private DirectoryBaseViewModel directory;
     private string name;
-    private ThumbnailData thumbnailData;
+    private ThumbnailData? thumbnailData;
 
     protected AssetViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
         : base(directory.Session)
@@ -55,21 +55,29 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
         set => SetValue(ref assetItem, value);
     }
 
+    public IAssetObjectNode? AssetRootNode => PropertyGraph?.RootNode;
+
     public Type AssetType => AssetItem.Asset.GetType();
 
     public AssetId Id => AssetItem.Id;
+
+    /// <summary>
+    /// Gets whether the properties of this asset can be edited.
+    /// </summary>
+    public override bool IsEditable => Directory?.Package?.IsEditable ?? false;
 
     public DirectoryBaseViewModel Directory
     {
         get => directory;
         private set => SetValue(ref directory, value);
     }
-    
+
     /// <summary>
     /// Gets the dependencies of this asset.
     /// </summary>
     public AssetDependenciesViewModel Dependencies { get; }
-
+    
+    /// <inheritdoc/>
     public override string Name
     {
         get => name;
@@ -77,11 +85,11 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     }
 
     public AssetPropertyGraph? PropertyGraph { get; }
-    
+
     /// <summary>
     /// The <see cref="ThumbnailData"/> associated to this <see cref="AssetViewModel"/>.
     /// </summary>
-    public ThumbnailData ThumbnailData
+    public ThumbnailData? ThumbnailData
     {
         get => thumbnailData;
         set => SetValue(ref thumbnailData, value);
@@ -90,8 +98,8 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     /// <summary>
     /// Gets the display name of the type of this asset.
     /// </summary>
-    public string TypeDisplayName { get { var desc = DisplayAttribute.GetDisplay(AssetType); return desc != null ? desc.Name : AssetType.Name; } }
-    
+    public override string TypeDisplayName { get { var desc = DisplayAttribute.GetDisplay(AssetType); return desc != null ? desc.Name : AssetType.Name; } }
+
     /// <summary>
     /// Gets the url of this asset.
     /// </summary>
@@ -99,10 +107,8 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
 
     protected Package Package => Directory.Package.Package;
 
-    protected internal IAssetObjectNode? AssetRootNode => PropertyGraph?.RootNode;
-
     protected internal IUndoRedoService? UndoRedoService => ServiceProvider.TryGet<IUndoRedoService>();
-    
+
     /// <summary>
     /// Initializes this asset. This method is guaranteed to be called once every other assets are loaded in the session.
     /// </summary>
@@ -129,6 +135,36 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     protected virtual bool ShouldConstructPropertyItem(IObjectNode collection, NodeIndex index) => true;
 
     protected virtual bool ShouldConstructPropertyMember(IMemberNode member) => true;
+    
+    /// <inheritdoc/>
+    protected override void UpdateIsDeletedStatus()
+    {
+        if (IsDeleted)
+        {
+            Package.Assets.Remove(AssetItem);
+            Session.UnregisterAsset(this);
+            // FIXME xplat-editor
+            //Directory.Package.DeletedAssetsList.Add(this);
+            if (PropertyGraph != null)
+            {
+                Session.GraphContainer.UnregisterGraph(Id);
+            }
+        }
+        else
+        {
+            Package.Assets.Add(AssetItem);
+            Session.RegisterAsset(this);
+            // FIXME xplat-editor
+            //Directory.Package.DeletedAssetsList.Remove(this);
+            if (/*!Initializing &&*/ PropertyGraph != null)
+            {
+                Session.GraphContainer.RegisterGraph(PropertyGraph);
+            }
+        }
+        AssetItem.IsDeleted = IsDeleted;
+        // FIXME xplat-editor
+        //Session.SourceTracker?.UpdateAssetStatus(this);
+    }
 
     public static HashSet<AssetViewModel> ComputeRecursiveReferencerAssets(IEnumerable<AssetViewModel> assets)
     {

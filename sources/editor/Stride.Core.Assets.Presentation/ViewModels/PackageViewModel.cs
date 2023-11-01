@@ -9,18 +9,22 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
-public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewModel>
+public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewModel>, IChildViewModel
 {
     // FIXME should only contain editable viewmodels
     protected readonly SortedObservableCollection<ViewModelBase> content = new(ComparePackageContent);
 
-    public PackageViewModel(ISessionViewModel session, PackageContainer packageContainer)
+    public PackageViewModel(ISessionViewModel session, PackageContainer packageContainer, bool packageAlreadyInSession)
         : base(session)
     {
         AssetMountPoint = new AssetMountPointViewModel(this);
         PackageContainer = packageContainer;
 
         content.Add(AssetMountPoint);
+        IsLoaded = Package.State >= PackageState.AssetsReady;
+
+        // IsDeleted will make the package added to Session.LocalPackages, so let's do it last
+        InitialUndelete(!packageAlreadyInSession);
     }
 
     /// <summary>
@@ -39,6 +43,11 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     /// <remarks>This collection usually contains categories and root folders.</remarks>
     public IReadOnlyObservableCollection<ViewModelBase> Content => content;
 
+    /// <summary>
+    /// Gets whether this package is editable.
+    /// </summary>
+    public override bool IsEditable => !Package.IsSystem && IsLoaded;
+
     public IEnumerable<MountPointViewModel> MountPoints => Content.OfType<MountPointViewModel>();
 
     /// <summary>
@@ -50,6 +59,8 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         get => PackagePath.GetFileNameWithoutExtension() ?? string.Empty;
         set { } // TODO rename
     }
+
+    public bool IsLoaded { get; }
 
     /// <summary>
     /// Gets the underlying <see cref="Package"/> used as a model for this view.
@@ -67,13 +78,16 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         get => Package.FullPath;
         set => SetValue(() => Package.FullPath = value);
     }
-    
+
     /// <summary>
     /// Gets the collection of root assets for this package.
     /// </summary>
     public ObservableSet<AssetViewModel> RootAssets { get; } = new ObservableSet<AssetViewModel>();
 
     public UDirectory RootDirectory => Package.RootDirectory;
+
+    /// <inheritdoc/>
+    public override string TypeDisplayName => "Package";
 
     /// <inheritdoc/>
     public int CompareTo(PackageViewModel? other)
@@ -122,7 +136,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
             GetOrCreateAssetDirectory(explicitDirectory);
         }
     }
-    
+
     /// <summary>
     /// Indicates whether the given asset in within the scope of this package, either by being part of this package or part of
     /// one of its dependencies.
@@ -134,6 +148,20 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         var assetPackage = asset.Directory.Package;
         // Note: Would be better to switch to Dependencies view model as soon as we have FlattenedDependencies in those
         return assetPackage == this || Package.Container.FlattenedDependencies.Any(x => x.Package == assetPackage.Package);
+    }
+
+    protected override void UpdateIsDeletedStatus()
+    {
+        var collection = Package.IsSystem ? Session.StorePackages : Session.LocalPackages;
+
+        if (IsDeleted)
+        {
+            collection.Remove(this);
+        }
+        else
+        {
+            collection.Add(this);
+        }
     }
 
     private static int ComparePackageContent(ViewModelBase x, ViewModelBase y)
@@ -166,7 +194,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         }
         return (AssetViewModel)Activator.CreateInstance(assetViewModelType, assetItem, directory)!;
     }
-    
+
     private void FillRootAssetCollection()
     {
         RootAssets.Clear();
@@ -176,5 +204,15 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
             if (dependency.Package != null)
                 RootAssets.AddRange(dependency.Package.RootAssets.Select(x => Session.GetAssetById(x.Id)).NotNull()!);
         }
+    }
+
+    IChildViewModel IChildViewModel.GetParent()
+    {
+        return Session.PackageCategories.Values.First(x => x.Content.Contains(this));
+    }
+
+    string IChildViewModel.GetName()
+    {
+        return Name;
     }
 }

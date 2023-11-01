@@ -60,32 +60,30 @@ public class DebugAssetNodeCollectionViewModel : DispatcherViewModel, IDebugPage
     {
         RefreshNodeToAssetMap();
         AssetNodes.Clear();
-        // FIXME xplat-editor
-        //foreach (var asset in session.LocalPackages.SelectMany(x => x.Assets))
-        //{
-        //    var nodes = GetRegisterNodes(asset.PropertyGraph);
-        //    if (nodes == null)
-        //        continue;
+        foreach (var asset in session.LocalPackages.SelectMany(x => x.Assets))
+        {
+            var nodes = GetRegisterNodes(asset.PropertyGraph);
+            if (nodes == null)
+                continue;
 
-        //    var rootNode = new DebugAssetRootNodeViewModel(ServiceProvider, asset.Url, asset.AssetRootNode, nodes);
-        //    AssetNodes.Add(rootNode);
-        //}
+            var rootNode = new DebugAssetRootNodeViewModel(ServiceProvider, asset.Url, asset.AssetRootNode, nodes);
+            AssetNodes.Add(rootNode);
+        }
     }
 
     private void RefreshNodeToAssetMap()
     {
-        // FIXME xplat-editor
-        //foreach (var asset in session.LocalPackages.SelectMany(x => x.Assets))
-        //{
-        //    var nodes = GetRegisterNodes(asset.PropertyGraph);
-        //    if (nodes == null)
-        //        continue;
+        foreach (var asset in session.LocalPackages.SelectMany(x => x.Assets))
+        {
+            var nodes = GetRegisterNodes(asset.PropertyGraph);
+            if (nodes == null)
+                continue;
 
-        //    foreach (var node in nodes)
-        //    {
-        //        NodeToAssetMap[node.Guid] = asset;
-        //    }
-        //}
+            foreach (var node in nodes)
+            {
+                NodeToAssetMap[node.Guid] = asset;
+            }
+        }
     }
 
     private static HashSet<IGraphNode>? GetRegisterNodes(AssetPropertyGraph? propertyGraph)
