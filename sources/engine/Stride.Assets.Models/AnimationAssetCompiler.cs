@@ -53,6 +53,7 @@ namespace Stride.Assets.Models
             sourceBuildCommand.Mode = ImportModelCommand.ExportMode.Animation;
             sourceBuildCommand.SourcePath = assetSource;
             sourceBuildCommand.Location = targetUrlInStorage;
+            sourceBuildCommand.AnimationStack = asset.AnimationStack;
             sourceBuildCommand.AnimationRepeatMode = asset.RepeatMode;
             sourceBuildCommand.AnimationRootMotion = asset.RootMotion;
             sourceBuildCommand.ImportCustomAttributes = asset.ImportCustomAttributes;
@@ -109,6 +110,7 @@ namespace Stride.Assets.Models
                 baseBuildCommand.Location = baseUrlInStorage;
                 baseBuildCommand.AnimationRepeatMode = asset.RepeatMode;
                 baseBuildCommand.AnimationRootMotion = asset.RootMotion;
+                baseBuildCommand.AnimationStack = asset.AnimationStack;
 
                 if (diffAnimationAsset.ClipDuration.Enabled)
                 {
