@@ -128,9 +128,11 @@ namespace Stride.Input
 
             var mySession = CimSession.Create(null, DComOptions);
 
-            IEnumerable<CimInstance> allDevices = mySession.QueryInstances(@"root\cimv2", "WQL", "SELECT * FROM Win32_PNPEntity");
+            // Select all device IDs that contain "IG_".  If so, it's an XInput device
+            // This information can not be found from DirectInput 
+            IEnumerable<CimInstance> allDevices = mySession.QueryInstances(@"root\cimv2", "WQL", "SELECT DeviceID FROM Win32_PNPEntity WHERE DeviceID LIKE '%&IG_%'");
 
-            var regex = new Regex(@"VID_(\w+)?&PID_(\w+)?&IG_");
+            var regex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
 
             // Loop over all devices
             foreach (var device in allDevices)
@@ -138,9 +140,6 @@ namespace Stride.Input
                 var deviceId = device.CimInstanceProperties["DeviceID"].Value.ToString();
                 
                 var match = regex.Match(deviceId);
-
-                // Check if the device ID contains "IG_".  If it does, then it's an XInput device
-                // This information can not be found from DirectInput 
                 
                 if (match.Success)
                 {
