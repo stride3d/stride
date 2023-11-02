@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL 
 using System;
+using Silk.NET.OpenGL;
 
 namespace Stride.Graphics
 {
@@ -144,10 +145,10 @@ namespace Stride.Graphics
                 commandList.DepthStencilBoundState.Faces = state.Faces;
                 commandList.BoundStencilReference = commandList.NewStencilReference;
 
-                GL.StencilFuncSeparate(StencilFaceDirection.Front, state.Faces.FrontFaceStencilFunction, commandList.BoundStencilReference, state.StencilWriteMask); // set both faces
-                GL.StencilFuncSeparate(StencilFaceDirection.Back, state.Faces.BackFaceStencilFunction, commandList.BoundStencilReference, state.StencilWriteMask); // override back face
-                GL.StencilOpSeparate(StencilFaceDirection.Front, state.Faces.FrontFaceDepthFailOp, state.Faces.FrontFaceFailOp, state.Faces.FrontFacePassOp);
-                GL.StencilOpSeparate(StencilFaceDirection.Back, state.Faces.BackFaceDepthFailOp, state.Faces.BackFaceFailOp, state.Faces.BackFacePassOp);
+                GL.StencilFuncSeparate(GLEnum.Front, state.Faces.FrontFaceStencilFunction, commandList.BoundStencilReference, state.StencilWriteMask); // set both faces
+                GL.StencilFuncSeparate(GLEnum.Back, state.Faces.BackFaceStencilFunction, commandList.BoundStencilReference, state.StencilWriteMask); // override back face
+                GL.StencilOpSeparate(GLEnum.Front, state.Faces.FrontFaceDepthFailOp, state.Faces.FrontFaceFailOp, state.Faces.FrontFacePassOp);
+                GL.StencilOpSeparate(GLEnum.Back, state.Faces.BackFaceDepthFailOp, state.Faces.BackFaceFailOp, state.Faces.BackFacePassOp);
             }
         }
     }
