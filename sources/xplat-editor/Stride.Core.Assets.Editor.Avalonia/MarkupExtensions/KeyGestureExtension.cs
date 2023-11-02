@@ -3,6 +3,7 @@
 
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.Metadata;
 
 namespace Stride.Core.Assets.Editor.Avalonia.MarkupExtensions;
 
@@ -14,7 +15,13 @@ public class KeyGestureExtension : MarkupExtension
     /// <summary>
     /// Gets or sets the key gesture.
     /// </summary>
+    [Content]
     public KeyGesture Gesture { get; set; }
+
+    public KeyGestureExtension()
+    {
+        Gesture = new KeyGesture(Key.None);
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="KeyGestureExtension"/> class with a string representing the gesture.

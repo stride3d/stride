@@ -3,6 +3,7 @@
 
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.Metadata;
 
 namespace Stride.Core.Assets.Editor.Avalonia.MarkupExtensions;
 
@@ -14,7 +15,13 @@ public class KeyExtension : MarkupExtension
     /// <summary>
     /// Gets or sets the key.
     /// </summary>
+    [Content]
     public Key Key { get; set; }
+
+    public KeyExtension()
+    {
+        Key = Key.None;
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="KeyExtension"/> class with a string representing the key.

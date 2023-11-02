@@ -3,6 +3,7 @@
 
 using Avalonia;
 using Avalonia.Markup.Xaml;
+using Avalonia.Metadata;
 
 namespace Stride.Core.Assets.Editor.Avalonia.MarkupExtensions;
 
@@ -28,6 +29,12 @@ public class ThicknessExtension : MarkupExtension
         Value = value;
     }
 
+    public ThicknessExtension()
+    {
+        Value = new Thickness(0.0);
+    }
+
+    [Content]
     public Thickness Value { get; set; }
     
     /// <inheritdoc/>

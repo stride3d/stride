@@ -3,6 +3,7 @@
 
 using Avalonia;
 using Avalonia.Markup.Xaml;
+using Avalonia.Metadata;
 
 namespace Stride.Core.Assets.Editor.Avalonia.MarkupExtensions;
 
@@ -23,6 +24,12 @@ public class SizeExtension : MarkupExtension
         Value = value;
     }
 
+    public SizeExtension()
+    {
+        Value = Size.Infinity;
+    }
+
+    [Content]
     public Size Value { get; set; }
     
     /// <inheritdoc/>

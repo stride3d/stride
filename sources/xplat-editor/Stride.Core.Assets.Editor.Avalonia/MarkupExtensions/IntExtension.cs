@@ -2,12 +2,19 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Markup.Xaml;
+using Avalonia.Metadata;
 
 namespace Stride.Core.Assets.Editor.Avalonia.MarkupExtensions;
 
 public class IntExtension : MarkupExtension
 {
+    [Content]
     public int Value { get; set; }
+
+    public IntExtension()
+    {
+        Value = 0;
+    }
 
     public IntExtension(object value)
     {
