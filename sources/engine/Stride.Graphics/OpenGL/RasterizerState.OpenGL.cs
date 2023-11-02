@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL 
 using System;
+using Silk.NET.OpenGL;
 
 namespace Stride.Graphics
 {
@@ -12,7 +13,7 @@ namespace Stride.Graphics
         public bool DepthClamp;
 
         public bool NeedCulling;
-        public CullFaceMode CullMode;
+        public GLEnum CullMode;
         public int DepthBias;
         public float SlopeScaleDepthBias;
         public FrontFaceDirection FrontFaceDirection;
@@ -118,16 +119,16 @@ namespace Stride.Graphics
             }
         }
 
-        private static CullFaceMode GetCullMode(CullMode cullMode)
+        private static GLEnum GetCullMode(CullMode cullMode)
         {
             switch (cullMode)
             {
                 case CullMode.Front:
-                    return CullFaceMode.Front;
+                    return GLEnum.Front;
                 case CullMode.Back:
-                    return CullFaceMode.Back;
+                    return GLEnum.Back;
                 default:
-                    return CullFaceMode.Back; // not used if CullMode.None
+                    return GLEnum.Back; // not used if CullMode.None
             }
         }
     }
