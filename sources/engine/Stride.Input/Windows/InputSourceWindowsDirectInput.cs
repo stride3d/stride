@@ -20,11 +20,15 @@ namespace Stride.Input
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
         private InputManager inputManager;
         private DirectInput directInput;
+        private IEnumerable<CimInstance> allDevices;
+        private Regex regex;
 
         public override void Initialize(InputManager inputManager)
         {
             this.inputManager = inputManager;
             directInput = new DirectInput();
+            regex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
+
             Scan();
         }
 
@@ -57,11 +61,23 @@ namespace Stride.Input
         }
 
         /// <summary>
+        /// Select all device IDs that contain "IG_".  If so, it's an XInput device
+        /// This information can not be found from DirectInput 
+        /// </summary>
+        private IEnumerable<CimInstance> GetAllXInputDevices()
+        {
+            return mySession.QueryInstances(@"root\cimv2", "WQL", "SELECT DeviceID FROM Win32_PNPEntity WHERE DeviceID LIKE '%&IG_%'");
+        }
+        
+        /// <summary>
         /// Scans for new devices
         /// </summary>
         public override void Scan()
         {
             var connectedDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+
+            allDevices = GetAllXInputDevices();
+
             foreach (var device in connectedDevices)
             {
                 if (!Devices.ContainsKey(device.InstanceGuid))
@@ -127,12 +143,6 @@ namespace Stride.Input
             DComOptions.Impersonation = ImpersonationType.Impersonate;
 
             var mySession = CimSession.Create(null, DComOptions);
-
-            // Select all device IDs that contain "IG_".  If so, it's an XInput device
-            // This information can not be found from DirectInput 
-            IEnumerable<CimInstance> allDevices = mySession.QueryInstances(@"root\cimv2", "WQL", "SELECT DeviceID FROM Win32_PNPEntity WHERE DeviceID LIKE '%&IG_%'");
-
-            var regex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
 
             // Loop over all devices
             foreach (var device in allDevices)
