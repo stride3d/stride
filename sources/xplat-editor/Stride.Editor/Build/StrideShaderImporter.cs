@@ -5,7 +5,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
 using Stride.Assets.Effect;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Editor.Build;
 
@@ -57,7 +57,7 @@ public class StrideShaderImporter
     /// </summary>
     /// <param name="session">The session used to retrieve currently used system packages.</param>
     /// <returns>A <see cref="ListBuildStep"/> containing the steps to build all shaders from system packages.</returns>
-    public ListBuildStep? CreateSystemShaderBuildSteps(ISessionViewModel session)
+    public ListBuildStep? CreateSystemShaderBuildSteps(SessionViewModel session)
     {
         // Check if there are any new system projects to preload
         // TODO: PDX-1251: For now, allow non-system project as well (which means they will be loaded only once at startup)
@@ -95,7 +95,7 @@ public class StrideShaderImporter
         return buildSteps;
     }
 
-    public ListBuildStep CreateUserShaderBuildSteps(ISessionViewModel session)
+    public ListBuildStep CreateUserShaderBuildSteps(SessionViewModel session)
     {
         var packages = session.AllPackages.Where(project => !project.Package.IsSystem).ToList();
         if (packages.Count == 0)

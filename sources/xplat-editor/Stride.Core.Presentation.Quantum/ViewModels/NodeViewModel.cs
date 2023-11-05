@@ -21,14 +21,14 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 {
     internal class DifferentValuesObject { public readonly string Name = "DifferentValues"; };
 
-    protected static readonly HashSet<string> ReservedNames = new HashSet<string>();
-    private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new AutoUpdatingSortedObservableCollection<NodeViewModel>(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(NodeIndex), nameof(Order));
-    private readonly ObservableCollection<NodePresenterCommandWrapper> commands = new ObservableCollection<NodePresenterCommandWrapper>();
-    private readonly Dictionary<string, object> associatedData = new Dictionary<string, object>();
-    private readonly List<string> changingProperties = new List<string>();
+    protected static readonly HashSet<string> ReservedNames = new();
+    private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(NodeIndex), nameof(Order));
+    private readonly ObservableCollection<NodePresenterCommandWrapper> commands = new();
+    private readonly Dictionary<string, object> associatedData = new();
+    private readonly List<string> changingProperties = new();
     private readonly GraphViewModel owner;
     private readonly List<INodePresenter> nodePresenters;
-    private List<NodeViewModel> initializingChildren = new List<NodeViewModel>();
+    private List<NodeViewModel> initializingChildren = new();
     private bool isVisible;
     private bool isReadOnly;
     private string displayName;

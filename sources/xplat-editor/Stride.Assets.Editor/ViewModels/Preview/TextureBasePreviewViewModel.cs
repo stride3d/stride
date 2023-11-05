@@ -4,7 +4,7 @@
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Preview;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Assets.Editor.Preview;
 
 namespace Stride.Assets.Editor.ViewModels.Preview;
@@ -17,7 +17,7 @@ public abstract class TextureBasePreviewViewModel<TPreview> : AssetPreviewViewMo
 
     private float spriteScale;
 
-    protected TextureBasePreviewViewModel(ISessionViewModel session)
+    protected TextureBasePreviewViewModel(SessionViewModel session)
         : base(session)
     {
         // Initialize texture preview

@@ -4,7 +4,7 @@
 using Stride.Assets.Editor.Preview;
 using Stride.Assets.Models;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Annotations;
 
@@ -20,7 +20,7 @@ public sealed class AnimationPreviewViewModel : AssetPreviewViewModel<AnimationP
     private bool isValid;
     private volatile bool updatingFromGame;
 
-    public AnimationPreviewViewModel(ISessionViewModel session)
+    public AnimationPreviewViewModel(SessionViewModel session)
         : base(session)
     {
         PlayCommand = new AnonymousCommand(ServiceProvider, Play);

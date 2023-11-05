@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.Preview;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Annotations;
 
@@ -18,7 +18,7 @@ public class SoundPreviewViewModel : AssetPreviewViewModel<SoundPreview>
     private bool isAudioValid;
     private volatile bool updatingFromGame;
 
-    public SoundPreviewViewModel(ISessionViewModel session)
+    public SoundPreviewViewModel(SessionViewModel session)
         : base(session)
     {
         PlayCommand = new AnonymousCommand(ServiceProvider, Play);

@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.Preview;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Annotations;
 
@@ -15,7 +15,7 @@ public class SpriteSheetPreviewViewModel : TextureBasePreviewViewModel<SpriteShe
     private readonly int previewCurrentFrame = 1;
     private SpriteSheetDisplayMode displayMode;
 
-    public SpriteSheetPreviewViewModel(ISessionViewModel session)
+    public SpriteSheetPreviewViewModel(SessionViewModel session)
         : base(session)
     {
         PreviewPreviousFrameCommand = new AnonymousCommand(ServiceProvider, () => { if (PreviewFrameCount > 0) PreviewCurrentFrame = 1 + (PreviewCurrentFrame + PreviewFrameCount - 2) % PreviewFrameCount; });

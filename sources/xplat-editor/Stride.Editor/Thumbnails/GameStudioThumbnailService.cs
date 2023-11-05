@@ -5,6 +5,7 @@ using Stride.Assets;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core.Collections;
@@ -23,7 +24,7 @@ public class GameStudioThumbnailService : IThumbnailService
 
     // Note: KVP.Value is usually null, and is only set if a new request for the same thumbnail has been done and we need to start it when the current one finish (avoid running it twice at the same time)
     private readonly Dictionary<AssetId, ThumbnailContinuation> thumbnailsInProgressAndContinuation = new();
-    private readonly ISessionViewModel session;
+    private readonly SessionViewModel session;
     private readonly GameStudioBuilderService assetBuilderService;
     private readonly ThumbnailListCompiler thumbnailCompiler;
     private readonly AssetCompilerRegistry compilerRegistry;
@@ -41,7 +42,7 @@ public class GameStudioThumbnailService : IThumbnailService
 
     private readonly GameSettingsProviderService gameSettingsProviderService;
 
-    public GameStudioThumbnailService(ISessionViewModel session, GameSettingsProviderService settingsProvider, GameStudioBuilderService assetBuilderService)
+    public GameStudioThumbnailService(SessionViewModel session, GameSettingsProviderService settingsProvider, GameStudioBuilderService assetBuilderService)
     {
         this.session = session;
         this.assetBuilderService = assetBuilderService;
