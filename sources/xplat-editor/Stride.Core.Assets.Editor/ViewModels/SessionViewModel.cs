@@ -143,6 +143,8 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     public IObservableCollection<PackageViewModel> LocalPackages => PackageCategories[LocalPackageCategoryName].Content;
 
     public IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories => packageCategories;
+    
+    public UFile SolutionPath => session.SolutionPath;
 
     public IObservableCollection<PackageViewModel> StorePackages => PackageCategories[StorePackageCategoryName].Content;
 
@@ -176,7 +178,6 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         // Create the undo/redo service for this session. We use an initial size of 0 to prevent asset upgrade to be cancellable.
         var undoRedoService = new UndoRedoService(0);
         serviceProvider.RegisterService(undoRedoService);
-
 
         var sessionViewModel = await Task.Run(() =>
         {

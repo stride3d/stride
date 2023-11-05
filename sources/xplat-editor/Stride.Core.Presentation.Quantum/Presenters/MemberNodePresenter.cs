@@ -14,9 +14,7 @@ namespace Stride.Core.Presentation.Quantum.Presenters
         public MemberNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter parent, IMemberNode member)
             : base(factory, propertyProvider, parent)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (parent == null) throw new ArgumentNullException(nameof(parent));
-            Member = member ?? throw new ArgumentNullException(nameof(member));
+            Member = member;
             Name = member.Name;
             CombineKey = Name;
             DisplayName = Name;

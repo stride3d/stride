@@ -6,29 +6,28 @@ using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.ViewModels
+namespace Stride.Core.Assets.Editor.ViewModels;
+
+public sealed class OperationViewModel : DispatcherViewModel
 {
-    public sealed class OperationViewModel : DispatcherViewModel
+    private readonly IUndoRedoService actionService;
+
+    public OperationViewModel(IViewModelServiceProvider serviceProvider, IUndoRedoService actionService, Operation operation)
+        : base(serviceProvider)
     {
-        private readonly IUndoRedoService actionService;
-
-        public OperationViewModel(IViewModelServiceProvider serviceProvider, IUndoRedoService actionService, Operation operation)
-            : base(serviceProvider)
+        this.actionService = actionService;
+        Operation = operation;
+        if (operation is IReadOnlyTransaction transaction)
         {
-            this.actionService = actionService;
-            Operation = operation;
-            if (operation is IReadOnlyTransaction transaction)
-            {
-                Children.AddRange(transaction.Operations.Select(x => new OperationViewModel(ServiceProvider, this.actionService, x)));
-            }
+            Children.AddRange(transaction.Operations.Select(x => new OperationViewModel(ServiceProvider, this.actionService, x)));
         }
-
-        public string? Name => actionService.GetName(Operation);
-
-        public string Type => Operation.GetType().Name;
-
-        public ObservableList<OperationViewModel> Children { get; } = new();
-
-        internal Operation Operation { get; }
     }
+
+    public string? Name => actionService.GetName(Operation);
+
+    public string Type => Operation.GetType().Name;
+
+    public ObservableList<OperationViewModel> Children { get; } = new();
+
+    internal Operation Operation { get; }
 }

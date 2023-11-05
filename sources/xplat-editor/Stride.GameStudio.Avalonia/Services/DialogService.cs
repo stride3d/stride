@@ -25,6 +25,8 @@ internal class DialogService : IDialogService
 
     protected IDispatcherService Dispatcher { get; }
 
+    protected IStorageProvider? StorageProvider => MainWindow?.StorageProvider;
+
     public void Exit(int exitCode)
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
@@ -37,19 +39,42 @@ internal class DialogService : IDialogService
         }
     }
 
-    public async Task<UFile?> OpenFilePickerAsync()
+    public async Task<UFile?> OpenFilePickerAsync(UPath? initialPath = null)
     {
-        if (MainWindow == null) return null;
+        if (StorageProvider is null) return null;
 
         return await Dispatcher.InvokeTask(async () =>
         {
-            var files = await MainWindow.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            var initialLocation = await StorageProvider.TryGetFolderFromPathAsync(initialPath);
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 AllowMultiple = false,
+                SuggestedStartLocation = initialLocation,
             });
 
             var file = files?.Count > 0 ? files[0] : null;
             var path = file?.TryGetLocalPath();
+            if (string.IsNullOrEmpty(path)) return null;
+
+            return path;
+        });
+    }
+
+    public async Task<UDirectory?> OpenFolderPickerAsync(UPath? initialPath = null)
+    {
+        if (StorageProvider is null) return null;
+
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var initialLocation = await StorageProvider.TryGetFolderFromPathAsync(initialPath);
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                AllowMultiple = false,
+                SuggestedStartLocation = initialLocation,
+            });
+
+            var folder = folders?.Count > 0 ? folders[0] : null;
+            var path = folder?.TryGetLocalPath();
             if (string.IsNullOrEmpty(path)) return null;
 
             return path;

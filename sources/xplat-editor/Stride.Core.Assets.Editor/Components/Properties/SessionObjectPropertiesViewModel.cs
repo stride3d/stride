@@ -1,6 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
@@ -8,6 +11,7 @@ using Stride.Core.Assets.Presentation.Quantum.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.Components.Properties;
@@ -33,23 +37,25 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
         ViewModelService.NodePresenterFactory = new AssetNodePresenterFactory(NodeContainer.NodeBuilder, ViewModelService.AvailableCommands, ViewModelService.AvailableUpdaters);
         ViewModelService.NodeViewModelFactory = new AssetNodeViewModelFactory();
 
-        //var dialogService = ServiceProvider.Get<IDialogService>();
+        var dialogService = ServiceProvider.Get<IDialogService>();
+        // FIXME xplat-editor
         //var documentationService = session.ServiceProvider.Get<UserDocumentationService>();
 
-        //RegisterNodePresenterCommand(new CopyPropertyCommand());
-        //RegisterNodePresenterCommand(new PastePropertyCommand());
-        //RegisterNodePresenterCommand(new ReplacePropertyCommand());
-        //RegisterNodePresenterCommand(new BrowseDirectoryCommand(dialogService, new SessionInitialDirectoryProvider(session)));
-        //RegisterNodePresenterCommand(new BrowseFileCommand(dialogService, new SessionInitialDirectoryProvider(session)));
-        //RegisterNodePresenterCommand(new FetchAssetCommand(session));
-        //RegisterNodePresenterCommand(new PickupAssetCommand(session));
-        //RegisterNodePresenterCommand(new SetContentReferenceCommand());
-        //RegisterNodePresenterCommand(new ResetOverrideCommand());
+        RegisterNodePresenterCommand(new CopyPropertyCommand());
+        RegisterNodePresenterCommand(new PastePropertyCommand());
+        RegisterNodePresenterCommand(new ReplacePropertyCommand());
+        RegisterNodePresenterCommand(new BrowseDirectoryCommand(dialogService, new SessionInitialDirectoryProvider(session)));
+        RegisterNodePresenterCommand(new BrowseFileCommand(dialogService, new SessionInitialDirectoryProvider(session)));
+        RegisterNodePresenterCommand(new FetchAssetCommand(session));
+        RegisterNodePresenterCommand(new PickupAssetCommand(session));
+        RegisterNodePresenterCommand(new SetContentReferenceCommand());
+        RegisterNodePresenterCommand(new ResetOverrideCommand());
 
-        //RegisterNodePresenterUpdater(new ArchetypeNodeUpdater());
+        RegisterNodePresenterUpdater(new ArchetypeNodeUpdater());
+        // FIXME xplat-editor
         //RegisterNodePresenterUpdater(new DocumentationNodeUpdater(documentationService));
-        //RegisterNodePresenterUpdater(new OwnerAssetUpdater());
-        //RegisterNodePresenterUpdater(new SessionNodeUpdater(session));
+        RegisterNodePresenterUpdater(new OwnerAssetUpdater());
+        RegisterNodePresenterUpdater(new SessionNodeUpdater(session));
     }
 
     /// <summary>
@@ -119,8 +125,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
             var asset = provider.RelatedAsset;
 
             // TODO: Support read-only mode
-            //if (!asset.IsEditable)
-            if (false)
+            if (!asset.IsEditable)
             {
                 fallbackMessage = selectedObjects.Count == 1 ? "This asset is not editable." : "Some of the selected assets are not editable.";
                 return false;
@@ -141,7 +146,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
         // Do this only when the property has changed from the UI thread
         if (Dispatcher.CheckAccess())
         {
-            if (!contextLock && propertyNames.Any(x => x == "ViewModel" || x == "CanDisplayProperties" || x == "FallbackMessage"))
+            if (!contextLock && propertyNames.Any(x => x == nameof(ViewModel) || x == nameof(CanDisplayProperties) || x == nameof(FallbackMessage)))
             {
                 contextLock = true;
                 if (Session.ActiveProperties != this)

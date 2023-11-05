@@ -2,18 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Editor.Services;
+
+public class ThumbnailCompletedArgs : EventArgs
 {
-    public class ThumbnailCompletedArgs : EventArgs
+    public ThumbnailCompletedArgs(AssetId assetId, ThumbnailData data)
     {
-        public ThumbnailCompletedArgs(AssetId assetId, ThumbnailData data)
-        {
-            AssetId = assetId;
-            Data = data;
-        }
-
-        public AssetId AssetId { get; private set; }
-
-        public ThumbnailData Data { get; private set; }
+        AssetId = assetId;
+        Data = data;
     }
+
+    public AssetId AssetId { get; private set; }
+
+    public ThumbnailData Data { get; private set; }
 }

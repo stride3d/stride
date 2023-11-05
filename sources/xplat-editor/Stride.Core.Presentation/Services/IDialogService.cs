@@ -14,5 +14,7 @@ public interface IDialogService
 
     void Exit(int exitCode = 0);
 
-    Task<UFile?> OpenFilePickerAsync();
+    Task<UFile?> OpenFilePickerAsync(UPath? initialPath = null);
+
+    Task<UDirectory?> OpenFolderPickerAsync(UPath? initialPath = null);
 }

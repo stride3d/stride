@@ -603,7 +603,6 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     private void ChangeAndNotify(Action changeAction, params string[] propertyNames)
     {
-        if (changeAction == null) throw new ArgumentNullException(nameof(changeAction));
         if (initializingChildren == null)
         {
             foreach (var propertyName in propertyNames)

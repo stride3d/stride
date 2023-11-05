@@ -24,8 +24,8 @@ public class NodePresenterCommandWrapper : CommandBase
     public NodePresenterCommandWrapper(IViewModelServiceProvider serviceProvider, IReadOnlyCollection<INodePresenter> presenters, INodePresenterCommand command)
         : base(serviceProvider)
     {
-        this.presenters = presenters ?? throw new ArgumentNullException(nameof(presenters));
-        Command = command ?? throw new ArgumentNullException(nameof(command));
+        this.presenters = presenters;
+        Command = command;
     }
 
     /// <summary>

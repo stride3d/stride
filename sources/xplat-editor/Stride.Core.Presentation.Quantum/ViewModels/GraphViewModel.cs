@@ -30,9 +30,6 @@ public class GraphViewModel : DispatcherViewModel
     private GraphViewModel(IViewModelServiceProvider serviceProvider, Type type, IEnumerable<INodePresenter> rootPresenters)
         : base(serviceProvider)
     {
-        if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
-        if (type == null) throw new ArgumentNullException(nameof(type));
-        if (rootPresenters == null) throw new ArgumentNullException(nameof(rootPresenters));
         GraphViewModelService = serviceProvider.TryGet<GraphViewModelService>();
         if (GraphViewModelService == null) throw new InvalidOperationException($"{nameof(GraphViewModel)} requires a {nameof(GraphViewModelService)} in the service provider.");
         Logger = GlobalLogger.GetLogger(DefaultLoggerName);
@@ -49,9 +46,6 @@ public class GraphViewModel : DispatcherViewModel
 
     public static GraphViewModel? Create(IViewModelServiceProvider serviceProvider, IReadOnlyCollection<IPropertyProviderViewModel> propertyProviders)
     {
-        if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
-        if (propertyProviders == null) throw new ArgumentNullException(nameof(propertyProviders));
-
         var rootNodes = new List<INodePresenter>();
         Type type = null;
         var factory = serviceProvider.Get<GraphViewModelService>().NodePresenterFactory;

@@ -15,7 +15,7 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     protected NodePresenterBase(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter? parent)
     {
-        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        this.factory = factory;
         Parent = parent;
         PropertyProvider = propertyProvider;
     }
@@ -101,8 +101,6 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     public void ChangeParent(INodePresenter newParent)
     {
-        if (newParent == null) throw new ArgumentNullException(nameof(newParent));
-
         var parent = (NodePresenterBase)Parent;
         parent?.children.Remove(this);
 
@@ -128,8 +126,6 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     public void AddDependency(INodePresenter node, bool refreshOnNestedNodeChanges)
     {
-        if (node == null) throw new ArgumentNullException(nameof(node));
-
         dependencies ??= new HashSet<INodePresenter>();
         if (dependencies.Add(node))
         {
