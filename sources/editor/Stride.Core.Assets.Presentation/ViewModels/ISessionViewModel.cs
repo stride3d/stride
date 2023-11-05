@@ -12,8 +12,6 @@ namespace Stride.Core.Assets.Presentation.ViewModels;
 
 public interface ISessionViewModel
 {
-    SessionObjectPropertiesViewModel ActiveProperties { get; set; }
-
     IEnumerable<AssetViewModel> AllAssets { get; }
 
     IEnumerable<PackageViewModel> AllPackages { get; }

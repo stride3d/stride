@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.Preview;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Annotations;
 
@@ -14,7 +14,7 @@ public class SpriteFontPreviewViewModel : AssetPreviewViewModel<SpriteFontPrevie
     private SpriteFontPreview? spriteFontPreview;
     private string? previewString;
 
-    public SpriteFontPreviewViewModel(ISessionViewModel session)
+    public SpriteFontPreviewViewModel(SessionViewModel session)
         : base(session)
     {
         ClearTextCommand = new AnonymousCommand(ServiceProvider, () => PreviewString = string.Empty);

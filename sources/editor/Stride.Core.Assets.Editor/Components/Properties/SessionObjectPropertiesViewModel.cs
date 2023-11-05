@@ -1,19 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Presentation.Quantum.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
-using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Translation;
 
-namespace Stride.Core.Assets.Presentation.Components.Properties;
+namespace Stride.Core.Assets.Editor.Components.Properties;
 
 /// <summary>
 /// This class manages the construction of <see cref="Core.Presentation.Quantum.ViewModels.GraphViewModel"/> of a selection of objects that
 /// belongs to a session. It adds specific associated data and command related to the session, and updates
-/// the <see cref="ISessionViewModel.ActiveProperties"/> property when it creates a new view model.
+/// the <see cref="SessionViewModel.ActiveProperties"/> property when it creates a new view model.
 /// </summary>
 public class SessionObjectPropertiesViewModel : PropertiesViewModel
 {
@@ -22,8 +23,8 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
     private string? name;
     private bool showOverridesOnly;
 
-    public SessionObjectPropertiesViewModel(ISessionViewModel session)
-        : base(session.SafeArgument(nameof(session)).ServiceProvider, session.AssetNodeContainer)
+    public SessionObjectPropertiesViewModel(SessionViewModel session)
+        : base(session.ServiceProvider, session.AssetNodeContainer)
     {
         Session = session;
 
@@ -54,7 +55,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
     /// <summary>
     /// Gets the session associated to this instance.
     /// </summary>
-    public ISessionViewModel Session { get; }
+    public SessionViewModel Session { get; }
 
     /// <summary>
     /// Gets or sets a string describing the type of the selected objects.

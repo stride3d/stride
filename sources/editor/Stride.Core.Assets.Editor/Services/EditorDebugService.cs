@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
@@ -23,7 +22,7 @@ public sealed class EditorDebugService : IEditorDebugService
 
     private IDispatcherService Dispatcher => serviceProvider.Get<IDispatcherService>();
 
-    public IDebugPage CreateAssetNodesDebugPage(ISessionViewModel session, string title, bool register = true)
+    public IDebugPage CreateAssetNodesDebugPage(SessionViewModel session, string title, bool register = true)
     {
         return Dispatcher.Invoke(() =>
         {

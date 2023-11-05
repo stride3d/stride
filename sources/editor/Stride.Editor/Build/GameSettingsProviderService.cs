@@ -5,6 +5,7 @@ using Stride.Core.Assets;
 using Stride.Assets;
 using Stride.Data;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Editor.Build;
 
@@ -30,10 +31,10 @@ public class GameSettingsChangedEventArgs : EventArgs
 
 public class GameSettingsProviderService : IDisposable, IGameSettingsAccessor
 {
-    private readonly ISessionViewModel session;
+    private readonly SessionViewModel session;
     private Package? currentPackage;
 
-    public GameSettingsProviderService(ISessionViewModel session)
+    public GameSettingsProviderService(SessionViewModel session)
     {
         this.session = session;
         session.SessionStateChanged += SessionOnSessionStateChanged;

@@ -3,7 +3,7 @@
 
 using Stride.Editor.Annotations;
 using Stride.Assets.Editor.Preview;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels.Preview;
 
@@ -13,7 +13,7 @@ public sealed class MaterialPreviewViewModel : AssetPreviewViewModel<MaterialPre
     private MaterialPreview materialPreview;
     private MaterialPreviewPrimitive selectedPrimitive;
 
-    public MaterialPreviewViewModel(ISessionViewModel session)
+    public MaterialPreviewViewModel(SessionViewModel session)
         : base(session)
     {
     }

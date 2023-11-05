@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.Preview;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Editor.Annotations;
 
 namespace Stride.Assets.Editor.ViewModels.Preview;
@@ -14,7 +14,7 @@ public sealed class HeightmapPreviewViewModel : TextureBasePreviewViewModel<Heig
     private int previewHeightmapLength;
     private int previewHeightmapWidth;
 
-    public HeightmapPreviewViewModel(ISessionViewModel session)
+    public HeightmapPreviewViewModel(SessionViewModel session)
         : base(session)
     {
     }

@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using Stride.Core.Assets.Editor;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -28,8 +29,7 @@ public sealed class StrideEditorPlugin : AssetsEditorPlugin
         var buildDirectory = fallbackDirectory;
         try
         {
-            // FIXME xplat-editor
-            var package = session.CurrentProject /*?? session.LocalPackages.First()*/;
+            var package = session.LocalPackages.First();
             if (package != null)
             {
                 // In package, we override editor build directory to be per-project and be shared with game build directory
@@ -45,13 +45,13 @@ public sealed class StrideEditorPlugin : AssetsEditorPlugin
             buildDirectory = fallbackDirectory;
         }
 
-        var settingsProvider = new GameSettingsProviderService(session);
+        var settingsProvider = new GameSettingsProviderService((SessionViewModel)session);
         session.ServiceProvider.RegisterService(settingsProvider);
 
-        var builderService = new GameStudioBuilderService(session, settingsProvider, buildDirectory);
+        var builderService = new GameStudioBuilderService((SessionViewModel)session, settingsProvider, buildDirectory);
         session.ServiceProvider.RegisterService(builderService);
 
-        var thumbnailService = new GameStudioThumbnailService(session, settingsProvider, builderService);
+        var thumbnailService = new GameStudioThumbnailService((SessionViewModel)session, settingsProvider, builderService);
         session.ServiceProvider.RegisterService(thumbnailService);
     }
 

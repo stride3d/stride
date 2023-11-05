@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -22,7 +22,7 @@ public sealed class GameStudioBuilderService : AssetBuilderService
     private readonly bool createDebugTools;
     private int currentJobToken = -1;
 
-    public GameStudioBuilderService(ISessionViewModel session, GameSettingsProviderService settingsProvider, string buildDirectory, bool createDebugTools = true)
+    public GameStudioBuilderService(SessionViewModel session, GameSettingsProviderService settingsProvider, string buildDirectory, bool createDebugTools = true)
         : base(buildDirectory)
     {
         this.createDebugTools = createDebugTools;
@@ -68,7 +68,7 @@ public sealed class GameStudioBuilderService : AssetBuilderService
     /// Gets the session view model attached to this building service.
     /// </summary>
     /// <value>The session view model.</value>
-    public ISessionViewModel Session { get; private set; }
+    public SessionViewModel Session { get; private set; }
 
     public GameStudioDatabase Database { get; }
 

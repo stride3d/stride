@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.Preview;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Annotations;
 
@@ -13,7 +13,7 @@ public sealed class ModelPreviewViewModel : AssetPreviewViewModel<ModelPreview>
 {
     private ModelPreview? modelPreview;
 
-    public ModelPreviewViewModel(ISessionViewModel session)
+    public ModelPreviewViewModel(SessionViewModel session)
         : base(session)
     {
         ResetModelCommand = new AnonymousCommand(ServiceProvider, ResetModel);

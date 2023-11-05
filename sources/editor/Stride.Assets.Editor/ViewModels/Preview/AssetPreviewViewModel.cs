@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.ViewModels;
@@ -14,9 +14,9 @@ namespace Stride.Assets.Editor.ViewModels.Preview;
 public abstract class AssetPreviewViewModel<TPreview> : DispatcherViewModel, IAssetPreviewViewModel
     where TPreview : IAssetPreview
 {
-    public ISessionViewModel Session { get; }
+    public SessionViewModel Session { get; }
 
-    protected AssetPreviewViewModel(ISessionViewModel session)
+    protected AssetPreviewViewModel(SessionViewModel session)
         : base(session.ServiceProvider)
     {
         Session = session;

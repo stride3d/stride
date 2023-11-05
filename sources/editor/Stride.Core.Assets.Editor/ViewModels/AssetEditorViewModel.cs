@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.ViewModels;
 
@@ -18,11 +18,6 @@ public interface IAssetEditorViewModel<out TAsset>
     /// The asset related to this editor.
     /// </summary>
     TAsset Asset { get; }
-
-    /// <summary>
-    /// The current session.
-    /// </summary>
-    ISessionViewModel Session => Asset.Session;
 }
 
 /// <summary>
@@ -40,7 +35,7 @@ public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorVi
     /// <inheritdoc cref="IAssetEditorViewModel{T}.Asset" />
     public override TAsset Asset => (TAsset)base.Asset;
 
-    public SessionObjectPropertiesViewModel EditorProperties => Asset.Session.ActiveProperties;
+    public SessionObjectPropertiesViewModel EditorProperties => Session.ActiveProperties;
 }
 
 /// <summary>
@@ -54,5 +49,13 @@ public abstract class AssetEditorViewModel : DispatcherViewModel
         Asset = asset;
     }
 
+    /// <summary>
+    /// The asset related to this editor.
+    /// </summary>
     public virtual AssetViewModel Asset { get; }
+
+    /// <summary>
+    /// The current session.
+    /// </summary>
+    public SessionViewModel Session => (SessionViewModel)Asset.Session;
 }

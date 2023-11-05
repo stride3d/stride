@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -23,7 +24,7 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
 {
     public static bool DisablePreview = false;
 
-    private readonly ISessionViewModel session;
+    private readonly SessionViewModel session;
 
     private readonly AutoResetEvent initializationSignal = new(false);
     private readonly GameEngineHost host;
@@ -48,7 +49,7 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
     private readonly GameSettingsAsset previewGameSettings;
     private readonly GameSettingsProviderService gameSettingsProvider;
 
-    public GameStudioPreviewService(ISessionViewModel session)
+    public GameStudioPreviewService(SessionViewModel session)
     {
         this.session = session;
         Dispatcher = session.Dispatcher;

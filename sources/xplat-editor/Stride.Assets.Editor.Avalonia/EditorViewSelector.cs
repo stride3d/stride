@@ -6,19 +6,18 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Avalonia;
 
 // TODO xplat-editor consider moving this class to Stride.Assets.Editor.Avalonia
 public sealed class EditorViewSelector : AvaloniaObject, IDataTemplate
 {
-    private ISessionViewModel? session;
+    private SessionViewModel? session;
 
-    public static readonly DirectProperty<EditorViewSelector, ISessionViewModel?> SessionProperty =
-        AvaloniaProperty.RegisterDirect<EditorViewSelector, ISessionViewModel?>(nameof(Session), o => o.Session, (o, v) => o.Session = v);
+    public static readonly DirectProperty<EditorViewSelector, SessionViewModel?> SessionProperty =
+        AvaloniaProperty.RegisterDirect<EditorViewSelector, SessionViewModel?>(nameof(Session), o => o.Session, (o, v) => o.Session = v);
 
-    public ISessionViewModel? Session
+    public SessionViewModel? Session
     {
         get => session;
         set => SetAndRaise(SessionProperty, ref session, value);

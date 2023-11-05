@@ -10,7 +10,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Translation;
 
-namespace Stride.Core.Assets.Presentation.Components.Properties;
+namespace Stride.Core.Assets.Editor.Components.Properties;
 
 /// <summary>
 /// This class manages the construction of <see cref="GraphViewModel"/> of a selection of objects.
@@ -21,9 +21,9 @@ public abstract class PropertiesViewModel : DispatcherViewModel
     protected readonly NodeContainer NodeContainer;
     private readonly object lockObject = new();
 
-    private GraphViewModel viewModel;
+    private GraphViewModel? viewModel;
     private bool canDisplayProperties;
-    private string fallbackMessage;
+    private string? fallbackMessage;
     private int currentToken;
 
     /// <summary>
@@ -69,15 +69,15 @@ public abstract class PropertiesViewModel : DispatcherViewModel
     /// <summary>
     /// Gets the current instance of <see cref="GraphViewModel"/> contained in the <see cref="PropertiesViewModel"/>.
     /// </summary>
-    public GraphViewModel ViewModel { get { return viewModel; } private set { SetValue(ref viewModel, value); } }
+    public GraphViewModel? ViewModel { get { return viewModel; } private set { SetValue(ref viewModel, value); } }
 
     public bool CanDisplayProperties { get { return canDisplayProperties; } set { SetValue(ref canDisplayProperties, value); } }
 
-    public string FallbackMessage { get { return fallbackMessage; } set { SetValue(ref fallbackMessage, value); } }
+    public string? FallbackMessage { get { return fallbackMessage; } set { SetValue(ref fallbackMessage, value); } }
 
     protected abstract string EmptySelectionFallbackMessage { get; }
 
-    public IReadOnlyCollection<IPropertyProviderViewModel> Selection { get; private set; }
+    public IReadOnlyCollection<IPropertyProviderViewModel>? Selection { get; private set; }
 
     // TODO: provide a more solid API to avoid duplicates and name collision
     public void RegisterNodePresenterCommand(INodePresenterCommand command) => ViewModelService.AvailableCommands.Add(command);
@@ -125,8 +125,7 @@ public abstract class PropertiesViewModel : DispatcherViewModel
             return null;
         }
 
-        string message;
-        if (!CanDisplaySelectedObjects(Selection, out message))
+        if (!CanDisplaySelectedObjects(Selection, out var message))
         {
             ViewModel = null;
             FallbackMessage = message;
@@ -161,11 +160,11 @@ public abstract class PropertiesViewModel : DispatcherViewModel
 
     protected abstract void FeedbackException(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, Exception exception, out string? fallbackMessage);
 
-    private Task<GraphViewModel> InitializeViewModel(IReadOnlyCollection<IPropertyProviderViewModel> objects, int localToken)
+    private Task<GraphViewModel?> InitializeViewModel(IReadOnlyCollection<IPropertyProviderViewModel> objects, int localToken)
     {
         return Task.Run(() =>
         {
-            GraphViewModel newViewModel = null;
+            GraphViewModel? newViewModel = null;
             if (currentToken == localToken)
             {
                 lock (lockObject)

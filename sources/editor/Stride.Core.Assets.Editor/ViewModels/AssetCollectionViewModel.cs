@@ -3,7 +3,7 @@
 
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;

@@ -27,21 +27,21 @@ internal class NodeViewModelDynamicMetaObject : DynamicMetaObject
 
         if (binder.Name.StartsWith(GraphViewModel.HasChildPrefix, StringComparison.Ordinal))
         {
-            propertyName = binder.Name.Substring(GraphViewModel.HasChildPrefix.Length);
+            propertyName = binder.Name[GraphViewModel.HasChildPrefix.Length..];
             args[0] = Expression.Constant(propertyName);
             expression = Expression.Call(self, typeof(NodeViewModel).GetMethod(nameof(NodeViewModel.GetChild), BindingFlags.Public | BindingFlags.Instance)!, args);
             expression = Expression.Convert(Expression.NotEqual(expression, Expression.Constant(null)), binder.ReturnType);
         }
         else if (binder.Name.StartsWith(GraphViewModel.HasCommandPrefix, StringComparison.Ordinal))
         {
-            propertyName = binder.Name.Substring(GraphViewModel.HasCommandPrefix.Length);
+            propertyName = binder.Name[GraphViewModel.HasCommandPrefix.Length..];
             args[0] = Expression.Constant(propertyName);
             expression = Expression.Call(self, typeof(NodeViewModel).GetMethod(nameof(NodeViewModel.GetCommand), BindingFlags.Public | BindingFlags.Instance)!, args);
             expression = Expression.Convert(Expression.NotEqual(expression, Expression.Constant(null)), binder.ReturnType);
         }
         else if (binder.Name.StartsWith(GraphViewModel.HasAssociatedDataPrefix, StringComparison.Ordinal))
         {
-            propertyName = binder.Name.Substring(GraphViewModel.HasAssociatedDataPrefix.Length);
+            propertyName = binder.Name[GraphViewModel.HasAssociatedDataPrefix.Length..];
             args[0] = Expression.Constant(propertyName);
             expression = Expression.Call(self, typeof(NodeViewModel).GetMethod(nameof(NodeViewModel.GetAssociatedData), BindingFlags.Public | BindingFlags.Instance)!, args);
             expression = Expression.Convert(Expression.NotEqual(expression, Expression.Constant(null)), binder.ReturnType);

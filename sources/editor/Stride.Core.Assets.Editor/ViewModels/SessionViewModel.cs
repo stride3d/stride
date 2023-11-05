@@ -4,8 +4,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
@@ -22,8 +22,8 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 
 public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 {
-    public static readonly string StorePackageCategoryName = "External packages"; // FIXME xplat-editor Tr._("External packages");
-    public static readonly string LocalPackageCategoryName = "Local packages"; // FIXME xplat-editor Tr._("Local packages");
+    public static readonly string StorePackageCategoryName = Tr._("External packages");
+    public static readonly string LocalPackageCategoryName = Tr._("Local packages");
 
     private SessionObjectPropertiesViewModel activeProperties;
     private readonly ConcurrentDictionary<AssetId, AssetViewModel> assetIdMap = [];
@@ -63,7 +63,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         }
 
         ActiveProperties = AssetCollection.AssetViewProperties;
-        
+
         // Construct package categories
         var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
         packageCategories.Add(LocalPackageCategoryName, new PackageCategoryViewModel(localPackageName, this));
@@ -72,7 +72,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
 
         // Initialize commands
         EditSelectedContentCommand = new AnonymousCommand(serviceProvider, OnEditSelectedContent);
-        
+
         // This event must be subscribed before we create the package view models
         PackageCategories.ForEach(x => x.Value.Content.CollectionChanged += PackageCollectionChanged);
 
@@ -296,7 +296,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         using var transaction = ActionService?.CreateTransaction();
         ProcessAddedPackages(AllPackages).Forget();
     }
-    
+
     private void LocalPackagesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.Action == NotifyCollectionChangedAction.Reset)
@@ -311,7 +311,7 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         }
         e.OldItems?.Cast<PackageViewModel>().Select(x => packageMap[x]).ForEach(x => session.Projects.Remove(x));
     }
-    
+
     private void PackageCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         // FIXME xplat-editor
