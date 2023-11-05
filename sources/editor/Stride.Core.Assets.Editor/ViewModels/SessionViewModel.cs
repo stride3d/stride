@@ -143,6 +143,8 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
     public IObservableCollection<PackageViewModel> LocalPackages => PackageCategories[LocalPackageCategoryName].Content;
 
     public IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories => packageCategories;
+    
+    public UFile SolutionPath => session.SolutionPath;
 
     public IObservableCollection<PackageViewModel> StorePackages => PackageCategories[StorePackageCategoryName].Content;
 

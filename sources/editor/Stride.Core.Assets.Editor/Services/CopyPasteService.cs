@@ -57,8 +57,7 @@ internal class CopyPasteService : ICopyPasteService
 
         // Create a node for the data so we can generate the overrides
         var metadata = new AttachedYamlAssetMetadata();
-        var rootNode = PropertyGraphContainer.NodeContainer?.GetOrCreateNode(data) as IAssetNode;
-        if (rootNode != null)
+        if (PropertyGraphContainer.NodeContainer?.GetOrCreateNode(data) is IAssetNode rootNode)
         {
             // Generate missing collection item identifiers
             data.Items.ForEach(x => AssetCollectionItemIdHelper.GenerateMissingItemIds(x.Data));
@@ -162,8 +161,6 @@ internal class CopyPasteService : ICopyPasteService
     /// <inheritdoc/>
     public bool CanPaste(string? text, Type targetRootType, Type targetMemberType, params Type[] expectedTypes)
     {
-        if (targetRootType == null) throw new ArgumentNullException(nameof(targetRootType));
-
         if (string.IsNullOrEmpty(text))
             return false;
 
@@ -180,8 +177,6 @@ internal class CopyPasteService : ICopyPasteService
     /// <inheritdoc/>
     public IPasteResult DeserializeCopiedData(string text, object targetObject, Type targetMemberType)
     {
-        if (targetObject == null) throw new ArgumentNullException(nameof(targetObject));
-
         var result = new PasteResult();
         if (string.IsNullOrEmpty(text))
             return result;

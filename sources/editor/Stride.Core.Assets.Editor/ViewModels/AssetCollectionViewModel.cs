@@ -43,7 +43,7 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
     /// <see cref="SelectedAssets"/> is a sub-collection of <see cref="SelectedContent"/>.
     /// It should always be read from and never directly updated, except in <see cref="SelectedContentCollectionChanged"/>.
     /// </remarks>
-    public IReadOnlyObservableCollection<AssetViewModel> SelectedAssets => selectedAssets;
+    public IReadOnlyObservableList<AssetViewModel> SelectedAssets => selectedAssets;
 
     /// <summary>
     /// List of all selected items (e.g. in the asset view).
