@@ -9,7 +9,7 @@ namespace Stride.GameStudio.Avalonia.Services;
 /// <summary>
 /// This class is the implementation of the <see cref="IDispatcherService"/> interface for WPF.
 /// </summary>
-public class DispatcherService : IDispatcherService
+internal sealed class DispatcherService : IDispatcherService
 {
     private readonly Dispatcher dispatcher;
 
