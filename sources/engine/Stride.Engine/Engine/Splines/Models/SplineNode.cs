@@ -174,7 +174,7 @@ namespace Stride.Engine.Splines.Models
         /// </summary>
         /// <param name="percentage"></param>
         /// <returns></returns>
-        public Vector3 GetPositionOnCurve(float percentage)
+        public Vector3 GetPositionOnBezierCurve(float percentage)
         {
             var distance = Length / 100 * Math.Clamp(percentage, 0, 100);
             return GetBezierPointForDistance(distance).Position;
@@ -185,7 +185,7 @@ namespace Stride.Engine.Splines.Models
         /// </summary>
         /// <param name="originPosition">A Vector3 world position </param>
         /// <returns></returns>
-        public SplinePositionInfo GetClosestPointOnCurve(Vector3 originPosition)
+        public SplinePositionInfo GetClosestPointOnBezierCurve(Vector3 originPosition)
         {
             SplinePositionInfo info = null;
             for (var i = 0; i < bezierPointCount; i++)
@@ -232,12 +232,12 @@ namespace Stride.Engine.Splines.Models
             parameterizedBezierPoints[bezierPointCount - 1] = baseBezierPoints[baseBezierPointCount - 1];
         }
 
-        private BezierPoint GetBezierPointForDistance(float estimatedExptedDistance)
+        private BezierPoint GetBezierPointForDistance(float estimatedExpectedDistance)
         {
             for (var j = 0; j < baseBezierPointCount; j++)
             {
                 var curPoint = baseBezierPoints[j];
-                if (curPoint.TotalLengthOnCurve >= estimatedExptedDistance)
+                if (curPoint.TotalLengthOnCurve >= estimatedExpectedDistance)
                 {
                     return curPoint;
                 }
@@ -286,8 +286,8 @@ namespace Stride.Engine.Splines.Models
                     break;
                 curvePointsPositions[j] = parameterizedBezierPoints[j].Position;
             }
-            BoundingBox.FromPoints(curvePointsPositions, out var NewBoundingBox);
-            BoundingBox = NewBoundingBox;
+            BoundingBox.FromPoints(curvePointsPositions, out var newBoundingBox);
+            BoundingBox = newBoundingBox;
         }
     }
 }

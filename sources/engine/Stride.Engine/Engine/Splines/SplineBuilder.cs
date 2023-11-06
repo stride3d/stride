@@ -121,7 +121,7 @@ namespace Stride.Engine.Splines
                     // Inverse lerp(betweenValue - minHeight) / (maxHeight - minHeight);
                     var percentageInCurve = (requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance) * 100;
 
-                    splinePositionInfo.Position = currentSplineNode.GetPositionOnCurve(percentageInCurve);
+                    splinePositionInfo.Position = currentSplineNode.GetPositionOnBezierCurve(percentageInCurve);
                     return splinePositionInfo;
                 }
 

@@ -130,7 +130,7 @@ namespace Stride.Engine.Splines.Models
                 }
 
                 var curNode = SplineNodes[i];
-                var closestPoint = curNode.GetClosestPointOnCurve(originalPosition);
+                var closestPoint = curNode.GetClosestPointOnBezierCurve(originalPosition);
                 closestPoint.SplineNodeA = curNode;
                 closestPoint.SplineNodeAIndex = i;
 
