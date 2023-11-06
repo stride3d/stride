@@ -17,7 +17,7 @@ using Stride.GameStudio.Avalonia.Internal;
 
 namespace Stride.GameStudio.Avalonia.Services;
 
-public sealed class PluginService : IAssetsPluginService
+internal sealed class PluginService : IAssetsPluginService
 {
     private readonly Dictionary<Type, Type> assetViewModelTypes = new();
     private readonly Dictionary<Type, Type> editorViewModelTypes = new();
