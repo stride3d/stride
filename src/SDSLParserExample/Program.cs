@@ -170,7 +170,6 @@ void CreateMixin()
     var mixin =
         mD
         .WithType("float4x3")
-        .WithType("half3x3")
         .WithConstant("a", 5f)
         .WithInput("float3", "in_position", "SV_Position", ExecutionModel.Vertex)
         .WithInput("float3", "in_normal", "Normal", ExecutionModel.Vertex)
