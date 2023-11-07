@@ -7,6 +7,7 @@ using SoftTouch.Spirv.Core.Buffers;
 using SoftTouch.Spirv.Core.Parsing;
 using SoftTouch.Spirv.PostProcessing;
 using System.Diagnostics;
+using System.Numerics;
 using static Spv.Specification;
 
 static void ThreeAddress()
@@ -171,9 +172,9 @@ void CreateMixin()
         mD
         .WithType("float4x3")
         .WithConstant("a", 5f)
-        .WithInput("float3", "in_position", "SV_Position", ExecutionModel.Vertex)
         .WithInput("float3", "in_normal", "Normal", ExecutionModel.Vertex)
         .WithInput("float3", "in_color", "Color", ExecutionModel.Vertex)
+        .WithOutput("float4", "out_position", "SV_Position", ExecutionModel.Vertex)
         .WithOutput("float3", "out_color", "Color", ExecutionModel.Vertex)
         .WithFunction("void", "DoNothing", static b => b.With("float", "myInt").With("float", "otherInt"))
             .Return()
@@ -184,6 +185,7 @@ void CreateMixin()
         .WithEntryPoint(ExecutionModel.Vertex, "VSMain")
             .FunctionStart()
             .DeclareAssign("a", 5f)
+            .Assign("out_position", (b,f) => f.Constant(new Vector4(1,2,3,0)))
             .Declare("float", "b")
             .AssignConstant("b", 6f)
             .Declare("float", "c")
