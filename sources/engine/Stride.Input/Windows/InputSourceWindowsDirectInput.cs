@@ -20,14 +20,14 @@ namespace Stride.Input
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
         private InputManager inputManager;
         private DirectInput directInput;
-        private IEnumerable<CimInstance> allDevices;
-        private Regex regex;
+        private IEnumerable<string> xInputDevices;
+        private Regex xInputDeviceIdRegex;
 
         public override void Initialize(InputManager inputManager)
         {
             this.inputManager = inputManager;
             directInput = new DirectInput();
-            regex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
+            xInputDeviceIdRegex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
 
             Scan();
         }
@@ -64,9 +64,22 @@ namespace Stride.Input
         /// Select all device IDs that contain "IG_".  If so, it's an XInput device
         /// This information can not be found from DirectInput 
         /// </summary>
-        private IEnumerable<CimInstance> GetAllXInputDevices()
+        private IEnumerable<string> GetAllXInputDevices()
         {
-            return mySession.QueryInstances(@"root\cimv2", "WQL", "SELECT DeviceID FROM Win32_PNPEntity WHERE DeviceID LIKE '%&IG_%'");
+            // Set security level to IMPERSONATE
+
+            DComSessionOptions DComOptions = new DComSessionOptions();
+            DComOptions.Impersonation = ImpersonationType.Impersonate;
+
+            var session = CimSession.Create(null, DComOptions);
+            var query = session.QueryInstances(@"root\cimv2", "WQL", "SELECT DeviceID FROM Win32_PNPEntity WHERE DeviceID LIKE '%&IG_%'");
+
+            var deviceIdPrefixes = query.Select(device => xInputDeviceIdRegex.Match(device.CimInstanceProperties["DeviceID"].Value.ToString()))
+                .Where(match => match.Success)
+                .Select(match => (match.Groups[1].ToString() + match.Groups[2].ToString()).ToLower())
+                .ToList();
+
+            return deviceIdPrefixes;
         }
         
         /// <summary>
@@ -76,7 +89,7 @@ namespace Stride.Input
         {
             var connectedDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
 
-            allDevices = GetAllXInputDevices();
+            xInputDevices = GetAllXInputDevices();
 
             foreach (var device in connectedDevices)
             {
@@ -94,7 +107,7 @@ namespace Stride.Input
         public void OpenDevice(DeviceInstance deviceInstance)
         {
             // Ignore XInput devices since they are handled by XInput
-            if (IsXInputDevice(ref deviceInstance.ProductGuid))
+            if (IsXInputDevice(deviceInstance.ProductGuid))
                 return;
 
             if (Devices.ContainsKey(deviceInstance.InstanceGuid))
@@ -137,30 +150,15 @@ namespace Stride.Input
 
         private bool IsXInputDevice(Guid productGuid)
         {
-            // Set security level to IMPERSONATE
-
-            DComSessionOptions DComOptions = new DComSessionOptions();
-            DComOptions.Impersonation = ImpersonationType.Impersonate;
-
-            var mySession = CimSession.Create(null, DComOptions);
-
+            string productGuidStr = productGuid.ToString();
+            
             // Loop over all devices
-            foreach (var device in allDevices)
+            foreach (var deviceId in xInputDevices)
             {
-                var deviceId = device.CimInstanceProperties["DeviceID"].Value.ToString();
-                
-                var match = regex.Match(deviceId);
-                
-                if (match.Success)
+                if (productGuidStr.StartsWith(deviceId))
                 {
-                    string guidPart = (match.Groups[1].ToString()+match.Groups[2].ToString()).ToLower();
-
-                    if (productGuid.ToString().StartsWith(guidPart))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
-                 
             }
 
             return false;
