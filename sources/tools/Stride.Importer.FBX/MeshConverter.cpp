@@ -1634,6 +1634,7 @@ private:
 
 			// remove all bad characters
 			ReplaceCharacter(materialName, ':', '_');
+			ReplaceCharacter(materialName, '/', '_');
 			RemoveCharacter(materialName, ' ');
 			tempNames[lMaterial] = materialName;
 			
