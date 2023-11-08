@@ -104,7 +104,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     /// Creates the view models for each asset, directory, profile, project and reference of this package.
     /// </summary>
     /// <param name="token">A cancellation token to cancel the load process. Can be <c>null</c>.</param>
-    public void LoadPackageInformation(CancellationToken token = default)
+    public void LoadPackageInformation(IProgressViewModel? progressVM, ref double progress, CancellationToken token = default)
     {
         if (token.IsCancellationRequested)
             return;
@@ -113,6 +113,8 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         {
             if (token.IsCancellationRequested)
                 return;
+
+            progressVM?.UpdateProgress($"Processing asset {progress + 1}/{progressVM.Maximum}...", progress);
 
             var url = asset.Location;
             DirectoryBaseViewModel directory;
@@ -127,6 +129,8 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
             }
             var assetViewModel = CreateAsset(asset, directory);
             directory.AddAsset(assetViewModel);
+
+            progress++;
         }
 
         FillRootAssetCollection();

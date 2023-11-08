@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Services;
@@ -10,7 +11,7 @@ using Stride.GameStudio.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.Services;
 
-internal class EditorDialogService : DialogService
+internal class EditorDialogService : DialogService, IEditorDialogService
 {
     private DebugWindow? debugWindow;
     private readonly IViewModelServiceProvider serviceProvider;
@@ -50,5 +51,39 @@ internal class EditorDialogService : DialogService
                 debugWindow.Activate();
             }
         });
+    }
+
+    public void ShowProgressWindow(WorkProgressViewModel workProgress)
+    {
+        if (!workProgress.WorkDone || workProgress.ShouldStayOpen())
+        {
+            Dispatcher.Invoke(() =>
+            {
+                var progressWindow = new ProgressWindow
+                {
+                    DataContext = workProgress
+                };
+                workProgress.WorkFinished += (s, e) =>
+                {
+                    if (!workProgress.ShouldStayOpen()) progressWindow.Close();
+                };
+                progressWindow.Closing += (s, e) =>
+                {
+                    if (!workProgress.WorkDone) e.Cancel = true;
+                };
+                progressWindow.Closed += (s, e) =>
+                {
+                    workProgress.NotifyWindowClosed();
+                };
+                workProgress.NotifyWindowWillOpen();
+                
+                if (MainWindow is not null) progressWindow.ShowDialog(MainWindow);
+                else progressWindow.Show();
+            });
+        }
+        else
+        {
+            workProgress.NotifyWindowClosed();
+        }
     }
 }

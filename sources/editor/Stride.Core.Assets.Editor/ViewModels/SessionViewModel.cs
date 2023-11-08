@@ -20,7 +20,7 @@ using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
-public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
+public sealed partial class SessionViewModel : DispatcherViewModel, ISessionViewModel
 {
     public static readonly string StorePackageCategoryName = Tr._("External packages");
     public static readonly string LocalPackageCategoryName = Tr._("Local packages");
@@ -173,48 +173,6 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         return result;
     }
 
-    public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
-    {
-        // TODO register a bunch of services
-        //serviceProvider.RegisterService(new CopyPasteService());
-        // Create the undo/redo service for this session. We use an initial size of 0 to prevent asset upgrade to be cancellable.
-        var actionService = new UndoRedoService(0);
-        serviceProvider.RegisterService(actionService);
-
-        var sessionViewModel = await Task.Run(() =>
-        {
-            SessionViewModel? result = null;
-            try
-            {
-                PackageSession.Load(path, sessionResult, new PackageLoadParameters
-                {
-                    CancelToken = token,
-                    AutoCompileProjects = false,
-                    LoadAssemblyReferences = false,
-                    LoadMissingDependencies = false,
-                });
-                if (!token.IsCancellationRequested)
-                {
-                    result = new SessionViewModel(serviceProvider, sessionResult.Session, sessionResult);
-
-                    // Build asset view models
-                    result.LoadAssetsFromPackages(token);
-                }
-            }
-            catch (Exception ex)
-            {
-                sessionResult.Error("There was a problem opening the solution.", ex);
-                result = null;
-            }
-
-            return result;
-
-        }, token);
-
-        sessionViewModel?.AutoSelectCurrentProject();
-        return sessionViewModel;
-    }
-
     /// <inheritdoc />
     public override void Destroy()
     {
@@ -283,15 +241,23 @@ public sealed class SessionViewModel : DispatcherViewModel, ISessionViewModel
         }
     }
 
-    private void LoadAssetsFromPackages(CancellationToken token = default)
+    private void LoadAssetsFromPackages(IProgressViewModel? progressVM, CancellationToken token = default)
     {
+        if (progressVM is not null)
+        {
+            progressVM.Minimum = 0;
+            progressVM.ProgressValue = 0;
+            progressVM.Maximum = session.Packages.Sum(x => x.Assets.Count);
+        }
+        double progress = 0.0;
+
         // Create directory and asset view models for each project
         foreach (var package in AllPackages)
         {
             if (token.IsCancellationRequested)
                 return;
 
-            package.LoadPackageInformation(token);
+            package.LoadPackageInformation(progressVM, ref progress, token);
         }
 
         // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
