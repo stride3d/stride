@@ -33,17 +33,54 @@ internal sealed class EditorDialogService : DialogService, IEditorDialogService
 
     public void ShowDebugWindow()
     {
-        if (debugWindow == null)
+        Dispatcher.Invoke(() =>
         {
-            debugWindow = new DebugWindow(new DebugWindowViewModel(serviceProvider));
-            debugWindow.Closed += (s, e) => debugWindow = null;
-            debugWindow.Show();
-        }
+            if (debugWindow == null)
+            {
+                debugWindow = new DebugWindow(new DebugWindowViewModel(serviceProvider));
+                debugWindow.Closed += (s, e) => debugWindow = null;
+                debugWindow.Show();
+            }
 
-        if (debugWindow.WindowState == WindowState.Minimized)
+            if (debugWindow.WindowState == WindowState.Minimized)
+            {
+                debugWindow.WindowState = WindowState.Normal;
+            }
+            debugWindow.Activate();
+        });
+    }
+
+    public void ShowProgressWindow(WorkProgressViewModel workProgress)
+    {
+        if (!workProgress.WorkDone || workProgress.ShouldStayOpen())
         {
-            debugWindow.WindowState = WindowState.Normal;
+            Dispatcher.Invoke(() =>
+            {
+                var progressWindow = new ProgressWindow
+                {
+                    DataContext = workProgress
+                };
+                workProgress.WorkFinished += (s, e) =>
+                {
+                    if (!workProgress.ShouldStayOpen()) progressWindow.Close();
+                };
+                progressWindow.Closing += (s, e) =>
+                {
+                    if (!workProgress.WorkDone) e.Cancel = true;
+                };
+                progressWindow.Closed += (s, e) =>
+                {
+                    workProgress.NotifyWindowClosed();
+                };
+                workProgress.NotifyWindowWillOpen();
+                
+                if (MainWindow is not null) progressWindow.ShowDialog(MainWindow);
+                else progressWindow.Show();
+            });
         }
-        debugWindow.Activate();
+        else
+        {
+            workProgress.NotifyWindowClosed();
+        }
     }
 }
