@@ -21,6 +21,9 @@
       <MenuItem Header="{sd:Localize _File, Context=Menu}">
         <MenuItem Header="{sd:Localize _Open..., Context=Menu}"
                   Command="{Binding OpenCommand}" />
+        <MenuItem Header="{sd:Localize _Close, Context=Menu}"
+                  Command="{Binding CloseCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
         <Separator />
         <MenuItem Header="{sd:Localize E_xit, Context=Menu}"
                   Command="{Binding ExitCommand}" />
@@ -32,7 +35,8 @@
         <MenuItem Header="{sd:Localize _About..., Context=Menu}"
                   Command="{Binding AboutCommand}" />
       </MenuItem>
-      <MenuItem Header="Debug">
+      <MenuItem Header="Debug"
+                IsVisible="{Binding CrashCommand.IsEnabled, Mode=OneWay}">
         <MenuItem Header="Simulate a crash"
                   Command="{Binding CrashCommand}" />
       </MenuItem>

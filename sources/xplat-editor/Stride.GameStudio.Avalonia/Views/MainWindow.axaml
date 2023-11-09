@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="Stride.GameStudio.Avalonia.Views.MainWindow"
         Icon="/Assets/GameStudio.ico"
-        Title="{Binding $self.EditorTitle}"
+        Title="{Binding Title}"
         Width="1280" Height="900">
         <views:MainView />
 </Window>

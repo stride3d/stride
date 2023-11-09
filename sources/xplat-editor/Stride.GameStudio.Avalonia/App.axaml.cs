@@ -6,6 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.IO;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
@@ -30,20 +31,35 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainViewModel(InitializeServiceProvider())
-            };
+            desktop.MainWindow = new MainWindow();
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
-            singleViewPlatform.MainView = new MainView
-            {
-                DataContext = new MainViewModel(InitializeServiceProvider())
-            };
+            singleViewPlatform.MainView = new MainView();
         }
 
         base.OnFrameworkInitializationCompleted();
+        Restart();
+    }
+
+    public void Restart(UFile? initialPath = null)
+    {        
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.MainWindow!.DataContext = InitializeMainViewModel(initialPath);
+        }
+        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
+        {
+            singleViewPlatform.MainView!.DataContext = InitializeMainViewModel(initialPath);
+        }
+    }
+
+    private static MainViewModel InitializeMainViewModel(UFile? initialPath)
+    {
+        var viewmodel = new MainViewModel(InitializeServiceProvider());
+        if (initialPath is not null)
+            viewmodel.OpenCommand.Execute(initialPath);
+        return viewmodel;
     }
 
     private static void InitializePlugins()
