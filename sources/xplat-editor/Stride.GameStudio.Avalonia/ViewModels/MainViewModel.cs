@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Runtime.InteropServices;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -12,20 +13,23 @@ namespace Stride.GameStudio.Avalonia.ViewModels;
 
 internal sealed class MainViewModel : ViewModelBase
 {
+    private static readonly string baseTitle = $"Stride Game Studio {StrideVersion.NuGetVersion} ({RuntimeInformation.FrameworkDescription})";
     private string? message;
     private SessionViewModel? session;
+    private string title = baseTitle;
 
     public MainViewModel(IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
         AboutCommand = new AnonymousTaskCommand(serviceProvider, OnAbout, () => DialogService.HasMainWindow);
+        CloseCommand = new AnonymousCommand(serviceProvider, OnClose);
 #if DEBUG
         CrashCommand = new AnonymousCommand(serviceProvider, () => throw new Exception("Boom!"));
 #else
         CrashCommand = DisabledCommand.Instance;
 #endif
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
-        OpenCommand = new AnonymousTaskCommand(serviceProvider, OnOpen);
+        OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
         OpenDebugWindowCommand = new AnonymousCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
     }
 
@@ -41,7 +45,15 @@ internal sealed class MainViewModel : ViewModelBase
         set => SetValue(ref session, value);
     }
 
+    public string Title
+    {
+        get => title;
+        set => SetValue(ref title, value);
+    }
+
     public ICommandBase AboutCommand { get; }
+
+    public ICommandBase CloseCommand { get; }
 
     public ICommandBase CrashCommand { get; }
 
@@ -55,9 +67,6 @@ internal sealed class MainViewModel : ViewModelBase
 
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {
-        if (session != null)
-            throw new InvalidOperationException("A session is already open in this instance.");
-
         if (filePath == null || !File.Exists(filePath))
         {
             filePath = await DialogService.OpenFilePickerAsync();
@@ -65,17 +74,33 @@ internal sealed class MainViewModel : ViewModelBase
 
         if (filePath == null) return false;
 
+        // We have a session, let's restart cleanly
+        if (session is not null)
+        {
+            session = null;
+            (App.Current as App)?.Restart(filePath);
+            return true;
+        }
+
         var sessionResult = new PackageSessionResult();
         var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, sessionResult, ServiceProvider, token);
 
         // Loading has failed
         if (loadedSession == null)
         {
-            // Null means the user has cancelled the loading operation.
-            return sessionResult.OperationCancelled ? null : false;
+            if (sessionResult.OperationCancelled)
+            {
+                // The cancelled session might have registered plugins or services, let's restart cleanly
+                (App.Current as App)?.Restart();
+                
+                // Null means the user has cancelled the loading operation.
+                return null;
+            }
+            return false;
         }
 
         Session = loadedSession;
+        Title = $"{baseTitle} - {Session.SolutionPath.GetFileNameWithoutExtension()}";
         return true;
     }
 
@@ -84,14 +109,24 @@ internal sealed class MainViewModel : ViewModelBase
         await DialogService.ShowAboutWindowAsync();
     }
 
+    private void OnClose()
+    {
+        // We have a session, let's restart empty
+        if (session is not null && App.Current is App app)
+        {
+            session = null;
+            app.Restart(null);
+        }
+    }
+
     private void OnExit()
     {
         DialogService.Exit();
     }
 
-    private Task OnOpen()
+    private Task OnOpen(UFile? initialPath)
     {
-        return OpenSession(null);
+        return OpenSession(initialPath);
     }
 
     private void OnOpenDebugWindow()

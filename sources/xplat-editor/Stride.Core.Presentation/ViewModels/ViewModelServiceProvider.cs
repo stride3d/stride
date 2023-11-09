@@ -61,8 +61,10 @@ public sealed class ViewModelServiceProvider : IViewModelServiceProvider
     /// <inheritdoc/>
     public void UnregisterService(object service)
     {
-        services.Remove(service);
-        ServiceUnregistered?.Invoke(this, new ServiceRegistrationEventArgs(service));
+        if (services.Remove(service))
+        {
+            ServiceUnregistered?.Invoke(this, new ServiceRegistrationEventArgs(service));
+        }
     }
 
     /// <inheritdoc/>

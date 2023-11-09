@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:cv="using:Stride.Core.Assets.Editor.Avalonia.Converters"
              xmlns:me="using:Stride.Core.Assets.Editor.Avalonia.MarkupExtensions"
              xmlns:vm="using:Stride.GameStudio.Avalonia.ViewModels"
              xmlns:vw="using:Stride.GameStudio.Avalonia.Views"
@@ -21,6 +22,9 @@
       <MenuItem Header="{me:Localize _File, Context=Menu}">
         <MenuItem Header="{me:Localize _Open..., Context=Menu}"
                   Command="{Binding OpenCommand}" />
+        <MenuItem Header="{me:Localize _Close, Context=Menu}"
+                  Command="{Binding CloseCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={cv:ObjectToBool}}"/>
         <Separator />
         <MenuItem Header="{me:Localize E_xit, Context=Menu}"
                   Command="{Binding ExitCommand}" />
@@ -32,7 +36,8 @@
         <MenuItem Header="{me:Localize _About..., Context=Menu}"
                   Command="{Binding AboutCommand}" />
       </MenuItem>
-      <MenuItem Header="Debug">
+      <MenuItem Header="Debug"
+                IsVisible="{Binding CrashCommand.IsEnabled, Mode=OneWay}">
         <MenuItem Header="Simulate a crash"
                   Command="{Binding CrashCommand}" />
       </MenuItem>
