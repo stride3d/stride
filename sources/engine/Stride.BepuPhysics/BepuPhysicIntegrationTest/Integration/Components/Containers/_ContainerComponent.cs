@@ -1,5 +1,4 @@
-﻿using BepuPhysicIntegrationTest.Integration.Components.Simulations;
-using BepuPhysicIntegrationTest.Integration.Configurations;
+﻿using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Engine;

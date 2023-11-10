@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Windows.Media.Media3D;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Components.Simulations;
+using BepuPhysicIntegrationTest.Integration.Configurations;
 using SharpDX.MediaFoundation;
 using Silk.NET.OpenGL;
 using Stride.Core.Mathematics;
@@ -15,18 +15,17 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Utils")]
     public class TimeControlComponent : SyncScript
     {
-        private SimulationComponent _bepuSimulation = null;
+		/// <summary>
+		/// Get or set the SimulationComponent. If set null, it will try to find it in this or parent entities
+		/// </summary>
+		public BepuSimulation BepuSimulation { get; set; }
 
-        /// <summary>
-        /// Get or set the SimulationComponent. If set null, it will try to find it in this or parent entities
-        /// </summary>
-        public SimulationComponent BepuSimulation
-        {
-            get => _bepuSimulation ?? Entity.GetInMeOrParents<SimulationComponent>();
-            set => _bepuSimulation = value;
-        }
+		public override void Start()
+		{
+			BepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[0];
+		}
 
-        public override void Update()
+		public override void Update()
         {
             if (BepuSimulation == null)
                 return;

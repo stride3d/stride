@@ -1,5 +1,5 @@
 ﻿using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Components.Simulations;
+using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Engine;
@@ -12,23 +12,12 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     [AllowMultipleComponents]
 
-    public abstract class ConstraintComponent : EntityComponent
+    public abstract class ConstraintComponent : StartupScript
     {
-        private SimulationComponent _bepuSimulation = null;
-
         /// <summary>
         /// Get or set the SimulationComponent. If set null, it will try to find it in this or parent entities
         /// </summary>
-        public SimulationComponent BepuSimulation
-        {
-            get => _bepuSimulation ?? Entity.GetInMeOrParents<SimulationComponent>();
-            set
-            {
-                ConstraintData?.DestroyConstraint();
-                _bepuSimulation = value;
-                ConstraintData?.BuildConstraint();
-            }
-        }
+        public BepuSimulation BepuSimulation { get; set; }
 
         public BodyContainerComponent BodyA { get; set; }
         public BodyContainerComponent BodyB { get; set; }
@@ -39,5 +28,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
         /// Automatically set by processor.
         /// </summary>
         internal ConstraintData ConstraintData { get; set; }
-    }
+
+		public override void Start()
+		{
+            BepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[0];
+		}
+	}
 }
