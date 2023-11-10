@@ -138,7 +138,6 @@ Hierarchy:
                         Size: {X: 250.0, Y: 0.1, Z: 250.0}
                     b18e400f6ef857c50bac5d706493e368: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
                         Id: 805641b3-f967-41df-b273-a1063faecd6b
-                        BepuSimulation: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
         -   Entity:
                 Id: 73e4d569-78a9-4069-ab9f-516c51ddfc35
                 Name: Spot light
@@ -274,20 +273,8 @@ Hierarchy:
                         Children:
                             a5869266007b42af6b5ba5e5468a5478: ref!! b747854f-42da-4321-823d-58a71cc21ef7
                             e277ee076b67705c014015e2d77f9c92: ref!! aa0d056d-218a-45f5-af49-fd1f23806314
-                    caef1bab4de71f46df7351b99c6d4036: !BepuPhysicIntegrationTest.Integration.Components.Simulations.SimulationComponent,BepuPhysicIntegrationTest
-                        Id: 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
-                        Enabled: true
-                        TimeWrap: 1.0
-                        SpringFreq: 30.0
-                        SpringDamping: 3.0
-                        PoseGravity: {X: 0.0, Y: -10.0, Z: 0.0}
-                        PoseLinearDamping: 0.1
-                        PoseAngularDamping: 0.5
-                        SolveIteration: 4
-                        SolveSubStep: 8
                     2a98c48e5b96344a0ab24da7de9a794b: !BepuPhysicIntegrationTest.Integration.Components.Utils.SpawnerComponent,BepuPhysicIntegrationTest
                         Id: 5d1c032b-80ba-4ea6-8334-aeea1908898b
-                        BepuSimulation: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
                         Instancing: ref!! 7b575973-f575-4c46-ad83-7e80a3655acc
                         SpawnPosition: ref!! 65fcb2f6-453c-4f32-b23a-17f74897d19a
@@ -297,11 +284,10 @@ Hierarchy:
                         SpawnVelocityRange: {X: 10.0, Y: 0.0, Z: 10.0}
                     eeabfda15ef248d6bb1e4f6914eb65e5: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
                         Id: 30cbd757-728a-4f16-a523-d799697c18dc
-                        BepuSimulation: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
                         Instancing: ref!! 7b575973-f575-4c46-ad83-7e80a3655acc
                         SpawnPosition: ref!! b155c235-5d9a-4749-a9b7-733d3b0b5d1e
                         Speed: 50.0
                     8ff30ff71af73fad50d330cdb9500d9a: !BepuPhysicIntegrationTest.Integration.Components.Utils.TimeControlComponent,BepuPhysicIntegrationTest
                         Id: 7fa029b1-b416-4d48-a3bf-9208daf856cc
-                        BepuSimulation: ref!! 7730e81c-2fe4-4878-8cde-c0aa40fbe6b9
+                        BepuSimulation: null

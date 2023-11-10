@@ -1,4 +1,5 @@
 ﻿using BepuPhysicIntegrationTest.Integration.Components.Simulations;
+using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Engine;
@@ -12,20 +13,13 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
 
     public abstract class ContainerComponent : EntityComponent
     {
-        private SimulationComponent _bepuSimulation = null;
-
         /// <summary>
         /// Get or set the SimulationComponent. If set null, it will try to find it in this or parent entities
         /// </summary>
-        public SimulationComponent BepuSimulation
+        [DataMemberIgnore]
+        public BepuSimulation BepuSimulation
         {
-            get => _bepuSimulation ?? Entity.GetInMeOrParents<SimulationComponent>();
-            set
-            {
-                ContainerData?.DestroyShape();
-                _bepuSimulation = value;
-                ContainerData?.BuildShape();
-            }
+            get; set;
         }
 
         /// <summary>

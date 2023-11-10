@@ -15,14 +15,14 @@ namespace BepuPhysicIntegrationTest.Integration.Configurations;
 [Display("Bepu Settings")]
 public class BepuConfiguration : Configuration
 {
-	public List<BepuSimulation> bepuSimulations = new();
+	public List<BepuSimulation> BepuSimulations = new();
 }
 
-[DataContract(nameof(BepuSimulation))]
+[DataContract]
 public class BepuSimulation
 {
 	private List<SimulationUpdateComponent> _simulationUpdateComponents = new();
-
+	
 	internal ThreadDispatcher ThreadDispatcher { get; private set; }
 	internal BufferPool BufferPool { get; private set; }
 
@@ -82,6 +82,7 @@ public class BepuSimulation
 
 		Simulation = Simulation.Create(BufferPool, StrideNarrowPhaseCallbacks, StridePoseIntegratorCallbacks, SolveDescription);
 	}
+
 	internal void Destroy()
 	{
 		Bodies.Clear();

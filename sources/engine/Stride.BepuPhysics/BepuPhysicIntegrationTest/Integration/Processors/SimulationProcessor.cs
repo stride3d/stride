@@ -1,40 +1,21 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Simulations;
 using BepuPhysicIntegrationTest.Integration.Components.Utils;
-using Stride.Core.Annotations;
-using Stride.Core.Extensions;
+using BepuPhysicIntegrationTest.Integration.Configurations;
 using Stride.Engine;
 using Stride.Games;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
-    public class SimulationProcessor : EntityProcessor<SimulationComponentBase>
+    public class SimulationProcessor : EntityProcessor<ColliderComponent>
     {
-        private readonly List<SimulationComponent> _simulationComponents = new();
+        private readonly List<BepuSimulation> _simulationComponents = new();
+        private BepuConfiguration _bepuconfiguration;
 
         public SimulationProcessor()
         {
             Order = 10000;
-        }
-
-        protected override void OnEntityComponentAdding(Entity entity, [NotNull] SimulationComponentBase component, [NotNull] SimulationComponentBase data)
-        {
-            base.OnEntityComponentAdding(entity, component, data);
-            if (component is SimulationComponent sim)
-            {
-                _simulationComponents.Add(sim);
-            }
-        }
-
-        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] SimulationComponentBase component, [NotNull] SimulationComponentBase data)
-        {
-            base.OnEntityComponentRemoved(entity, component, data);
-            if (component is SimulationComponent sim)
-            {
-                _simulationComponents.Remove(sim);
-                sim.Destroy();
-            }
         }
 
         public override void Update(GameTime time)
@@ -48,10 +29,10 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 if (!item.Enabled)
                     continue;
 
-                var SimTimeStep = dt * item.TimeWrap; //calcul the timeStep of the simulation
+                var SimTimeStep = dt * item.TimeWrap; //calculate the timeStep of the simulation
 
-                item.CallSimulationUpdate(SimTimeStep); //cal the SimulationUpdate with simTimeStep
-                item.Simulation.Timestep(SimTimeStep, item.ThreadDispatcher); //perform physic sim using simTimeStep
+                item.CallSimulationUpdate(SimTimeStep); //calculate the SimulationUpdate with simTimeStep
+				item.Simulation.Timestep(SimTimeStep, item.ThreadDispatcher); //perform physic sim using simTimeStep
 
                 for (int i = 0; i < item.Simulation.Bodies.ActiveSet.Count; i++) //Update active body positions and rotation.
                 {
@@ -65,8 +46,6 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     entityTransform.UpdateWorldMatrix();
                 }
             }
-
-            base.Update(time);
         }
 
     }

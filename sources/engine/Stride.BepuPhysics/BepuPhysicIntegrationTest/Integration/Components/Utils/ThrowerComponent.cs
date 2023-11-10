@@ -1,9 +1,4 @@
-﻿using System.Linq;
-using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Components.Simulations;
-using BepuPhysics;
-using BepuPhysics.Collidables;
-using Stride.Engine;
+﻿using Stride.Engine;
 using Stride.Input;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Utils

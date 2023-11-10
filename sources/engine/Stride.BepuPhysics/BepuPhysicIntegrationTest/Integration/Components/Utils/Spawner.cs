@@ -1,13 +1,7 @@
-﻿using System;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.Linq;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysics;
-using BepuPhysics.Collidables;
-using Silk.NET.OpenXR;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Input;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 {
