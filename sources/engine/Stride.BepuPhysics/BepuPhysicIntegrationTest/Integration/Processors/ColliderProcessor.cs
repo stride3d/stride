@@ -2,6 +2,7 @@
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using Stride.Core.Annotations;
 using Stride.Engine;
+using Stride.Engine.Design;
 using Stride.Games;
 using System.Collections.Generic;
 
@@ -11,7 +12,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 	{
 		private List<BepuSimulation> _simulationComponents = new();
 		// When any Colliders are in a scene a Simulation configuration is created.
-		private BepuConfiguration _bepuconfiguration;
+		private BepuConfiguration _bepuConfiguration;
 
 		public ColliderProcessor()
         {
@@ -20,15 +21,16 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
 		protected override void OnSystemAdd()
 		{
-			_bepuconfiguration = Services.GetService<BepuConfiguration>();
+			_bepuConfiguration = Services.GetService<IGameSettingsService>().Settings.Configurations
+				.Get<BepuConfiguration>();
 			// Create a default config if the user did not add it to gamestudio
-			if( _bepuconfiguration == null ) 
+			if( _bepuConfiguration == null ) 
 			{
-				_bepuconfiguration = new BepuConfiguration();
-				_bepuconfiguration.BepuSimulations.Add(new BepuSimulation());
-				Services.AddService(_bepuconfiguration);
+				_bepuConfiguration = new BepuConfiguration();
+				_bepuConfiguration.BepuSimulations.Add(new BepuSimulation());
 			}
-			_simulationComponents = _bepuconfiguration.BepuSimulations;
+			Services.AddService(_bepuConfiguration);
+			_simulationComponents = _bepuConfiguration.BepuSimulations;
 		}
 
 		protected override void OnEntityComponentAdding(Entity entity, [NotNull] ColliderComponent component, [NotNull] ColliderComponent data)
