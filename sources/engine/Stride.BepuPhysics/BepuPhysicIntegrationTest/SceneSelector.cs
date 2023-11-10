@@ -55,7 +55,12 @@ namespace BepuPhysicIntegrationTest
                 {
                     SetScene(sceneRef);
                 }
-            }
+                // not every keyboard has a numpad
+				if (Input.IsKeyPressed(Keys.D0 + i))
+				{
+					SetScene(sceneRef);
+				}
+			}
         }
 
         private void SetScene(UrlReference<Scene> sceneRef)
