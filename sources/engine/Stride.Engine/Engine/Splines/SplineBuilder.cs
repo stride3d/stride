@@ -11,6 +11,7 @@ namespace Stride.Engine.Splines
     /// </summary>
     public class SplineBuilder
     {
+        private BezierCurveBuilder bezierCurveBuilder;
         /// <summary>
         /// Calculates the spline curves using its splines nodes
         /// Update the bounding box of the <see cref="Spline"/>
@@ -19,6 +20,8 @@ namespace Stride.Engine.Splines
         /// </summary>
         public void CalculateSpline(Spline spline)
         {
+            bezierCurveBuilder = new BezierCurveBuilder();
+            
             var totalNodesCount = spline.SplineNodes.Count;
             if (spline.SplineNodes.Count > 1)
             {
@@ -37,7 +40,8 @@ namespace Stride.Engine.Splines
                         currentSplineNode.TargetWorldPosition = nextSplineNode.WorldPosition;
                         currentSplineNode.TargetTangentInWorldPosition = nextSplineNode.TangentInWorldPosition;
 
-                        spline.SplineNodes[i].CalculateBezierCurve();
+                        bezierCurveBuilder.CalculateBezierCurve(spline.SplineNodes[i]);
+    
 
                         // Update the rotation of the last bezier point from the previous curve, to the rotation of the first bezier point in the current curve
                         if (i > 0)
@@ -49,9 +53,9 @@ namespace Stride.Engine.Splines
                         var firstSplineNode = spline.SplineNodes[0];
                         currentSplineNode.TargetWorldPosition = firstSplineNode.WorldPosition;
                         currentSplineNode.TargetTangentInWorldPosition = firstSplineNode.TangentInWorldPosition;
-
-                        spline.SplineNodes[i].CalculateBezierCurve();
-
+                        
+                        bezierCurveBuilder.CalculateBezierCurve(spline.SplineNodes[i]);
+                        
                         // Update the rotation of the last bezier point from the previous curve, to the rotation of the first bezierpoint in the current curve
                         spline.SplineNodes[i - 1].UpdateLastBezierPointRotation(spline.SplineNodes[i].GetBezierPoints()[0].Rotation);
 
