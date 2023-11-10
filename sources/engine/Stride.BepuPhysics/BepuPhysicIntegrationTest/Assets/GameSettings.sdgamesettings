@@ -21,6 +21,17 @@ Defaults:
         ResourceLiveTimeout: 0:00:00:08.0000000
     - !Stride.Assets.Textures.TextureSettings,Stride.Assets
         TextureQuality: Normal
+    - !BepuPhysicIntegrationTest.Integration.Configurations.BepuConfiguration,BepuPhysicIntegrationTest
+        BepuSimulations:
+            -   Enabled: true
+                TimeWrap: 1.0
+                SpringFreq: 30.0
+                SpringDamping: 3.0
+                PoseGravity: {X: 0.0, Y: -10.0, Z: 0.0}
+                PoseLinearDamping: 0.1
+                PoseAngularDamping: 0.5
+                SolveIteration: 2
+                SolveSubStep: 4
 Overrides: []
 PlatformFilters:
     - PowerVR SGX 54[0-9]
