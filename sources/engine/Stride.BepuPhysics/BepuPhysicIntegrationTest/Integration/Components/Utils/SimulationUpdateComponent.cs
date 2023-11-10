@@ -12,8 +12,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
         public override void Start()
         {
 			BepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[0];
-
-			base.Start();
             BepuSimulation.Register(this);
         }
         public override void Cancel()
