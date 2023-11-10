@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Constraints;
+using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
@@ -14,16 +15,24 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ConstraintProcessor : EntityProcessor<ConstraintComponent>
     {
+        private BepuConfiguration _bepuConfig;
+
         public ConstraintProcessor()
         {
-            Order = 10030;
+            Order = 10040;
         }
 
-        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
+		protected override void OnSystemAdd()
+		{
+			_bepuConfig = Services.GetService<BepuConfiguration>();
+		}
+
+		protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
         {
             base.OnEntityComponentAdding(entity, component, data);
             component.ConstraintData = new(component);
-            component.ConstraintData.BuildConstraint();
+            component.BepuSimulation = _bepuConfig.BepuSimulations[0];
+			component.ConstraintData.BuildConstraint();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
         {

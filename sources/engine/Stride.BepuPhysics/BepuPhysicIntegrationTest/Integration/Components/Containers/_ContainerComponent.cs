@@ -21,10 +21,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
             get; set;
         }
 
-        /// <summary>
-        /// ContainerData is the bridge to Bepu.
-        /// Automatically set by processor.
-        /// </summary>
-        internal ContainerData ContainerData { get; set; }
+		/// <summary>
+		/// ContainerData is the bridge to Bepu.
+		/// Automatically set by processor.
+		/// </summary>
+		internal ContainerData ContainerData { get; set; }
     }
 }
