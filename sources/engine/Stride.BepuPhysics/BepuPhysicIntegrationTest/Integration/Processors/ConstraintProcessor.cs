@@ -1,15 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Numerics;
-using BepuPhysicIntegrationTest.Integration.Components.Colliders;
-using BepuPhysicIntegrationTest.Integration.Components.Constraints;
+﻿using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysics;
-using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
 using Stride.Core.Annotations;
 using Stride.Engine;
-using static BulletSharp.Dbvt;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
