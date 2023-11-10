@@ -1634,6 +1634,7 @@ private:
 
 			// remove all bad characters
 			ReplaceCharacter(materialName, ':', '_');
+			ReplaceCharacter(materialName, '/', '_');
 			RemoveCharacter(materialName, ' ');
 			tempNames[lMaterial] = materialName;
 			
@@ -2011,14 +2012,14 @@ public:
 		return nullptr;
 	}
 
-	double GetAnimationDuration(String^ inputFileName)
+	double GetAnimationDuration(String^ inputFileName, int animationStack)
 	{
 		try
 		{
 			Initialize(inputFileName, nullptr, ImportConfiguration::ImportEntityConfig());
 
 			auto animationConverter = gcnew AnimationConverter(logger, sceneMapping);
-			auto animationData = animationConverter->ProcessAnimation(inputFilename, "", true);
+			auto animationData = animationConverter->ProcessAnimation(inputFilename, "", true, animationStack);
 
 			return animationData->Duration.TotalSeconds;
 		}
@@ -2085,14 +2086,14 @@ public:
 		return nullptr;
 	}
 
-	AnimationInfo^ ConvertAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations)
+	AnimationInfo^ ConvertAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations, int animationStack)
 	{
 		try
 		{
 			Initialize(inputFilename, vfsOutputFilename, ImportConfiguration::ImportAnimationsOnly());
 
 			auto animationConverter = gcnew AnimationConverter(logger, sceneMapping);
-			return animationConverter->ProcessAnimation(inputFilename, vfsOutputFilename, importCustomAttributeAnimations);
+			return animationConverter->ProcessAnimation(inputFilename, vfsOutputFilename, importCustomAttributeAnimations, animationStack);
 		}
 		finally
 		{
