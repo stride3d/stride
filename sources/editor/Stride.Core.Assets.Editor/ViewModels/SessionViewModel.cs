@@ -31,6 +31,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     private readonly Dictionary<string, PackageCategoryViewModel> packageCategories = [];
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = [];
     private readonly PackageSession session;
+    private bool sessionStateUpdating;
 
     private readonly IDebugPage? assetNodesDebugPage;
     private readonly IDebugPage? quantumDebugPage;
@@ -63,6 +64,17 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         }
 
         ActiveProperties = AssetCollection.AssetViewProperties;
+        SelectionService?.RegisterSelectionScope(id => GetAssetById(id.AssetId), o =>
+        {
+            if (o is AssetViewModel asset)
+            {
+                return new AbsoluteId(asset.Id, Guid.Empty);
+            }
+            return null;
+        }, AssetCollection.SelectedContent);
+        //AssetCollection.SelectedAssets.CollectionChanged += SelectedAssetsCollectionChanged;
+        AssetCollection.SelectedContent.CollectionChanged += (s, e) => UpdateSessionState();
+        AssetCollection.SelectedLocations.CollectionChanged += (s, e) => UpdateSessionState();
 
         // Construct package categories
         var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
@@ -72,6 +84,8 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
 
         // Initialize commands
         EditSelectedContentCommand = new AnonymousCommand(serviceProvider, OnEditSelectedContent);
+        PreviousSelectionCommand = new AnonymousCommand(serviceProvider, () => { SelectionService?.NavigateBackward(); UpdateSelectionCommands(); });
+        NextSelectionCommand = new AnonymousCommand(serviceProvider, () => { SelectionService?.NextSelection(); UpdateSelectionCommands(); });
 
         // This event must be subscribed before we create the package view models
         PackageCategories.ForEach(x => x.Value.Content.CollectionChanged += PackageCollectionChanged);
@@ -143,7 +157,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     public IObservableCollection<PackageViewModel> LocalPackages => PackageCategories[LocalPackageCategoryName].Content;
 
     public IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories => packageCategories;
-    
+
     public UFile SolutionPath => session.SolutionPath;
 
     public IObservableCollection<PackageViewModel> StorePackages => PackageCategories[StorePackageCategoryName].Content;
@@ -152,9 +166,15 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
 
     public ICommandBase EditSelectedContentCommand { get; }
 
+    public ICommandBase NextSelectionCommand { get; }
+
+    public ICommandBase PreviousSelectionCommand { get; }
+
     internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
 
     internal IUndoRedoService? ActionService => ServiceProvider.TryGet<IUndoRedoService>();
+
+    internal SelectionService? SelectionService => ServiceProvider.TryGet<SelectionService>();
 
     /// <summary>
     /// Raised when some assets are modified.
@@ -184,6 +204,8 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         debugService.UnregisterDebugPage(undoRedoStackPage);
         debugService.UnregisterDebugPage(assetNodesDebugPage);
         debugService.UnregisterDebugPage(quantumDebugPage);
+        // Unregister collection
+        SelectionService?.UnregisterSelectionScope(AssetCollection.SelectedContent);
 
         base.Destroy();
     }
@@ -321,7 +343,29 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         //    newValue.IsCurrentProject = true;
         //}
         //ToggleIsRootOnSelectedAssetCommand.IsEnabled = CurrentProject != null;
-        //UpdateSessionState();
+        UpdateSessionState();
+    }
+
+    private void UpdateSelectionCommands()
+    {
+        PreviousSelectionCommand.IsEnabled = SelectionService?.CanGoBack ?? false;
+        NextSelectionCommand.IsEnabled = SelectionService?.CanGoForward ?? false;
+    }
+
+    private void UpdateSessionState()
+    {
+        sessionStateUpdating = true;
+        Dispatcher.InvokeAsync(DoUpdateSessionState);
+
+        void DoUpdateSessionState()
+        {
+            if (!sessionStateUpdating)
+                return;
+
+            UpdateSelectionCommands();
+
+            sessionStateUpdating = false;
+        }
     }
 
     #region Commands

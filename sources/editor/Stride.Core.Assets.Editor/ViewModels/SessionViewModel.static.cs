@@ -14,13 +14,20 @@ partial class SessionViewModel
 {
     public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
+        // Create the service that handles selection
+        var selectionService = new SelectionService(serviceProvider.Get<IDispatcherService>());
+
         // Create the service that handles copy/paste
-        serviceProvider.RegisterService(new CopyPasteService());
+        var copyPasteService = new CopyPasteService();
 
         // Create the undo/redo service for this session. We use an initial size of 0 to prevent asset upgrade to be cancellable.
         var actionService = new UndoRedoService(0);
+
+        // Register the session-specific services
         serviceProvider.RegisterService(actionService);
-        
+        serviceProvider.RegisterService(copyPasteService);
+        serviceProvider.RegisterService(selectionService);
+
         var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(token);
         token = cancellationSource.Token;
         var workProgress = new WorkProgressViewModel(serviceProvider, sessionResult)
