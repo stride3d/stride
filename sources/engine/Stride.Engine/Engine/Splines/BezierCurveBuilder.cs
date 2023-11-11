@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Stride.Core.Mathematics;
 using Stride.Engine.Splines.Models;
 

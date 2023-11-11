@@ -108,6 +108,9 @@ namespace Stride.Engine.Splines.Components
 
         }
 
+        /// <summary>
+        /// Update the spline
+        /// </summary>
         public void UpdateSpline()
         {
             Spline.EnqueueSplineUpdate();
@@ -125,7 +128,7 @@ namespace Stride.Engine.Splines.Components
                 return;
             }
 
-            Spline.EnqueueSplineUpdate();
+            UpdateSpline();
             previousPosition = Entity.Transform.Position;
         }
 

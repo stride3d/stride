@@ -5,6 +5,7 @@ using Stride.Engine;
 using Stride.Engine.Splines.Components;
 using Stride.Engine.Splines.Models;
 using Stride.Extensions;
+using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 
@@ -120,7 +121,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
             }
         }
         
-        private static Material GetMaterial(Graphics.GraphicsDevice device, Color color)
+        private static Material GetMaterial(GraphicsDevice device, Color color)
         {
             if (!MaterialCache.TryGetValue(device, out var cache))
             {
@@ -128,23 +129,27 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
                 MaterialCache.Add(device, cache);
             }
 
-            if (!cache.TryGetValue(color, out var material))
+            if (cache.TryGetValue(color, out var material))
             {
-                material = GizmoEmissiveColorMaterial.Create(device, color, color.A == byte.MaxValue ? 0.85f : 0.5f);
-
-                cache.Add(color, material);
+                return material;
             }
+
+            material = GizmoEmissiveColorMaterial.Create(device, color, color.A == byte.MaxValue ? 0.85f : 0.5f);
+            material.Descriptor.Attributes.CullMode = CullMode.None;
+            cache.Add(color, material);
 
             return material;
         }
         
-        private static GeometricPrimitive GetSphere(Graphics.GraphicsDevice device, float centerSphereRadius, int tessellation)
+        private static GeometricPrimitive GetSphere(GraphicsDevice device, float centerSphereRadius, int tessellation)
         {
-            if (!SphereCache.TryGetValue(device, out var sphere))
+            if (SphereCache.TryGetValue(device, out var sphere))
             {
-                sphere = GeometricPrimitive.Sphere.New(device, centerSphereRadius, tessellation);
-                SphereCache.Add(device, sphere);
+                return sphere;
             }
+
+            sphere = GeometricPrimitive.Sphere.New(device, centerSphereRadius, tessellation);
+            SphereCache.Add(device, sphere);
 
             return sphere;
         }
