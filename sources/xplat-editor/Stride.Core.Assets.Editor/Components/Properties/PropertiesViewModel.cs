@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -96,8 +97,8 @@ public abstract class PropertiesViewModel : DispatcherViewModel
         Dispatcher.EnsureAccess();
 
         // This check must be done before any await
-        //if (ServiceProvider.TryGet<SelectionService>()?.PropertySelectionSuppressed ?? false)
-        //    return null;
+        if (ServiceProvider.TryGet<SelectionService>()?.PropertySelectionSuppressed ?? false)
+            return null;
 
         // Wait for current transactions or undo/redo to complete before continuing.
         var undoRedoService = ServiceProvider.TryGet<IUndoRedoService>();
