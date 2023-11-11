@@ -54,8 +54,12 @@ namespace BepuPhysicIntegrationTest
                 if (Input.IsKeyPressed(Keys.NumPad0 + i))
                 {
                     SetScene(sceneRef);
-                }
-            }
+				}
+				if (Input.IsKeyPressed(Keys.D0 + i))
+				{
+					SetScene(sceneRef);
+				}
+			}
         }
 
         private void SetScene(UrlReference<Scene> sceneRef)
