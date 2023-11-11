@@ -3,7 +3,9 @@
 
 using System.Collections.Specialized;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Quantum;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -35,7 +37,41 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
 
     public TItemViewModel RootPart { get => rootPart; private set => SetValue(ref rootPart, value); }
 
-    public ObservableSet<TItemViewModel> SelectedItems { get; } = new ObservableSet<TItemViewModel>();
+    public ObservableSet<TItemViewModel> SelectedItems { get; } = [];
+    
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        EnsureNotDestroyed(nameof(AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, TAssetPart, TAssetViewModel, TItemViewModel>));
+
+        // FIXME xplat-editor
+        //PasteAsRootMonitor.Destroy();
+        //PasteMonitor.Destroy();
+
+        // Unregister collection
+        SelectedItems.CollectionChanged -= SelectedItemsCollectionChanged;
+        SelectedContent.CollectionChanged -= SelectedContentCollectionChanged;
+
+        // Clear the property grid if any of our items was selected.
+        // TODO: this should be factorized with UI editor (at least) and with Sprite editor (ideally)
+        //if (Session.ActiveProperties.Selection.OfType< AssetCompositeItemViewModel>().Any(x => x == RootPart))
+        {
+            // TODO: reimplement this!
+            Session.ActiveProperties.GenerateSelectionPropertiesAsync(Enumerable.Empty<IPropertyProviderViewModel>()).Forget();
+        }
+        // Destroy all parts recursively
+        RootPart?.Destroy();
+        base.Destroy();
+    }
+
+    /// <inheritdoc/>
+    public override IAssetPartViewModel? FindPartViewModel(AbsoluteId id)
+    {
+        if (RootPart is IAssetPartViewModel item && id == item.Id)
+            return item;
+
+        return RootPart?.EnumerateChildren().BreadthFirst(x => x.EnumerateChildren()).FirstOrDefault(part => part is IAssetPartViewModel viewModel && viewModel.Id == id) as IAssetPartViewModel;
+    }
 
     protected abstract TItemViewModel CreateRootPartViewModel();
 
