@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -16,11 +17,17 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
         private Entity gizmoTangentOut;
         private Entity gizmoTangentIn;
 
+        // Each time we create a spline node, we allocate memory that won't be garbage collected without calling Dispose,
+        // so we need a global cache of those materials.
+        private static Dictionary<Graphics.GraphicsDevice, Dictionary<Color, Material>> MaterialCache = new Dictionary<Graphics.GraphicsDevice, Dictionary<Color, Material>>();
+        private static Dictionary<Graphics.GraphicsDevice, GeometricPrimitive> SphereCache = new Dictionary<Graphics.GraphicsDevice, GeometricPrimitive>(1);
+        
         private Material outMaterial;
         private Material inMaterial;
-
-        private readonly float tangentSphereRadius = 0.09f;
-
+        
+        private const float TangentSphereRadius = 0.05f;
+        private const int TangentSphereTessellation = 16;
+        
         private Vector3 previousInTangent;
         private Vector3 previousOutTangent;
         private Vector3 previousNodePosition;
@@ -31,14 +38,14 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
 
         protected override Entity Create()
         {
-            inMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.LightYellow);
-            outMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.LightSalmon);
+            inMaterial = GetMaterial(GraphicsDevice, Color.LightYellow); 
+            outMaterial = GetMaterial(GraphicsDevice, Color.LightSalmon); 
 
             RenderGroup = RenderGroup.Group4;
 
             mainGizmoEntity = new Entity();
 
-            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, tangentSphereRadius, 48).ToMeshDraw();
+            var sphereMeshDraw = GetSphere(GraphicsDevice, TangentSphereRadius, TangentSphereTessellation).ToMeshDraw();
             gizmoTangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { outMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
             gizmoTangentIn = new Entity("TangentSphereIn") { new ModelComponent { Model = new Model { inMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
 
@@ -111,6 +118,35 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
             {
                 entity.RemoveChild(child);
             }
+        }
+        
+        private static Material GetMaterial(Graphics.GraphicsDevice device, Color color)
+        {
+            if (!MaterialCache.TryGetValue(device, out var cache))
+            {
+                cache = new Dictionary<Color, Material>();
+                MaterialCache.Add(device, cache);
+            }
+
+            if (!cache.TryGetValue(color, out var material))
+            {
+                material = GizmoEmissiveColorMaterial.Create(device, color, color.A == byte.MaxValue ? 0.85f : 0.5f);
+
+                cache.Add(color, material);
+            }
+
+            return material;
+        }
+        
+        private static GeometricPrimitive GetSphere(Graphics.GraphicsDevice device, float centerSphereRadius, int tessellation)
+        {
+            if (!SphereCache.TryGetValue(device, out var sphere))
+            {
+                sphere = GeometricPrimitive.Sphere.New(device, centerSphereRadius, tessellation);
+                SphereCache.Add(device, sphere);
+            }
+
+            return sphere;
         }
     }
 }
