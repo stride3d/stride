@@ -22,12 +22,13 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
         EntityDesign = entityDesign;
 
         var assetNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign.Entity);
-        nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(Entity.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>());     
+        nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(Entity.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>());
     }
 
     public Entity AssetSideEntity => EntityDesign.Entity;
 
-    public AbsoluteId Id => new(Asset.Id, AssetSideEntity.Id);
+    /// <inheritdoc/>
+    public override AbsoluteId Id => new(Asset.Id, AssetSideEntity.Id);
 
     /// <inheritdoc/>
     public override IEnumerable<EntityViewModel> InnerSubEntities { get { yield return this; } }
@@ -58,7 +59,7 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
         path.PushTarget();
         return path;
     }
-    
+
     // TODO: turn this non-static and put it in the base - just keep the entity-specific part here. This need to rework a bit how we initialize folders
     private static IEnumerable<EntityDesign> GetOrCreateChildPartDesigns(EntityHierarchyAssetBase asset, EntityDesign entityDesign)
     {
@@ -72,7 +73,7 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
             yield return childDesign;
         }
     }
-    
+
     /// <inheritdoc/>
     GraphNodePath IAssetPropertyProviderViewModel.GetAbsolutePathToRootNode()
     {
@@ -84,7 +85,7 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
     {
         return Asset.Session.AssetNodeContainer.GetOrCreateNode(AssetSideEntity);
     }
-    
+
     /// <inheritdoc/>
     bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => ((IPropertyProviderViewModel)Asset).ShouldConstructItem(collection, index);
 

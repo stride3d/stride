@@ -20,11 +20,17 @@ public abstract class AssetCompositeItemViewModel : DispatcherViewModel
     /// The related asset.
     /// </summary>
     public AssetViewModel Asset { get; }
-    
+
     /// <summary>
     /// Gets or sets the name of this item.
     /// </summary>
     public abstract string? Name { get; set; }
+
+    /// <summary>
+    /// Enumerates all child items of this <see cref="AssetCompositeItemViewModel"/>.
+    /// </summary>
+    /// <returns>A sequence containing all child items of this instance.</returns>
+    public abstract IEnumerable<AssetCompositeItemViewModel> EnumerateChildren();
 
     /// <summary>
     /// Gets the path to this item in the asset.
@@ -56,6 +62,13 @@ public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewMode
         protected set => SetValue(ref parent, value);
     }
 
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        base.Destroy();
+        children.Clear();
+    }
+
     /// <summary>
     /// Adds an <paramref name="item"/> to the <see cref="Children"/> collection.
     /// </summary>
@@ -80,6 +93,12 @@ public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewMode
             item.Parent = (TItemViewModel)this;
         }
     }
+
+    /// <summary>
+    /// Enumerates all child items of this <see cref="AssetCompositeItemViewModel"/>.
+    /// </summary>
+    /// <returns>A sequence containing all child items of this instance.</returns>
+    public override IEnumerable<AssetCompositeItemViewModel> EnumerateChildren() => Children;
 
     /// <summary>
     /// Inserts an <paramref name="item"/> to the <see cref="Children"/> collection at the specified <paramref name="index"/>.
