@@ -156,6 +156,11 @@ namespace Stride.VirtualReality
             currentLinearVelocity = location.Velocity?.ToVector3() ?? currentLinearVelocity;
             currentAngularVelocity = location.AngularVelocity?.ToVector3() ?? currentAngularVelocity;
         }
+
+        public override async Task Vibrate(int duration) 
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

@@ -4,6 +4,7 @@ using System.Text;
 using Silk.NET.OpenXR;
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Threading.Tasks;
 
 namespace Stride.VirtualReality
 {
@@ -165,6 +166,11 @@ namespace Stride.VirtualReality
                 currentRot.Z = handLocation.Pose.Orientation.Z;
                 currentRot.W = handLocation.Pose.Orientation.W;
             }
+        }
+        
+        public override async Task Vibrate(int duration)
+        {
+            throw new NotImplementedException();
         }
     }
 }

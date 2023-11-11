@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core.Mathematics;
+using System.Threading.Tasks;
+using Stride.VirtualReality.OculusOVR;
 
 namespace Stride.VirtualReality
 {
@@ -23,6 +25,7 @@ namespace Stride.VirtualReality
         private uint previousButtonsState;
         private Vector2 currentThumbstick;
         private const float TriggerAndGripDeadzone = 0.00001f;
+        private readonly OculusVibrator vibrator;
 
         public override Vector3 Position => currentPos;
 
@@ -138,9 +141,10 @@ namespace Stride.VirtualReality
 
         public override Vector2 ThumbstickAxis => currentThumbstick;
 
-        public OculusTouchController(TouchControllerHand hand)
+        public OculusTouchController(TouchControllerHand hand, OculusVibrator vibrator)
         {
             this.hand = hand;
+            this.vibrator = vibrator;
             currentState = DeviceState.Invalid;
         }
 
@@ -398,6 +402,11 @@ namespace Stride.VirtualReality
                 default:
                     return false;
             }
+        }
+
+        public override async Task Vibrate(int duration)
+        {
+            await vibrator.Vibrate(duration);
         }
     }
 }

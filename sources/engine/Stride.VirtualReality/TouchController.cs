@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games;
 
@@ -79,6 +80,13 @@ namespace Stride.VirtualReality
         /// <param name="button"></param>
         /// <returns></returns>
         public abstract bool IsTouchReleased(TouchControllerButton button);
+
+        /// <summary>
+        /// Vibrate the controller for a fixed duration.
+        /// </summary>
+        /// <param name="duration">Vibration duration, in milliseconds</param>
+        /// <returns></returns>
+        public abstract Task Vibrate(int duration);
 
         public virtual void Dispose()
         {          

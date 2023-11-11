@@ -5,6 +5,7 @@
 using System;
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Threading.Tasks;
 
 namespace Stride.VirtualReality
 {
@@ -121,6 +122,17 @@ namespace Stride.VirtualReality
         public override bool IsTouchReleased(TouchControllerButton button)
         {
             return controller?.GetTouchUp(ToOpenVrButton(button)) ?? false;
+        }
+
+        public override async Task Vibrate(int duration)
+        {
+            while(duration > 50)
+            {
+                Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex+1, 0, 1000 * 50);
+                duration -= 50;
+                await Task.Delay(50);
+            }
+            Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex+1, 0, (ushort)duration);
         }
 
         public override Vector3 Position => currentPos;

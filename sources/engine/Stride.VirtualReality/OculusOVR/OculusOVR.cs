@@ -224,5 +224,12 @@ namespace Stride.VirtualReality
             GetAudioDeviceID(deviceName);
             return $"\\\\?\\SWD#MMDEVAPI#{deviceName}#{{e6327cad-dcec-4949-ae8a-991e976a79d2}}"; //this should not change the guid is related to audio device type
         }
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(NativeInvoke.Library, EntryPoint = "xnOvrSetLeftVibration", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetLeftVibration(IntPtr session, float frequency, float amplitude);
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(NativeInvoke.Library, EntryPoint = "xnOvrSetRightVibration", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRightVibration(IntPtr session, float frequency, float amplitude);
     }
 }
