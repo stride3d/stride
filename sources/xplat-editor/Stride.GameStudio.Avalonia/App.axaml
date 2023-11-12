@@ -42,7 +42,7 @@
           <DockPanel>
             <TextBlock DockPanel.Dock="Top"
                        Text="ToolBar placeholder (log viewer)" />
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
               <SelectableTextBlock Name="PART_LogText"
                                    Background="Transparent"
                                    TextWrapping="WrapWithOverflow" />

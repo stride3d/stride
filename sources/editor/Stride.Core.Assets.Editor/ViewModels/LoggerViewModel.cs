@@ -83,7 +83,53 @@ public class LoggerViewModel : DispatcherViewModel, IDebugPage
     /// <remarks>The default value is equal to <see cref="DefaultUpdateInterval"/>.</remarks>
     public int UpdateInterval { get { return updateInterval; } set { SetValue(ref updateInterval, value); } }
 
-    protected Dictionary<Logger, List<ILogMessage>> Loggers { get; } = new();
+    protected Dictionary<Logger, List<ILogMessage>> Loggers { get; } = [];
+
+    /// <summary>
+    /// Adds a <see cref="Logger"/> to monitor.
+    /// </summary>
+    /// <param name="logger">The <see cref="Logger"/> to monitor.</param>
+    public virtual void AddLogger(Logger logger)
+    {
+        Loggers.Add(logger, []);
+        logger.MessageLogged += MessageLogged;
+    }
+
+    /// <summary>
+    /// Removes a <see cref="Logger"/> from monitoring.
+    /// </summary>
+    /// <param name="logger">The <see cref="Logger"/> to remove from monitoring.</param>
+    public virtual void RemoveLogger(Logger logger)
+    {
+        Loggers.Remove(logger);
+        logger.MessageLogged -= MessageLogged;
+    }
+
+    /// <summary>
+    /// Removes all loggers from monitoring.
+    /// </summary>
+    public virtual void ClearLoggers()
+    {
+        foreach (var logger in Loggers)
+        {
+            logger.Key.MessageLogged -= MessageLogged;
+        }
+        Loggers.Clear();
+    }
+
+    /// <summary>
+    /// Removes messages that comes from the given logger from the <see cref="Messages"/> collection.
+    /// </summary>
+    public void ClearMessages(Logger logger)
+    {
+        if (Loggers.TryGetValue(logger, out var messagesToRemove))
+        {
+            foreach (var messageToRemove in messagesToRemove)
+            {
+                messages.Remove(messageToRemove);
+            }
+        }
+    }
 
     /// <summary>
     /// Flushes the pending log messages to add them immediately in the view model.
