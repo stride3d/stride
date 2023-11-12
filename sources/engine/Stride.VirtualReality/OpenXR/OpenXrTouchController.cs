@@ -170,7 +170,33 @@ namespace Stride.VirtualReality
         
         public override async Task Vibrate(int duration)
         {
-            throw new NotImplementedException();
+            SendVibrate(duration);
+            await Task.Delay(duration);
+        }
+        //TODO: This does not make controllers vibrate
+        private unsafe void SendVibrate(int duration)
+        {
+            var action = OpenXRInput.GetHapticAction(myHand);
+            HapticActionInfo hapticActionInfo = new HapticActionInfo()
+            {
+                Type = StructureType.HapticActionInfo,
+                Next = null,
+                Action = action,
+            };
+            HapticVibration vibration = new HapticVibration()
+            {
+                Type = StructureType.HapticVibration,
+                Next = null,
+                Duration = duration * 1000,
+                Amplitude = 1,
+                Frequency = 10
+            };
+            HapticBaseHeader hapticBaseHeader = new HapticBaseHeader()
+            {
+                Type = StructureType.HapticVibration,
+                Next = &vibration
+            };
+            baseHMD.Xr.ApplyHapticFeedback(baseHMD.globalSession, &hapticActionInfo, &vibration);
         }
     }
 }

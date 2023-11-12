@@ -139,6 +139,10 @@ namespace Stride.VirtualReality
                     throw new ArgumentException("Don't know button: " + button);
             }
         }
+        public static Silk.NET.OpenXR.Action GetHapticAction(TouchControllerHand hand)
+        {
+            return MappedActions[(int)hand, (int)HAND_PATHS.HapticOut];
+        }
 
         public static bool GetActionBool(TouchControllerHand hand, TouchControllerButton button, out bool wasChangedSinceLast, bool fallback = false)
         {

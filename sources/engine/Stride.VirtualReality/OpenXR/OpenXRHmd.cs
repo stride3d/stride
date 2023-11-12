@@ -10,6 +10,8 @@ using System.Diagnostics;
 using Silk.NET.Core.Native;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using static Stride.VirtualReality.OpenXRInput;
+using System.Text;
 
 namespace Stride.VirtualReality
 {
@@ -1051,16 +1053,6 @@ namespace Stride.VirtualReality
             leftHand.Update(gameTime);
             rightHand.Update(gameTime);
         }
-        /*public async Task VibrateLeft(int duration)
-        {
-            HapticActionInfo haptic_action_info = new HapticActionInfo()
-            {
-                Type = StructureType.HapticActionInfo,
-                Next = null,
-
-            };
-            Xr.ApplyHapticFeedback(globalSession, )
-        }*/
 
         public override void Dispose()
         {

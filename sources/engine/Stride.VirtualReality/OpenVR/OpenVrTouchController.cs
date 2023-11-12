@@ -132,7 +132,7 @@ namespace Stride.VirtualReality
                 duration -= 50;
                 await Task.Delay(50);
             }
-            Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex+1, 0, (ushort)duration);
+            Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex+1, 0, (ushort)(1000 * duration));
         }
 
         public override Vector3 Position => currentPos;

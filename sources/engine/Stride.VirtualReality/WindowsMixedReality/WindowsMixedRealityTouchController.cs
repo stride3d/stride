@@ -157,6 +157,7 @@ namespace Stride.VirtualReality
             currentAngularVelocity = location.AngularVelocity?.ToVector3() ?? currentAngularVelocity;
         }
 
+        //TODO: implement this
         public override async Task Vibrate(int duration) 
         {
             throw new NotImplementedException();
