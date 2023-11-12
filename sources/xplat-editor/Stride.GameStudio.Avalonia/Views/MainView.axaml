@@ -115,9 +115,42 @@
       </Grid>
     </Grid>
 
-    <TextBlock Grid.Row="2"
-               Text="{Binding Message}"
-               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <!-- Status Bar -->
+    <Grid Grid.Row="2"
+          IsVisible="{Binding Session, Converter={cv:ObjectToBool}}"
+          ColumnDefinitions="2*, Auto, *, Auto, *, 100">
+      <TextBlock Grid.Column="0"
+                 Margin="8,0"
+                 VerticalAlignment="Center"
+                 Text="{Binding Status.CurrentStatus}" />
+      <Border Grid.Column="1"
+              Margin="2"
+              BorderThickness="1"
+              BorderBrush="Gray" />
+      <TextBlock Grid.Column="2"
+                 Margin="8,0"
+                 VerticalAlignment="Center">
+        <Run Text="{Binding Session.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={cv:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}" />
+        <Run Text="{Binding Session.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={cv:Localize Text=({0} selected), Plural=({0} selected), IsStringFormat=True, Context=StatusBar}}" />
+      </TextBlock>
+      <Border Grid.Column="3"
+              Margin="2"
+              BorderThickness="1"
+              BorderBrush="Gray" />
+      <TextBlock Grid.Column="4"
+                 Margin="8,0"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Center"
+                 Text="{Binding Status.CurrentJob.Message}" />
+      <ProgressBar Grid.Column="5"
+                   IsVisible="{Binding Status.CurrentJob, Converter={cv:ObjectToBool}}"
+                   Margin="0,2"
+                   VerticalAlignment="Stretch"
+                   HorizontalAlignment="Left"
+                   IsIndeterminate="{Binding Status.CurrentJob.IsIndeterminate}"
+                   Maximum="{Binding Status.CurrentJob.Total}"
+                   Value="{Binding Status.CurrentJob.Current}" />
+    </Grid>
   </Grid>
 
 </UserControl>

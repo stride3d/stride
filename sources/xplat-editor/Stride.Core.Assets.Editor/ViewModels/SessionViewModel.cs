@@ -37,10 +37,11 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     private readonly IDebugPage? quantumDebugPage;
     private readonly IDebugPage? undoRedoStackPage;
 
-    private SessionViewModel(PackageSession session, IViewModelServiceProvider serviceProvider, ILogger logger)
+    private SessionViewModel(PackageSession session, IMainViewModel main, IViewModelServiceProvider serviceProvider, ILogger logger)
         : base(serviceProvider)
     {
         this.session = session;
+        Main = main;
 
         // Make sure plugins are initialized
         PluginService.EnsureInitialized(logger);
@@ -161,6 +162,8 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     public AssetPropertyGraphContainer GraphContainer { get; }
 
     public IObservableCollection<PackageViewModel> LocalPackages => PackageCategories[LocalPackageCategoryName].Content;
+
+    public IMainViewModel Main { get; }
 
     public IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories => packageCategories;
 

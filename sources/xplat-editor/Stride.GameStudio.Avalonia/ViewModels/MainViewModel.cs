@@ -3,6 +3,7 @@
 
 using System.Runtime.InteropServices;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
@@ -11,10 +12,9 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
-internal sealed class MainViewModel : ViewModelBase
+internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 {
     private static readonly string baseTitle = $"Stride Game Studio {StrideVersion.NuGetVersion} ({RuntimeInformation.FrameworkDescription})";
-    private string? message;
     private SessionViewModel? session;
     private string title = baseTitle;
 
@@ -31,12 +31,9 @@ internal sealed class MainViewModel : ViewModelBase
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
         OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
         OpenDebugWindowCommand = new AnonymousCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
-    }
 
-    public string? Message
-    {
-        get => message;
-        set => SetValue(ref message, value);
+        Status = new StatusViewModel(ServiceProvider);
+        Status.PushStatus("Ready");
     }
 
     public SessionViewModel? Session
@@ -44,6 +41,8 @@ internal sealed class MainViewModel : ViewModelBase
         get => session;
         set => SetValue(ref session, value);
     }
+
+    public StatusViewModel Status { get; }
 
     public string Title
     {
@@ -83,7 +82,7 @@ internal sealed class MainViewModel : ViewModelBase
         }
 
         var sessionResult = new PackageSessionResult();
-        var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, sessionResult, ServiceProvider, token);
+        var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, sessionResult, this, ServiceProvider, token);
 
         // Loading has failed
         if (loadedSession == null)
@@ -92,7 +91,7 @@ internal sealed class MainViewModel : ViewModelBase
             {
                 // The cancelled session might have registered plugins or services, let's restart cleanly
                 (App.Current as App)?.Restart();
-                
+
                 // Null means the user has cancelled the loading operation.
                 return null;
             }
