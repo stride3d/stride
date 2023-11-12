@@ -9,9 +9,6 @@ using Silk.NET.Core;
 using System.Diagnostics;
 using Silk.NET.Core.Native;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using static Stride.VirtualReality.OpenXRInput;
-using System.Text;
 
 namespace Stride.VirtualReality
 {
