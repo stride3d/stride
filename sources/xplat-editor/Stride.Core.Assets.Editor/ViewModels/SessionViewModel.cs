@@ -72,9 +72,13 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
             }
             return null;
         }, AssetCollection.SelectedContent);
+        // FIXME xplat-editor
         //AssetCollection.SelectedAssets.CollectionChanged += SelectedAssetsCollectionChanged;
         AssetCollection.SelectedContent.CollectionChanged += (s, e) => UpdateSessionState();
         AssetCollection.SelectedLocations.CollectionChanged += (s, e) => UpdateSessionState();
+
+        // Initialize logs
+        AssetLog = new AssetLogViewModel(ServiceProvider, this);
 
         // Construct package categories
         var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
@@ -127,6 +131,8 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     public IEnumerable<PackageViewModel> AllPackages => PackageCategories.Values.SelectMany(x => x.Content);
 
     public AssetCollectionViewModel AssetCollection { get; }
+
+    public AssetLogViewModel AssetLog { get; }
 
     public AssetNodeContainer AssetNodeContainer { get; }
 
@@ -198,6 +204,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     {
         EnsureNotDestroyed(nameof(SessionViewModel));
 
+        AssetLog.Destroy();
         Thumbnails.Destroy();
 
         var debugService = ServiceProvider.Get<IEditorDebugService>();

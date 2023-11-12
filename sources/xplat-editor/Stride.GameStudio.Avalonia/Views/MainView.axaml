@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ctrl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
              xmlns:cv="using:Stride.Core.Assets.Editor.Avalonia.Converters"
              xmlns:me="using:Stride.Core.Assets.Editor.Avalonia.MarkupExtensions"
              xmlns:vm="using:Stride.GameStudio.Avalonia.ViewModels"
@@ -46,6 +47,7 @@
           RowDefinitions="2*, 2, *">
       <Grid Grid.Row="0"
             ColumnDefinitions="3*, 2, *">
+        <!-- Editors -->
         <vw:EditorCollectionView Grid.Column="0"
                                  BorderThickness="2"
                                  BorderBrush="Red"
@@ -61,6 +63,7 @@
             <Button Content="Next"
                     Command="{Binding Session.NextSelectionCommand}" />
           </StackPanel>
+          <!-- Property Grid -->
           <vw:PropertyGridView Grid.Row="1"
                                BorderThickness="2"
                                BorderBrush="Orange"
@@ -71,22 +74,44 @@
       <GridSplitter Grid.Row="1" ResizeDirection="Auto" />
       <Grid Grid.Row="2"
             ColumnDefinitions="*, 2, 2*, 2, *">
+        <!-- Solution Explorer -->
         <vw:SolutionExplorerView Grid.Column="0"
                                  BorderThickness="2"
                                  BorderBrush="Black"
                                  Padding="2"
                                  DataContext="{Binding Session}" />
         <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
-        <vw:AssetExplorerView Grid.Column="2"
-                              BorderThickness="2"
-                              BorderBrush="Blue"
-                              Padding="2"
-                              DataContext="{Binding Session.AssetCollection}"/>
+        <!-- Asset view and logs -->
+        <TabControl Grid.Column="2">
+          <TabItem Header="Asset view">
+            <vw:AssetExplorerView BorderThickness="2"
+                                  BorderBrush="Blue"
+                                  Padding="2"
+                                  DataContext="{Binding Session.AssetCollection}"/>
+          </TabItem>
+          <TabItem Header="Asset errors">
+            <ctrl:TextLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages}" />
+          </TabItem>
+          <TabItem Header="Output">
+
+          </TabItem>
+        </TabControl>
         <GridSplitter Grid.Column="3" ResizeDirection="Auto" />
-        <vw:AssetPreviewView Grid.Column="5"
-                             BorderThickness="2"
-                             BorderBrush="Cyan"
-                             Padding="2" />
+        <!-- Asset preview, history and references -->
+        <TabControl Grid.Column="4">
+          <TabItem Header="Asset preview">
+            <vw:AssetPreviewView BorderThickness="2"
+                                 BorderBrush="Cyan"
+                                 Padding="2" />
+          </TabItem>
+          <TabItem Header="Edit history">
+
+          </TabItem>
+          <TabItem Header="References">
+
+          </TabItem>
+
+        </TabControl>
       </Grid>
     </Grid>
 

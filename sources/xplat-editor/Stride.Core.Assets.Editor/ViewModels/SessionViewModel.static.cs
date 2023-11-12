@@ -70,11 +70,12 @@ partial class SessionViewModel
         // Now resize the undo stack to the correct size.
         actionService.Resize(200);
 
-        // Notify that the task is finished
-        sessionResult.OperationCancelled = cancellationSource.IsCancellationRequested;
-        await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, sessionResult.HasErrors);
+        // Copy the result of the asset loading to the log panel.
+        sessionViewModel?.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);
 
-        // TODO: wait for window closing before returning the session
+        // Notify that the task is finished
+        sessionResult.OperationCancelled = token.IsCancellationRequested;
+        await workProgress.NotifyWorkFinished(token.IsCancellationRequested, sessionResult.HasErrors);
 
         return sessionViewModel;
     }
