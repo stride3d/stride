@@ -17,6 +17,7 @@
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>  
   <ItemGroup>
     <None Remove="NShader\Common\GLSLKeywords.map" />
