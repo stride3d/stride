@@ -23,9 +23,12 @@
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Markdown.Avalonia.Tight" Version="11.0.2" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
+    <PackageReference Include="Stride.QuickGraph" Version="3.7.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\engine\Stride.Debugger\Stride.Debugger.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Avalonia\Stride.Core.Assets.Editor.Avalonia.csproj" />
     <ProjectReference Include="..\Stride.Editor.Avalonia\Stride.Editor.Avalonia.csproj" />
   </ItemGroup>
@@ -33,6 +36,12 @@
   <ItemGroup>
     <!-- TODO xplat-editor that reference shouldn't be explicit and such assembly should be loaded as external plugins -->
     <ProjectReference Include="..\Stride.Assets.Editor.Avalonia\Stride.Assets.Editor.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Stride.Core.AssemblyProcessor">
+      <HintPath Condition="$(TargetFramework.StartsWith('net6'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />

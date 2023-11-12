@@ -15,9 +15,13 @@ public sealed class ProjectViewModel : PackageViewModel
 
     public ProjectCodeViewModel Code { get; }
 
+    public PlatformType Platform => Project.Platform;
+
     public SolutionProject Project => (SolutionProject)PackageContainer;
 
     public UFile ProjectPath => Project.FullPath;
+
+    public ProjectType Type => Project.Type;
 
     /// <summary>
     /// Gets asset directory view model for a given path and creates all missing parts.
