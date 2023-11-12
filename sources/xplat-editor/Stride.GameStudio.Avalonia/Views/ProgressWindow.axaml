@@ -23,11 +23,11 @@
                         LogMessages="{Binding Log.Messages}" />
     <StackPanel Grid.Row="2"
                 Orientation="Horizontal" HorizontalAlignment="Right">
-      <Button Content="{sd:Localize Close, Context=Button}"
+      <Button Content="{sd:LocalizeString Close, Context=Button}"
               Click="OnClick_Close"
               Margin="8 0"
               IsEnabled="{Binding WorkDone}" />
-      <Button Content="{sd:Localize Cancel, Context=Button}"
+      <Button Content="{sd:LocalizeString Cancel, Context=Button}"
               Command="{Binding CancelCommand}"
               Margin="8 0"
               IsEnabled="{Binding WorkDone, Converter={sd:InvertBool}}"

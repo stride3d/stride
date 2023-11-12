@@ -9,7 +9,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Stride.GameStudio.Avalonia.Views.AboutWindow"
         Icon="/Assets/GameStudio.ico"
-        Title="{sd:Localize About Stride, Context=About}" ShowInTaskbar="False"
+        Title="{sd:LocalizeString About Stride, Context=About}" ShowInTaskbar="False"
         CanResize="False" SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterOwner">
   <Window.Resources>
@@ -26,14 +26,14 @@
           RowDefinitions="*, 20, *">
       <!-- Copyright info -->
       <TextBlock Grid.Row="0" Grid.Column="0">
-        <Run Text="{sd:Localize Stride version, Context=About}" />
+        <Run Text="{sd:LocalizeString Stride version, Context=About}" />
         <Run Text="{x:Static stride:StrideVersion.NuGetVersion}" />
         <LineBreak />
         <Run Text="© Stride contributors" />
         <LineBreak />
         <!-- License -->
         <sd:Hyperlink Click="License_OnClick">
-          <TextBlock Text="{sd:Localize MIT License, Context=About}" />
+          <TextBlock Text="{sd:LocalizeString MIT License, Context=About}" />
         </sd:Hyperlink>
       </TextBlock>
       <!-- Notices -->
@@ -41,16 +41,16 @@
                  HorizontalAlignment="Right" VerticalAlignment="Top"
                  FlowDirection="RightToLeft">
         <!-- Open-source notice -->
-        <Run Text="{sd:Localize Stride uses open-source software, Context=About}" />
+        <Run Text="{sd:LocalizeString Stride uses open-source software, Context=About}" />
         <LineBreak />
         <sd:Hyperlink Click="ThirdParty_OnClick">
-          <TextBlock Text="{sd:Localize See the list, Context=About}" />
+          <TextBlock Text="{sd:LocalizeString See the list, Context=About}" />
         </sd:Hyperlink>
         <LineBreak />
         <LineBreak />
         <!-- Privacy policy -->
         <sd:Hyperlink Click="Privacy_OnClick">
-          <TextBlock Text="{sd:Localize Privacy policy, Context=About}" />
+          <TextBlock Text="{sd:LocalizeString Privacy policy, Context=About}" />
         </sd:Hyperlink>
       </TextBlock>
       <!-- Backers -->

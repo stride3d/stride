@@ -8,13 +8,13 @@ using Stride.Core.Translation;
 
 namespace Stride.Core.Presentation.Avalonia.MarkupExtensions;
 
-public sealed class LocalizeExtension : MarkupExtension
+public sealed class LocalizeStringExtension : MarkupExtension
 {
-    public LocalizeExtension()
+    public LocalizeStringExtension()
     {
     }
 
-    public LocalizeExtension(object value)
+    public LocalizeStringExtension(object value)
     {
         Text = value?.ToString();
     }

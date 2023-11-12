@@ -12,7 +12,7 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 
 partial class SessionViewModel
 {
-    public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
+    public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
         // Create the service that handles selection
         var selectionService = new SelectionService(serviceProvider.Get<IDispatcherService>());
@@ -49,7 +49,7 @@ partial class SessionViewModel
                 PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(token));
                 if (!token.IsCancellationRequested)
                 {
-                    result = new SessionViewModel(serviceProvider, sessionResult.Session, sessionResult);
+                    result = new SessionViewModel(serviceProvider, sessionResult.Session, main, sessionResult);
 
                     // Build asset view models
                     result.LoadAssetsFromPackages(workProgress, token);

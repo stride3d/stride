@@ -4,6 +4,7 @@
 using Stride.Assets;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
+using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
@@ -28,7 +29,7 @@ public class GameStudioThumbnailService : IThumbnailService
     private readonly GameStudioBuilderService assetBuilderService;
     private readonly ThumbnailListCompiler thumbnailCompiler;
     private readonly AssetCompilerRegistry compilerRegistry;
-    private readonly List<ThumbnailPriorityItem> assetsToIncreasePriority = new();
+    private readonly List<ThumbnailPriorityItem> assetsToIncreasePriority = [];
     private readonly ThumbnailGenerator generator;
     private bool thumbnailThreadShouldTerminate;
     private RenderingMode renderingMode;
@@ -73,7 +74,7 @@ public class GameStudioThumbnailService : IThumbnailService
         gameSettingsProviderService.GameSettingsChanged -= GameSettingsChanged;
     }
 
-    private void GameSettingsChanged(object sender, GameSettingsChangedEventArgs e)
+    private void GameSettingsChanged(object? sender, GameSettingsChangedEventArgs e)
     {
         UpdateGameSettings(e.GameSettings);
     }
@@ -223,9 +224,9 @@ public class GameStudioThumbnailService : IThumbnailService
         }
     }
 
-    private void ThumbnailBuilt(object sender, ThumbnailBuiltEventArgs e)
+    private void ThumbnailBuilt(object? sender, ThumbnailBuiltEventArgs e)
     {
-        ThumbnailData thumbnailData = null;
+        ThumbnailData? thumbnailData = null;
         if (e.ThumbnailStream != null)
         {
             var stream = new MemoryStream();
@@ -264,20 +265,17 @@ public class GameStudioThumbnailService : IThumbnailService
                 {
                     if (thumbnailQueueHash.Count > 0)
                     {
-                        // FIXME xplat-editor
-                        //EditorViewModel.Instance.Status.NotifyBackgroundJobProgress(currentJobToken, thumbnailQueueHash.Count, true);
+                        session.Main.Status.NotifyBackgroundJobProgress(currentJobToken, thumbnailQueueHash.Count, true);
                     }
                     else
                     {
-                        // FIXME xplat-editor
-                        //EditorViewModel.Instance.Status.NotifyBackgroundJobFinished(currentJobToken);
+                        session.Main.Status.NotifyBackgroundJobFinished(currentJobToken);
                         currentJobToken = -1;
                     }
                 }
                 else if (thumbnailQueueHash.Count > 0)
                 {
-                    // FIXME xplat-editor
-                    //currentJobToken = EditorViewModel.Instance.Status.NotifyBackgroundJobStarted("Building thumbnails… ({0} in queue)", JobPriority.Background);
+                    currentJobToken = session.Main.Status.NotifyBackgroundJobStarted("Building thumbnails… ({0} in queue)", JobPriority.Background);
                 }
             }
         });

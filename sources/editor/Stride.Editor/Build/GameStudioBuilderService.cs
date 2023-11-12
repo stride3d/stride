@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
@@ -120,20 +121,17 @@ public sealed class GameStudioBuilderService : AssetBuilderService
                 {
                     if (taskScheduler.QueuedTaskCount > 0)
                     {
-                        // FIXME xplat-editor
-                        //EditorViewModel.Instance.Status.NotifyBackgroundJobProgress(currentJobToken, taskScheduler.QueuedTaskCount, true);
+                        Session.Main.Status.NotifyBackgroundJobProgress(currentJobToken, taskScheduler.QueuedTaskCount, true);
                     }
                     else
                     {
-                        // FIXME xplat-editor
-                        //EditorViewModel.Instance.Status.NotifyBackgroundJobFinished(currentJobToken);
+                        Session.Main.Status.NotifyBackgroundJobFinished(currentJobToken);
                         currentJobToken = -1;
                     }
                 }
                 else if (taskScheduler.QueuedTaskCount > 0)
                 {
-                    // FIXME xplat-editor
-                    //currentJobToken = EditorViewModel.Instance.Status.NotifyBackgroundJobStarted("Building effects ({0} in queue)", JobPriority.Editor);
+                    currentJobToken = Session.Main.Status.NotifyBackgroundJobStarted("Building effects ({0} in queue)", JobPriority.Editor);
                 }
             }
         });
