@@ -44,6 +44,8 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
         this.directory = parameters.Directory;
         var forcedRoot = AssetType.GetCustomAttribute<AssetDescriptionAttribute>()?.AlwaysMarkAsRoot ?? false;
         Dependencies = new AssetDependenciesViewModel(this, forcedRoot);
+        Sources = new AssetSourcesViewModel(this);
+
         InitialUndelete(parameters.CanUndoRedoCreation);
 
         name = Path.GetFileName(assetItem.Location);
@@ -80,7 +82,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     /// Gets the dependencies of this asset.
     /// </summary>
     public AssetDependenciesViewModel Dependencies { get; }
-    
+
     /// <inheritdoc/>
     public override string Name
     {
@@ -89,6 +91,11 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     }
 
     public AssetPropertyGraph? PropertyGraph { get; }
+
+    /// <summary>
+    /// Gets the view model of the sources of this asset.
+    /// </summary>
+    public AssetSourcesViewModel Sources { get; }
 
     /// <summary>
     /// The <see cref="ThumbnailData"/> associated to this <see cref="AssetViewModel"/>.
@@ -113,6 +120,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
 
     protected Package Package => Directory.Package.Package;
 
+    // FIXME xplat-editor
     protected internal IUndoRedoService? UndoRedoService => ServiceProvider.TryGet<IUndoRedoService>();
 
     /// <summary>
@@ -141,7 +149,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     protected virtual bool ShouldConstructPropertyItem(IObjectNode collection, NodeIndex index) => true;
 
     protected virtual bool ShouldConstructPropertyMember(IMemberNode member) => true;
-    
+
     /// <inheritdoc/>
     protected override void UpdateIsDeletedStatus()
     {
@@ -149,8 +157,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
         {
             Package.Assets.Remove(AssetItem);
             Session.UnregisterAsset(this);
-            // FIXME xplat-editor
-            //Directory.Package.DeletedAssetsList.Add(this);
+            Directory.Package.DeletedAssetsInternal.Add(this);
             if (PropertyGraph != null)
             {
                 Session.GraphContainer.UnregisterGraph(Id);
@@ -160,16 +167,14 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
         {
             Package.Assets.Add(AssetItem);
             Session.RegisterAsset(this);
-            // FIXME xplat-editor
-            //Directory.Package.DeletedAssetsList.Remove(this);
+            Directory.Package.DeletedAssetsInternal.Remove(this);
             if (!Initializing && PropertyGraph != null)
             {
                 Session.GraphContainer.RegisterGraph(PropertyGraph);
             }
         }
         AssetItem.IsDeleted = IsDeleted;
-        // FIXME xplat-editor
-        //Session.SourceTracker?.UpdateAssetStatus(this);
+        Session.SourceTracker?.UpdateAssetStatus(this);
     }
 
     public static HashSet<AssetViewModel> ComputeRecursiveReferencerAssets(IEnumerable<AssetViewModel> assets)

@@ -169,6 +169,8 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
 
     public UFile SolutionPath => session.SolutionPath;
 
+    public IAssetSourceTrackerViewModel SourceTracker { get; private set; }
+
     public IObservableCollection<PackageViewModel> StorePackages => PackageCategories[StorePackageCategoryName].Content;
 
     public ThumbnailsViewModel Thumbnails { get; }
@@ -179,9 +181,11 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
 
     public ICommandBase PreviousSelectionCommand { get; }
 
-    internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
-
     internal IUndoRedoService? ActionService => ServiceProvider.TryGet<IUndoRedoService>();
+
+    internal PackageSession PackageSession => session;
+
+    internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
 
     internal SelectionService? SelectionService => ServiceProvider.TryGet<SelectionService>();
 
@@ -225,6 +229,21 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     {
         var assetType = assetItem.Asset.GetType();
         return PluginService.GetAssetViewModelType(assetType) ?? typeof(AssetViewModel<>);
+    }
+
+    /// <summary>
+    /// Notifies the session that a property of some assets has been changed.
+    /// </summary>
+    /// <remarks>
+    /// Since notifications will be raised asynchronously, <paramref name="assets"/> collection should not be modified after it has been passed to this method.
+    /// If necessary, caller must provide a copy.
+    /// </remarks>
+    public async Task NotifyAssetPropertiesChangedAsync(IReadOnlyCollection<AssetViewModel> assets)
+    {
+        var tasks = assets.Select(x => AssetDependenciesViewModel.NotifyAssetChanged(x.Session, x)).ToList();
+        await Task.WhenAll(tasks);
+        // We raise this event from a task because it will trigger heavy work on the different subscribers
+        await Task.Run(() => AssetPropertiesChanged?.Invoke(this, new AssetChangedEventArgs(assets)));
     }
 
     /// <inheritdoc />
@@ -291,6 +310,12 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
 
             package.LoadPackageInformation(progressVM, ref progress, token);
         }
+
+        // Create actions corresponding to potential upgrades/fixes that occurred during the loading process.
+        // FIXME xplat-editor
+
+        SourceTracker = new AssetSourceTrackerViewModel(this);
+        UpdateSessionState();
 
         // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
         using var transaction = ActionService?.CreateTransaction();

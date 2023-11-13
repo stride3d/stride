@@ -45,11 +45,18 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     public IReadOnlyObservableCollection<ViewModelBase> Content => content;
 
     /// <summary>
+    /// Gets the list of assets that have been deleted by the user since the beginning of the session.
+    /// </summary>
+    public IReadOnlyObservableList<AssetViewModel> DeletedAssets => DeletedAssetsInternal;
+
+    /// <summary>
     /// Gets whether this package is editable.
     /// </summary>
     public override bool IsEditable => !Package.IsSystem && IsLoaded;
 
     public IEnumerable<MountPointViewModel> MountPoints => Content.OfType<MountPointViewModel>();
+
+    internal ObservableList<AssetViewModel> DeletedAssetsInternal { get; } = new ObservableList<AssetViewModel>();
 
     /// <summary>
     /// Gets or sets the name of this package.
