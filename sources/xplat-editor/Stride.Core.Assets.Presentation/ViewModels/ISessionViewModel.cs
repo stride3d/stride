@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Analysis;
-using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Services;
@@ -31,6 +30,8 @@ public interface ISessionViewModel
     IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories { get; }
 
     IViewModelServiceProvider ServiceProvider { get; }
+
+    IAssetSourceTrackerViewModel SourceTracker { get;}
 
     IObservableCollection<PackageViewModel> StorePackages { get; }
 
