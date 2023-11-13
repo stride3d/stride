@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Models;
-using Stride.Core.Assets;
 using Stride.Core.Assets.Presentation.Annotations;
 using Stride.Core.Assets.Presentation.ViewModels;
 
@@ -14,8 +13,8 @@ namespace Stride.Assets.Presentation.ViewModels;
 [AssetViewModel<ModelAsset>]
 public class ModelViewModel : AssetViewModel<ModelAsset>
 {
-    public ModelViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(assetItem, directory)
+    public ModelViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 }

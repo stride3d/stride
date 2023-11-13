@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Rendering;
-using Stride.Core.Assets;
 using Stride.Core.Assets.Presentation.Annotations;
 using Stride.Core.Assets.Presentation.ViewModels;
 
@@ -14,8 +13,8 @@ namespace Stride.Assets.Presentation.ViewModels;
 [AssetViewModel<GraphicsCompositorAsset>]
 public sealed class GraphicsCompositorViewModel : AssetViewModel<GraphicsCompositorAsset>
 {
-    public GraphicsCompositorViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(assetItem, directory)
+    public GraphicsCompositorViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 }

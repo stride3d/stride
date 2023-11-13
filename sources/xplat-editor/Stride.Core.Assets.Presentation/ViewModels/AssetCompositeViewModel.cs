@@ -7,8 +7,8 @@ namespace Stride.Core.Assets.Presentation.ViewModels;
 
 public abstract class AssetCompositeViewModel<TAsset> : AssetViewModel<TAsset> where TAsset : AssetComposite
 {
-    protected AssetCompositeViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(assetItem, directory)
+    protected AssetCompositeViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 

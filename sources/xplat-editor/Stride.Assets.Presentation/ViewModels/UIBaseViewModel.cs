@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.UI;
-using Stride.Core.Assets;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.UI;
@@ -14,8 +13,8 @@ namespace Stride.Assets.Presentation.ViewModels;
 /// </summary>
 public abstract class UIBaseViewModel : AssetCompositeHierarchyViewModel<UIElementDesign, UIElement>
 {
-    protected UIBaseViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(assetItem, directory)
+    protected UIBaseViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 

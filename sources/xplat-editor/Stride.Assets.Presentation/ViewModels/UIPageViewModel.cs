@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.UI;
-using Stride.Core.Assets;
 using Stride.Core.Assets.Presentation.Annotations;
 using Stride.Core.Assets.Presentation.ViewModels;
 
@@ -14,8 +13,8 @@ namespace Stride.Assets.Presentation.ViewModels;
 [AssetViewModel<UIPageAsset>]
 public class UIPageViewModel : UIBaseViewModel, IAssetViewModel<UIPageAsset>
 {
-    public UIPageViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(assetItem, directory)
+    public UIPageViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 
