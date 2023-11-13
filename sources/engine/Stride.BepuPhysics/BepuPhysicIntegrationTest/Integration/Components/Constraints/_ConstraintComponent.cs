@@ -8,7 +8,7 @@ using Stride.Engine.Design;
 namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
 {
     [DataContract]
-    [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
+    [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
     [AllowMultipleComponents]
 
@@ -29,10 +29,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                 ConstraintData?.BuildConstraint();
             }
         }
-
-        public BodyContainerComponent BodyA { get; set; }
-        public BodyContainerComponent BodyB { get; set; }
-
 
         /// <summary>
         /// ContainerData is the bridge to Bepu.

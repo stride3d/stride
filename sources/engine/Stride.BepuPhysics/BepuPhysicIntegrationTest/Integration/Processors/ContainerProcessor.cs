@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Numerics;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
+using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -13,9 +14,12 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
+        //public ConstraintProcessor ConstraintProcessor { get; }
+
         public ContainerProcessor()
         {
             Order = 10010;
+            //ConstraintProcessor = EntityManager.Processors.Get<ConstraintProcessor>();
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
@@ -191,6 +195,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         }
         internal void DestroyShape()
         {
+            if (ContainerComponent.BepuSimulation.Destroyed) return;
+                
             if (BHandle.Value != -1)
             {
                 ContainerComponent.BepuSimulation.Simulation.Bodies.Remove(BHandle);

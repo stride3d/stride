@@ -10,10 +10,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class AngularAxisGearMotorConstraintComponent : TwoBodyConstraintComponent
+    public class AngularAxisMotorConstraintComponent : TwoBodyConstraintComponent
     {
         public Vector3 LocalAxisA { get; set; } = new Vector3(0, 1, 0);
-        public float VelocityScale { get; set; } = 1f;
+        public float TargetVelocity { get; set; } = 1f;
         public MotorSettings Settings { get; set; } = new(100, 10);
 
     }

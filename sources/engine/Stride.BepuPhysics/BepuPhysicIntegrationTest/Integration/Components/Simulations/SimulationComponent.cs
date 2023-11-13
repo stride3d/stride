@@ -29,6 +29,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Simulations
 
 
         internal Simulation Simulation { get; private set; }
+        internal bool Destroyed { get; set; } = false;
 
         internal Dictionary<BodyHandle, Entity> Bodies { get; } = new(Extensions.LIST_SIZE);
         internal Dictionary<StaticHandle, Entity> Statics { get; } = new(Extensions.LIST_SIZE);
@@ -81,6 +82,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Simulations
         }
         internal void Destroy()
         {
+            Destroyed = true;
             Bodies.Clear();
             Simulation.Dispose();
             ThreadDispatcher.Dispose();

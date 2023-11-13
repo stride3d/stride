@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Constraints;
+using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
@@ -33,12 +35,13 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         }
     }
 
+    //Will need rewrite and expose directly the constraint (AgularAxisGearMotor for example) from the component to allow edit.
     internal class ConstraintData
     {
         internal ConstraintComponent ConstraintComponent;
 
-        internal BodyHandle AHandle { get; set; } = new(-1);
-        internal BodyHandle BHandle { get; set; } = new(-1);
+        internal ConstraintHandle CHandle { get; set; } = new(-1);
+        internal List<ContainerData> ContainerDataList { get; set; } = new();
 
         public ConstraintData(ConstraintComponent constraintComponent)
         {
@@ -56,28 +59,71 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     var aHandle = aagmcc.BodyA.ContainerData.BHandle;
                     var BHandle = aagmcc.BodyB.ContainerData.BHandle;
 
+                    ContainerDataList.Add(aagmcc.BodyA.ContainerData);
+                    ContainerDataList.Add(aagmcc.BodyB.ContainerData);
+
                     var constrain = new AngularAxisGearMotor()
                     {
                         LocalAxisA = aagmcc.LocalAxisA.ToNumericVector(),
                         VelocityScale = aagmcc.VelocityScale,
                         Settings = aagmcc.Settings,
                     };
-                    ConstraintComponent.BepuSimulation.Simulation.Solver.Add(aHandle, BHandle, constrain);
+                    CHandle = ConstraintComponent.BepuSimulation.Simulation.Solver.Add(aHandle, BHandle, constrain);
+                    break;
+                case AngularAxisMotorConstraintComponent aamcc:
+                    if (aamcc.BodyA == null || aamcc.BodyB == null)
+                        return;
+
+                    var aHandle1 = aamcc.BodyA.ContainerData.BHandle;
+                    var BHandle1 = aamcc.BodyB.ContainerData.BHandle;
+                    
+                    ContainerDataList.Add(aamcc.BodyA.ContainerData);
+                    ContainerDataList.Add(aamcc.BodyB.ContainerData);
+
+                    var constrain1 = new AngularAxisMotor()
+                    {
+                        LocalAxisA = aamcc.LocalAxisA.ToNumericVector(),
+                        TargetVelocity = aamcc.TargetVelocity,
+                        Settings = aamcc.Settings,
+                    };
+                    CHandle = ConstraintComponent.BepuSimulation.Simulation.Solver.Add(aHandle1, BHandle1, constrain1);
+                    break;
+                case AngularHingeConstraintComponent ahcc:
+                    if (ahcc.BodyA == null || ahcc.BodyB == null)
+                        return;
+
+                    var aHandle2 = ahcc.BodyA.ContainerData.BHandle;
+                    var BHandle2 = ahcc.BodyB.ContainerData.BHandle;
+
+                    ContainerDataList.Add(ahcc.BodyA.ContainerData);
+                    ContainerDataList.Add(ahcc.BodyB.ContainerData);
+
+                    var constrain2 = new AngularHinge()
+                    {
+                        LocalHingeAxisA = ahcc.LocalAxisA.ToNumericVector(),
+                        LocalHingeAxisB = ahcc.LocalAxisB.ToNumericVector(),
+                        SpringSettings = ahcc.Settings,
+                    };
+                    CHandle = ConstraintComponent.BepuSimulation.Simulation.Solver.Add(aHandle2, BHandle2, constrain2);
                     break;
                 case BallSocketConstraintComponent bscc:
                     if (bscc.BodyA == null || bscc.BodyB == null)
                         return;
 
-                    var aHandle1 = bscc.BodyA.ContainerData.BHandle;
-                    var BHandle1 = bscc.BodyB.ContainerData.BHandle;
+                    var aHandle3 = bscc.BodyA.ContainerData.BHandle;
+                    var BHandle3 = bscc.BodyB.ContainerData.BHandle;
 
-                    var constrain1 = new BallSocket()
+                    ContainerDataList.Add(bscc.BodyA.ContainerData);
+                    ContainerDataList.Add(bscc.BodyB.ContainerData);
+
+
+                    var constrain3 = new BallSocket()
                     {
                         LocalOffsetA = bscc.LocalOffsetA.ToNumericVector(),
                         LocalOffsetB = bscc.LocalOffsetB.ToNumericVector(),
                         SpringSettings = bscc.SpringSettings,
                     };
-                    ConstraintComponent.BepuSimulation.Simulation.Solver.Add(aHandle1, BHandle1, constrain1);
+                    CHandle = ConstraintComponent.BepuSimulation.Simulation.Solver.Add(aHandle3, BHandle3, constrain3);
                     break;
 
                 default:
@@ -86,7 +132,13 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         }
         internal void DestroyConstraint()
         {
+            if (ConstraintComponent.BepuSimulation.Destroyed) return;
 
+            ContainerDataList.Clear();
+            if (CHandle.Value != -1 && ConstraintComponent.BepuSimulation.Simulation.Solver.ConstraintExists(CHandle))
+            {
+                ConstraintComponent.BepuSimulation.Simulation.Solver.Remove(CHandle);
+            }
         }
     }
 
