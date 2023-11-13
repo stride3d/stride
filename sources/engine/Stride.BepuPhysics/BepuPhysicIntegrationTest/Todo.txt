@@ -8,4 +8,5 @@ Add Newt generation system (using marching cube and voxel ?)
 Add Chain generation system (to make ropes, chains, bridges, ..)
 
 Make a new Scene with a big demo of everything
-Whehn @Doprez PR is merged, make use of new Extensions.cs
+When @Doprez PR is merged, make use of new Extensions.cs
+Change Colliders to work the same way as ConstraintsV2 (using Bepu struc) (it will allow runtime edition out of the box and no GC)
