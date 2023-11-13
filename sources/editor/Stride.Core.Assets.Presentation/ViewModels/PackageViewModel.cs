@@ -6,6 +6,7 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
+using static Stride.Core.Assets.Presentation.ViewModels.AssetViewModel;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
@@ -196,7 +197,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         {
             assetViewModelType = assetViewModelType.MakeGenericType(assetItem.Asset.GetType());
         }
-        return (AssetViewModel)Activator.CreateInstance(assetViewModelType, assetItem, directory)!;
+        return (AssetViewModel)Activator.CreateInstance(assetViewModelType, new ConstructorParameters(assetItem, directory, false))!;
     }
 
     private void FillRootAssetCollection()

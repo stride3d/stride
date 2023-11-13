@@ -10,8 +10,8 @@ namespace Stride.Assets.Presentation.ViewModels;
 public abstract class SourceCodeViewModel<TSourceCodeAsset> : AssetViewModel<TSourceCodeAsset>
     where TSourceCodeAsset : SourceCodeAsset
 {
-    protected SourceCodeViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(assetItem, directory)
+    protected SourceCodeViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 }
@@ -22,8 +22,8 @@ public abstract class SourceCodeViewModel<TSourceCodeAsset> : AssetViewModel<TSo
 [AssetViewModel<SourceCodeAsset>]
 public class SourceCodeAssetViewModel : SourceCodeViewModel<SourceCodeAsset>
 {
-    public SourceCodeAssetViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(assetItem, directory)
+    public SourceCodeAssetViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 }

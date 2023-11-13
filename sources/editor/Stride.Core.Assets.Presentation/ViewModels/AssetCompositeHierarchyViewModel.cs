@@ -10,8 +10,8 @@ public abstract class AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetP
     where TAssetPartDesign : class, IAssetPartDesign<TAssetPart>
     where TAssetPart : class, IIdentifiable
 {
-    protected AssetCompositeHierarchyViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-    : base(assetItem, directory)
+    protected AssetCompositeHierarchyViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 

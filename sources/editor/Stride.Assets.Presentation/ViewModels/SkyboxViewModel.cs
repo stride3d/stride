@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Skyboxes;
-using Stride.Core.Assets;
 using Stride.Core.Assets.Presentation.Annotations;
 using Stride.Core.Assets.Presentation.ViewModels;
 
@@ -14,8 +13,8 @@ namespace Stride.Assets.Presentation.ViewModels;
 [AssetViewModel<SkyboxAsset>]
 public sealed class SkyboxViewModel : AssetViewModel<SkyboxAsset>
 {
-    public SkyboxViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(assetItem, directory)
+    public SkyboxViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 }

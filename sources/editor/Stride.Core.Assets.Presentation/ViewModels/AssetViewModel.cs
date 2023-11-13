@@ -19,8 +19,8 @@ public interface IAssetViewModel<out TAsset>
 public class AssetViewModel<TAsset> : AssetViewModel, IAssetViewModel<TAsset>
     where TAsset : Asset
 {
-    public AssetViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(assetItem, directory)
+    public AssetViewModel(ConstructorParameters parameters)
+        : base(parameters)
     {
     }
 
@@ -35,16 +35,20 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     private string name;
     private ThumbnailData? thumbnailData;
 
-    protected AssetViewModel(AssetItem assetItem, DirectoryBaseViewModel directory)
-        : base(directory.Session)
+    protected AssetViewModel(ConstructorParameters parameters)
+        : base(parameters.Directory.Session)
     {
-        this.assetItem = assetItem;
-        this.directory = directory;
+        Initializing = true;
+
+        this.assetItem = parameters.AssetItem;
+        this.directory = parameters.Directory;
         var forcedRoot = AssetType.GetCustomAttribute<AssetDescriptionAttribute>()?.AlwaysMarkAsRoot ?? false;
         Dependencies = new AssetDependenciesViewModel(this, forcedRoot);
+        InitialUndelete(parameters.CanUndoRedoCreation);
+
         name = Path.GetFileName(assetItem.Location);
         PropertyGraph = Session.GraphContainer.TryGetGraph(assetItem.Id);
-        Session.RegisterAsset(this);
+        Initializing = false;
     }
 
     public Asset Asset => AssetItem.Asset;
@@ -105,6 +109,8 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     /// </summary>
     public string Url => AssetItem.Location;
 
+    protected bool Initializing { get; private set; }
+
     protected Package Package => Directory.Package.Package;
 
     protected internal IUndoRedoService? UndoRedoService => ServiceProvider.TryGet<IUndoRedoService>();
@@ -156,7 +162,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
             Session.RegisterAsset(this);
             // FIXME xplat-editor
             //Directory.Package.DeletedAssetsList.Remove(this);
-            if (/*!Initializing &&*/ PropertyGraph != null)
+            if (!Initializing && PropertyGraph != null)
             {
                 Session.GraphContainer.RegisterGraph(PropertyGraph);
             }
@@ -180,7 +186,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
 
     AssetViewModel IAssetPropertyProviderViewModel.RelatedAsset => this;
 
-    bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true; //!IsDeleted && IsEditable;
+    bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => !IsDeleted && IsEditable;
 
     GraphNodePath IAssetPropertyProviderViewModel.GetAbsolutePathToRootNode() => GetPathToPropertiesRootNode();
 
@@ -189,4 +195,31 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => ShouldConstructPropertyItem(collection, index);
 
     bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => ShouldConstructPropertyMember(member);
+
+    public readonly struct ConstructorParameters
+    {
+        public ConstructorParameters(AssetItem assetItem, DirectoryBaseViewModel directory, bool canUndoRedoCreation)
+        {
+            if (directory.Package is null) throw new ArgumentException("The provided directory must be in a project when creating an asset.");
+
+            AssetItem = assetItem;
+            CanUndoRedoCreation = canUndoRedoCreation;
+            Directory = directory;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="AssetItem"/> instance representing the asset to construct.
+        /// </summary>
+        internal readonly AssetItem AssetItem;
+
+        /// <summary>
+        /// Gets whether the creation of this asset can be undone/redone.
+        /// </summary>
+        internal readonly bool CanUndoRedoCreation;
+
+        /// <summary>
+        /// Gets the directory containing the asset to construct.
+        /// </summary>
+        internal readonly DirectoryBaseViewModel Directory;
+    }
 }
