@@ -4,8 +4,9 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2;
 
-namespace BepuPhysicIntegrationTest.Integration.Components.ConstrraintsV2
+namespace BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2
 {
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessorV2), ExecutionMode = ExecutionMode.Runtime)]

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using BepuPhysicIntegrationTest.Integration.Components.ConstrraintsV2;
 using BepuPhysics;
 using BepuPhysics.Constraints;
 using Stride.Core.Annotations;
 using Stride.Engine;
+using BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
