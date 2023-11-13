@@ -34,10 +34,6 @@ namespace BepuPhysicIntegrationTest
             Game.Window.AllowUserResizing = true;
             //Game.Window.IsFullscreen = true;
             Game.Window.Title = "StrideGo";
-
-            ((Stride.Games.GameBase)Game).MinimizedMinimumUpdateRate.MinimumElapsedTime = new TimeSpan(100000);
-            ((Stride.Games.GameBase)Game).WindowMinimumUpdateRate.MinimumElapsedTime = new TimeSpan(100000);
-            base.Start();
         }
         public override void Update()
         {
@@ -54,8 +50,12 @@ namespace BepuPhysicIntegrationTest
                 if (Input.IsKeyPressed(Keys.NumPad0 + i))
                 {
                     SetScene(sceneRef);
-                }
-            }
+				}
+				if (Input.IsKeyPressed(Keys.D0 + i))
+				{
+					SetScene(sceneRef);
+				}
+			}
         }
 
         private void SetScene(UrlReference<Scene> sceneRef)
