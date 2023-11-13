@@ -16,6 +16,18 @@ Hierarchy:
         - ref!! d227ba15-b99a-469b-937e-0235d7d682e7
     Parts:
         -   Entity:
+                Id: 0f5cf7cd-8f3e-4723-ac22-4dfe1dfa1882
+                Name: BepuCube
+                Components:
+                    5c52cf8f239546f8d652310ae6ec9b72: !TransformComponent
+                        Id: 83218bdc-1839-4621-b265-e6ace9288c9d
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            70a1baeb0d08e278511bf255d60818de: ref!! ec55ffd2-6e03-4889-8aad-a4344f97adb4
+                            563e0bcb7e9369bf503118c552828d92: ref!! 8e87f009-cade-4e32-b9cd-7e4047d51aed
+        -   Entity:
                 Id: 2b7bd7d3-9e19-4785-bd70-90b1388f08f6
                 Name: Spot light
                 Components:
@@ -190,6 +202,44 @@ Hierarchy:
                         Id: 07d89da4-4f97-41b4-a347-7eeb9c895d5f
                         Type: !InstancingEntityTransform {}
         -   Entity:
+                Id: adf68f89-b555-45ad-8653-cfcf6714281a
+                Name: BepuCube
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: ec55ffd2-6e03-4889-8aad-a4344f97adb4
+                        Position*: {X: 0.0, Y: 10.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 7bc01a8b-830e-4bcf-8dd2-bfdc7df8bbc7
+                        BepuSimulation: ref!! 62552fae-9a07-4cfd-a26d-80edd6e41b4e
+                        Kinematic*: true
+                    ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 416ef8b8-0582-4d89-a742-3034b4971224
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: !InstanceComponent
+                        Id: b2cdd765-2afa-411d-9149-9183888bcd16
+                        Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
+                    7646d0e35bb0962bfdf07362993a9246*: !BepuPhysicIntegrationTest.Integration.Components.ConstrraintsV2.BallSocketConstraintComponentV2,BepuPhysicIntegrationTest
+                        Id: dcf0cc1d-5c96-49de-8ef2-a94337a9c849
+                        BepuSimulation: ref!! 62552fae-9a07-4cfd-a26d-80edd6e41b4e
+                        Bodies:
+                            cd2d730285769b7421622444dd53c076: ref!! 7bc01a8b-830e-4bcf-8dd2-bfdc7df8bbc7
+                            ba2e5596110f5e613196e9710445ccb9: ref!! b412a7ef-f7e2-4e29-89b4-4e49ebe0fefa
+                        LocalOffsetA: {X: 0.0, Y: -1.0, Z: 0.0}
+                        LocalOffsetB: {X: 0.0, Y: 1.0, Z: 0.0}
+                        SpringSettings:
+                            AngularFrequency: 180.0
+                            TwiceDampingRatio: 10.0
+                            Frequency: 28.647888
+                            DampingRatio: 5.0
+            Base:
+                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
+                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
+                InstanceId: a7f8f0b0-57a0-4cd8-ab6c-9a4a6acba3be
+        -   Entity:
                 Id: bbb1ad30-632a-456d-9147-073c24249203
                 Name: Spot light
                 Components:
@@ -226,6 +276,7 @@ Hierarchy:
                         Children:
                             a5869266007b42af6b5ba5e5468a5478: ref!! f9d9ac76-ce0b-4b21-a9aa-4d277fee1174
                             e277ee076b67705c014015e2d77f9c92: ref!! da6adf04-eb63-47c1-b089-9519aee44e8c
+                            a9f2b165993204ff23f9dcd6aa93c73e: ref!! 83218bdc-1839-4621-b265-e6ace9288c9d
                     caef1bab4de71f46df7351b99c6d4036: !BepuPhysicIntegrationTest.Integration.Components.Simulations.SimulationComponent,BepuPhysicIntegrationTest
                         Id: 62552fae-9a07-4cfd-a26d-80edd6e41b4e
                         Enabled: true
@@ -273,6 +324,31 @@ Hierarchy:
                         Model: 65e9d484-84fb-4acd-a87c-f12c2dcf0da2:Models/Cone
                         Materials:
                             4b7476ce466bddb096388de22ed58ff5~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
+        -   Entity:
+                Id: ed7be4ab-4901-41d6-bdce-a138110f0f9d
+                Name: BepuCube
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 8e87f009-cade-4e32-b9cd-7e4047d51aed
+                        Position*: {X: 0.0, Y: 8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: b412a7ef-f7e2-4e29-89b4-4e49ebe0fefa
+                        BepuSimulation: ref!! 62552fae-9a07-4cfd-a26d-80edd6e41b4e
+                        Kinematic*: false
+                    ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 276a4198-fc0e-4173-9c73-a491b14499ae
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: !InstanceComponent
+                        Id: b2677d20-6087-410a-bf03-8cba67a36a03
+                        Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
+            Base:
+                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
+                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
+                InstanceId: 87ba8762-38b4-4cc7-ac9b-b37a5955bff6
         -   Entity:
                 Id: fe8e33bb-9b06-454b-8fc0-fab0c4346474
                 Name: Camera
