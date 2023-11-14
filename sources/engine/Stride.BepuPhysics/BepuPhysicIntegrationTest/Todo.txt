@@ -1,12 +1,22 @@
-Fix World pos / local pos
-Do Shape/Constraints updating
+Ordered by importance !
 
-Add all constraints with examples in the scene
-Add Shape "instancing"
+-Fix //TODO in code !!
 
-Add Newt generation system (using marching cube and voxel ?)
-Add Chain generation system (to make ropes, chains, bridges, ..)
+-Fix World pos / local pos
+Currrently, Only the LocalPosition of the Entity containing the COLLIDER (not the container) is used.
 
-Make a new Scene with a big demo of everything
-When @Doprez PR is merged, make use of new Extensions.cs
-Change Colliders to work the same way as ConstraintsV2 (using Bepu struc) (it will allow runtime edition out of the box and no GC)
+-Shape updating
+Shape system, should be like Constraints system and allow direct modifications of field inside Bepu engine.
+
+-Character controller (https://github.com/Nicogo1705/BepuPhysicIntegrationTest/issues/8)
+
+-Add all constraints with examples in the scene
+-Make a new Scene with a big demo of everything (like 10 000 cubes in a big mixer, that is supported by some ropes)
+
+-Add Shape "instancing"
+
+
+Bonus : 
+
+-Add Newt generation system (using marching cube and/or voxel ?)
+-Add Chain generation system (to make ropes, chains, bridges, ..)
