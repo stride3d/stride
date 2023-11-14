@@ -6,7 +6,6 @@ using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -24,7 +23,7 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
 {
     public static bool DisablePreview = false;
 
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
     private readonly AutoResetEvent initializationSignal = new(false);
     private readonly GameEngineHost host;
@@ -49,7 +48,7 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
     private readonly GameSettingsAsset previewGameSettings;
     private readonly GameSettingsProviderService gameSettingsProvider;
 
-    public GameStudioPreviewService(SessionViewModel session)
+    public GameStudioPreviewService(ISessionViewModel session)
     {
         this.session = session;
         Dispatcher = session.Dispatcher;
@@ -71,7 +70,7 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
 
         // Wait for the window handle to be generated on the proper thread
         initializationSignal.WaitOne();
-        host = new GameEngineHost(windowHandle);
+        host = Dispatcher.Invoke(() =>  new GameEngineHost(windowHandle));
 
         session.AssetPropertiesChanged += OnAssetPropertyChanged;
         gameSettingsProvider.GameSettingsChanged += OnGameSettingsChanged;
@@ -290,10 +289,8 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
 
     private IAssetPreview GetPreviewForAsset(AssetViewModel asset)
     {
-        if (asset == null) throw new ArgumentNullException(nameof(asset));
-
         var assetType = asset.Asset.GetType();
-        while (assetType != null)
+        while (assetType is not null)
         {
             AssetPreviewFactory factory;
             if (assetPreviewFactories.TryGetValue(assetType, out factory))

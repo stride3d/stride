@@ -218,7 +218,7 @@ public abstract class AssetPreview : IAssetPreview
         var pluginService = serviceProvider.Get<IAssetsPluginService>();
         var viewType = pluginService.GetPreviewViewType(GetType()) ?? DefaultViewType;
 
-        return viewType != null
+        return viewType is not null
             ? await Builder.Dispatcher.InvokeAsync(() =>
             {
                 var view = (IPreviewView?)Activator.CreateInstance(viewType);
@@ -233,7 +233,7 @@ public abstract class AssetPreview : IAssetPreview
         var pluginService = serviceProvider.Get<IAssetsPluginService>();
         var previewViewModelType = pluginService.GetPreviewViewModelType(GetType());
 
-        return previewViewModelType != null
+        return previewViewModelType is not null
             ? await AssetViewModel.Dispatcher.InvokeAsync(() =>
             {
                 return (IAssetPreviewViewModel?)Activator.CreateInstance(previewViewModelType, AssetViewModel.Session);

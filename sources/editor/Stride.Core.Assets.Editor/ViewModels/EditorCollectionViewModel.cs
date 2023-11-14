@@ -8,7 +8,6 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
-// TODO consider moving this class to Stride.Core.Assets.Editor or Stride.Assets.Editor
 // TODO might not be needed, we can have an OpenedAssets collection in AssetCollectionViewModel
 public sealed class EditorCollectionViewModel : DispatcherViewModel
 {
@@ -35,15 +34,13 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel
     public void OpenAssetEditor(AssetViewModel asset)
     {
         if (openedAssets.TryGetValue(asset, out var editor))
-        {            
-             // TODO make the editor active
+        {
              ActiveEditor = editor;
              return;
         }
 
-        // TODO create and open a new editor
         var editorType = ServiceProvider.TryGet<IAssetsPluginService>()?.GetEditorViewModelType(asset.GetType());
-        if (editorType != null)
+        if (editorType is not null)
         {
             editor = (AssetEditorViewModel)Activator.CreateInstance(editorType, asset)!;
             openedAssets.Add(asset, editor);
