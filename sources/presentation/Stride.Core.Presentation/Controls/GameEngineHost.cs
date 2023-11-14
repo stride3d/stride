@@ -148,7 +148,6 @@ namespace Stride.Core.Presentation.Controls
 
             // Hide window, clear parent
             NativeHelper.ShowWindow(Handle, NativeHelper.SW_HIDE);
-            NativeHelper.SetParent(Handle, IntPtr.Zero);
 
             // Unregister keyboard sink
             var site = ((IKeyboardInputSink)this).KeyboardInputSite;
@@ -223,6 +222,13 @@ namespace Stride.Core.Presentation.Controls
             switch (msg)
             {
                 case NativeHelper.WM_RBUTTONDOWN:
+                    // Workaround for #94 - Missing input in editor when the window is a child of the gamestudio
+                    // We're disabling the `WS_CHILD` flag when the user is navigating around the scene (holding right click+wasd)
+                    // TODO: Find a proper solution to replace this workaround. Good luck.
+                    int style = NativeHelper.GetWindowLong(Handle, NativeHelper.GWL_STYLE);
+                    style &= ~NativeHelper.WS_CHILD;
+                    NativeHelper.SetWindowLong(Handle, NativeHelper.GWL_STYLE, style);
+
                     mouseMoveCount = 0;
                     task = Dispatcher.InvokeAsync(() =>
                     {
@@ -232,6 +238,12 @@ namespace Stride.Core.Presentation.Controls
                     task.Wait(TimeSpan.FromSeconds(1.0f));
                     break;
                 case NativeHelper.WM_RBUTTONUP:
+                    // Workaround for #94 - Missing input in editor when the window is a child of the gamestudio
+                    // We're re-enabling the `WS_CHILD` flag when the user finished navigating around the scene (released right click)
+                    int style2 = NativeHelper.GetWindowLong(Handle, NativeHelper.GWL_STYLE);
+                    style2 |= NativeHelper.WS_CHILD;
+                    NativeHelper.SetWindowLong(Handle, NativeHelper.GWL_STYLE, style2);
+
                     task = Dispatcher.InvokeAsync(() =>
                     {
                         RaiseMouseButtonEvent(Mouse.PreviewMouseUpEvent, MouseButton.Right);

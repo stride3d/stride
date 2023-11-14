@@ -837,10 +837,17 @@ namespace Stride.Shaders.Parser
             }
 
             static T[] ToArray<T>(List<Expression> v)
+                where T : unmanaged
             {
                 var a = new T[v.Count];
                 for (int i = 0; i < a.Length; i++)
-                    a[i] = ToScalar<T>(v[i]);
+                {
+                    var c = ToScalar<T>(v[i]);
+                    if (c.HasValue)
+                        a[i] = c.Value;
+                    else
+                        return null;
+                }
                 return a;
             }
 
@@ -857,9 +864,15 @@ namespace Stride.Shaders.Parser
                 switch (dimension)
                 {
                     case 3:
-                        return new Color3(ToVector(e, (float[] args) => new Vector3(args)));
+                        {
+                            var v = ToVector(e, (float[] args) => new Vector3(args));
+                            return v.HasValue ? new Color3(v.Value) : null;
+                        }
                     case 4:
-                        return new Color4(ToVector(e, (float[] args) => new Vector4(args)));
+                        {
+                            var v = ToVector(e, (float[] args) => new Vector4(args));
+                            return v.HasValue ? new Color4(v.Value) : null;
+                        }
                 }
                 return null;
             }
@@ -930,37 +943,37 @@ namespace Stride.Shaders.Parser
                 return null;
             }
 
-            static Vector2 ToVector2(Expression e) => ToVector(e, (float[] args) => new Vector2(args));
+            static Vector2? ToVector2(Expression e) => ToVector(e, (float[] args) => new Vector2(args));
 
-            static Vector3 ToVector3(Expression e) => ToVector(e, (float[] args) => new Vector3(args));
+            static Vector3? ToVector3(Expression e) => ToVector(e, (float[] args) => new Vector3(args));
 
-            static Vector4 ToVector4(Expression e) => ToVector(e, (float[] args) => new Vector4(args));
+            static Vector4? ToVector4(Expression e) => ToVector(e, (float[] args) => new Vector4(args));
 
-            static Double2 ToDouble2(Expression e) => ToVector(e, (double[] args) => new Double2(args));
+            static Double2? ToDouble2(Expression e) => ToVector(e, (double[] args) => new Double2(args));
 
-            static Double3 ToDouble3(Expression e) => ToVector(e, (double[] args) => new Double3(args));
+            static Double3? ToDouble3(Expression e) => ToVector(e, (double[] args) => new Double3(args));
 
-            static Double4 ToDouble4(Expression e) => ToVector(e, (double[] args) => new Double4(args));
+            static Double4? ToDouble4(Expression e) => ToVector(e, (double[] args) => new Double4(args));
 
-            static Half2 ToHalf2(Expression e) => ToVector(e, (Half[] args) => new Half2(args));
+            static Half2? ToHalf2(Expression e) => ToVector(e, (Half[] args) => new Half2(args));
 
-            static Half3 ToHalf3(Expression e) => ToVector(e, (Half[] args) => new Half3(args));
+            static Half3? ToHalf3(Expression e) => ToVector(e, (Half[] args) => new Half3(args));
 
-            static Half4 ToHalf4(Expression e) => ToVector(e, (Half[] args) => new Half4(args));
+            static Half4? ToHalf4(Expression e) => ToVector(e, (Half[] args) => new Half4(args));
 
-            static Int2 ToInt2(Expression e) => ToVector(e, (int[] args) => new Int2(args));
+            static Int2? ToInt2(Expression e) => ToVector(e, (int[] args) => new Int2(args));
 
-            static Int3 ToInt3(Expression e) => ToVector(e, (int[] args) => new Int3(args));
+            static Int3? ToInt3(Expression e) => ToVector(e, (int[] args) => new Int3(args));
 
-            static Int4 ToInt4(Expression e) => ToVector(e, (int[] args) => new Int4(args));
+            static Int4? ToInt4(Expression e) => ToVector(e, (int[] args) => new Int4(args));
 
-            static UInt4 ToUInt4(Expression e) => ToVector(e, (uint[] args) => new UInt4(args));
+            static UInt4? ToUInt4(Expression e) => ToVector(e, (uint[] args) => new UInt4(args));
 
-            public static TVector ToVector<TVector, TComponent>(Expression e, Func<TComponent[], TVector> factory)
+            public static TVector? ToVector<TVector, TComponent>(Expression e, Func<TComponent[], TVector> factory)
                 where TVector : unmanaged
                 where TComponent : unmanaged
             {
-                if (e is LiteralExpression l)
+                if (e is LiteralExpression || e is UnaryExpression)
                     return ToVector(new List<Expression>(1) { e }, factory);
                 else if (e is MethodInvocationExpression m)
                     return ToVector(m.Arguments, factory);
@@ -969,39 +982,73 @@ namespace Stride.Shaders.Parser
                 return default;
             }
 
-            static unsafe TVector ToVector<TVector, TComponent>(List<Expression> args, Func<TComponent[], TVector> factory)
+            static unsafe TVector? ToVector<TVector, TComponent>(List<Expression> args, Func<TComponent[], TVector> factory)
                 where TVector : unmanaged
                 where TComponent : unmanaged
             {
                 var dimension = sizeof(TVector) / sizeof(TComponent);
                 if (args.Count == 1)
-                    return factory(Enumerable.Repeat(ToScalar<TComponent>(args[0]), dimension).ToArray());
+                {
+                    var v = ToScalar<TComponent>(args[0]);
+                    if (v.HasValue)
+                        return factory(Enumerable.Repeat(v.Value, dimension).ToArray());
+                    else
+                        return default;
+                }
                 else if (args.Count == dimension)
                     return factory(ToArray<TComponent>(args));
                 return default;
             }
 
-            public static T ToScalar<T>(Expression e)
+            public static T? ToScalar<T>(Expression e)
+                where T : unmanaged
             {
                 if (e is LiteralExpression l)
                     return ToScalar<T>(l.Literal);
+                else if (e is UnaryExpression u)
+                    return ToScalar<T>(u);
                 else
                     return default;
             }
 
-            static T ToScalar<T>(Literal l)
+            static T? ToScalar<T>(Literal l)
+                where T : unmanaged
             {
                 if (l.Value is T t)
                     return t;
+                else
+                    return ChangeType<T>(l.Value);
+            }
 
+            static T? ToScalar<T>(UnaryExpression unary)
+                where T : unmanaged
+            {
+                var e = unary.Expression;
+                return unary.Operator switch
+                {
+                    UnaryOperator.LogicalNot => ChangeType<T>(!ToScalar<bool>(e)),
+                    UnaryOperator.BitwiseNot when typeof(T) == typeof(int) => ChangeType<T>(~ToScalar<int>(e)),
+                    UnaryOperator.BitwiseNot when typeof(T) == typeof(uint) => ChangeType<T>(~ToScalar<uint>(e)),
+                    UnaryOperator.Minus when typeof(T) == typeof(int) => ChangeType<T>(-ToScalar<int>(e)),
+                    UnaryOperator.Minus when typeof(T) == typeof(float) => ChangeType<T>(-ToScalar<float>(e)),
+                    UnaryOperator.Minus when typeof(T) == typeof(double) => ChangeType<T>(-ToScalar<double>(e)),
+                    UnaryOperator.Plus => ToScalar<T>(e),
+                    _ => default
+                };
+            }
+
+            static T? ChangeType<T>(object value)
+                where T : unmanaged
+            {
                 try
                 {
-                    return (T)Convert.ChangeType(l.Value, typeof(T));
+                    return (T)Convert.ChangeType(value, typeof(T));
                 }
                 catch
                 {
                     return default;
                 }
+
             }
         }
     }

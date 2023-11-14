@@ -149,7 +149,6 @@ namespace Stride.VirtualReality
 
             PrintApiLayers();
 
-
             Logger.Debug("Installing extensions");
 
             var openXrExtensions = new List<String>();
@@ -202,7 +201,7 @@ namespace Stride.VirtualReality
 #if STRIDE_GRAPHICS_API_DIRECT3D11
             if (!AvailableExtensions.Contains("XR_KHR_D3D11_enable"))
             {
-                throw new InvalidOperationException($"OpenXR error! Current implementation doesn't support directX 11");
+                throw new InvalidOperationException($"OpenXR error! Current implementation doesn't support Direct3D 11");
             }
 #endif
 
@@ -268,7 +267,7 @@ namespace Stride.VirtualReality
             var runtimeName = Marshal.PtrToStringAnsi(new System.IntPtr(properties.RuntimeName));
             var runtimeVersion = ((Version)(Version64)properties.RuntimeVersion).ToString(3);
 
-            Console.WriteLine($"[INFO] Application: Using OpenXR Runtime \"{runtimeName}\" v{runtimeVersion}");
+            Logger.Info($"Using OpenXR Runtime \"{runtimeName}\" v{runtimeVersion}");
 
             // We're creating a head-mounted-display (HMD, i.e. a VR headset) example, so we ask for a runtime which
             // supports that form factor. The response we get is a ulong that is the System ID.
