@@ -17,7 +17,7 @@ Hierarchy:
     Parts:
         -   Entity:
                 Id: 0f5cf7cd-8f3e-4723-ac22-4dfe1dfa1882
-                Name: BepuCube
+                Name: CubeContainer
                 Components:
                     5c52cf8f239546f8d652310ae6ec9b72: !TransformComponent
                         Id: 83218bdc-1839-4621-b265-e6ace9288c9d
@@ -29,7 +29,7 @@ Hierarchy:
                             563e0bcb7e9369bf503118c552828d92: ref!! 8e87f009-cade-4e32-b9cd-7e4047d51aed
                     e151e9e204a725ac0e696c1dbaf12d3b: !BepuPhysicIntegrationTest.Integration.Components.Utils.ConstraintEditorComponent,BepuPhysicIntegrationTest
                         Id: 29eee624-7987-4ac4-a60a-97a206509239
-                        Component: null
+                        Component: !BepuPhysicIntegrationTest.Integration.Components.Constraints.BallSocketConstraintComponent,BepuPhysicIntegrationTest ref!! 1fb0aec9-9781-4bfd-8741-af216439125b
                     0d1b5a7336eec7d1a5afeabac0abbc79: !BepuPhysicIntegrationTest.Integration.Components.Constraints.BallSocketConstraintComponent,BepuPhysicIntegrationTest
                         Id: 1fb0aec9-9781-4bfd-8741-af216439125b
                         Bodies:

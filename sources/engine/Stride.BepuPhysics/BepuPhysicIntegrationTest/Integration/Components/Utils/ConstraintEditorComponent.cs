@@ -19,7 +19,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void Update()
         {
-            var a = Component.ConstraintData.BepuSimulation.Simulation.Solver.GetConstraintReference(Component.ConstraintData.CHandle);
             if (Input.IsKeyPressed(Keys.I))
             {
                 ((BallSocketConstraintComponent)Component).LocalOffsetB += new Stride.Core.Mathematics.Vector3(0, 1, 0);
