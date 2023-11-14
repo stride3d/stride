@@ -17,7 +17,7 @@ Hierarchy:
     Parts:
         -   Entity:
                 Id: 0d93df05-b323-4a20-a7fa-a404ca62185d
-                Name: AngularAxisGearMotor
+                Name: Hinge
                 Components:
                     5c52cf8f239546f8d652310ae6ec9b72: !TransformComponent
                         Id: cdd774b5-91bf-41e2-a821-9c10d235c3b8
@@ -27,17 +27,18 @@ Hierarchy:
                         Children:
                             70a1baeb0d08e278511bf255d60818de: ref!! 9d7218ba-2f0f-4d07-91b3-bde2d42c4e5f
                             563e0bcb7e9369bf503118c552828d92: ref!! af372a4e-e550-4c67-8548-eeb0ac694864
-                    3d5ec3c1fdd1383a3834e84eff933741: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularAxisGearMotorConstraintComponent,BepuPhysicIntegrationTest
-                        Id: 8988f6f5-d872-4fc6-a12b-12ce4a4b85ef
+                    1383ef4cfdad10ca6de2b2cba6954d38: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularHingeConstraintComponent,BepuPhysicIntegrationTest
+                        Id: ba258eef-1901-4aa1-bfe8-6a5a6fa09223
                         Bodies:
-                            84344011a78e45171da776dd12649dcb: ref!! ddca45b8-ae96-4a8e-b002-2b9d02ebb4a4
-                            88ef3ba35be2d720b056a9ed5d0ca34e: ref!! 6e4a093e-19cc-4caa-9030-246110284e4f
-                        LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
-                        VelocityScale: 2.0
-                        Settings:
-                            MaximumForce: 10000000.0
-                            Damping: 0.01
-                            Softness: 100.0
+                            fa625713e2dd8b385b0925c3bf7827e0: ref!! ddca45b8-ae96-4a8e-b002-2b9d02ebb4a4
+                            4f088a5973baeddc7839dcfc905f370e: ref!! 6e4a093e-19cc-4caa-9030-246110284e4f
+                        LocalHingeAxisA: {X: -1.0, Y: 0.0, Z: 0.0}
+                        LocalHingeAxisB: {X: -1.0, Y: 0.0, Z: 0.0}
+                        SpringSettings:
+                            AngularFrequency: 188.49556
+                            TwiceDampingRatio: 10.0
+                            Frequency: 30.0
+                            DampingRatio: 5.0
         -   Entity:
                 Id: 0f5cf7cd-8f3e-4723-ac22-4dfe1dfa1882
                 Name: BallSocket
@@ -298,13 +299,13 @@ Hierarchy:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 9d7218ba-2f0f-4d07-91b3-bde2d42c4e5f
                         Position*: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Rotation*: {X: 0.0, Y: 0.0, Z: -0.38268346, W: 0.9238795}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: ddca45b8-ae96-4a8e-b002-2b9d02ebb4a4
                         SimulationIndex: 0
-                        Kinematic*: false
+                        Kinematic*: true
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: d5800e81-0ac7-4087-b2f6-8c1bec21ad31
                         Mass: 1.0

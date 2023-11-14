@@ -10,36 +10,21 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class BallSocketConstraintComponent : ConstraintComponent
+    public class VolumeConstraintComponent : ConstraintComponent
     {
-        internal BallSocket _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        internal VolumeConstraint _bepuConstraint = new();
 
-        public Vector3 LocalOffsetA
+        public float TargetScaledVolume
         {
-            get
-            {
-                return _bepuConstraint.LocalOffsetA.ToStrideVector();
-            }
+            get { return _bepuConstraint.TargetScaledVolume; }
             set
             {
-                _bepuConstraint.LocalOffsetA = value.ToNumericVector();
+                _bepuConstraint.TargetScaledVolume = value;
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-        public Vector3 LocalOffsetB
-        {
-            get
-            {
-                return _bepuConstraint.LocalOffsetB.ToStrideVector();
-            }
-            set
-            {
-                _bepuConstraint.LocalOffsetB = value.ToNumericVector();
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
-            }
-        }
+
         public SpringSettings SpringSettings
         {
             get
@@ -53,6 +38,5 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-
     }
 }

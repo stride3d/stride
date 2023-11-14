@@ -1,4 +1,5 @@
-﻿using BepuPhysicIntegrationTest.Integration.Processors;
+﻿using System;
+using BepuPhysicIntegrationTest.Integration.Processors;
 using BepuPhysics.Constraints;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -10,36 +11,60 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class BallSocketConstraintComponent : ConstraintComponent
+    public class SwingLimitConstraintComponent : ConstraintComponent
     {
-        internal BallSocket _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        internal SwingLimit _bepuConstraint = new();
 
-        public Vector3 LocalOffsetA
+        public Vector3 AxisLocalA
         {
             get
             {
-                return _bepuConstraint.LocalOffsetA.ToStrideVector();
+                return _bepuConstraint.AxisLocalA.ToStrideVector();
             }
             set
             {
-                _bepuConstraint.LocalOffsetA = value.ToNumericVector();
+                _bepuConstraint.AxisLocalA = value.ToNumericVector();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-        public Vector3 LocalOffsetB
+
+        public Vector3 AxisLocalB
         {
             get
             {
-                return _bepuConstraint.LocalOffsetB.ToStrideVector();
+                return _bepuConstraint.AxisLocalB.ToStrideVector();
             }
             set
             {
-                _bepuConstraint.LocalOffsetB = value.ToNumericVector();
+                _bepuConstraint.AxisLocalB = value.ToNumericVector();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
+
+        public float MinimumDot
+        {
+            get { return _bepuConstraint.MinimumDot; }
+            set
+            {
+                _bepuConstraint.MinimumDot = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float MaximumSwingAngle
+        {
+            get { return (float)Math.Acos(MinimumDot); }
+            set
+            {
+                MinimumDot = (float)Math.Cos(value);
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
         public SpringSettings SpringSettings
         {
             get
@@ -53,6 +78,5 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-
     }
 }

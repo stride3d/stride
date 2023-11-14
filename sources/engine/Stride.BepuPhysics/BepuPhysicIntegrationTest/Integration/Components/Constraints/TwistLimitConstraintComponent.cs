@@ -10,36 +10,60 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class BallSocketConstraintComponent : ConstraintComponent
+    public class TwistLimitConstraintComponent : ConstraintComponent
     {
-        internal BallSocket _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        internal TwistLimit _bepuConstraint = new();
 
-        public Vector3 LocalOffsetA
+        public Quaternion LocalBasisA
         {
             get
             {
-                return _bepuConstraint.LocalOffsetA.ToStrideVector();
+                return _bepuConstraint.LocalBasisA.ToStrideQuaternion();
             }
             set
             {
-                _bepuConstraint.LocalOffsetA = value.ToNumericVector();
+                _bepuConstraint.LocalBasisA = value.ToNumericQuaternion();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-        public Vector3 LocalOffsetB
+
+        public Quaternion LocalBasisB
         {
             get
             {
-                return _bepuConstraint.LocalOffsetB.ToStrideVector();
+                return _bepuConstraint.LocalBasisB.ToStrideQuaternion();
             }
             set
             {
-                _bepuConstraint.LocalOffsetB = value.ToNumericVector();
+                _bepuConstraint.LocalBasisB = value.ToNumericQuaternion();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
+
+        public float MinimumAngle
+        {
+            get { return _bepuConstraint.MinimumAngle; }
+            set
+            {
+                _bepuConstraint.MinimumAngle = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float MaximumAngle
+        {
+            get { return _bepuConstraint.MaximumAngle; }
+            set
+            {
+                _bepuConstraint.MaximumAngle = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
         public SpringSettings SpringSettings
         {
             get
@@ -53,6 +77,5 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-
     }
 }

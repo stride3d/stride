@@ -10,9 +10,13 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class BallSocketConstraintComponent : ConstraintComponent
+    public class BallSocketServoConstraintComponent : ConstraintComponent
     {
-        internal BallSocket _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        internal BallSocketServo _bepuConstraint = new()
+        {
+            SpringSettings = new SpringSettings(30, 5),
+            ServoSettings = new ServoSettings()
+        };
 
         public Vector3 LocalOffsetA
         {
@@ -27,6 +31,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
+
         public Vector3 LocalOffsetB
         {
             get
@@ -40,6 +45,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
+
         public SpringSettings SpringSettings
         {
             get
@@ -54,5 +60,18 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
             }
         }
 
+        public ServoSettings ServoSettings
+        {
+            get
+            {
+                return _bepuConstraint.ServoSettings;
+            }
+            set
+            {
+                _bepuConstraint.ServoSettings = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
     }
 }

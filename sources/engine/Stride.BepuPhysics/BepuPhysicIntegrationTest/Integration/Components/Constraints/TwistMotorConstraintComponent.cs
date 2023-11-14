@@ -10,49 +10,61 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class BallSocketConstraintComponent : ConstraintComponent
+    public class TwistMotorConstraintComponent : ConstraintComponent
     {
-        internal BallSocket _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        internal TwistMotor _bepuConstraint = new();
 
-        public Vector3 LocalOffsetA
+        public Vector3 LocalAxisA
         {
             get
             {
-                return _bepuConstraint.LocalOffsetA.ToStrideVector();
+                return _bepuConstraint.LocalAxisA.ToStrideVector();
             }
             set
             {
-                _bepuConstraint.LocalOffsetA = value.ToNumericVector();
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
-            }
-        }
-        public Vector3 LocalOffsetB
-        {
-            get
-            {
-                return _bepuConstraint.LocalOffsetB.ToStrideVector();
-            }
-            set
-            {
-                _bepuConstraint.LocalOffsetB = value.ToNumericVector();
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
-            }
-        }
-        public SpringSettings SpringSettings
-        {
-            get
-            {
-                return _bepuConstraint.SpringSettings;
-            }
-            set
-            {
-                _bepuConstraint.SpringSettings = value;
+                _bepuConstraint.LocalAxisA = value.ToNumericVector();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
 
+        public Vector3 LocalAxisB
+        {
+            get
+            {
+                return _bepuConstraint.LocalAxisB.ToStrideVector();
+            }
+            set
+            {
+                _bepuConstraint.LocalAxisB = value.ToNumericVector();
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float TargetVelocity
+        {
+            get { return _bepuConstraint.TargetVelocity; }
+            set
+            {
+                _bepuConstraint.TargetVelocity = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public MotorSettings Settings
+        {
+            get
+            {
+                return _bepuConstraint.Settings;
+            }
+            set
+            {
+                _bepuConstraint.Settings = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
     }
 }

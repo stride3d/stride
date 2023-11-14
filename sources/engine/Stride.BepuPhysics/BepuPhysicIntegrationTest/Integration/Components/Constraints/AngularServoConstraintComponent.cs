@@ -7,39 +7,27 @@ using Stride.Engine.Design;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
 {
-    [DataContract]
+    [DataContract("AngularServoConstraint")]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class BallSocketConstraintComponent : ConstraintComponent
+    public class AngularServoConstraintComponent : ConstraintComponent
     {
-        internal BallSocket _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        internal AngularServo _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
-        public Vector3 LocalOffsetA
+        public Quaternion TargetRelativeRotationLocalA
         {
             get
             {
-                return _bepuConstraint.LocalOffsetA.ToStrideVector();
+                return _bepuConstraint.TargetRelativeRotationLocalA.ToStrideQuaternion();
             }
             set
             {
-                _bepuConstraint.LocalOffsetA = value.ToNumericVector();
+                _bepuConstraint.TargetRelativeRotationLocalA = value.ToNumericQuaternion();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-        public Vector3 LocalOffsetB
-        {
-            get
-            {
-                return _bepuConstraint.LocalOffsetB.ToStrideVector();
-            }
-            set
-            {
-                _bepuConstraint.LocalOffsetB = value.ToNumericVector();
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
-            }
-        }
+
         public SpringSettings SpringSettings
         {
             get
@@ -54,5 +42,18 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
             }
         }
 
+        public ServoSettings ServoSettings
+        {
+            get
+            {
+                return _bepuConstraint.ServoSettings;
+            }
+            set
+            {
+                _bepuConstraint.ServoSettings = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
     }
 }

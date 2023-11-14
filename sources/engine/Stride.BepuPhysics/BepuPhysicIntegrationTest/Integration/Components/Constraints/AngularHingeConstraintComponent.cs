@@ -12,7 +12,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     public class AngularHingeConstraintComponent : ConstraintComponent
     {
-        internal AngularHinge _bepuConstraint = new();
+        internal AngularHinge _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
         public Vector3 LocalHingeAxisA
         {

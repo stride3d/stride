@@ -10,36 +10,38 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class BallSocketConstraintComponent : ConstraintComponent
+    public class AngularSwivelHingeConstraintComponent : ConstraintComponent
     {
-        internal BallSocket _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        internal AngularSwivelHinge _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
-        public Vector3 LocalOffsetA
+        public Vector3 LocalSwivelAxisA
         {
             get
             {
-                return _bepuConstraint.LocalOffsetA.ToStrideVector();
+                return _bepuConstraint.LocalSwivelAxisA.ToStrideVector();
             }
             set
             {
-                _bepuConstraint.LocalOffsetA = value.ToNumericVector();
+                _bepuConstraint.LocalSwivelAxisA = value.ToNumericVector();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-        public Vector3 LocalOffsetB
+
+        public Vector3 LocalHingeAxisB
         {
             get
             {
-                return _bepuConstraint.LocalOffsetB.ToStrideVector();
+                return _bepuConstraint.LocalHingeAxisB.ToStrideVector();
             }
             set
             {
-                _bepuConstraint.LocalOffsetB = value.ToNumericVector();
+                _bepuConstraint.LocalHingeAxisB = value.ToNumericVector();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
+
         public SpringSettings SpringSettings
         {
             get
@@ -53,6 +55,5 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-
     }
 }

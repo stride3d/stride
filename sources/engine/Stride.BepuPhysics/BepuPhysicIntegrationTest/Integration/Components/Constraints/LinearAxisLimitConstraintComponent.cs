@@ -10,9 +10,9 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class BallSocketConstraintComponent : ConstraintComponent
+    public class LinearAxisLimitConstraintComponent : ConstraintComponent
     {
-        internal BallSocket _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        internal LinearAxisLimit _bepuConstraint = new();
 
         public Vector3 LocalOffsetA
         {
@@ -27,6 +27,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
+
         public Vector3 LocalOffsetB
         {
             get
@@ -40,6 +41,49 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
+
+        public Vector3 LocalAxis
+        {
+            get
+            {
+                return _bepuConstraint.LocalAxis.ToStrideVector();
+            }
+            set
+            {
+                _bepuConstraint.LocalAxis = value.ToNumericVector();
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float MinimumOffset
+        {
+            get
+            {
+                return _bepuConstraint.MinimumOffset;
+            }
+            set
+            {
+                _bepuConstraint.MinimumOffset = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float MaximumOffset
+        {
+            get
+            {
+                return _bepuConstraint.MaximumOffset;
+            }
+            set
+            {
+                _bepuConstraint.MaximumOffset = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
         public SpringSettings SpringSettings
         {
             get
@@ -53,6 +97,5 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-
     }
 }

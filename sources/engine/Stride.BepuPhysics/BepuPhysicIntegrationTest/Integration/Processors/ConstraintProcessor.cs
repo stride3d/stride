@@ -70,7 +70,9 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 case AngularHingeConstraintComponent _ahcc:
                     CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _ahcc._bepuConstraint);
                     break;
-
+                case AngularMotorConstraintComponent _amcc:
+                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _amcc._bepuConstraint);
+                    break;
 
                 case BallSocketConstraintComponent _bscc:
                     CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _bscc._bepuConstraint);

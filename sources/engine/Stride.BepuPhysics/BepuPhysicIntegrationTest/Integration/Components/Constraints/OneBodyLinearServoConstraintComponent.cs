@@ -10,36 +10,38 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class BallSocketConstraintComponent : ConstraintComponent
+    public class OneBodyLinearServoConstraintComponent : ConstraintComponent
     {
-        internal BallSocket _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        internal OneBodyLinearServo _bepuConstraint = new();
 
-        public Vector3 LocalOffsetA
+        public Vector3 LocalOffset
         {
             get
             {
-                return _bepuConstraint.LocalOffsetA.ToStrideVector();
+                return _bepuConstraint.LocalOffset.ToStrideVector();
             }
             set
             {
-                _bepuConstraint.LocalOffsetA = value.ToNumericVector();
+                _bepuConstraint.LocalOffset = value.ToNumericVector();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-        public Vector3 LocalOffsetB
+
+        public Vector3 Target
         {
             get
             {
-                return _bepuConstraint.LocalOffsetB.ToStrideVector();
+                return _bepuConstraint.Target.ToStrideVector();
             }
             set
             {
-                _bepuConstraint.LocalOffsetB = value.ToNumericVector();
+                _bepuConstraint.Target = value.ToNumericVector();
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
+
         public SpringSettings SpringSettings
         {
             get
@@ -54,5 +56,18 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
             }
         }
 
+        public ServoSettings ServoSettings
+        {
+            get
+            {
+                return _bepuConstraint.ServoSettings;
+            }
+            set
+            {
+                _bepuConstraint.ServoSettings = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
     }
 }
