@@ -19,6 +19,9 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void Update()
         {
+            if (Component == null || ! (Component is BallSocketConstraintComponent))
+                return;
+
             if (Input.IsKeyPressed(Keys.I))
             {
                 ((BallSocketConstraintComponent)Component).LocalOffsetB += new Stride.Core.Mathematics.Vector3(0, 1, 0);

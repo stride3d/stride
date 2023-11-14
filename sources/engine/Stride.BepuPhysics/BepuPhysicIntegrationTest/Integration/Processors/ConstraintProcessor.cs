@@ -40,7 +40,6 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         }
     }
 
-    //Will need rewrite and expose directly the constraint (AgularAxisGearMotor for example) from the component to allow edit.
     internal class ConstraintData
     {
         internal ConstraintComponent ConstraintComponent { get; }
@@ -62,6 +61,17 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             var bodies = new Span<BodyHandle>(ConstraintComponent.Bodies.Where(e => e.ContainerData != null).Select(e => e.ContainerData.BHandle).ToArray());
             switch (ConstraintComponent)
             {
+                case AngularAxisGearMotorConstraintComponent _aagmcc:
+                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _aagmcc._bepuConstraint);
+                    break;
+                case AngularAxisMotorConstraintComponent _aamcc:
+                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _aamcc._bepuConstraint);
+                    break;
+                case AngularHingeConstraintComponent _ahcc:
+                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _ahcc._bepuConstraint);
+                    break;
+
+
                 case BallSocketConstraintComponent _bscc:
                     CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _bscc._bepuConstraint);
                     break;
