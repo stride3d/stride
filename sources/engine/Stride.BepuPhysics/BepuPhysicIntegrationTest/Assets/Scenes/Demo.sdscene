@@ -27,6 +27,21 @@ Hierarchy:
                         Children:
                             70a1baeb0d08e278511bf255d60818de: ref!! ec55ffd2-6e03-4889-8aad-a4344f97adb4
                             563e0bcb7e9369bf503118c552828d92: ref!! 8e87f009-cade-4e32-b9cd-7e4047d51aed
+                    a7fe0283800a6b1c11f0fd037850f4c2: !BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2.BallSocketConstraintComponent,BepuPhysicIntegrationTest
+                        Id: c6ac53aa-fe49-423d-861b-6afb9406afe6
+                        Bodies:
+                            879a83a2943187a07e0b16b30904c407: ref!! 7bc01a8b-830e-4bcf-8dd2-bfdc7df8bbc7
+                            04ae4d91221b6d789e39504ce7ec9456: ref!! b412a7ef-f7e2-4e29-89b4-4e49ebe0fefa
+                        LocalOffsetA: {X: 0.0, Y: -0.5, Z: 0.0}
+                        LocalOffsetB: {X: 0.0, Y: 1.5, Z: 0.0}
+                        SpringSettings:
+                            AngularFrequency: 188.49556
+                            TwiceDampingRatio: 10.0
+                            Frequency: 30.0
+                            DampingRatio: 5.0
+                    e151e9e204a725ac0e696c1dbaf12d3b: !BepuPhysicIntegrationTest.Integration.Components.Utils.ConstraintEditorComponent,BepuPhysicIntegrationTest
+                        Id: 29eee624-7987-4ac4-a60a-97a206509239
+                        Component: !BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2.BallSocketConstraintComponent,BepuPhysicIntegrationTest ref!! c6ac53aa-fe49-423d-861b-6afb9406afe6
         -   Entity:
                 Id: 2b7bd7d3-9e19-4785-bd70-90b1388f08f6
                 Name: Spot light
@@ -203,7 +218,7 @@ Hierarchy:
                         Type: !InstancingEntityTransform {}
         -   Entity:
                 Id: adf68f89-b555-45ad-8653-cfcf6714281a
-                Name: BepuCube
+                Name*: BepuCubeA
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: ec55ffd2-6e03-4889-8aad-a4344f97adb4
@@ -302,7 +317,7 @@ Hierarchy:
                             4b7476ce466bddb096388de22ed58ff5~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
         -   Entity:
                 Id: ed7be4ab-4901-41d6-bdce-a138110f0f9d
-                Name: BepuCube
+                Name*: BepuCubeB
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 8e87f009-cade-4e32-b9cd-7e4047d51aed

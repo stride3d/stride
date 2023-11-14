@@ -5,7 +5,7 @@ using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
 
-namespace BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2
+namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
 {
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]

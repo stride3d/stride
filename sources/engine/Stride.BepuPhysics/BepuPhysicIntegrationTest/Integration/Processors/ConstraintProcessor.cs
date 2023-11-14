@@ -6,7 +6,7 @@ using BepuPhysics;
 using BepuPhysics.Constraints;
 using Stride.Core.Annotations;
 using Stride.Engine;
-using BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2;
+using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using SharpFont.MultipleMasters;
 
@@ -48,6 +48,9 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
         internal ConstraintHandle CHandle { get; set; } = new(-1);
 
+
+        public bool Exist => CHandle.Value != -1 && BepuSimulation.Simulation.Solver.ConstraintExists(CHandle);
+
         public ConstraintData(ConstraintComponent constraintComponent, BepuSimulation bepuSimulation)
         {
             ConstraintComponent = constraintComponent;
@@ -62,13 +65,16 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 case BallSocketConstraintComponent _bscc:
                     CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _bscc._bepuConstraint);
                     break;
+                case WeldConstraintComponent _wcc:
+                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _wcc._bepuConstraint);
+                    break;
                 default:
                     break;
             }
         }
         internal void DestroyConstraint()
         {
-            if (CHandle.Value != -1 && BepuSimulation.Simulation.Solver.ConstraintExists(CHandle))
+            if (Exist)
             {
                 BepuSimulation.Simulation.Solver.Remove(CHandle);
             }
