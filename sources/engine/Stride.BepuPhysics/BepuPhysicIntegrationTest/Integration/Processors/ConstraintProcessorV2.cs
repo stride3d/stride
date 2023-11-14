@@ -7,19 +7,28 @@ using BepuPhysics.Constraints;
 using Stride.Core.Annotations;
 using Stride.Engine;
 using BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2;
+using BepuPhysicIntegrationTest.Integration.Configurations;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ConstraintProcessorV2 : EntityProcessor<ConstraintComponentV2>
-    {
-        public ConstraintProcessorV2()
+	{
+		private BepuConfiguration _bepuConfig;
+
+		public ConstraintProcessorV2()
         {
             Order = 10030;
         }
 
-        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponentV2 component, [NotNull] ConstraintComponentV2 data)
+		protected override void OnSystemAdd()
+		{
+			_bepuConfig = Services.GetService<BepuConfiguration>();
+		}
+
+		protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponentV2 component, [NotNull] ConstraintComponentV2 data)
         {
             base.OnEntityComponentAdding(entity, component, data);
+            component.BepuSimulation = _bepuConfig.BepuSimulations[0];
             component.ConstraintData = new(component);
             component.ConstraintData.BuildConstraint();
         }

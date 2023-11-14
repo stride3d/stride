@@ -5,31 +5,37 @@ using System.Numerics;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
+using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
 using Stride.Core.Annotations;
 using Stride.Engine;
-using static BulletSharp.Dbvt;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ConstraintProcessor : EntityProcessor<ConstraintComponent>
     {
-        public ConstraintProcessor()
+		private BepuConfiguration _bepuConfig;
+
+		public ConstraintProcessor()
         {
             Order = 10030;
         }
 
-        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
+		protected override void OnSystemAdd()
+		{
+			_bepuConfig = Services.GetService<BepuConfiguration>();
+		}
+
+		protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
         {
-            base.OnEntityComponentAdding(entity, component, data);
-            component.ConstraintData = new(component);
+			component.BepuSimulation = _bepuConfig.BepuSimulations[0];
+			component.ConstraintData = new(component);
             component.ConstraintData.BuildConstraint();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
         {
-            base.OnEntityComponentRemoved(entity, component, data);
             component.ConstraintData.DestroyConstraint();
             component.ConstraintData = null;
         }
@@ -130,6 +136,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     break;
             }
         }
+
         internal void DestroyConstraint()
         {
             if (ConstraintComponent.BepuSimulation.Destroyed) return;

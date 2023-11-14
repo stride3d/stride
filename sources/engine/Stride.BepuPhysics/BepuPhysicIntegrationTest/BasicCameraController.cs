@@ -101,7 +101,7 @@ namespace BepuPhysicIntegrationTest
                 {
                     // Move with keyboard
                     // Forward/Backward
-                    if (Input.IsKeyDown(Keys.Z) || Input.IsKeyDown(Keys.Up))
+                    if (Input.IsKeyDown(Keys.W) || Input.IsKeyDown(Keys.Up))
                     {
                         dir.Z += 1;
                     }
@@ -111,7 +111,7 @@ namespace BepuPhysicIntegrationTest
                     }
 
                     // Left/Right
-                    if (Input.IsKeyDown(Keys.Q) || Input.IsKeyDown(Keys.Left))
+                    if (Input.IsKeyDown(Keys.A) || Input.IsKeyDown(Keys.Left))
                     {
                         dir.X -= 1;
                     }
@@ -121,7 +121,7 @@ namespace BepuPhysicIntegrationTest
                     }
 
                     // Down/Up
-                    if (Input.IsKeyDown(Keys.A))
+                    if (Input.IsKeyDown(Keys.Q))
                     {
                         dir.Y -= 1;
                     }

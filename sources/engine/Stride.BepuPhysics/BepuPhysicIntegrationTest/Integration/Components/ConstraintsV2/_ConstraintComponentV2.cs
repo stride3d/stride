@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Components.Simulations;
+using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Engine;
@@ -15,20 +15,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2
 
     public abstract class ConstraintComponentV2 : EntityComponent
     {
-        private SimulationComponent _bepuSimulation = null;
         /// <summary>
         /// Get or set the SimulationComponent. If set null, it will try to find it in this or parent entities
         /// </summary>
-        public SimulationComponent BepuSimulation
-        {
-            get => _bepuSimulation ?? Entity.GetInMeOrParents<SimulationComponent>();
-            set
-            {
-                ConstraintData?.DestroyConstraint();
-                _bepuSimulation = value;
-                ConstraintData?.BuildConstraint();
-            }
-        }
+        public BepuSimulation BepuSimulation { get; set; }
 
         public List<BodyContainerComponent> Bodies { get; set; } = new();
 
