@@ -1,0 +1,376 @@
+!SceneAsset
+Id: bef30700-cda8-4d43-b804-3da6717bea2c
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! fe8e33bb-9b06-454b-8fc0-fab0c4346474
+        - ref!! 410850ab-66cf-4b93-a5d1-962709b6e052
+        - ref!! 44c40f29-e576-4a72-9427-32bad36466b8
+        - ref!! a42bf0a5-735b-4ad7-9ca1-5432b4472e69
+        - ref!! 47bf6a23-07d8-4687-bea1-652abdf23f92
+        - ref!! d51ec2d9-d4bd-406c-82a8-5e7c8762f88c
+        - ref!! 69356f47-0634-48a6-a544-65d34973ae6e
+        - ref!! d227ba15-b99a-469b-937e-0235d7d682e7
+    Parts:
+        -   Entity:
+                Id: 0f5cf7cd-8f3e-4723-ac22-4dfe1dfa1882
+                Name: BepuCube
+                Components:
+                    5c52cf8f239546f8d652310ae6ec9b72: !TransformComponent
+                        Id: 83218bdc-1839-4621-b265-e6ace9288c9d
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            70a1baeb0d08e278511bf255d60818de: ref!! ec55ffd2-6e03-4889-8aad-a4344f97adb4
+                            563e0bcb7e9369bf503118c552828d92: ref!! 8e87f009-cade-4e32-b9cd-7e4047d51aed
+        -   Entity:
+                Id: 2b7bd7d3-9e19-4785-bd70-90b1388f08f6
+                Name: Spot light
+                Components:
+                    d7f39ad4f225fd671cc86aff9a37dfdf: !TransformComponent
+                        Id: 67b22932-e159-4373-a218-97ec0f8ef3a7
+                        Position: {X: 0.0, Y: -0.7, Z: 0.0}
+                        Rotation: {X: -0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9c7dd03087a0afead1364dc4539cfc26: !LightComponent
+                        Id: 9ec466cd-1a99-477f-9812-9b491b69168c
+                        Type: !LightSpot
+                            Color: !ColorRgbProvider
+                                Value: {R: 0.0, G: 0.0, B: 1.0}
+                            Range: 200.0
+                            AngleInner: 50.0
+                            AngleOuter: 90.0
+                            UVScale: {X: 1.0, Y: 1.0}
+                            UVOffset: {X: 0.0, Y: 0.0}
+                            Shadow:
+                                BiasParameters:
+                                    DepthBias: 0.001
+                        Intensity: 300.0
+        -   Entity:
+                Id: 308157d3-f72a-407a-aded-aed8720c5025
+                Name: Spot light
+                Components:
+                    d7f39ad4f225fd671cc86aff9a37dfdf: !TransformComponent
+                        Id: c83914c5-7fcd-4bce-beab-de4e02d555a3
+                        Position: {X: 0.0, Y: -0.7, Z: 0.0}
+                        Rotation: {X: -0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9c7dd03087a0afead1364dc4539cfc26: !LightComponent
+                        Id: 3fa15591-f588-4f68-b127-e338b14b7418
+                        Type: !LightSpot
+                            Color: !ColorRgbProvider
+                                Value: {R: 0.0, G: 1.0, B: 0.0}
+                            Range: 200.0
+                            AngleInner: 50.0
+                            AngleOuter: 90.0
+                            UVScale: {X: 1.0, Y: 1.0}
+                            UVOffset: {X: 0.0, Y: 0.0}
+                            Shadow:
+                                BiasParameters:
+                                    DepthBias: 0.001
+                        Intensity: 300.0
+        -   Entity:
+                Id: 410850ab-66cf-4b93-a5d1-962709b6e052
+                Name: Directional light
+                Components:
+                    ba7701dac6ff028029e020b0fa73a5ee: !TransformComponent
+                        Id: 7654f8cc-9242-4643-a757-38e973fe6638
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 1.131334E-08, Y: -0.9659258, Z: -0.25881904, W: -4.222196E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    25d69094bde55b0756a7486a0e64b72d: !LightComponent
+                        Id: 86a2e7ed-0879-4a1c-870e-7bab02c760c2
+                        Enabled: false
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+                        Intensity: 0.1
+        -   Entity:
+                Id: 44c40f29-e576-4a72-9427-32bad36466b8
+                Name: Skybox
+                Components:
+                    869607da036a2f5b690715353a842081: !TransformComponent
+                        Id: 2eac2d73-fcc6-4ab2-bc3d-2cfbfcc38ed5
+                        Position: {X: 0.0, Y: 2.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f06cd2af4f2551332eac077780c19eff: !BackgroundComponent
+                        Id: 0af785a4-e53a-4c15-9073-60bd4d00dd64
+                        Texture: be26a913-4c76-45ec-a5e0-9fd6ceead086:Skybox texture
+                        Intensity: 0.1
+                    0d373b4518bc761153fde0d2540f118b: !LightComponent
+                        Id: 6d50cd5c-3142-4a69-b0e7-f5113387b4b2
+                        Type: !LightSkybox
+                            Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
+                        Intensity: 0.005
+        -   Entity:
+                Id: 47bf6a23-07d8-4687-bea1-652abdf23f92
+                Name: ConeR
+                Components:
+                    ec929ff9fafc0957510a58bf8d563db1: !TransformComponent
+                        Id: 764da338-485f-4309-993e-9c0ef911cdb3
+                        Position: {X: -10.0, Y: 15.0, Z: 50.0}
+                        Rotation: {X: 0.76604444, Y: 0.0, Z: 0.0, W: 0.64278764}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a08209efd2daa2f528b954ab9637953f: ref!! 0c550dcb-1fc6-46dc-94b1-06e4dcb370bb
+                    2d831e8786afdd6dc3daa4eb73e20fbd: !ModelComponent
+                        Id: 11cbaa53-2446-412e-abbf-0b8f7bd1568c
+                        Model: 65e9d484-84fb-4acd-a87c-f12c2dcf0da2:Models/Cone
+                        Materials:
+                            93d768bb43cb750b4273d21353e24a00~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+        -   Entity:
+                Id: 69356f47-0634-48a6-a544-65d34973ae6e
+                Name: ConeB
+                Components:
+                    ec929ff9fafc0957510a58bf8d563db1: !TransformComponent
+                        Id: a9f9a3d4-9b18-46fa-8826-bb000595a204
+                        Position: {X: 10.0, Y: 15.0, Z: 50.0}
+                        Rotation: {X: 0.76604444, Y: 0.0, Z: 0.0, W: 0.64278764}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            33c671b9420ab5e3ca8d8464e1c6d6cb: ref!! 67b22932-e159-4373-a218-97ec0f8ef3a7
+                    2d831e8786afdd6dc3daa4eb73e20fbd: !ModelComponent
+                        Id: e099ce38-b9c4-4269-be40-455ea11c97d1
+                        Model: 65e9d484-84fb-4acd-a87c-f12c2dcf0da2:Models/Cone
+                        Materials:
+                            6b7660b4e75aade38aa4e3752bc9f4ad~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
+        -   Entity:
+                Id: 6ff0c913-081a-44cf-ae47-b31d76a53e32
+                Name: SpawnPoint
+                Components:
+                    71846c7436b43b677c35e91ff0eeca48: !TransformComponent
+                        Id: da6adf04-eb63-47c1-b089-9519aee44e8c
+                        Position: {X: 0.0, Y: 25.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: 73476d36-d459-40c7-909d-fb9719fde360
+                Name: Floor
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: f9d9ac76-ce0b-4b21-a9aa-4d277fee1174
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 250.0, Y: 0.1, Z: 250.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 1a438587-25aa-419a-ac91-162c21a2f5d0
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 2b2f7ca8-b464-4ffe-bb96-0fa5d4413ca2
+                        Mass: 1.0
+                        Size: {X: 250.0, Y: 0.1, Z: 250.0}
+                    b18e400f6ef857c50bac5d706493e368: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
+                        Id: db7b2be3-34c2-4669-9085-21e5b900299e
+        -   Entity:
+                Id: a42bf0a5-735b-4ad7-9ca1-5432b4472e69
+                Name: CubeInstancing
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 0e4dc1ba-eafe-484a-a245-d30dac30ec91
+                        Position: {X: 0.0, Y: -10.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
+                        Id: 3e504c71-37cf-461f-93ae-d619d100fa7a
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials:
+                            a4372207e9cfb015a5973f7fcb15a3a8~0: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
+                    8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
+                        Id: 07d89da4-4f97-41b4-a347-7eeb9c895d5f
+                        Type: !InstancingEntityTransform {}
+        -   Entity:
+                Id: adf68f89-b555-45ad-8653-cfcf6714281a
+                Name: BepuCube
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: ec55ffd2-6e03-4889-8aad-a4344f97adb4
+                        Position*: {X: 0.0, Y: 10.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 7bc01a8b-830e-4bcf-8dd2-bfdc7df8bbc7
+                        Kinematic*: true
+                    ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 416ef8b8-0582-4d89-a742-3034b4971224
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: !InstanceComponent
+                        Id: b2cdd765-2afa-411d-9149-9183888bcd16
+                        Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
+                    7646d0e35bb0962bfdf07362993a9246*: !BepuPhysicIntegrationTest.Integration.Components.ConstrraintsV2.BallSocketConstraintComponentV2,BepuPhysicIntegrationTest
+                        Id: dcf0cc1d-5c96-49de-8ef2-a94337a9c849
+                        BepuSimulation: ref!! 62552fae-9a07-4cfd-a26d-80edd6e41b4e
+                        Bodies:
+                            cd2d730285769b7421622444dd53c076: ref!! 7bc01a8b-830e-4bcf-8dd2-bfdc7df8bbc7
+                            ba2e5596110f5e613196e9710445ccb9: ref!! b412a7ef-f7e2-4e29-89b4-4e49ebe0fefa
+                        LocalOffsetA: {X: 0.0, Y: -1.0, Z: 0.0}
+                        LocalOffsetB: {X: 0.0, Y: 1.0, Z: 0.0}
+                        SpringSettings:
+                            AngularFrequency: 180.0
+                            TwiceDampingRatio: 10.0
+                            Frequency: 28.647888
+                            DampingRatio: 5.0
+            Base:
+                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
+                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
+                InstanceId: a7f8f0b0-57a0-4cd8-ab6c-9a4a6acba3be
+        -   Entity:
+                Id: bbb1ad30-632a-456d-9147-073c24249203
+                Name: Spot light
+                Components:
+                    d7f39ad4f225fd671cc86aff9a37dfdf: !TransformComponent
+                        Id: 0c550dcb-1fc6-46dc-94b1-06e4dcb370bb
+                        Position: {X: 0.0, Y: -0.7, Z: 0.0}
+                        Rotation: {X: -0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9c7dd03087a0afead1364dc4539cfc26: !LightComponent
+                        Id: 3e427a55-ddd2-4b91-a961-d01214b769b8
+                        Type: !LightSpot
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 0.0, B: 0.0}
+                            Range: 200.0
+                            AngleInner: 50.0
+                            AngleOuter: 90.0
+                            UVScale: {X: 1.0, Y: 1.0}
+                            UVOffset: {X: 0.0, Y: 0.0}
+                            Shadow:
+                                BiasParameters:
+                                    DepthBias: 0.001
+                                Debug: true
+                        Intensity: 300.0
+        -   Entity:
+                Id: d227ba15-b99a-469b-937e-0235d7d682e7
+                Name: BepuPhysics
+                Components:
+                    eda2202b601b97655c522d8b2e932ae5: !TransformComponent
+                        Id: 28aee592-7f42-4ce4-ab73-92c4c59ed2e5
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a5869266007b42af6b5ba5e5468a5478: ref!! f9d9ac76-ce0b-4b21-a9aa-4d277fee1174
+                            e277ee076b67705c014015e2d77f9c92: ref!! da6adf04-eb63-47c1-b089-9519aee44e8c
+                            a9f2b165993204ff23f9dcd6aa93c73e: ref!! 83218bdc-1839-4621-b265-e6ace9288c9d
+                    2a98c48e5b96344a0ab24da7de9a794b: !BepuPhysicIntegrationTest.Integration.Components.Utils.SpawnerComponent,BepuPhysicIntegrationTest
+                        Id: 1c668912-b904-41f5-9576-2a81b27ba0a3
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
+                        Instancing: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
+                        SpawnPosition: ref!! 6ff0c913-081a-44cf-ae47-b31d76a53e32
+                        Count: 50000
+                        SpawnRate: 1.0
+                        SpawnVelocity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        SpawnVelocityRange: {X: 20.0, Y: 0.0, Z: 20.0}
+                    eeabfda15ef248d6bb1e4f6914eb65e5: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
+                        Id: d84374af-26b0-4258-ae0e-77e5da022085
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
+                        Instancing: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
+                        SpawnPosition: ref!! fe8e33bb-9b06-454b-8fc0-fab0c4346474
+                        Speed: 50.0
+                    8ff30ff71af73fad50d330cdb9500d9a: !BepuPhysicIntegrationTest.Integration.Components.Utils.TimeControlComponent,BepuPhysicIntegrationTest
+                        Id: e90f6354-3def-4afd-8ee0-54a414aea317
+                        BepuSimulation:
+                            Enabled: true
+                            TimeWrap: 1.0
+                            SpringFreq: 30.0
+                            SpringDamping: 3.0
+                            PoseGravity: {X: 0.0, Y: -10.0, Z: 0.0}
+                            PoseLinearDamping: 0.1
+                            PoseAngularDamping: 0.5
+                            SolveIteration: 2
+                            SolveSubStep: 4
+        -   Entity:
+                Id: d51ec2d9-d4bd-406c-82a8-5e7c8762f88c
+                Name: ConeG
+                Components:
+                    ec929ff9fafc0957510a58bf8d563db1: !TransformComponent
+                        Id: 688ec057-79e1-46fa-b965-fd3081de5033
+                        Position: {X: 0.0, Y: 15.0, Z: 50.0}
+                        Rotation: {X: 0.76604444, Y: 0.0, Z: 0.0, W: 0.64278764}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            d60fa30d58ac4572902844dc1bdbcc7d: ref!! c83914c5-7fcd-4bce-beab-de4e02d555a3
+                    2d831e8786afdd6dc3daa4eb73e20fbd: !ModelComponent
+                        Id: 013d2ae0-e746-426b-8658-cd384004cd7b
+                        Model: 65e9d484-84fb-4acd-a87c-f12c2dcf0da2:Models/Cone
+                        Materials:
+                            4b7476ce466bddb096388de22ed58ff5~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
+        -   Entity:
+                Id: ed7be4ab-4901-41d6-bdce-a138110f0f9d
+                Name: BepuCube
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 8e87f009-cade-4e32-b9cd-7e4047d51aed
+                        Position*: {X: 0.0, Y: 8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: b412a7ef-f7e2-4e29-89b4-4e49ebe0fefa
+                        Kinematic*: false
+                    ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 276a4198-fc0e-4173-9c73-a491b14499ae
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: !InstanceComponent
+                        Id: b2677d20-6087-410a-bf03-8cba67a36a03
+                        Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
+            Base:
+                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
+                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
+                InstanceId: 87ba8762-38b4-4cc7-ac9b-b37a5955bff6
+        -   Entity:
+                Id: fe8e33bb-9b06-454b-8fc0-fab0c4346474
+                Name: Camera
+                Components:
+                    191a9580bfac05d33d042a46b9b519ac: !TransformComponent
+                        Id: 62cb0dbc-62ed-4c10-993e-6686533ac301
+                        Position: {X: 0.0, Y: 20.0, Z: 50.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c73c973e1799365d3dd49db196d92934: !CameraComponent
+                        Id: 262cb5ce-c21d-44e1-aa32-4417cf02206e
+                        Name: null
+                        Projection: Perspective
+                        Slot: be74c9be-5861-4bea-90b0-b175535210f7
+                    e5e4f86813cf0c5a12347228fcf669d9: !BepuPhysicIntegrationTest.BasicCameraController,BepuPhysicIntegrationTest
+                        Id: 833eeb35-7775-42de-99c3-9bbd2374d6a6
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 5.0, Y: 5.0, Z: 5.0}
+                        TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
+                        SpeedFactor: 5.0
+                        KeyboardRotationSpeed: {X: 3.0, Y: 3.0}
+                        MouseRotationSpeed: {X: 1.0, Y: 1.0}
+                        TouchRotationSpeed: {X: 1.0, Y: 0.7}
+                    bcdaba5b1e131c243e518f824fbf1ee5: !BepuPhysicIntegrationTest.GameProfiler,BepuPhysicIntegrationTest
+                        Id: 80fe0e00-9eb9-4c9b-a9e9-a10cbaf71cd2
+                        Enabled: true
+                        TextColor: {R: 86, G: 220, B: 86, A: 255}
+                        RefreshTime: 100.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1

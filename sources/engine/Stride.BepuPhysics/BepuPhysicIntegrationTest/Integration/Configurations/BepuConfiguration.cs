@@ -32,6 +32,7 @@ public class BepuSimulation
 
 
 	internal Simulation Simulation { get; private set; }
+	internal bool Destroyed { get; set; } = false;
 
 	internal Dictionary<BodyHandle, Entity> Bodies { get; } = new(Extensions.LIST_SIZE);
 	internal Dictionary<StaticHandle, Entity> Statics { get; } = new(Extensions.LIST_SIZE);

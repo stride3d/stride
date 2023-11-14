@@ -78,7 +78,16 @@ Hierarchy:
                         Speed: 50.0
                     8ff30ff71af73fad50d330cdb9500d9a: !BepuPhysicIntegrationTest.Integration.Components.Utils.TimeControlComponent,BepuPhysicIntegrationTest
                         Id: 12a717b6-4a41-4e30-be69-45d1c2a2b3cb
-                        BepuSimulation: null
+                        BepuSimulation:
+                            Enabled: true
+                            TimeWrap: 1.0
+                            SpringFreq: 30.0
+                            SpringDamping: 3.0
+                            PoseGravity: {X: 0.0, Y: -10.0, Z: 0.0}
+                            PoseLinearDamping: 0.1
+                            PoseAngularDamping: 0.5
+                            SolveIteration: 2
+                            SolveSubStep: 4
         -   Entity:
                 Id: 212e55d1-5bf7-4b5e-8364-cfa779e04b8d
                 Name: BepuCubeE

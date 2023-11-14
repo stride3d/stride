@@ -1,5 +1,10 @@
 ﻿using System;
+using System.Linq;
+using System.Security.Policy;
 using BepuPhysicIntegrationTest.Integration;
+using BepuPhysicIntegrationTest.Integration.Components.Containers;
+using BepuPhysics;
+using BepuPhysics.Collidables;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Input;
@@ -44,8 +49,7 @@ namespace BepuPhysicIntegrationTest
                 if (Input.IsKeyPressed(Keys.NumPad0 + i))
                 {
                     SetScene(sceneRef);
-                }
-                // not every keyboard has a numpad
+				}
 				if (Input.IsKeyPressed(Keys.D0 + i))
 				{
 					SetScene(sceneRef);

@@ -5,6 +5,8 @@ using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
@@ -14,9 +16,11 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 		// When any Colliders are in a scene a Simulation configuration is created.
 		private BepuConfiguration _bepuConfiguration;
 
+		private bool _para = true;
+
 		public ColliderProcessor()
         {
-            Order = 10020;
+            Order = 10000;
 		}
 
 		protected override void OnSystemAdd()
@@ -48,28 +52,63 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 			if (dt == 0f)
 				return;
 
+			var totalWatch = new Stopwatch();
+			var simUpdWatch = new Stopwatch();
+			var simStepWatch = new Stopwatch();
+			var parForWatch = new Stopwatch();
+
+			totalWatch.Start();
+
 			foreach (var item in _simulationComponents)
 			{
 				if (!item.Enabled)
 					continue;
 
-				var SimTimeStep = dt * item.TimeWrap; //calculate the timeStep of the simulation
+				var SimTimeStep = dt * item.TimeWrap; //calcul the timeStep of the simulation
 
-				item.CallSimulationUpdate(SimTimeStep); //calculate the SimulationUpdate with simTimeStep
+				simUpdWatch.Start();
+				item.CallSimulationUpdate(SimTimeStep); //cal the SimulationUpdate with simTimeStep
+				simUpdWatch.Stop();
+
+				simStepWatch.Start();
 				item.Simulation.Timestep(SimTimeStep, item.ThreadDispatcher); //perform physic sim using simTimeStep
+				simStepWatch.Stop();
 
-				for (int i = 0; i < item.Simulation.Bodies.ActiveSet.Count; i++) //Update active body positions and rotation.
+				parForWatch.Start();
+				if (_para)
 				{
-					var handle = item.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-					var entity = item.Bodies[handle];
-					var body = item.Simulation.Bodies[handle];
+					var a = Parallel.For(0, item.Simulation.Bodies.ActiveSet.Count, (i) =>
+					{
+						var handle = item.Simulation.Bodies.ActiveSet.IndexToHandle[i];
+						var entity = item.Bodies[handle];
+						var body = item.Simulation.Bodies[handle];
 
-					var entityTransform = entity.Transform;
-					entityTransform.Position = body.Pose.Position.ToStrideVector();
-					entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
-					entityTransform.UpdateWorldMatrix();
+						var entityTransform = entity.Transform;
+						entityTransform.Position = body.Pose.Position.ToStrideVector();
+						entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
+						entityTransform.UpdateWorldMatrix();
+					});
 				}
+				else
+				{
+					for (int i = 0; i < item.Simulation.Bodies.ActiveSet.Count; i++)
+					{
+						var handle = item.Simulation.Bodies.ActiveSet.IndexToHandle[i];
+						var entity = item.Bodies[handle];
+						var body = item.Simulation.Bodies[handle];
+
+						var entityTransform = entity.Transform;
+						entityTransform.Position = body.Pose.Position.ToStrideVector();
+						entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
+						entityTransform.UpdateWorldMatrix();
+					}
+				}
+				parForWatch.Stop();
 			}
+			totalWatch.Stop();
+
+			Debug.WriteLine($"total : {totalWatch.ElapsedMilliseconds} \n    sim update : {simUpdWatch.ElapsedMilliseconds}\n    sim step : {simStepWatch.ElapsedMilliseconds}\n    Position update : {parForWatch.ElapsedMilliseconds}");
+			base.Update(time);
 		}
 	}
 

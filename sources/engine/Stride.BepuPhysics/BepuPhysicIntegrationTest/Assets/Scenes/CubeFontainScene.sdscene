@@ -290,4 +290,13 @@ Hierarchy:
                         Speed: 50.0
                     8ff30ff71af73fad50d330cdb9500d9a: !BepuPhysicIntegrationTest.Integration.Components.Utils.TimeControlComponent,BepuPhysicIntegrationTest
                         Id: 7fa029b1-b416-4d48-a3bf-9208daf856cc
-                        BepuSimulation: null
+                        BepuSimulation:
+                            Enabled: true
+                            TimeWrap: 1.0
+                            SpringFreq: 30.0
+                            SpringDamping: 3.0
+                            PoseGravity: {X: 0.0, Y: -10.0, Z: 0.0}
+                            PoseLinearDamping: 0.1
+                            PoseAngularDamping: 0.5
+                            SolveIteration: 2
+                            SolveSubStep: 4

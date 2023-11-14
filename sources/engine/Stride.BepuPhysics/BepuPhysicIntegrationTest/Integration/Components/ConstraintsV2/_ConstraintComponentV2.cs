@@ -1,33 +1,32 @@
-﻿using BepuPhysicIntegrationTest.Integration.Components.Containers;
+﻿using System.Collections.Generic;
+using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
 
-namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
+namespace BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2
 {
     [DataContract]
-    [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Constraint")]
+    [DefaultEntityComponentProcessor(typeof(ConstraintProcessorV2), ExecutionMode = ExecutionMode.Runtime)]
+    [ComponentCategory("Bepu - ConstraintV2")]
     [AllowMultipleComponents]
 
-    public abstract class ConstraintComponent : StartupScript
+    public abstract class ConstraintComponentV2 : EntityComponent
     {
         /// <summary>
         /// Get or set the SimulationComponent. If set null, it will try to find it in this or parent entities
         /// </summary>
         public BepuSimulation BepuSimulation { get; set; }
 
+        public List<BodyContainerComponent> Bodies { get; set; } = new();
+
+
         /// <summary>
         /// ContainerData is the bridge to Bepu.
         /// Automatically set by processor.
         /// </summary>
-        internal ConstraintData ConstraintData { get; set; }
-
-		public override void Start()
-		{
-            BepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[0];
-		}
-	}
+        internal ConstraintDataV2 ConstraintData { get; set; }
+    }
 }

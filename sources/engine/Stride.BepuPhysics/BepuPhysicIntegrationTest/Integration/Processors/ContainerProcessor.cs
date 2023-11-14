@@ -2,22 +2,27 @@
 using System.Linq;
 using System.Numerics;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
+using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.Core.Annotations;
 using Stride.Engine;
+using static BulletSharp.Dbvt;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
-	{
+    {
+		//public ConstraintProcessor ConstraintProcessor { get; }
+
 		private BepuConfiguration _bepuconfiguration;
 
 		public ContainerProcessor()
         {
-            Order = 10030;
+            Order = 10010;
+			//ConstraintProcessor = EntityManager.Processors.Get<ConstraintProcessor>();
 		}
 
 		protected override void OnSystemAdd()
@@ -27,8 +32,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
 		protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            component.ContainerData = new(component);
-            component.BepuSimulation = _bepuconfiguration.BepuSimulations[0];
+			component.BepuSimulation = _bepuconfiguration.BepuSimulations[0];
+			component.ContainerData = new(component);
             component.ContainerData.BuildShape();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
@@ -197,6 +202,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         }
         internal void DestroyShape()
         {
+            if (ContainerComponent.BepuSimulation.Destroyed) return;
+                
             if (BHandle.Value != -1)
             {
                 ContainerComponent.BepuSimulation.Simulation.Bodies.Remove(BHandle);
