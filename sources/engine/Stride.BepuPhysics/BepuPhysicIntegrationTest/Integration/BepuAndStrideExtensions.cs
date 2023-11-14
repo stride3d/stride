@@ -7,7 +7,7 @@ using Stride.Engine;
 
 namespace BepuPhysicIntegrationTest.Integration
 {
-    public static class Extensions
+    public static class BepuAndStrideExtensions
     {
         public const int LIST_SIZE = 50000;
         public const int X_DEBUG_TEXT_POS = 1200;
@@ -37,58 +37,6 @@ namespace BepuPhysicIntegrationTest.Integration
         public static RigidPose ToBepuPose(this TransformComponent transform)
         {
             return new RigidPose(transform.Position.ToNumericVector(), transform.Rotation.ToNumericQuaternion());
-        }
-
-
-        public static T GetInMeOrParents<T>(this Entity entity) where T : EntityComponent
-        {
-            while (entity != null)
-            {
-                var res = entity.Get<T>();
-                if (res != null)
-                    return res;
-                entity = entity.GetParent();
-            }
-            return null;
-        }
-        public static T GetInMeOrChilds<T>(this Entity entity) where T : EntityComponent
-        {
-            var res = entity.Get<T>();
-            if (res != null)
-                return res;
-
-            var childrens = entity.GetChildren();
-            foreach (var child in childrens)
-            {
-                res = child.GetInMeOrChilds<T>();
-                if (res != null)
-                    return res;
-            }
-            return null;
-        }
-
-        public static T GetInParents<T>(this Entity entity) where T : EntityComponent
-        {
-            entity = entity.GetParent();
-            while (entity != null)
-            {
-                var res = entity.Get<T>();
-                if (res != null)
-                    return res;
-                entity = entity.GetParent();
-            }
-            return null;
-        }
-        public static T GetInChilds<T>(this Entity entity) where T : EntityComponent
-        {
-            var childrens = entity.GetChildren();
-            foreach (var child in childrens)
-            {
-                var res = child.GetInMeOrChilds<T>();
-                if (res != null)
-                    return res;
-            }
-            return null;
         }
     }
 
@@ -206,5 +154,3 @@ namespace BepuPhysicIntegrationTest.Integration
     }
 
 }
-
-

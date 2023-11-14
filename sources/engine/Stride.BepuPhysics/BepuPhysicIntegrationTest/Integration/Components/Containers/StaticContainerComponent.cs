@@ -1,4 +1,5 @@
 ﻿using BepuPhysicIntegrationTest.Integration.Processors;
+using BepuPhysics;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
@@ -10,6 +11,9 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
     [ComponentCategory("Bepu - Containers")]
     public class StaticContainerComponent : ContainerComponent
     {
-
+        public StaticReference? GetPhysicStatic()
+        {
+            return ContainerData?.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
+        }
     }
 }

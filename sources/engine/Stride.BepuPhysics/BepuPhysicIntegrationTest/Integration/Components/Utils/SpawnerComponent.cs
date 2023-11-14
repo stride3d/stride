@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Windows.Media.Media3D;
-using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using SharpDX.MediaFoundation;
-using Silk.NET.OpenGL;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
@@ -26,7 +21,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
         private int currentCount = 0;
         private float currentTime = 0;
 
-        public override void SimulationUpdate(float timeStep) //TODO ; rewrite
+        public override void SimulationUpdate(float timeStep)
         {
             if (SpawnRate < 0)
                 SpawnRate = 0;
@@ -37,7 +32,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
                 var toSpawn = (int)Math.Floor(currentTime * SpawnRate);
                 if (toSpawn < 1)
                 {
-                   
+
                     return;
                 }
 
@@ -64,8 +59,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
                 SpawnRate /= 1.1f;
             }
 
-            DebugText.Print($"Prefab count : {currentCount}/{Count}", new(Extensions.X_DEBUG_TEXT_POS, 25));
-            DebugText.Print($"Spawn by Physic time : {SpawnRate} (p & m)", new(Extensions.X_DEBUG_TEXT_POS, 50));
+            DebugText.Print($"Prefab count : {currentCount}/{Count}", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 25));
+            DebugText.Print($"Spawn by Physic time : {SpawnRate} (p & m)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 50));
         }
     }
 }

@@ -23,9 +23,9 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             }
 
             var container = entity.Get<ContainerComponent>();
-            if (container != null)
+            if (container != null && container is BodyContainerComponent body)
             {
-                container.BepuSimulation.Simulation.Bodies[container.ContainerData.BHandle].ApplyImpulse(Impulse.ToNumericVector(), ImpulsePos.ToNumericVector());
+                body.GetPhysicBody()?.ApplyImpulse(Impulse.ToNumericVector(), ImpulsePos.ToNumericVector());
             }
         }
 

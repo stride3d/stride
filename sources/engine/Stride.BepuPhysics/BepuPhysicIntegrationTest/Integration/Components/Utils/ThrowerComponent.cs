@@ -13,7 +13,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void SimulationUpdate(float timeStep)
         {
-            if (Input.IsKeyPressed(Keys.T))
+            if (Input.IsKeyDown(Keys.T))
             {
                 var camera = Game.Services.GetService<SceneSystem>().GraphicsCompositor.Cameras[0].Camera;
                 var forward = Stride.Core.Mathematics.Vector3.TransformNormal(-Stride.Core.Mathematics.Vector3.UnitZ, Stride.Core.Mathematics.Matrix.RotationQuaternion(camera.Entity.Transform.Rotation)).ToNumericVector();
@@ -24,7 +24,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void Update()
         {
-            DebugText.Print("Throw a prefab (T)", new(Extensions.X_DEBUG_TEXT_POS, 125));
+            DebugText.Print("Throw a prefab (T)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 125));
         }
     }
 }

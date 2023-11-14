@@ -24,7 +24,7 @@ Defaults:
     - !BepuPhysicIntegrationTest.Integration.Configurations.BepuConfiguration,BepuPhysicIntegrationTest
         BepuSimulations:
             -   Enabled: true
-                TimeWrap: 1.0
+                TimeWarp: 1.0
                 SpringFreq: 30.0
                 SpringDamping: 3.0
                 PoseGravity: {X: 0.0, Y: -10.0, Z: 0.0}
@@ -32,6 +32,7 @@ Defaults:
                 PoseAngularDamping: 0.5
                 SolveIteration: 2
                 SolveSubStep: 4
+                Para: true
 Overrides: []
 PlatformFilters:
     - PowerVR SGX 54[0-9]

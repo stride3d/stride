@@ -1,11 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Windows.Media.Media3D;
-using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Configurations;
-using SharpDX.MediaFoundation;
-using Silk.NET.OpenGL;
-using Stride.Core.Mathematics;
+﻿using BepuPhysicIntegrationTest.Integration.Configurations;
 using Stride.Engine;
 using Stride.Input;
 
@@ -15,36 +8,36 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Utils")]
     public class TimeControlComponent : SyncScript
     {
-		/// <summary>
-		/// Get or set the SimulationComponent. If set null, it will try to find it in this or parent entities
-		/// </summary>
-		public BepuSimulation BepuSimulation { get; set; }
+        private BepuSimulation _bepuSimulation { get; set; }
 
-		public override void Start()
-		{
-			BepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[0];
-		}
 
-		public override void Update()
+        public int SimulationIndex { get; set; } = 0; //TODO : Cancel/restart on edit. + Check Services.GetService<BepuConfiguration>().BepuSimulations bounds.
+
+        public override void Start()
         {
-            if (BepuSimulation == null)
+            _bepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[SimulationIndex];
+        }
+
+        public override void Update()
+        {
+            if (_bepuSimulation == null)
                 return;
 
             if (Input.IsKeyPressed(Keys.Add))
             {
-                BepuSimulation.TimeWrap *= 1.1f;
+                _bepuSimulation.TimeWarp *= 1.1f;
             }
             if (Input.IsKeyPressed(Keys.Subtract))
             {
-                BepuSimulation.TimeWrap /= 1.1f;
+                _bepuSimulation.TimeWarp /= 1.1f;
             }
             if (Input.IsKeyPressed(Keys.Multiply))
             {
-                BepuSimulation.Enabled = !BepuSimulation.Enabled;
+                _bepuSimulation.Enabled = !_bepuSimulation.Enabled;
             }
 
-            DebugText.Print($"Physic Enabled : {BepuSimulation.Enabled} (Numpad *)", new(Extensions.X_DEBUG_TEXT_POS, 225));
-            DebugText.Print($"Time multiplicator : {BepuSimulation.TimeWrap} (numpad + & -)", new(Extensions.X_DEBUG_TEXT_POS, 250));
+            DebugText.Print($"Physic Enabled : {_bepuSimulation.Enabled} (Numpad *)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 225));
+            DebugText.Print($"Time multiplicator : {_bepuSimulation.TimeWarp} (numpad + & -)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 250));
         }
     }
 }

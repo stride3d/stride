@@ -1,4 +1,5 @@
-﻿using BepuPhysicIntegrationTest.Integration.Components.Containers;
+﻿using System.Linq;
+using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Engine;
@@ -13,6 +14,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     {
         public float Mass { get; set; } = 1f;
 
-        internal ContainerComponent Container => Entity.GetInMeOrParents<ContainerComponent>();
+        internal ContainerComponent? Container => Entity.GetComponentsInParents<ContainerComponent>(true).FirstOrDefault();
     }
 }

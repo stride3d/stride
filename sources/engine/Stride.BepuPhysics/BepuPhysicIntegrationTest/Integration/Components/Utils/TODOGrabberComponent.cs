@@ -11,7 +11,7 @@ using Stride.Engine;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 {
-    struct GrabberComponent
+    struct TODOGrabberComponent
     {
         bool active;
         BodyReference body;

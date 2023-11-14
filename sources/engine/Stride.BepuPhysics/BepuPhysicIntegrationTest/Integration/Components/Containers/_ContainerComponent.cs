@@ -1,5 +1,4 @@
-﻿using BepuPhysicIntegrationTest.Integration.Configurations;
-using BepuPhysicIntegrationTest.Integration.Processors;
+﻿using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
@@ -12,19 +11,12 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
 
     public abstract class ContainerComponent : EntityComponent
     {
-        /// <summary>
-        /// Get or set the SimulationComponent. If set null, it will try to find it in this or parent entities
-        /// </summary>
-        [DataMemberIgnore]
-        public BepuSimulation BepuSimulation
-        {
-            get; set;
-        }
+        public int SimulationIndex { get; set; } = 0; //TODO : destroy/rebuild shape on edit. + Check Services.GetService<BepuConfiguration>().BepuSimulations bounds.
 
-		/// <summary>
-		/// ContainerData is the bridge to Bepu.
-		/// Automatically set by processor.
-		/// </summary>
-		internal ContainerData ContainerData { get; set; }
+        /// <summary>
+        /// ContainerData is the bridge to Bepu.
+        /// Automatically set by processor.
+        /// </summary>
+        internal ContainerData ContainerData { get; set; }
     }
 }

@@ -18,6 +18,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 5c81d8c6-43e7-4126-ab78-5ddf88b3b593
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: d16b5dae-0b06-490b-a8f4-dd2799a57682
@@ -42,6 +43,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 610f3167-3d05-4c18-8ea4-33b64bd41a64
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 8d2b27b4-3fae-43a9-8f0e-147d157d282e
@@ -66,6 +68,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: a5c7a463-774c-487a-a5a7-95ed17d866f6
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 5c92816b-811d-4fb9-b748-7361b2db1cf2
@@ -90,6 +93,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: e61b3596-34f4-49d0-800f-e23592c4e860
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: c86b6ae0-a461-467f-908c-58de3dd317d5
@@ -114,6 +118,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 84cb348e-84d3-4735-9c06-b8ed36b853de
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 5be741ef-7616-4ead-aeea-3ff813ac4637
@@ -138,6 +143,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 19580218-6000-4d8a-8883-c3e474cf5dc6
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: e6f476d8-1dc6-492c-865c-26019e954a36
@@ -162,6 +168,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: cf4ddf48-b927-4d64-ba42-fe809832c636
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 104de980-3986-497b-9b43-bef765dc31bd
@@ -186,6 +193,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 58e48a4a-2457-49ba-8772-8586ffd9ffa2
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 59c0ab35-31dd-40e1-a3ed-1b97d9a6c538
@@ -338,6 +346,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 294d8368-d2c6-4825-9fe4-7bad2a79bd2e
+                        SimulationIndex: 0
                         Kinematic*: true
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: f7518ce4-299b-4a2f-a7ff-ccb4ee8a99a9
@@ -362,6 +371,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 869cc2ae-139c-4f16-b854-b5da11251060
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 3a892f76-d25d-4f6d-a247-e59085612ade

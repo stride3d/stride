@@ -59,16 +59,16 @@ namespace BepuPhysicIntegrationTest.Integration
         /// <param name="gravity">Gravity to apply to dynamic bodies in the simulation.</param>
         /// <param name="linearDamping">Fraction of dynamic body linear velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.</param>
         /// <param name="angularDamping">Fraction of dynamic body angular velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.</param>
-        public StridePoseIntegratorCallbacks(Vector3 gravity, float linearDamping = .03f, float angularDamping = .03f) : this()
+        public StridePoseIntegratorCallbacks()
         {
-            Gravity = gravity;
-            LinearDamping = linearDamping;
-            AngularDamping = angularDamping;
+            Gravity = new(0, -9.8f, 0);
+            LinearDamping = 0.05f;
+            AngularDamping = 0.05f;
         }
 
-        Vector3Wide gravityWideDt;
-        Vector<float> linearDampingDt;
-        Vector<float> angularDampingDt;
+        Vector3Wide gravityWideDt = default;
+        Vector<float> linearDampingDt = default;
+        Vector<float> angularDampingDt = default;
 
         /// <summary>
         /// Callback invoked ahead of dispatches that may call into <see cref="IntegrateVelocity"/>.

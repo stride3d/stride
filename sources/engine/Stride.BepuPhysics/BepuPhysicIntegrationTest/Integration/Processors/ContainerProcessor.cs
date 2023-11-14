@@ -1,39 +1,45 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
-using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.Core.Annotations;
 using Stride.Engine;
-using static BulletSharp.Dbvt;
+using Stride.Engine.Design;
+using Stride.Games;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
-		//public ConstraintProcessor ConstraintProcessor { get; }
+        private BepuConfiguration _bepuConfiguration;
 
-		private BepuConfiguration _bepuconfiguration;
-
-		public ContainerProcessor()
+        public ContainerProcessor()
         {
-            Order = 10010;
-			//ConstraintProcessor = EntityManager.Processors.Get<ConstraintProcessor>();
-		}
+            Order = 10000;
+        }
 
-		protected override void OnSystemAdd()
-		{
-			_bepuconfiguration = Services.GetService<BepuConfiguration>();
-		}
-
-		protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
+        protected override void OnSystemAdd()
         {
-			component.BepuSimulation = _bepuconfiguration.BepuSimulations[0];
-			component.ContainerData = new(component);
+            var configService = Services.GetService<IGameSettingsService>();
+            _bepuConfiguration = configService.Settings.Configurations.Get<BepuConfiguration>();
+            if (_bepuConfiguration == null)
+            {
+                _bepuConfiguration = new BepuConfiguration();
+                _bepuConfiguration.BepuSimulations.Add(new BepuSimulation());
+            }
+
+            Services.AddService(_bepuConfiguration);
+        }
+
+        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
+        {
+            component.ContainerData = new(component, _bepuConfiguration.BepuSimulations[component.SimulationIndex]);
             component.ContainerData.BuildShape();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
@@ -41,11 +47,78 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             component.ContainerData.DestroyShape();
             component.ContainerData = null;
         }
+
+        public override void Update(GameTime time)
+        {
+            var dt = (float)time.Elapsed.TotalSeconds;
+            if (dt == 0f)
+                return;
+
+            var totalWatch = new Stopwatch();
+            var simUpdWatch = new Stopwatch();
+            var simStepWatch = new Stopwatch();
+            var parForWatch = new Stopwatch();
+
+            totalWatch.Start();
+
+            foreach (var item in _bepuConfiguration.BepuSimulations)
+            {
+                if (!item.Enabled)
+                    continue;
+
+                var SimTimeStep = dt * item.TimeWarp; //calcul the timeStep of the simulation
+
+                simUpdWatch.Start();
+                item.CallSimulationUpdate(SimTimeStep); //cal the SimulationUpdate with simTimeStep
+                simUpdWatch.Stop();
+
+                simStepWatch.Start();
+                item.Simulation.Timestep(SimTimeStep, item.ThreadDispatcher); //perform physic sim using simTimeStep
+                simStepWatch.Stop();
+
+                parForWatch.Start();
+                if (item.Para)
+                {
+                    var a = Parallel.For(0, item.Simulation.Bodies.ActiveSet.Count, (i) =>
+                    {
+                        var handle = item.Simulation.Bodies.ActiveSet.IndexToHandle[i];
+                        var entity = item.Bodies[handle];
+                        var body = item.Simulation.Bodies[handle];
+
+                        var entityTransform = entity.Transform;
+                        entityTransform.Position = body.Pose.Position.ToStrideVector();
+                        entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
+                        entityTransform.UpdateWorldMatrix();
+                    });
+                }
+                else
+                {
+                    for (int i = 0; i < item.Simulation.Bodies.ActiveSet.Count; i++)
+                    {
+                        var handle = item.Simulation.Bodies.ActiveSet.IndexToHandle[i];
+                        var entity = item.Bodies[handle];
+                        var body = item.Simulation.Bodies[handle];
+
+                        var entityTransform = entity.Transform;
+                        entityTransform.Position = body.Pose.Position.ToStrideVector();
+                        entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
+                        entityTransform.UpdateWorldMatrix();
+                    }
+                }
+                parForWatch.Stop();
+            }
+            totalWatch.Stop();
+
+            Debug.WriteLine($"total : {totalWatch.ElapsedMilliseconds} \n    sim update : {simUpdWatch.ElapsedMilliseconds}\n    sim step : {simStepWatch.ElapsedMilliseconds}\n    Position update : {parForWatch.ElapsedMilliseconds}");
+            base.Update(time);
+        }
+
     }
 
     internal class ContainerData
     {
-        internal ContainerComponent ContainerComponent;
+        internal ContainerComponent ContainerComponent { get; }
+        internal BepuSimulation BepuSimulation { get; }
 
         internal bool isStatic { get; set; } = false;
 
@@ -58,18 +131,19 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         internal StaticDescription SDescription { get; set; }
         internal StaticHandle SHandle { get; set; } = new(-1);
 
-        public ContainerData(ContainerComponent containerComponent)
+        public ContainerData(ContainerComponent containerComponent, BepuSimulation bepuSimulation)
         {
             ContainerComponent = containerComponent;
+            BepuSimulation = bepuSimulation;
         }
 
         internal void BuildShape()
         {
-            if (ContainerComponent.BepuSimulation == null)
-                throw new Exception("Container must be inside a simulationBepu or be linked to one from the editor.");
+            if (BepuSimulation == null)
+                throw new Exception("A container must be inside a BepuSimulation.");
 
-            if (ShapeIndex.Exists == true)
-                ContainerComponent.BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
+            if (ShapeIndex.Exists)
+                BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
 
             var colliders = ContainerComponent.Entity.GetAll<ColliderComponent>();
 
@@ -84,32 +158,32 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     case BoxColliderComponent box:
                         var shapeB = new Box(box.Size.X, box.Size.Y, box.Size.Z);
                         ShapeInertia = shapeB.ComputeInertia(box.Mass);
-                        ShapeIndex = ContainerComponent.BepuSimulation.Simulation.Shapes.Add(shapeB);
+                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeB);
                         break;
                     case SphereColliderComponent sphere:
                         var shapeS = new Sphere(sphere.Radius);
                         ShapeInertia = shapeS.ComputeInertia(sphere.Mass);
-                        ShapeIndex = ContainerComponent.BepuSimulation.Simulation.Shapes.Add(shapeS);
+                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeS);
                         break;
                     case CapsuleColliderComponent capsule:
                         var shapeC = new Capsule(capsule.Radius, capsule.Length);
                         ShapeInertia = shapeC.ComputeInertia(capsule.Mass);
-                        ShapeIndex = ContainerComponent.BepuSimulation.Simulation.Shapes.Add(shapeC);
+                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeC);
                         break;
                     case ConvexHullColliderComponent convexHull: //TODO
                         var shapeCh = new ConvexHull();
                         ShapeInertia = shapeCh.ComputeInertia(convexHull.Mass);
-                        ShapeIndex = ContainerComponent.BepuSimulation.Simulation.Shapes.Add(shapeCh);
+                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeCh);
                         break;
                     case CylinderColliderComponent cylinder:
                         var shapeCy = new Cylinder(cylinder.Radius, cylinder.Length);
                         ShapeInertia = shapeCy.ComputeInertia(cylinder.Mass);
-                        ShapeIndex = ContainerComponent.BepuSimulation.Simulation.Shapes.Add(shapeCy);
+                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeCy);
                         break;
                     case TriangleColliderComponent triangle:
                         var shapeT = new Triangle(triangle.A.ToNumericVector(), triangle.B.ToNumericVector(), triangle.C.ToNumericVector());
                         ShapeInertia = shapeT.ComputeInertia(triangle.Mass);
-                        ShapeIndex = ContainerComponent.BepuSimulation.Simulation.Shapes.Add(shapeT);
+                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeT);
                         break;
                     default:
                         throw new Exception("Unknown Shape");
@@ -121,7 +195,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 BodyInertia shapeInertia;
                 Vector3 shapeCenter;
 
-                using (var compoundBuilder = new CompoundBuilder(ContainerComponent.BepuSimulation.BufferPool, ContainerComponent.BepuSimulation.Simulation.Shapes, colliders.Count()))
+                using (var compoundBuilder = new CompoundBuilder(BepuSimulation.BufferPool, BepuSimulation.Simulation.Shapes, colliders.Count()))
                 {
                     foreach (var collider in colliders)
                     {
@@ -154,7 +228,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 }
 
                 ShapeInertia = ShapeInertia;
-                ShapeIndex = ContainerComponent.BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
+                ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
             }
 
             if (ShapeInertia.InverseMass == float.PositiveInfinity) //TODO : don't compute inertia (up) if kinematic or static
@@ -174,12 +248,12 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
                     if (BHandle.Value != -1)
                     {
-                        ContainerComponent.BepuSimulation.Simulation.Bodies.Remove(BHandle);
-                        ContainerComponent.BepuSimulation.Bodies.Remove(BHandle);
+                        BepuSimulation.Simulation.Bodies.Remove(BHandle);
+                        BepuSimulation.Bodies.Remove(BHandle);
                     }
 
-                    BHandle = ContainerComponent.BepuSimulation.Simulation.Bodies.Add(BDescription);
-                    ContainerComponent.BepuSimulation.Bodies.Add(BHandle, ContainerComponent.Entity);
+                    BHandle = BepuSimulation.Simulation.Bodies.Add(BDescription);
+                    BepuSimulation.Bodies.Add(BHandle, ContainerComponent.Entity);
                     break;
                 case StaticContainerComponent _c:
                     isStatic = true;
@@ -188,12 +262,12 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
                     if (SHandle.Value != -1)
                     {
-                        ContainerComponent.BepuSimulation.Simulation.Statics.Remove(SHandle);
-                        ContainerComponent.BepuSimulation.Statics.Remove(SHandle);
+                        BepuSimulation.Simulation.Statics.Remove(SHandle);
+                        BepuSimulation.Statics.Remove(SHandle);
                     }
 
-                    SHandle = ContainerComponent.BepuSimulation.Simulation.Statics.Add(SDescription);
-                    ContainerComponent.BepuSimulation.Statics.Add(SHandle, ContainerComponent.Entity);
+                    SHandle = BepuSimulation.Simulation.Statics.Add(SDescription);
+                    BepuSimulation.Statics.Add(SHandle, ContainerComponent.Entity);
 
                     break;
                 default:
@@ -202,22 +276,20 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         }
         internal void DestroyShape()
         {
-            if (ContainerComponent.BepuSimulation.Destroyed) return;
-                
-            if (BHandle.Value != -1)
+            if (BHandle.Value != -1 && BepuSimulation.Simulation.Bodies.BodyExists(BHandle))
             {
-                ContainerComponent.BepuSimulation.Simulation.Bodies.Remove(BHandle);
-                ContainerComponent.BepuSimulation.Bodies.Remove(BHandle);
+                BepuSimulation.Simulation.Bodies.Remove(BHandle);
+                BepuSimulation.Bodies.Remove(BHandle);
             }
 
-            if (SHandle.Value != -1)
+            if (SHandle.Value != -1 && BepuSimulation.Simulation.Statics.StaticExists(SHandle))
             {
-                ContainerComponent.BepuSimulation.Simulation.Statics.Remove(SHandle);
-                ContainerComponent.BepuSimulation.Statics.Remove(SHandle);
+                BepuSimulation.Simulation.Statics.Remove(SHandle);
+                BepuSimulation.Statics.Remove(SHandle);
             }
 
-            if (ShapeIndex.Exists == true)
-                ContainerComponent.BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
+            if (ShapeIndex.Exists)
+                BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
         }
     }
 

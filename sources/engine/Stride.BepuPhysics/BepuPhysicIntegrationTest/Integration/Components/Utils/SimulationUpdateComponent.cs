@@ -6,12 +6,17 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 {
     public abstract class SimulationUpdateComponent : SyncScript
     {
+
+        public int SimulationIndex { get; set; } = 0; //TODO : Cancel/restart on edit. + Check Services.GetService<BepuConfiguration>().BepuSimulations bounds.
+
+
         [DataMemberIgnore]
-        public BepuSimulation BepuSimulation { get; set; }
+        protected BepuSimulation BepuSimulation { get; set; }
 
         public override void Start()
         {
-			BepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[0];
+            base.Start();
+            BepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[SimulationIndex];
             BepuSimulation.Register(this);
         }
         public override void Cancel()

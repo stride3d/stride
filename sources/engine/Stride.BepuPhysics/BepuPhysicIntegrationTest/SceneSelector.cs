@@ -1,10 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Security.Policy;
-using BepuPhysicIntegrationTest.Integration;
-using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysics;
-using BepuPhysics.Collidables;
+﻿using BepuPhysicIntegrationTest.Integration;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Input;
@@ -36,7 +30,7 @@ namespace BepuPhysicIntegrationTest
         }
         public override void Update()
         {
-            DebugText.Print("USE NUMPAD number :", new(Extensions.X_DEBUG_TEXT_POS, 500));
+            DebugText.Print("USE NUMPAD number :", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 500));
 
             for (int i = 0; i < 10; i++)
             {
@@ -44,17 +38,13 @@ namespace BepuPhysicIntegrationTest
                 if (sceneRef == null)
                     continue;
 
-                DebugText.Print($"{i} => {sceneRef.Url}", new(Extensions.X_DEBUG_TEXT_POS, 500 + ((i + 1) * 25)));
+                DebugText.Print($"{i} => {sceneRef.Url}", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 500 + ((i + 1) * 25)));
 
-                if (Input.IsKeyPressed(Keys.NumPad0 + i))
+                if (Input.IsKeyPressed(Keys.NumPad0 + i) || Input.IsKeyPressed(Keys.D0 + i))
                 {
                     SetScene(sceneRef);
-				}
-				if (Input.IsKeyPressed(Keys.D0 + i))
-				{
-					SetScene(sceneRef);
-				}
-			}
+                }
+            }
         }
 
         private void SetScene(UrlReference<Scene> sceneRef)

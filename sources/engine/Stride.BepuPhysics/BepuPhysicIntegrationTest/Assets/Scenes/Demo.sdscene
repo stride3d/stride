@@ -182,6 +182,7 @@ Hierarchy:
                         Size: {X: 250.0, Y: 0.1, Z: 250.0}
                     b18e400f6ef857c50bac5d706493e368: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
                         Id: db7b2be3-34c2-4669-9085-21e5b900299e
+                        SimulationIndex: 0
         -   Entity:
                 Id: a42bf0a5-735b-4ad7-9ca1-5432b4472e69
                 Name: CubeInstancing
@@ -212,6 +213,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 7bc01a8b-830e-4bcf-8dd2-bfdc7df8bbc7
+                        SimulationIndex: 0
                         Kinematic*: true
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 416ef8b8-0582-4d89-a742-3034b4971224
@@ -220,19 +222,6 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: b2cdd765-2afa-411d-9149-9183888bcd16
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
-                    7646d0e35bb0962bfdf07362993a9246*: !BepuPhysicIntegrationTest.Integration.Components.ConstrraintsV2.BallSocketConstraintComponentV2,BepuPhysicIntegrationTest
-                        Id: dcf0cc1d-5c96-49de-8ef2-a94337a9c849
-                        BepuSimulation: ref!! 62552fae-9a07-4cfd-a26d-80edd6e41b4e
-                        Bodies:
-                            cd2d730285769b7421622444dd53c076: ref!! 7bc01a8b-830e-4bcf-8dd2-bfdc7df8bbc7
-                            ba2e5596110f5e613196e9710445ccb9: ref!! b412a7ef-f7e2-4e29-89b4-4e49ebe0fefa
-                        LocalOffsetA: {X: 0.0, Y: -1.0, Z: 0.0}
-                        LocalOffsetB: {X: 0.0, Y: 1.0, Z: 0.0}
-                        SpringSettings:
-                            AngularFrequency: 180.0
-                            TwiceDampingRatio: 10.0
-                            Frequency: 28.647888
-                            DampingRatio: 5.0
             Base:
                 BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
                 BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
@@ -277,6 +266,7 @@ Hierarchy:
                             a9f2b165993204ff23f9dcd6aa93c73e: ref!! 83218bdc-1839-4621-b265-e6ace9288c9d
                     2a98c48e5b96344a0ab24da7de9a794b: !BepuPhysicIntegrationTest.Integration.Components.Utils.SpawnerComponent,BepuPhysicIntegrationTest
                         Id: 1c668912-b904-41f5-9576-2a81b27ba0a3
+                        SimulationIndex: 0
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
                         Instancing: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
                         SpawnPosition: ref!! 6ff0c913-081a-44cf-ae47-b31d76a53e32
@@ -286,22 +276,14 @@ Hierarchy:
                         SpawnVelocityRange: {X: 20.0, Y: 0.0, Z: 20.0}
                     eeabfda15ef248d6bb1e4f6914eb65e5: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
                         Id: d84374af-26b0-4258-ae0e-77e5da022085
+                        SimulationIndex: 0
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
                         Instancing: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
                         SpawnPosition: ref!! fe8e33bb-9b06-454b-8fc0-fab0c4346474
                         Speed: 50.0
                     8ff30ff71af73fad50d330cdb9500d9a: !BepuPhysicIntegrationTest.Integration.Components.Utils.TimeControlComponent,BepuPhysicIntegrationTest
                         Id: e90f6354-3def-4afd-8ee0-54a414aea317
-                        BepuSimulation:
-                            Enabled: true
-                            TimeWrap: 1.0
-                            SpringFreq: 30.0
-                            SpringDamping: 3.0
-                            PoseGravity: {X: 0.0, Y: -10.0, Z: 0.0}
-                            PoseLinearDamping: 0.1
-                            PoseAngularDamping: 0.5
-                            SolveIteration: 2
-                            SolveSubStep: 4
+                        SimulationIndex: 0
         -   Entity:
                 Id: d51ec2d9-d4bd-406c-82a8-5e7c8762f88c
                 Name: ConeG
@@ -330,6 +312,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: b412a7ef-f7e2-4e29-89b4-4e49ebe0fefa
+                        SimulationIndex: 0
                         Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 276a4198-fc0e-4173-9c73-a491b14499ae
