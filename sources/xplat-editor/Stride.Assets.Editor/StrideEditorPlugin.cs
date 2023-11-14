@@ -60,13 +60,10 @@ public sealed class StrideEditorPlugin : AssetsEditorPlugin
         var pluginAssembly = GetType().Assembly;
         foreach (var type in pluginAssembly.GetTypes())
         {
-            if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type))
+            if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type) &&
+                type.GetCustomAttribute<AssetPreviewViewModelAttribute>() is { } attribute)
             {
-                var attribute = type.GetCustomAttribute<AssetPreviewViewModelAttribute>();
-                if (attribute != null)
-                {
-                    assetPreviewViewModelTypes.Add(attribute.AssetPreviewType, type);
-                }
+                assetPreviewViewModelTypes.Add(attribute.AssetPreviewType, type);
             }
         }
     }

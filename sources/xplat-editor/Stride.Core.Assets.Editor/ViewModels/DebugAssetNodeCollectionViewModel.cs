@@ -16,7 +16,7 @@ public class DebugAssetNodeCollectionViewModel : DispatcherViewModel, IDebugPage
 {
     private static readonly FieldInfo FieldInfoListener;
     private static readonly FieldInfo FieldInfoRegisteredNodes;
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
     private object? selectedNode;
     private static readonly Dictionary<Guid, AssetViewModel> NodeToAssetMap = new();
@@ -30,7 +30,7 @@ public class DebugAssetNodeCollectionViewModel : DispatcherViewModel, IDebugPage
         FieldInfoRegisteredNodes = fieldInfoRegisteredNodes ?? throw new MissingFieldException("GraphNodeChangeListener is missing the RegisteredNodes private member.");
     }
 
-    public DebugAssetNodeCollectionViewModel(SessionViewModel session)
+    public DebugAssetNodeCollectionViewModel(ISessionViewModel session)
         : base(session.ServiceProvider)
     {
         this.session = session;

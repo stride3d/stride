@@ -16,13 +16,10 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
         var pluginAssembly = GetType().Assembly;
         foreach (var type in pluginAssembly.GetTypes())
         {
-            if (typeof(AssetEditorViewModel).IsAssignableFrom(type))
+            if (typeof(AssetEditorViewModel).IsAssignableFrom(type) &&
+                type.GetCustomAttribute<AssetEditorViewModelAttribute>() is { } attribute)
             {
-                var attribute = type.GetCustomAttribute<AssetEditorViewModelAttribute>();
-                if (attribute != null)
-                {
-                    assetEditorViewModelTypes.Add(attribute.ViewModelType, type);
-                }
+                assetEditorViewModelTypes.Add(attribute.ViewModelType, type);
             }
         }
     }
@@ -32,13 +29,10 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
         var pluginAssembly = GetType().Assembly;
         foreach (var type in pluginAssembly.GetTypes())
         {
-            if (typeof(IAssetEditorView).IsAssignableFrom(type))
+            if (typeof(IAssetEditorView).IsAssignableFrom(type) &&
+                type.GetCustomAttribute<AssetEditorViewAttribute>() is { } attribute)
             {
-                var attribute = type.GetCustomAttribute<AssetEditorViewAttribute>();
-                if (attribute != null)
-                {
-                    assetEditorViewTypes.Add(attribute.EditorViewModelType, type);
-                }
+                assetEditorViewTypes.Add(attribute.EditorViewModelType, type);
             }
         }
     }

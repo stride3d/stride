@@ -39,7 +39,7 @@ public abstract class AssetsPlugin
         foreach (var type in pluginAssembly.GetTypes())
         {
             if (typeof(AssetViewModel).IsAssignableFrom(type) &&
-                type.GetCustomAttribute<AssetViewModelAttribute>() is AssetViewModelAttribute attribute)
+                type.GetCustomAttribute<AssetViewModelAttribute>() is { } attribute)
             {
                 assetViewModelTypes.Add(attribute.AssetType, type);
             }
