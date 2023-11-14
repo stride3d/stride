@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <None Include="..\Directory.Build.props" Link="Directory.Build.props" />
-    <None Include="..\xplat_editor-todo.md" Link="xplat_editor-todo.md" />
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />
