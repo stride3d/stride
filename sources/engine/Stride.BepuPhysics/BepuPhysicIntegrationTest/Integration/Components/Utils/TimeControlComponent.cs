@@ -31,13 +31,25 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             {
                 _bepuSimulation.TimeWarp /= 1.1f;
             }
+
             if (Input.IsKeyPressed(Keys.Multiply))
             {
                 _bepuSimulation.Enabled = !_bepuSimulation.Enabled;
             }
 
+
+            if (Input.IsKeyPressed(Keys.O))
+            {
+                _bepuSimulation.PoseGravity += new Stride.Core.Mathematics.Vector3(0, 1, 0);
+            }
+            if (Input.IsKeyPressed(Keys.L))
+            {
+                _bepuSimulation.PoseGravity -= new Stride.Core.Mathematics.Vector3(0, 1, 0);
+            }
+
             DebugText.Print($"Physic Enabled : {_bepuSimulation.Enabled} (Numpad *)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 225));
             DebugText.Print($"Time multiplicator : {_bepuSimulation.TimeWarp} (numpad + & -)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 250));
+            DebugText.Print($"Gravity : {_bepuSimulation.PoseGravity} (numpad o & l)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 275));
         }
     }
 }

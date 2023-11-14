@@ -8,6 +8,7 @@ using Stride.Core.Annotations;
 using Stride.Engine;
 using BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2;
 using BepuPhysicIntegrationTest.Integration.Configurations;
+using SharpFont.MultipleMasters;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
@@ -17,7 +18,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
 		public ConstraintProcessor()
         {
-            Order = 10030;
+            Order = 10020;
         }
 
 		protected override void OnSystemAdd()
@@ -28,7 +29,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 		protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
         {
             base.OnEntityComponentAdding(entity, component, data);
-            component.ConstraintData = new(component, _bepuConfig.BepuSimulations[0]);
+            component.ConstraintData = new(component, _bepuConfig.BepuSimulations[0]); //TODO : get Index from bodies
             component.ConstraintData.BuildConstraint();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
@@ -55,11 +56,12 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
         internal void BuildConstraint()
         {
+            var bodies = new Span<BodyHandle>(ConstraintComponent.Bodies.Where(e => e.ContainerData != null).Select(e => e.ContainerData.BHandle).ToArray());
             switch (ConstraintComponent)
-            {       
-                //case BallSocketConstraintComponent _bscc:
-                //    CHandle = ConstraintComponent.BepuSimulation.Simulation.Solver.Add(new Span<BodyHandle>(ConstraintComponent.Bodies.Where(e => e.ContainerData != null).Select(e => e.ContainerData.BHandle).ToArray()), _bscc._bepuConstraint);
-                //    break;
+            {
+                case BallSocketConstraintComponent _bscc:
+                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _bscc._bepuConstraint);
+                    break;
                 default:
                     break;
             }
