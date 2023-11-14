@@ -1,4 +1,4 @@
-﻿using BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2;
+﻿using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysics.Constraints;
 using Stride.Engine;
