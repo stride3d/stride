@@ -27,13 +27,15 @@ Hierarchy:
                         Children:
                             70a1baeb0d08e278511bf255d60818de: ref!! 9d7218ba-2f0f-4d07-91b3-bde2d42c4e5f
                             563e0bcb7e9369bf503118c552828d92: ref!! af372a4e-e550-4c67-8548-eeb0ac694864
-                    1383ef4cfdad10ca6de2b2cba6954d38: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularHingeConstraintComponent,BepuPhysicIntegrationTest
-                        Id: ba258eef-1901-4aa1-bfe8-6a5a6fa09223
+                    0f108b6be345e2d03b9de4889fb2d847: !BepuPhysicIntegrationTest.Integration.Components.Constraints.HingeConstraintComponent,BepuPhysicIntegrationTest
+                        Id: e83b1076-2ec1-4332-a7cf-4a1de8121689
                         Bodies:
-                            fa625713e2dd8b385b0925c3bf7827e0: ref!! ddca45b8-ae96-4a8e-b002-2b9d02ebb4a4
-                            4f088a5973baeddc7839dcfc905f370e: ref!! 6e4a093e-19cc-4caa-9030-246110284e4f
-                        LocalHingeAxisA: {X: -1.0, Y: 0.0, Z: 0.0}
-                        LocalHingeAxisB: {X: -1.0, Y: 0.0, Z: 0.0}
+                            ecf783b89176ee3d2d625c76a2180c5b: ref!! ddca45b8-ae96-4a8e-b002-2b9d02ebb4a4
+                            f2ebfb032a37d0c20971e6f7afff3253: ref!! 6e4a093e-19cc-4caa-9030-246110284e4f
+                        LocalOffsetA: {X: -0.5, Y: 0.0, Z: 0.5}
+                        LocalHingeAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
+                        LocalOffsetB: {X: 0.5, Y: 0.0, Z: 0.5}
+                        LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
                         SpringSettings:
                             AngularFrequency: 188.49556
                             TwiceDampingRatio: 10.0
@@ -229,7 +231,7 @@ Hierarchy:
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: af372a4e-e550-4c67-8548-eeb0ac694864
-                        Position*: {X: -2.0, Y: 2.0, Z: 0.0}
+                        Position*: {X: -1.3298126, Y: 3.8031263, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -298,18 +300,18 @@ Hierarchy:
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 9d7218ba-2f0f-4d07-91b3-bde2d42c4e5f
-                        Position*: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation*: {X: 0.0, Y: 0.0, Z: -0.38268346, W: 0.9238795}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Position*: {X: 0.0, Y: 4.0, Z: 0.0}
+                        Rotation*: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale*: {X: 1.0, Y: 4.0, Z: 1.0}
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: ddca45b8-ae96-4a8e-b002-2b9d02ebb4a4
                         SimulationIndex: 0
-                        Kinematic*: true
+                        Kinematic*: false
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: d5800e81-0ac7-4087-b2f6-8c1bec21ad31
-                        Mass: 1.0
-                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Mass*: 10.0
+                        Size*: {X: 1.0, Y: 4.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 253911d6-1013-4e72-9018-7808ad3739a5
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
