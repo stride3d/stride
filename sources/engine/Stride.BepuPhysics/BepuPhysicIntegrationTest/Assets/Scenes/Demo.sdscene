@@ -27,11 +27,14 @@ Hierarchy:
                         Children:
                             70a1baeb0d08e278511bf255d60818de: ref!! ec55ffd2-6e03-4889-8aad-a4344f97adb4
                             563e0bcb7e9369bf503118c552828d92: ref!! 8e87f009-cade-4e32-b9cd-7e4047d51aed
-                    a7fe0283800a6b1c11f0fd037850f4c2: !BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2.BallSocketConstraintComponent,BepuPhysicIntegrationTest
-                        Id: c6ac53aa-fe49-423d-861b-6afb9406afe6
+                    e151e9e204a725ac0e696c1dbaf12d3b: !BepuPhysicIntegrationTest.Integration.Components.Utils.ConstraintEditorComponent,BepuPhysicIntegrationTest
+                        Id: 29eee624-7987-4ac4-a60a-97a206509239
+                        Component: null
+                    0d1b5a7336eec7d1a5afeabac0abbc79: !BepuPhysicIntegrationTest.Integration.Components.Constraints.BallSocketConstraintComponent,BepuPhysicIntegrationTest
+                        Id: 1fb0aec9-9781-4bfd-8741-af216439125b
                         Bodies:
-                            879a83a2943187a07e0b16b30904c407: ref!! 7bc01a8b-830e-4bcf-8dd2-bfdc7df8bbc7
-                            04ae4d91221b6d789e39504ce7ec9456: ref!! b412a7ef-f7e2-4e29-89b4-4e49ebe0fefa
+                            76996fe508fef1dae589b19c582a7978: ref!! 7bc01a8b-830e-4bcf-8dd2-bfdc7df8bbc7
+                            ef0a90dad72bf77a21226ae79d809f33: ref!! b412a7ef-f7e2-4e29-89b4-4e49ebe0fefa
                         LocalOffsetA: {X: 0.0, Y: -0.5, Z: 0.0}
                         LocalOffsetB: {X: 0.0, Y: 1.5, Z: 0.0}
                         SpringSettings:
@@ -39,9 +42,6 @@ Hierarchy:
                             TwiceDampingRatio: 10.0
                             Frequency: 30.0
                             DampingRatio: 5.0
-                    e151e9e204a725ac0e696c1dbaf12d3b: !BepuPhysicIntegrationTest.Integration.Components.Utils.ConstraintEditorComponent,BepuPhysicIntegrationTest
-                        Id: 29eee624-7987-4ac4-a60a-97a206509239
-                        Component: !BepuPhysicIntegrationTest.Integration.Components.ConstraintsV2.BallSocketConstraintComponent,BepuPhysicIntegrationTest ref!! c6ac53aa-fe49-423d-861b-6afb9406afe6
         -   Entity:
                 Id: 2b7bd7d3-9e19-4785-bd70-90b1388f08f6
                 Name: Spot light
