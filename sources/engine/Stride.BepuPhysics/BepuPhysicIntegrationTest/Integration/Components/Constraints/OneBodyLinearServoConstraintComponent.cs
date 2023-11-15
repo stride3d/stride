@@ -12,7 +12,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     public class OneBodyLinearServoConstraintComponent : ConstraintComponent
     {
-        internal OneBodyLinearServo _bepuConstraint = new();
+        internal OneBodyLinearServo _bepuConstraint = new() { ServoSettings = new(100, 1, 1000), SpringSettings = new(30, 5) };
 
         public Vector3 LocalOffset
         {

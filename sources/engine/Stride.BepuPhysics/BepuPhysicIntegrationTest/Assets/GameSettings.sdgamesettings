@@ -25,13 +25,13 @@ Defaults:
         BepuSimulations:
             -   Enabled: true
                 TimeWarp: 1.0
-                SpringFreq: 30.0
+                SpringFreq: 60.0
                 SpringDamping: 3.0
-                PoseGravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                PoseLinearDamping: 0.1
-                PoseAngularDamping: 0.5
-                SolveIteration: 2
-                SolveSubStep: 4
+                PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
+                PoseLinearDamping: 0.05
+                PoseAngularDamping: 0.1
+                SolveIteration: 4
+                SolveSubStep: 8
                 Para: true
 Overrides: []
 PlatformFilters:

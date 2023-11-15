@@ -10,7 +10,7 @@ namespace BepuPhysicIntegrationTest.Integration
     public static class BepuAndStrideExtensions
     {
         public const int LIST_SIZE = 50000;
-        public const int X_DEBUG_TEXT_POS = 1200;
+        public const int X_DEBUG_TEXT_POS = 2000; //1200
 
         public static Vector3 ToNumericVector(this Stride.Core.Mathematics.Vector3 vec)
         {

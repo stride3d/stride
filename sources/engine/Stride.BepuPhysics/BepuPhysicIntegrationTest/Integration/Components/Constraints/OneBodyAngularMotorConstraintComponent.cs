@@ -12,7 +12,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     public class OneBodyAngularMotorConstraintComponent : ConstraintComponent
     {
-        internal OneBodyAngularMotor _bepuConstraint = new();
+        internal OneBodyAngularMotor _bepuConstraint = new() { Settings = new(10000000, 0.02f) };
 
         public Vector3 TargetVelocity
         {
@@ -28,6 +28,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
             }
         }
 
+        [DataMember(DataMemberMode.Content)]
         public MotorSettings Settings
         {
             get

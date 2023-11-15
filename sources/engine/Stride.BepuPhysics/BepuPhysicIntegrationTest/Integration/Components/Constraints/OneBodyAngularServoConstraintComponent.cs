@@ -12,7 +12,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     public class OneBodyAngularServoConstraintComponent : ConstraintComponent
     {
-        internal OneBodyAngularServo _bepuConstraint = new();
+        internal OneBodyAngularServo _bepuConstraint = new() { ServoSettings = new(), SpringSettings = new(30,5)};
 
         public Quaternion TargetOrientation
         {
