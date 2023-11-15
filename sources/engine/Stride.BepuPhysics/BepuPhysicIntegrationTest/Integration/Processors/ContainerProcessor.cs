@@ -179,7 +179,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                         ShapeInertia = shapeC.ComputeInertia(capsule.Mass);
                         ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeC);
                         break;
-                    case ConvexHullColliderComponent convexHull: //TODO
+                    case ConvexHullColliderComponent convexHull:
                         var shapeCh = new ConvexHull(GetMeshColliderShape(convexHull), new BufferPool(), out _);
                         ShapeInertia = shapeCh.ComputeInertia(convexHull.Mass);
                         ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeCh);
@@ -305,14 +305,14 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 		{
 			// TODO: Create an extension that returns a numeric vectors instead of Stride Vector.
 			(var verts, var indices) = collider.ModelData.Model.GetMeshVerticesAndIndices(_game);
-			List<Vector3> bepuVerts = new();
+			Vector3[] bepuVerts = new Vector3[indices.Count];
 
-			for (int i = 0; i < verts.Count; i++)
+			for (int i = 0; i < indices.Count; i++)
 			{
-				bepuVerts.Add(verts[i].ToNumericVector());
+                bepuVerts[i] = verts[indices[i]].ToNumericVector();
 			}
-			// There is definitely a better way to do this but this should work for now
-			return bepuVerts.ToArray().AsSpan();
+
+			return bepuVerts.AsSpan();
 		}
 	}
 

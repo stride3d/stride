@@ -12,7 +12,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     {
         public ModelComponent ModelData { get; set; }
 
-        //TODO
         public ConvexHullColliderComponent()
         {
         }
