@@ -3,7 +3,7 @@ Ordered by importance !
 -Fix //TODO in code !!
 
 -Fix World pos / local pos
-Currrently, Only the LocalPosition of the Entity containing the COLLIDER (not the container) is used.
+Currently, Only the LocalPosition of the Entity containing the COLLIDER (not the container) is used.
 
 -Fixs "settings" (springSettings, MotorSettings, ... in Constraints by replacing the struc property by some properties for each field of the struct.)
 
@@ -17,6 +17,10 @@ Shape system, should be like Constraints system and allow direct modifications o
 -Make a new Scene with a big demo (like 10 000 cubes in a big mixer, that is supported by some ropes) - WIP nicogo
 
 -Add Shape "instancing"
+
+-Add wireframe from the Bullet Physics processor (debugging is a pain otherwise)
+https://github.com/stride3d/stride/blob/938da4928cbddd9194f9a07c7380d5cc115f521e/sources/engine/Stride.Physics/Engine/PhysicsShapesRenderingService.cs#L15
+https://github.com/stride3d/stride/blob/938da4928cbddd9194f9a07c7380d5cc115f521e/sources/engine/Stride.Physics/Engine/PhysicsProcessor.cs#L35
 
 Bonus : 
 
