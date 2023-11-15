@@ -1,13 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Configurations;
+using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using BepuPhysics.Collidables;
+using BepuUtilities.Memory;
+using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Engine;
 using Stride.Engine.Design;
@@ -18,6 +23,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
         private BepuConfiguration _bepuConfiguration;
+        private IGame _game;
 
         public ContainerProcessor()
         {
@@ -34,12 +40,13 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 _bepuConfiguration.BepuSimulations.Add(new BepuSimulation());
             }
 
+            _game = Services.GetService<IGame>();
             Services.AddService(_bepuConfiguration);
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            component.ContainerData = new(component, _bepuConfiguration.BepuSimulations[component.SimulationIndex]);
+            component.ContainerData = new(component, _bepuConfiguration.BepuSimulations[component.SimulationIndex], _game);
             component.ContainerData.BuildShape();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
@@ -111,9 +118,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
             Debug.WriteLine($"total : {totalWatch.ElapsedMilliseconds} \n    sim update : {simUpdWatch.ElapsedMilliseconds}\n    sim step : {simStepWatch.ElapsedMilliseconds}\n    Position update : {parForWatch.ElapsedMilliseconds}");
             base.Update(time);
-        }
-
-    }
+		}
+	}
 
     internal class ContainerData
     {
@@ -131,10 +137,13 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         internal StaticDescription SDescription { get; set; }
         internal StaticHandle SHandle { get; set; } = new(-1);
 
-        public ContainerData(ContainerComponent containerComponent, BepuSimulation bepuSimulation)
+        private IGame _game;
+
+        public ContainerData(ContainerComponent containerComponent, BepuSimulation bepuSimulation, IGame game)
         {
             ContainerComponent = containerComponent;
             BepuSimulation = bepuSimulation;
+            _game = game;
         }
 
         internal void BuildShape()
@@ -171,7 +180,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                         ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeC);
                         break;
                     case ConvexHullColliderComponent convexHull: //TODO
-                        var shapeCh = new ConvexHull();
+                        var shapeCh = new ConvexHull(GetMeshColliderShape(convexHull), new BufferPool(), out _);
                         ShapeInertia = shapeCh.ComputeInertia(convexHull.Mass);
                         ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeCh);
                         break;
@@ -290,7 +299,21 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
             if (ShapeIndex.Exists)
                 BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
-        }
-    }
+		}
+
+		private Span<Vector3> GetMeshColliderShape(ConvexHullColliderComponent collider)
+		{
+			// TODO: Create an extension that returns a numeric vectors instead of Stride Vector.
+			(var verts, var indices) = collider.ModelData.Model.GetMeshVerticesAndIndices(_game);
+			List<Vector3> bepuVerts = new();
+
+			for (int i = 0; i < verts.Count; i++)
+			{
+				bepuVerts.Add(verts[i].ToNumericVector());
+			}
+			// There is definitely a better way to do this but this should work for now
+			return bepuVerts.ToArray().AsSpan();
+		}
+	}
 
 }

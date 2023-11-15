@@ -24,7 +24,7 @@ Hierarchy:
                         Scene0: null
                         Scene1: aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/CubeFontainScene
                         Scene2: effd55be-d7a3-4d2a-89d7-7ef55924d9e1:Scenes/Constraint
-                        Scene3: null
+                        Scene3: 9717c0b6-feb7-4800-a772-93627f8bdbb6:Scenes/ConvexDemo
                         Scene4: null
                         Scene5: null
                         Scene6: null
