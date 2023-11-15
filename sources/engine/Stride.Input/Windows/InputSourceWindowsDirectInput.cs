@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Microsoft.Management.Infrastructure;
 using SharpDX;
 using SharpDX.DirectInput;
+using System.Linq;
 using Microsoft.Management.Infrastructure.Options;
 using System.Text.RegularExpressions;
 
