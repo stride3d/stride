@@ -9,8 +9,17 @@ using System.Threading.Tasks;
 
 namespace Stride.Core.Diagnostics
 {
+    /// <summary>
+    /// The chrome tracing profile writer exports diagnotic events into the chrome tracing format.
+    /// You view the file using chrome://tracing in your browser.
+    /// </summary>
     public class ChromeTracingProfileWriter
     {
+        /// <summary>
+        /// Create a tracing file at <paramref name="outputPath"/> and start writing events to it.
+        /// </summary>
+        /// <param name="outputPath">Path where to create the tracing file.</param>
+        /// <param name="indentOutput">Whether to indent output JSON. False by default for perfomance/size over readability.</param>
         public void Start(string outputPath, bool indentOutput = false)
         {
             eventReader = Profiler.Subscribe();
@@ -18,7 +27,7 @@ namespace Stride.Core.Diagnostics
             {
                 var pid = Process.GetCurrentProcess().Id;
 
-                using FileStream fs = File.Create(outputPath, 1024*1024);
+                using FileStream fs = File.Create(outputPath, 1024 * 1024);
                 using var writer = new Utf8JsonWriter(fs, options: new JsonWriterOptions { Indented = indentOutput, SkipValidation = true });
 
                 JsonObject root = new JsonObject();
@@ -64,12 +73,12 @@ namespace Stride.Core.Diagnostics
                     writer.WriteString("ph", "X");
                     writer.WriteNumber("ts", startTimeInMicroseconds);
                     writer.WriteNumber("dur", durationInMicroseconds);
-                    writer.WriteNumber("tid", e.ThreadId>=0?e.ThreadId: int.MaxValue);
+                    writer.WriteNumber("tid", e.ThreadId >= 0 ? e.ThreadId : int.MaxValue);
                     writer.WriteNumber("pid", pid);
                     if (e.Attributes.Count > 0)
                     {
                         writer.WriteStartObject("args");
-                        foreach (var (k,v) in e.Attributes)
+                        foreach (var (k, v) in e.Attributes)
                         {
                             writer.WriteString(k, v.ToString());
                         }
@@ -77,7 +86,7 @@ namespace Stride.Core.Diagnostics
                     }
                     writer.WriteEndObject();
 
-                    if(writer.BytesPending >= 1024 * 1024)
+                    if (writer.BytesPending >= 1024 * 1024)
                     {
                         await writer.FlushAsync();
                     }
@@ -89,6 +98,9 @@ namespace Stride.Core.Diagnostics
             });
         }
 
+        /// <summary>
+        /// Stop the profiling session and wait for the file to be flushed.
+        /// </summary>
         public void Stop()
         {
             if (eventReader != null)

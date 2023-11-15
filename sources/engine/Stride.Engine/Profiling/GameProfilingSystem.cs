@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Stride.Core;
@@ -66,6 +67,8 @@ namespace Stride.Profiling
         private uint trianglesCount;
         private uint drawCallsCount;
 
+        private CancellationTokenSource backgroundUpdateCancellationSource;
+
         /// <summary>
         /// The render target where the profiling results should be rendered into. If null, the <see cref="Game.GraphicsDevice.Presenter.BackBuffer"/> is used.
         /// </summary>
@@ -103,6 +106,8 @@ namespace Stride.Profiling
 
         private void UpdateProfilingStrings(bool containsMarks)
         {
+            using var _ = Profiler.Begin(UpdateStringsKey);
+
             profilersStringBuilder.Clear();
             fpsStatStringBuilder.Clear();
             gpuInfoStringBuilder.Clear();
@@ -187,43 +192,35 @@ namespace Stride.Profiling
             }
         }
 
-        private async Task UpdateAsync()
+        private async Task UpdateFpsAsync(CancellationToken cancellationToken)
         {
-            while(Enabled)
+            while (!backgroundUpdateCancellationSource.IsCancellationRequested)
             {
                 //In Fps filtering mode wait until it is time to update the output.
-                await Task.Delay((int)RefreshTime).ConfigureAwait(false);
+                await Task.Delay((int)RefreshTime, cancellationToken).ConfigureAwait(false);
 
-                using (Profiler.Begin(UpdateStringsKey))
-                {
-                    UpdateProfilingStrings(false);
-                }
-
-                if (profilerChannel == null || profilerChannel.Completion.IsCompleted)
-                    continue;
-
-                //If we're subscribed to the Profiler (Cpu/Gpu mode) start receiving events.
-                //Control flow will only return here once the profilerChannel is closed.
-                await ReadEventsAsync();
+                UpdateProfilingStrings(false);
             }
         }
 
-        private async Task ReadEventsAsync()
+        //If we're subscribed to the Profiler (Cpu/Gpu mode) start receiving events.
+        //Control flow will only return here once the profilerChannel is closed.
+        private async Task UpdateWithEventsAsync(CancellationToken cancellationToken)
         {
             var containsMarks = false;
-            Task delayTask = Task.Delay((int)RefreshTime);
+            Task delayTask = Task.Delay((int)RefreshTime, cancellationToken);
 
-            await foreach (var e in profilerChannel.ReadAllAsync())
+            await foreach (var e in profilerChannel.ReadAllAsync(cancellationToken))
             {
                 if (delayTask.IsCompleted)
                 {
-                    using (Profiler.Begin(UpdateStringsKey))
-                    {
-                        UpdateProfilingStrings(containsMarks);
-                        delayTask = Task.Delay((int)RefreshTime);
-                        containsMarks = false;
-                    }
+                    UpdateProfilingStrings(containsMarks);
+                    delayTask = Task.Delay((int)RefreshTime);
+                    containsMarks = false;
                 }
+
+                if (cancellationToken.IsCancellationRequested)
+                    continue; // skip events until they run out
 
                 if (FilteringMode == GameProfilingResults.Fps)
                     continue;
@@ -279,6 +276,28 @@ namespace Stride.Profiling
             }
         }
 
+        private void RunBackgroundUpdate(bool restart)
+        {
+            if (restart || asyncUpdateTask == null || asyncUpdateTask.IsCompleted)
+            {
+                if (backgroundUpdateCancellationSource != null)
+                {
+                    backgroundUpdateCancellationSource.Cancel();
+                    backgroundUpdateCancellationSource.Dispose();
+                }
+                backgroundUpdateCancellationSource = new CancellationTokenSource();
+
+                if (FilteringMode == GameProfilingResults.Fps)
+                {
+                    asyncUpdateTask = Task.Run(() => UpdateFpsAsync(backgroundUpdateCancellationSource.Token));
+                }
+                else
+                {
+                    asyncUpdateTask = Task.Run(() => UpdateWithEventsAsync(backgroundUpdateCancellationSource.Token));
+                }
+            }
+        }   
+
         private void AppendEvent(ProfilingResult profilingResult, int elapsedFrames, bool displayMarkCount)
         {
             elapsedFrames = Math.Max(elapsedFrames, 1);
@@ -321,6 +340,8 @@ namespace Stride.Profiling
             Visible = false;
 
             Profiler.Unsubscribe(profilerChannel);
+            backgroundUpdateCancellationSource?.Cancel();
+            backgroundUpdateCancellationSource?.Dispose();
 
             if (asyncUpdateTask != null && !asyncUpdateTask.IsCompleted)
             {
@@ -438,10 +459,7 @@ namespace Stride.Profiling
 
             gcProfiler.Enable();
 
-            if (asyncUpdateTask == null || asyncUpdateTask.IsCompleted)
-            {
-                asyncUpdateTask = Task.Run(UpdateAsync);
-            }
+            RunBackgroundUpdate(restart: false);
         }
 
         /// <summary>
@@ -463,6 +481,7 @@ namespace Stride.Profiling
             gcProfiler.Disable();
 
             FilteringMode = GameProfilingResults.Fps;
+            backgroundUpdateCancellationSource.Cancel();
         }
 
         /// <summary>
@@ -502,6 +521,8 @@ namespace Stride.Profiling
                         Profiler.Unsubscribe(profilerChannel);
 
                     filteringMode = value;
+
+                    RunBackgroundUpdate(restart: true);
                 }
             }
         }
