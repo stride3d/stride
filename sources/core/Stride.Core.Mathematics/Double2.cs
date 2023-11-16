@@ -431,7 +431,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value2">The second vector.</param>
         /// <param name="result">When the method completes, contains the distance between the two vectors.</param>
         /// <remarks>
-        /// <see cref="Stride.Core.Mathematics.Double2.DistanceSquared(ref Double2, ref Double2, out double)"/> may be preferred when only the relative distance is needed
+        /// <see cref="Stride.Core.Mathematics.Double2.DistanceSquared(ref readonly Double2, ref readonly Double2, out double)"/> may be preferred when only the relative distance is needed
         /// and speed is of the essence.
         /// </remarks>
         public static void Distance(ref readonly Double2 value1, ref readonly Double2 value2, out double result)
