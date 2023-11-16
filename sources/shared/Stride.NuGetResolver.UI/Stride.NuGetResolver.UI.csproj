@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StrideBuildTags>WindowsTools</StrideBuildTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NuGet.Common" Version="6.4.2" />
+  </ItemGroup>
+
+</Project>

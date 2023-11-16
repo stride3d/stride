@@ -77,7 +77,7 @@ namespace Stride.Core.Assets
 
                         var logger = new Logger();
 
-#if STRIDE_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UI
                         var dialogNotNeeded = new TaskCompletionSource<bool>();
                         var dialogClosed = new TaskCompletionSource<bool>();
 
@@ -160,7 +160,7 @@ namespace Stride.Core.Assets
                         }
                         catch (Exception e)
                         {
-#if STRIDE_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UI
                             logger.LogError($@"Error restoring NuGet packages: {e}");
                             dialogClosed.Task.Wait();
 #else
@@ -181,7 +181,7 @@ namespace Stride.Core.Assets
                         }
                         finally
                         {
-#if STRIDE_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UI
                             dialogNotNeeded.TrySetResult(true);
 #endif
                             SynchronizationContext.SetSynchronizationContext(previousSynchronizationContext);

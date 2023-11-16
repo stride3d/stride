@@ -12,36 +12,28 @@
     <Compile Include="$(MSBuildThisFileDirectory)NuGetModuleInitializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NuGetAssemblyResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RestoreHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SplashScreenWindow.xaml.cs" Condition="'$(StrideNuGetResolverUX)' == 'true'">
-      <DependentUpon>SplashScreenWindow.xaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="$(MSBuildThisFileDirectory)SplashScreenWindow.xaml" Condition="'$(StrideNuGetResolverUX)' == 'true'">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
+    <ProjectReference Condition="'$(StrideNuGetResolverUI)' == 'true'" Include="$(MSBuildThisFileDirectory)..\Stride.NuGetResolver.UI\Stride.NuGetResolver.UI.csproj" PrivateAssets="all" />
   </ItemGroup>
   <!-- Some targets so that referencing projects include a tools folder with executables-->
   <PropertyGroup>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config;.loaderdata</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <UseWPF Condition="'$(StrideNuGetResolverUX)' == 'true'">true</UseWPF>
-    <DefineConstants Condition="'$(StrideNuGetResolverUX)' == 'true'">STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
+    <TargetsForTfmSpecificBuildOutput>_StrideIncludeNuGetResolverDependencies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput Condition="'$(StrideNuGetResolverUI)' == 'true'">_StrideIncludeNuGetResolverUI;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config;.exe</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <UseWPF Condition="'$(StrideNuGetResolverUI)' == 'true'">true</UseWPF>
+    <DefineConstants Condition="'$(StrideNuGetResolverUI)' == 'true'">STRIDE_NUGET_RESOLVER_UI;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
-  <Target Name="_StridePackageNuGetLoader" AfterTargets="CopyFilesToOutputDirectory">
-    <PropertyGroup>
-      <_StrideNuGetLoaderWindowsDesktop Condition="'$(_MicrosoftNetSdkWindowsDesktop)' == 'true'">true</_StrideNuGetLoaderWindowsDesktop>
-      <_StrideNuGetLoaderApplicationIcon Condition="'$(ApplicationIcon)' != ''">$(MSBuildProjectDirectory)\$(ApplicationIcon)</_StrideNuGetLoaderApplicationIcon>
-    </PropertyGroup>
-    <!-- Build NuGetLoader project, using same application icon and same Sdk (so that WinForms/WPF can also work) -->
-    <MSBuild Projects="$(SolutionDir)..\sources\tools\Stride.NuGetLoader\Stride.NuGetLoader.csproj" Properties="Configuration=$(Configuration);OutputType=$(OutputType);ApplicationIcon=$(_StrideNuGetLoaderApplicationIcon);StrideApplicationName=$(AssemblyName);StrideNuGetLoaderWindowsDesktop=$(_StrideNuGetLoaderWindowsDesktop);StrideSTAThreadOnMain=$(StrideSTAThreadOnMain);StrideNuGetResolverUX=$(StrideNuGetResolverUX)" />
-    <!-- Write a small data file containing package and version to use for loader (let's not rely on NuGet layout/files such as .nuspec file in case it changes in the future) -->
-    <WriteLinesToFile File="$(OutputPath)Stride.NuGetLoader.loaderdata" Lines="$(PackageId)/$(PackageVersion)" Overwrite="true" />
+  <PropertyGroup>
+  </PropertyGroup>
+  <Target Name="_StrideIncludeNuGetResolverDependencies">
     <ItemGroup>
-      <None Include="$(OutputPath)Stride.NuGetLoader.loaderdata" Pack="true" PackagePath="tools\$(TargetFramework)\" />
-      <None Include="$(SolutionDir)..\sources\tools\Stride.NuGetLoader\bin\$(Configuration)\$(AssemblyName)\$(TargetFramework)\*.*" Pack="true" PackagePath="tools\$(TargetFramework)\" />
-      <!-- Rename Stride.NuGetLoader.exe into the expected application name -->
-      <None Update="@(BuildOutputInPackage->'%(Identity)')" Condition="'%(Filename)%(Extension)' == 'Stride.NuGetLoader.exe'" Pack="true" PackagePath="tools\$(TargetFramework)\$(AssemblyName).exe" />
+      <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).exe" />
+      <BuildOutputInPackage Include="$(OutputPath)NuGet*.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" />
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideIncludeNuGetResolverUI">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)Stride.NuGetResolver.UI.dll" />
     </ItemGroup>
   </Target>
 </Project>
