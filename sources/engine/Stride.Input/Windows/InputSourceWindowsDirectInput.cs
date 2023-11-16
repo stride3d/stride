@@ -77,7 +77,8 @@ namespace Stride.Input
 
             var deviceIdPrefixes = query.Select(device => xInputDeviceIdRegex.Match(device.CimInstanceProperties["DeviceID"].Value.ToString()))
                 .Where(match => match.Success)
-                .Select(match => (match.Groups[1].ToString() + match.Groups[2].ToString()).ToLower())
+                .Select(match => (match.Groups[2].ToString() + match.Groups[1].ToString()).ToLower())
+                .Distinct()
                 .ToList();
 
             return deviceIdPrefixes;
