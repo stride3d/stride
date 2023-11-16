@@ -17,6 +17,7 @@
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>  
   <ItemGroup>
     <None Remove="NShader\Common\GLSLKeywords.map" />
@@ -33,7 +34,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Commands" Version="6.4.2" />
+    <PackageReference Include="NuGet.Commands" Version="6.7.0" />
 
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Design" />
