@@ -24,18 +24,9 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\VisualStudioVersions.cs">
-      <Link>VisualStudioVersions.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\prerequisites\BuildTools2019\vs_buildtools.exe">
-      <Link>vs_buildtools.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="..\..\prerequisites\install-prerequisites.exe" Condition="Exists('..\..\prerequisites\install-prerequisites.exe')">
       <Link>install-prerequisites.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
