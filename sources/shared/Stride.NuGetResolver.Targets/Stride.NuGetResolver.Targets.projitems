@@ -34,6 +34,7 @@
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).exe" />
       <BuildOutputInPackage Include="$(OutputPath)NuGet*.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.FileProviders.Abstractions.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.FileSystemGlobbing.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.Primitives.dll" />
