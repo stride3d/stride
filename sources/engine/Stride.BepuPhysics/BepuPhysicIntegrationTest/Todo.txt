@@ -5,8 +5,6 @@ Ordered by importance !
 -Fix World pos / local pos
 Currently, Only the LocalPosition of the Entity containing the COLLIDER (not the container) is used.
 
--Fixs "settings" (springSettings, MotorSettings, ... in Constraints by replacing the struc property by some properties for each field of the struct.)
-
 -Shape updating
 Shape system, should be like Constraints system and allow direct modifications of field inside Bepu engine.
 
