@@ -4,12 +4,31 @@
   </PropertyGroup>
   <!-- Runtime dependencies -->
   <ItemGroup>
+    <PackageVersion Include="FFmpeg.AutoGen" Version="3.4.0.2" />
     <PackageVersion Include="K4os.Compression.LZ4.Legacy" Version="1.2.16" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="6.0.2" />
     <PackageVersion Include="ServiceWire" Version="5.3.4" />
     <PackageVersion Include="SharpDX" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.D3DCompiler" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.Direct2D1" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.Direct3D11" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.Direct3D12" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.DirectInput" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.MediaFoundation" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.RawInput" Version="4.2.0" />
+    <PackageVersion Include="SharpDX.XInput" Version="4.2.0" />
+    <PackageVersion Include="Silk.NET.OpenGL" Version="2.17.1" />
+    <PackageVersion Include="Silk.NET.OpenGLES" Version="2.17.1" />
+    <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.17.1" />
+    <PackageVersion Include="Silk.NET.OpenXR" Version="2.17.1" />
+    <PackageVersion Include="Silk.NET.Sdl" Version="2.17.1" />
+    <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.17.1" />
+    <PackageVersion Include="Stride.SharpFont" Version="1.0.0" />
+    <PackageVersion Include="System.Drawing.Common" Version="4.7.2" />
+    <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="4.10.0" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
+    <PackageVersion Include="Vortice.Vulkan" Version="1.2.167" />
   </ItemGroup>
 
   <!-- Other dependencies -->
