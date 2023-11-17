@@ -11,7 +11,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
 
         [DataMemberIgnore]
-        protected BepuSimulation BepuSimulation { get; set; }
+        protected BepuSimulation? BepuSimulation { get; set; }
 
         public override void Start()
         {
@@ -22,7 +22,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
         public override void Cancel()
         {
             base.Cancel();
-            BepuSimulation.Unregister(this);
+            BepuSimulation?.Unregister(this);
+            BepuSimulation = null;
         }
 
         public abstract void SimulationUpdate(float simTimeStep);

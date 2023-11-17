@@ -7,11 +7,14 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 {
     public abstract class Spawner : SimulationUpdateComponent
     {
-        public Prefab SpawnPrefab { get; set; }
-        public InstancingComponent Instancing { get; set; }
+        public Prefab? SpawnPrefab { get; set; }
+        public InstancingComponent? Instancing { get; set; }
 
         protected void Spawn(Vector3 position, Vector3 Impulse, Vector3 ImpulsePos)
         {
+            if (SpawnPrefab == null)
+                return;
+
             var entity = SpawnPrefab.Instantiate().First();
             entity.Transform.Position = position;
             Entity.AddChild(entity);

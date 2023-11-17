@@ -17,8 +17,8 @@ public class BepuSimulation
 {
     private readonly List<SimulationUpdateComponent> _simulationUpdateComponents = new();
 
-    internal BufferPool BufferPool { get; set; }
     internal ThreadDispatcher ThreadDispatcher { get; set; }
+    internal BufferPool BufferPool { get; set; }
     internal Simulation Simulation { get; private set; }
     internal Dictionary<BodyHandle, Entity> Bodies { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
     internal Dictionary<StaticHandle, Entity> Statics { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
@@ -76,7 +76,9 @@ public class BepuSimulation
     [Display(32, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 
+#pragma warning disable CS8618 //Done in setup to avoid 2 times the samecode.
     public BepuSimulation()
+#pragma warning restore CS8618 
     {
         Setup();
     }

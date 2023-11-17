@@ -14,7 +14,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ConstraintProcessor : EntityProcessor<ConstraintComponent>
 	{
-		private BepuConfiguration _bepuConfig;
+		private BepuConfiguration _bepuConfig = new();
 
 		public ConstraintProcessor()
         {
@@ -35,7 +35,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
         {
             base.OnEntityComponentRemoved(entity, component, data);
-            component.ConstraintData.DestroyConstraint();
+            component.ConstraintData?.DestroyConstraint();
             component.ConstraintData = null;
         }
     }
@@ -58,7 +58,10 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
         internal void BuildConstraint()
         {
+#pragma warning disable CS8602 
             var bodies = new Span<BodyHandle>(ConstraintComponent.Bodies.Where(e => e.ContainerData != null).Select(e => e.ContainerData.BHandle).ToArray());
+#pragma warning restore CS8602 
+
             switch (ConstraintComponent) //maybe add a IConstraintDescription to ConstraintComponent and use it instead of that switch of hell
             {
                 case AngularAxisGearMotorConstraintComponent _aagmcc:

@@ -126,7 +126,7 @@ namespace BepuPhysicIntegrationTest.Integration
         /// <typeparam name="T">The type of EntityComponent to search for.</typeparam>
         /// <param name="entity">The current Entity.</param>
         /// <returns>The first component of type 'T' found in the scene, or null if none is found.</returns>
-        public static T GetFirstComponentInScene<T>(this Entity entity) where T : EntityComponent
+        public static T? GetFirstComponentInScene<T>(this Entity entity) where T : EntityComponent
         {
             foreach (var childEntity in entity.Scene.Entities)
             {
@@ -143,7 +143,7 @@ namespace BepuPhysicIntegrationTest.Integration
         /// <typeparam name="T">The type of EntityComponent to search for.</typeparam>
         /// <param name="entity">The current Entity.</param>
         /// <returns>The first component of type 'T' found in the scene, or null if none is found.</returns>
-        public static T FindFirstObjectByType<T>(this Entity entity) where T : EntityComponent
+        public static T? FindFirstObjectByType<T>(this Entity entity) where T : EntityComponent
         {
             return entity.GetFirstComponentInScene<T>();
         }

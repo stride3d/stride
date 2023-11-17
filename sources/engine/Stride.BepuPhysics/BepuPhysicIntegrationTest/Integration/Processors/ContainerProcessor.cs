@@ -17,7 +17,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
-        private BepuConfiguration _bepuConfiguration;
+        private BepuConfiguration _bepuConfiguration = new();
 
         public ContainerProcessor()
         {
@@ -44,7 +44,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            component.ContainerData.DestroyShape();
+            component.ContainerData?.DestroyShape();
             component.ContainerData = null;
         }
 
