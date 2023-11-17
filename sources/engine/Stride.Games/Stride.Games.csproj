@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideRuntimeWindowsNet>true</StrideRuntimeWindowsNet>
+    <StrideExplicitWindowsRuntime>true</StrideExplicitWindowsRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <UseWindowsForms Condition="$(StrideUI.Contains('WINFORMS')) OR $(StrideUI.Contains('WPF'))">true</UseWindowsForms>
   </PropertyGroup>
