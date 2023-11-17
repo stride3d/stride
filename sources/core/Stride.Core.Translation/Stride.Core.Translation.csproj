@@ -11,7 +11,7 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.GNU.Gettext" Version="2.0.0" />
+    <PackageReference Include="Stride.GNU.Gettext" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
