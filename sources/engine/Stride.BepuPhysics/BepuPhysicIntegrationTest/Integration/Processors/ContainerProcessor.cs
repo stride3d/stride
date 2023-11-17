@@ -71,7 +71,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 bepuSim.RemainingUpdateTime += SimTimeStep; //Add it to the counter
 
                 var realSimTimeStepInSec = (bepuSim.RemainingUpdateTime - (bepuSim.RemainingUpdateTime % bepuSim.SimulationFixedStep)) / 1000f; //Calculate the real time step of the simulation
-                realSimTimeStepInSec = Math.Min(realSimTimeStepInSec, bepuSim.MaxStepPerFrame * bepuSim.SimulationFixedStep);
+                realSimTimeStepInSec = Math.Min(realSimTimeStepInSec, (bepuSim.MaxStepPerFrame * bepuSim.SimulationFixedStep) / 1000);
                 //Debug.WriteLine($"    SimTimeStepSinceLastFrame : {SimTimeStep}\n    realSimTimeStep : {realSimTimeStepInSec*1000}");
 
 
