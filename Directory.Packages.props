@@ -8,16 +8,33 @@
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="6.0.2" />
     <PackageVersion Include="ServiceWire" Version="5.3.4" />
     <PackageVersion Include="SharpDX" Version="4.2.0" />
+    <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="4.10.0" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
   <!-- Other dependencies -->
   <ItemGroup>
+    <PackageVersion Include="Microsoft.Build" Version="17.0.0" />
+    <PackageVersion Include="Microsoft.Build.Locator" Version="1.4.1" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.0.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="6.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e" />
+    <PackageVersion Include="Mono.Options" Version="5.3.0.1" />
+    <PackageVersion Include="NuGet.Commands" Version="6.7.0" />
     <PackageVersion Include="NuGet.Configuration" Version="6.7.0" />
+    <PackageVersion Include="NuGet.PackageManagement" Version="6.7.0" />
+    <PackageVersion Include="NuGet.Protocol" Version="6.7.0" />
+    <PackageVersion Include="NuGet.Resolver" Version="6.7.0" />
+    <PackageVersion Include="System.Collections.Immutable" Version="6.0.0" />
+    <PackageVersion Include="System.Diagnostics.Tracing" Version="4.3.0" />
+    <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Management" Version="4.7.0" />
+    <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageVersion Include="System.Runtime" Version="4.3.1" />
+    <PackageVersion Include="System.Runtime.Extensions" Version="4.3.1" />
+    <PackageVersion Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageVersion Include="System.Threading.Thread" Version="4.3.0" />
   </ItemGroup>
 
   <!-- Analyzers -->
