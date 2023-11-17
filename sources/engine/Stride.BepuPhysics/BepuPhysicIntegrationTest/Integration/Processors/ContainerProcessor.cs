@@ -181,9 +181,9 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                         ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeC);
                         break;
                     case ConvexHullColliderComponent convexHull:
-                        //var shapeCh = new ConvexHull(GetMeshColliderShape(convexHull), new BufferPool(), out _);
-                        //ShapeInertia = shapeCh.ComputeInertia(convexHull.Mass);
-                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(GetMeshColliderShapeTest(convexHull));
+                        var shapeCh = new ConvexHull(GetMeshColliderShape(convexHull), new BufferPool(), out _);
+                        ShapeInertia = shapeCh.ComputeInertia(convexHull.Mass);
+                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeCh);
                         break;
                     case CylinderColliderComponent cylinder:
                         var shapeCy = new Cylinder(cylinder.Radius, cylinder.Length);
@@ -315,26 +315,6 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
 			return bepuVerts.AsSpan();
 		}
-
-        private Mesh GetMeshColliderShapeTest(ConvexHullColliderComponent collider)
-        {
-            (var verts, var indices) = collider.ModelData.Model.GetMeshVerticesAndIndices(_game);
-            List<Triangle> bepuVerts = new(); //= new Triangle[(indices.Count + 3)/ 3];
-            int a;
-            int b;
-            int c;
-			for (int i = 0; i < indices.Count; i += 3)
-            {
-                a = indices[i];
-                b = indices[i+1];
-                c = indices[i+2];
-                bepuVerts.Add( new(verts[a].ToNumericVector(), verts[b].ToNumericVector(), verts[c].ToNumericVector()));
-			}
-
-            var triSpan = bepuVerts.ToArray().AsSpan();
-
-			return new Mesh(triSpan, Vector3.One, new BufferPool());
-        }
 	}
 
 }

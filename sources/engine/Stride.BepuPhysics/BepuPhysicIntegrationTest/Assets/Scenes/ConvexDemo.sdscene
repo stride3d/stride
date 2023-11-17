@@ -11,8 +11,8 @@ Hierarchy:
         - ref!! 080da274-66c1-4831-9dd8-31b5904a2516
         - ref!! e9ae13c5-bd03-4fba-bc23-9cdccedc3f30
         - ref!! f1fb92e1-1faf-4538-9668-05f1417337b6
-        - ref!! d8c885fa-190c-4aed-8016-29bf31d075c2
-        - ref!! fcd4c5cb-84d8-43be-9261-0f26b8946c01
+        - ref!! a72b3051-13cb-4870-9264-820b15a87d82
+        - ref!! e522a120-e026-4063-aa2c-4651eb465a86
     Parts:
         -   Entity:
                 Id: 080da274-66c1-4831-9dd8-31b5904a2516
@@ -123,26 +123,40 @@ Hierarchy:
                                 ComputeTransmittance: false
                                 BiasParameters: {}
         -   Entity:
-                Id: d8c885fa-190c-4aed-8016-29bf31d075c2
-                Name: bridge
+                Id: a72b3051-13cb-4870-9264-820b15a87d82
+                Name: dungeon
                 Components:
-                    e2190dad77e8cc97f1acbf0c17ca7854: !TransformComponent
-                        Id: b360f1f4-e28f-4e44-93dc-d55ad507d7bb
-                        Position: {X: 4.016342, Y: 0.0, Z: -1.8964748}
+                    a81580ab10bb710475fd72e149aabb0c: !TransformComponent
+                        Id: b52bab8c-24e6-40e8-873e-c5fde91bd7f2
+                        Position: {X: -38.875763, Y: 0.0, Z: -80.48629}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    c021b5a2e34a3519152a3a20583fa653: !ModelComponent
-                        Id: 6fb930d1-bb9e-4d3e-b9c8-95bd1df42add
-                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                    ec3765c60850246055d60c39119e9fb4: !ModelComponent
+                        Id: fbe4a8f0-0c35-4235-ba0c-007f3d04d0ce
+                        Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
                         Materials: {}
-                    b027d1f64d8078992e3bd64c8cce017d: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
-                        Id: a141b675-2c3b-47a4-af1e-7ecf8ffae730
-                        SimulationIndex: 0
-                    cd39760c1d48b176254840a8e3efa8c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.ConvexHullColliderComponent,BepuPhysicIntegrationTest
-                        Id: 99e3a280-5e55-4e5e-9799-31992677bd89
+        -   Entity:
+                Id: e522a120-e026-4063-aa2c-4651eb465a86
+                Name: Wagon_A_green
+                Components:
+                    823b9564e2dbf0977002158de5a0bf63: !TransformComponent
+                        Id: 745885d9-e459-4560-b70b-6afd67cddbbf
+                        Position: {X: -2.9499645, Y: 0.0, Z: -7.4459906}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1b751bf65b1a08ee6b8cea4ee5e29f0f: !ModelComponent
+                        Id: 02806db4-e915-49d1-bf3b-e5c1dd6e02bf
+                        Model: 77e7e900-fdb0-4501-8a3f-8658f67c30d3:Models/Wagon_A_green
+                        Materials: {}
+                    f437dca156e6ebd793c30fb355eeeb06: !BepuPhysicIntegrationTest.Integration.Components.Colliders.ConvexHullColliderComponent,BepuPhysicIntegrationTest
+                        Id: 55ace7fd-1ea1-4d15-8938-012075d7141d
                         Mass: 1.0
-                        ModelData: ref!! 6fb930d1-bb9e-4d3e-b9c8-95bd1df42add
+                        ModelData: ref!! 02806db4-e915-49d1-bf3b-e5c1dd6e02bf
+                    21a07fedd80c2c16b8234d8abe958e86: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
+                        Id: 368d4732-14bf-46f8-9824-78585c6126d3
+                        SimulationIndex: 0
         -   Entity:
                 Id: e9ae13c5-bd03-4fba-bc23-9cdccedc3f30
                 Name: BepuPhysics
@@ -193,24 +207,3 @@ Hierarchy:
                     8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
                         Id: 111e74c1-c110-46d9-982e-12db7994528e
                         Type: !InstancingEntityTransform {}
-        -   Entity:
-                Id: fcd4c5cb-84d8-43be-9261-0f26b8946c01
-                Name: scene
-                Components:
-                    ab84f7abdde94e945f65a8cd2cbb0491: !TransformComponent
-                        Id: 26bc33ee-2199-43ba-893e-f5d2dfceb3ce
-                        Position: {X: -74.388954, Y: -8.837774, Z: -15.80747}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    c56367a90d8e5f6764e15dc40f9c039c: !ModelComponent
-                        Id: 941bc1da-bc21-43f4-a601-29061de1bf40
-                        Model: b560c985-b15a-43a7-a7a2-2e5eb7ef3c37:Models/scene
-                        Materials: {}
-                    32ae33d6e3aac67e0722345f51bbbd50: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
-                        Id: f03a6015-a34e-4082-bd9e-ddec0d9b4667
-                        SimulationIndex: 0
-                    cf7464410a965eea34d4bfa15f172ce1: !BepuPhysicIntegrationTest.Integration.Components.Colliders.ConvexHullColliderComponent,BepuPhysicIntegrationTest
-                        Id: 10df3a4f-f78b-4cc8-9918-50a0a50d3e88
-                        Mass: 1.0
-                        ModelData: ref!! 941bc1da-bc21-43f4-a601-29061de1bf40
