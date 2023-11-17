@@ -78,16 +78,16 @@ public class BepuSimulation
 
     public BepuSimulation()
     {
-        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
-        ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
         Setup();
     }
     private void Setup()
     {
+        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
         var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(new SpringSettings(30, 3));
         var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks();
         var _solveDescription = new SolveDescription(1, 1);
 
+        ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
         BufferPool = new BufferPool();
         Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
     }
@@ -95,7 +95,6 @@ public class BepuSimulation
     {
         //TODO : Check if something else should be clear
         //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
-        Simulation.Clear();
         BufferPool.Clear();
         Bodies.Clear();
         Statics.Clear();
