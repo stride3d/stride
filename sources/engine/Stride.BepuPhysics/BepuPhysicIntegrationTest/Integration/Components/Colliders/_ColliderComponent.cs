@@ -14,6 +14,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     {
         public float Mass { get; set; } = 1f;
 
-        internal ContainerComponent? Container => Entity.GetComponentsInParents<ContainerComponent>(true).FirstOrDefault();
+        internal ContainerComponent Container => Entity.GetComponentsInParents<ContainerComponent>(true).FirstOrDefault();
     }
 }

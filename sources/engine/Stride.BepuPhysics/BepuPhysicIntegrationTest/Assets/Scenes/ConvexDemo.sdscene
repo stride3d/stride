@@ -11,7 +11,6 @@ Hierarchy:
         - ref!! 080da274-66c1-4831-9dd8-31b5904a2516
         - ref!! e9ae13c5-bd03-4fba-bc23-9cdccedc3f30
         - ref!! f1fb92e1-1faf-4538-9668-05f1417337b6
-        - ref!! a72b3051-13cb-4870-9264-820b15a87d82
         - ref!! e522a120-e026-4063-aa2c-4651eb465a86
     Parts:
         -   Entity:
@@ -113,7 +112,7 @@ Hierarchy:
                         Type: !LightDirectional
                             Color: !ColorRgbProvider
                                 Value: {R: 1.0, G: 1.0, B: 1.0}
-                            Shadow:
+                            Shadow: !LightDirectionalShadowMap
                                 Enabled: true
                                 Filter: !LightShadowMapFilterTypePcf
                                     FilterSize: Filter5x5
@@ -122,20 +121,6 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-        -   Entity:
-                Id: a72b3051-13cb-4870-9264-820b15a87d82
-                Name: dungeon
-                Components:
-                    a81580ab10bb710475fd72e149aabb0c: !TransformComponent
-                        Id: b52bab8c-24e6-40e8-873e-c5fde91bd7f2
-                        Position: {X: -38.875763, Y: 0.0, Z: -80.48629}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    ec3765c60850246055d60c39119e9fb4: !ModelComponent
-                        Id: fbe4a8f0-0c35-4235-ba0c-007f3d04d0ce
-                        Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
-                        Materials: {}
         -   Entity:
                 Id: e522a120-e026-4063-aa2c-4651eb465a86
                 Name: Wagon_A_green

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Configurations;
@@ -233,8 +232,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                             case CapsuleColliderComponent capsule:
                                 compoundBuilder.Add(new Capsule(capsule.Radius, capsule.Length), collider.Entity.Transform.ToBepuPose(), collider.Mass);
                                 break;
-                            case ConvexHullColliderComponent convexHull: //TODO
-                                compoundBuilder.Add(new ConvexHull(), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                            case ConvexHullColliderComponent convexHull:
+                                compoundBuilder.Add(new ConvexHull(GetMeshColliderShape(convexHull), new BufferPool(), out _), collider.Entity.Transform.ToBepuPose(), collider.Mass);
                                 break;
                             case CylinderColliderComponent cylinder:
                                 compoundBuilder.Add(new Cylinder(cylinder.Radius, cylinder.Length), collider.Entity.Transform.ToBepuPose(), collider.Mass);
