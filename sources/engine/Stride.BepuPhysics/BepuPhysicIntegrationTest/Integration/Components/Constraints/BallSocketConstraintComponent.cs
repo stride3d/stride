@@ -27,6 +27,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
+
         public Vector3 LocalOffsetB
         {
             get
@@ -40,19 +41,34 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
-        public SpringSettings SpringSettings
+
+        public float SpringFrequency
         {
             get
             {
-                return _bepuConstraint.SpringSettings;
+                return _bepuConstraint.SpringSettings.Frequency;
             }
             set
             {
-                _bepuConstraint.SpringSettings = value;
+                _bepuConstraint.SpringSettings.Frequency = value;
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
 
+        public float SpringDampingRatio
+        {
+            get
+            {
+                return _bepuConstraint.SpringSettings.DampingRatio;
+            }
+            set
+            {
+                _bepuConstraint.SpringSettings.DampingRatio = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
     }
+
 }

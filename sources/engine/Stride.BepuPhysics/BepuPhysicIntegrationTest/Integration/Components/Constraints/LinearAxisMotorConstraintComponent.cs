@@ -12,7 +12,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     public class LinearAxisMotorConstraintComponent : ConstraintComponent
     {
-        internal LinearAxisMotor _bepuConstraint = new();
+        internal LinearAxisMotor _bepuConstraint = new()
+        {
+            Settings = new MotorSettings(1000, 10)
+        };
 
         public Vector3 LocalOffsetA
         {
@@ -70,18 +73,33 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
             }
         }
 
-        public MotorSettings Settings
+        public float MotorDamping
         {
             get
             {
-                return _bepuConstraint.Settings;
+                return _bepuConstraint.Settings.Damping;
             }
             set
             {
-                _bepuConstraint.Settings = value;
+                _bepuConstraint.Settings.Damping = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float MotorMaximumForce
+        {
+            get
+            {
+                return _bepuConstraint.Settings.MaximumForce;
+            }
+            set
+            {
+                _bepuConstraint.Settings.MaximumForce = value;
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
     }
+
 }
