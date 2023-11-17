@@ -22,6 +22,7 @@ public class BepuSimulation
     internal Simulation Simulation { get; private set; }
     internal Dictionary<BodyHandle, Entity> Bodies { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
     internal Dictionary<StaticHandle, Entity> Statics { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
+    internal float RemainingUpdateTime { get; set; } = 0;
 
 
     [Display(0, "Enabled")]
@@ -69,29 +70,35 @@ public class BepuSimulation
     public int SolveSubStep { get => Simulation.Solver.SubstepCount; init => Simulation.Solver.SubstepCount = value; }
 
     [Display(30, "Parallel update")]
-    public bool Para { get; set; } = true;
-
+    public bool ParallelUpdate { get; set; } = true;
+    [Display(31, "Simulation fixed step")]
+    public float SimulationFixedStep { get; set; } = 1000/60;
+    [Display(32, "Max steps/frame")]
+    public int MaxStepPerFrame { get; set; } = 3;
 
     public BepuSimulation()
     {
+        Setup();
+    }
+    private void Setup()
+    {
         var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
-
-        var _contactSpringiness = new SpringSettings(30, 3);
-        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(_contactSpringiness);
+        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(new SpringSettings(30, 3));
         var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks();
-        var _solveDescription = new SolveDescription(2, 4); //4, 8
+        var _solveDescription = new SolveDescription(1, 1);
 
-        BufferPool = new BufferPool();
         ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
+        BufferPool = new BufferPool();
         Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
     }
-
     internal void Clear()
     {
         //TODO : Check if something else should be clear
-        Simulation.Clear();
+        //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
+        BufferPool.Clear();
         Bodies.Clear();
         Statics.Clear();
+        Setup();
     }
 
     internal void CallSimulationUpdate(float simTimeStep)

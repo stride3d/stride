@@ -25,14 +25,16 @@ Defaults:
         BepuSimulations:
             -   Enabled: true
                 TimeWarp: 1.0
-                SpringFreq: 60.0
+                SpringFreq: 30.0
                 SpringDamping: 3.0
                 PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
                 PoseLinearDamping: 0.05
-                PoseAngularDamping: 0.1
-                SolveIteration: 4
-                SolveSubStep: 8
-                Para: true
+                PoseAngularDamping: 0.05
+                SolveIteration: 1
+                SolveSubStep: 1
+                ParallelUpdate: true
+                SimulationFixedStep: 20.0
+                MaxStepPerFrame: 2
 Overrides: []
 PlatformFilters:
     - PowerVR SGX 54[0-9]

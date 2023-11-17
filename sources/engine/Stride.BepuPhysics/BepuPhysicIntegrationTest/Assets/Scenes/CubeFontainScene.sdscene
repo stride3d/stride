@@ -86,7 +86,7 @@ Hierarchy:
                             AngleOuter: 90.0
                             UVScale: {X: 1.0, Y: 1.0}
                             UVOffset: {X: 0.0, Y: 0.0}
-                            Shadow:
+                            Shadow: !LightStandardShadowMap
                                 BiasParameters:
                                     DepthBias: 0.001
                         Intensity: 300.0
@@ -159,7 +159,7 @@ Hierarchy:
                             AngleOuter: 90.0
                             UVScale: {X: 1.0, Y: 1.0}
                             UVOffset: {X: 0.0, Y: 0.0}
-                            Shadow:
+                            Shadow: !LightStandardShadowMap
                                 BiasParameters:
                                     DepthBias: 0.001
                         Intensity: 300.0
@@ -183,7 +183,7 @@ Hierarchy:
                             AngleOuter: 90.0
                             UVScale: {X: 1.0, Y: 1.0}
                             UVOffset: {X: 0.0, Y: 0.0}
-                            Shadow:
+                            Shadow: !LightStandardShadowMap
                                 BiasParameters:
                                     DepthBias: 0.001
                                 Debug: true
@@ -236,7 +236,7 @@ Hierarchy:
                         Type: !LightDirectional
                             Color: !ColorRgbProvider
                                 Value: {R: 1.0, G: 1.0, B: 1.0}
-                            Shadow:
+                            Shadow: !LightDirectionalShadowMap
                                 Enabled: true
                                 Filter: !LightShadowMapFilterTypePcf
                                     FilterSize: Filter5x5

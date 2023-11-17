@@ -58,40 +58,53 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
         public override void Update(GameTime time)
         {
-            var dt = (float)time.Elapsed.TotalSeconds;
+            var dt = (float)time.Elapsed.TotalMilliseconds;
             if (dt == 0f)
                 return;
 
-            var totalWatch = new Stopwatch();
-            var simUpdWatch = new Stopwatch();
-            var simStepWatch = new Stopwatch();
-            var parForWatch = new Stopwatch();
+            //var totalWatch = new Stopwatch();
+            //var simUpdWatch = new Stopwatch();
+            //var simStepWatch = new Stopwatch();
+            //var parForWatch = new Stopwatch();
 
-            totalWatch.Start();
+            //totalWatch.Start();
+            //Debug.WriteLine($"Start");
 
-            foreach (var item in _bepuConfiguration.BepuSimulations)
+            foreach (var bepuSim in _bepuConfiguration.BepuSimulations)
             {
-                if (!item.Enabled)
+                if (!bepuSim.Enabled)
                     continue;
 
-                var SimTimeStep = dt * item.TimeWarp; //calcul the timeStep of the simulation
+                var SimTimeStep = dt * bepuSim.TimeWarp; //Calculate the theoretical time step of the simulation
+                bepuSim.RemainingUpdateTime += SimTimeStep; //Add it to the counter
 
-                simUpdWatch.Start();
-                item.CallSimulationUpdate(SimTimeStep); //cal the SimulationUpdate with simTimeStep
-                simUpdWatch.Stop();
+                var realSimTimeStepInSec = (bepuSim.RemainingUpdateTime - (bepuSim.RemainingUpdateTime % bepuSim.SimulationFixedStep)) / 1000f; //Calculate the real time step of the simulation
+                realSimTimeStepInSec = Math.Min(realSimTimeStepInSec, (bepuSim.MaxStepPerFrame * bepuSim.SimulationFixedStep) / 1000);
+                //Debug.WriteLine($"    SimTimeStepSinceLastFrame : {SimTimeStep}\n    realSimTimeStep : {realSimTimeStepInSec*1000}");
 
-                simStepWatch.Start();
-                item.Simulation.Timestep(SimTimeStep, item.ThreadDispatcher); //perform physic sim using simTimeStep
-                simStepWatch.Stop();
 
-                parForWatch.Start();
-                if (item.Para)
+                //simUpdWatch.Start();
+                bepuSim.CallSimulationUpdate(realSimTimeStepInSec); //cal the SimulationUpdate with the real step time of the sim in secs
+                //simUpdWatch.Stop();
+
+                //simStepWatch.Start();
+                int stepCount = 0;
+                while (bepuSim.RemainingUpdateTime >= bepuSim.SimulationFixedStep & stepCount < bepuSim.MaxStepPerFrame)
                 {
-                    var a = Parallel.For(0, item.Simulation.Bodies.ActiveSet.Count, (i) =>
+                    bepuSim.Simulation.Timestep(bepuSim.SimulationFixedStep / 1000f, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
+                    bepuSim.RemainingUpdateTime -= bepuSim.SimulationFixedStep;
+                    stepCount++;
+                }
+                //simStepWatch.Stop();
+
+                //parForWatch.Start();
+                if (bepuSim.ParallelUpdate)
+                {
+                    var a = Parallel.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) =>
                     {
-                        var handle = item.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                        var entity = item.Bodies[handle];
-                        var body = item.Simulation.Bodies[handle];
+                        var handle = bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
+                        var entity = bepuSim.Bodies[handle];
+                        var body = bepuSim.Simulation.Bodies[handle];
 
                         var entityTransform = entity.Transform;
                         entityTransform.Position = body.Pose.Position.ToStrideVector();
@@ -101,11 +114,11 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 }
                 else
                 {
-                    for (int i = 0; i < item.Simulation.Bodies.ActiveSet.Count; i++)
+                    for (int i = 0; i < bepuSim.Simulation.Bodies.ActiveSet.Count; i++)
                     {
-                        var handle = item.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                        var entity = item.Bodies[handle];
-                        var body = item.Simulation.Bodies[handle];
+                        var handle = bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
+                        var entity = bepuSim.Bodies[handle];
+                        var body = bepuSim.Simulation.Bodies[handle];
 
                         var entityTransform = entity.Transform;
                         entityTransform.Position = body.Pose.Position.ToStrideVector();
@@ -113,11 +126,11 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                         entityTransform.UpdateWorldMatrix();
                     }
                 }
-                parForWatch.Stop();
+                //parForWatch.Stop();
+                //Debug.WriteLine($"    stepCount : {stepCount}\n    SimulationFixedStep : {bepuSim.SimulationFixedStep}\n    RemainingUpdateTime : {bepuSim.RemainingUpdateTime}");
             }
-            totalWatch.Stop();
-
-            Debug.WriteLine($"total : {totalWatch.ElapsedMilliseconds} \n    sim update : {simUpdWatch.ElapsedMilliseconds}\n    sim step : {simStepWatch.ElapsedMilliseconds}\n    Position update : {parForWatch.ElapsedMilliseconds}");
+            //totalWatch.Stop();
+            //Debug.WriteLine($"-   Sim update function call : {simUpdWatch.ElapsedMilliseconds}\n-   Sim timestep : {simStepWatch.ElapsedMilliseconds}\n-   Position update : {parForWatch.ElapsedMilliseconds}\nEnd in : {totalWatch.ElapsedMilliseconds}");
             base.Update(time);
 		}
 	}
