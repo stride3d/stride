@@ -2,4 +2,28 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
+  <!-- Runtime dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="K4os.Compression.LZ4.Legacy" Version="1.2.16" />
+    <PackageVersion Include="Microsoft.NETCore.Platforms" Version="6.0.2" />
+    <PackageVersion Include="ServiceWire" Version="5.3.4" />
+    <PackageVersion Include="SharpDX" Version="4.2.0" />
+    <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
+  <!-- Other dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e" />
+    <PackageVersion Include="NuGet.Configuration" Version="6.7.0" />
+    <PackageVersion Include="System.Management" Version="4.7.0" />
+  </ItemGroup>
+
+  <!-- Analyzers -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="all" />
+  </ItemGroup>
 </Project>

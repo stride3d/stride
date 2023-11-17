@@ -38,7 +38,7 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" PrivateAssets="All" />
   </ItemGroup>
   <!-- Disable analyzers unless StrideEnableCodeAnalysis is set (note: PackageReference can't depend on external Condition) -->
   <Target Name="DisableAnalyzersForStrideBuild"
