@@ -256,20 +256,15 @@ Hierarchy:
                         LocalHingeAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         LocalOffsetB: {X: 0.0, Y: -0.55, Z: 0.0}
                         LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
-                        SpringSettings:
-                            AngularFrequency: 188.49556
-                            TwiceDampingRatio: 10.0
-                            Frequency: 30.0
-                            DampingRatio: 5.0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
                     619b100d97c364ec93b73a21e441a1ba: !BepuPhysicIntegrationTest.Integration.Components.Constraints.OneBodyAngularMotorConstraintComponent,BepuPhysicIntegrationTest
                         Id: 588d2dfb-3563-4e9b-a641-e8d42d2b2302
                         Bodies:
                             909f3aa658cc819e8fca3ee360dc4292: ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
                         TargetVelocity: {X: 0.0, Y: 0.5, Z: 0.0}
-                        Settings:
-                            MaximumForce: 10000000.0
-                            Damping: 50.0
-                            Softness: 0.02
+                        MotorDamping: 100.0
+                        MotorMaximumForce: 10000000.0
         -   Entity:
                 Id: a42bf0a5-735b-4ad7-9ca1-5432b4472e69
                 Name: CubeInstancing
