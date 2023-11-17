@@ -169,9 +169,9 @@ Hierarchy:
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 3746f1fe-6ada-4155-a9f8-8a9d128b5d4c
-                        Position*: {X: -125.0, Y: 2.0, Z: 0.0}
+                        Position*: {X: -125.0, Y: 3.0, Z: 0.0}
                         Rotation*: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
-                        Scale*: {X: 250.0, Y: 4.0, Z: 1.0}
+                        Scale*: {X: 250.0, Y: 6.0, Z: 1.0}
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 78849a09-b196-40e6-939b-d2e152105b33
@@ -180,7 +180,7 @@ Hierarchy:
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 39b73fcf-9e34-46fd-8946-2d98c9d935df
                         Mass*: 10.0
-                        Size*: {X: 250.0, Y: 4.0, Z: 1.0}
+                        Size*: {X: 250.0, Y: 6.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 4297943c-1da0-485c-8713-79f21e9a3234
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
@@ -265,7 +265,7 @@ Hierarchy:
                         Id: 588d2dfb-3563-4e9b-a641-e8d42d2b2302
                         Bodies:
                             909f3aa658cc819e8fca3ee360dc4292: ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
-                        TargetVelocity: {X: 0.0, Y: 1.0, Z: 0.0}
+                        TargetVelocity: {X: 0.0, Y: 0.5, Z: 0.0}
                         Settings:
                             MaximumForce: 10000000.0
                             Damping: 50.0
@@ -295,9 +295,9 @@ Hierarchy:
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 9d7218ba-2f0f-4d07-91b3-bde2d42c4e5f
-                        Position*: {X: 0.0, Y: 2.0, Z: -125.0}
+                        Position*: {X: 0.0, Y: 3.0, Z: -125.0}
                         Rotation*: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale*: {X: 250.0, Y: 4.0, Z: 1.0}
+                        Scale*: {X: 250.0, Y: 6.0, Z: 1.0}
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: ddca45b8-ae96-4a8e-b002-2b9d02ebb4a4
@@ -306,7 +306,7 @@ Hierarchy:
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: d5800e81-0ac7-4087-b2f6-8c1bec21ad31
                         Mass*: 10.0
-                        Size*: {X: 250.0, Y: 4.0, Z: 1.0}
+                        Size*: {X: 250.0, Y: 6.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 253911d6-1013-4e72-9018-7808ad3739a5
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
@@ -395,9 +395,9 @@ Hierarchy:
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: d1616f3f-577c-4052-b9df-911287a8cfbe
-                        Position*: {X: 125.0, Y: 2.0, Z: 0.0}
+                        Position*: {X: 125.0, Y: 3.0, Z: 0.0}
                         Rotation*: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
-                        Scale*: {X: 250.0, Y: 4.0, Z: 1.0}
+                        Scale*: {X: 250.0, Y: 6.0, Z: 1.0}
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 5e28516e-c85a-4ac0-858c-1069ceae480f
@@ -406,7 +406,7 @@ Hierarchy:
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 09acac61-0027-4e58-b4f7-dc6de804c3c2
                         Mass*: 10.0
-                        Size*: {X: 250.0, Y: 4.0, Z: 1.0}
+                        Size*: {X: 250.0, Y: 6.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 8e3800c1-864b-421d-828c-7dd9137e16a4
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
@@ -420,9 +420,9 @@ Hierarchy:
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 35ef2d50-b8cf-47c3-99eb-36a4d2826703
-                        Position*: {X: 0.0, Y: 2.0, Z: 125.0}
+                        Position*: {X: 0.0, Y: 3.0, Z: 125.0}
                         Rotation*: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale*: {X: 250.0, Y: 4.0, Z: 1.0}
+                        Scale*: {X: 250.0, Y: 6.0, Z: 1.0}
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: c0c77c50-9753-4efd-8b21-ef67dd301d24
@@ -431,7 +431,7 @@ Hierarchy:
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 6ae92bf8-e27d-4303-9cc5-e3d4ad047207
                         Mass*: 10.0
-                        Size*: {X: 250.0, Y: 4.0, Z: 1.0}
+                        Size*: {X: 250.0, Y: 6.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 80b31454-a3f9-4993-96b6-42d43ed9d88a
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
@@ -447,7 +447,7 @@ Hierarchy:
                         Id: fdb4eab0-70be-4b54-9eab-de347caed944
                         Position*: {X: 0.0, Y: 2.1, Z: 0.0}
                         Rotation*: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
-                        Scale*: {X: 200.0, Y: 4.0, Z: 1.0}
+                        Scale*: {X: 225.0, Y: 4.0, Z: 1.0}
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
@@ -456,7 +456,7 @@ Hierarchy:
                     ee265d38d262240aee035149906d46c5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 5f64bac7-ac30-4730-a0f5-0d97c98be2d6
                         Mass*: 100.0
-                        Size*: {X: 200.0, Y: 4.0, Z: 1.0}
+                        Size*: {X: 225.0, Y: 4.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: c4fedc49-7d9f-401f-a837-6bfe1dc45941
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f

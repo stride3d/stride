@@ -33,8 +33,8 @@ Defaults:
                 SolveIteration: 1
                 SolveSubStep: 1
                 ParallelUpdate: true
-                SimulationFixedStep: 8.0
-                MaxStepPerFrame: 3
+                SimulationFixedStep: 20.0
+                MaxStepPerFrame: 2
 Overrides: []
 PlatformFilters:
     - PowerVR SGX 54[0-9]

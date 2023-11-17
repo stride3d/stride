@@ -72,7 +72,7 @@ public class BepuSimulation
     [Display(30, "Parallel update")]
     public bool ParallelUpdate { get; set; } = true;
     [Display(31, "Simulation fixed step")]
-    public float SimulationFixedStep { get; set; } = 1000/120;
+    public float SimulationFixedStep { get; set; } = 1000/60;
     [Display(32, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 
