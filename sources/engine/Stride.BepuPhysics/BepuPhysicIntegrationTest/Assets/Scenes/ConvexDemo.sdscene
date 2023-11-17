@@ -12,6 +12,7 @@ Hierarchy:
         - ref!! e9ae13c5-bd03-4fba-bc23-9cdccedc3f30
         - ref!! f1fb92e1-1faf-4538-9668-05f1417337b6
         - ref!! d8c885fa-190c-4aed-8016-29bf31d075c2
+        - ref!! fcd4c5cb-84d8-43be-9261-0f26b8946c01
     Parts:
         -   Entity:
                 Id: 080da274-66c1-4831-9dd8-31b5904a2516
@@ -192,3 +193,24 @@ Hierarchy:
                     8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
                         Id: 111e74c1-c110-46d9-982e-12db7994528e
                         Type: !InstancingEntityTransform {}
+        -   Entity:
+                Id: fcd4c5cb-84d8-43be-9261-0f26b8946c01
+                Name: scene
+                Components:
+                    ab84f7abdde94e945f65a8cd2cbb0491: !TransformComponent
+                        Id: 26bc33ee-2199-43ba-893e-f5d2dfceb3ce
+                        Position: {X: -74.388954, Y: -8.837774, Z: -15.80747}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c56367a90d8e5f6764e15dc40f9c039c: !ModelComponent
+                        Id: 941bc1da-bc21-43f4-a601-29061de1bf40
+                        Model: b560c985-b15a-43a7-a7a2-2e5eb7ef3c37:Models/scene
+                        Materials: {}
+                    32ae33d6e3aac67e0722345f51bbbd50: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
+                        Id: f03a6015-a34e-4082-bd9e-ddec0d9b4667
+                        SimulationIndex: 0
+                    cf7464410a965eea34d4bfa15f172ce1: !BepuPhysicIntegrationTest.Integration.Components.Colliders.ConvexHullColliderComponent,BepuPhysicIntegrationTest
+                        Id: 10df3a4f-f78b-4cc8-9918-50a0a50d3e88
+                        Mass: 1.0
+                        ModelData: ref!! 941bc1da-bc21-43f4-a601-29061de1bf40
