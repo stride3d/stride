@@ -97,6 +97,9 @@ x64Release
 screenshots
 samplesGenerated
 
+# Rider files
+.idea/
+
 # VS Code files
 .vscode/*
 !.vscode/tasks.json
