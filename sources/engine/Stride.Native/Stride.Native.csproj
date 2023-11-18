@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideNativeOutputName>libstride</StrideNativeOutputName>
@@ -25,6 +25,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="StrideNative.h" />
+    <None Include="StrideNative.cpp" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>
