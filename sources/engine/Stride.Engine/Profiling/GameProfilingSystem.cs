@@ -20,6 +20,7 @@ namespace Stride.Profiling
     public class GameProfilingSystem : GameSystemBase
     {
         private static readonly ProfilingKey UpdateStringsKey = new ProfilingKey($"{nameof(GameProfilingSystem)}.UpdateStrings");
+        private static readonly ProfilingKey DrawKey = new ProfilingKey($"{nameof(GameProfilingSystem)}.Draw");
 
         private readonly Point textDrawStartOffset = new Point(5, 10);
         private const int TextRowHeight = 16;
@@ -27,22 +28,22 @@ namespace Stride.Profiling
 
         private readonly GcProfiling gcProfiler;
 
-        private readonly StringBuilder gcMemoryStringBuilder = new StringBuilder(64);
+        private readonly StringBuilder gcMemoryStringBuilder = new StringBuilder(128);
         private string gcMemoryString = string.Empty;
 
-        private readonly StringBuilder gcCollectionsStringBuilder = new StringBuilder(64);
+        private readonly StringBuilder gcCollectionsStringBuilder = new StringBuilder(128);
         private string gcCollectionsString = string.Empty;
 
-        private readonly StringBuilder fpsStatStringBuilder = new StringBuilder(64);
+        private readonly StringBuilder fpsStatStringBuilder = new StringBuilder(128);
         private string fpsStatString = string.Empty;
 
-        private readonly StringBuilder gpuGeneralInfoStringBuilder = new StringBuilder();
+        private readonly StringBuilder gpuGeneralInfoStringBuilder = new StringBuilder(128);
         private string gpuGeneralInfoString = string.Empty;
 
-        private readonly StringBuilder gpuInfoStringBuilder = new StringBuilder();
+        private readonly StringBuilder gpuInfoStringBuilder = new StringBuilder(128);
         private string gpuInfoString = string.Empty;
 
-        private readonly StringBuilder profilersStringBuilder = new StringBuilder();
+        private readonly StringBuilder profilersStringBuilder = new StringBuilder(4096);
         private string profilersString = string.Empty;
 
         private FastTextRenderer fastTextRenderer;
@@ -379,6 +380,8 @@ namespace Stride.Profiling
         /// <inheritdoc/>
         public override void Draw(GameTime gameTime)
         {
+            using var _ = Profiler.Begin(DrawKey);
+
             // Where to render the result?
             var renderTarget = RenderTarget ?? Game.GraphicsDevice.Presenter.BackBuffer;
 

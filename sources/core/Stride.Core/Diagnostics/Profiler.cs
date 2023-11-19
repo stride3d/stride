@@ -67,7 +67,8 @@ namespace Stride.Core.Diagnostics
         {
             internal static ProfilingEventChannel Create(bool singleReader = false, bool singleWriter = false)
             {
-                var channel = Channel.CreateBounded<ProfilingEvent>(new BoundedChannelOptions(capacity: 16_384)
+                // bounded channel is supposed to have lower allocation overhead than unbounded
+                var channel = Channel.CreateBounded<ProfilingEvent>(new BoundedChannelOptions(capacity: short.MaxValue)
                 {
                     SingleReader = singleReader,
                     SingleWriter = singleWriter,
