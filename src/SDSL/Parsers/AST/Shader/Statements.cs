@@ -47,8 +47,7 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     {
         Match = m;
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
-        throw new NotImplementedException();
-        // TypeName = s.PushType(m["ValueTypes"].StringValue, m["ValueTypes"]);
+        TypeName = s.ParseType(m["ValueTypes"].StringValue);
         VariableName = m["Variable"].StringValue;
         Value = (ShaderTokenTyped)GetToken(m["Value"], s);
     }

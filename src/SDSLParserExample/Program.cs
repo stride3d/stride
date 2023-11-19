@@ -1,6 +1,8 @@
-﻿using SDSL.Parsing.AST.Shader;
+﻿using SDSL.Parsing;
+using SDSL.Parsing.AST.Shader;
 using SDSL.Parsing.AST.Shader.Analysis;
 using SDSL.Parsing.AST.Shader.Symbols;
+using SDSL.Parsing.Grammars.SDSL;
 using SDSLParserExample;
 using SoftTouch.Spirv;
 using SoftTouch.Spirv.Core;
@@ -277,16 +279,23 @@ static void CheckOrderedEnumerator()
     }
 }
 
-static void CheckSpirvConditional()
+static void ParseSDSL()
 {
+    var shader = File.ReadAllText(@"C:\Users\youness_kafia\Documents\dotnetProjs\SDSLParser\src\SDSLParserExample\SDSL\MixinSamples\MyShader.sdsl");
+    var program = ShaderMixinParser.ParseShader(shader);
+    // var grammar = new SDSLGrammar();
     
+    // Console.WriteLine(grammar.Match(shader).Success);
+    // Console.WriteLine(grammar.Match(shader).ErrorMessage);
+    var x = 0;
+
 }
 
 
 //ParseWorking();
 //CheckOrderedEnumerator();
 Console.WriteLine("working on " + Directory.GetCurrentDirectory());
-CheckSpirvConditional();
+ParseSDSL();
 var t = 0;
 
 

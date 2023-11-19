@@ -426,7 +426,7 @@ public class ValueMethodCall : Expression
     {
         Match = m;
         MethodName = m.Matches.First().StringValue;
-        inferredType = SymbolTable.Tokenize(m["ValueTypes"]);
+        inferredType = s.Tokenize(m["ValueTypes"]);
         Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(x => GetToken(x, s)).Cast<Expression>().ToList();
     }
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)

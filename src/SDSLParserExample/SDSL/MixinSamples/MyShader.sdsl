@@ -1,8 +1,11 @@
-shader MyShader : ShaderBase
+namespace MyNamespace
 {
-
-    void VSMain()
+    shader Something
     {
-
+        void VSMain()
+        {
+            int a = 0;
+            int b = a;
+        }
     }
 }

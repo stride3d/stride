@@ -26,7 +26,7 @@ public class ShaderMethod : ShaderToken
         IsOverride = m["Override"].Success;
         IsStaged = m["Stage"].Success;
         Name = m["MethodName"].StringValue;
-        ReturnType = symbols.PushType(m["ReturnType"].StringValue, m["ReturnType"]);
+        ReturnType = symbols.ParseType(m["ReturnType"].StringValue);
         Statements = m["Statements"].Matches.Select(x => GetToken(x, symbols)).Cast<Statement>().ToList();
     }
 

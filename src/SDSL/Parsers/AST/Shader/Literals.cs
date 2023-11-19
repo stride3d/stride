@@ -36,10 +36,10 @@ public class NumberLiteral : ShaderLiteral
             Value = match.Value;
             InferredType = Value switch
             {
-                int => SymbolType.Scalar("int"),
-                long => SymbolType.Scalar("int"),
-                float => SymbolType.Scalar("float"),
-                double => SymbolType.Scalar("float"),
+                int => s.Scalar("int"),
+                long => s.Scalar("int"),
+                float => s.Scalar("float"),
+                double => s.Scalar("float"),
                 _ => throw new NotImplementedException()
             };
         }
@@ -55,14 +55,14 @@ public class NumberLiteral : ShaderLiteral
                 Suffix = match["Suffix"].StringValue;
                 InferredType = Suffix switch
                 {
-                    "l" => SymbolType.Scalar("long"),
-                    "d" => SymbolType.Scalar("double"),
-                    "f" => SymbolType.Scalar("float"),
-                    "u" => SymbolType.Scalar("uint"),
-                    "L" => SymbolType.Scalar("long"),
-                    "D" => SymbolType.Scalar("double"),
-                    "F" => SymbolType.Scalar("float"),
-                    "U" => SymbolType.Scalar("uint"),
+                    "l" => s.Scalar("long"),
+                    "d" => s.Scalar("double"),
+                    "f" => s.Scalar("float"),
+                    "u" => s.Scalar("uint"),
+                    "L" => s.Scalar("long"),
+                    "D" => s.Scalar("double"),
+                    "F" => s.Scalar("float"),
+                    "U" => s.Scalar("uint"),
                     _ => throw new NotImplementedException(),
                 };
             }

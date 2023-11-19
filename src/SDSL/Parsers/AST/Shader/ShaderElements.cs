@@ -18,7 +18,7 @@ public class StructField : ShaderToken
     public StructField(Match m, SymbolTable s)
     {
         Match = m;
-        Type = SymbolTable.Tokenize(m["ValueTypes"]);
+        Type = s.Tokenize(m["ValueTypes"]);
         Name = m["Name"].StringValue;
     }
 }
@@ -35,7 +35,7 @@ public class StructDefinition : ShaderToken
         Match = m;
         StructName = Match["StructName"].StringValue;
         Fields = Match["Fields"].Matches.Select(x => new StructField(x,s)).ToList();
-        Type = SymbolType.Struct(StructName, Fields.ToDictionary(x => x.Name, x => SymbolTable.Tokenize(x?.Match["ValueTypes"])));
+        Type = SymbolType.Struct(StructName, Fields.ToDictionary(x => x.Name, x => s.Tokenize(x?.Match["ValueTypes"])));
     }
 }
 

@@ -15,44 +15,44 @@ public partial class SymbolTable
         s.TypeCheck(this, SymbolType.Void);
     }
 
-    public static SymbolType TokenizeScalar(string name)
-        => SymbolType.Scalar(name);
-    public static SymbolType Tokenize(Match m)
+    public SymbolType TokenizeScalar(string name)
+        => Scalar(name);
+    public SymbolType Tokenize(Match m)
     {
         return (m.Name, m.HasMatches) switch
         {
             ("ReturnType", _) => Tokenize(m.Matches[0]),
             ("ValueTypes", true) => Tokenize(m.Matches[0]),
             ("ArrayTypes", true) => Tokenize(m.Matches[0]),
-            ("ValueTypes", false) => SymbolType.Scalar(m.StringValue),
-            ("ScalarType", false) => SymbolType.Scalar(m.StringValue),
-            ("bool", _) => SymbolType.Scalar(m.StringValue),
-            ("sbyte", _) => SymbolType.Scalar(m.StringValue),
-            ("byte", _) => SymbolType.Scalar(m.StringValue),
-            ("short", _) => SymbolType.Scalar(m.StringValue),
-            ("int", _) => SymbolType.Scalar(m.StringValue),
-            ("uint", _) => SymbolType.Scalar(m.StringValue),
-            ("half", _) => SymbolType.Scalar(m.StringValue),
-            ("float", _) => SymbolType.Scalar(m.StringValue),
-            ("double", _) => SymbolType.Scalar(m.StringValue),
-            ("BoolScalar", _) => SymbolType.Scalar(m.StringValue),
-            ("SbyteScalar", _) => SymbolType.Scalar(m.StringValue),
-            ("ByteScalar", _) => SymbolType.Scalar(m.StringValue),
-            ("ShortScalar", _) => SymbolType.Scalar(m.StringValue),
-            ("IntScalar", _) => SymbolType.Scalar(m.StringValue),
-            ("UintScalar", _) => SymbolType.Scalar(m.StringValue),
-            ("HalfScalar", _) => SymbolType.Scalar(m.StringValue),
-            ("FloatScalar", _) => SymbolType.Scalar(m.StringValue),
-            ("DoubleScalar", _) => SymbolType.Scalar(m.StringValue),
-            ("BoolVec", _) => SymbolType.Vector(SymbolType.Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
-            ("SbyteVec", _) => SymbolType.Vector(SymbolType.Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
-            ("ByteVec", _) => SymbolType.Vector(SymbolType.Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
-            ("ShortVec", _) => SymbolType.Vector(SymbolType.Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
-            ("IntVec", _) => SymbolType.Vector(SymbolType.Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
-            ("UintVec", _) => SymbolType.Vector(SymbolType.Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
-            ("HalfVec", _) => SymbolType.Vector(SymbolType.Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
-            ("FloatVec", _) => SymbolType.Vector(SymbolType.Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
-            ("DoubleVec", _) => SymbolType.Vector(SymbolType.Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
+            ("ValueTypes", false) => Scalar(m.StringValue),
+            ("ScalarType", false) => Scalar(m.StringValue),
+            ("bool", _) => Scalar(m.StringValue),
+            ("sbyte", _) => Scalar(m.StringValue),
+            ("byte", _) => Scalar(m.StringValue),
+            ("short", _) => Scalar(m.StringValue),
+            ("int", _) => Scalar(m.StringValue),
+            ("uint", _) => Scalar(m.StringValue),
+            ("half", _) => Scalar(m.StringValue),
+            ("float", _) => Scalar(m.StringValue),
+            ("double", _) => Scalar(m.StringValue),
+            ("BoolScalar", _) => Scalar(m.StringValue),
+            ("SbyteScalar", _) => Scalar(m.StringValue),
+            ("ByteScalar", _) => Scalar(m.StringValue),
+            ("ShortScalar", _) => Scalar(m.StringValue),
+            ("IntScalar", _) => Scalar(m.StringValue),
+            ("UintScalar", _) => Scalar(m.StringValue),
+            ("HalfScalar", _) => Scalar(m.StringValue),
+            ("FloatScalar", _) => Scalar(m.StringValue),
+            ("DoubleScalar", _) => Scalar(m.StringValue),
+            ("BoolVec", _) => Vector(Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
+            ("SbyteVec", _) => Vector(Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
+            ("ByteVec", _) => Vector(Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
+            ("ShortVec", _) => Vector(Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
+            ("IntVec", _) => Vector(Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
+            ("UintVec", _) => Vector(Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
+            ("HalfVec", _) => Vector(Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
+            ("FloatVec", _) => Vector(Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
+            ("DoubleVec", _) => Vector(Scalar(m["ScalarType"].StringValue),(int)m["Size1"].Value),
             _ => throw new NotImplementedException()
         };
     }

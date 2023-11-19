@@ -44,6 +44,22 @@ public partial class SymbolTable
         Types[name] = symb;
         return symb;
     }
+    public Vector Vector(string baseType, int size)
+    {
+        if (Types.TryGetValue(baseType + size, out var t))
+            return (Vector)t;
+        var symb = SymbolType.Vector(Scalar(baseType),size);
+        Types[baseType + size] = symb;
+        return symb;
+    }
+    public Vector Vector(Scalar scalar, int size)
+    {
+        if (Types.TryGetValue(scalar.Name + size, out var t))
+            return (Vector)t;
+        var symb = SymbolType.Vector(scalar, size);
+        Types[scalar.Name + size] = symb;
+        return symb;
+    }
     public Matrix Matrix(string name)
     {
         if (Types.TryGetValue(name, out var t))

@@ -101,6 +101,7 @@ public partial class SDSLGrammar : Grammar
 
         var shaderBody = new SequenceParser(
             LeftBrace,
+            ws,
             shaderContentTypes.Repeat(0).SeparatedBy(ws).Until(ws & "}"),
             RightBrace
         )
@@ -121,8 +122,7 @@ public partial class SDSLGrammar : Grammar
             Literal("shader") & ws1 & Identifier.Named("ShaderName"),
             shaderGenerics.Optional(),
             inheritances.Optional(),
-            shaderBody,
-            Semi
+            shaderBody
         );
         ShaderExpression.Separator = ws;
         ShaderExpression.Name = "ShaderProgram";
@@ -131,15 +131,15 @@ public partial class SDSLGrammar : Grammar
             ws,
             Literal("namespace") & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("Namespace"),
             LeftBrace,
-            ShaderExpression,
+            ShaderExpression.Repeat(0),
             RightBrace,
             ws
         );
         NamespaceExpression.Separator = ws;
 
         ShaderFile.Add(
-            NamespaceExpression,
-            ws & ShaderExpression & ws
+            ShaderExpression.Repeat(1),
+            NamespaceExpression.Repeat(1)
         );
     }
 }
