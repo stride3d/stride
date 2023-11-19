@@ -99,68 +99,75 @@ namespace Stride.Profiling
             var containsMarks = false;
             Task delayTask = Task.Delay((int)RefreshTime, cancellationToken);
 
-            await foreach (var e in profilerChannel.ReadAllAsync(cancellationToken))
+            while (await profilerChannel.WaitToReadAsync(cancellationToken))
             {
-                if (delayTask.IsCompleted)
+                while (profilerChannel.TryRead(out var e))
                 {
-                    UpdateInternalState(containsMarks);
-                    delayTask = Task.Delay((int)RefreshTime);
-                    containsMarks = false;
+                    if (delayTask.IsCompleted)
+                    {
+                        UpdateInternalState(containsMarks);
+                        delayTask = Task.Delay((int)RefreshTime);
+                        containsMarks = false;
+                    }
+
+                    if (cancellationToken.IsCancellationRequested)
+                        continue; // skip events until they run out
+
+                    if (FilteringMode == GameProfilingResults.Fps)
+                        continue;
+
+                    if (e.IsGPUEvent() && FilteringMode != GameProfilingResults.GpuEvents)
+                        continue;
+                    if (!e.IsGPUEvent() && FilteringMode != GameProfilingResults.CpuEvents)
+                        continue;
+
+                    //gc profiling is a special case
+                    if (e.Key == GcProfiling.GcMemoryKey)
+                    {
+                        gameProfilingSystemStrings.GcMemoryMessage = e.Message;
+                        continue;
+                    }
+
+                    if (e.Key == GcProfiling.GcCollectionCountKey)
+                    {
+                        gameProfilingSystemStrings.GcCollectionMessage = e.Message;
+                        continue;
+                    }
+
+                    if (e.Key == GameProfilingKeys.GameDrawFPS && e.Type == ProfilingMessageType.End)
+                        continue;
+
+                    ProfilingResult profilingResult;
+                    if (!profilingResults.TryGetValue(e.Key, out profilingResult))
+                    {
+                        profilingResult.MinTime = TimeSpan.MaxValue;
+                    }
+
+                    if (e.Type == ProfilingMessageType.End)
+                    {
+                        ++profilingResult.Count;
+                        profilingResult.AccumulatedTime += e.ElapsedTime;
+
+                        if (e.ElapsedTime < profilingResult.MinTime)
+                            profilingResult.MinTime = e.ElapsedTime;
+                        if (e.ElapsedTime > profilingResult.MaxTime)
+                            profilingResult.MaxTime = e.ElapsedTime;
+
+                        profilingResult.EventKey = e.Key;
+                        profilingResult.EventMessage = e.Message;
+                    }
+                    else if (e.Type == ProfilingMessageType.Mark)
+                    {
+                        profilingResult.MarkCount++;
+                        containsMarks = true;
+                    }
+
+                    profilingResults[e.Key] = profilingResult;
                 }
 
-                if (cancellationToken.IsCancellationRequested)
-                    continue; // skip events until they run out
-
-                if (FilteringMode == GameProfilingResults.Fps)
-                    continue;
-
-                if (e.IsGPUEvent() && FilteringMode != GameProfilingResults.GpuEvents)
-                    continue;
-                if (!e.IsGPUEvent() && FilteringMode != GameProfilingResults.CpuEvents)
-                    continue;
-
-                //gc profiling is a special case
-                if (e.Key == GcProfiling.GcMemoryKey)
-                {
-                    gameProfilingSystemStrings.GcMemoryMessage = e.Message;
-                    continue;
-                }
-
-                if (e.Key == GcProfiling.GcCollectionCountKey)
-                {
-                    gameProfilingSystemStrings.GcCollectionMessage = e.Message;
-                    continue;
-                }
-
-                if (e.Key == GameProfilingKeys.GameDrawFPS && e.Type == ProfilingMessageType.End)
-                    continue;
-
-                ProfilingResult profilingResult;
-                if (!profilingResults.TryGetValue(e.Key, out profilingResult))
-                {
-                    profilingResult.MinTime = TimeSpan.MaxValue;
-                }
-
-                if (e.Type == ProfilingMessageType.End)
-                {
-                    ++profilingResult.Count;
-                    profilingResult.AccumulatedTime += e.ElapsedTime;
-
-                    if (e.ElapsedTime < profilingResult.MinTime)
-                        profilingResult.MinTime = e.ElapsedTime;
-                    if (e.ElapsedTime > profilingResult.MaxTime)
-                        profilingResult.MaxTime = e.ElapsedTime;
-
-                    profilingResult.EventKey = e.Key;
-                    profilingResult.EventMessage = e.Message;
-                }
-                else if (e.Type == ProfilingMessageType.Mark)
-                {
-                    profilingResult.MarkCount++;
-                    containsMarks = true;
-                }
-
-                profilingResults[e.Key] = profilingResult;
+                // we don't want to await on WaitToReadAsync too often because it allocates
+                // thus after we have read a batch of events we wait for a bit before reading more
+                await Task.Delay((int)RefreshTime / 10, cancellationToken);
             }
         }
 
@@ -431,7 +438,7 @@ namespace Stride.Profiling
         private class GameProfilingSystemStrings
         {
             private IGame Game { get; }
-            private GraphicsDevice GraphicsDevice { get; }
+            private GraphicsDevice GraphicsDevice { get; set; }
 
             private readonly StringBuilder profilersStringBuilder = new StringBuilder(4096);
 
@@ -498,6 +505,9 @@ namespace Stride.Profiling
                 lastFrame = newDraw;
 
                 GenerateEventTable(containsMarks, viewportHeight, elapsedFrames);
+
+                if (GraphicsDevice == null)
+                    GraphicsDevice = Game.GraphicsDevice;
 
                 const float mb = 1 << 20;
 
