@@ -449,12 +449,12 @@ namespace Stride.Profiling
             public GameProfilingSorting SortingMode { get; set; } = GameProfilingSorting.ByTime;
             public GameProfilingResults FilteringMode { get; set; } = GameProfilingResults.Fps;
 
-            public string GcMemoryString { get; set; }
-            public string GcCollectionsString { get; set; }
-            public string FpsStatString { get; set; }
-            public string GpuGeneralInfoString { get; set; }
-            public string GpuInfoString { get; set; }
-            public string ProfilersString { get; set; }
+            public string GcMemoryString { get; set; } = string.Empty;
+            public string GcCollectionsString { get; set; } = string.Empty;
+            public string FpsStatString { get; set; } = string.Empty;
+            public string GpuGeneralInfoString { get; set; } = string.Empty;
+            public string GpuInfoString { get; set; } = string.Empty;
+            public string ProfilersString { get; set; } = string.Empty;
 
             public ProfilingEventMessage? GcMemoryMessage;
             public ProfilingEventMessage? GcCollectionMessage;
