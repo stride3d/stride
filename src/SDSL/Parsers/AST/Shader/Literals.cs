@@ -1,5 +1,6 @@
 ﻿using Eto.Parse;
 using SDSL.Parsing.AST.Shader.Analysis;
+using SDSL.Parsing.AST.Shader.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,10 +36,10 @@ public class NumberLiteral : ShaderLiteral
             Value = match.Value;
             InferredType = Value switch
             {
-                int => s.PushScalarType("int"),
-                long => s.PushScalarType("int"),
-                float => s.PushScalarType("float"),
-                double => s.PushScalarType("float"),
+                int => SymbolType.Scalar("int"),
+                long => SymbolType.Scalar("int"),
+                float => SymbolType.Scalar("float"),
+                double => SymbolType.Scalar("float"),
                 _ => throw new NotImplementedException()
             };
         }
@@ -54,14 +55,14 @@ public class NumberLiteral : ShaderLiteral
                 Suffix = match["Suffix"].StringValue;
                 InferredType = Suffix switch
                 {
-                    "l" => s.PushScalarType("long"),
-                    "d" => s.PushScalarType("double"),
-                    "f" => s.PushScalarType("float"),
-                    "u" => s.PushScalarType("uint"),
-                    "L" => s.PushScalarType("long"),
-                    "D" => s.PushScalarType("double"),
-                    "F" => s.PushScalarType("float"),
-                    "U" => s.PushScalarType("uint"),
+                    "l" => SymbolType.Scalar("long"),
+                    "d" => SymbolType.Scalar("double"),
+                    "f" => SymbolType.Scalar("float"),
+                    "u" => SymbolType.Scalar("uint"),
+                    "L" => SymbolType.Scalar("long"),
+                    "D" => SymbolType.Scalar("double"),
+                    "F" => SymbolType.Scalar("float"),
+                    "U" => SymbolType.Scalar("uint"),
                     _ => throw new NotImplementedException(),
                 };
             }
@@ -73,8 +74,8 @@ public class NumberLiteral : ShaderLiteral
         {
             inferredType = (InferredType, expected) switch
             {
-                (SymbolType{Name : "int", Quantifier : SymbolQuantifier.Scalar}, SymbolType{Name: "float", Quantifier : SymbolQuantifier.Scalar}) => expected,
-                (SymbolType{Name : "float", Quantifier : SymbolQuantifier.Scalar}, SymbolType{Name: "int", Quantifier : SymbolQuantifier.Scalar}) => expected,
+                (Scalar { Name: "float" }, Scalar { Name: "int" or "half" or "double" }) => expected,
+                (Scalar { Name: "int" }, Scalar { Name: "byte" or "sbyte" or "short" or "ushort" or "uint" or "long" or "ulong" or "float" or "double" }) => expected,
                 _ => throw new Exception($"cannot implictely cast {inferredType} to {expected}")
             };
         }
@@ -115,7 +116,7 @@ public class HexLiteral : NumberLiteral
 }
 public class StringLiteral : ShaderLiteral
 {
-    public override SymbolType? InferredType { get => new SymbolType(null, "string",SymbolQuantifier.Scalar); set => throw new NotImplementedException(); }
+    public override SymbolType? InferredType { get => SymbolType.String(); set => throw new NotImplementedException(); }
 
     public StringLiteral() { }
 
@@ -128,7 +129,7 @@ public class StringLiteral : ShaderLiteral
 
 public class BoolLiteral : ShaderLiteral
 {
-    public override SymbolType? InferredType { get => new SymbolType(null, "bool", SymbolQuantifier.Scalar); set => throw new NotImplementedException(); }
+    public override SymbolType? InferredType { get => SymbolType.Scalar("bool"); set => throw new NotImplementedException(); }
 
     public BoolLiteral() { }
 
@@ -168,16 +169,15 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
 
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        if (symbols.TryGet(Name, out var type))
+        if(symbols.Variables.IsDeclared(Name))
         {
-            inferredType = type;
+
         }
-        else throw new NotImplementedException();
     }
 
     public void CheckVariables(SymbolTable s)
     {
-        if (!s.SymbolTypes.ContainsKey(Name))
+        if (!s.Variables.IsDeclared(Name))
             throw new Exception("Not a variable");
     }
     public override string ToString()

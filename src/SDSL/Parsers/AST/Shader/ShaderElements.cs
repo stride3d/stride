@@ -1,5 +1,6 @@
 using Eto.Parse;
 using SDSL.Parsing.AST.Shader.Analysis;
+using SDSL.Parsing.AST.Shader.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ public class StructField : ShaderToken
     public StructField(Match m, SymbolTable s)
     {
         Match = m;
-        Type = s.Tokenize(m["ValueTypes"]);
+        Type = SymbolTable.Tokenize(m["ValueTypes"]);
         Name = m["Name"].StringValue;
     }
 }
@@ -34,7 +35,7 @@ public class StructDefinition : ShaderToken
         Match = m;
         StructName = Match["StructName"].StringValue;
         Fields = Match["Fields"].Matches.Select(x => new StructField(x,s)).ToList();
-        Type = new SymbolType(s, StructName, SymbolQuantifier.Struct, null, new(Fields.ToDictionary(x => x.Name, x => s.Tokenize(x.Match["ValueTypes"]).Name),null));
+        Type = SymbolType.Struct(StructName, Fields.ToDictionary(x => x.Name, x => SymbolTable.Tokenize(x?.Match["ValueTypes"])));
     }
 }
 
@@ -78,8 +79,9 @@ public class ShaderVariableDeclaration : ShaderToken
         IsStream = m["Stream"].Success;
         IsStaged = m["Stage"].Success;
         Semantic = m["Semantic"].Success ? m["Semantic"].StringValue : null;
-        Type = s.PushType(m["ValueTypes"].StringValue,m["ValueTypes"]);
-        Name = m["Identifier"].StringValue;
+        throw new NotImplementedException();
+        // Type = s.PushType(m["ValueTypes"].StringValue,m["ValueTypes"]);
+        // Name = m["Identifier"].StringValue;
     }
 }
 public class Generics : ShaderToken

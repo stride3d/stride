@@ -45,8 +45,13 @@ public static class CrossExtensions
             spvc_context_set_error_callback(context, error_callback, null);
 
             // Parse the SPIR-V.
-            if (spvc_context_parse_spirv(context, spirv, word_count, &ir) != spvc_result.SPVC_SUCCESS)
-                throw new Exception();
+            Console.Write(
+                spvc_context_parse_spirv(context, spirv, word_count, &ir) switch
+                {
+                    spvc_result.SPVC_SUCCESS => "",
+                    spvc_result v => throw new Exception(v.ToString())
+                }
+            );
 
             // Hand it off to a compiler instance and give it ownership of the IR.
 

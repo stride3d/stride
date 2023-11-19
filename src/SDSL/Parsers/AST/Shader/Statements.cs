@@ -1,6 +1,7 @@
 ﻿using Eto.Parse;
 using SDSL.Parsing.AST.Shader;
 using SDSL.Parsing.AST.Shader.Analysis;
+using SDSL.Parsing.AST.Shader.Symbols;
 using SDSL.ThreeAddress;
 using System;
 using System.Collections.Generic;
@@ -46,7 +47,8 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     {
         Match = m;
         AssignOp = m["AssignOp"].StringValue.ToAssignOp();
-        TypeName = s.PushType(m["ValueTypes"].StringValue, m["ValueTypes"]);
+        throw new NotImplementedException();
+        // TypeName = s.PushType(m["ValueTypes"].StringValue, m["ValueTypes"]);
         VariableName = m["Variable"].StringValue;
         Value = (ShaderTokenTyped)GetToken(m["Value"], s);
     }
@@ -85,7 +87,7 @@ public class SimpleDeclare : Declaration
     {
         Match = m;
         VariableName = m["Variable"].StringValue;
-        TypeName = s.PushType(m["ValueTypes"].StringValue, m["ValueTypes"]);
+        TypeName = s.ParseType(m["ValueTypes"].StringValue);
 
     }
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected) { }
@@ -134,33 +136,11 @@ public class AssignChain : Statement, IStreamCheck, IStaticCheck, IVariableCheck
 
     public void CheckVariables(SymbolTable s)
     {
-        if (!s.SymbolTypes.ContainsKey(this.AccessNames.First()))
-            throw new Exception("Variable not exist");
         if (Value is IVariableCheck v) v.CheckVariables(s);
     }
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        SymbolType chainType = SymbolType.Void;
-        foreach (var a in AccessNames)
-        {
-            var tmp = chainType;
-            if (a == AccessNames.First())
-            {
-                if (!symbols.TryGet(a, out chainType))
-                {
-                    // symbols.AddError(Match, $"Field `{a}` doesn't exist in type `{tmp}`");
-                    return;
-                }
-            }
-            else if (!chainType.TryAccessType(a, out chainType))
-            {
-                // symbols.AddError(Match, $"Field `{a}` doesn't exist in type `{tmp}`");
-                return;
-            }
-        }
-        Value.TypeCheck(symbols, null); // Variable check ?
-        // if (!chainType.Equals(Value.InferredType))
-        //     symbols.AddError(Match, $"Cannot cast `{chainType}` to `{Value.InferredType}`");
+        throw new NotImplementedException("TODO");
     }
 }
 

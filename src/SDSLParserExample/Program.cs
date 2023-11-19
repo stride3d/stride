@@ -1,5 +1,6 @@
 ﻿using SDSL.Parsing.AST.Shader;
 using SDSL.Parsing.AST.Shader.Analysis;
+using SDSL.Parsing.AST.Shader.Symbols;
 using SDSLParserExample;
 using SoftTouch.Spirv;
 using SoftTouch.Spirv.Core;
@@ -13,7 +14,7 @@ using static Spv.Specification;
 static void ThreeAddress()
 {
     var symb = new SymbolTable();
-    var flt = symb.PushScalarType("float");
+    var flt = SymbolType.Scalar("float");
 
     var o =
         new Operation
@@ -228,10 +229,10 @@ void CreateMixin()
 
 
     File.WriteAllBytes("./mixed.spv", processed.Bytes.ToArray());
-    processed.Bytes.ToArray().ToHlsl();
+    processed.Bytes.ToArray().ToGlsl();
 
     stopwatch.Restart();
-    var code = processed.Bytes.ToArray().ToHlsl();
+    var code = processed.Bytes.ToArray().ToGlsl();
     stopwatch.Stop();
     Console.WriteLine(code);
     Console.WriteLine($"Cross compilation took : {stopwatch.Elapsed.TotalNanoseconds / 1000}µs");
@@ -276,11 +277,16 @@ static void CheckOrderedEnumerator()
     }
 }
 
+static void CheckSpirvConditional()
+{
+    
+}
+
 
 //ParseWorking();
 //CheckOrderedEnumerator();
 Console.WriteLine("working on " + Directory.GetCurrentDirectory());
-CreateMixin();
+CheckSpirvConditional();
 var t = 0;
 
 

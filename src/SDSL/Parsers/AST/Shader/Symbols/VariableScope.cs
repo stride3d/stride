@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SDSL.Parsing.AST.Shader.Analysis;
+namespace SDSL.Parsing.AST.Shader.Symbols;
 
 
 
@@ -33,5 +33,16 @@ public class VariableScope
             if(scope.ContainsKey(name)) return true;
         return false;
     }
+    public bool TryGetVariable(string name, out VariableSymbol variable)
+    {
+        variable = VariableSymbol.None;
+        foreach (var scope in Scopes)
+        {
+            if (scope.TryGetValue(name, out variable)) 
+                return true;
+        }
+        return false;
+    }
+
 
 }

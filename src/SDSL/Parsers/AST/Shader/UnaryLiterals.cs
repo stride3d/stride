@@ -1,5 +1,6 @@
 ﻿using Eto.Parse;
 using SDSL.Parsing.AST.Shader.Analysis;
+using SDSL.Parsing.AST.Shader.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,23 +48,24 @@ public class ChainAccessor : UnaryExpression, IStreamCheck, IVariableCheck
     }
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        if (Value is VariableNameLiteral vn && symbols.TryGet(vn.Name, out var type))
-        {
-            SymbolType current = type;
+        throw new NotImplementedException("TODO");
+        // if (Value is VariableNameLiteral vn && symbols.TryGet(vn.Name, out var type))
+        // {
+        //     SymbolType current = type;
 
-            foreach (var a in Field)
-            {
-                var tmp = current;
-                if (a is VariableNameLiteral vna)
-                {
-                    if(!current.TryAccessType(vna.Name, out current))
-                    {
-                        // symbols.AddError(Match, $"Accessor `{vna.Name}` does not exist for type `{tmp}`");
-                    }
-                }
-            }
-            inferredType = current;
-        }
+        //     foreach (var a in Field)
+        //     {
+        //         var tmp = current;
+        //         if (a is VariableNameLiteral vna)
+        //         {
+        //             if(!current.TryAccessType(vna.Name, out current))
+        //             {
+        //                 // symbols.AddError(Match, $"Accessor `{vna.Name}` does not exist for type `{tmp}`");
+        //             }
+        //         }
+        //     }
+        //     inferredType = current;
+        // }
     }
 }
 

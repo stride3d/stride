@@ -1,3 +1,5 @@
+using SDSL.Parsing.AST.Shader.Symbols;
+
 namespace SDSL.Parsing.AST.Shader.Analysis;
 
 

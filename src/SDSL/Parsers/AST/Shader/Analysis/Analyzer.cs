@@ -1,3 +1,4 @@
+using SDSL.Parsing.AST.Shader.Symbols;
 using SoftTouch.Spirv;
 
 namespace SDSL.Parsing.AST.Shader.Analysis;

@@ -1,6 +1,7 @@
 ﻿using Eto.Parse;
 using SDSL.Parsing.AST.Directives;
 using SDSL.Parsing.AST.Shader.Analysis;
+using SDSL.Parsing.AST.Shader.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,27 +32,37 @@ public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
 
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-
-        if (expected != null)
+        var inferredType = (Left, Right) switch
         {
-            Left.TypeCheck(symbols, expected);
-            Right.TypeCheck(symbols, expected);
-            if (Left.InferredType.Equals(Right.InferredType) && Left.InferredType.Equals(expected))
-                InferredType = Left.InferredType;
-            else
-                throw new NotImplementedException();
-        }
-        else
-        {
-            Left.TypeCheck(symbols,expected);
-            Right.TypeCheck(symbols,expected);
-            if (Left.InferredType != Right.InferredType)
-            {
-                // CheckImplicitCasting(Left, Right, expected);
-            }
-            else
-                InferredType = Left.InferredType;
-        }
+            (NumberLiteral left, NumberLiteral right) => 
+                (left.InferredType, right.InferredType) switch
+                {
+                    // SymbolType
+                    _ => throw new Exception()
+                },
+            (NumberLiteral left, Operation operation) => SymbolType.Void,
+            _ => SymbolType.Void
+        };
+        // if (expected != null)
+        // {
+        //     Left.TypeCheck(symbols, expected);
+        //     Right.TypeCheck(symbols, expected);
+        //     if (Left.InferredType.Equals(Right.InferredType) && Left.InferredType.Equals(expected))
+        //         InferredType = Left.InferredType;
+        //     else
+        //         throw new NotImplementedException();
+        // }
+        // else
+        // {
+        //     Left.TypeCheck(symbols,expected);
+        //     Right.TypeCheck(symbols,expected);
+        //     if (Left.InferredType != Right.InferredType)
+        //     {
+        //         // CheckImplicitCasting(Left, Right, expected);
+        //     }
+        //     else
+        //         InferredType = Left.InferredType;
+        // }
     }
 
     public IEnumerable<string> GetUsedStream()
@@ -82,8 +93,8 @@ public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
 
     public void CheckVariables(SymbolTable s)
     {
-        if(Left is IVariableCheck lvc) lvc.CheckVariables(s);
-        if(Right is IVariableCheck rvc) rvc.CheckVariables(s);
+        if (Left is IVariableCheck lvc) lvc.CheckVariables(s);
+        if (Right is IVariableCheck rvc) rvc.CheckVariables(s);
     }
     public void CheckImplicitCasting(ShaderTokenTyped l, ShaderTokenTyped r, string expected)
     {
@@ -415,7 +426,7 @@ public class ValueMethodCall : Expression
     {
         Match = m;
         MethodName = m.Matches.First().StringValue;
-        inferredType = s.Tokenize(m["ValueTypes"]);
+        inferredType = SymbolTable.Tokenize(m["ValueTypes"]);
         Parameters = m.Matches.Where(x => x.Name == "PrimaryExpression").Select(x => GetToken(x, s)).Cast<Expression>().ToList();
     }
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
