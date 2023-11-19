@@ -72,7 +72,7 @@ namespace Stride.Core.Diagnostics
                 {
                     SingleReader = singleReader,
                     SingleWriter = singleWriter,
-                    FullMode = BoundedChannelFullMode.DropWrite,
+                    FullMode = BoundedChannelFullMode.DropWrite, // optimize caller to not block
                 });
 
                 return new ProfilingEventChannel { _channel = channel };
@@ -164,7 +164,7 @@ namespace Stride.Core.Diagnostics
             {
                 SingleReader = true,
                 SingleWriter = true,
-                FullMode = BoundedChannelFullMode.DropNewest
+                FullMode = BoundedChannelFullMode.DropNewest, // dropping newer events so that we don't mess with events continuity
             });
             subscriberChannels.TryAdd(channel.Reader, channel);
             Interlocked.Increment(ref subscriberChannelsModified);
@@ -355,7 +355,7 @@ namespace Stride.Core.Diagnostics
         /// <param name="e">The event.</param>
         private static void SendEventToSubscribers(ProfilingEvent e)
         {
-            if (subscriberChannels.Count >= 1)
+            if (!subscriberChannels.IsEmpty)
                 collectorChannel.Writer.TryWrite(e);
         }
 
@@ -402,7 +402,7 @@ namespace Stride.Core.Diagnostics
             {
                 accumulatedTimeSpan.TotalMilliseconds.TryFormat(buffer, out _, "000.000");
                 builder.Append(buffer);
-                builder.Append("ms ");
+                builder.Append("ms");
             }
         }
     }

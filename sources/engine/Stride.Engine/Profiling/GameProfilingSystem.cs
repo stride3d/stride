@@ -69,16 +69,15 @@ namespace Stride.Profiling
             gameProfilingSystemStrings = new GameProfilingSystemStrings(Game, GraphicsDevice);
         }
 
-        private void UpdateInternalState(bool containsMarks)
+        private void UpdateStringsAndProfilers(bool containsMarks)
         {
             gameProfilingSystemStrings.CopyEventsForStringUpdate(profilingResults);
             profilingResults.Clear();
 
+            gameProfilingSystemStrings.UpdateProfilingStrings(containsMarks, viewportHeight, trianglesCount, drawCallsCount, renderTargetSize);
+
             //Advance any profiler that needs it
             gcProfiler.Tick();
-
-            // update strings on another thread so that we don't block the event loop in UpdateWithEventsAsync
-            _ = Task.Run(() => gameProfilingSystemStrings.UpdateProfilingStrings(containsMarks, viewportHeight, trianglesCount, drawCallsCount, renderTargetSize));
         }
 
         private async Task UpdateFpsAsync(CancellationToken cancellationToken)
@@ -88,13 +87,11 @@ namespace Stride.Profiling
                 //In Fps filtering mode wait until it is time to update the output.
                 await Task.Delay((int)RefreshTime, cancellationToken).ConfigureAwait(false);
 
-                UpdateInternalState(false);
+                UpdateStringsAndProfilers(containsMarks: false);
             }
         }
 
-        //If we're subscribed to the Profiler (Cpu/Gpu mode) start receiving events.
-        //Control flow will only return here once the profilerChannel is closed.
-        private async Task UpdateWithEventsAsync(CancellationToken cancellationToken)
+        private async Task UpdateWithProfilerEventsAsync(CancellationToken cancellationToken)
         {
             var containsMarks = false;
             Task delayTask = Task.Delay((int)RefreshTime, cancellationToken);
@@ -105,7 +102,7 @@ namespace Stride.Profiling
                 {
                     if (delayTask.IsCompleted)
                     {
-                        UpdateInternalState(containsMarks);
+                        UpdateStringsAndProfilers(containsMarks);
                         delayTask = Task.Delay((int)RefreshTime);
                         containsMarks = false;
                     }
@@ -167,7 +164,8 @@ namespace Stride.Profiling
 
                 // we don't want to await on WaitToReadAsync too often because it allocates
                 // thus after we have read a batch of events we wait for a bit before reading more
-                await Task.Delay((int)RefreshTime / 10, cancellationToken);
+                // (division by 5 is arbitrary - with default 500ms refresh time it means we wait 100ms)
+                await Task.Delay((int)RefreshTime / 5, cancellationToken);
             }
         }
 
@@ -188,7 +186,7 @@ namespace Stride.Profiling
                 }
                 else
                 {
-                    asyncUpdateTask = Task.Run(() => UpdateWithEventsAsync(backgroundUpdateCancellationSource.Token));
+                    asyncUpdateTask = Task.Run(() => UpdateWithProfilerEventsAsync(backgroundUpdateCancellationSource.Token));
                 }
             }
         }
@@ -564,14 +562,14 @@ namespace Stride.Profiling
                 profilersStringBuilder.Append(" | ");
 
                 var callsPerFrame = profilingResult.Count / (double)elapsedFrames;
-                callsPerFrame.TryFormat(formatBuffer, out formatBufferUse, "{0,6:#00.00}");
+                callsPerFrame.TryFormat(formatBuffer, out formatBufferUse, "#00.00");
                 profilersStringBuilder.Append(formatBuffer[..formatBufferUse]);
                 profilersStringBuilder.Append(" | ");
 
                 if (displayMarkCount)
                 {
                     var marksPerFrame = profilingResult.MarkCount / (double)elapsedFrames;
-                    marksPerFrame.TryFormat(formatBuffer, out formatBufferUse, "{0:00.00}");
+                    marksPerFrame.TryFormat(formatBuffer, out formatBufferUse, "#00.00");
                     profilersStringBuilder.Append(formatBuffer[..formatBufferUse]);
                     profilersStringBuilder.Append(" | ");
                 }
