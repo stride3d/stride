@@ -185,7 +185,7 @@ namespace Stride.Graphics
         /// Begins text rendering (swaps and maps the vertex buffer to write to).
         /// </summary>
         /// <param name="graphicsContext">The current GraphicsContext.</param>
-        public unsafe void End([NotNull] GraphicsContext graphicsContext)
+        public void End([NotNull] GraphicsContext graphicsContext)
         {
             if (graphicsContext == null) throw new ArgumentNullException(nameof(graphicsContext));
 
@@ -221,10 +221,10 @@ namespace Stride.Graphics
                 foreach (var textInfo in stringsToDraw)
                 {
                     var textLength = textInfo.Text.Length;
-                    GraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, ref textLength,  vertexPositionSpan);
+                    textLength = GraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, textLength, vertexPositionSpan);
 
                     charsToRenderCount += textLength;
-                    vertexPositionSpan = vertexPositionSpan.Slice(textLength*4);
+                    vertexPositionSpan = vertexPositionSpan.Slice(textLength * 4);
                 }
             }
 
@@ -255,7 +255,7 @@ namespace Stride.Graphics
             graphicsContext.CommandList.DrawIndexed(charsToRenderCount * 6);
         }
 
-        public unsafe void GraphicsFastTextRendererGenerateVertices(RectangleF constantInfos, RectangleF renderInfos, string textPointer, ref int textLength, Span<VertexPositionNormalTexture> vertexBuffer)
+        public int GraphicsFastTextRendererGenerateVertices(RectangleF constantInfos, RectangleF renderInfos, string textPointer, int textLength, Span<VertexPositionNormalTexture> vertexBuffer)
         {
             float fX = renderInfos.X / renderInfos.Width;
             float fY = renderInfos.Y / renderInfos.Height;
@@ -263,10 +263,6 @@ namespace Stride.Graphics
             float fH = constantInfos.Y / renderInfos.Height;
 
             RectangleF destination = new(fX, fY, fW, fH);
-            RectangleF source = new(0.0f, 0.0f, constantInfos.X, constantInfos.Y);
-
-            // Copy the array length (since it may change during an iteration)
-            int textCharCount = textLength;
 
             float scaledDestinationX;
             float scaledDestinationY = -(destination.Y * 2f - 1f);
@@ -274,20 +270,19 @@ namespace Stride.Graphics
             float invertedWidth = 1f / constantInfos.Width;
             float invertedHeight = 1f / constantInfos.Height;
 
-            Span<(Vector2 Position, Vector2 TextureCoordinate)> baseData = stackalloc (Vector2, Vector2)[4]
+            ReadOnlySpan<VertexPositionNormalTexture> baseData = stackalloc VertexPositionNormalTexture[4]
             {
-                ( new(-destination.Width, +destination.Height), new(0 * source.Width * invertedWidth, 0 * source.Height * invertedHeight) ),
-                ( new(+destination.Width, +destination.Height), new(1 * source.Width * invertedWidth, 0 * source.Height * invertedHeight) ),
-                ( new(-destination.Width, -destination.Height), new(0 * source.Width * invertedWidth, 1 * source.Height * invertedHeight) ),
-                ( new(+destination.Width, -destination.Height), new(1 * source.Width * invertedWidth, 1 * source.Height * invertedHeight) ),
+                new( new(-destination.Width, +destination.Height, 0), Vector3.Zero, new(0 * constantInfos.X * invertedWidth, 0 * constantInfos.Y * invertedHeight) ),
+                new( new(+destination.Width, +destination.Height, 0), Vector3.Zero, new(1 * constantInfos.X * invertedWidth, 0 * constantInfos.Y * invertedHeight) ),
+                new( new(-destination.Width, -destination.Height, 0), Vector3.Zero, new(0 * constantInfos.X * invertedWidth, 1 * constantInfos.Y * invertedHeight) ),
+                new( new(+destination.Width, -destination.Height, 0), Vector3.Zero, new(1 * constantInfos.X * invertedWidth, 1 * constantInfos.Y * invertedHeight) ),
             };
 
             int j = 0;
 
-            for (int i = 0; i < textCharCount; i++)
+            foreach (char sourceChar in textPointer)
             {
-                char currentChar = textPointer[i];
-
+                char currentChar = sourceChar;
                 if (currentChar == '\v')
                 {
                     // Tabulation
@@ -308,41 +303,50 @@ namespace Stride.Graphics
                     currentChar = ' ';
                 }
 
-                source.X = (currentChar % 32 * constantInfos.X) * invertedWidth;
-                source.Y = (currentChar / 32 % 4 * constantInfos.Y) * invertedHeight;
+                var sourceX = (currentChar % 32 * constantInfos.X) * invertedWidth;
+                var sourceY = (currentChar / 32 % 4 * constantInfos.Y) * invertedHeight;
 
                 scaledDestinationX = destination.X * 2f - 1f;
 
+                VertexPositionNormalTexture vertexValue;
+
                 // 0
-                vertexBuffer[j].Position.X = scaledDestinationX + baseData[0].Position.X;
-                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[0].Position.Y;
-                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[0].TextureCoordinate.X;
-                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[0].TextureCoordinate.Y;
-                j++;
+                vertexValue = baseData[0];
+                vertexValue.Position.X += scaledDestinationX;
+                vertexValue.Position.Y += scaledDestinationY;
+                vertexValue.TextureCoordinate.X += sourceX;
+                vertexValue.TextureCoordinate.Y += sourceY;
+                vertexBuffer[j + 0] = vertexValue;
 
                 // 1
-                vertexBuffer[j].Position.X = scaledDestinationX + baseData[1].Position.X;
-                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[1].Position.Y;
-                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[1].TextureCoordinate.X;
-                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[1].TextureCoordinate.Y;
-                j++;
+                vertexValue = baseData[1];
+                vertexValue.Position.X += scaledDestinationX;
+                vertexValue.Position.Y += scaledDestinationY;
+                vertexValue.TextureCoordinate.X += sourceX;
+                vertexValue.TextureCoordinate.Y += sourceY;
+                vertexBuffer[j + 1] = vertexValue;
 
                 // 2
-                vertexBuffer[j].Position.X = scaledDestinationX + baseData[2].Position.X;
-                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[2].Position.Y;
-                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[2].TextureCoordinate.X;
-                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[2].TextureCoordinate.Y;
-                j++;
+                vertexValue = baseData[2];
+                vertexValue.Position.X += scaledDestinationX;
+                vertexValue.Position.Y += scaledDestinationY;
+                vertexValue.TextureCoordinate.X += sourceX;
+                vertexValue.TextureCoordinate.Y += sourceY;
+                vertexBuffer[j + 2] = vertexValue;
 
                 // 3
-                vertexBuffer[j].Position.X = scaledDestinationX + baseData[3].Position.X;
-                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[3].Position.Y;
-                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[3].TextureCoordinate.X;
-                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[3].TextureCoordinate.Y;
-                j++;
+                vertexValue = baseData[3];
+                vertexValue.Position.X += scaledDestinationX;
+                vertexValue.Position.Y += scaledDestinationY;
+                vertexValue.TextureCoordinate.X += sourceX;
+                vertexValue.TextureCoordinate.Y += sourceY;
+                vertexBuffer[j + 3] = vertexValue;
 
+                j += 4;
                 destination.X += destination.Width;
             }
+
+            return textLength;
         }
 
         /// <summary>
