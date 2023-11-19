@@ -27,13 +27,13 @@ namespace Stride.Profiling
 
         private readonly GcProfiling gcProfiler;
 
-        private readonly StringBuilder gcMemoryStringBuilder = new StringBuilder();
+        private readonly StringBuilder gcMemoryStringBuilder = new StringBuilder(64);
         private string gcMemoryString = string.Empty;
 
-        private readonly StringBuilder gcCollectionsStringBuilder = new StringBuilder();
+        private readonly StringBuilder gcCollectionsStringBuilder = new StringBuilder(64);
         private string gcCollectionsString = string.Empty;
 
-        private readonly StringBuilder fpsStatStringBuilder = new StringBuilder();
+        private readonly StringBuilder fpsStatStringBuilder = new StringBuilder(64);
         private string fpsStatString = string.Empty;
 
         private readonly StringBuilder gpuGeneralInfoStringBuilder = new StringBuilder();
@@ -81,7 +81,8 @@ namespace Stride.Profiling
             public TimeSpan MaxTime;
             public int Count;
             public int MarkCount;
-            public ProfilingEvent? Event;
+            public ProfilingKey EventKey;
+            public ProfilingEventMessage? EventMessage;
 
             public int Compare(ProfilingResult x, ProfilingResult y)
             {
@@ -90,8 +91,8 @@ namespace Stride.Profiling
             }
         }
 
-        private readonly List<ProfilingResult> profilingResults = new List<ProfilingResult>();
-        private readonly Dictionary<ProfilingKey, ProfilingResult> profilingResultsDictionary = new Dictionary<ProfilingKey, ProfilingResult>();
+        private readonly List<ProfilingResult> profilingResults = new List<ProfilingResult>(256);
+        private readonly Dictionary<ProfilingKey, ProfilingResult> profilingResultsDictionary = new Dictionary<ProfilingKey, ProfilingResult>(256);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameProfilingSystem"/> class.
@@ -104,48 +105,27 @@ namespace Stride.Profiling
             gcProfiler = new GcProfiling();
         }
 
+        private void UpdateInternalState(bool containsMarks)
+        {
+            CopyEventsForStringUpdateAndClear();
+
+            //Advance any profiler that needs it
+            gcProfiler.Tick();
+
+            // update strings on another thread so that we don't block the event loop in UpdateWithEventsAsync
+            _ = Task.Run(() => UpdateProfilingStrings(containsMarks));
+        }
+
         private void UpdateProfilingStrings(bool containsMarks)
         {
             using var _ = Profiler.Begin(UpdateStringsKey);
 
             profilersStringBuilder.Clear();
-            fpsStatStringBuilder.Clear();
-            gpuInfoStringBuilder.Clear();
-            gpuGeneralInfoStringBuilder.Clear();
-
-            //Advance any profiler that needs it
-            gcProfiler.Tick();
 
             // calculate elaspsed frames
             var newDraw = Game.DrawTime.FrameCount;
             var elapsedFrames = newDraw - lastFrame;
             lastFrame = newDraw;
-
-            profilersStringBuilder.Clear();
-            profilingResults.Clear();
-
-            foreach (var profilingResult in profilingResultsDictionary)
-            {
-                if (!profilingResult.Value.Event.HasValue) continue;
-                profilingResults.Add(profilingResult.Value);
-            }
-            profilingResultsDictionary.Clear();
-
-            if (SortingMode == GameProfilingSorting.ByTime)
-            {
-                profilingResults.Sort((x, y) => x.Compare(x, y));
-            }
-            else if(SortingMode == GameProfilingSorting.ByAverageTime)
-            {
-                profilingResults.Sort((x, y) => -TimeSpan.Compare(x.AccumulatedTime / x.Count, y.AccumulatedTime / y.Count));
-            }
-            else
-            {
-                // Can't be null because we skip those events without values
-                // ReSharper disable PossibleInvalidOperationException
-                profilingResults.Sort((x1, x2) => string.Compare(x1.Event.Value.Key.Name, x2.Event.Value.Key.Name, StringComparison.Ordinal));
-                // ReSharper restore PossibleInvalidOperationException
-            }
 
             var availableDisplayHeight = viewportHeight - 2 * TextRowHeight - 3 * TopRowHeight;
             var elementsPerPage = (int)Math.Floor(availableDisplayHeight / TextRowHeight);
@@ -164,31 +144,59 @@ namespace Stride.Profiling
             {
                 AppendEvent(profilingResults[((int)CurrentResultPage - 1) * elementsPerPage + i], elapsedFrames, containsMarks);
             }
-            profilingResults.Clear();
 
             if (numberOfPages > 1)
                 profilersStringBuilder.AppendFormat("PAGE {0} OF {1}", CurrentResultPage, numberOfPages);
 
             const float mb = 1 << 20;
 
-            gpuInfoStringBuilder.Clear();
-            gpuInfoStringBuilder.AppendFormat("Drawn triangles: {0:0.0}k, Draw calls: {1}, Buffer memory: {2:0.00}[MB], Texture memory: {3:0.00}[MB]", trianglesCount / 1000f, drawCallsCount, GraphicsDevice.BuffersMemory / mb, GraphicsDevice.TextureMemory / mb);
+            var gpuInfoStringNew = $"Drawn triangles: {trianglesCount / 1000f:0.0}k, Draw calls: {drawCallsCount}, Buffer memory: {GraphicsDevice.BuffersMemory / mb:0.00}[MB], Texture memory: {GraphicsDevice.TextureMemory / mb:0.00}[MB]";
 
-            gpuGeneralInfoStringBuilder.Clear();
             //Note: renderTargetSize gets set in Draw(), without synchronization, so might be temporarily incorrect.
-            gpuGeneralInfoStringBuilder.AppendFormat("Device: {0}, Platform: {1}, Profile: {2}, Resolution: {3}", GraphicsDevice.Adapter.Description, GraphicsDevice.Platform, GraphicsDevice.ShaderProfile, renderTargetSize);
+            var gpuGeneralInfoStrinNew = $"Device: {GraphicsDevice.Adapter.Description}, Platform: {GraphicsDevice.Platform}, Profile: {GraphicsDevice.ShaderProfile}, Resolution: {renderTargetSize}";
 
-            fpsStatStringBuilder.Clear();
-            fpsStatStringBuilder.AppendFormat("Displaying: {0}, Frame: {1}, Update: {2:0.00}ms, Draw: {3:0.00}ms, FPS: {4:0.00}", FilteringMode, Game.DrawTime.FrameCount, Game.UpdateTime.TimePerFrame.TotalMilliseconds, Game.DrawTime.TimePerFrame.TotalMilliseconds, Game.DrawTime.FramePerSecond);
+            var fpsStatStringBuilderNew  = $"Displaying: {FilteringMode}, Frame: {Game.DrawTime.FrameCount}, Update: {Game.UpdateTime.TimePerFrame.TotalMilliseconds:0.00}ms, Draw: {Game.DrawTime.TimePerFrame.TotalMilliseconds:0.00}ms, FPS: {Game.DrawTime.FramePerSecond:0.00}";
+
+            var gcCollectionsStringNew = gcCollectionsStringBuilder.ToString();
+            var gcMemoryStringNew = gcMemoryStringBuilder.ToString();
+            var profilersStringNew = profilersStringBuilder.ToString();
 
             lock (stringLock)
             {
-                gcCollectionsString = gcCollectionsStringBuilder.ToString();
-                gcMemoryString = gcMemoryStringBuilder.ToString();
-                profilersString = profilersStringBuilder.ToString();
-                fpsStatString = fpsStatStringBuilder.ToString();
-                gpuInfoString = gpuInfoStringBuilder.ToString();
-                gpuGeneralInfoString = gpuGeneralInfoStringBuilder.ToString();
+                gcCollectionsString = gcCollectionsStringNew;
+                gcMemoryString = gcMemoryStringNew;
+                profilersString = profilersStringNew;
+                fpsStatString = fpsStatStringBuilderNew;
+                gpuInfoString = gpuInfoStringNew;
+                gpuGeneralInfoString = gpuGeneralInfoStrinNew;
+            }
+        }
+
+        private void CopyEventsForStringUpdateAndClear()
+        {
+            profilingResults.Clear();
+
+            foreach (var profilingResult in profilingResultsDictionary)
+            {
+                if (profilingResult.Value.EventKey == null) continue;
+                profilingResults.Add(profilingResult.Value);
+            }
+            profilingResultsDictionary.Clear();
+
+            if (SortingMode == GameProfilingSorting.ByTime)
+            {
+                profilingResults.Sort((x, y) => x.Compare(x, y));
+            }
+            else if (SortingMode == GameProfilingSorting.ByAverageTime)
+            {
+                profilingResults.Sort((x, y) => -TimeSpan.Compare(x.AccumulatedTime / x.Count, y.AccumulatedTime / y.Count));
+            }
+            else
+            {
+                // Can't be null because we skip those events without values
+                // ReSharper disable PossibleInvalidOperationException
+                profilingResults.Sort((x1, x2) => string.Compare(x1.EventKey.Name, x2.EventKey.Name, StringComparison.Ordinal));
+                // ReSharper restore PossibleInvalidOperationException
             }
         }
 
@@ -199,7 +207,7 @@ namespace Stride.Profiling
                 //In Fps filtering mode wait until it is time to update the output.
                 await Task.Delay((int)RefreshTime, cancellationToken).ConfigureAwait(false);
 
-                UpdateProfilingStrings(false);
+                UpdateInternalState(false);
             }
         }
 
@@ -214,7 +222,7 @@ namespace Stride.Profiling
             {
                 if (delayTask.IsCompleted)
                 {
-                    UpdateProfilingStrings(containsMarks);
+                    UpdateInternalState(containsMarks);
                     delayTask = Task.Delay((int)RefreshTime);
                     containsMarks = false;
                 }
@@ -233,15 +241,21 @@ namespace Stride.Profiling
                 //gc profiling is a special case
                 if (e.Key == GcProfiling.GcMemoryKey)
                 {
-                    gcMemoryStringBuilder.Clear();
-                    e.Message?.ToString(gcMemoryStringBuilder);
+                    lock (stringLock) // lock because string update can happen in parallel
+                    {
+                        gcMemoryStringBuilder.Clear();
+                        e.Message?.ToString(gcMemoryStringBuilder);
+                    }
                     continue;
                 }
 
                 if (e.Key == GcProfiling.GcCollectionCountKey)
                 {
-                    gcCollectionsStringBuilder.Clear();
-                    e.Message?.ToString(gcCollectionsStringBuilder);
+                    lock (stringLock) // lock because string update can happen in parallel
+                    {
+                        gcCollectionsStringBuilder.Clear();
+                        e.Message?.ToString(gcCollectionsStringBuilder);
+                    }
                     continue;
                 }
 
@@ -264,7 +278,8 @@ namespace Stride.Profiling
                     if (e.ElapsedTime > profilingResult.MaxTime)
                         profilingResult.MaxTime = e.ElapsedTime;
 
-                    profilingResult.Event = e;
+                    profilingResult.EventKey = e.Key;
+                    profilingResult.EventMessage = e.Message;
                 }
                 else if (e.Type == ProfilingMessageType.Mark)
                 {
@@ -300,9 +315,10 @@ namespace Stride.Profiling
 
         private void AppendEvent(ProfilingResult profilingResult, int elapsedFrames, bool displayMarkCount)
         {
-            elapsedFrames = Math.Max(elapsedFrames, 1);
+            Span<char> formatBuffer = stackalloc char[8];
+            int formatBufferUse = 0;
 
-            var profilingEvent = profilingResult.Event.Value;
+            elapsedFrames = Math.Max(elapsedFrames, 1);
 
             Profiler.AppendTime(profilersStringBuilder, profilingResult.AccumulatedTime / elapsedFrames);
             profilersStringBuilder.Append(" | ");
@@ -312,22 +328,25 @@ namespace Stride.Profiling
             profilersStringBuilder.Append(" | ");
             Profiler.AppendTime(profilersStringBuilder, profilingResult.MaxTime);
             profilersStringBuilder.Append(" | ");
-            profilersStringBuilder.AppendFormat("{0,6:#00.00}", profilingResult.Count / (double)elapsedFrames);
+
+            var callsPerFrame = profilingResult.Count / (double)elapsedFrames;
+            callsPerFrame.TryFormat(formatBuffer, out formatBufferUse, "{0,6:#00.00}");
+            profilersStringBuilder.Append(formatBuffer[..formatBufferUse]);
             profilersStringBuilder.Append(" | ");
 
             if (displayMarkCount)
             {
-                profilersStringBuilder.AppendFormat("{0:00.00}", profilingResult.MarkCount / (double)elapsedFrames);
+                var marksPerFrame = profilingResult.MarkCount / (double)elapsedFrames;
+                marksPerFrame.TryFormat(formatBuffer, out formatBufferUse, "{0:00.00}");
+                profilersStringBuilder.Append(formatBuffer[..formatBufferUse]);
                 profilersStringBuilder.Append(" | ");
             }
 
-            profilersStringBuilder.Append(profilingEvent.Key);
-            // ReSharper disable once ReplaceWithStringIsNullOrEmpty
-            // This was creating memory allocation (GetEnumerable())
-            if (profilingEvent.Message != null)
+            profilersStringBuilder.Append(profilingResult.EventKey);
+            if (profilingResult.EventMessage.HasValue)
             {
                 profilersStringBuilder.Append(" / ");
-                profilingEvent.Message?.ToString(profilersStringBuilder);
+                profilingResult.EventMessage.Value.ToString(profilersStringBuilder);
             }
 
             profilersStringBuilder.Append("\n");
@@ -339,13 +358,19 @@ namespace Stride.Profiling
             Enabled = false;
             Visible = false;
 
-            Profiler.Unsubscribe(profilerChannel);
+            if (profilerChannel != null)
+                Profiler.Unsubscribe(profilerChannel);
+
             backgroundUpdateCancellationSource?.Cancel();
             backgroundUpdateCancellationSource?.Dispose();
 
             if (asyncUpdateTask != null && !asyncUpdateTask.IsCompleted)
             {
-                asyncUpdateTask.Wait();
+                try
+                {
+                    asyncUpdateTask.Wait();
+                }
+                catch { } // likely throws cancellation exception
             }
 
             gcProfiler.Dispose();

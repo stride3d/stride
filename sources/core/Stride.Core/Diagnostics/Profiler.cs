@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -64,9 +65,14 @@ namespace Stride.Core.Diagnostics
     {
         internal class ProfilingEventChannel
         {
-            internal static ProfilingEventChannel Create(UnboundedChannelOptions options)
+            internal static ProfilingEventChannel Create(bool singleReader = false, bool singleWriter = false)
             {
-                var channel = Channel.CreateUnbounded<ProfilingEvent>(options);
+                var channel = Channel.CreateBounded<ProfilingEvent>(new BoundedChannelOptions(capacity: 16_384)
+                {
+                    SingleReader = singleReader,
+                    SingleWriter = singleWriter,
+                    FullMode = BoundedChannelFullMode.DropOldest,
+                });
 
                 return new ProfilingEventChannel { _channel = channel };
             }
@@ -79,7 +85,7 @@ namespace Stride.Core.Diagnostics
 
         private class ThreadEventCollection
         {
-            private ProfilingEventChannel channel = ProfilingEventChannel.Create(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+            private ProfilingEventChannel channel = ProfilingEventChannel.Create(singleReader: true, singleWriter: true);
 
             internal ThreadEventCollection()
             {
@@ -110,9 +116,8 @@ namespace Stride.Core.Diagnostics
         private static bool enableAll;
         private static int profileId;
         private static ThreadLocal<ThreadEventCollection> events = new(() => new ThreadEventCollection(), true);
-        private static ProfilingEventChannel collectorChannel = ProfilingEventChannel.Create(new UnboundedChannelOptions { SingleReader = true });
-        private static SemaphoreSlim subscriberChannelLock = new SemaphoreSlim(1, 1);
-        private static List<Channel<ProfilingEvent>> subscriberChannels = new();
+        private static ProfilingEventChannel collectorChannel = ProfilingEventChannel.Create(singleReader: true);
+        private static ConcurrentDictionary<ChannelReader<ProfilingEvent>, Channel<ProfilingEvent>> subscriberChannels = new(); // key == value.Reader
         private static Task collectorTask = null;
 
         //TODO: Use TicksPerMicrosecond once .NET7 is available
@@ -127,15 +132,10 @@ namespace Stride.Core.Diagnostics
             {
                 await foreach (var item in collectorChannel.Reader.ReadAllAsync())
                 {
-                    await subscriberChannelLock.WaitAsync();
-                    try
+                    foreach (var subscriber in subscriberChannels)
                     {
-                        foreach (var subscriber in subscriberChannels)
-                        {
-                            await subscriber.Writer.WriteAsync(item);
-                        }
+                        await subscriber.Value.Writer.WriteAsync(item);
                     }
-                    finally { subscriberChannelLock.Release(); }
                 }
             });
         }
@@ -147,12 +147,7 @@ namespace Stride.Core.Diagnostics
         public static ChannelReader<ProfilingEvent> Subscribe()
         {
             var channel = Channel.CreateUnbounded<ProfilingEvent>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
-            subscriberChannelLock.Wait();
-            try
-            {
-                subscriberChannels.Add(channel);
-            }
-            finally { subscriberChannelLock.Release(); }
+            subscriberChannels.TryAdd(channel.Reader, channel);
             return channel;
         }
 
@@ -162,17 +157,10 @@ namespace Stride.Core.Diagnostics
         /// <param name="eventReader">The reader previously returned by <see cref="Subscribe"/></param>
         public static void Unsubscribe(ChannelReader<ProfilingEvent> eventReader)
         {
-            subscriberChannelLock.Wait();
-            try
+            if (subscriberChannels.TryRemove(eventReader, out var channel))
             {
-                var channel = subscriberChannels.Find((c) => c.Reader == eventReader);
-                if (channel != null)
-                {
-                    subscriberChannels.Remove(channel);
-                    channel.Writer.Complete();
-                }
+                channel.Writer.Complete();
             }
-            finally { subscriberChannelLock.Release(); }
         }
 
         /// <summary>
@@ -376,17 +364,24 @@ namespace Stride.Core.Diagnostics
 
         public static void AppendTime([NotNull] StringBuilder builder, TimeSpan accumulatedTimeSpan)
         {
+            Span<char> buffer = stackalloc char[7];
             if (accumulatedTimeSpan > new TimeSpan(0, 0, 1, 0))
             {
-                builder.AppendFormat("{0:000.000}m ", accumulatedTimeSpan.TotalMinutes);
+                accumulatedTimeSpan.TotalMinutes.TryFormat(buffer, out _, "000.000");
+                builder.Append(buffer);
+                builder.Append("m ");
             }
             else if (accumulatedTimeSpan > new TimeSpan(0, 0, 0, 0, 1000))
             {
-                builder.AppendFormat("{0:000.000}s ", accumulatedTimeSpan.TotalSeconds);
+                accumulatedTimeSpan.TotalSeconds.TryFormat(buffer, out _, "000.000");
+                builder.Append(buffer);
+                builder.Append("s ");
             }
             else
             {
-                builder.AppendFormat("{0:000.000}ms", accumulatedTimeSpan.TotalMilliseconds);
+                accumulatedTimeSpan.TotalMilliseconds.TryFormat(buffer, out _, "000.000");
+                builder.Append(buffer);
+                builder.Append("ms ");
             }
         }
     }
