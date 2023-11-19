@@ -72,7 +72,7 @@ namespace Stride.Core.Diagnostics
                 {
                     SingleReader = singleReader,
                     SingleWriter = singleWriter,
-                    FullMode = BoundedChannelFullMode.DropOldest,
+                    FullMode = BoundedChannelFullMode.DropWrite,
                 });
 
                 return new ProfilingEventChannel { _channel = channel };
@@ -121,11 +121,10 @@ namespace Stride.Core.Diagnostics
         private static ConcurrentDictionary<ChannelReader<ProfilingEvent>, Channel<ProfilingEvent>> subscriberChannels = new(); // key == value.Reader
         private static Task collectorTask = null;
 
-        //TODO: Use TicksPerMicrosecond once .NET7 is available
         /// <summary>
         /// The minimum duration of events that will be captured. Defaults to 1 µs.
         /// </summary>
-        public static TimeSpan MinimumProfileDuration { get; set; } = new TimeSpan(TimeSpan.TicksPerMillisecond / 1000);
+        public static TimeSpan MinimumProfileDuration { get; set; } = new TimeSpan(TimeSpan.TicksPerMicrosecond);
 
         static Profiler()
         {
