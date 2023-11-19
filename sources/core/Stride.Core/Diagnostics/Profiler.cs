@@ -119,6 +119,7 @@ namespace Stride.Core.Diagnostics
         private static ThreadLocal<ThreadEventCollection> events = new(() => new ThreadEventCollection(), true);
         private static ProfilingEventChannel collectorChannel = ProfilingEventChannel.Create(singleReader: true);
         private static ConcurrentDictionary<ChannelReader<ProfilingEvent>, Channel<ProfilingEvent>> subscriberChannels = new(); // key == value.Reader
+        private static long subscriberChannelsModified = 0;
         private static Task collectorTask = null;
 
         /// <summary>
@@ -128,13 +129,26 @@ namespace Stride.Core.Diagnostics
 
         static Profiler()
         {
+            // Collector tasks aggregates data from producers from multiple threads and forwards this data to subscribers
             collectorTask = Task.Run(async () =>
             {
+                List<Channel<ProfilingEvent>> subscriberChannelsLocal = new List<Channel<ProfilingEvent>>();
                 await foreach (var item in collectorChannel.Reader.ReadAllAsync())
                 {
-                    foreach (var subscriber in subscriberChannels)
+                    // Update the local list of subscribers if it has been modified
+                    // This is to minimize the enumerations of the concurrent dictionary which allocates the enumerator
+                    if (subscriberChannelsModified > 0)
                     {
-                        await subscriber.Value.Writer.WriteAsync(item);
+                        while (Interlocked.Exchange(ref subscriberChannelsModified, 0) > 0)
+                        {
+                            subscriberChannelsLocal.Clear();
+                            subscriberChannelsLocal.AddRange(subscriberChannels.Values);
+                        }
+                    }
+
+                    foreach (var subscriber in subscriberChannelsLocal)
+                    {
+                        await subscriber.Writer.WriteAsync(item);
                     }
                 }
             });
@@ -146,8 +160,14 @@ namespace Stride.Core.Diagnostics
         /// <returns>The <see cref="System.Threading.Channels.ChannelReader{ProfilingEvent}"/> which will receive the events.</returns>
         public static ChannelReader<ProfilingEvent> Subscribe()
         {
-            var channel = Channel.CreateUnbounded<ProfilingEvent>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+            var channel = Channel.CreateBounded<ProfilingEvent>(new BoundedChannelOptions(short.MaxValue)
+            {
+                SingleReader = true,
+                SingleWriter = true,
+                FullMode = BoundedChannelFullMode.DropNewest
+            });
             subscriberChannels.TryAdd(channel.Reader, channel);
+            Interlocked.Increment(ref subscriberChannelsModified);
             return channel;
         }
 
@@ -160,6 +180,7 @@ namespace Stride.Core.Diagnostics
             if (subscriberChannels.TryRemove(eventReader, out var channel))
             {
                 channel.Writer.Complete();
+                Interlocked.Increment(ref subscriberChannelsModified);
             }
         }
 
