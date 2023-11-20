@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
+using Stride.Core.AssemblyProcessor.Core;
 
 namespace Stride.Core.AssemblyProcessor.Serializers
 {

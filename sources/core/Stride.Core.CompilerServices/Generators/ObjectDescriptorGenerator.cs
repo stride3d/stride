@@ -10,12 +10,14 @@ using Stride.Core.CompilerServices.DataEvaluationApi.NexAPI.Analysation.Analyzer
 using Stride.Core.CompilerServices.DataEvaluationApi.DataApi;
 using Stride.Core.CompilerServices.Modules.ObjectDescription;
 using Stride.Core.CompilerServices.DataEvaluationApi;
+using System.IO.MemoryMappedFiles;
+using System.Linq;
 
 namespace Stride.Core.CompilerServices.Generators;
 [Generator]
 internal class ObjectDescriptorGenerator : IIncrementalGenerator
 {
-
+    private List<ClassInfo> cache = new List<ClassInfo>(100);
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Debugger.Launch();
@@ -34,7 +36,8 @@ internal class ObjectDescriptorGenerator : IIncrementalGenerator
                                        var classDeclaration = (TypeDeclarationSyntax)ctx.Node;
                                        var compilation = ctx.SemanticModel.Compilation;
                                        var semanticModel = ctx.SemanticModel;
-                                       return CreateClassInfo(compilation, classDeclaration, semanticModel);
+                                       var info = CreateClassInfo(compilation, classDeclaration, semanticModel);
+                                       return info;
                                    })
                                    .Where(x => x is not null)
                                    .Collect();
@@ -51,8 +54,13 @@ internal class ObjectDescriptorGenerator : IIncrementalGenerator
         var type = (ITypeSymbol)semanticModel.GetDeclaredSymbol(classDeclaration);
         if (type.ContainingType != null)
             return null;
-        if (!type.HasInheritedDataContractAttributeInInheritanceHierarchy(dataContractAttribute))
+        if (!type.HasInheritedDataContract(dataContractAttribute))
             return null;
+        bool isPartial = false;
+        if (classDeclaration.IsPartial())
+        {
+            isPartial = true;
+        }
         var dataMemberIgnoreAttribute = WellKnownReferences.DataMemberIgnoreAttribute(compilation);
         var memberSelector = new MemberSelector(dataContractAttribute);
         var assignMode = new AssignModeInfo();
@@ -80,7 +88,7 @@ internal class ObjectDescriptorGenerator : IIncrementalGenerator
         classInfoMemberProcessor.PropertyAnalyzers.Add(standardGetAssignAnalyzer);
         classInfoMemberProcessor.FieldAnalyzers.Add(standardField);
         var members = classInfoMemberProcessor.Process(type);
-        return ClassInfo.CreateFrom(type, members);
+        return ClassInfo.CreateFrom(type, members, isPartial);
 
     }
 

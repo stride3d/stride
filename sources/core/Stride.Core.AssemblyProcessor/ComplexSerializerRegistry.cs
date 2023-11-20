@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Mono.Cecil;
+using Stride.Core.AssemblyProcessor.Core;
 
 namespace Stride.Core.AssemblyProcessor
 {

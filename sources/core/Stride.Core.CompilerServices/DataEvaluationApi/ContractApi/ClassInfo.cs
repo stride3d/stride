@@ -6,8 +6,9 @@ namespace Stride.Core.CompilerServices.DataEvaluationApi.NexAPI;
 internal class ClassInfo : IEquatable<ClassInfo>
 {
     private const string GeneratorPrefix = "StrideSourceGenerated_";
+    
 
-    public static ClassInfo CreateFrom(ITypeSymbol type, ImmutableList<SymbolInfo> members)
+    public static ClassInfo CreateFrom(ITypeSymbol type, ImmutableList<SymbolInfo> members, bool isPartial)
     {
         var isGeneric = false;
         var generatorName = GeneratorPrefix + GetFullNamespace(type, '_') + type.Name;
@@ -25,9 +26,11 @@ internal class ClassInfo : IEquatable<ClassInfo>
                 }
             }
         }
+        
         var namespaceName = GetFullNamespace(type, '.');
         return new()
         {
+            IsPartial = isPartial,
             Name = type.Name,
             IsGeneric = isGeneric,
             GenericTypeName = genericTypeName,
@@ -38,6 +41,13 @@ internal class ClassInfo : IEquatable<ClassInfo>
             GeneratorName = generatorName,
             MemberSymbols = members
         };
+    }
+    public ClassInfo Attach(ITypeSymbol type, ImmutableList<SymbolInfo> members)
+    {
+        AllAbstracts.AddRange(FindAbstractClasses(type));
+        AllInterfaces.AddRange(type.AllInterfaces.Select(t => t.Name));
+        MemberSymbols.AddRange(members);
+        return this;
     }
     static string GetFullNamespace(ITypeSymbol typeSymbol, char separator)
     {
@@ -55,21 +65,22 @@ internal class ClassInfo : IEquatable<ClassInfo>
 
 
     private ClassInfo() { }
+    public bool IsPartial {  get; set; }
     public bool IsGeneric { get; private set; }
     public string GenericTypeName { get; private set; }
-    public string Name { get; set; }
-    public string NameSpace { get; set; }
-    public string GeneratorName { get; set; }
+    public string Name { get; private set; }
+    public string NameSpace { get; private set; }
+    public string GeneratorName { get; private set; }
     public string Accessor { get; set; }
-    internal IReadOnlyList<string> AllInterfaces { get; set; }
-    internal IReadOnlyList<string> AllAbstracts { get; set; }
+    internal List<string> AllInterfaces { get; set; }
+    internal List<string> AllAbstracts { get; set; }
     public ImmutableList<SymbolInfo> MemberSymbols { get; internal set; }
 
     public bool Equals(ClassInfo other)
     {
         return Name == other.Name && NameSpace == other.NameSpace && GeneratorName == other.GeneratorName;
     }
-    private static IReadOnlyList<string> FindAbstractClasses(ITypeSymbol typeSymbol)
+    private static List<string> FindAbstractClasses(ITypeSymbol typeSymbol)
     {
         var result = new List<string>();
         var baseType = typeSymbol.BaseType;
