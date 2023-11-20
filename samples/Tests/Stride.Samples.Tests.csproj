@@ -1,4 +1,5 @@
 <Project>
+  <Import Project="..\..\sources\Directory.Packages.props" />
   <!-- NuGet resolved needed for StrideDefaultAssetsPlugin.LoadDefaultTemplates() -->
   <Import Project="..\..\sources\targets\Stride.UnitTests.props" />
   <PropertyGroup>
