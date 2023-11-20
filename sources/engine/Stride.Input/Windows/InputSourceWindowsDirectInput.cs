@@ -4,9 +4,12 @@
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Collections.Generic;
+using Microsoft.Management.Infrastructure;
 using SharpDX;
 using SharpDX.DirectInput;
-using Stride.Native.DirectInput;
+using System.Linq;
+using Microsoft.Management.Infrastructure.Options;
+using System.Text.RegularExpressions;
 
 namespace Stride.Input
 {
@@ -18,11 +21,15 @@ namespace Stride.Input
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
         private InputManager inputManager;
         private DirectInput directInput;
+        private IEnumerable<string> xInputDevices;
+        private Regex xInputDeviceIdRegex;
 
         public override void Initialize(InputManager inputManager)
         {
             this.inputManager = inputManager;
             directInput = new DirectInput();
+            xInputDeviceIdRegex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
+
             Scan();
         }
 
@@ -55,11 +62,37 @@ namespace Stride.Input
         }
 
         /// <summary>
+        /// Select all device IDs that contain "IG_".  If so, it's an XInput device
+        /// This information can not be found from DirectInput 
+        /// </summary>
+        private IEnumerable<string> GetAllXInputDevices()
+        {
+            // Set security level to IMPERSONATE
+
+            DComSessionOptions DComOptions = new DComSessionOptions();
+            DComOptions.Impersonation = ImpersonationType.Impersonate;
+
+            var session = CimSession.Create(null, DComOptions);
+            var query = session.QueryInstances(@"root\cimv2", "WQL", "SELECT DeviceID FROM Win32_PNPEntity WHERE DeviceID LIKE '%&IG_%'");
+
+            var deviceIdPrefixes = query.Select(device => xInputDeviceIdRegex.Match(device.CimInstanceProperties["DeviceID"].Value.ToString()))
+                .Where(match => match.Success)
+                .Select(match => (match.Groups[2].ToString() + match.Groups[1].ToString()).ToLower())
+                .Distinct()
+                .ToList();
+
+            return deviceIdPrefixes;
+        }
+        
+        /// <summary>
         /// Scans for new devices
         /// </summary>
         public override void Scan()
         {
             var connectedDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+
+            xInputDevices = GetAllXInputDevices();
+
             foreach (var device in connectedDevices)
             {
                 if (!Devices.ContainsKey(device.InstanceGuid))
@@ -76,7 +109,7 @@ namespace Stride.Input
         public void OpenDevice(DeviceInstance deviceInstance)
         {
             // Ignore XInput devices since they are handled by XInput
-            if (XInputChecker.IsXInputDevice(ref deviceInstance.ProductGuid))
+            if (IsXInputDevice(deviceInstance.ProductGuid))
                 return;
 
             if (Devices.ContainsKey(deviceInstance.InstanceGuid))
@@ -115,6 +148,22 @@ namespace Stride.Input
                 };
                 RegisterDevice(controller);
             }
+        }
+
+        private bool IsXInputDevice(Guid productGuid)
+        {
+            string productGuidStr = productGuid.ToString();
+            
+            // Loop over all devices
+            foreach (var deviceId in xInputDevices)
+            {
+                if (productGuidStr.StartsWith(deviceId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

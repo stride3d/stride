@@ -21,10 +21,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
-    <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
-    <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="$(TargetFramework.StartsWith('net4'))" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="$(TargetFramework.Contains('-windows'))" />
-    <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="$(TargetFramework.Contains('-windows'))" />
+    <PackageReference Include="SharpDX.RawInput" Condition="$(TargetFramework.StartsWith('net4'))" />
+    <PackageReference Include="SharpDX.DirectInput" Condition="$(TargetFramework.Contains('-windows'))" />
+    <PackageReference Include="SharpDX.XInput" Condition="$(TargetFramework.Contains('-windows'))" />
+    <PackageReference Include="Microsoft.Management.Infrastructure" Condition="$(TargetFramework.Contains('-windows'))" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

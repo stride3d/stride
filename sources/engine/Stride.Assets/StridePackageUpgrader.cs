@@ -240,6 +240,33 @@ namespace Stride.Assets
                         }
                     }
 
+                    if (dependency.Version.MinVersion < new PackageVersion("4.2.0.0") && solutionProject != null)
+                    {
+                        var tfm = project.GetProperty("TargetFramework");
+                        //check if plural is required to find value
+                        if (tfm.Xml == null)
+                        {
+                            tfm = project.GetProperty("TargetFrameworks");
+                        }
+                        if (tfm != null)
+                        {
+                            // Library
+                            if (tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
+                            {
+                                // In case it's a single TargetFramework, add the "s" at the end
+                                tfm.Xml.Name = "TargetFrameworks";
+                                tfm.Xml.Value = "net8.0";
+                                isProjectDirty = true;
+                            }
+                            // Executable
+                            else if ((tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
+                            {
+                                tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net8.0-windows" : "net8.0";
+                                isProjectDirty = true;
+                            }
+                        }
+                    }
+
                     if (isProjectDirty)
                         project.Save();
 
