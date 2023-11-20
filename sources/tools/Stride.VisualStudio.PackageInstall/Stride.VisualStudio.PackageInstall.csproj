@@ -19,7 +19,7 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e">
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
   </ItemGroup>
