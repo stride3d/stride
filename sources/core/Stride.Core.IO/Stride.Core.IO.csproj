@@ -28,7 +28,7 @@
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj">
 	  <PrivateAssets>contentfiles;analyzers</PrivateAssets>
 	</ProjectReference>
-    <PackageReference Include="SharpDX" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="SharpDX" Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
   </ItemGroup>
   
   <Import Project="$(StrideSdkTargets)" />

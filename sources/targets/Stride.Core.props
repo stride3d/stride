@@ -223,7 +223,7 @@
 
   <!-- SourceLink -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" VersionOverride="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
 
   <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link. -->

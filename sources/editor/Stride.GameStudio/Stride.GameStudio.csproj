@@ -15,7 +15,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
-    <StrideNuGetResolverUX>true</StrideNuGetResolverUX>
+    <StrideNuGetResolverUI>true</StrideNuGetResolverUI>
     <StrideSTAThreadOnMain>true</StrideSTAThreadOnMain>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
@@ -29,11 +29,11 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ServiceWire" Version="5.3.4" />
-    <PackageReference Include="SharpDX" Version="4.2.0" />
-    <PackageReference Include="Stride.Metrics" Version="1.0.3" />
-    <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
-    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
+    <PackageReference Include="ServiceWire" />
+    <PackageReference Include="SharpDX" />
+    <PackageReference Include="Stride.Metrics" />
+    <PackageReference Include="Stride.CrashReport" />
+    <PackageReference Include="Mono.Cecil" />
     <Reference Include="Stride.Core.AssemblyProcessor">
       <HintPath Condition="$(TargetFramework.StartsWith('net8'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>
@@ -52,7 +52,6 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="LoaderToolLocator.cs" />
-    <None Include="..\..\tools\Stride.PackageInstall\bin\$(Configuration)\*.*" PackagePath="tools\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />
@@ -102,17 +101,20 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
+  <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
-
   </PropertyGroup>
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)Mono.Cecil.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.*" />
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideGameStudioCopyPackageInstall" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="..\..\tools\Stride.PackageInstall\bin\$(Configuration)\*.*" PackagePath="tools\" Pack="true" />
     </ItemGroup>
   </Target>
 </Project>

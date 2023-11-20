@@ -7,8 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -18,7 +16,7 @@ using NuGet.Versioning;
 
 namespace Stride.Core.Assets
 {
-    class NuGetAssemblyResolver
+    public class NuGetAssemblyResolver
     {
         public const string DevSource = @"%LocalAppData%\Stride\NugetDev";
 
@@ -26,7 +24,7 @@ namespace Stride.Core.Assets
         static readonly object assembliesLock = new object();
         static List<string> assemblies;
 
-        internal static void DisableAssemblyResolve()
+        public static void DisableAssemblyResolve()
         {
             assembliesResolved = true;
         }
@@ -37,9 +35,8 @@ namespace Stride.Core.Assets
         /// <param name="packageName">Name of the root package for NuGet resolution.</param>
         /// <param name="packageVersion">Package version.</param>
         /// <param name="metadataAssembly">Assembly for getting target framrwork and platform.</param>
-        internal static void SetupNuGet(string packageName, string packageVersion, Assembly metadataAssembly = null)
+        public static void SetupNuGet(string targetFramework, string packageName, string packageVersion)
         {
-            metadataAssembly ??= Assembly.GetEntryAssembly();
             // Make sure our nuget local store is added to nuget config
             var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string strideFolder = null;
@@ -77,7 +74,7 @@ namespace Stride.Core.Assets
 
                         var logger = new Logger();
 
-#if STRIDE_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UI
                         var dialogNotNeeded = new TaskCompletionSource<bool>();
                         var dialogClosed = new TaskCompletionSource<bool>();
 
@@ -124,25 +121,8 @@ namespace Stride.Core.Assets
                             // Since we execute restore synchronously, we don't want any surprise concerning synchronization context (i.e. Avalonia one doesn't work with this)
                             SynchronizationContext.SetSynchronizationContext(null);
 
-                            // Determine current TFM
-                            var framework = metadataAssembly
-                                .GetCustomAttribute<TargetFrameworkAttribute>()?
-                                .FrameworkName ?? ".NETFramework,Version=v4.7.2";
-                            var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
-
-#if NETCOREAPP
-                            // Add TargetPlatform to net8.0 TFM (i.e. net8.0 to net8.0-windows7.0)
-                            var platform = metadataAssembly?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
-                            if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp, StringComparison.Ordinal) && platform != string.Empty)
-                            {
-                                var platformParseResult = Regex.Match(platform, @"([a-zA-Z]+)(\d+.*)");
-                                if (platformParseResult.Success && Version.TryParse(platformParseResult.Groups[2].Value, out var platformVersion))
-                                {
-                                    var platformName = platformParseResult.Groups[1].Value;
-                                    nugetFramework = new NuGetFramework(nugetFramework.Framework, nugetFramework.Version, platformName, platformVersion);
-                                }
-                            }
-#endif
+                            // Parse current TFM
+                            var nugetFramework = NuGetFramework.Parse(targetFramework);
 
                             // Only allow this specific version
                             var versionRange = new VersionRange(new NuGetVersion(packageVersion), true, new NuGetVersion(packageVersion), true);
@@ -160,7 +140,7 @@ namespace Stride.Core.Assets
                         }
                         catch (Exception e)
                         {
-#if STRIDE_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UI
                             logger.LogError($@"Error restoring NuGet packages: {e}");
                             dialogClosed.Task.Wait();
 #else
@@ -181,7 +161,7 @@ namespace Stride.Core.Assets
                         }
                         finally
                         {
-#if STRIDE_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UI
                             dialogNotNeeded.TrySetResult(true);
 #endif
                             SynchronizationContext.SetSynchronizationContext(previousSynchronizationContext);
