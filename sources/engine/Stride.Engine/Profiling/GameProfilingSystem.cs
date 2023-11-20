@@ -563,6 +563,8 @@ namespace Stride.Profiling
 
                 var callsPerFrame = profilingResult.Count / (double)elapsedFrames;
                 callsPerFrame.TryFormat(formatBuffer, out formatBufferUse, "#00.00");
+                if (callsPerFrame < 100)
+                    profilersStringBuilder.Append(' ');
                 profilersStringBuilder.Append(formatBuffer[..formatBufferUse]);
                 profilersStringBuilder.Append(" | ");
 
