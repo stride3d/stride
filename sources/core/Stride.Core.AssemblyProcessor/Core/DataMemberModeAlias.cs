@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Stride.Core.AssemblyProcessor.Core
+namespace Stride.Core.AssemblyProcessor
 {
     public enum DataMemberModeAlias
     {
