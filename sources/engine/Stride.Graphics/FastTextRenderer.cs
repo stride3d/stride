@@ -8,6 +8,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using NVector4 = System.Numerics.Vector4;
 
 namespace Stride.Graphics
 {
@@ -16,14 +17,6 @@ namespace Stride.Graphics
     /// </summary>
     public class FastTextRenderer : ComponentBase
     {
-        private static readonly VertexPositionNormalTexture[] BaseVertexBufferData =
-        {
-            // Position		Normal		UV Coordinates
-            new( new(-1, 1, 0), new(0, 0, 1), new(0, 0) ),
-            new( new(1, 1, 0 ), new(0, 0, 1 ), new(1, 0 )),
-            new( new(-1, -1, 0 ), new(0, 0, 1 ), new(0, 1 )),
-            new( new(1, -1, 0 ), new(0, 0, 1 ), new(1, 1 )),
-        };
         private const int VertexBufferCount = 2;
 
         private const int IndexStride = sizeof(int);
@@ -31,8 +24,6 @@ namespace Stride.Graphics
         private Buffer[] vertexBuffers;
         private int activeVertexBufferIndex;
         private VertexBufferBinding[] vertexBuffersBinding;
-        private MappedResource mappedVertexBuffer;
-        private IntPtr mappedVertexBufferPointer;
 
         private Buffer indexBuffer;
         private IndexBufferBinding indexBufferBinding;
@@ -67,8 +58,6 @@ namespace Stride.Graphics
                 vertexBuffers[i].Dispose();
 
             activeVertexBufferIndex = -1;
-
-            mappedVertexBufferPointer = IntPtr.Zero;
 
             if (indexBuffer != null)
             {
@@ -128,11 +117,11 @@ namespace Stride.Graphics
             // Create vertex buffers
             vertexBuffers = new Buffer[VertexBufferCount];
             for (int j = 0; j < VertexBufferCount; j++)
-                vertexBuffers[j] = Buffer.Vertex.New(graphicsContext.CommandList.GraphicsDevice, new VertexPositionNormalTexture[VertexBufferLength], GraphicsResourceUsage.Dynamic);
+                vertexBuffers[j] = Buffer.Vertex.New(graphicsContext.CommandList.GraphicsDevice, new Vertex2DPositionTexture[VertexBufferLength], GraphicsResourceUsage.Dynamic);
 
             vertexBuffersBinding = new VertexBufferBinding[VertexBufferCount];
             for (int j = 0; j < VertexBufferCount; j++)
-                vertexBuffersBinding[j] = new VertexBufferBinding(vertexBuffers[j], VertexPositionNormalTexture.Layout, 0);
+                vertexBuffersBinding[j] = new VertexBufferBinding(vertexBuffers[j], Vertex2DPositionTexture.Layout, 0);
 
             inputElementDescriptions = new InputElementDescription[VertexBufferCount][];
             for (int j = 0; j < VertexBufferCount; j++)
@@ -205,32 +194,24 @@ namespace Stride.Graphics
             activeVertexBufferIndex = ++activeVertexBufferIndex >= VertexBufferCount ? 0 : activeVertexBufferIndex;
 
             // Map the vertex buffer to write to
-            mappedVertexBuffer = graphicsContext.CommandList.MapSubresource(vertexBuffers[activeVertexBufferIndex], 0, MapMode.WriteDiscard);
-            mappedVertexBufferPointer = mappedVertexBuffer.DataBox.DataPointer;
+            var mappedVertexBuffer = graphicsContext.CommandList.MapSubresource(vertexBuffers[activeVertexBufferIndex], 0, MapMode.WriteDiscard);
+            var mappedVertexData = new Span<NVector4>(mappedVertexBuffer.DataBox.DataPointer.ToPointer(), VertexBufferLength); // Note that we're using Vector4 instead of VertexPosition2DTexture for hardware acceleration, size of the two struct must match obviously
+            // We don't have to clear the buffer since we're writing all used data through GraphicsFastTextRendererGenerateVertices
 
-            unsafe
+            charsToRenderCount = 0;
+
+            //Draw the strings
+            var constantInfos = new RectangleF(GlyphWidth, GlyphHeight, DebugSpriteWidth, DebugSpriteHeight);
+            foreach (var textInfo in stringsToDraw)
             {
-                // Clear buffer first (because of the buffer mapping mode used)
-                Unsafe.InitBlockUnaligned((void*)mappedVertexBufferPointer, 0x0, (uint)VertexBufferLength * (uint)sizeof(VertexPositionNormalTexture));
+                GraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, out int charsWritten, mappedVertexData);
 
-                charsToRenderCount = 0;
-
-                //Draw the strings
-                var constantInfos = new RectangleF(GlyphWidth, GlyphHeight, DebugSpriteWidth, DebugSpriteHeight);
-                Span<VertexPositionNormalTexture> vertexPositionSpan = new(mappedVertexBufferPointer.ToPointer(), VertexBufferLength);
-                foreach (var textInfo in stringsToDraw)
-                {
-                    var textLength = textInfo.Text.Length;
-                    GraphicsFastTextRendererGenerateVertices(constantInfos, textInfo.RenderingInfo, textInfo.Text, ref textLength,  vertexPositionSpan);
-
-                    charsToRenderCount += textLength;
-                    vertexPositionSpan = vertexPositionSpan.Slice(textLength*4);
-                }
+                charsToRenderCount += charsWritten;
+                mappedVertexData = mappedVertexData.Slice(charsWritten * 4);
             }
 
             // Unmap the vertex buffer
             graphicsContext.CommandList.UnmapSubresource(mappedVertexBuffer);
-            mappedVertexBufferPointer = IntPtr.Zero;
 
             // Update pipeline state
             pipelineState.State.SetDefaults();
@@ -255,7 +236,7 @@ namespace Stride.Graphics
             graphicsContext.CommandList.DrawIndexed(charsToRenderCount * 6);
         }
 
-        public unsafe void GraphicsFastTextRendererGenerateVertices(RectangleF constantInfos, RectangleF renderInfos, string textPointer, ref int textLength, Span<VertexPositionNormalTexture> vertexBuffer)
+        static void GraphicsFastTextRendererGenerateVertices(RectangleF constantInfos, RectangleF renderInfos, string text, out int charsWritten, Span<NVector4> vertexBuffer)
         {
             float fX = renderInfos.X / renderInfos.Width;
             float fY = renderInfos.Y / renderInfos.Height;
@@ -263,44 +244,42 @@ namespace Stride.Graphics
             float fH = constantInfos.Y / renderInfos.Height;
 
             RectangleF destination = new(fX, fY, fW, fH);
-            RectangleF source = new(0.0f, 0.0f, constantInfos.X, constantInfos.Y);
 
-            // Copy the array length (since it may change during an iteration)
-            int textCharCount = textLength;
+            charsWritten = text.Length;
 
-            float scaledDestinationX;
-            float scaledDestinationY = -(destination.Y * 2f - 1f);
+            NVector4 charRect;
+
+            charRect.Y = -(destination.Y * 2f - 1f);
 
             float invertedWidth = 1f / constantInfos.Width;
             float invertedHeight = 1f / constantInfos.Height;
 
-            Span<(Vector2 Position, Vector2 TextureCoordinate)> baseData = stackalloc (Vector2, Vector2)[4]
+            Span<NVector4> offsetPerVertex = stackalloc NVector4[4]
             {
-                ( new(-destination.Width, +destination.Height), new(0 * source.Width * invertedWidth, 0 * source.Height * invertedHeight) ),
-                ( new(+destination.Width, +destination.Height), new(1 * source.Width * invertedWidth, 0 * source.Height * invertedHeight) ),
-                ( new(-destination.Width, -destination.Height), new(0 * source.Width * invertedWidth, 1 * source.Height * invertedHeight) ),
-                ( new(+destination.Width, -destination.Height), new(1 * source.Width * invertedWidth, 1 * source.Height * invertedHeight) ),
+                new(-destination.Width, +destination.Height, 0 * constantInfos.X * invertedWidth, 0 * constantInfos.Y * invertedHeight),
+                new(+destination.Width, +destination.Height, 1 * constantInfos.X * invertedWidth, 0 * constantInfos.Y * invertedHeight),
+                new(-destination.Width, -destination.Height, 0 * constantInfos.X * invertedWidth, 1 * constantInfos.Y * invertedHeight),
+                new(+destination.Width, -destination.Height, 1 * constantInfos.X * invertedWidth, 1 * constantInfos.Y * invertedHeight),
             };
 
             int j = 0;
 
-            for (int i = 0; i < textCharCount; i++)
+            foreach (char c in text)
             {
-                char currentChar = textPointer[i];
-
+                char currentChar = c;
                 if (currentChar == '\v')
                 {
                     // Tabulation
                     destination.X += 8 * fX;
-                    --textLength;
+                    --charsWritten;
                     continue;
                 }
                 else if (currentChar >= 10 && currentChar <= 13) // '\n' '\v' '\f' '\r'
                 {
                     destination.X = fX;
                     destination.Y += fH;
-                    scaledDestinationY = -(destination.Y * 2f - 1f);
-                    --textLength;
+                    charRect.Y = -(destination.Y * 2f - 1f);
+                    --charsWritten;
                     continue;
                 }
                 else if (currentChar < 32 || currentChar > 126)
@@ -308,38 +287,15 @@ namespace Stride.Graphics
                     currentChar = ' ';
                 }
 
-                source.X = (currentChar % 32 * constantInfos.X) * invertedWidth;
-                source.Y = (currentChar / 32 % 4 * constantInfos.Y) * invertedHeight;
+                charRect.X = destination.X * 2f - 1f;
 
-                scaledDestinationX = destination.X * 2f - 1f;
+                charRect.Z = (currentChar % 32 * constantInfos.X) * invertedWidth;
+                charRect.W = (currentChar / 32 % 4 * constantInfos.Y) * invertedHeight;
 
-                // 0
-                vertexBuffer[j].Position.X = scaledDestinationX + baseData[0].Position.X;
-                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[0].Position.Y;
-                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[0].TextureCoordinate.X;
-                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[0].TextureCoordinate.Y;
-                j++;
-
-                // 1
-                vertexBuffer[j].Position.X = scaledDestinationX + baseData[1].Position.X;
-                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[1].Position.Y;
-                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[1].TextureCoordinate.X;
-                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[1].TextureCoordinate.Y;
-                j++;
-
-                // 2
-                vertexBuffer[j].Position.X = scaledDestinationX + baseData[2].Position.X;
-                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[2].Position.Y;
-                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[2].TextureCoordinate.X;
-                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[2].TextureCoordinate.Y;
-                j++;
-
-                // 3
-                vertexBuffer[j].Position.X = scaledDestinationX + baseData[3].Position.X;
-                vertexBuffer[j].Position.Y = scaledDestinationY + baseData[3].Position.Y;
-                vertexBuffer[j].TextureCoordinate.X = source.X + baseData[3].TextureCoordinate.X;
-                vertexBuffer[j].TextureCoordinate.Y = source.Y + baseData[3].TextureCoordinate.Y;
-                j++;
+                vertexBuffer[j++] = charRect + offsetPerVertex[0];
+                vertexBuffer[j++] = charRect + offsetPerVertex[1];
+                vertexBuffer[j++] = charRect + offsetPerVertex[2];
+                vertexBuffer[j++] = charRect + offsetPerVertex[3];
 
                 destination.X += destination.Width;
             }
