@@ -44,6 +44,7 @@ Bin/
 ipch/
 obj/
 .vs/
+.idea/
 Cache/
 /doc/stride_doc_output/
 /build/Stride.version
