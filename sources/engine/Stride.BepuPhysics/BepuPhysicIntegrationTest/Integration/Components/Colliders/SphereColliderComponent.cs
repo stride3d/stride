@@ -11,20 +11,16 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     public class SphereColliderComponent : ColliderComponent
     {
         private float _radius = 1f;
+
         public float Radius
         {
-            get
-            {
-                return _radius;
-            }
+            get => _radius;
             set
             {
                 _radius = value;
+                if (Container?.ContainerData?.Exist == true)
+                    Container?.ContainerData.BuildOrUpdateContainer();
             }
-        }
-
-        public SphereColliderComponent()
-        {
         }
     }
 }

@@ -11,7 +11,17 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     [ComponentCategory("Bepu - Colliders")]
     public class BoxColliderComponent : ColliderComponent
     {
-        public Vector3 Size = new(1, 1, 1);
+        private Vector3 _size = new(1, 1, 1);
 
+        public Vector3 Size
+        {
+            get => _size;
+            set
+            {
+                _size = value;
+                if (Container?.ContainerData?.Exist == true)
+                    Container?.ContainerData.BuildOrUpdateContainer();
+            }
+        }
     }
 }

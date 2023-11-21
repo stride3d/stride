@@ -39,12 +39,12 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            component.ContainerData = new(component, _bepuConfiguration.BepuSimulations[component.SimulationIndex]);
-            component.ContainerData.BuildShape();
+            component.ContainerData = new(component, _bepuConfiguration);
+            component.ContainerData.BuildOrUpdateContainer();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            component.ContainerData?.DestroyShape();
+            component.ContainerData?.DestroyContainer();
             component.ContainerData = null;
         }
 
@@ -131,7 +131,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
     internal class ContainerData
     {
         internal ContainerComponent ContainerComponent { get; }
-        internal BepuSimulation BepuSimulation { get; }
+        internal BepuConfiguration BepuConfiguration { get; }
+        internal BepuSimulation BepuSimulation => BepuConfiguration.BepuSimulations[ContainerComponent.SimulationIndex];
 
         internal bool isStatic { get; set; } = false;
 
@@ -144,13 +145,16 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         internal StaticDescription SDescription { get; set; }
         internal StaticHandle SHandle { get; set; } = new(-1);
 
-        public ContainerData(ContainerComponent containerComponent, BepuSimulation bepuSimulation)
+        public bool Exist => isStatic ? BepuSimulation.Simulation.Statics.StaticExists(SHandle) : BepuSimulation.Simulation.Bodies.BodyExists(BHandle);
+
+
+        public ContainerData(ContainerComponent containerComponent, BepuConfiguration bepuConfiguration)
         {
             ContainerComponent = containerComponent;
-            BepuSimulation = bepuSimulation;
+            BepuConfiguration = bepuConfiguration;
         }
 
-        internal void BuildShape()
+        internal void BuildOrUpdateContainer()
         {
             if (BepuSimulation == null)
                 throw new Exception("A container must be inside a BepuSimulation.");
@@ -261,12 +265,14 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
                     if (BHandle.Value != -1)
                     {
-                        BepuSimulation.Simulation.Bodies.Remove(BHandle);
-                        BepuSimulation.Bodies.Remove(BHandle);
+                        BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, BDescription);
                     }
-
-                    BHandle = BepuSimulation.Simulation.Bodies.Add(BDescription);
-                    BepuSimulation.Bodies.Add(BHandle, ContainerComponent.Entity);
+                    else
+                    {
+                        BHandle = BepuSimulation.Simulation.Bodies.Add(BDescription);
+                        BepuSimulation.Bodies.Add(BHandle, ContainerComponent.Entity);
+                    }
+                  
                     break;
                 case StaticContainerComponent _c:
                     isStatic = true;
@@ -275,19 +281,20 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
                     if (SHandle.Value != -1)
                     {
-                        BepuSimulation.Simulation.Statics.Remove(SHandle);
-                        BepuSimulation.Statics.Remove(SHandle);
+                        BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, SDescription);
                     }
-
-                    SHandle = BepuSimulation.Simulation.Statics.Add(SDescription);
-                    BepuSimulation.Statics.Add(SHandle, ContainerComponent.Entity);
+                    else
+                    {
+                        SHandle = BepuSimulation.Simulation.Statics.Add(SDescription);
+                        BepuSimulation.Statics.Add(SHandle, ContainerComponent.Entity);
+                    }
 
                     break;
                 default:
                     break;
             }
         }
-        internal void DestroyShape()
+        internal void DestroyContainer()
         {
             if (BHandle.Value != -1 && BepuSimulation.Simulation.Bodies.BodyExists(BHandle))
             {

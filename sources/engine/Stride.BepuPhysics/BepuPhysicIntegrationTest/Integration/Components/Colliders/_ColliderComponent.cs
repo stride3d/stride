@@ -12,7 +12,18 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     [ComponentCategory("Bepu - Colliders")]
     public abstract class ColliderComponent : EntityComponent
     {
-        public float Mass { get; set; } = 1f;
+        private float _mass = 1f;
+
+        public float Mass
+        {
+            get => _mass;
+            set
+            {
+                _mass = value;
+                if (Container?.ContainerData?.Exist == true)
+                    Container?.ContainerData.BuildOrUpdateContainer();
+            }
+        }
 
         internal ContainerComponent? Container => Entity.GetComponentsInParents<ContainerComponent>(true).FirstOrDefault();
     }
