@@ -23,7 +23,7 @@ namespace Stride.VisualStudio
     {
         public MyControl()
         {
-            InitializeComponent();
+            //InitializeComponent();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
