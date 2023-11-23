@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Configurations;
+using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using BepuPhysics.Collidables;
+using BepuUtilities.Memory;
+using BepuUtilities.Collections;
+using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -17,7 +22,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
-        private BepuConfiguration _bepuConfiguration = new();
+        private BepuConfiguration _bepuConfiguration;
+        private IGame _game;
 
         public ContainerProcessor()
         {
@@ -34,12 +40,13 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 _bepuConfiguration.BepuSimulations.Add(new BepuSimulation());
             }
 
+            _game = Services.GetService<IGame>();
             Services.AddService(_bepuConfiguration);
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            component.ContainerData = new(component, _bepuConfiguration);
+            component.ContainerData = new(component, _bepuConfiguration.BepuSimulations[component.SimulationIndex], _game);
             component.ContainerData.BuildOrUpdateContainer();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
@@ -124,9 +131,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             //totalWatch.Stop();
             //Debug.WriteLine($"-   Sim update function call : {simUpdWatch.ElapsedMilliseconds}\n-   Sim timestep : {simStepWatch.ElapsedMilliseconds}\n-   Position update : {parForWatch.ElapsedMilliseconds}\nEnd in : {totalWatch.ElapsedMilliseconds}");
             base.Update(time);
-        }
-
-    }
+		}
+	}
 
     internal class ContainerData
     {
@@ -142,13 +148,15 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         internal BodyHandle BHandle { get; set; } = new(-1);
         internal StaticHandle SHandle { get; set; } = new(-1);
 
-        public bool Exist => isStatic ? BepuSimulation.Simulation.Statics.StaticExists(SHandle) : BepuSimulation.Simulation.Bodies.BodyExists(BHandle);
+        private IGame _game;
 
-
-        public ContainerData(ContainerComponent containerComponent, BepuConfiguration bepuConfiguration)
+        public ContainerData(ContainerComponent containerComponent, BepuSimulation bepuSimulation, IGame game)
         {
             ContainerComponent = containerComponent;
-            BepuConfiguration = bepuConfiguration;
+            BepuSimulation = bepuSimulation;
+            _game = game;
+
+        public bool Exist => isStatic ? BepuSimulation.Simulation.Statics.StaticExists(SHandle) : BepuSimulation.Simulation.Bodies.BodyExists(BHandle);
         }
 
         internal void BuildOrUpdateContainer()
@@ -197,8 +205,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                             case CapsuleColliderComponent capsule:
                                 compoundBuilder.Add(new Capsule(capsule.Radius, capsule.Length), localPose, collider.Mass);
                                 break;
-                            case ConvexHullColliderComponent convexHull: //TODO
-                                compoundBuilder.Add(new ConvexHull(), localPose, collider.Mass);
+                            case ConvexHullColliderComponent convexHull:
+                                compoundBuilder.Add(new ConvexHull(GetMeshColliderShape(convexHull), new BufferPool(), out _), localPose, collider.Mass);
                                 break;
                             case CylinderColliderComponent cylinder:
                                 compoundBuilder.Add(new Cylinder(cylinder.Radius, cylinder.Length), localPose, collider.Mass);
@@ -282,7 +290,21 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
             if (ShapeIndex.Exists)
                 BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
-        }
-    }
+		}
+
+		private Span<Vector3> GetMeshColliderShape(ConvexHullColliderComponent collider)
+		{
+			// TODO: Create an extension that returns a numeric vectors instead of Stride Vector.
+			(var verts, var indices) = collider.ModelData.Model.GetMeshVerticesAndIndices(_game);
+			Vector3[] bepuVerts = new Vector3[indices.Count];
+
+			for (int i = 0; i < indices.Count; i++)
+			{
+                bepuVerts[i] = verts[indices[i]].ToNumericVector();
+			}
+
+			return bepuVerts.AsSpan();
+		}
+	}
 
 }

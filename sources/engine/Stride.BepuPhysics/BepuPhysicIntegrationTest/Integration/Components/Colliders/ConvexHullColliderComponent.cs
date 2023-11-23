@@ -10,7 +10,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     [ComponentCategory("Bepu - Colliders")]
     public class ConvexHullColliderComponent : ColliderComponent
     {
-        //TODO
+        public ModelComponent ModelData { get; set; }
+
         public ConvexHullColliderComponent()
         {
         }
