@@ -11,7 +11,7 @@
     <RootNamespace>Stride.VisualStudio</RootNamespace>
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
@@ -93,7 +93,7 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Update="VSPackage.resx">
-      <MergeWithCTO>true</MergeWithCTO>
+      <MergeWithCTO>false</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
     </EmbeddedResource>
   </ItemGroup>
@@ -146,9 +146,7 @@
     <Folder Include="NuGet\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj">
-      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
-    </ProjectReference>
+    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
@@ -162,6 +160,4 @@
     </ItemGroup>
   </Target>
   <Import Project="$(StrideSdkTargets)" />
-  <!-- Force NET Sdk to be included before VsSDK -->
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
 </Project>
