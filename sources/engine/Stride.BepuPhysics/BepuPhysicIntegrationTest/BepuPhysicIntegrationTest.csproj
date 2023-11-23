@@ -2,16 +2,17 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BepuPhysics" Version="2.4.0" />
-    <PackageReference Include="Stride.Engine" Version="4.2.0.2042" />
-    <PackageReference Include="Stride.Video" Version="4.2.0.2042" />
-    <PackageReference Include="Stride.Physics" Version="4.2.0.2042" />
-    <PackageReference Include="Stride.Navigation" Version="4.2.0.2042" />
-    <PackageReference Include="Stride.Particles" Version="4.2.0.2042" />
-    <PackageReference Include="Stride.UI" Version="4.2.0.2042" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.2042" IncludeAssets="build;buildTransitive" />
+    <PackageReference Include="BepuPhysics" Version="2.5.0-beta.15" />
+    <PackageReference Include="Stride.Engine" Version="4.2.0.2043" />
+    <PackageReference Include="Stride.Video" Version="4.2.0.2043" />
+    <PackageReference Include="Stride.Physics" Version="4.2.0.2043" />
+    <PackageReference Include="Stride.Navigation" Version="4.2.0.2043" />
+    <PackageReference Include="Stride.Particles" Version="4.2.0.2043" />
+    <PackageReference Include="Stride.UI" Version="4.2.0.2043" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.2043" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />

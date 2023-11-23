@@ -12,7 +12,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     public class CenterDistanceConstraintComponent : ConstraintComponent
     {
-        internal CenterDistanceConstraint _bepuConstraint = new() { SpringSettings = new(30, 5) };
+        internal CenterDistanceConstraint _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
         public float TargetDistance
         {
@@ -28,23 +28,33 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
             }
         }
 
-        public SpringSettings SpringSettings
+        public float SpringFrequency
         {
             get
             {
-                return _bepuConstraint.SpringSettings;
+                return _bepuConstraint.SpringSettings.Frequency;
             }
             set
             {
-                _bepuConstraint.SpringSettings = value;
+                _bepuConstraint.SpringSettings.Frequency = value;
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
 
-        public CenterDistanceConstraintComponent(float targetDistance, SpringSettings springSettings)
+        public float SpringDampingRatio
         {
-            _bepuConstraint = new CenterDistanceConstraint(targetDistance, springSettings);
+            get
+            {
+                return _bepuConstraint.SpringSettings.DampingRatio;
+            }
+            set
+            {
+                _bepuConstraint.SpringSettings.DampingRatio = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
         }
+
     }
 }

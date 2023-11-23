@@ -12,7 +12,11 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     public class OneBodyLinearServoConstraintComponent : ConstraintComponent
     {
-        internal OneBodyLinearServo _bepuConstraint = new() { ServoSettings = new(100, 1, 1000), SpringSettings = new(30, 5) };
+        internal OneBodyLinearServo _bepuConstraint = new()
+        {
+            ServoSettings = new ServoSettings(100, 1, 1000),
+            SpringSettings = new SpringSettings(30, 5)
+        };
 
         public Vector3 LocalOffset
         {
@@ -42,32 +46,75 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
             }
         }
 
-        public SpringSettings SpringSettings
+        public float SpringFrequency
         {
             get
             {
-                return _bepuConstraint.SpringSettings;
+                return _bepuConstraint.SpringSettings.Frequency;
             }
             set
             {
-                _bepuConstraint.SpringSettings = value;
+                _bepuConstraint.SpringSettings.Frequency = value;
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
 
-        public ServoSettings ServoSettings
+        public float SpringDampingRatio
         {
             get
             {
-                return _bepuConstraint.ServoSettings;
+                return _bepuConstraint.SpringSettings.DampingRatio;
             }
             set
             {
-                _bepuConstraint.ServoSettings = value;
+                _bepuConstraint.SpringSettings.DampingRatio = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float ServoMaximumSpeed
+        {
+            get
+            {
+                return _bepuConstraint.ServoSettings.MaximumSpeed;
+            }
+            set
+            {
+                _bepuConstraint.ServoSettings.MaximumSpeed = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float ServoBaseSpeed
+        {
+            get
+            {
+                return _bepuConstraint.ServoSettings.BaseSpeed;
+            }
+            set
+            {
+                _bepuConstraint.ServoSettings.BaseSpeed = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float ServoMaximumForce
+        {
+            get
+            {
+                return _bepuConstraint.ServoSettings.MaximumForce;
+            }
+            set
+            {
+                _bepuConstraint.ServoSettings.MaximumForce = value;
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
     }
+
 }

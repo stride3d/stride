@@ -48,6 +48,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
                 HitCollidable = collidable;
             }
 
+            public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
+            {
+                throw new System.NotImplementedException();
+            }
         }
 
         readonly void CreateMotorDescription(Vector3 target, float inverseMass, out OneBodyLinearServo linearDescription, out OneBodyAngularServo angularDescription)

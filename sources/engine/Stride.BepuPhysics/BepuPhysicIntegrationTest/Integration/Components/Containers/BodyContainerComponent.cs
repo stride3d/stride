@@ -1,4 +1,5 @@
-﻿using BepuPhysicIntegrationTest.Integration.Processors;
+﻿using System.ComponentModel;
+using BepuPhysicIntegrationTest.Integration.Processors;
 using BepuPhysics;
 using Stride.Core;
 using Stride.Engine;
@@ -11,11 +12,22 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
     [ComponentCategory("Bepu - Containers")]
     public class BodyContainerComponent : ContainerComponent
     {
-        public bool Kinematic { get; set; } = false;
+        private bool _kinematic = false;
+
+        public bool Kinematic
+        {
+            get => _kinematic;
+            set
+            {
+                _kinematic = value;
+                if (ContainerData?.Exist == true)
+                    ContainerData.BuildOrUpdateContainer();
+            }
+        }
 
         public BodyReference? GetPhysicBody()
         {
-            return ContainerData?.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
+            return ContainerData?.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];           
         }
 
     }

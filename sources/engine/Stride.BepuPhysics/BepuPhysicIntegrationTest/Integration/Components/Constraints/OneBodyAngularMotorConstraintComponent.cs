@@ -12,7 +12,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     public class OneBodyAngularMotorConstraintComponent : ConstraintComponent
     {
-        internal OneBodyAngularMotor _bepuConstraint = new() { Settings = new(10000000, 0.02f) };
+        internal OneBodyAngularMotor _bepuConstraint = new()
+        {
+            Settings = new MotorSettings(10000000, 0.02f)
+        };
 
         public Vector3 TargetVelocity
         {
@@ -28,19 +31,33 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
             }
         }
 
-        [DataMember(DataMemberMode.Content)]
-        public MotorSettings Settings
+        public float MotorDamping
         {
             get
             {
-                return _bepuConstraint.Settings;
+                return _bepuConstraint.Settings.Damping;
             }
             set
             {
-                _bepuConstraint.Settings = value;
+                _bepuConstraint.Settings.Damping = value;
+                if (ConstraintData?.Exist == true)
+                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+            }
+        }
+
+        public float MotorMaximumForce
+        {
+            get
+            {
+                return _bepuConstraint.Settings.MaximumForce;
+            }
+            set
+            {
+                _bepuConstraint.Settings.MaximumForce = value;
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
         }
     }
+
 }

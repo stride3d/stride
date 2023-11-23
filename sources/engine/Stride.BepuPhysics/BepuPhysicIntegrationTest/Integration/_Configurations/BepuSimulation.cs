@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Components.Utils;
 using BepuPhysics;
 using BepuPhysics.CollisionDetection;
@@ -17,11 +18,11 @@ public class BepuSimulation
 {
     private readonly List<SimulationUpdateComponent> _simulationUpdateComponents = new();
 
-    internal BufferPool BufferPool { get; set; }
     internal ThreadDispatcher ThreadDispatcher { get; set; }
+    internal BufferPool BufferPool { get; set; }
     internal Simulation Simulation { get; private set; }
-    internal Dictionary<BodyHandle, Entity> Bodies { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
-    internal Dictionary<StaticHandle, Entity> Statics { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
+    internal Dictionary<BodyHandle, BodyContainerComponent> BodiesContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
+    internal Dictionary<StaticHandle, StaticContainerComponent> StaticsContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
     internal float RemainingUpdateTime { get; set; } = 0;
 
 
@@ -76,7 +77,9 @@ public class BepuSimulation
     [Display(32, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 
+#pragma warning disable CS8618 //Done in setup to avoid 2 times the samecode.
     public BepuSimulation()
+#pragma warning restore CS8618 
     {
         Setup();
     }
@@ -96,8 +99,8 @@ public class BepuSimulation
         //TODO : Check if something else should be clear
         //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
         BufferPool.Clear();
-        Bodies.Clear();
-        Statics.Clear();
+        BodiesContainers.Clear();
+        StaticsContainers.Clear();
         Setup();
     }
 

@@ -10,7 +10,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Utils")]
     public class ConstraintEditorComponent : SyncScript
     {
-        public ConstraintComponent Component { get; set; }
+        public ConstraintComponent? Component { get; set; }
 
 
         public override void Start()

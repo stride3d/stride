@@ -1,5 +1,6 @@
 ﻿using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 
@@ -11,12 +12,25 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
 
     public abstract class ContainerComponent : EntityComponent
     {
-        public int SimulationIndex { get; set; } = 0; //TODO : destroy/rebuild shape on edit. + Check Services.GetService<BepuConfiguration>().BepuSimulations bounds.
+        private int? _simulationIndex = 0;
+
+        public int SimulationIndex
+        {
+            get => _simulationIndex ?? 0;
+            set
+            {
+                ContainerData?.DestroyContainer();
+                _simulationIndex = value;
+                ContainerData?.BuildOrUpdateContainer();
+            }
+        }
+
+        public Vector3 CenterOfMass { get; internal set; } = new Vector3();
 
         /// <summary>
         /// ContainerData is the bridge to Bepu.
         /// Automatically set by processor.
         /// </summary>
-        internal ContainerData ContainerData { get; set; }
+        internal ContainerData? ContainerData { get; set; }
     }
 }

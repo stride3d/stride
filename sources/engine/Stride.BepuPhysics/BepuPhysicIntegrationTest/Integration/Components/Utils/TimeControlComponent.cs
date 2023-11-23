@@ -8,7 +8,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Utils")]
     public class TimeControlComponent : SyncScript
     {
-        private BepuSimulation _bepuSimulation { get; set; }
+        private BepuSimulation? _bepuSimulation { get; set; }
 
 
         public int SimulationIndex { get; set; } = 0; //TODO : Cancel/restart on edit. + Check Services.GetService<BepuConfiguration>().BepuSimulations bounds.

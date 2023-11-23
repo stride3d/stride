@@ -12,31 +12,27 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     {
         private float _radius = 1f;
         private float _length = 1f;
+
         public float Radius
         {
-            get
-            {
-                return _radius;
-            }
+            get => _radius;
             set
             {
                 _radius = value;
-            }
-        }
-        public float Length
-        {
-            get
-            {
-                return _length;
-            }
-            set
-            {
-                _length = value;
+                if (Container?.ContainerData?.Exist == true)
+                    Container?.ContainerData.BuildOrUpdateContainer();
             }
         }
 
-        public CapsuleColliderComponent()
+        public float Length
         {
+            get => _length;
+            set
+            {
+                _length = value;
+                if (Container?.ContainerData?.Exist == true)
+                    Container?.ContainerData.BuildOrUpdateContainer();
+            }
         }
     }
 }

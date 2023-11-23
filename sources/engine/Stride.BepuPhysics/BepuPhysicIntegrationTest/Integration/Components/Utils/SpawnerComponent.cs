@@ -9,7 +9,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Utils")]
     public class SpawnerComponent : Spawner
     {
-        public Entity SpawnPosition { get; set; } //set it from a (empty) entity at the wanted location
+        public Entity? SpawnPosition { get; set; } //set it from a (empty) entity at the wanted location
 
         public int Count { get; set; } = 100; //number of prefab to spawn
         public float SpawnRate { get; set; } = 1; //how much cube by sec.
@@ -23,6 +23,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void SimulationUpdate(float timeStep)
         {
+            if (SpawnPosition == null) return;
+
             if (SpawnRate < 0)
                 SpawnRate = 0;
 

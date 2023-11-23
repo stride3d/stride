@@ -14,11 +14,11 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ColliderComponent component, [NotNull] ColliderComponent data)
         {
-            component.Container?.ContainerData?.BuildShape();
+            component.Container?.ContainerData?.BuildOrUpdateContainer();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ColliderComponent component, [NotNull] ColliderComponent data)
         {
-            component.Container?.ContainerData?.BuildShape();
+            component.Container?.ContainerData?.BuildOrUpdateContainer();
         }
 
     }

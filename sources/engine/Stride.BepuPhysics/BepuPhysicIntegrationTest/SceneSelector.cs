@@ -7,20 +7,20 @@ namespace BepuPhysicIntegrationTest
 {
     public class SceneSelector : SyncScript
     {
-        public Scene MainScene { get; set; }
+        public Scene? MainScene { get; set; }
 
-        public UrlReference<Scene> Scene0 { get; set; }
-        public UrlReference<Scene> Scene1 { get; set; }
-        public UrlReference<Scene> Scene2 { get; set; }
-        public UrlReference<Scene> Scene3 { get; set; }
-        public UrlReference<Scene> Scene4 { get; set; }
-        public UrlReference<Scene> Scene5 { get; set; }
-        public UrlReference<Scene> Scene6 { get; set; }
-        public UrlReference<Scene> Scene7 { get; set; }
-        public UrlReference<Scene> Scene8 { get; set; }
-        public UrlReference<Scene> Scene9 { get; set; }
+        public UrlReference<Scene>? Scene0 { get; set; }
+        public UrlReference<Scene>? Scene1 { get; set; }
+        public UrlReference<Scene>? Scene2 { get; set; }
+        public UrlReference<Scene>? Scene3 { get; set; }
+        public UrlReference<Scene>? Scene4 { get; set; }
+        public UrlReference<Scene>? Scene5 { get; set; }
+        public UrlReference<Scene>? Scene6 { get; set; }
+        public UrlReference<Scene>? Scene7 { get; set; }
+        public UrlReference<Scene>? Scene8 { get; set; }
+        public UrlReference<Scene>? Scene9 { get; set; }
 
-        private Scene _last { get; set; } = null;
+        private Scene? _last { get; set; } = null;
 
         public override void Start()
         {
@@ -49,6 +49,9 @@ namespace BepuPhysicIntegrationTest
 
         private void SetScene(UrlReference<Scene> sceneRef)
         {
+            if (MainScene == null)
+                return;
+
             if (_last != null)
             {
                 MainScene.Children.Clear();
@@ -62,7 +65,7 @@ namespace BepuPhysicIntegrationTest
                 MainScene.Children.Add(_last);
             }
         }
-        private UrlReference<Scene> GetSceneRef(int index)
+        private UrlReference<Scene>? GetSceneRef(int index)
         {
             switch (index)
             {

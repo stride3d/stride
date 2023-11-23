@@ -7,12 +7,14 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Utils")]
     public class ThrowerComponent : Spawner
     {
-        public Entity SpawnPosition { get; set; }
+        public Entity? SpawnPosition { get; set; }
 
         public float Speed { get; set; } = 20f;
 
         public override void SimulationUpdate(float timeStep)
         {
+            if (SpawnPosition == null) return;
+
             if (Input.IsKeyPressed(Keys.T))
             {
                 var camera = Game.Services.GetService<SceneSystem>().GraphicsCompositor.Cameras[0].Camera;
