@@ -232,7 +232,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to add.</param>
         /// <param name="result">When the method completes, contains the sum of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Add(ref Vector2 left, ref Vector2 right, out Vector2 result)
+        public static void Add(ref readonly Vector2 left, ref readonly Vector2 right, out Vector2 result)
         {
             result = new Vector2(left.X + right.X, left.Y + right.Y);
         }
@@ -256,7 +256,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to subtract.</param>
         /// <param name="result">When the method completes, contains the difference of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Subtract(ref Vector2 left, ref Vector2 right, out Vector2 result)
+        public static void Subtract(ref readonly Vector2 left, ref readonly Vector2 right, out Vector2 result)
         {
             result = new Vector2(left.X - right.X, left.Y - right.Y);
         }
@@ -280,7 +280,7 @@ namespace Stride.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Multiply(ref Vector2 value, float scale, out Vector2 result)
+        public static void Multiply(ref readonly Vector2 value, float scale, out Vector2 result)
         {
             result = new Vector2(value.X * scale, value.Y * scale);
         }
@@ -304,7 +304,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to modulate.</param>
         /// <param name="result">When the method completes, contains the modulated vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Modulate(ref Vector2 left, ref Vector2 right, out Vector2 result)
+        public static void Modulate(ref readonly Vector2 left, ref readonly Vector2 right, out Vector2 result)
         {
             result = new Vector2(left.X * right.X, left.Y * right.Y);
         }
@@ -328,7 +328,7 @@ namespace Stride.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Divide(ref Vector2 value, float scale, out Vector2 result)
+        public static void Divide(ref readonly Vector2 value, float scale, out Vector2 result)
         {
             result = new Vector2(value.X / scale, value.Y / scale);
         }
@@ -352,7 +352,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to demodulate.</param>
         /// <param name="result">When the method completes, contains the demodulated vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Demodulate(ref Vector2 left, ref Vector2 right, out Vector2 result)
+        public static void Demodulate(ref readonly Vector2 left, ref readonly Vector2 right, out Vector2 result)
         {
             result = new Vector2(left.X / right.X, left.Y / right.Y);
         }
@@ -375,7 +375,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The vector to negate.</param>
         /// <param name="result">When the method completes, contains a vector facing in the opposite direction.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Negate(ref Vector2 value, out Vector2 result)
+        public static void Negate(ref readonly Vector2 value, out Vector2 result)
         {
             result = new Vector2(-value.X, -value.Y);
         }
@@ -400,7 +400,7 @@ namespace Stride.Core.Mathematics
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
         /// <param name="result">When the method completes, contains the 2D Cartesian coordinates of the specified point.</param>
-        public static void Barycentric(ref Vector2 value1, ref Vector2 value2, ref Vector2 value3, float amount1, float amount2, out Vector2 result)
+        public static void Barycentric(ref readonly Vector2 value1, ref readonly Vector2 value2, ref readonly Vector2 value3, float amount1, float amount2, out Vector2 result)
         {
             result = new Vector2(
                 (value1.X + (amount1 * (value2.X - value1.X))) + (amount2 * (value3.X - value1.X)),
@@ -430,7 +430,7 @@ namespace Stride.Core.Mathematics
         /// <param name="min">The minimum value.</param>
         /// <param name="max">The maximum value.</param>
         /// <param name="result">When the method completes, contains the clamped value.</param>
-        public static void Clamp(ref Vector2 value, ref Vector2 min, ref Vector2 max, out Vector2 result)
+        public static void Clamp(ref readonly Vector2 value, ref readonly Vector2 min, ref readonly Vector2 max, out Vector2 result)
         {
             float x = value.X;
             x = (x > max.X) ? max.X : x;
@@ -464,10 +464,10 @@ namespace Stride.Core.Mathematics
         /// <param name="value2">The second vector.</param>
         /// <param name="result">When the method completes, contains the distance between the two vectors.</param>
         /// <remarks>
-        /// <see cref="Stride.Core.Mathematics.Vector2.DistanceSquared(ref Vector2, ref Vector2, out float)"/> may be preferred when only the relative distance is needed
+        /// <see cref="Stride.Core.Mathematics.Vector2.DistanceSquared(ref readonly Vector2, ref readonly Vector2, out float)"/> may be preferred when only the relative distance is needed
         /// and speed is of the essence.
         /// </remarks>
-        public static void Distance(ref Vector2 value1, ref Vector2 value2, out float result)
+        public static void Distance(ref readonly Vector2 value1, ref readonly Vector2 value2, out float result)
         {
             float x = value1.X - value2.X;
             float y = value1.Y - value2.Y;
@@ -506,7 +506,7 @@ namespace Stride.Core.Mathematics
         /// involves two square roots, which are computationally expensive. However, using distance squared 
         /// provides the same information and avoids calculating two square roots.
         /// </remarks>
-        public static void DistanceSquared(ref Vector2 value1, ref Vector2 value2, out float result)
+        public static void DistanceSquared(ref readonly Vector2 value1, ref readonly Vector2 value2, out float result)
         {
             float x = value1.X - value2.X;
             float y = value1.Y - value2.Y;
@@ -542,7 +542,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">Second source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Dot(ref Vector2 left, ref Vector2 right, out float result)
+        public static void Dot(ref readonly Vector2 left, ref readonly Vector2 right, out float result)
         {
             result = (left.X * right.X) + (left.Y * right.Y);
         }
@@ -565,7 +565,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The vector to normalize.</param>
         /// <param name="result">When the method completes, contains the normalized vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Normalize(ref Vector2 value, out Vector2 result)
+        public static void Normalize(ref readonly Vector2 value, out Vector2 result)
         {
             result = value;
             result.Normalize();
@@ -595,7 +595,7 @@ namespace Stride.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static void Lerp(ref Vector2 start, ref Vector2 end, float amount, out Vector2 result)
+        public static void Lerp(ref readonly Vector2 start, ref readonly Vector2 end, float amount, out Vector2 result)
         {
             result.X = start.X + ((end.X - start.X) * amount);
             result.Y = start.Y + ((end.Y - start.Y) * amount);
@@ -627,7 +627,7 @@ namespace Stride.Core.Mathematics
         /// <param name="end">End vector.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <param name="result">When the method completes, contains the cubic interpolation of the two vectors.</param>
-        public static void SmoothStep(ref Vector2 start, ref Vector2 end, float amount, out Vector2 result)
+        public static void SmoothStep(ref readonly Vector2 start, ref readonly Vector2 end, float amount, out Vector2 result)
         {
             amount = (amount > 1.0f) ? 1.0f : ((amount < 0.0f) ? 0.0f : amount);
             amount = (amount * amount) * (3.0f - (2.0f * amount));
@@ -659,7 +659,7 @@ namespace Stride.Core.Mathematics
         /// <param name="tangent2">Second source tangent vector.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <param name="result">When the method completes, contains the result of the Hermite spline interpolation.</param>
-        public static void Hermite(ref Vector2 value1, ref Vector2 tangent1, ref Vector2 value2, ref Vector2 tangent2, float amount, out Vector2 result)
+        public static void Hermite(ref readonly Vector2 value1, ref readonly Vector2 tangent1, ref readonly Vector2 value2, ref readonly Vector2 tangent2, float amount, out Vector2 result)
         {
             float squared = amount * amount;
             float cubed = amount * squared;
@@ -697,7 +697,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value4">The fourth position in the interpolation.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <param name="result">When the method completes, contains the result of the Catmull-Rom interpolation.</param>
-        public static void CatmullRom(ref Vector2 value1, ref Vector2 value2, ref Vector2 value3, ref Vector2 value4, float amount, out Vector2 result)
+        public static void CatmullRom(ref readonly Vector2 value1, ref readonly Vector2 value2, ref readonly Vector2 value3, ref readonly Vector2 value4, float amount, out Vector2 result)
         {
             float squared = amount * amount;
             float cubed = amount * squared;
@@ -734,7 +734,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second source vector.</param>
         /// <param name="result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Max(ref Vector2 left, ref Vector2 right, out Vector2 result)
+        public static void Max(ref readonly Vector2 left, ref readonly Vector2 right, out Vector2 result)
         {
             result.X = (left.X > right.X) ? left.X : right.X;
             result.Y = (left.Y > right.Y) ? left.Y : right.Y;
@@ -761,7 +761,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second source vector.</param>
         /// <param name="result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Min(ref Vector2 left, ref Vector2 right, out Vector2 result)
+        public static void Min(ref readonly Vector2 left, ref readonly Vector2 right, out Vector2 result)
         {
             result.X = (left.X < right.X) ? left.X : right.X;
             result.Y = (left.Y < right.Y) ? left.Y : right.Y;
@@ -789,7 +789,7 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the reflected vector.</param>
         /// <remarks>Reflect only gives the direction of a reflection off a surface, it does not determine 
         /// whether the original vector was close enough to the surface to hit it.</remarks>
-        public static void Reflect(ref Vector2 vector, ref Vector2 normal, out Vector2 result)
+        public static void Reflect(ref readonly Vector2 vector, ref readonly Vector2 normal, out Vector2 result)
         {
             float dot = (vector.X * normal.X) + (vector.Y * normal.Y);
 
@@ -911,7 +911,7 @@ namespace Stride.Core.Mathematics
         /// <param name="vector">The vector to rotate.</param>
         /// <param name="rotation">The <see cref="Stride.Core.Mathematics.Quaternion"/> rotation to apply.</param>
         /// <param name="result">When the method completes, contains the transformed <see cref="Stride.Core.Mathematics.Vector4"/>.</param>
-        public static void Transform(ref Vector2 vector, ref Quaternion rotation, out Vector2 result)
+        public static void Transform(ref readonly Vector2 vector, ref readonly Quaternion rotation, out Vector2 result)
         {
             float x = rotation.X + rotation.X;
             float y = rotation.Y + rotation.Y;
@@ -947,7 +947,7 @@ namespace Stride.Core.Mathematics
         /// This array may be the same array as <paramref name="source"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-        public static void Transform(Vector2[] source, ref Quaternion rotation, Vector2[] destination)
+        public static void Transform(Vector2[] source, ref readonly Quaternion rotation, Vector2[] destination)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -984,7 +984,7 @@ namespace Stride.Core.Mathematics
         /// <param name="vector">The source vector.</param>
         /// <param name="transform">The transformation <see cref="Stride.Core.Mathematics.Matrix"/>.</param>
         /// <param name="result">When the method completes, contains the transformed <see cref="Stride.Core.Mathematics.Vector4"/>.</param>
-        public static void Transform(ref Vector2 vector, ref Matrix transform, out Vector4 result)
+        public static void Transform(ref readonly Vector2 vector, ref readonly Matrix transform, out Vector4 result)
         {
             result = new Vector4(
                 (vector.X * transform.M11) + (vector.Y * transform.M21) + transform.M41,
@@ -1014,7 +1014,7 @@ namespace Stride.Core.Mathematics
         /// <param name="destination">The array for which the transformed vectors are stored.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-        public static void Transform(Vector2[] source, ref Matrix transform, Vector4[] destination)
+        public static void Transform(Vector2[] source, ref readonly Matrix transform, Vector4[] destination)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -1025,7 +1025,7 @@ namespace Stride.Core.Mathematics
 
             for (int i = 0; i < source.Length; ++i)
             {
-                Transform(ref source[i], ref transform, out destination[i]);
+                Transform(ref source[i], in transform, out destination[i]);
             }
         }
 
@@ -1042,7 +1042,7 @@ namespace Stride.Core.Mathematics
         /// therefore makes the vector homogeneous. The homogeneous vector is often prefered when working
         /// with coordinates as the w component can safely be ignored.
         /// </remarks>
-        public static void TransformCoordinate(ref Vector2 coordinate, ref Matrix transform, out Vector2 result)
+        public static void TransformCoordinate(ref readonly Vector2 coordinate, ref readonly Matrix transform, out Vector2 result)
         {
             Vector4 vector = new Vector4();
             vector.X = (coordinate.X * transform.M11) + (coordinate.Y * transform.M21) + transform.M41;
@@ -1089,7 +1089,7 @@ namespace Stride.Core.Mathematics
         /// therefore makes the vector homogeneous. The homogeneous vector is often prefered when working
         /// with coordinates as the w component can safely be ignored.
         /// </remarks>
-        public static void TransformCoordinate(Vector2[] source, ref Matrix transform, Vector2[] destination)
+        public static void TransformCoordinate(Vector2[] source, ref readonly Matrix transform, Vector2[] destination)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -1100,7 +1100,7 @@ namespace Stride.Core.Mathematics
 
             for (int i = 0; i < source.Length; ++i)
             {
-                TransformCoordinate(ref source[i], ref transform, out destination[i]);
+                TransformCoordinate(ref source[i], in transform, out destination[i]);
             }
         }
 
@@ -1117,7 +1117,7 @@ namespace Stride.Core.Mathematics
         /// apply. This is often prefered for normal vectors as normals purely represent direction
         /// rather than location because normal vectors should not be translated.
         /// </remarks>
-        public static void TransformNormal(ref Vector2 normal, ref Matrix transform, out Vector2 result)
+        public static void TransformNormal(ref readonly Vector2 normal, ref readonly Matrix transform, out Vector2 result)
         {
             result = new Vector2(
                 (normal.X * transform.M11) + (normal.Y * transform.M21),
@@ -1160,7 +1160,7 @@ namespace Stride.Core.Mathematics
         /// apply. This is often prefered for normal vectors as normals purely represent direction
         /// rather than location because normal vectors should not be translated.
         /// </remarks>
-        public static void TransformNormal(Vector2[] source, ref Matrix transform, Vector2[] destination)
+        public static void TransformNormal(Vector2[] source, ref readonly Matrix transform, Vector2[] destination)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -1171,7 +1171,7 @@ namespace Stride.Core.Mathematics
 
             for (int i = 0; i < source.Length; ++i)
             {
-                TransformNormal(ref source[i], ref transform, out destination[i]);
+                TransformNormal(ref source[i], in transform, out destination[i]);
             }
         }
 
