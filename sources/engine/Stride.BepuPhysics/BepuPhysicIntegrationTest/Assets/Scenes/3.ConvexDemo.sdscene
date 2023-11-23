@@ -7,41 +7,25 @@ Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
         - ref!! 51d95bd6-85f7-428e-bb1c-1c29b077e964
-        - ref!! 8bf1540f-a7a1-4eee-b651-b0d382b7b6e4
-        - ref!! 080da274-66c1-4831-9dd8-31b5904a2516
-        - ref!! e9ae13c5-bd03-4fba-bc23-9cdccedc3f30
+        - ref!! b987c954-6a91-47b1-bbdb-139efd229450
+        - ref!! b5a7568b-fd59-4906-8fd5-37893c7dfaf8
         - ref!! f1fb92e1-1faf-4538-9668-05f1417337b6
-        - ref!! e522a120-e026-4063-aa2c-4651eb465a86
+        - ref!! e9ae13c5-bd03-4fba-bc23-9cdccedc3f30
     Parts:
         -   Entity:
-                Id: 080da274-66c1-4831-9dd8-31b5904a2516
-                Name: Skybox
+                Id: 1b0d43ab-4200-45e6-a3c1-2d428b218dfb
+                Name: Center
                 Components:
-                    869607da036a2f5b690715353a842081: !TransformComponent
-                        Id: 1d0c98c2-8769-4d9b-83ca-0eeed0e7b8b9
-                        Position: {X: 0.0, Y: 2.0, Z: -2.0}
+                    3a9f792ff4e116939381f11666d68541: !TransformComponent
+                        Id: 70894b06-e65c-45ad-b536-48f7940388b6
+                        Position: {X: 0.0, Y: 50.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
                         Children: {}
-                    f06cd2af4f2551332eac077780c19eff: !BackgroundComponent
-                        Id: 7fe7336f-170a-4e37-85ce-03bc49e23945
-                        Texture: be26a913-4c76-45ec-a5e0-9fd6ceead086:Skybox texture
-                    0d373b4518bc761153fde0d2540f118b: !LightComponent
-                        Id: 2a0ea1b3-59b6-45c3-a098-6c47486947aa
-                        Type: !LightSkybox
-                            Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
-                        Intensity: 0.8
-        -   Folder: null
-            Entity:
-                Id: 1b2733b1-9c7a-4ab2-9826-cfd63cb54422
-                Name: SpawnPoint
-                Components:
-                    71846c7436b43b677c35e91ff0eeca48: !TransformComponent
-                        Id: 86e63683-a7cd-4e99-a838-7b1dddb78c67
-                        Position: {X: 0.0, Y: 25.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
+                    6832c610657ed1c7d8c733d2b57e4218: !BepuPhysicIntegrationTest.Integration.Components.Colliders.ConvexHullColliderComponent,BepuPhysicIntegrationTest
+                        Id: e2a75a06-7275-4282-90b2-0e6acfcf23af
+                        Mass: 1.0
+                        ModelData: ref!! b2952cdd-63cd-4693-bb13-9d16fdcdd596
         -   Folder: null
             Entity:
                 Id: 25b5be55-3d0b-4a70-8b40-0b7c3f1c9108
@@ -97,17 +81,36 @@ Hierarchy:
                         FilteringMode: Fps
                         ResultPage: 1
         -   Entity:
-                Id: 8bf1540f-a7a1-4eee-b651-b0d382b7b6e4
+                Id: b5a7568b-fd59-4906-8fd5-37893c7dfaf8
+                Name: Skybox
+                Components:
+                    869607da036a2f5b690715353a842081: !TransformComponent
+                        Id: cd667f47-a8ad-4bf2-9b40-8e131859ad36
+                        Position: {X: 0.0, Y: 2.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f06cd2af4f2551332eac077780c19eff: !BackgroundComponent
+                        Id: f7070cbc-ab0b-4e11-b19d-cb4e14537fed
+                        Texture: be26a913-4c76-45ec-a5e0-9fd6ceead086:Skybox texture
+                        Intensity: 0.1
+                    0d373b4518bc761153fde0d2540f118b: !LightComponent
+                        Id: 075995be-6ccd-427e-b8a1-69ec6263e5b5
+                        Type: !LightSkybox
+                            Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
+                        Intensity: 0.1
+        -   Entity:
+                Id: b987c954-6a91-47b1-bbdb-139efd229450
                 Name: Directional light
                 Components:
                     ba7701dac6ff028029e020b0fa73a5ee: !TransformComponent
-                        Id: 05de422a-5305-4db8-acf8-9ee8490d0225
-                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
-                        Rotation: {X: -0.3502074, Y: 0.0, Z: 0.0, W: 0.9366722}
+                        Id: 29e9da79-3add-432f-856c-a6b1b29fa011
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 1.131334E-08, Y: -0.9659258, Z: -0.25881904, W: -4.222196E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     25d69094bde55b0756a7486a0e64b72d: !LightComponent
-                        Id: ec39063a-1d76-40fd-a8aa-401ca05dcb39
+                        Id: 07d5998c-162b-45fc-a5fc-fb45f8642d17
                         Enabled: false
                         Type: !LightDirectional
                             Color: !ColorRgbProvider
@@ -121,27 +124,28 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
+                        Intensity: 0.2
         -   Entity:
-                Id: e522a120-e026-4063-aa2c-4651eb465a86
-                Name: Wagon_A_green
+                Id: d11956cc-c083-481b-a12d-1626df8d32fe
+                Name: Hex
                 Components:
-                    823b9564e2dbf0977002158de5a0bf63: !TransformComponent
-                        Id: 745885d9-e459-4560-b70b-6afd67cddbbf
-                        Position: {X: -2.9499645, Y: 0.0, Z: -7.4459906}
+                    f346da7436b9be9f812464bf9743acbe: !TransformComponent
+                        Id: f7225640-729f-4c2b-8183-b6cac491f034
+                        Position: {X: 0.0, Y: 10.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    1b751bf65b1a08ee6b8cea4ee5e29f0f: !ModelComponent
-                        Id: 02806db4-e915-49d1-bf3b-e5c1dd6e02bf
-                        Model: 77e7e900-fdb0-4501-8a3f-8658f67c30d3:Models/Wagon_A_green
-                        Materials: {}
-                    f437dca156e6ebd793c30fb355eeeb06: !BepuPhysicIntegrationTest.Integration.Components.Colliders.ConvexHullColliderComponent,BepuPhysicIntegrationTest
-                        Id: 55ace7fd-1ea1-4d15-8938-012075d7141d
-                        Mass: 1.0
-                        ModelData: ref!! 02806db4-e915-49d1-bf3b-e5c1dd6e02bf
-                    21a07fedd80c2c16b8234d8abe958e86: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
-                        Id: 368d4732-14bf-46f8-9824-78585c6126d3
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children:
+                            c8544949c75b70c2d515d81708351533: ref!! 70894b06-e65c-45ad-b536-48f7940388b6
+                    2574f4e09c77ec7a64bcf8d80a33ca40: !ModelComponent
+                        Id: b2952cdd-63cd-4693-bb13-9d16fdcdd596
+                        Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
+                        Materials:
+                            896d342a02d524b28d3a30b1b63195d0~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
+                            662d82b5c3b080ce82abc57939239817~1: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
+                    ac36aeb9e10304d8e1ba30933de846e4: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 3b7024e6-a5db-4aaf-b630-c58b1e2780bd
                         SimulationIndex: 0
+                        Kinematic: false
         -   Entity:
                 Id: e9ae13c5-bd03-4fba-bc23-9cdccedc3f30
                 Name: BepuPhysics
@@ -153,27 +157,14 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a5869266007b42af6b5ba5e5468a5478: ref!! 5363a599-3161-4a1c-b60b-05f9bde2e216
-                            e277ee076b67705c014015e2d77f9c92: ref!! 86e63683-a7cd-4e99-a838-7b1dddb78c67
-                    2a98c48e5b96344a0ab24da7de9a794b: !BepuPhysicIntegrationTest.Integration.Components.Utils.SpawnerComponent,BepuPhysicIntegrationTest
-                        Id: 8e5fe915-042d-4065-937d-a778e2550e6f
-                        SimulationIndex: 0
-                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
-                        Instancing: ref!! 111e74c1-c110-46d9-982e-12db7994528e
-                        SpawnPosition: ref!! 1b2733b1-9c7a-4ab2-9826-cfd63cb54422
-                        Count: 50000
-                        SpawnRate: 1.0
-                        SpawnVelocity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        SpawnVelocityRange: {X: 20.0, Y: 0.0, Z: 20.0}
+                            b9583be1ef532576598946b565ad7cda: ref!! f7225640-729f-4c2b-8183-b6cac491f034
                     eeabfda15ef248d6bb1e4f6914eb65e5: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
                         Id: db22e701-c1c0-43cd-a3ed-e5c432420af0
                         SimulationIndex: 0
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuCube
                         Instancing: ref!! 111e74c1-c110-46d9-982e-12db7994528e
                         SpawnPosition: ref!! 51d95bd6-85f7-428e-bb1c-1c29b077e964
-                        Speed: 50.0
-                    8ff30ff71af73fad50d330cdb9500d9a: !BepuPhysicIntegrationTest.Integration.Components.Utils.TimeControlComponent,BepuPhysicIntegrationTest
-                        Id: 350b3428-13ae-4cf6-b2c6-7fd0703744fb
-                        SimulationIndex: 0
+                        Speed: 10.0
         -   Entity:
                 Id: f1fb92e1-1faf-4538-9668-05f1417337b6
                 Name: CubeInstancing

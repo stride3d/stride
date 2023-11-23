@@ -30,7 +30,7 @@ Hierarchy:
                         Id: 62846940-f48a-454c-820e-f8f2db7e9cce
                         Type: !LightSkybox
                             Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
-                        Intensity: 0.05
+                        Intensity: 0.1
         -   Entity:
                 Id: 1211ef6c-581c-40c2-883d-dba446451007
                 Name: BepuPhysics
@@ -116,7 +116,7 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-                        Intensity: 0.1
+                        Intensity: 0.2
         -   Entity:
                 Id: 89330a84-831a-4de1-94f2-b3b015aeeaea
                 Name: Camera

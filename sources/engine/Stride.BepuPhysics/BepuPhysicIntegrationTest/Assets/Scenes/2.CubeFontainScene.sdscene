@@ -10,43 +10,8 @@ Hierarchy:
         - ref!! f697f414-2044-4c84-8732-8cce1ceeae80
         - ref!! 4369c304-c370-4cf3-b5bd-62e0e7b080bd
         - ref!! 6b37da33-fa50-4b6b-8c4f-d7844fccfca5
-        - ref!! f8347e56-69ac-46b7-a7b8-904e15b3f147
-        - ref!! 21523502-78ca-4173-895e-8355faade30c
-        - ref!! 354917c7-64a8-4bf1-a0da-0240f94558c1
         - ref!! ffc86577-fe3e-4111-a33f-d71bcaf322f4
     Parts:
-        -   Entity:
-                Id: 21523502-78ca-4173-895e-8355faade30c
-                Name: ConeG
-                Components:
-                    ec929ff9fafc0957510a58bf8d563db1: !TransformComponent
-                        Id: 44e5565c-cede-4562-99e9-541d350a6c8c
-                        Position: {X: 0.0, Y: 15.0, Z: 50.0}
-                        Rotation: {X: 0.76604444, Y: 0.0, Z: 0.0, W: 0.64278764}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            d60fa30d58ac4572902844dc1bdbcc7d: ref!! ffbd52da-2915-4293-9223-326de5d2af03
-                    2d831e8786afdd6dc3daa4eb73e20fbd: !ModelComponent
-                        Id: 927f9515-c47f-409f-9f83-b56552095d1e
-                        Model: 65e9d484-84fb-4acd-a87c-f12c2dcf0da2:Models/Cone
-                        Materials:
-                            4b7476ce466bddb096388de22ed58ff5~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
-        -   Entity:
-                Id: 354917c7-64a8-4bf1-a0da-0240f94558c1
-                Name: ConeB
-                Components:
-                    ec929ff9fafc0957510a58bf8d563db1: !TransformComponent
-                        Id: 5b41ab41-d6ef-4ec4-a779-81efab2e594f
-                        Position: {X: 10.0, Y: 15.0, Z: 50.0}
-                        Rotation: {X: 0.76604444, Y: 0.0, Z: 0.0, W: 0.64278764}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            33c671b9420ab5e3ca8d8464e1c6d6cb: ref!! 43d88925-e20c-4cef-8573-62d1102e5fd4
-                    2d831e8786afdd6dc3daa4eb73e20fbd: !ModelComponent
-                        Id: ed48e497-6fab-43ab-b2bd-50867957d74a
-                        Model: 65e9d484-84fb-4acd-a87c-f12c2dcf0da2:Models/Cone
-                        Materials:
-                            6b7660b4e75aade38aa4e3752bc9f4ad~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
         -   Entity:
                 Id: 4369c304-c370-4cf3-b5bd-62e0e7b080bd
                 Name: Skybox
@@ -65,31 +30,7 @@ Hierarchy:
                         Id: 8f8e460e-e946-4656-94f4-b859cb0c8194
                         Type: !LightSkybox
                             Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
-                        Intensity: 0.005
-        -   Entity:
-                Id: 47da8be4-66a3-4133-b146-983d9243d3e1
-                Name: Spot light
-                Components:
-                    d7f39ad4f225fd671cc86aff9a37dfdf: !TransformComponent
-                        Id: ffbd52da-2915-4293-9223-326de5d2af03
-                        Position: {X: 0.0, Y: -0.7, Z: 0.0}
-                        Rotation: {X: -0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    9c7dd03087a0afead1364dc4539cfc26: !LightComponent
-                        Id: 3a099439-55f3-49c9-bf5b-3314d1454822
-                        Type: !LightSpot
-                            Color: !ColorRgbProvider
-                                Value: {R: 0.0, G: 1.0, B: 0.0}
-                            Range: 200.0
-                            AngleInner: 50.0
-                            AngleOuter: 90.0
-                            UVScale: {X: 1.0, Y: 1.0}
-                            UVOffset: {X: 0.0, Y: 0.0}
-                            Shadow: !LightStandardShadowMap
-                                BiasParameters:
-                                    DepthBias: 0.001
-                        Intensity: 300.0
+                        Intensity: 0.1
         -   Entity:
                 Id: 65fcb2f6-453c-4f32-b23a-17f74897d19a
                 Name: SpawnPoint
@@ -139,55 +80,6 @@ Hierarchy:
                     b18e400f6ef857c50bac5d706493e368: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
                         Id: 805641b3-f967-41df-b273-a1063faecd6b
                         SimulationIndex: 0
-        -   Entity:
-                Id: 73e4d569-78a9-4069-ab9f-516c51ddfc35
-                Name: Spot light
-                Components:
-                    d7f39ad4f225fd671cc86aff9a37dfdf: !TransformComponent
-                        Id: 43d88925-e20c-4cef-8573-62d1102e5fd4
-                        Position: {X: 0.0, Y: -0.7, Z: 0.0}
-                        Rotation: {X: -0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    9c7dd03087a0afead1364dc4539cfc26: !LightComponent
-                        Id: 05350a00-0198-415e-b02c-45619f1ea5ec
-                        Type: !LightSpot
-                            Color: !ColorRgbProvider
-                                Value: {R: 0.0, G: 0.0, B: 1.0}
-                            Range: 200.0
-                            AngleInner: 50.0
-                            AngleOuter: 90.0
-                            UVScale: {X: 1.0, Y: 1.0}
-                            UVOffset: {X: 0.0, Y: 0.0}
-                            Shadow: !LightStandardShadowMap
-                                BiasParameters:
-                                    DepthBias: 0.001
-                        Intensity: 300.0
-        -   Entity:
-                Id: a76f4c02-a7ad-4bf9-a664-203e7c7a72c3
-                Name: Spot light
-                Components:
-                    d7f39ad4f225fd671cc86aff9a37dfdf: !TransformComponent
-                        Id: 6a657e3d-a5df-49ce-a250-3f637aa89a6c
-                        Position: {X: 0.0, Y: -0.7, Z: 0.0}
-                        Rotation: {X: -0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    9c7dd03087a0afead1364dc4539cfc26: !LightComponent
-                        Id: 2524c169-7382-45c6-9d7d-330332279335
-                        Type: !LightSpot
-                            Color: !ColorRgbProvider
-                                Value: {R: 1.0, G: 0.0, B: 0.0}
-                            Range: 200.0
-                            AngleInner: 50.0
-                            AngleOuter: 90.0
-                            UVScale: {X: 1.0, Y: 1.0}
-                            UVOffset: {X: 0.0, Y: 0.0}
-                            Shadow: !LightStandardShadowMap
-                                BiasParameters:
-                                    DepthBias: 0.001
-                                Debug: true
-                        Intensity: 300.0
         -   Entity:
                 Id: b155c235-5d9a-4749-a9b7-733d3b0b5d1e
                 Name: Camera
@@ -245,23 +137,7 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-                        Intensity: 0.1
-        -   Entity:
-                Id: f8347e56-69ac-46b7-a7b8-904e15b3f147
-                Name: ConeR
-                Components:
-                    ec929ff9fafc0957510a58bf8d563db1: !TransformComponent
-                        Id: a2dc7974-5dc7-44a0-832f-781772716f82
-                        Position: {X: -10.0, Y: 15.0, Z: 50.0}
-                        Rotation: {X: 0.76604444, Y: 0.0, Z: 0.0, W: 0.64278764}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            a08209efd2daa2f528b954ab9637953f: ref!! 6a657e3d-a5df-49ce-a250-3f637aa89a6c
-                    2d831e8786afdd6dc3daa4eb73e20fbd: !ModelComponent
-                        Id: 65329be0-ecf8-4606-9f05-c6e3104650a9
-                        Model: 65e9d484-84fb-4acd-a87c-f12c2dcf0da2:Models/Cone
-                        Materials:
-                            93d768bb43cb750b4273d21353e24a00~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                        Intensity: 0.2
         -   Entity:
                 Id: ffc86577-fe3e-4111-a33f-d71bcaf322f4
                 Name: BepuPhysics

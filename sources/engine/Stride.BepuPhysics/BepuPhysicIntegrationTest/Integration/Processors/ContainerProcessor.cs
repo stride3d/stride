@@ -22,7 +22,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
-        private BepuConfiguration _bepuConfiguration;
+        private BepuConfiguration _bepuConfiguration = new();
         private IGame _game;
 
         public ContainerProcessor()
@@ -34,19 +34,19 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         {
             var configService = Services.GetService<IGameSettingsService>();
             _bepuConfiguration = configService.Settings.Configurations.Get<BepuConfiguration>();
-            if (_bepuConfiguration == null)
+            _game = Services.GetService<IGame>();
+
+            if (_bepuConfiguration.BepuSimulations.Count == 0)
             {
-                _bepuConfiguration = new BepuConfiguration();
                 _bepuConfiguration.BepuSimulations.Add(new BepuSimulation());
             }
 
-            _game = Services.GetService<IGame>();
             Services.AddService(_bepuConfiguration);
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            component.ContainerData = new(component, _bepuConfiguration.BepuSimulations[component.SimulationIndex], _game);
+            component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.BuildOrUpdateContainer();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
@@ -131,8 +131,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             //totalWatch.Stop();
             //Debug.WriteLine($"-   Sim update function call : {simUpdWatch.ElapsedMilliseconds}\n-   Sim timestep : {simStepWatch.ElapsedMilliseconds}\n-   Position update : {parForWatch.ElapsedMilliseconds}\nEnd in : {totalWatch.ElapsedMilliseconds}");
             base.Update(time);
-		}
-	}
+        }
+    }
 
     internal class ContainerData
     {
@@ -149,14 +149,14 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         internal StaticHandle SHandle { get; set; } = new(-1);
 
         private IGame _game;
+        public bool Exist => isStatic ? BepuSimulation.Simulation.Statics.StaticExists(SHandle) : BepuSimulation.Simulation.Bodies.BodyExists(BHandle);
 
-        public ContainerData(ContainerComponent containerComponent, BepuSimulation bepuSimulation, IGame game)
+        public ContainerData(ContainerComponent containerComponent, BepuConfiguration bepuConfiguration, IGame game)
         {
             ContainerComponent = containerComponent;
-            BepuSimulation = bepuSimulation;
+            BepuConfiguration = bepuConfiguration;
             _game = game;
 
-        public bool Exist => isStatic ? BepuSimulation.Simulation.Statics.StaticExists(SHandle) : BepuSimulation.Simulation.Bodies.BodyExists(BHandle);
         }
 
         internal void BuildOrUpdateContainer()
@@ -290,21 +290,23 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
             if (ShapeIndex.Exists)
                 BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
-		}
+        }
 
-		private Span<Vector3> GetMeshColliderShape(ConvexHullColliderComponent collider)
-		{
-			// TODO: Create an extension that returns a numeric vectors instead of Stride Vector.
-			(var verts, var indices) = collider.ModelData.Model.GetMeshVerticesAndIndices(_game);
-			Vector3[] bepuVerts = new Vector3[indices.Count];
+        private Span<System.Numerics.Vector3> GetMeshColliderShape(ConvexHullColliderComponent collider)
+        {
+            if (collider.ModelData == null)
+                return new();
 
-			for (int i = 0; i < indices.Count; i++)
-			{
-                bepuVerts[i] = verts[indices[i]].ToNumericVector();
-			}
+            (var verts, var indices) = collider.ModelData.Model.GetMeshVerticesAndIndices(_game);
+            System.Numerics.Vector3[] bepuVerts = new System.Numerics.Vector3[indices.Count];
 
-			return bepuVerts.AsSpan();
-		}
-	}
+            for (int i = 0; i < indices.Count; i++)
+            {
+                bepuVerts[i] = (verts[indices[i]] * collider.Entity.Transform.Scale).ToNumericVector(); //Warning, convexHull is the only collider to be scaled.
+            }
+
+            return bepuVerts.AsSpan();
+        }
+    }
 
 }
