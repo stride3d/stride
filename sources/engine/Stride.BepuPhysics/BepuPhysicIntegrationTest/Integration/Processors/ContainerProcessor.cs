@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Numerics;
 using System.Threading.Tasks;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
@@ -9,6 +8,7 @@ using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
@@ -95,11 +95,11 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     var a = Parallel.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) =>
                     {
                         var handle = bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                        var entity = bepuSim.Bodies[handle];
+                        var BodyContainer = bepuSim.BodiesContainers[handle];
                         var body = bepuSim.Simulation.Bodies[handle];
 
-                        var entityTransform = entity.Transform;
-                        entityTransform.Position = body.Pose.Position.ToStrideVector();
+                        var entityTransform = BodyContainer.Entity.Transform;
+                        entityTransform.Position = body.Pose.Position.ToStrideVector() - BodyContainer.CenterOfMass;
                         entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
                         entityTransform.UpdateWorldMatrix();
                     });
@@ -109,11 +109,11 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     for (int i = 0; i < bepuSim.Simulation.Bodies.ActiveSet.Count; i++)
                     {
                         var handle = bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                        var entity = bepuSim.Bodies[handle];
+                        var BodyContainer = bepuSim.BodiesContainers[handle];
                         var body = bepuSim.Simulation.Bodies[handle];
 
-                        var entityTransform = entity.Transform;
-                        entityTransform.Position = body.Pose.Position.ToStrideVector();
+                        var entityTransform = BodyContainer.Entity.Transform;
+                        entityTransform.Position = body.Pose.Position.ToStrideVector() - BodyContainer.CenterOfMass;
                         entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
                         entityTransform.UpdateWorldMatrix();
                     }
@@ -139,10 +139,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         internal BodyInertia ShapeInertia { get; set; }
         internal TypedIndex ShapeIndex { get; set; }
 
-        internal BodyDescription BDescription { get; set; }
         internal BodyHandle BHandle { get; set; } = new(-1);
-
-        internal StaticDescription SDescription { get; set; }
         internal StaticHandle SHandle { get; set; } = new(-1);
 
         public bool Exist => isStatic ? BepuSimulation.Simulation.Statics.StaticExists(SHandle) : BepuSimulation.Simulation.Bodies.BodyExists(BHandle);
@@ -162,79 +159,52 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             if (ShapeIndex.Exists)
                 BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
 
-            var colliders = ContainerComponent.Entity.GetAll<ColliderComponent>();
+            ContainerComponent.Entity.Transform.UpdateWorldMatrix();
+            ContainerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
+
+            var colliders = ContainerComponent.Entity.GetComponentsInDescendants<ColliderComponent>(true);
 
             if (colliders.Count() == 0)
             {
+                DestroyContainer();
                 return;
-            }
-            else if (colliders.Count() == 1)
-            {
-                switch (colliders.First())
-                {
-                    case BoxColliderComponent box:
-                        var shapeB = new Box(box.Size.X, box.Size.Y, box.Size.Z);
-                        ShapeInertia = shapeB.ComputeInertia(box.Mass);
-                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeB);
-                        break;
-                    case SphereColliderComponent sphere:
-                        var shapeS = new Sphere(sphere.Radius);
-                        ShapeInertia = shapeS.ComputeInertia(sphere.Mass);
-                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeS);
-                        break;
-                    case CapsuleColliderComponent capsule:
-                        var shapeC = new Capsule(capsule.Radius, capsule.Length);
-                        ShapeInertia = shapeC.ComputeInertia(capsule.Mass);
-                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeC);
-                        break;
-                    case ConvexHullColliderComponent convexHull: //TODO
-                        var shapeCh = new ConvexHull();
-                        ShapeInertia = shapeCh.ComputeInertia(convexHull.Mass);
-                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeCh);
-                        break;
-                    case CylinderColliderComponent cylinder:
-                        var shapeCy = new Cylinder(cylinder.Radius, cylinder.Length);
-                        ShapeInertia = shapeCy.ComputeInertia(cylinder.Mass);
-                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeCy);
-                        break;
-                    case TriangleColliderComponent triangle:
-                        var shapeT = new Triangle(triangle.A.ToNumericVector(), triangle.B.ToNumericVector(), triangle.C.ToNumericVector());
-                        ShapeInertia = shapeT.ComputeInertia(triangle.Mass);
-                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(shapeT);
-                        break;
-                    default:
-                        throw new Exception("Unknown Shape");
-                }
             }
             else
             {
-                BepuUtilities.Memory.Buffer<CompoundChild> compoundChildren;
-                BodyInertia shapeInertia;
-                Vector3 shapeCenter;
-
                 using (var compoundBuilder = new CompoundBuilder(BepuSimulation.BufferPool, BepuSimulation.Simulation.Shapes, colliders.Count()))
                 {
+                    BepuUtilities.Memory.Buffer<CompoundChild> compoundChildren;
+                    BodyInertia shapeInertia;
+                    System.Numerics.Vector3 shapeCenter;
+
                     foreach (var collider in colliders)
                     {
+                        collider.Entity.Transform.UpdateWorldMatrix();
+                        collider.Entity.Transform.WorldMatrix.Decompose(out Vector3 colliderWorldScale, out Quaternion colliderWorldRotation, out Vector3 colliderWorldTranslation);
+
+                        var localTra = colliderWorldTranslation - containerWorldTranslation;
+                        var localRot = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation;
+                        var localPose = new RigidPose(localTra.ToNumericVector(), localRot.ToNumericQuaternion());
+
                         switch (collider)
                         {
                             case BoxColliderComponent box:
-                                compoundBuilder.Add(new Box(box.Size.X, box.Size.Y, box.Size.Z), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                compoundBuilder.Add(new Box(box.Size.X, box.Size.Y, box.Size.Z), localPose, collider.Mass);
                                 break;
                             case SphereColliderComponent sphere:
-                                compoundBuilder.Add(new Sphere(sphere.Radius), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                compoundBuilder.Add(new Sphere(sphere.Radius), localPose, collider.Mass);
                                 break;
                             case CapsuleColliderComponent capsule:
-                                compoundBuilder.Add(new Capsule(capsule.Radius, capsule.Length), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                compoundBuilder.Add(new Capsule(capsule.Radius, capsule.Length), localPose, collider.Mass);
                                 break;
                             case ConvexHullColliderComponent convexHull: //TODO
-                                compoundBuilder.Add(new ConvexHull(), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                compoundBuilder.Add(new ConvexHull(), localPose, collider.Mass);
                                 break;
                             case CylinderColliderComponent cylinder:
-                                compoundBuilder.Add(new Cylinder(cylinder.Radius, cylinder.Length), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                compoundBuilder.Add(new Cylinder(cylinder.Radius, cylinder.Length), localPose, collider.Mass);
                                 break;
                             case TriangleColliderComponent triangle:
-                                compoundBuilder.Add(new Triangle(triangle.A.ToNumericVector(), triangle.B.ToNumericVector(), triangle.C.ToNumericVector()), collider.Entity.Transform.ToBepuPose(), collider.Mass);
+                                compoundBuilder.Add(new Triangle(triangle.A.ToNumericVector(), triangle.B.ToNumericVector(), triangle.C.ToNumericVector()), localPose, collider.Mass);
                                 break;
                             default:
                                 throw new Exception("Unknown Shape");
@@ -242,16 +212,14 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     }
 
                     compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
-                }
 
-                ShapeInertia = ShapeInertia;
-                ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
+                    ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
+                    ShapeInertia = shapeInertia;
+                    ContainerComponent.CenterOfMass = shapeCenter.ToStrideVector();
+                }
             }
 
-            if (ShapeInertia.InverseMass == float.PositiveInfinity) //TODO : don't compute inertia (up) if kinematic or static
-                ShapeInertia = new BodyInertia();
-
-            var pose = ContainerComponent.Entity.Transform.ToBepuPose();
+            var ContainerPose = new RigidPose(containerWorldTranslation.ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
             switch (ContainerComponent)
             {
                 case BodyContainerComponent _c:
@@ -261,32 +229,34 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                         ShapeInertia = new BodyInertia();
                     }
 
-                    BDescription = BodyDescription.CreateDynamic(pose, ShapeInertia, ShapeIndex, .1f);
+                    var bDescription = BodyDescription.CreateDynamic(ContainerPose, ShapeInertia, ShapeIndex, .1f);
 
                     if (BHandle.Value != -1)
                     {
-                        BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, BDescription);
+                        BepuSimulation.Simulation.Bodies[BHandle].GetDescription(out var tmpDesc);
+                        bDescription.Velocity = tmpDesc.Velocity; //Keep velocity when updating
+                        BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, bDescription);
                     }
                     else
                     {
-                        BHandle = BepuSimulation.Simulation.Bodies.Add(BDescription);
-                        BepuSimulation.Bodies.Add(BHandle, ContainerComponent.Entity);
+                        BHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
+                        BepuSimulation.BodiesContainers.Add(BHandle, _c);
                     }
-                  
+
                     break;
                 case StaticContainerComponent _c:
                     isStatic = true;
 
-                    SDescription = new StaticDescription(pose, ShapeIndex);
+                    var sDescription = new StaticDescription(ContainerPose, ShapeIndex);
 
                     if (SHandle.Value != -1)
                     {
-                        BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, SDescription);
+                        BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, sDescription);
                     }
                     else
                     {
-                        SHandle = BepuSimulation.Simulation.Statics.Add(SDescription);
-                        BepuSimulation.Statics.Add(SHandle, ContainerComponent.Entity);
+                        SHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
+                        BepuSimulation.StaticsContainers.Add(SHandle, _c);
                     }
 
                     break;
@@ -296,16 +266,18 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         }
         internal void DestroyContainer()
         {
+            ContainerComponent.CenterOfMass = new();
+
             if (BHandle.Value != -1 && BepuSimulation.Simulation.Bodies.BodyExists(BHandle))
             {
                 BepuSimulation.Simulation.Bodies.Remove(BHandle);
-                BepuSimulation.Bodies.Remove(BHandle);
+                BepuSimulation.BodiesContainers.Remove(BHandle);
             }
 
             if (SHandle.Value != -1 && BepuSimulation.Simulation.Statics.StaticExists(SHandle))
             {
                 BepuSimulation.Simulation.Statics.Remove(SHandle);
-                BepuSimulation.Statics.Remove(SHandle);
+                BepuSimulation.StaticsContainers.Remove(SHandle);
             }
 
             if (ShapeIndex.Exists)

@@ -25,6 +25,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
             }
         }
 
-        internal ContainerComponent? Container => Entity.GetComponentsInParents<ContainerComponent>(true).FirstOrDefault();
+        internal ContainerComponent? Container => Entity?.GetComponentsInParents<ContainerComponent>(true).FirstOrDefault();
     }
 }

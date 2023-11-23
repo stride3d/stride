@@ -6,9 +6,6 @@ Ordered by importance !
 https://github.com/stride3d/stride/blob/938da4928cbddd9194f9a07c7380d5cc115f521e/sources/engine/Stride.Physics/Engine/PhysicsShapesRenderingService.cs#L15
 https://github.com/stride3d/stride/blob/938da4928cbddd9194f9a07c7380d5cc115f521e/sources/engine/Stride.Physics/Engine/PhysicsProcessor.cs#L35
 
--Fix World pos / local pos
-Currently, Only the LocalPosition of the Entity containing the COLLIDER (not the container) is used.
-
 -Character controller (https://github.com/Nicogo1705/BepuPhysicIntegrationTest/issues/8)
 
 -Add all constraints with examples in the scene (like ConstraintTestDemo from Bepu)

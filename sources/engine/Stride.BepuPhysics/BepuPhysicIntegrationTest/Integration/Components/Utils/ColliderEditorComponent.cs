@@ -28,18 +28,19 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
             if (Input.IsKeyPressed(Keys.U))
             {
-                ((BoxColliderComponent)Component).Size += new Stride.Core.Mathematics.Vector3(0, 1, 0);
-                ((BoxColliderComponent)Component).Entity.Transform.Scale += new Stride.Core.Mathematics.Vector3(0, 1, 0);
+                ((BoxColliderComponent)Component).Size += new Stride.Core.Mathematics.Vector3(1, 1, 1);
+                ((BoxColliderComponent)Component).Entity.Transform.Scale += new Stride.Core.Mathematics.Vector3(1, 1, 1);
             }
             if (Input.IsKeyPressed(Keys.J))
             {
-                ((BoxColliderComponent)Component).Size -= new Stride.Core.Mathematics.Vector3(0, 1, 0);
-                ((BoxColliderComponent)Component).Entity.Transform.Scale -= new Stride.Core.Mathematics.Vector3(0, 1, 0);
+                ((BoxColliderComponent)Component).Size -= new Stride.Core.Mathematics.Vector3(1, 1, 1);
+                ((BoxColliderComponent)Component).Entity.Transform.Scale -= new Stride.Core.Mathematics.Vector3(1, 1, 1);
             }
             if (Input.IsKeyPressed(Keys.N))
             {
-                var rr = (BodyContainerComponent)Component.Container;
-                rr.Kinematic = !rr.Kinematic;
+                var rr = (BodyContainerComponent?)Component.Container;
+                if (rr != null)
+                    rr.Kinematic = !rr.Kinematic;
             }
             DebugText.Print($"Size : {((BoxColliderComponent)Component).Size} (numpad u & j) + n for toggle kinematic", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 350));
         }

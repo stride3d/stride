@@ -21,9 +21,9 @@ Hierarchy:
                     5cf97cba2e3502e8731ac5594e226524: !BepuPhysicIntegrationTest.SceneSelector,BepuPhysicIntegrationTest
                         Id: 5cad9763-9b53-4373-bdf7-1ba4e98e9905
                         MainScene: c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
-                        Scene0: null
-                        Scene1: aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/CubeFontainScene
-                        Scene2: effd55be-d7a3-4d2a-89d7-7ef55924d9e1:Scenes/Constraint
+                        Scene0: 21f7a4e4-7908-4ce9-ad5c-76a910db6167:Scenes/Colliders
+                        Scene1: effd55be-d7a3-4d2a-89d7-7ef55924d9e1:Scenes/Constraint
+                        Scene2: aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/CubeFontainScene
                         Scene3: null
                         Scene4: null
                         Scene5: null

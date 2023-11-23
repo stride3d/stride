@@ -1,5 +1,6 @@
 ﻿using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 
@@ -23,6 +24,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
                 ContainerData?.BuildOrUpdateContainer();
             }
         }
+
+        public Vector3 CenterOfMass { get; internal set; } = new Vector3();
 
         /// <summary>
         /// ContainerData is the bridge to Bepu.
