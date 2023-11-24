@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
@@ -10,8 +8,6 @@ using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
-using BepuUtilities.Collections;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -148,7 +144,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         internal BodyHandle BHandle { get; set; } = new(-1);
         internal StaticHandle SHandle { get; set; } = new(-1);
 
-        private IGame _game;
+        private readonly IGame _game;
         public bool Exist => isStatic ? BepuSimulation.Simulation.Statics.StaticExists(SHandle) : BepuSimulation.Simulation.Bodies.BodyExists(BHandle);
 
         public ContainerData(ContainerComponent containerComponent, BepuConfiguration bepuConfiguration, IGame game)

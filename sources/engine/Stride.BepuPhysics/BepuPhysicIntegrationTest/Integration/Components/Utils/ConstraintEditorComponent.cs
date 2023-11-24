@@ -1,6 +1,5 @@
 ﻿using BepuPhysicIntegrationTest.Integration.Components.Constraints;
-using BepuPhysicIntegrationTest.Integration.Configurations;
-using BepuPhysics.Constraints;
+using BepuPhysicIntegrationTest.Integration.Extensions;
 using Stride.Engine;
 using Stride.Input;
 
@@ -19,7 +18,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void Update()
         {
-            if (Component == null || ! (Component is BallSocketConstraintComponent))
+            if (Component == null || !(Component is BallSocketConstraintComponent))
                 return;
 
             if (Input.IsKeyPressed(Keys.I))

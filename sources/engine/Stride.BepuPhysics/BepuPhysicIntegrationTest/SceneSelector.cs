@@ -1,4 +1,4 @@
-﻿using BepuPhysicIntegrationTest.Integration;
+﻿using BepuPhysicIntegrationTest.Integration.Extensions;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Input;

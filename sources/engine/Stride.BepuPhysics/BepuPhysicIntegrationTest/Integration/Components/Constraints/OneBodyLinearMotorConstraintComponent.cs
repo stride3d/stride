@@ -1,4 +1,5 @@
-﻿using BepuPhysicIntegrationTest.Integration.Processors;
+﻿using BepuPhysicIntegrationTest.Integration.Extensions;
+using BepuPhysicIntegrationTest.Integration.Processors;
 using BepuPhysics.Constraints;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -12,7 +13,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     [ComponentCategory("Bepu - Constraint")]
     public class OneBodyLinearMotorConstraintComponent : ConstraintComponent
     {
-        internal OneBodyLinearMotor _bepuConstraint = new() { Settings = new MotorSettings(1000,10) };
+        internal OneBodyLinearMotor _bepuConstraint = new() { Settings = new MotorSettings(1000, 10) };
 
         public Vector3 LocalOffset
         {

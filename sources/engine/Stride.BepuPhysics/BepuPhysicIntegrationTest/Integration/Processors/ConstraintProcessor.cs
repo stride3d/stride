@@ -1,32 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using BepuPhysics;
-using BepuPhysics.Constraints;
-using Stride.Core.Annotations;
-using Stride.Engine;
 using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Configurations;
-using SharpFont.MultipleMasters;
+using BepuPhysics;
+using Stride.Core.Annotations;
+using Stride.Engine;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
     public class ConstraintProcessor : EntityProcessor<ConstraintComponent>
-	{
-		private BepuConfiguration _bepuConfig = new();
+    {
+        private BepuConfiguration _bepuConfig = new();
 
-		public ConstraintProcessor()
+        public ConstraintProcessor()
         {
             Order = 10020;
         }
 
-		protected override void OnSystemAdd()
-		{
-			_bepuConfig = Services.GetService<BepuConfiguration>();
-		}
+        protected override void OnSystemAdd()
+        {
+            _bepuConfig = Services.GetService<BepuConfiguration>();
+        }
 
-		protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
+        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
         {
             base.OnEntityComponentAdding(entity, component, data);
             component.ConstraintData = new(component, _bepuConfig.BepuSimulations[0]); //TODO : get Index from bodies
@@ -106,7 +102,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 case DistanceServoConstraintComponent _dscc:
                     CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _dscc._bepuConstraint);
                     break;
-                case HingeConstraintComponent  _hcc:
+                case HingeConstraintComponent _hcc:
                     CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _hcc._bepuConstraint);
                     break;
                 case LinearAxisLimitConstraintComponent _lalcc:

@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using BepuPhysicIntegrationTest.Integration.Processors;
+﻿using BepuPhysicIntegrationTest.Integration.Processors;
 using BepuPhysics;
 using Stride.Core;
 using Stride.Engine;
@@ -27,7 +26,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
 
         public BodyReference? GetPhysicBody()
         {
-            return ContainerData?.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];           
+            return ContainerData?.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
         }
 
     }

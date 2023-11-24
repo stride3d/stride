@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;

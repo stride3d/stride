@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
+using BepuPhysicIntegrationTest.Integration.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 

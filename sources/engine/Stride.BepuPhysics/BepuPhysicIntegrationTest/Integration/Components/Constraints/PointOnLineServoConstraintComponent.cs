@@ -1,4 +1,5 @@
-﻿using BepuPhysicIntegrationTest.Integration.Processors;
+﻿using BepuPhysicIntegrationTest.Integration.Extensions;
+using BepuPhysicIntegrationTest.Integration.Processors;
 using BepuPhysics.Constraints;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -15,7 +16,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
         internal PointOnLineServo _bepuConstraint = new()
         {
             SpringSettings = new SpringSettings(30, 5),
-            ServoSettings = new ServoSettings(10,1,1000)
+            ServoSettings = new ServoSettings(10, 1, 1000)
         };
 
         public Vector3 LocalOffsetA

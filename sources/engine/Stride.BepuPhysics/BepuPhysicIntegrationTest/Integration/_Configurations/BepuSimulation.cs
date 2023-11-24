@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Components.Utils;
+using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.Constraints;
@@ -9,7 +10,6 @@ using BepuUtilities;
 using BepuUtilities.Memory;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine;
 
 namespace BepuPhysicIntegrationTest.Integration.Configurations;
 
@@ -73,7 +73,7 @@ public class BepuSimulation
     [Display(30, "Parallel update")]
     public bool ParallelUpdate { get; set; } = true;
     [Display(31, "Simulation fixed step")]
-    public float SimulationFixedStep { get; set; } = 1000/60;
+    public float SimulationFixedStep { get; set; } = 1000 / 60;
     [Display(32, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 

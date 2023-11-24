@@ -1,6 +1,5 @@
-﻿using BepuPhysicIntegrationTest.Integration.Components.Constraints;
+﻿using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysicIntegrationTest.Integration.Processors;
-using BepuPhysicIntegrationTest.Integration;
 using BepuPhysics.Constraints;
 using Stride.Core;
 using Stride.Core.Mathematics;

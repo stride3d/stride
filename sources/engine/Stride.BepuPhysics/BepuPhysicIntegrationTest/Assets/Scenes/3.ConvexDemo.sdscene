@@ -14,7 +14,7 @@ Hierarchy:
     Parts:
         -   Entity:
                 Id: 1b0d43ab-4200-45e6-a3c1-2d428b218dfb
-                Name: Center
+                Name: Collider
                 Components:
                     3a9f792ff4e116939381f11666d68541: !TransformComponent
                         Id: 70894b06-e65c-45ad-b536-48f7940388b6
@@ -24,7 +24,7 @@ Hierarchy:
                         Children: {}
                     6832c610657ed1c7d8c733d2b57e4218: !BepuPhysicIntegrationTest.Integration.Components.Colliders.ConvexHullColliderComponent,BepuPhysicIntegrationTest
                         Id: e2a75a06-7275-4282-90b2-0e6acfcf23af
-                        Mass: 1.0
+                        Mass: 100.0
                         ModelData: ref!! b2952cdd-63cd-4693-bb13-9d16fdcdd596
         -   Folder: null
             Entity:

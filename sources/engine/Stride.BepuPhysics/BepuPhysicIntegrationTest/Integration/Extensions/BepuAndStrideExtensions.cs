@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using BepuPhysics;
 using Stride.Engine;
 
-namespace BepuPhysicIntegrationTest.Integration
+namespace BepuPhysicIntegrationTest.Integration.Extensions
 {
     public static class BepuAndStrideExtensions
     {

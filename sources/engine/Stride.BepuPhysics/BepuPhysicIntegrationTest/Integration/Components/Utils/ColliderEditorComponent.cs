@@ -1,10 +1,6 @@
-﻿using System.Linq;
-using BepuPhysicIntegrationTest.Integration.Components.Colliders;
-using BepuPhysicIntegrationTest.Integration.Components.Constraints;
+﻿using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Configurations;
-using BepuPhysics.Constraints;
-using Silk.NET.OpenGL;
+using BepuPhysicIntegrationTest.Integration.Extensions;
 using Stride.Engine;
 using Stride.Input;
 
@@ -23,7 +19,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void Update()
         {
-            if (Component == null || ! (Component is BoxColliderComponent))
+            if (Component == null || !(Component is BoxColliderComponent))
                 return;
 
             if (Input.IsKeyPressed(Keys.U))
