@@ -17,7 +17,7 @@ public class ShaderMethod : ShaderToken
     public string Name { get; set; }
     public SymbolType ReturnType { get; set; }
     public List<ShaderToken>? ParameterList { get; set; }
-    public List<Statement>? Statements { get; set; }
+    public List<Statement> Statements { get; set; }
 
     public ShaderMethod(Match m, SymbolTable symbols)
     {

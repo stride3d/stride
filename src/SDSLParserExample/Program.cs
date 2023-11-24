@@ -283,6 +283,9 @@ static void ParseSDSL()
 {
     var shader = File.ReadAllText(@"C:\Users\youness_kafia\Documents\dotnetProjs\SDSLParser\src\SDSLParserExample\SDSL\MixinSamples\MyShader.sdsl");
     var program = ShaderMixinParser.ParseShader(shader);
+    var analyzer = new Analyzer();
+    analyzer.Analyze(program);
+    
     // var grammar = new SDSLGrammar();
     
     // Console.WriteLine(grammar.Match(shader).Success);

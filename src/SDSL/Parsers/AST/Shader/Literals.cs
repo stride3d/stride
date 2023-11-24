@@ -74,6 +74,7 @@ public class NumberLiteral : ShaderLiteral
         {
             inferredType = (InferredType, expected) switch
             {
+                (Scalar s, Scalar { Name : "void"}) => s,
                 (Scalar { Name: "float" }, Scalar { Name: "int" or "half" or "double" }) => expected,
                 (Scalar { Name: "int" }, Scalar { Name: "byte" or "sbyte" or "short" or "ushort" or "uint" or "long" or "ulong" or "float" or "double" }) => expected,
                 _ => throw new Exception($"cannot implictely cast {inferredType} to {expected}")
@@ -169,9 +170,10 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
 
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        if(symbols.Variables.IsDeclared(Name))
+        if(symbols.Variables.TryGetVariable(Name, out var variable))
         {
-
+            if(!(variable.Type == expected))
+                throw new Exception("Type is not matching");
         }
     }
 
