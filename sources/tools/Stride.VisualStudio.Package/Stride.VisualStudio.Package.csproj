@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">17.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -77,9 +77,6 @@
     <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="Core\LoaderToolLocator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="MyControl.xaml.cs">
-      <DependentUpon>MyControl.xaml</DependentUpon>
-    </Compile>
     <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -129,12 +126,6 @@
     <EmbeddedResource Include="NShader\Common\GLSLKeywords.map" />
     <EmbeddedResource Include="NShader\Common\HLSLKeywords.map" />
     <EmbeddedResource Include="NShader\Common\StrideShaderKeywords.map" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="MyControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
