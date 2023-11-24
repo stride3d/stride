@@ -34,6 +34,11 @@ Hierarchy:
                     b18e400f6ef857c50bac5d706493e368: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
                         Id: 10bddda6-1513-4d9e-a8dd-ff8ca5839337
                         SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
         -   Entity:
                 Id: 0c92bced-319f-42ec-84b9-955742cd3448
                 Name: Directional light
@@ -81,7 +86,14 @@ Hierarchy:
                     b042c04ebbd62706d8b5a6a31b88c02d: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 5f8aa385-ebee-4437-b8da-7b71732ed9aa
                         SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
                         Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: 846c345d-1504-4fb4-bc4c-83c793937ff2
                 Name: CubeInstancing
@@ -121,7 +133,14 @@ Hierarchy:
                     51feea7bbdcad82ac4361ac7256d8d36: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 285dee99-ee5a-459e-a32f-964531565982
                         SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
                         Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: a8119626-e4db-4aa9-ad54-06e435bd1f85
                 Name: BepuPhysics
@@ -223,7 +242,14 @@ Hierarchy:
                     b042c04ebbd62706d8b5a6a31b88c02d: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 76b25967-557a-4d2b-ac23-6ea43102150b
                         SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
                         Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: ff784bc2-b5ef-4cb8-a74b-f9c5560407a5
                 Name: Camera

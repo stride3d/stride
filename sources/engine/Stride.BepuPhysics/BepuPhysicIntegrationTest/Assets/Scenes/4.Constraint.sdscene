@@ -91,6 +91,11 @@ Hierarchy:
                     b18e400f6ef857c50bac5d706493e368: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
                         Id: 7da3d269-e6d9-4f46-a9c3-42ee470b6a15
                         SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
         -   Entity:
                 Id: 760df096-af47-4f0e-8994-35fbdea3f9bd
                 Name: Directional light

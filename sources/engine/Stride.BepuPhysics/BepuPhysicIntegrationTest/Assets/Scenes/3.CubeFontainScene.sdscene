@@ -80,6 +80,11 @@ Hierarchy:
                     b18e400f6ef857c50bac5d706493e368: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
                         Id: 805641b3-f967-41df-b273-a1063faecd6b
                         SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
         -   Entity:
                 Id: b155c235-5d9a-4749-a9b7-733d3b0b5d1e
                 Name: Camera

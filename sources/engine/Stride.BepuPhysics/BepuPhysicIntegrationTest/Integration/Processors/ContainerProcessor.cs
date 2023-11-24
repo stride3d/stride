@@ -132,6 +132,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
     internal class ContainerData
     {
+        private readonly IGame _game;
+
         internal ContainerComponent ContainerComponent { get; }
         internal BepuConfiguration BepuConfiguration { get; }
         internal BepuSimulation BepuSimulation => BepuConfiguration.BepuSimulations[ContainerComponent.SimulationIndex];
@@ -144,7 +146,6 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         internal BodyHandle BHandle { get; set; } = new(-1);
         internal StaticHandle SHandle { get; set; } = new(-1);
 
-        private readonly IGame _game;
         public bool Exist => isStatic ? BepuSimulation.Simulation.Statics.StaticExists(SHandle) : BepuSimulation.Simulation.Bodies.BodyExists(BHandle);
 
         public ContainerData(ContainerComponent containerComponent, BepuConfiguration bepuConfiguration, IGame game)
@@ -195,9 +196,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                             case BoxColliderComponent box:
                                 compoundBuilder.Add(new Box(box.Size.X, box.Size.Y, box.Size.Z), localPose, collider.Mass);
                                 break;
-                            case SphereColliderComponent sphere:
-                                compoundBuilder.Add(new Sphere(sphere.Radius), localPose, collider.Mass);
-                                break;
+
                             case CapsuleColliderComponent capsule:
                                 compoundBuilder.Add(new Capsule(capsule.Radius, capsule.Length), localPose, collider.Mass);
                                 break;
@@ -206,6 +205,12 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                                 break;
                             case CylinderColliderComponent cylinder:
                                 compoundBuilder.Add(new Cylinder(cylinder.Radius, cylinder.Length), localPose, collider.Mass);
+                                break;
+                            //case MeshColliderComponent mesh: //TODO : wait for Norbo to answer. In worst case, we may need to create a new MeshContainer
+                            //    compoundBuilder.Add(new Mesh(), localPose, collider.Mass);
+                            //    break;
+                            case SphereColliderComponent sphere:
+                                compoundBuilder.Add(new Sphere(sphere.Radius), localPose, collider.Mass);
                                 break;
                             case TriangleColliderComponent triangle:
                                 compoundBuilder.Add(new Triangle(triangle.A.ToNumericVector(), triangle.B.ToNumericVector(), triangle.C.ToNumericVector()), localPose, collider.Mass);
@@ -233,18 +238,20 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                         ShapeInertia = new BodyInertia();
                     }
 
-                    var bDescription = BodyDescription.CreateDynamic(ContainerPose, ShapeInertia, ShapeIndex, .1f);
+                    var bDescription = BodyDescription.CreateDynamic(ContainerPose, ShapeInertia, ShapeIndex, new(_c.SleepThreshold, _c.MinimumTimestepCountUnderThreshold));
 
                     if (BHandle.Value != -1)
                     {
                         BepuSimulation.Simulation.Bodies[BHandle].GetDescription(out var tmpDesc);
                         bDescription.Velocity = tmpDesc.Velocity; //Keep velocity when updating
                         BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, bDescription);
+                        BepuSimulation.CollidableMaterials[BHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask };
                     }
                     else
                     {
                         BHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
                         BepuSimulation.BodiesContainers.Add(BHandle, _c);
+                        BepuSimulation.CollidableMaterials.Allocate(BHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask };
                     }
 
                     break;
@@ -256,11 +263,13 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                     if (SHandle.Value != -1)
                     {
                         BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, sDescription);
+                        BepuSimulation.CollidableMaterials[SHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask };
                     }
                     else
                     {
                         SHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
                         BepuSimulation.StaticsContainers.Add(SHandle, _c);
+                        BepuSimulation.CollidableMaterials.Allocate(SHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask };
                     }
 
                     break;

@@ -24,7 +24,7 @@ Hierarchy:
                         Children: {}
                     6832c610657ed1c7d8c733d2b57e4218: !BepuPhysicIntegrationTest.Integration.Components.Colliders.ConvexHullColliderComponent,BepuPhysicIntegrationTest
                         Id: e2a75a06-7275-4282-90b2-0e6acfcf23af
-                        Mass: 100.0
+                        Mass: 1.0
                         ModelData: ref!! b2952cdd-63cd-4693-bb13-9d16fdcdd596
         -   Folder: null
             Entity:
@@ -48,6 +48,11 @@ Hierarchy:
                     b18e400f6ef857c50bac5d706493e368: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
                         Id: bf04da26-8d14-4977-8652-f825ec67644b
                         SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
         -   Entity:
                 Id: 51d95bd6-85f7-428e-bb1c-1c29b077e964
                 Name: Camera
@@ -145,7 +150,14 @@ Hierarchy:
                     ac36aeb9e10304d8e1ba30933de846e4: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 3b7024e6-a5db-4aaf-b630-c58b1e2780bd
                         SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
                         Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: e9ae13c5-bd03-4fba-bc23-9cdccedc3f30
                 Name: BepuPhysics

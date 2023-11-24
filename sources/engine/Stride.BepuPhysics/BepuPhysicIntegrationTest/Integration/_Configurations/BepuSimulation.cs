@@ -10,6 +10,7 @@ using BepuUtilities;
 using BepuUtilities.Memory;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using static BepuPhysicIntegrationTest.Integration.StrideNarrowPhaseCallbacks;
 
 namespace BepuPhysicIntegrationTest.Integration.Configurations;
 
@@ -25,25 +26,13 @@ public class BepuSimulation
     internal Dictionary<StaticHandle, StaticContainerComponent> StaticsContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
     internal float RemainingUpdateTime { get; set; } = 0;
 
+    internal CollidableProperty<MaterialProperties> CollidableMaterials = new CollidableProperty<MaterialProperties>();
+
 
     [Display(0, "Enabled")]
     public bool Enabled { get; set; } = true;
     [Display(1, "TimeWarp")]
     public float TimeWarp { get; set; } = 1f;
-
-    [Display(10, "SpringFreq")]
-    public float SpringFreq
-    {
-        get => ((NarrowPhase<StrideNarrowPhaseCallbacks>)Simulation.NarrowPhase).Callbacks.ContactSpringiness.Frequency;
-        set => ((NarrowPhase<StrideNarrowPhaseCallbacks>)Simulation.NarrowPhase).Callbacks.ContactSpringiness.Frequency = value;
-    }
-    [Display(11, "SpringDamping")]
-    public float SpringDamping
-    {
-        get => ((NarrowPhase<StrideNarrowPhaseCallbacks>)Simulation.NarrowPhase).Callbacks.ContactSpringiness.DampingRatio;
-        set => ((NarrowPhase<StrideNarrowPhaseCallbacks>)Simulation.NarrowPhase).Callbacks.ContactSpringiness.DampingRatio = value;
-    }
-
 
     [Display(12, "PoseGravity")]
     public Vector3 PoseGravity
@@ -86,7 +75,7 @@ public class BepuSimulation
     private void Setup()
     {
         var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
-        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(new SpringSettings(30, 3));
+        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials };
         var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks();
         var _solveDescription = new SolveDescription(1, 1);
 

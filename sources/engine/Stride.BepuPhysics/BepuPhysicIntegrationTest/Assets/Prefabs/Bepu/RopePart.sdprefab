@@ -24,7 +24,14 @@ Hierarchy:
                     a614268d090f2df7f7053a581ad1e0f5: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 891929fc-576c-4c15-8220-f5c882753275
                         SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
                         Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                     50f122037dba0c6c910099247886094c: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 7b82ee31-22b1-41a7-bd23-d00f4c102e07
                         Mass: 0.02

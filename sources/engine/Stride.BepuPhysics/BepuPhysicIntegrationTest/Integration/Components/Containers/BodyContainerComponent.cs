@@ -12,6 +12,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
     public class BodyContainerComponent : ContainerComponent
     {
         private bool _kinematic = false;
+        private float _sleepThreshold = 0.01f;
+        private byte _minimumTimestepCountUnderThreshold = 32;
 
         public bool Kinematic
         {
@@ -19,6 +21,26 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
             set
             {
                 _kinematic = value;
+                if (ContainerData?.Exist == true)
+                    ContainerData.BuildOrUpdateContainer();
+            }
+        }
+        public float SleepThreshold
+        {
+            get => _sleepThreshold;
+            set
+            {
+                _sleepThreshold = value;
+                if (ContainerData?.Exist == true)
+                    ContainerData.BuildOrUpdateContainer();
+            }
+        }
+        public byte MinimumTimestepCountUnderThreshold
+        {
+            get => _minimumTimestepCountUnderThreshold;
+            set
+            {
+                _minimumTimestepCountUnderThreshold = value;
                 if (ContainerData?.Exist == true)
                     ContainerData.BuildOrUpdateContainer();
             }

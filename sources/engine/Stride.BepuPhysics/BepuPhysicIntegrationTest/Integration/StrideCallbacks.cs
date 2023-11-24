@@ -112,49 +112,56 @@ namespace BepuPhysicIntegrationTest.Integration
     }
     public unsafe struct StrideNarrowPhaseCallbacks : INarrowPhaseCallbacks
     {
-        public SpringSettings ContactSpringiness;
-        public float MaximumRecoveryVelocity;
-        public float FrictionCoefficient;
-
-        public StrideNarrowPhaseCallbacks(SpringSettings contactSpringiness, float maximumRecoveryVelocity = 2f, float frictionCoefficient = 1f)
+        public struct MaterialProperties
         {
-            ContactSpringiness = contactSpringiness;
-            MaximumRecoveryVelocity = maximumRecoveryVelocity;
-            FrictionCoefficient = frictionCoefficient;
+            public SpringSettings SpringSettings;
+            public float FrictionCoefficient;
+            public float MaximumRecoveryVelocity;
+            public byte colliderGroupMask;
         }
+
+        public CollidableProperty<MaterialProperties> CollidableMaterials;
 
         public void Initialize(Simulation simulation)
         {
-            //Use a default if the springiness value wasn't initialized... at least until struct field initializers are supported outside of previews.
-            if (ContactSpringiness.AngularFrequency == 0 && ContactSpringiness.TwiceDampingRatio == 0)
-            {
-                ContactSpringiness = new(30, 1);
-                MaximumRecoveryVelocity = 2f;
-                FrictionCoefficient = 1f;
-            }
+            CollidableMaterials.Initialize(simulation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin)
         {
-            //While the engine won't even try creating pairs between statics at all, it will ask about kinematic-kinematic pairs.
-            //Those pairs cannot emit constraints since both involved bodies have infinite inertia. Since most of the demos don't need
-            //to collect information about kinematic-kinematic pairs, we'll require that at least one of the bodies needs to be dynamic.
             return a.Mobility == CollidableMobility.Dynamic || b.Mobility == CollidableMobility.Dynamic;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB)
         {
-            return true;
+            var a = CollidableMaterials[pair.A];
+            var b = CollidableMaterials[pair.B];
+            var com = (a.colliderGroupMask & b.colliderGroupMask);
+            return com == a.colliderGroupMask || com == b.colliderGroupMask && com != 0;
         }
+        //Table of thruth. If the number in the table is present on X/Y (inside '()') collision occur exept if result is "0".
+        //! indicate no collision
+
+        //                  1111 1111 (255)     0000 0001 (1  )      0000 0011 (3  )        0000 0101 (5  )     0000 0000 (0)
+        //1111 1111 (255)      255                  1                    3                      5                   0!
+        //0000 0001 (1  )       1                   1                    1                      1                   0!
+        //0000 0011 (3  )       3                   1                    3                      1!                  0!
+        //0000 0101 (5  )       5                   1                    1!                     5                   0!
+        //0000 1001 (9  )       9                   1                    1!                     1!                  0!
+        //0000 1010 (10 )       10                  0!                   2!                     0!                  0!
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
         {
-            pairMaterial.FrictionCoefficient = FrictionCoefficient;
-            pairMaterial.MaximumRecoveryVelocity = MaximumRecoveryVelocity;
-            pairMaterial.SpringSettings = ContactSpringiness;
+            //For the purposes of this demo, we'll use multiplicative blending for the friction and choose spring properties according to which collidable has a higher maximum recovery velocity.
+            var a = CollidableMaterials[pair.A];
+            var b = CollidableMaterials[pair.B];
+            pairMaterial.FrictionCoefficient = a.FrictionCoefficient * b.FrictionCoefficient;
+            pairMaterial.MaximumRecoveryVelocity = MathF.Max(a.MaximumRecoveryVelocity, b.MaximumRecoveryVelocity);
+            pairMaterial.SpringSettings = pairMaterial.MaximumRecoveryVelocity == a.MaximumRecoveryVelocity ? a.SpringSettings : b.SpringSettings;
             return true;
         }
 
