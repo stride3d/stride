@@ -44,7 +44,7 @@ namespace Stride.Core.Mathematics
         /// Initializes a new instance of the <see cref="BoundingFrustum"/> struct from a matrix view-projection.
         /// </summary>
         /// <param name="matrix">The matrix view projection.</param>
-        public BoundingFrustum(ref Matrix matrix)
+        public BoundingFrustum(ref readonly Matrix matrix)
         {
             // Left
             Plane.Normalize(
@@ -101,9 +101,9 @@ namespace Stride.Core.Mathematics
         /// <param name="boundingBoxExt">The bounding box.</param>
         /// <returns><c>true</c> if this frustum contains the specified bounding box.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(ref BoundingBoxExt boundingBoxExt)
+        public bool Contains(ref readonly BoundingBoxExt boundingBoxExt)
         {
-            return CollisionHelper.FrustumContainsBox(ref this, ref boundingBoxExt);
+            return CollisionHelper.FrustumContainsBox(ref this, in boundingBoxExt);
         }
     }
 }
