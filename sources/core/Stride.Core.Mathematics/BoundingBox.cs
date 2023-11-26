@@ -104,10 +104,10 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray)
+        public bool Intersects(ref readonly Ray ray)
         {
             float distance;
-            return CollisionHelper.RayIntersectsBox(ref ray, ref this, out distance);
+            return CollisionHelper.RayIntersectsBox(in ray, ref this, out distance);
         }
 
         /// <summary>
@@ -117,9 +117,9 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out float distance)
+        public bool Intersects(ref readonly Ray ray, out float distance)
         {
-            return CollisionHelper.RayIntersectsBox(ref ray, ref this, out distance);
+            return CollisionHelper.RayIntersectsBox(in ray, ref this, out distance);
         }
 
         /// <summary>
@@ -129,9 +129,9 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out Vector3 point)
+        public bool Intersects(ref readonly Ray ray, out Vector3 point)
         {
-            return CollisionHelper.RayIntersectsBox(ref ray, ref this, out point);
+            return CollisionHelper.RayIntersectsBox(in ray, ref this, out point);
         }
 
         /// <summary>
@@ -139,9 +139,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public PlaneIntersectionType Intersects(ref Plane plane)
+        public PlaneIntersectionType Intersects(ref readonly Plane plane)
         {
-            return CollisionHelper.PlaneIntersectsBox(ref plane, ref this);
+            return CollisionHelper.PlaneIntersectsBox(in plane, ref this);
         }
 
         /* This implentation is wrong
@@ -163,9 +163,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingBox box)
+        public bool Intersects(ref readonly BoundingBox box)
         {
-            return CollisionHelper.BoxIntersectsBox(ref this, ref box);
+            return CollisionHelper.BoxIntersectsBox(ref this, in box);
         }
 
         /// <summary>
@@ -173,9 +173,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingSphere sphere)
+        public bool Intersects(ref readonly BoundingSphere sphere)
         {
-            return CollisionHelper.BoxIntersectsSphere(ref this, ref sphere);
+            return CollisionHelper.BoxIntersectsSphere(ref this, in sphere);
         }
 
         /// <summary>
@@ -183,9 +183,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="point">The point to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref Vector3 point)
+        public ContainmentType Contains(ref readonly Vector3 point)
         {
-            return CollisionHelper.BoxContainsPoint(ref this, ref point);
+            return CollisionHelper.BoxContainsPoint(ref this, in point);
         }
 
         /* This implentation is wrong
@@ -207,9 +207,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref BoundingBox box)
+        public ContainmentType Contains(ref readonly BoundingBox box)
         {
-            return CollisionHelper.BoxContainsBox(ref this, ref box);
+            return CollisionHelper.BoxContainsBox(ref this, in box);
         }
 
         /// <summary>
@@ -217,9 +217,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref BoundingSphere sphere)
+        public ContainmentType Contains(ref readonly BoundingSphere sphere)
         {
-            return CollisionHelper.BoxContainsSphere(ref this, ref sphere);
+            return CollisionHelper.BoxContainsSphere(ref this, in sphere);
         }
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="sphere">The sphere that will designate the extents of the box.</param>
         /// <param name="result">When the method completes, contains the newly constructed bounding box.</param>
-        public static void FromSphere(ref BoundingSphere sphere, out BoundingBox result)
+        public static void FromSphere(ref readonly BoundingSphere sphere, out BoundingBox result)
         {
             result.Minimum = new Vector3(sphere.Center.X - sphere.Radius, sphere.Center.Y - sphere.Radius, sphere.Center.Z - sphere.Radius);
             result.Maximum = new Vector3(sphere.Center.X + sphere.Radius, sphere.Center.Y + sphere.Radius, sphere.Center.Z + sphere.Radius);
@@ -298,7 +298,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The original bounding box.</param>
         /// <param name="transform">The transform to apply to the bounding box.</param>
         /// <param name="result">The transformed bounding box.</param>
-        public static void Transform(ref BoundingBox value, ref Matrix transform, out BoundingBox result)
+        public static void Transform(ref readonly BoundingBox value, ref readonly Matrix transform, out BoundingBox result)
         {
             var boundingBox = new BoundingBoxExt(value);
             boundingBox.Transform(transform);
@@ -311,10 +311,10 @@ namespace Stride.Core.Mathematics
         /// <param name="value1">The box to merge.</param>
         /// <param name="value2">The point to merge.</param>
         /// <param name="result">When the method completes, contains the newly constructed bounding box.</param>
-        public static void Merge(ref BoundingBox value1, ref Vector3 value2, out BoundingBox result)
+        public static void Merge(ref readonly BoundingBox value1, ref readonly Vector3 value2, out BoundingBox result)
         {
-            Vector3.Min(ref value1.Minimum, ref value2, out result.Minimum);
-            Vector3.Max(ref value1.Maximum, ref value2, out result.Maximum);
+            Vector3.Min(in value1.Minimum, in value2, out result.Minimum);
+            Vector3.Max(in value1.Maximum, in value2, out result.Maximum);
         }
         
         /// <summary>
@@ -323,10 +323,10 @@ namespace Stride.Core.Mathematics
         /// <param name="value1">The first box to merge.</param>
         /// <param name="value2">The second box to merge.</param>
         /// <param name="result">When the method completes, contains the newly constructed bounding box.</param>
-        public static void Merge(ref BoundingBox value1, ref BoundingBox value2, out BoundingBox result)
+        public static void Merge(ref readonly BoundingBox value1, ref readonly BoundingBox value2, out BoundingBox result)
         {
-            Vector3.Min(ref value1.Minimum, ref value2.Minimum, out result.Minimum);
-            Vector3.Max(ref value1.Maximum, ref value2.Maximum, out result.Maximum);
+            Vector3.Min(in value1.Minimum, in value2.Minimum, out result.Minimum);
+            Vector3.Max(in value1.Maximum, in value2.Maximum, out result.Maximum);
         }
 
         /// <summary>

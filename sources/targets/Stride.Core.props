@@ -60,7 +60,7 @@
   <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
     <!-- Add net8.0 no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>net8.0</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet6)' == 'true'">$(StrideRuntimeTargetFrameworks);net8.0-windows7.0</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);net8.0-windows7.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);net8.0-android</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);net8.0-ios</StrideRuntimeTargetFrameworks>
@@ -223,7 +223,7 @@
 
   <!-- SourceLink -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" PrivateAssets="All"/>
   </ItemGroup>
 
   <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link. -->

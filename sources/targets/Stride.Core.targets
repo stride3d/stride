@@ -38,7 +38,7 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" PrivateAssets="All" />
   </ItemGroup>
   <!-- Disable analyzers unless StrideEnableCodeAnalysis is set (note: PackageReference can't depend on external Condition) -->
   <Target Name="DisableAnalyzersForStrideBuild"
@@ -46,7 +46,7 @@
         Condition="'$(StrideEnableCodeAnalysis)' != 'true'">
     <ItemGroup>
       <!-- We want to include Stride analyzers by default -->
-      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Stride'))" />
+      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$(FullPath.Contains('Stride'))" />
       <AnalyzersToRemove Include="@(Analyzer)" Exclude="@(AnalyzersNotToRemove)" />
       <Analyzer Remove="@(AnalyzersToRemove)"/>
     </ItemGroup>

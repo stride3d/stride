@@ -10,6 +10,6 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public PlaneIntersectionType Intersects(ref Plane plane);
+        public PlaneIntersectionType Intersects(ref readonly Plane plane);
     }
 }
