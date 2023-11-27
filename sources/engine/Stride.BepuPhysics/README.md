@@ -1,4 +1,4 @@
-# BepuPhysicIntegrationTest - Work in Progress
+# Bepu Physics V2 Integration with Stride 3D - Work in Progress
 
 Integrating [Bepu Physics v2](https://github.com/bepu/bepuphysics2) into [Stride](https://github.com/stride3d/stride).
 
@@ -6,21 +6,181 @@ Integrating [Bepu Physics v2](https://github.com/bepu/bepuphysics2) into [Stride
 
 Clone this repository to your local machine and utilize it either as a library within your Stride project or as an independent Stride project.
 
-1. **Add Bepu Settings**
+1. **Add Bepu Settings** :
 
-![Bepu Settings](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/assets/20603105/3b41193f-cfd2-4c47-b615-76580b4c42d6)
+![Bepu Settings](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/assets/20603105/5f0ee87e-b850-4871-ace0-b5eafc131eca)
 
-    Note: Multiple Bepu simulations can be created by adding different settings. Later, when creating containers, you'll have the option to define which simulation to use.
+2. **Add Containers & Colliders** :
 
-2. **Add Containers & Colliders**
+![Static Containers](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/assets/20603105/9f8a12bb-0ae7-4a1a-9f9d-77a8d9680c0c)
+![Body Containers](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/assets/20603105/079df952-eeee-4b18-a0dc-efe330731651)
+![Colliders](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/assets/20603105/b00cf981-f905-4bec-8f4a-be1f622c5daa)
 
-![Containers & Colliders](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/assets/20603105/9e0492b4-6801-4de8-8582-f02acc3cccfc)
+3. **Add constraints** :
 
-3. **Use Utility Scripts**
+![Constraints](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/assets/20603105/5a19b2bb-7786-4d79-8248-763ef505beb9)
+
+4. **Use/Write Utility Scripts** :
 
 ![Utility Scripts](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/assets/20603105/d36f7f30-128c-4166-a657-8f6bdad36ec8)
 
-    These scripts allow runtime modification of the simulation using keyboard inputs and serve as a good starting point to understand Bepu integration in Stride.
+## Settings
+
+### Description
+
+Settings represent an instance of Bepu physics, defining various configurations for a simulation. You can create multiple settings to set up different simulations within your Stride project. These settings allow editing simulation global parameters, enabling customization and fine-tuning of the physics environment to suit specific requirements.
+
+### Properties
+
+1. TimeWrap
+   - **Type:** float
+   - **Description:** Allows you to choose the speed of the simulation.
+
+2. Pose gravity
+   - **Type:** Vector3
+   - **Description:** Represents general gravity. Note: Will change in the future.
+   
+3. Linear damping
+   - **Type:** float
+   - **Description:** Controls linear damping. *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details.)*
+   
+4. Angular damping
+   - **Type:** float
+   - **Description:** Controls angular damping. *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details.)*
+   
+5. Solve iteration
+   - **Type:** int
+   - **Description:** Controls the number of iterations for the solver. *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details.)*
+   
+6. Solve sub step
+   - **Type:** int
+   - **Description:** Specifies the number of sub-steps for solving. *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details.)*
+   
+7. Parallel update
+   - **Type:** bool
+   - **Description:** Allows updating Stride's entities' transform in parallel.
+   
+8. Simulation Fixed step
+   - **Type:** float
+   - **Description:** Specifies the number of milliseconds per step to simulate.
+   
+9. Max steps/frame
+   - **Type:** int
+   - **Description:** Represents the maximum number of steps per frame to avoid a death loop. *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details. Warning: You may lose real-time physics.)*
+
+
+## Containers
+
+### Description
+
+Containers serve as representations or links within Bepu physics for managing specific types of entities:
+
+- **BodyContainer**: This container can contains in the same node or in childs nodes somes colliders provided in the "Colliders" section, representing physical bodies in the simulation.
+- **StaticContainer**: Similar to the BodyContainer but represents static objects in the simulation.
+- **MeshBodyContainer**: Specifically used for perfect mesh colliders in conjunction with the appropriate mesh collider, representing physical bodies.
+- **MeshStaticContainer**: Like the MeshBodyContainer, this is used for perfect mesh colliders but represents static objects in the simulation.
+
+These containers play a vital role in organizing and defining the properties and behaviors of entities within the Bepu physics simulation environment.
+
+### Properties
+
+1. SimulationIndex
+- **Description:** Allow you to choose in which simulation the object is.
+- **Type:** Integer
+
+2. Spring frequency
+- **Description:** Determines the oscillation rate or stiffness of a spring constraint.
+- **Type:** Float
+- **Range:** Positive values; higher values result in a stiffer spring.
+
+3. Spring damping ratio
+- **Description:** Controls the rate at which oscillations in a spring constraint decrease over time, affecting its responsiveness and stability.
+- **Type:** Float
+- **Range:** Values between 0 and 1; higher values dampen oscillations more quickly.
+
+4. Friction coefficient
+- **Description:** Specifies the resistance to motion between two colliding objects, affecting how much they slide against each other.
+- **Type:** Float
+- **Range:** Non-negative values; higher values increase friction.
+
+5. Maximum recovery velocity
+- **Description:** Sets the maximum speed at which objects can recover from penetration due to collisions or constraints.
+- **Type:** Float
+- **Range:** Positive values; higher values allow faster recovery from interpenetration.
+
+6. Collider group mask
+The collision mask system allows precise control over collision interactions between different groups of objects within the simulation.
+
+- **Type:** Byte
+- **Algorithm:**
+  - `bool CollisionOccur => (com == a.colliderGroupMask || com == b.colliderGroupMask) && com != 0;`
+  - `com` is the comparison value obtained from the bitwise comparison of collision masks of two colliding objects.
+  - Collision occurs if the `com` value matches either collider's group mask and is not equal to zero.
+- **Truth Table:**
+  
+| Collision Group Masks | 255 | 1 | 3 | 5 | 0 |
+|-----------------------|-----|---|---|---|---|
+| 255                   | 255 | 1 | 3 | 5 | 0!|
+| 1                     | 1   | 1 | 1 | 1 | 0!|
+| 3                     | 3   | 1 | 3 | 1!| 0!|
+| 5                     | 5   | 1 | 1!| 5 | 0!|
+| 0                     | 0   | 0 | 0 | 0 | 0 |
+
+## Colliders
+
+### Description
+
+Colliders define the shapes and properties of physical objects within a Bepu physics simulation. They play a crucial role in determining how objects interact with each other and the environment. There are various types of colliders available, each suited for different scenarios:
+
+1. **Box Collider**: Represents a rectangular prism-shaped collider, often used for simple objects like crates or buildings.
+2. **Capsule Collider**: Combines a cylinder and two half-spheres, useful for character models or objects with cylindrical shapes.
+3. **Convex Hull Collider**: Defines a collider based on the convex hull of a mesh, providing a simpler collision shape approximation for more complex geometries.
+4. **Cylinder Collider**: Shapes objects as cylinders, suitable for entities like pipes or cylindrical objects.
+5. **Sphere Collider**: Shapes objects as spheres, suitable for entities like balls or spherical objects.
+6. **Triangle Collider**: Uses triangles from a mesh to create a collider, often used for terrain or ground collision.
+  
+⚠️ A Mesh **Container**: Allows for collision shapes based on the exact geometry of a mesh, enabling precise collision detection for irregular shapes but it cannot be compounded.
+
+Each collider type has its advantages and is chosen based on the specific requirements of the objects you're simulating. They come with parameters that can be adjusted such as Height. Note that you can compound any colliders by adding more component. Colliders must be in the same or in the child entities of a **BodyContainer** or a **StaticContainer**.
+
+### Properties
+
+1. Bodies
+   - **Type:** List<BodyContainerComponent>
+   - **Description:** Allows you to choose wich bodies to apply the constraint on. *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details on how many entities for each constraints.)*
+
+2. Others
+   - **Description:** *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details on others properties.)*
+
+
+## Constraints
+
+### Description
+
+Constraints define relationships or rules that govern how entities interact within the simulation. They establish connections between bodies, dictating their movement or behavior based on specific criteria or physical laws.
+
+Some common types of constraints in BepuPhysicsV2 include:
+
+- **BallSocketConstraint**: Restricts two entities to a fixed distance, allowing rotation around the connecting point.
+- **DistanceLimitConstraint**: Constrains entities within a certain distance range, restricting their movement beyond defined limits.
+- **HingeConstraint**: Permits rotation around a single axis, simulating a hinge-like movement between entities.
+- **AngularMotorConstraint**: Applies rotational force to enforce desired angular motion between entities.
+- **TwistMotorConstraint**: Controls twisting motion between entities, allowing controlled rotation around a specific axis.
+
+These constraints play a crucial role in simulating realistic interactions and behaviors between entities within the physics environment, enabling the creation of complex and accurate simulations.
+
+### Properties
+
+1. Bodies
+   - **Type:** List<BodyContainerComponent>
+   - **Description:** Allows you to choose wich bodies to apply the constraint on. *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details on how many entities for each constraints.)*
+
+2. Others
+   - **Description:** *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details on others properties.)*
+
+## Use/build Utility scripts
+
+These scripts allow runtime modification of the simulation using keyboard inputs and serve as a good starting point to understand Bepu integration in Stride.
 
 ## Issues & To-Do
 
