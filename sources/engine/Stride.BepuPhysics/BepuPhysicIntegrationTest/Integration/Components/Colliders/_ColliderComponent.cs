@@ -11,6 +11,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Colliders
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Colliders")]
+    [AllowMultipleComponents]
     public abstract class ColliderComponent : EntityComponent
     {
         private float _mass = 1f;
