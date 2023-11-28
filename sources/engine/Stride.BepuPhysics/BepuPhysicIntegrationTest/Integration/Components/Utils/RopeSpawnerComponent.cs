@@ -29,8 +29,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             if (RopePart == null || A == null || B == null)
                 return;
 
-            var start = (A.Entity.Transform.Position + APos);
-            var end = (B.Entity.Transform.Position + BPos);
+            var start = (A.Entity.Transform.GetWorldPos() + APos);
+            var end = (B.Entity.Transform.GetWorldPos() + BPos);
 
             var seg = end - start;
             var dir = end - start;

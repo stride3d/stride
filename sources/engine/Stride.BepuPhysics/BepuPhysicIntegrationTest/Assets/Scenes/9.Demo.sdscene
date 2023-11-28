@@ -318,48 +318,6 @@ Hierarchy:
                         MotorDamping: 100.0
                         MotorMaximumForce: 10000000.0
         -   Entity:
-                Id: 908883e2-5769-40a2-a57e-8b15e192fa6c
-                Name: Entity
-                Components:
-                    ec20e2e16ba549d42a4df0a5e8698db0: !TransformComponent
-                        Id: 1230a86f-3448-44b6-a2ff-510277144f3b
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    2fa0cdad419fd988587b83a18a7d66ed: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
-                        Id: ca720383-0a68-4c4c-a0ac-5f82da1c5018
-                        Mass: 1.0
-                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                    02d430f686eaeec99a3a6b7182d9c864: !BepuPhysicIntegrationTest.Integration.Components.Colliders.ConvexHullColliderComponent,BepuPhysicIntegrationTest
-                        Id: 2f7b7e32-3219-4c03-9ea8-240be6159f10
-                        Mass: 1.0
-                        ModelData: null
-                    c616f4b730288cc0ac0b57419d878573: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CapsuleColliderComponent,BepuPhysicIntegrationTest
-                        Id: 5cdf8dbe-0e37-4cfc-8264-aea2d4866a52
-                        Mass: 1.0
-                        Radius: 1.0
-                        Length: 1.0
-                    937943cfa8409f171a1160ddbc35d7b5: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
-                        Id: 1fa61f43-d698-4589-bbb4-e2b66fb657dd
-                        Mass: 1.0
-                        Radius: 1.0
-                        Length: 1.0
-                    4c7d1d50be45fd0500047cd3bec8b589: !BepuPhysicIntegrationTest.Integration.Components.Colliders.MeshColliderComponent,BepuPhysicIntegrationTest
-                        Id: 6e01212b-34ab-49d2-84e7-60090662f70f
-                        Mass: 1.0
-                        ModelData: null
-                    b8572b57b91b8ccddbba360085445ba7: !BepuPhysicIntegrationTest.Integration.Components.Colliders.SphereColliderComponent,BepuPhysicIntegrationTest
-                        Id: 66148232-8b82-46a9-9fd2-4950ba4da24c
-                        Mass: 1.0
-                        Radius: 1.0
-                    f909e1046d5940b8650ad07a9e8237de: !BepuPhysicIntegrationTest.Integration.Components.Colliders.TriangleColliderComponent,BepuPhysicIntegrationTest
-                        Id: 103a2347-4a96-426e-bec1-ffc4ac4d38f0
-                        Mass: 1.0
-                        A: {X: 1.0, Y: 1.0, Z: 1.0}
-                        B: {X: 1.0, Y: 1.0, Z: 1.0}
-                        C: {X: 1.0, Y: 1.0, Z: 1.0}
-        -   Entity:
                 Id: a42bf0a5-735b-4ad7-9ca1-5432b4472e69
                 Name: CubeInstancing
                 Components:
@@ -450,7 +408,6 @@ Hierarchy:
                             b2b1eb3d803f2366218df6b818dc9130: ref!! cdd774b5-91bf-41e2-a821-9c10d235c3b8
                             96a1fd0e0a491a5cd6c0268aced75338: ref!! 9b730fa2-5571-418a-b461-9e2da69993e1
                             af5a48be6263c42fac20d8f9c0c60f1c: ref!! 2ca9c743-62d3-4a2a-8130-97aeef63a141
-                            8001c6a7263cd70f32d762fddc5cca16: ref!! 1230a86f-3448-44b6-a2ff-510277144f3b
                     2a98c48e5b96344a0ab24da7de9a794b: !BepuPhysicIntegrationTest.Integration.Components.Utils.SpawnerComponent,BepuPhysicIntegrationTest
                         Id: 1c668912-b904-41f5-9576-2a81b27ba0a3
                         SimulationIndex: 0

@@ -12,6 +12,11 @@ namespace BepuPhysicIntegrationTest.Integration.Extensions
         public const int LIST_SIZE = 50000;
         public const int X_DEBUG_TEXT_POS = 2000; //1200
 
+        public static Stride.Core.Mathematics.Vector3 GetWorldPos(this TransformComponent tr)
+        {
+            tr.WorldMatrix.Decompose(out var _1, out Stride.Core.Mathematics.Quaternion _2, out var _3);
+            return _3;
+        }
         public static Vector3 ToNumericVector(this Stride.Core.Mathematics.Vector3 vec)
         {
             return Unsafe.As<Stride.Core.Mathematics.Vector3, Vector3>(ref vec);

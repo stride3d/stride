@@ -13,6 +13,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
+using static BulletSharp.Dbvt;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
@@ -93,6 +94,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 //simStepWatch.Stop();
 
                 //parForWatch.Start();
+
                 if (bepuSim.ParallelUpdate)
                 {
                     var a = Parallel.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) =>
@@ -102,7 +104,15 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                         var body = bepuSim.Simulation.Bodies[handle];
 
                         var entityTransform = BodyContainer.Entity.Transform;
-                        entityTransform.Position = body.Pose.Position.ToStrideVector() - BodyContainer.CenterOfMass;
+                        entityTransform.WorldMatrix.Decompose(out Vector3 _, out Quaternion _, out Vector3 ContainerWorldTranslation);
+                        var ParentEntityTransform = new Vector3();
+                        var parent = BodyContainer.Entity.GetParent();
+                        if (parent != null)
+                        {
+                            parent.Transform.WorldMatrix.Decompose(out Vector3 _, out Quaternion _, out ParentEntityTransform);
+                        }
+
+                        entityTransform.Position = body.Pose.Position.ToStrideVector() - BodyContainer.CenterOfMass - ParentEntityTransform;
                         entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
                         entityTransform.UpdateWorldMatrix();
                     });
@@ -116,7 +126,15 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                         var body = bepuSim.Simulation.Bodies[handle];
 
                         var entityTransform = BodyContainer.Entity.Transform;
-                        entityTransform.Position = body.Pose.Position.ToStrideVector() - BodyContainer.CenterOfMass;
+                        entityTransform.WorldMatrix.Decompose(out Vector3 _, out Quaternion _, out Vector3 ContainerWorldTranslation);
+                        var ParentEntityTransform = new Vector3();
+                        var parent = BodyContainer.Entity.GetParent();
+                        if (parent != null)
+                        {
+                            parent.Transform.WorldMatrix.Decompose(out Vector3 _, out Quaternion _, out ParentEntityTransform);
+                        }
+
+                        entityTransform.Position = body.Pose.Position.ToStrideVector() - BodyContainer.CenterOfMass - ParentEntityTransform;
                         entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
                         entityTransform.UpdateWorldMatrix();
                     }

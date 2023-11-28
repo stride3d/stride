@@ -15,7 +15,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
     {
         internal LinearAxisServo _bepuConstraint = new()
         {
-            SpringSettings = new SpringSettings(30, 5)
+            SpringSettings = new SpringSettings(30, 5),
+            ServoSettings = new ServoSettings(10,1,1000)
         };
 
         public Vector3 LocalOffsetA
@@ -69,20 +70,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
             set
             {
                 _bepuConstraint.TargetOffset = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
-            }
-        }
-
-        public ServoSettings ServoSettings
-        {
-            get
-            {
-                return _bepuConstraint.ServoSettings;
-            }
-            set
-            {
-                _bepuConstraint.ServoSettings = value;
                 if (ConstraintData?.Exist == true)
                     ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
             }
