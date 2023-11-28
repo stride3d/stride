@@ -5,6 +5,9 @@ namespace CSharpBeginner.Code
 {
     /// <summary>
     /// This script is used to demonstrate how we can get child entities of an entity
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/child-entities.html
+    /// </para>
     /// </summary>
     public class ChildEntitiesDemo : SyncScript
     {

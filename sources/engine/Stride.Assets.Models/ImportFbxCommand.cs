@@ -34,7 +34,7 @@ namespace Stride.Assets.Models
         protected override Dictionary<string, AnimationClip> LoadAnimation(ICommandContext commandContext, ContentManager contentManager, out TimeSpan duration)
         {
             var meshConverter = CreateMeshConverter(commandContext);
-            var sceneData = meshConverter.ConvertAnimation(SourcePath, Location, ImportCustomAttributes);
+            var sceneData = meshConverter.ConvertAnimation(SourcePath, Location, ImportCustomAttributes, AnimationStack);
             duration = sceneData.Duration;
             return sceneData.AnimationClips;
         }

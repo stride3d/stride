@@ -176,5 +176,14 @@ namespace Stride.LauncherApp.Resources {
                 return ResourceManager.GetString("Twitter", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://visualstudio.microsoft.com/downloads.
+        /// </summary>
+        public static string VisualStudio {
+            get {
+                return ResourceManager.GetString("VisualStudio", resourceCulture);
+            }
+        }
     }
 }

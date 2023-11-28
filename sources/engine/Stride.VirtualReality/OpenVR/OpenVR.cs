@@ -22,7 +22,7 @@ namespace Stride.VirtualReality
         /// <param name="value">The reference whose initialization should be skipped.</param>
         /// <returns>The reference to <paramref name="value"/>.</returns>
         /// <remarks>Take care to ensure that the struct has been initialized appropriately, otherwise the struct's fields could contain uninitialized data from the stack.</remarks>
-        private static ref T SkipInit<T>(out T value)
+        private static unsafe ref T SkipInit<T>(out T value)
         {
             Unsafe.SkipInit(out value);
             return ref value;
@@ -226,7 +226,7 @@ namespace Stride.VirtualReality
 
             InitDone = true;
 
-            //this makes the camera behave like oculus rift default!
+            //set Universe to Seated by default
             Valve.VR.OpenVR.Compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseSeated);
 
             return true;
@@ -433,6 +433,12 @@ namespace Stride.VirtualReality
             tex.InitializeFromImpl(srv);
 
             return tex;
+        }
+
+        public static void GetRecommendedRenderTargetSize(out (uint x, uint y) size)
+        {
+            size = default;
+            Valve.VR.OpenVR.System.GetRecommendedRenderTargetSize(ref size.x, ref size.y);
         }
 
         public static ulong CreateOverlay()

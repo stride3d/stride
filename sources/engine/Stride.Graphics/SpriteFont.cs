@@ -80,6 +80,7 @@ namespace Stride.Graphics
         /// <summary>
         /// Gets the font size (resp. the default font size) for static fonts (resp. for dynamic fonts) in pixels.
         /// </summary>
+        [DataMember]
         public float Size { get; internal set; }
 
         /// <summary>

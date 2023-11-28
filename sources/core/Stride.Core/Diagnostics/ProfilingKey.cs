@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Diagnostics
@@ -14,6 +15,10 @@ namespace Stride.Core.Diagnostics
         internal static readonly HashSet<ProfilingKey> AllKeys = new HashSet<ProfilingKey>();
         internal bool Enabled;
         internal ProfilingKeyFlags Flags;
+        
+        // .NET Core profiling meter - allows consuming the data with dotnet-counters
+        internal static Meter profilingMeter = new Meter("Stride.Profiler");
+        internal readonly Histogram<double> PerformanceMeasurement;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfilingKey" /> class.
@@ -21,10 +26,10 @@ namespace Stride.Core.Diagnostics
         /// <param name="name">The name.</param>
         public ProfilingKey([NotNull] string name, ProfilingKeyFlags flags = ProfilingKeyFlags.None)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
+            Name = ValidateNameNotEmpty(name);
             Children = new List<ProfilingKey>();
-            Name = name;
             Flags = flags;
+            PerformanceMeasurement = profilingMeter.CreateHistogram<double>(Name, "ms", "Duration");
 
             lock (AllKeys)
             {
@@ -39,20 +44,14 @@ namespace Stride.Core.Diagnostics
         /// <param name="name">The name.</param>
         /// <exception cref="System.ArgumentNullException">parent</exception>
         public ProfilingKey([NotNull] ProfilingKey parent, [NotNull] string name, ProfilingKeyFlags flags = ProfilingKeyFlags.None)
+            : this($"{parent}.{name}", flags)
         {
-            if (parent == null) throw new ArgumentNullException(nameof(parent));
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            Children = new List<ProfilingKey>();
-            Parent = parent;
-            Name = $"{Parent}.{name}";
-            Flags = flags;
-
-            lock (AllKeys)
+            ValidateNameNotEmpty(name);
+            Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+            lock (parent.Children)
             {
                 // Register ourself in parent's children.
-                parent.Children?.Add(this);
-
-                AllKeys.Add(this);
+                parent.Children.Add(this);
             }
         }
 
@@ -80,5 +79,8 @@ namespace Stride.Core.Diagnostics
         {
             return Name;
         }
+
+        private static string ValidateNameNotEmpty(string name) =>
+            !string.IsNullOrWhiteSpace(name) ? name : throw new ArgumentException("Name cannot be empty", nameof(name));
     }
 }

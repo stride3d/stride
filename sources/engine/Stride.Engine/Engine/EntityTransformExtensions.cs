@@ -30,8 +30,11 @@ namespace Stride.Engine
 
         /// <summary>
         /// Removes a child Entity to the transform component of a parent Entity. Note that the child entity is still in the <see cref="SceneInstance"/>.
-        /// In order to remove it from the scene instance, you should call <see cref="SceneInstance.Remove"/>
+        /// In order to remove it from the scene instance, you should call `Remove(myEntity)` in <see cref="Scene.Entities"/>.
         /// </summary>
+        /// <remarks>
+        /// Alternatively, you can remove an entity from the scene by setting `myEntity.Scene = null`.
+        /// </remarks>
         /// <param name="parentEntity">The parent Entity.</param>
         /// <param name="childEntity">The child Entity.</param>
         /// <exception cref="NullReferenceException"><paramref name="childEntity"/> is <c>null</c></exception>

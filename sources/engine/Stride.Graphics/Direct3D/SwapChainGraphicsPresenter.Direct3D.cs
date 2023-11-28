@@ -33,6 +33,7 @@ using BackBufferResourceType = SharpDX.Direct3D11.Texture2D;
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
 using BackBufferResourceType = SharpDX.Direct3D12.Resource;
 #endif
+using DXGI_Format = SharpDX.DXGI.Format;
 
 namespace Stride.Graphics
 {
@@ -158,7 +159,7 @@ namespace Stride.Graphics
 
                 bool switchToFullScreen = value;
                 // If going to fullscreen mode: call 1) SwapChain.ResizeTarget 2) SwapChain.IsFullScreen
-                var description = new ModeDescription(backBuffer.ViewWidth, backBuffer.ViewHeight, Description.RefreshRate.ToSharpDX(), (SharpDX.DXGI.Format)Description.BackBufferFormat);
+                var description = new ModeDescription(backBuffer.ViewWidth, backBuffer.ViewHeight, Description.RefreshRate.ToSharpDX(), (DXGI_Format)Description.BackBufferFormat);
                 if (switchToFullScreen)
                 {
                     OnDestroyed();
@@ -281,12 +282,18 @@ namespace Stride.Graphics
             }
 #endif
 
+            if (useFlipModel)
+                format = ToSupportedFlipModelFormat(format); // See CreateSwapChainForDesktop
+
             // If format is same as before, using Unknown (None) will keep the current
             // We do that because on Win10/RT, actual format might be the non-srgb one and we don't want to switch to srgb one by mistake (or need #ifdef)
-            if (format == backBuffer.Format)
+            // Eideren: the comment above isn't very clear, I think they mean that we don't want to swap to srgb because it'll crash with flip model
+            //          I've added the flip model check above because the previous logic wasn't enough, see issue #1770
+            //          Testing against swapChain format instead of the backbuffer as they may not match.
+            if ((DXGI_Format)format == swapChain.Description.ModeDescription.Format)
                 format = PixelFormat.None;
 
-            swapChain.ResizeBuffers(bufferCount, width, height, (SharpDX.DXGI.Format)format, GetSwapChainFlags());
+            swapChain.ResizeBuffers(bufferCount, width, height, (DXGI_Format)format, GetSwapChainFlags());
 
             // Get newly created native texture
             var backBufferTexture = swapChain.GetBackBuffer<BackBufferResourceType>(0);
@@ -366,7 +373,7 @@ namespace Stride.Graphics
                 // Automatic sizing
                 Width = Description.BackBufferWidth,
                 Height = Description.BackBufferHeight,
-                Format = (SharpDX.DXGI.Format)Description.BackBufferFormat.ToNonSRgb(),
+                Format = (DXGI_Format)Description.BackBufferFormat.ToNonSRgb(),
                 Stereo = false,
                 SampleDescription = new SharpDX.DXGI.SampleDescription((int)Description.MultisampleCount, 0),
                 Usage = Usage.BackBuffer | Usage.RenderTargetOutput,
@@ -444,23 +451,23 @@ namespace Stride.Graphics
             useFlipModel = Description.MultisampleCount == MultisampleCount.None && flipModelSupport;
 #endif
 
-            var backbufferFormat = Description.BackBufferFormat;
+            var swapchainFormat = Description.BackBufferFormat;
             bufferCount = 1;
 
             if (useFlipModel)
             {
-                backbufferFormat = backbufferFormat.ToNonSRgb();
+                swapchainFormat = ToSupportedFlipModelFormat(swapchainFormat);
                 bufferCount = 2;
             }
 
             var description = new SwapChainDescription
             {
-                ModeDescription = new ModeDescription(Description.BackBufferWidth, Description.BackBufferHeight, Description.RefreshRate.ToSharpDX(), (SharpDX.DXGI.Format)backbufferFormat), 
+                ModeDescription = new ModeDescription(Description.BackBufferWidth, Description.BackBufferHeight, Description.RefreshRate.ToSharpDX(), (DXGI_Format)swapchainFormat),
                 BufferCount = bufferCount, // TODO: Do we really need this to be configurable by the user?
                 OutputHandle = handle,
                 SampleDescription = new SampleDescription((int)Description.MultisampleCount, 0),
                 SwapEffect = useFlipModel ? SwapEffect.FlipDiscard : SwapEffect.Discard,
-                Usage = Usage.BackBuffer | SharpDX.DXGI.Usage.RenderTargetOutput,
+                Usage = Usage.BackBuffer | Usage.RenderTargetOutput,
                 IsWindowed = true,
                 Flags = GetSwapChainFlags(), 
             };
@@ -503,6 +510,26 @@ namespace Stride.Graphics
             return flags;
         }
 #endif
+
+        /// <summary>
+        /// Flip model does not support certain format, this method ensures it is in a supported format.
+        /// https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-flip-model
+        /// </summary>
+        /// <exception cref="ArgumentException">
+        /// Will throw if the given format does not have a direct analog supported by the flip model
+        /// </exception>
+        static PixelFormat ToSupportedFlipModelFormat(PixelFormat pixelFormat)
+        {
+            var nonSRgb = pixelFormat.ToNonSRgb();
+            switch (nonSRgb)
+            {
+                case PixelFormat.R16G16B16A16_Float:
+                case PixelFormat.B8G8R8A8_UNorm:
+                case PixelFormat.R8G8B8A8_UNorm:
+                    return nonSRgb;
+                default: throw new ArgumentException($"Format '{pixelFormat}' is not supported when using flip swap", nameof(pixelFormat));
+            }
+        }
     }
 }
 #endif

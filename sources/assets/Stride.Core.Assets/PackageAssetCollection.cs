@@ -361,7 +361,7 @@ namespace Stride.Core.Assets
                 throw new ArgumentException("Asset location [{0}] must be relative and not absolute (not start with '/')".ToFormat(location), "item");
             }
 
-            if (location.GetDirectory() != null && location.GetDirectory().StartsWith(".."))
+            if (location.GetDirectory() != null && location.GetDirectory().StartsWith("..", StringComparison.Ordinal))
             {
                 throw new ArgumentException("Asset location [{0}] cannot start with relative '..'".ToFormat(location), "item");
             }

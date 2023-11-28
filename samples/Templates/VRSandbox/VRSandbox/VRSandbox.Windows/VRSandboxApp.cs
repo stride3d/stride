@@ -6,7 +6,7 @@ namespace VRSandbox
     {
         static void Main(string[] args)
         {
-            using (var game = new Game())
+            using (var game = new VRGame())
             {
                 game.Run();
             }

@@ -212,9 +212,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="point">The point to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public PlaneIntersectionType Intersects(ref Vector3 point)
+        public PlaneIntersectionType Intersects(ref readonly Vector3 point)
         {
-            return CollisionHelper.PlaneIntersectsPoint(ref this, ref point);
+            return CollisionHelper.PlaneIntersectsPoint(ref this, in point);
         }
 
         /// <summary>
@@ -222,10 +222,10 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray)
+        public bool Intersects(ref readonly Ray ray)
         {
             float distance;
-            return CollisionHelper.RayIntersectsPlane(ref ray, ref this, out distance);
+            return CollisionHelper.RayIntersectsPlane(in ray, ref this, out distance);
         }
 
         /// <summary>
@@ -235,9 +235,9 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out float distance)
+        public bool Intersects(ref readonly Ray ray, out float distance)
         {
-            return CollisionHelper.RayIntersectsPlane(ref ray, ref this, out distance);
+            return CollisionHelper.RayIntersectsPlane(in ray, ref this, out distance);
         }
 
         /// <summary>
@@ -247,9 +247,9 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out Vector3 point)
+        public bool Intersects(ref readonly Ray ray, out Vector3 point)
         {
-            return CollisionHelper.RayIntersectsPlane(ref ray, ref this, out point);
+            return CollisionHelper.RayIntersectsPlane(in ray, ref this, out point);
         }
 
         /// <summary>
@@ -257,9 +257,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Plane plane)
+        public bool Intersects(ref readonly Plane plane)
         {
-            return CollisionHelper.PlaneIntersectsPlane(ref this, ref plane);
+            return CollisionHelper.PlaneIntersectsPlane(ref this, in plane);
         }
 
         /// <summary>
@@ -269,9 +269,9 @@ namespace Stride.Core.Mathematics
         /// <param name="line">When the method completes, contains the line of intersection
         /// as a <see cref="Stride.Core.Mathematics.Ray"/>, or a zero ray if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Plane plane, out Ray line)
+        public bool Intersects(ref readonly Plane plane, out Ray line)
         {
-            return CollisionHelper.PlaneIntersectsPlane(ref this, ref plane, out line);
+            return CollisionHelper.PlaneIntersectsPlane(ref this, in plane, out line);
         }
 
         /// <summary>
@@ -281,9 +281,9 @@ namespace Stride.Core.Mathematics
         /// <param name="vertex2">The second vertex of the triagnle to test.</param>
         /// <param name="vertex3">The third vertex of the triangle to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public PlaneIntersectionType Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
+        public PlaneIntersectionType Intersects(ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3)
         {
-            return CollisionHelper.PlaneIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3);
+            return CollisionHelper.PlaneIntersectsTriangle(ref this, in vertex1, in vertex2, in vertex3);
         }
 
         /// <summary>
@@ -291,9 +291,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public PlaneIntersectionType Intersects(ref BoundingBox box)
+        public PlaneIntersectionType Intersects(ref readonly BoundingBox box)
         {
-            return CollisionHelper.PlaneIntersectsBox(ref this, ref box);
+            return CollisionHelper.PlaneIntersectsBox(ref this, in box);
         }
 
         /// <summary>
@@ -301,9 +301,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public PlaneIntersectionType Intersects(ref BoundingSphere sphere)
+        public PlaneIntersectionType Intersects(ref readonly BoundingSphere sphere)
         {
-            return CollisionHelper.PlaneIntersectsSphere(ref this, ref sphere);
+            return CollisionHelper.PlaneIntersectsSphere(ref this, in sphere);
         }
 
         /// <summary>
@@ -312,7 +312,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The plane to scale.</param>
         /// <param name="scale">The amount by which to scale the plane.</param>
         /// <param name="result">When the method completes, contains the scaled plane.</param>
-        public static void Multiply(ref Plane value, float scale, out Plane result)
+        public static void Multiply(ref readonly Plane value, float scale, out Plane result)
         {
             result.Normal.X = value.Normal.X * scale;
             result.Normal.Y = value.Normal.Y * scale;
@@ -337,7 +337,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The source plane.</param>
         /// <param name="right">The source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of the specified plane and vector.</param>
-        public static void Dot(ref Plane left, ref Vector4 right, out float result)
+        public static void Dot(ref readonly Plane left, ref readonly Vector4 right, out float result)
         {
             result = (left.Normal.X * right.X) + (left.Normal.Y * right.Y) + (left.Normal.Z * right.Z) + (left.D * right.W);
         }
@@ -359,7 +359,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The source plane.</param>
         /// <param name="right">The source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of a specified vector and the normal of the Plane plus the distance value of the plane.</param>
-        public static void DotCoordinate(ref Plane left, ref Vector3 right, out float result)
+        public static void DotCoordinate(ref readonly Plane left, ref readonly Vector3 right, out float result)
         {
             result = (left.Normal.X * right.X) + (left.Normal.Y * right.Y) + (left.Normal.Z * right.Z) + left.D;
         }
@@ -381,7 +381,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The source plane.</param>
         /// <param name="right">The source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of the specified vector and the normal of the plane.</param>
-        public static void DotNormal(ref Plane left, ref Vector3 right, out float result)
+        public static void DotNormal(ref readonly Plane left, ref readonly Vector3 right, out float result)
         {
             result = (left.Normal.X * right.X) + (left.Normal.Y * right.Y) + (left.Normal.Z * right.Z);
         }
@@ -403,14 +403,14 @@ namespace Stride.Core.Mathematics
         /// <param name="plane">The plane to project the point to.</param>
         /// <param name="point">The point to project.</param>
         /// <param name="result">The projected point.</param>
-        public static void Project(ref Plane plane, ref Vector3 point, out Vector3 result)
+        public static void Project(ref readonly Plane plane, ref readonly Vector3 point, out Vector3 result)
         {
             float distance;
-            DotCoordinate(ref plane, ref point, out distance);
+            DotCoordinate(in plane, in point, out distance);
 
             // compute: point - distance * plane.Normal
-            Vector3.Multiply(ref plane.Normal, distance, out result);
-            Vector3.Subtract(ref point, ref result, out result);
+            Vector3.Multiply(in plane.Normal, distance, out result);
+            Vector3.Subtract(in point, ref result, out result);
         }
 
         /// <summary>
@@ -449,7 +449,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="plane">The source plane.</param>
         /// <param name="result">When the method completes, contains the normalized plane.</param>
-        public static void Normalize(ref Plane plane, out Plane result)
+        public static void Normalize(ref readonly Plane plane, out Plane result)
         {
             float magnitude = 1.0f / MathF.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z));
 
@@ -475,7 +475,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="plane">The source plane.</param>
         /// <param name="result">When the method completes, contains the flipped plane.</param>
-        public static void Negate(ref Plane plane, out Plane result)
+        public static void Negate(ref readonly Plane plane, out Plane result)
         {
             result.Normal.X = -plane.Normal.X;
             result.Normal.Y = -plane.Normal.Y;
@@ -500,7 +500,7 @@ namespace Stride.Core.Mathematics
         /// <param name="plane">The normalized source plane.</param>
         /// <param name="rotation">The quaternion rotation.</param>
         /// <param name="result">When the method completes, contains the transformed plane.</param>
-        public static void Transform(ref Plane plane, ref Quaternion rotation, out Plane result)
+        public static void Transform(ref readonly Plane plane, ref readonly Quaternion rotation, out Plane result)
         {
             float x2 = rotation.X + rotation.X;
             float y2 = rotation.Y + rotation.Y;
@@ -565,7 +565,7 @@ namespace Stride.Core.Mathematics
         /// <param name="planes">The array of normalized planes to transform.</param>
         /// <param name="rotation">The quaternion rotation.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="planes"/> is <c>null</c>.</exception>
-        public static void Transform(Plane[] planes, ref Quaternion rotation)
+        public static void Transform(Plane[] planes, ref readonly Quaternion rotation)
         {
             if (planes == null)
                 throw new ArgumentNullException("planes");
@@ -605,7 +605,7 @@ namespace Stride.Core.Mathematics
         /// <param name="plane">The normalized source plane.</param>
         /// <param name="transformation">The transformation matrix.</param>
         /// <param name="result">When the method completes, contains the transformed plane.</param>
-        public static void Transform(ref Plane plane, ref Matrix transformation, out Plane result)
+        public static void Transform(ref readonly Plane plane, ref readonly Matrix transformation, out Plane result)
         {
             float x = plane.Normal.X;
             float y = plane.Normal.Y;
@@ -613,7 +613,7 @@ namespace Stride.Core.Mathematics
             float d = plane.D;
 
             Matrix inverse;
-            Matrix.Invert(ref transformation, out inverse);
+            Matrix.Invert(in transformation, out inverse);
 
             result.Normal.X = (((x * inverse.M11) + (y * inverse.M12)) + (z * inverse.M13)) + (d * inverse.M14);
             result.Normal.Y = (((x * inverse.M21) + (y * inverse.M22)) + (z * inverse.M23)) + (d * inverse.M24);
@@ -650,17 +650,17 @@ namespace Stride.Core.Mathematics
         /// <param name="planes">The array of normalized planes to transform.</param>
         /// <param name="transformation">The transformation matrix.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="planes"/> is <c>null</c>.</exception>
-        public static void Transform(Plane[] planes, ref Matrix transformation)
+        public static void Transform(Plane[] planes, ref readonly Matrix transformation)
         {
             if (planes == null)
                 throw new ArgumentNullException("planes");
 
             Matrix inverse;
-            Matrix.Invert(ref transformation, out inverse);
+            Matrix.Invert(in transformation, out inverse);
 
             for (int i = 0; i < planes.Length; ++i)
             {
-                Transform(ref planes[i], ref transformation, out planes[i]);
+                Transform(ref planes[i], in transformation, out planes[i]);
             }
         }
 

@@ -32,8 +32,6 @@ using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
-using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
-using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -228,7 +226,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             AddAssetFilterCommand = new AnonymousCommand<AssetFilterViewModel>(serviceProvider, AddAssetFilter);
             ClearAssetFiltersCommand = new AnonymousCommand(serviceProvider, ClearAssetFilters);
             RefreshAssetFilterCommand = new AnonymousCommand<AssetFilterViewModel>(serviceProvider, RefreshAssetFilter);
-            currentAssetFilters.CollectionChanged += (s,e) => RefreshFilters();
+            currentAssetFilters.CollectionChanged += (s, e) => RefreshFilters();
             SelectedLocations.CollectionChanged += SelectedLocationCollectionChanged;
             filteredAssets.CollectionChanged += FilteredAssetsCollectionChanged;
             selectedContent.CollectionChanged += SelectedContentCollectionChanged;
@@ -473,7 +471,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             base.Destroy();
         }
 
-        public async Task<List<AssetViewModel>> RunAssetTemplate(ITemplateDescriptionViewModel template, IEnumerable<UFile> files, PropertyContainer? customParameters = null)
+        public async Task<List<AssetViewModel>> RunAssetTemplate(ITemplateDescriptionViewModel template, [CanBeNull] IList<UFile> files, PropertyContainer? customParameters = null)
         {
             if (template == null)
                 return new List<AssetViewModel>();
@@ -537,9 +535,96 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
-        private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, IEnumerable<UFile> files, PropertyContainer? customParameters)
+        private async Task<string> GetAssetCopyDirectory(DirectoryBaseViewModel directory, UFile file)
+        {
+            var path = directory.Path;
+            var message = Tr._p("Message", "Do you want to place the resource in the default location ?");
+            var finalPath = Path.Combine(directory.Package.Package.ResourceFolders[0], path, file.GetFileName());
+            var pathResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (pathResult == MessageBoxResult.No)
+            {
+                while(true)
+                {
+                    var fileDialog = Dialogs.CreateFileSaveModalDialog();
+                    fileDialog.Filters = new List<FileDialogFilter>() { new FileDialogFilter("", file.GetFileExtension()) };
+                    fileDialog.InitialDirectory = Path.GetFullPath(directory.Package.Package.ResourceFolders[0].FullPath);
+                    fileDialog.DefaultFileName = file.GetFileName();
+                    DialogResult result = await fileDialog.ShowModal();
+
+                    // If the user closes the dialog, assume that they want to use the default directory
+                    if (result != DialogResult.Ok)
+                    {
+                        return finalPath;
+                    }
+
+                    var fullPath = Path.GetFullPath(fileDialog.FilePath);
+
+                    bool inResource = directory.Package.Package.ResourceFolders.Any(x => fullPath.StartsWith(Path.GetFullPath(x.FullPath), StringComparison.Ordinal));
+                    if (inResource)
+                    {
+                        return fullPath;
+                    }
+
+                    message = Tr._p("Message", "The selected directory is not a subdirectory of the resources folder!");
+                    await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            return finalPath;
+        }
+
+        private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, [CanBeNull] IList<UFile> files, PropertyContainer? customParameters)
         {
             List<AssetViewModel> newAssets = new List<AssetViewModel>();
+            if (files is not null)
+            {
+                for (int i = 0; i < files.Count; i++)
+                {
+                    var file = files[i];
+                    bool inResourceFolder = directory.Package.Package.ResourceFolders.Any(x => file.FullPath.StartsWith(x.FullPath, StringComparison.Ordinal));
+
+                    if (inResourceFolder)
+                        continue;
+
+                    var message = Tr._p("Message", "Source file '{0}' is not inside of your project's resource folders, do you want to copy it?").ToFormat(file.FullPath);
+
+                    var copyResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                    if (copyResult != MessageBoxResult.Yes)
+                        continue;
+
+                    string finalPath = await GetAssetCopyDirectory(directory, file);
+
+                    try
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(finalPath));
+                        if (File.Exists(finalPath))
+                        {
+                            message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(file.FullPath);
+
+                            copyResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                            // Abort if the user says no or closes the prompt
+                            if (copyResult != MessageBoxResult.Yes)
+                            {
+                                return newAssets;
+                            }
+                            File.Copy(file.FullPath, finalPath, true);
+                        }
+                        else
+                        {
+                            File.Copy(file.FullPath, finalPath);
+                        }
+
+                        files[i] = new UFile(finalPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        message = Tr._p("Message", $"An error occurred while copying the asset to the resources folder : {ex.Message}");
+                        await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                        return newAssets;
+                    }
+                }
+            }
 
             var parameters = new AssetTemplateGeneratorParameters(directory.Path, files)
             {
@@ -904,7 +989,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             foreach (var asset in assets)
             {
-                if (asset.AssetItem.Location.HasDirectory && (directory.Parent == null || !asset.Url.StartsWith(directory.Parent.Path)))
+                if (asset.AssetItem.Location.HasDirectory && (directory.Parent == null || !asset.Url.StartsWith(directory.Parent.Path, StringComparison.Ordinal)))
                 {
                     throw new InvalidOperationException("One of the asset does not match the directory hierarchy.");
                 }
@@ -1213,7 +1298,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private static string[] ComputeTokens(string pattern)
         {
-            return pattern?.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
+            return pattern?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
         }
 
         private void UpdateAvailableAssetFilters(string filterText)

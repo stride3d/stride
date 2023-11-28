@@ -24,6 +24,8 @@ namespace Stride.Assets.Models
 
         public bool ImportCustomAttributes { get; set; }
 
+        public int AnimationStack { get; set; }
+
         private unsafe object ExportAnimation(ICommandContext commandContext, ContentManager contentManager, bool failOnEmptyAnimation)
         {
             // Read from model file
@@ -72,14 +74,14 @@ namespace Stride.Assets.Models
 
                             // Root motion
                             var channelName = channel.Key;
-                            if (channelName.StartsWith("Transform."))
+                            if (channelName.StartsWith("Transform.", StringComparison.Ordinal))
                             {
                                 animationClip.AddCurve($"[TransformComponent.Key]." + channelName.Replace("Transform.", string.Empty), curve);
                             }
 
                             // Also apply Camera curves
                             // TODO: Add some other curves?
-                            if (channelName.StartsWith("Camera."))
+                            if (channelName.StartsWith("Camera.", StringComparison.Ordinal))
                             {
                                 animationClip.AddCurve($"[CameraComponent.Key]." + channelName.Replace("Camera.", string.Empty), curve);
                             }
@@ -230,7 +232,7 @@ namespace Stride.Assets.Models
 
                             // TODO: Root motion
                             var channelName = channel.Key;
-                            if (channelName.StartsWith(transformStart))
+                            if (channelName.StartsWith(transformStart, StringComparison.Ordinal))
                             {
                                 if (channelName == transformPosition)
                                 {

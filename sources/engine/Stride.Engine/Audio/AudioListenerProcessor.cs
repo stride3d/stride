@@ -14,8 +14,8 @@ namespace Stride.Audio
     /// </summary>
     /// <remarks>
     /// The processor updates only <see cref="AudioListener"/> associated to <see cref="AudioListenerComponent"/>s 
-    /// The processor is subscribing to the <see cref="audioSystem"/> <see cref="AudioListenerComponent"/> collection events to be informed of required <see cref="AudioEmitter"/> updates.
-    /// When a <see cref="AudioListenerComponent"/> is added to the <see cref="audioSystem"/>, the processor set the associated <see cref="AudioEmitter"/>.
+    /// The processor is subscribing to the <see cref="AudioSystem"/> <see cref="AudioListenerComponent"/> collection events to be informed of required <see cref="AudioEmitter"/> updates.
+    /// When a <see cref="AudioListenerComponent"/> is added to the <see cref="AudioSystem"/>, the processor set the associated <see cref="AudioEmitter"/>.
     /// When a <see cref="AudioListenerComponent"/> is removed from the entity system, 
     /// the processor set the <see cref="AudioEmitter"/> reference of the <see cref="AudioSystem"/> to null 
     /// but do not remove the <see cref="AudioListenerComponent"/> from its collection.

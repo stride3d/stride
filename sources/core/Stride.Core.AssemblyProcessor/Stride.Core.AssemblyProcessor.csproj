@@ -1,9 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProductVersion>16.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net6</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
@@ -24,6 +22,24 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  
+  <!-- Add support for building this project from the Project Directory -->
+  <PropertyGroup>
+    <DependencyDir>$(ProjectDir)..\..\..\deps</DependencyDir>
+  </PropertyGroup>
+
+  <!-- ======================================================================================== -->
+  <!-- Item Groups                                                                              -->
+  <!-- ======================================================================================== -->
+
+  <!-- Referenced Packages -->
+  <ItemGroup>
+    <PackageReference Include="Mono.Cecil" />
+    <PackageReference Include="Mono.Options" VersionOverride="6.12.0.148" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="17.3.2" ExcludeAssets="runtime" />
+  </ItemGroup>
+  
+  <!-- Compiled Items -->
   <ItemGroup>
     <Compile Include="..\Stride.Core\DataMemberMode.cs">
       <Link>Core\DataMemberMode.cs</Link>
@@ -63,54 +79,62 @@
       <DesignTime>True</DesignTime>
     </Compile>
   </ItemGroup>
+  
+  <!-- Items that have no role in the build process -->
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
+  
+  <!-- Indicates this Project is included in Unit Test Projects -->
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
+  
+  <!-- Define the full set of built items for later use -->
   <ItemGroup>
-    <!--<PackageReference Include="ILRepack" Version="2.0.15" PrivateAssets="All" />-->
-    <PackageReference Include="ILRepack" Version="2.0.18" PrivateAssets="All" />
-    <!--<PackageReference Include="Mono.Cecil" Version="0.11.2" />-->
-    <PackageReference Include="Mono.Cecil" Version="0.11.4" />
-    <!--<PackageReference Include="Mono.Options" Version="5.3.0.1" />-->
-    <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11.0" ExcludeAssets="runtime" />
+    <BuiltItems Include="$(TargetDir)*" />
   </ItemGroup>
-  <!-- Generate hash file for assembly -->
+
+  <!-- ======================================================================================== -->
+  <!-- Tasks & Targets                                                                          -->
+  <!-- ======================================================================================== -->
+  
+  <!-- Define a custom task for writing text to a file -->
   <UsingTask
-  TaskName="WriteAllText"
-  TaskFactory="RoslynCodeTaskFactory"
-  AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+    TaskName="WriteAllText"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
-      <Path ParameterType="System.String" />
-      <Contents ParameterType="System.String" />
+      <Path ParameterType="System.String"/>
+      <Contents ParameterType="System.String"/>
     </ParameterGroup>
     <Task>
       <Using Namespace="System"/>
       <Using Namespace="System.IO"/>
       <Code Type="Fragment" Language="cs">
         <![CDATA[
-File.WriteAllText(Path, Contents);
-]]>
+          File.WriteAllText(Path, Contents);
+        ]]>
       </Code>
     </Task>
   </UsingTask>
-  <!--<UsingTask TaskName="Microsoft.Build.Tasks.GetFileHash" AssemblyName="Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/>
-  <UsingTask TaskName="Microsoft.Build.Tasks.VerifyFileHash" AssemblyName="Microsoft.Build.Tasks.Core, Version=15.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/>-->
 
-
-  <Target Name="GenerateHash" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\
-cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\
-$(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
-    <GetFileHash Files="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
+  <!-- Copies the built items to the deps folder -->
+  <Target Name="CopyFiles" AfterTargets="PostBuildEvent">
+    <Copy
+      SourceFiles="@(BuiltItems)"
+      DestinationFolder="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)"
+    />
+  </Target>
+  
+  <!-- Packs the BuildItems into a single  DLL and generates a .hash file from it -->
+  <Target Name="GenerateHash" AfterTargets="CopyFiles">
+   <!-- Generate the hash and then write it to disk with the .hash extension -->
+    <GetFileHash Files="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor$(TargetExt)">
       <Output
           TaskParameter="Hash"
           PropertyName="PackedAssemblyHash" />
     </GetFileHash>
-    <WriteAllText Path="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt).hash" Contents="$(PackedAssemblyHash)"/>
+    <WriteAllText Path="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor$(TargetExt).hash" Contents="$(PackedAssemblyHash)"/>
   </Target>
 </Project>

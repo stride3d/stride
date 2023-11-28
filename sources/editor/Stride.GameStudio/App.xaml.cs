@@ -3,6 +3,7 @@
 
 using System;
 using System.Windows;
+using Stride.GameStudio.Helpers;
 
 namespace Stride.GameStudio
 {

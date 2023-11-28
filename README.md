@@ -1,4 +1,10 @@
-![Stride](sources/data/images/Logo/stride-logo-readme.png)
+<p>
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-white.png">
+      <source media="(prefers-color-scheme: light)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
+      <img alt="The stride logo, a geometrical 'S' in the form of a cube" src="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
+    </picture>
+</p>
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord&logoColor=f2f2f2)](https://discord.gg/f6aerfE)
 [![All Contributors](https://img.shields.io/github/all-contributors/stride3d/stride?color=ee8449)](#contributors)
@@ -15,21 +21,21 @@ Stride comes with an editor that allows you to create and manage the content of 
 
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
+## Earn money by contributing
+If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on OpenCollective and can pay for work on certain projects. [More info about this here](https://github.com/stride3d/stride/wiki/Bounty).
+
 ## License and governance
 ### .NET Foundation
 This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
 
 ### License
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
-You can find the list of third party projects [here](THIRD%20PARTY.md).
+You can find the list of third-party projects [here](THIRD%20PARTY.md).
 Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
 
 ### Code of conduct
 Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
 For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct). 
-
-### Earn money by contributing
-If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on OpenCollective and can pay for work on certain projects. [More info about this here](https://github.com/stride3d/stride/wiki/Bounty).
 
 ## Documentation
 
@@ -43,30 +49,33 @@ Find explanations and information about Stride:
 
 Ask for help or report issues:
 * [Chat with the community on Discord](https://discord.gg/f6aerfE)
-* [Discuss topics on Github discussions](https://github.com/stride3d/stride/discussions)
+* [Discuss topics on GitHub discussions](https://github.com/stride3d/stride/discussions)
 * [Report engine issues](https://github.com/stride3d/stride/issues)
 * [Donate to support the project](https://opencollective.com/stride3d/)
 * [List of Projects made by users](https://github.com/stride3d/stride/wiki/Community-Projects)
+* [Awesome Stride - Huge List of Stride Resources](https://github.com/Doprez/Awesome-Stride)
 * [Localization](docs/localization.md)
 
 ## Building from source
 
 ### Prerequisites
 
-1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog.
-2. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
-  * `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
-  * `Desktop development with C++` with
-    * `Windows 10 SDK (10.0.18362.0)` (it's currently enabled by default but it might change)
-    * `MSVC v143 - VS2022 C++ x64/x86 build tools (v14.30)` or later version (should be enabled by default)
-    * `C++/CLI support for v143 build tools (v14.30)` or later version **(not enabled by default)**
-  * Optional (to target iOS/Android): `Mobile development with .NET` and `Android SDK setup (API level 27)` individual component, then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 19+) from `Tools` tab.
-3. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
+1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog and for convenience a git UI client like [GitExtensions](https://gitextensions.github.io/).
+2. [DotNet SDK 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+   - Run `dotnet --info` in a console or powershell window to see which versions you have installed  
+3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
+   - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
+   - `Desktop development with C++` with
+     - `Windows 10 SDK (10.0.18362.0)` (it's currently enabled by default but it might change)
+     - `MSVC v143 - VS2022 C++ x64/x86 build tools (v14.30)` or later version (should be enabled by default)
+     - `C++/CLI support for v143 build tools (v14.30)` or later version **(not enabled by default)**
+   - Optional (to target iOS/Android): `Mobile development with .NET` and `Android SDK setup (API level 27)` individual component, then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 19+) from `Tools` tab.
+4. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
 
 ### Build Stride
 
-1. Open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
-   - Note that when you use GitHub -> Code -> Download ZIP, this doesn't support Large File Support ```lfs```, make sure you use the command above or that your git client does it for you
+1. Clone the repo with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
+   - **Do NOT use GitHub -> Code -> Download ZIP**, this won't include the ```lfs``` files.
 2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 and build `Stride.GameStudio` in the 60-Editor solution folder (it should be the default startup project) or run it from VS's toolbar.
    - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
@@ -74,10 +83,12 @@ Ask for help or report issues:
 
 1. Install [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above
 2. Add MSBuild's directory to your system's *PATH* (ex: `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`)
-3. Open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
+3. Clone the repo with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
 4. Navigate to `/Build` with the command prompt, input `msbuild /t:Restore Stride.sln` then `compile.bat`
 
 If building failed:
+* Some errors for test projects are normal, GameStudio will start anyway.
+* The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2022), but GameStudio will start anyway.
 * If you skipped one of the `Prerequisites` thinking that you already have the latest version, update to the latest anyway just to be sure.
 * Visual Studio might have issues properly building if an anterior version is present alongside 2022. If you want to keep those version make sure that they are up to date and that you are building Stride through VS 2022.
 * Your system's *PATH* should not contain older versions of MSBuild (ex: `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed)
@@ -169,6 +180,15 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/garychia"><img src="https://avatars.githubusercontent.com/u/88014292?v=4?s=100" width="100px;" alt="Chia-Hsiang Cheng"/><br /><sub><b>Chia-Hsiang Cheng</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=garychia" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://nicusorn5.github.io/"><img src="https://avatars.githubusercontent.com/u/20599225?v=4?s=100" width="100px;" alt="Nicolae Tugui"/><br /><sub><b>Nicolae Tugui</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=NicusorN5" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://mattiascibien.net"><img src="https://avatars.githubusercontent.com/u/1300681?v=4?s=100" width="100px;" alt="Mattias Cibien"/><br /><sub><b>Mattias Cibien</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=mattiascibien" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://cnonim.name"><img src="https://avatars.githubusercontent.com/u/523048?v=4?s=100" width="100px;" alt="Oleg Ageev"/><br /><sub><b>Oleg Ageev</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=cNoNim" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SeleDreams"><img src="https://avatars.githubusercontent.com/u/16335601?v=4?s=100" width="100px;" alt="SeleDreams"/><br /><sub><b>SeleDreams</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=SeleDreams" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/acastrodev"><img src="https://avatars.githubusercontent.com/u/6575712?v=4?s=100" width="100px;" alt="Alexandre Castro"/><br /><sub><b>Alexandre Castro</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=acastrodev" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SVNMLR"><img src="https://avatars.githubusercontent.com/u/44621949?v=4?s=100" width="100px;" alt="SVNMLR"/><br /><sub><b>SVNMLR</b></sub></a><br /><a href="#design-SVNMLR" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://chroniclesofelyria.com"><img src="https://avatars.githubusercontent.com/u/17633767?v=4?s=100" width="100px;" alt="Jeromy Walsh"/><br /><sub><b>Jeromy Walsh</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=JeromyWalsh" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://pa.rh.am/"><img src="https://avatars.githubusercontent.com/u/7075456?v=4?s=100" width="100px;" alt="Parham Gholami"/><br /><sub><b>Parham Gholami</b></sub></a><br /><a href="#design-parhamgholami" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/adrsch"><img src="https://avatars.githubusercontent.com/u/35346279?v=4?s=100" width="100px;" alt="adrsch"/><br /><sub><b>adrsch</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=adrsch" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

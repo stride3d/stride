@@ -59,7 +59,7 @@
               <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <!--Following border is required to catch mouse events-->
-            <Border Background="Transparent" Grid.RowSpan="2"/>
+            <Border Background="{StaticResource MenuBackgroundBrush}" Grid.RowSpan="2"/>
             <Grid  Visibility="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type avalonDockControls:LayoutDocumentPaneControl}}, Path=Model.ShowHeader, Converter={StaticResource BoolToVisibilityConverter}}"
                    Panel.ZIndex="1" >
               <Grid.ColumnDefinitions>
@@ -157,10 +157,6 @@
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
 
-                  <Rectangle
-                               x:Name="splineBd"
-                               Fill="{TemplateBinding Background}"/>
-
                   <Border x:Name="Bd"
                                    Grid.Column="1"
                      BorderBrush="{TemplateBinding BorderBrush}">
@@ -168,7 +164,7 @@
                                   x:Name="BdInternal"
                     Background="{TemplateBinding Background}"
                     Padding="{TemplateBinding Padding}"
-                                            >
+                    CornerRadius="5,5,0,0">
                       <ContentPresenter
                      x:Name="Content"
                      ContentSource="Header"
@@ -293,6 +289,7 @@
                 <Grid SnapsToDevicePixels="true">
                   <Border x:Name="Bd"
                           BorderBrush="{TemplateBinding BorderBrush}"
+                          CornerRadius="0,0,5,5"
                           Background="{TemplateBinding Background}"
                           Padding="{TemplateBinding Padding}">
                     <ContentPresenter

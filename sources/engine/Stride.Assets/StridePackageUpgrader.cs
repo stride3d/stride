@@ -164,7 +164,7 @@ namespace Stride.Assets
 
                     foreach (var packageReference in packageReferences)
                     {
-                        if (packageReference.EvaluatedInclude.StartsWith("Stride.") && packageReference.GetMetadataValue("Version") != CurrentVersion)
+                        if (packageReference.EvaluatedInclude.StartsWith("Stride.", StringComparison.Ordinal) && packageReference.GetMetadataValue("Version") != CurrentVersion)
                         {
                             packageReference.SetMetadataValue("Version", CurrentVersion).Xml.ExpressedAsAttribute = true;
                             foreach (var metadata in packageReference.Metadata)
@@ -224,7 +224,7 @@ namespace Stride.Assets
                         {
                             // Library
                             if (tfm.EvaluatedValue == "netstandard2.0"
-                                || (tfm.EvaluatedValue.StartsWith("net4") && solutionProject.Type == ProjectType.Library))
+                                || (tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library))
                             {
                                 // In case it's a single TargetFramework, add the "s" at the end
                                 tfm.Xml.Name = "TargetFrameworks";
@@ -232,9 +232,36 @@ namespace Stride.Assets
                                 isProjectDirty = true;
                             }
                             // Executable
-                            else if ((tfm.EvaluatedValue.StartsWith("net4") || tfm.EvaluatedValue.StartsWith("net5")) && solutionProject.Type == ProjectType.Executable)
+                            else if ((tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) || tfm.EvaluatedValue.StartsWith("net5", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
                             {
                                 tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net6.0-windows" : "net6.0";
+                                isProjectDirty = true;
+                            }
+                        }
+                    }
+
+                    if (dependency.Version.MinVersion < new PackageVersion("4.2.0.0") && solutionProject != null)
+                    {
+                        var tfm = project.GetProperty("TargetFramework");
+                        //check if plural is required to find value
+                        if (tfm.Xml == null)
+                        {
+                            tfm = project.GetProperty("TargetFrameworks");
+                        }
+                        if (tfm != null)
+                        {
+                            // Library
+                            if (tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
+                            {
+                                // In case it's a single TargetFramework, add the "s" at the end
+                                tfm.Xml.Name = "TargetFrameworks";
+                                tfm.Xml.Value = "net8.0";
+                                isProjectDirty = true;
+                            }
+                            // Executable
+                            else if ((tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
+                            {
+                                tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net8.0-windows" : "net8.0";
                                 isProjectDirty = true;
                             }
                         }

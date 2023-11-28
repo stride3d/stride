@@ -7,6 +7,9 @@ namespace CSharpBeginner.Code
     /// This script demonstrates how to get and remove components that are attached to an entity. 
     /// Try not to Get a component every frame as this will have negative performance impact. 
     /// Instead try to cache a component in the start method or when an object is initialized/triggered
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/get-component.html
+    /// </para>
     /// </summary>
     public class GettingAComponentDemo : SyncScript
     {

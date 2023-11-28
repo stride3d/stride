@@ -1218,7 +1218,7 @@ public:
 		// First try to get the texture filename by relative path, if not valid then use absolute path
 		// (According to FBX doc, resolved first by absolute name, and relative name if absolute name is not valid)
 		auto fileNameToUse = Path::Combine(inputPath, relFileName);
-		if(fileNameToUse->StartsWith("\\\\"))
+		if(fileNameToUse->StartsWith("\\\\", StringComparison::Ordinal))
 		{
 			logger->Warning(String::Format("Importer detected a network address in referenced assets. This may temporary block the build if the file does not exist. [Address='{0}']", fileNameToUse), (CallerInfo^)nullptr);
 		}
@@ -1634,6 +1634,7 @@ private:
 
 			// remove all bad characters
 			ReplaceCharacter(materialName, ':', '_');
+			ReplaceCharacter(materialName, '/', '_');
 			RemoveCharacter(materialName, ' ');
 			tempNames[lMaterial] = materialName;
 			
@@ -1901,7 +1902,10 @@ private:
 		ret->Materials = gcnew Dictionary<String^, MaterialAsset^>();
 		for (int i = 0; i < materialInstantiations->Count; ++i)
 		{
-			ret->Materials->Add(materialInstantiations[i]->MaterialName, materialInstantiations[i]->Material);
+			if (!ret->Materials->ContainsKey(materialInstantiations[i]->MaterialName))
+			{
+				ret->Materials->Add(materialInstantiations[i]->MaterialName, materialInstantiations[i]->Material);
+			}
 		}
         
 		return ret;
@@ -2008,14 +2012,14 @@ public:
 		return nullptr;
 	}
 
-	double GetAnimationDuration(String^ inputFileName)
+	double GetAnimationDuration(String^ inputFileName, int animationStack)
 	{
 		try
 		{
 			Initialize(inputFileName, nullptr, ImportConfiguration::ImportEntityConfig());
 
 			auto animationConverter = gcnew AnimationConverter(logger, sceneMapping);
-			auto animationData = animationConverter->ProcessAnimation(inputFilename, "", true);
+			auto animationData = animationConverter->ProcessAnimation(inputFilename, "", true, animationStack);
 
 			return animationData->Duration.TotalSeconds;
 		}
@@ -2082,14 +2086,14 @@ public:
 		return nullptr;
 	}
 
-	AnimationInfo^ ConvertAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations)
+	AnimationInfo^ ConvertAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations, int animationStack)
 	{
 		try
 		{
 			Initialize(inputFilename, vfsOutputFilename, ImportConfiguration::ImportAnimationsOnly());
 
 			auto animationConverter = gcnew AnimationConverter(logger, sceneMapping);
-			return animationConverter->ProcessAnimation(inputFilename, vfsOutputFilename, importCustomAttributeAnimations);
+			return animationConverter->ProcessAnimation(inputFilename, vfsOutputFilename, importCustomAttributeAnimations, animationStack);
 		}
 		finally
 		{
