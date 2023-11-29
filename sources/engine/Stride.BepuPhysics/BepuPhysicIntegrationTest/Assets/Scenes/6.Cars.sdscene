@@ -71,6 +71,92 @@ Hierarchy:
                         Children:
                             788fa0c6ec08d7793e4dbf513bd641a9: ref!! b4360c48-709b-4819-a2cf-aa6cbfca3527
                             3ffc18ad3c1cb957e908ef9d1cf5b1ff: ref!! d3bc9254-0a4c-4f23-8c75-59d63d0a1e2e
+                            f53db0c23cba98c6dd06674cbcfe222a: ref!! cc0fe3c4-a92a-4219-b937-d7211b4a5878
+                            0b444408e5ac9b8f4727d5fba5b7ff35: ref!! eafdc650-50bd-49a2-9138-d4a6f0e777f6
+                            b9e2a044841d4d5dfc9017e4c413f242: ref!! 321daa08-0926-484d-b9e3-f03304448b61
+                    25adfcf1fd9c9b04bd801f5e1f3e6045: !BepuPhysicIntegrationTest.Integration.Components.Utils.CarControllerComponent,BepuPhysicIntegrationTest
+                        Id: 52907c33-397a-4d7a-801d-552254cbd748
+                        LeftMotor: ref!! da7b57ed-8aab-49e8-ac88-940f2fa6bfe0
+                        RightMotor: ref!! eb9f01d2-403f-49b3-b5f6-de7c7426be03
+                        LeftBMotor: ref!! af28e7ed-1db9-406d-8714-116dce851285
+                        RightBMotor: ref!! 9889e200-b095-498c-883c-93f4490027ec
+                        LeftWheel: ref!! b3fbaf02-4fdd-4057-9b92-b10db94ef9df
+                        RightWheel: ref!! a2e4c401-6edc-44bd-b7d8-0d4e3cb903cd
+        -   Entity:
+                Id: 2762c75e-8526-48e3-8b53-30db19ba7bb0
+                Name: WheelBL
+                Components:
+                    aa244c743a3eb88f50917768b93d8f5b: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 0.95
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 1
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    0debde8052fd601b6f02ae19bf1ee640: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
+                        Id: e2f8fa5d-ccce-4da4-b64f-6042fab538e9
+                        Mass: 1.0
+                        Radius: 0.5
+                        Length: 0.1
+                    1d034f9ad6857b4845cffbbce7d2c1a7: !BepuPhysicIntegrationTest.Integration.Components.Constraints.PointOnLineServoConstraintComponent,BepuPhysicIntegrationTest
+                        Id: 4e527631-0ee8-40f5-8894-abf2ee65c914
+                        Bodies:
+                            4910769f1b7b8471691eea68cd672571: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                            cb43f6161a957f805de0ab573cbd174a: ref!! 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
+                        LocalOffsetA: {X: 1.75, Y: -1.0, Z: 1.25}
+                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
+                        LocalDirection: {X: 0.0, Y: 1.0, Z: 0.0}
+                        ServoMaximumSpeed: 10.0
+                        ServoBaseSpeed: 1.0
+                        ServoMaximumForce: 1000.0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                    f123bf95cc1d0718f212f4fa72c2de07: !BepuPhysicIntegrationTest.Integration.Components.Constraints.LinearAxisServoConstraintComponent,BepuPhysicIntegrationTest
+                        Id: 140811e1-ed78-44c5-8644-e9727191d9f2
+                        Bodies:
+                            7158dc44ff9c6ae39dc5deff5b44e21c: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                            d3cca56a05061707aa6005214a431560: ref!! 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
+                        LocalOffsetA: {X: 1.75, Y: -1.0, Z: 1.25}
+                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
+                        LocalPlaneNormal: {X: 0.0, Y: 1.0, Z: 0.0}
+                        TargetOffset: 0.2
+                        ServoMaximumSpeed: 10.0
+                        ServoBaseSpeed: 1.0
+                        ServoMaximumForce: 1000.0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                    9802a48ac8a7ae0f208448e10f7665b9: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularAxisMotorConstraintComponent,BepuPhysicIntegrationTest
+                        Id: af28e7ed-1db9-406d-8714-116dce851285
+                        Bodies:
+                            2c39b0d2f00e08228851475215236131: ref!! 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
+                            b428c208a3e68e46f03a723debfbc227: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                        LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
+                        TargetVelocity: 0.0
+                        MotorDamping: 0.1
+                        MotorMaximumForce: 100.0
+                    df75ea2e6876416955e128df20caeca6: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularHingeConstraintComponent,BepuPhysicIntegrationTest
+                        Id: db4f12c8-877e-4b5b-a862-491d58f63eeb
+                        Bodies:
+                            8a6f7dc906a33d7171920adf1029b5d0: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                            c74958954b545be03871cdb2e1c5f7cf: ref!! 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
+                        LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
+                        LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
+                        Id: edda379e-dbbd-4515-aa35-387bb07931d9
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
+                        Id: eafdc650-50bd-49a2-9138-d4a6f0e777f6
+                        Position: {X: 1.75, Y: -0.8, Z: 1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.1, Z: 1.0}
+                        Children: {}
         -   Entity:
                 Id: 4ca01020-d3bf-435e-8280-7167525a8acf
                 Name: WheelFL
@@ -90,7 +176,7 @@ Hierarchy:
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
-                        FrictionCoefficient: 1.0
+                        FrictionCoefficient: 3.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 1
                         Kinematic: false
@@ -136,7 +222,7 @@ Hierarchy:
                         LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         TargetVelocity: 0.0
                         MotorDamping: 0.1
-                        MotorMaximumForce: 1000.0
+                        MotorMaximumForce: 100000000.0
                     49beb12319826e4b7f2ed047e42c6474: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularHingeConstraintComponent,BepuPhysicIntegrationTest
                         Id: b3fbaf02-4fdd-4057-9b92-b10db94ef9df
                         Bodies:
@@ -175,6 +261,81 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
+                Id: 760c6d95-c0c3-48aa-bfe3-42d9739f50f3
+                Name: WheelBR
+                Components:
+                    aa244c743a3eb88f50917768b93d8f5b: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: d16e6186-92a7-48ea-8eeb-8ed47463275d
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 0.95
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 1
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    0debde8052fd601b6f02ae19bf1ee640: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
+                        Id: d55d5f01-7d9a-4d74-9d09-8c089f48539e
+                        Mass: 1.0
+                        Radius: 0.5
+                        Length: 0.1
+                    49e98ce8e7167ac39e92b50a22079759: !BepuPhysicIntegrationTest.Integration.Components.Constraints.PointOnLineServoConstraintComponent,BepuPhysicIntegrationTest
+                        Id: d7dd29db-98db-447c-b280-243a75b5a19a
+                        Bodies:
+                            4910769f1b7b8471691eea68cd672571: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                            cb43f6161a957f805de0ab573cbd174a: ref!! d16e6186-92a7-48ea-8eeb-8ed47463275d
+                        LocalOffsetA: {X: 1.75, Y: -1.0, Z: -1.25}
+                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
+                        LocalDirection: {X: 0.0, Y: 1.0, Z: 0.0}
+                        ServoMaximumSpeed: 10.0
+                        ServoBaseSpeed: 1.0
+                        ServoMaximumForce: 1000.0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                    4e42a695805d96becc03041e5f55b6aa: !BepuPhysicIntegrationTest.Integration.Components.Constraints.LinearAxisServoConstraintComponent,BepuPhysicIntegrationTest
+                        Id: 1e75776e-2922-48b8-a317-70fceef5ebf0
+                        Bodies:
+                            7158dc44ff9c6ae39dc5deff5b44e21c: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                            d3cca56a05061707aa6005214a431560: ref!! d16e6186-92a7-48ea-8eeb-8ed47463275d
+                        LocalOffsetA: {X: 1.75, Y: -1.0, Z: -1.25}
+                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
+                        LocalPlaneNormal: {X: 0.0, Y: 1.0, Z: 0.0}
+                        TargetOffset: 0.2
+                        ServoMaximumSpeed: 10.0
+                        ServoBaseSpeed: 1.0
+                        ServoMaximumForce: 1000.0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                    7bf699175057f86753ffb764e2e8484c: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularAxisMotorConstraintComponent,BepuPhysicIntegrationTest
+                        Id: 9889e200-b095-498c-883c-93f4490027ec
+                        Bodies:
+                            2c39b0d2f00e08228851475215236131: ref!! d16e6186-92a7-48ea-8eeb-8ed47463275d
+                            b428c208a3e68e46f03a723debfbc227: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                        LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
+                        TargetVelocity: 0.0
+                        MotorDamping: 0.1
+                        MotorMaximumForce: 100.0
+                    97d5653cd5c93a0e2357b32db3c5ca2d: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularHingeConstraintComponent,BepuPhysicIntegrationTest
+                        Id: 51e62b87-847b-4cd4-8f5d-0b9f4185c7f5
+                        Bodies:
+                            8a6f7dc906a33d7171920adf1029b5d0: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                            c74958954b545be03871cdb2e1c5f7cf: ref!! d16e6186-92a7-48ea-8eeb-8ed47463275d
+                        LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
+                        LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
+                        Id: f9cd9d17-f8a0-4139-96e4-0d09a41f9e11
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
+                        Id: 321daa08-0926-484d-b9e3-f03304448b61
+                        Position: {X: 1.75, Y: -0.8, Z: -1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.1, Z: 1.0}
+                        Children: {}
         -   Entity:
                 Id: 862254dd-2fde-4792-88ba-dfb054a28845
                 Name: A
@@ -376,7 +537,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 420241d9-c9e1-4fb7-ac0d-b630d3afc60c
-                        Mass: 1.0
+                        Mass: 10.0
                         Size: {X: 4.0, Y: 1.8, Z: 2.5}
         -   Entity:
                 Id: d1cf6b43-15ff-4f13-8efe-1811b3ac0641
@@ -410,3 +571,78 @@ Hierarchy:
                             385968f975d4fb224fe1574393e3d577: ref!! 42ff5c03-7fad-4963-9159-860c090d4817
                             147c5a71ca2e03d61a7493a722e51d9d: ref!! 7bd38eb8-af97-4ed9-8105-a5c26dab8a1a
                             0c6f079f038598ae7eb6cb886611dbae: ref!! 92bfdb31-5ce6-4365-b076-44f0478bc0d4
+        -   Entity:
+                Id: f5a93013-a22a-4753-aae0-d7061845f91e
+                Name: WheelFR
+                Components:
+                    aa244c743a3eb88f50917768b93d8f5b: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: e0178323-63ee-4423-afce-1fe03b4eccd1
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 3.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 1
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    0debde8052fd601b6f02ae19bf1ee640: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
+                        Id: 6e4ae638-819b-4668-bf8a-e6e4a17f5812
+                        Mass: 1.0
+                        Radius: 0.5
+                        Length: 0.1
+                    083421aea268ea87d09edd7e3cb662c9: !BepuPhysicIntegrationTest.Integration.Components.Constraints.PointOnLineServoConstraintComponent,BepuPhysicIntegrationTest
+                        Id: ca6874a9-bdbc-46eb-8de2-6b22cbafe652
+                        Bodies:
+                            4910769f1b7b8471691eea68cd672571: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                            cb43f6161a957f805de0ab573cbd174a: ref!! e0178323-63ee-4423-afce-1fe03b4eccd1
+                        LocalOffsetA: {X: -1.75, Y: -1.0, Z: -1.25}
+                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
+                        LocalDirection: {X: 0.0, Y: 1.0, Z: 0.0}
+                        ServoMaximumSpeed: 10.0
+                        ServoBaseSpeed: 1.0
+                        ServoMaximumForce: 1000.0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                    da0422778633c5ea6c4e9a3e0a96a90a: !BepuPhysicIntegrationTest.Integration.Components.Constraints.LinearAxisServoConstraintComponent,BepuPhysicIntegrationTest
+                        Id: 99f86680-b1fa-4484-a222-690986143406
+                        Bodies:
+                            7158dc44ff9c6ae39dc5deff5b44e21c: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                            d3cca56a05061707aa6005214a431560: ref!! e0178323-63ee-4423-afce-1fe03b4eccd1
+                        LocalOffsetA: {X: -1.75, Y: -1.0, Z: -1.25}
+                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
+                        LocalPlaneNormal: {X: 0.0, Y: 1.0, Z: 0.0}
+                        TargetOffset: 0.2
+                        ServoMaximumSpeed: 10.0
+                        ServoBaseSpeed: 1.0
+                        ServoMaximumForce: 1000.0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                    7e6b72e08706872516aafabdab84616c: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularAxisMotorConstraintComponent,BepuPhysicIntegrationTest
+                        Id: eb9f01d2-403f-49b3-b5f6-de7c7426be03
+                        Bodies:
+                            2c39b0d2f00e08228851475215236131: ref!! e0178323-63ee-4423-afce-1fe03b4eccd1
+                            b428c208a3e68e46f03a723debfbc227: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                        LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
+                        TargetVelocity: 0.0
+                        MotorDamping: 0.1
+                        MotorMaximumForce: 100000000.0
+                    64f388da8c6a87fd2382e568c4dba167: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularHingeConstraintComponent,BepuPhysicIntegrationTest
+                        Id: a2e4c401-6edc-44bd-b7d8-0d4e3cb903cd
+                        Bodies:
+                            8a6f7dc906a33d7171920adf1029b5d0: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
+                            c74958954b545be03871cdb2e1c5f7cf: ref!! e0178323-63ee-4423-afce-1fe03b4eccd1
+                        LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
+                        LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
+                        Id: a2a24da2-b096-478b-8270-d7d1e91fd85e
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
+                        Id: cc0fe3c4-a92a-4219-b937-d7211b4a5878
+                        Position: {X: -1.75, Y: -0.8, Z: -1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.1, Z: 1.0}
+                        Children: {}
