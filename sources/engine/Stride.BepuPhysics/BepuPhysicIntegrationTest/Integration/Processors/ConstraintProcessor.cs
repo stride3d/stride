@@ -56,7 +56,13 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         {
 #pragma warning disable CS8602 
             var bodies = new Span<BodyHandle>(ConstraintComponent.Bodies.Where(e => e.ContainerData != null).Select(e => e.ContainerData.BHandle).ToArray());
-#pragma warning restore CS8602 
+#pragma warning restore CS8602
+
+            if (Exist)
+                DestroyConstraint();
+
+            if (!ConstraintComponent.Enabled)
+                return;
 
             switch (ConstraintComponent) //maybe add a IConstraintDescription to ConstraintComponent and use it instead of that switch of hell
             {

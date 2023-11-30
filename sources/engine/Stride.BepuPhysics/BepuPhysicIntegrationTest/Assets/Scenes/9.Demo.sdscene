@@ -304,6 +304,7 @@ Hierarchy:
                         Bodies:
                             a04903403534cb90bad5cd00967c67ac: ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
                             8c5212844b5f0d77e442ce165867849d: ref!! befd947e-d1a5-4a14-9423-d272129d4ae5
+                        Enabled: true
                         LocalOffsetA: {X: 0.0, Y: 2.0, Z: 0.0}
                         LocalHingeAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         LocalOffsetB: {X: 0.0, Y: -0.55, Z: 0.0}
@@ -314,6 +315,7 @@ Hierarchy:
                         Id: 588d2dfb-3563-4e9b-a641-e8d42d2b2302
                         Bodies:
                             909f3aa658cc819e8fca3ee360dc4292: ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
+                        Enabled: true
                         TargetVelocity: {X: 0.0, Y: 0.5, Z: 0.0}
                         MotorDamping: 100.0
                         MotorMaximumForce: 10000000.0

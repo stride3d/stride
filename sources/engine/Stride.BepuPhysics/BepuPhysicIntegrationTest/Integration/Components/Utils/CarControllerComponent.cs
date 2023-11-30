@@ -1,5 +1,7 @@
 ﻿using System;
 using BepuPhysicIntegrationTest.Integration.Components.Constraints;
+using BepuPhysicIntegrationTest.Integration.Components.Containers;
+using BepuPhysicIntegrationTest.Integration.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
@@ -10,11 +12,21 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Utils")]
     public class CarControllerComponent : SyncScript
     {
-        private const float steeringSpeed = 0.5f;
-        private float previousSteeringAngle = 0;
-        private float steeringAngle = 0;
-        private float MaximumSteeringAngle = 30;
+        private float _acceleration = 0.5f;
+        private float _engineBrakeCoef = 0.99f;
+        private float _speed = 0;
+        private float _previousSpeed = 0;
+        private float _maximumSpeed = 100;
+        private float _minimumSpeed = -40;
 
+        private float steeringSpeed = 0.1f;
+        private float steeringAngle = 0;
+        private float previousSteeringAngle = 0;
+        private float MaximumSteeringAngle = 10; //maybe reduce steerringSpeed/maximum with speed
+
+
+
+        public BodyContainerComponent? CarBody { get; set; }
         public AngularAxisMotorConstraintComponent? LeftMotor { get; set; }
         public AngularAxisMotorConstraintComponent? RightMotor { get; set; }
         public AngularAxisMotorConstraintComponent? LeftBMotor { get; set; }
@@ -31,38 +43,37 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public override void Update()
         {
+
             if (LeftMotor == null || RightMotor == null || LeftBMotor == null || RightBMotor == null || LeftWheel == null || RightWheel == null)
                 return;
 
+            DebugText.Print($"steeringAngle : {steeringAngle} | _speed : {_speed} <==> real : {LeftMotor.Bodies[0].GetPhysicBody()?.Velocity.Angular.Length()} | linear speed {CarBody?.GetPhysicBody()?.Velocity.Linear.Length()}", new(100, 100));
+
+            //Motor
             if (Input.IsKeyDown(Keys.Up))
             {
-                LeftMotor.TargetVelocity = 300;
-                LeftBMotor.TargetVelocity = 300;
-                RightMotor.TargetVelocity = 300;
-                RightBMotor.TargetVelocity = 300;
+                _speed += _acceleration;
             }
             else if (Input.IsKeyDown(Keys.Down))
             {
-                LeftMotor.TargetVelocity = -100;
-                LeftBMotor.TargetVelocity = -100;
-                RightMotor.TargetVelocity = -100;
-                RightBMotor.TargetVelocity = -100;
+                _speed -= _acceleration;
             }
             else
             {
-                if (LeftMotor.TargetVelocity != 0)
-                    LeftMotor.TargetVelocity = 0;
-
-                if (LeftBMotor.TargetVelocity != 0)
-                    LeftBMotor.TargetVelocity = 0;
-
-                if (RightMotor.TargetVelocity != 0)
-                    RightMotor.TargetVelocity = 0;
-
-                if (RightBMotor.TargetVelocity != 0)
-                    RightBMotor.TargetVelocity = 0;
+                _speed *= _engineBrakeCoef;
             }
 
+            _speed = MathF.Max(MathF.Min(_maximumSpeed, _speed), _minimumSpeed);
+            if (_speed != _previousSpeed)
+            {
+                LeftMotor.TargetVelocity = _speed;
+                //LeftBMotor.TargetVelocity = _speed;
+                RightMotor.TargetVelocity = _speed;
+                //RightBMotor.TargetVelocity = _speed;
+                _previousSpeed = _speed;
+            }
+
+            //Steering
             if (Input.IsKeyDown(Keys.Right))
             {
                 steeringAngle -= steeringSpeed;
@@ -84,6 +95,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
                 steeringAngle = 0f;
             }
 
+
             steeringAngle = MathF.Max(MathF.Min(MaximumSteeringAngle, steeringAngle), -MaximumSteeringAngle);
             if (steeringAngle != previousSteeringAngle)
             {
@@ -92,6 +104,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
                 RightWheel.LocalHingeAxisA = result;
                 previousSteeringAngle = steeringAngle;
             }
+
+
         }
     }
 }

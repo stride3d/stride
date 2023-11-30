@@ -21,7 +21,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
                 var camera = Game.Services.GetService<SceneSystem>().GraphicsCompositor.Cameras[0].Camera;
                 var forward = Stride.Core.Mathematics.Vector3.TransformNormal(-Stride.Core.Mathematics.Vector3.UnitZ, Stride.Core.Mathematics.Matrix.RotationQuaternion(camera.Entity.Transform.Rotation)).ToNumericVector();
 
-                Spawn(SpawnPosition.Transform.Position, (forward * Speed).ToStrideVector(), new());
+                Spawn(SpawnPosition.Transform.GetWorldPos(), (forward * Speed).ToStrideVector(), new());
             }
         }
 

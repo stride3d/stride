@@ -14,8 +14,25 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
 
     public abstract class ConstraintComponent : EntityComponent
     {
-        public List<BodyContainerComponent> Bodies { get; set; } = new();
+        private bool _update = true;
 
+        public List<BodyContainerComponent> Bodies { get; set; } = new(); //TODO implement list with updates
+
+        public bool Enabled
+        {
+            get
+            {
+                return _update;
+            }
+            set
+            {
+                _update = value;
+                if (ConstraintData != null)
+                {
+                    ConstraintData?.BuildConstraint();
+                }
+            }
+        }
 
         /// <summary>
         /// ContainerData is the bridge to Bepu.
