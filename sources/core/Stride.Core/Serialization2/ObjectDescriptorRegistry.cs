@@ -15,7 +15,7 @@ public static class ObjectDescriptorRegistry
     {
         if(!Init)
         {
-            var dlls =  AppDomain.CurrentDomain.GetAssemblies();
+            var dlls = AssemblyRegistry.FindAll();
             foreach (var dll in dlls)
             {
                 foreach (var typ in dll.GetTypes())
