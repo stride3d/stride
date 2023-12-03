@@ -544,7 +544,7 @@ public:
 						auto src_normal = normalElement->GetDirectArray().GetAt(normalIndex);
 						auto normalPointer = ((Vector3*)(vbPointer + normalOffset));
 						normal = sceneMapping->ConvertNormalFromFbx(src_normal);
-						if (isnan(normal.X) || isnan(normal.Y) || isnan(normal.Z))
+						if (isnan(normal.X) || isnan(normal.Y) || isnan(normal.Z) || normal.Length() < FLT_EPSILON)
 							normal = Vector3(1, 0, 0);
 						normal = Vector3::Normalize(normal);
 						*normalPointer = normal;
@@ -568,7 +568,7 @@ public:
 						auto src_tangent = tangentElement->GetDirectArray().GetAt(tangentIndex);
 						auto tangentPointer = ((Vector4*)(vbPointer + tangentOffset));
 						Vector3 tangent = sceneMapping->ConvertNormalFromFbx(src_tangent);
-						if (isnan(tangent.X) || isnan(tangent.Y) || isnan(tangent.Z))
+						if (isnan(tangent.X) || isnan(tangent.Y) || isnan(tangent.Z) || tangent.Length() < FLT_EPSILON)
 						{
 							*tangentPointer = Vector4(1, 0, 0, 1);
 						}
@@ -578,9 +578,16 @@ public:
 
 							int binormalIndex = GetGroupIndexForLayerElementTemplate(binormalElement, controlPointIndex, vertexIndex, edgeIndex, i, meshName, layerIndexFirstTimeError);
 							auto src_binormal = binormalElement->GetDirectArray().GetAt(binormalIndex);
-							Vector3 binormal = sceneMapping->ConvertNormalFromFbx(src_tangent);
-							// See GenerateTangentBinormal()
-							*tangentPointer = Vector4(tangent.X, tangent.Y, tangent.Z, Vector3::Dot(Vector3::Cross(normal, tangent), binormal) < 0.0f ? -1.0f : 1.0f);
+							Vector3 binormal = sceneMapping->ConvertNormalFromFbx(src_binormal);
+							if (isnan(binormal.X) || isnan(binormal.Y) || isnan(binormal.Z) || binormal.Length() < FLT_EPSILON)
+							{
+								*tangentPointer = Vector4(tangent.X, tangent.Y, tangent.Z, 1.0f);
+							}
+							else
+							{
+								// See GenerateTangentBinormal()
+								*tangentPointer = Vector4(tangent.X, tangent.Y, tangent.Z, Vector3::Dot(Vector3::Cross(normal, tangent), binormal) < 0.0f ? -1.0f : 1.0f);
+							}
 						}
 					}
 
