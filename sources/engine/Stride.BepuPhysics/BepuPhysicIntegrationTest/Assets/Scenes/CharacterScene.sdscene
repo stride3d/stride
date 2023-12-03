@@ -1,0 +1,195 @@
+!SceneAsset
+Id: b21cf271-4ad8-453a-8c8d-cf132e044a9c
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 718407b2-5728-4811-8b58-3a7b206d2c09
+        - ref!! a9aba88b-eb7c-4390-956b-d9a38dcf452b
+        - ref!! 68a236eb-82e6-4b17-b8aa-49499ada47f9
+        - ref!! b20e7c40-03a8-4243-b6e4-24d201c52765
+    Parts:
+        -   Entity:
+                Id: 104f8ef5-ef01-4361-8f1b-f68d5614bc43
+                Name: Jump1
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 25462615-7805-4d0f-b283-7aa629da5b3f
+                        Position: {X: -2.8730469, Y: 2.0680501, Z: -29.468857}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.1305262, W: 0.9914449}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: c9961867-8cd6-4403-8d07-7d09a77d986a
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    cfe6ca477f4cc95536e596656bac380c: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: aeea15f8-8379-4ed5-80ab-25910ba08d6d
+                        Mass: 1.0
+                        Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                    196a2828e44889ac96cd71a74b149182: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 1fc0f90b-0284-4821-b4d5-9ba3a5090237
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
+                Id: 68a236eb-82e6-4b17-b8aa-49499ada47f9
+                Name: CubeInstancing
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 4277e7f7-4e0f-4424-ae5c-7e5a364fa5d5
+                        Position: {X: 0.0, Y: -10.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
+                        Id: 8827d093-8e49-4db1-9d5c-9cf8b04b7187
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials:
+                            a4372207e9cfb015a5973f7fcb15a3a8~0: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
+                    8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
+                        Id: 191e406f-0e44-44c1-b32d-acbfc269c2b6
+                        Type: !InstancingEntityTransform {}
+        -   Entity:
+                Id: 718407b2-5728-4811-8b58-3a7b206d2c09
+                Name: Directional light
+                Components:
+                    ba7701dac6ff028029e020b0fa73a5ee: !TransformComponent
+                        Id: 29b6c755-23e8-40c8-a5ac-41b42b5f0782
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 1.131334E-08, Y: -0.9659258, Z: -0.25881904, W: -4.222196E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    25d69094bde55b0756a7486a0e64b72d: !LightComponent
+                        Id: be358200-5c61-43bd-b176-597582c10f28
+                        Enabled: false
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow: !LightDirectionalShadowMap
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+                        Intensity: 0.2
+        -   Entity:
+                Id: 75d060dc-02a7-475a-a5da-051d7bf6cdd4
+                Name: Floor
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 018fa520-5a6d-4d83-9b06-754454499938
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2500.0, Y: 0.1, Z: 2500.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 093547a1-c196-47ba-8a17-e29c4962de44
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    bdbc7f545c2343e10feb20e6c047b62a: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 68c0ae71-0e42-4a88-98ee-a59084a0b558
+                        Mass: 1.0
+                        Size: {X: 2500.0, Y: 0.1, Z: 2500.0}
+                    667a6d677839dc9b735795df85f9e0d7: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
+                        Id: 96752ac7-15be-4847-8c4d-d41d35b5990c
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+        -   Entity:
+                Id: 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
+                Name: Camera
+                Components:
+                    16a829ff2882b04998b348f6e38aafdf: !TransformComponent
+                        Id: fbd3e932-6bf5-4b35-85bb-bc169f5206f4
+                        Position: {X: 0.0, Y: 1.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b0ce773a712e59259629934ef649b38f: !CameraComponent
+                        Id: 6b596901-2d10-42e2-bfeb-5f7cad34f49a
+                        Name: null
+                        Projection: Perspective
+                        Slot: be74c9be-5861-4bea-90b0-b175535210f7
+        -   Entity:
+                Id: a9aba88b-eb7c-4390-956b-d9a38dcf452b
+                Name: Skybox
+                Components:
+                    869607da036a2f5b690715353a842081: !TransformComponent
+                        Id: b5372e89-9f62-44f2-9537-6ea2594a7c1e
+                        Position: {X: 0.0, Y: 2.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f06cd2af4f2551332eac077780c19eff: !BackgroundComponent
+                        Id: a497598a-199b-4121-8499-2d9bd29ca55d
+                        Texture: be26a913-4c76-45ec-a5e0-9fd6ceead086:Skybox texture
+                        Intensity: 0.1
+                    0d373b4518bc761153fde0d2540f118b: !LightComponent
+                        Id: b7345f9c-b68a-48b3-9f44-6a20b99fc3e4
+                        Type: !LightSkybox
+                            Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
+                        Intensity: 0.1
+        -   Entity:
+                Id: b20e7c40-03a8-4243-b6e4-24d201c52765
+                Name: BepuPhysics
+                Components:
+                    557052f3f82cecf27cdf1dbb5a9148e0: !TransformComponent
+                        Id: 1f3e9180-bed5-4175-aa6e-b2f3765bb8c8
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            9732fe286d70b4dee2d3598d7a29238c: ref!! 018fa520-5a6d-4d83-9b06-754454499938
+                            35b09a039adfe1787082d9434605c512: ref!! 648c4506-eb45-4d91-9abc-d20ad8a2b840
+                            2bc520bb455f5094a9577cacebb484a0: ref!! 25462615-7805-4d0f-b283-7aa629da5b3f
+        -   Entity:
+                Id: bdc9f16d-92a2-401f-a719-5c385c3b68ad
+                Name: Player
+                Components:
+                    1b1890cd56924572b6b78c4ce729b9f2: !TransformComponent
+                        Id: 648c4506-eb45-4d91-9abc-d20ad8a2b840
+                        Position: {X: 0.0, Y: 4.5056386, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            8b1bb14dddc670a04ec034941f65c0f6: ref!! fbd3e932-6bf5-4b35-85bb-bc169f5206f4
+                    b7110c9c8c51e0455af2bf8a655a6aac: !BepuPhysicIntegrationTest.Integration.Components.Utils.BepuCharacterComponent,BepuPhysicIntegrationTest
+                        Id: a131ea29-573b-4c28-bcfe-21ac55240494
+                        Speed: 5.0
+                        JumpSpeed: 1.0
+                        CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153
+                    3eb8764040f9f592300c41e20487413e: !BepuPhysicIntegrationTest.Integration.Components.Utils.CharacterControllerComponent,BepuPhysicIntegrationTest
+                        Id: bc91d70a-eeea-43ee-b8aa-a20873a9c7c5
+                        Camera: ref!! 6b596901-2d10-42e2-bfeb-5f7cad34f49a
+                        Character: ref!! a131ea29-573b-4c28-bcfe-21ac55240494
+                    0bc21671e675022db8706abb28542933: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CapsuleColliderComponent,BepuPhysicIntegrationTest
+                        Id: 985dc8b0-37af-465f-ab06-bfd602779684
+                        Mass: 1.0
+                        Radius: 1.0
+                        Length: 1.0
+                    672f629e832394ac3bf7be464b178ae3: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: f6ebac31-2bed-4a87-ba4f-34b56c9a2153
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
