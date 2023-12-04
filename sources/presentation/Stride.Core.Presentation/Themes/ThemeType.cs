@@ -10,6 +10,8 @@ namespace Stride.Core.Presentation.Themes
         ExpressionDark,
         [Display("Dark Steel")]
         DarkSteel,
+        [Display("Divided")]
+        Divided,
 
         // Light themes
         [Display("Light Steel Blue (Experimental)")]
@@ -24,8 +26,10 @@ namespace Stride.Core.Presentation.Themes
             {
                 case ThemeType.ExpressionDark:
                 case ThemeType.DarkSteel:
+                case ThemeType.Divided:
                 default:
                     return IconThemeSelector.ThemeBase.Dark;
+
 
                 case ThemeType.LightSteelBlue:
                     return IconThemeSelector.ThemeBase.Light;

@@ -450,16 +450,25 @@ namespace Stride.Engine
         #region Utility
 
         /// <summary>
-        /// Computes the physics transformation from the TransformComponent values
+        /// Computes the physics transformation from the Bone or TransformComponent values
         /// </summary>
-        /// <returns></returns>
-        internal void DerivePhysicsTransformation(out Matrix derivedTransformation)
+        /// <param name="derivedTransformation">The resulting transformation matrix</param>
+        /// <param name="forceUpdateTransform">Ensure that the Transform.WorldMatrix we are reading from is up to date</param>
+        internal void DerivePhysicsTransformation(out Matrix derivedTransformation, bool forceUpdateTransform = true)
         {
-            Matrix rotation;
-            Vector3 translation;
-            Vector3 scale;
-            Entity.Transform.WorldMatrix.Decompose(out scale, out rotation, out translation);
-
+            if (BoneIndex == -1)
+            {
+                if (forceUpdateTransform)
+                    Entity.Transform.UpdateWorldMatrix();
+                derivedTransformation = Entity.Transform.WorldMatrix;
+            }
+            else
+            {
+                derivedTransformation = BoneWorldMatrix;
+            }
+            
+            derivedTransformation.Decompose(out Vector3 scale, out Matrix rotation, out Vector3 translation);
+            
             var translationMatrix = Matrix.Translation(translation);
             Matrix.Multiply(ref rotation, ref translationMatrix, out derivedTransformation);
 
@@ -477,48 +486,6 @@ namespace Stride.Engine
             {
                 derivedTransformation = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, derivedTransformation);
             }
-
-            if (DebugEntity == null) return;
-
-            derivedTransformation.Decompose(out scale, out rotation, out translation);
-            DebugEntity.Transform.Position = translation;
-            DebugEntity.Transform.Rotation = Quaternion.RotationMatrix(rotation);
-        }
-
-        /// <summary>
-        /// Computes the physics transformation from the TransformComponent values
-        /// </summary>
-        /// <returns></returns>
-        internal void DeriveBonePhysicsTransformation(out Matrix derivedTransformation)
-        {
-            Matrix rotation;
-            Vector3 translation;
-            Vector3 scale;
-            BoneWorldMatrix.Decompose(out scale, out rotation, out translation);
-
-            var translationMatrix = Matrix.Translation(translation);
-            Matrix.Multiply(ref rotation, ref translationMatrix, out derivedTransformation);
-
-            //handle dynamic scaling if allowed (aka not using assets)
-            if (CanScaleShape)
-            {
-                if (ColliderShape.Scaling != scale)
-                {
-                    ColliderShape.Scaling = scale;
-                }
-            }
-
-            //Handle collider shape offset
-            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
-            {
-                derivedTransformation = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, derivedTransformation);
-            }
-
-            if (DebugEntity == null) return;
-
-            derivedTransformation.Decompose(out scale, out rotation, out translation);
-            DebugEntity.Transform.Position = translation;
-            DebugEntity.Transform.Rotation = Quaternion.RotationMatrix(rotation);
         }
 
         /// <summary>
@@ -599,19 +566,20 @@ namespace Stride.Engine
         /// Useful to manually force movements.
         /// In the case of dynamic rigidbodies a velocity reset should be applied first.
         /// </summary>
-        public void UpdatePhysicsTransformation()
+        /// <param name="forceUpdateTransform">Ensure that the Transform.WorldMatrix we are reading from is up to date</param>
+        public void UpdatePhysicsTransformation(bool forceUpdateTransform = true)
         {
-            Matrix transform;
-            if (BoneIndex == -1)
-            {
-                DerivePhysicsTransformation(out transform);
-            }
-            else
-            {
-                DeriveBonePhysicsTransformation(out transform);
-            }
+            DerivePhysicsTransformation(out var transform, forceUpdateTransform);
+            
             //finally copy back to bullet
             PhysicsWorldTransform = transform;
+
+            if (DebugEntity != null)
+            {
+                transform.Decompose(out _, out Quaternion rotation, out var translation);
+                DebugEntity.Transform.Position = translation;
+                DebugEntity.Transform.Rotation = rotation;
+            }
         }
 
         public void ComposeShape()

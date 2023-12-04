@@ -5,4 +5,4 @@ Files:
   - {Source: AndroidManifest.xml.t4, Target: AndroidManifest.xml, IsTemplate: true}
   - {Source: Resources\mipmap-mdpi\gameicon.png, Target: Resources\mipmap-mdpi\gameicon.png }
   - {Source: Resources\layout\activity_main.xml, Target: Resources\layout\activity_main.xml }
-  - {Source: Resources\values\strings.xml, Target: Resources\values\strings.xml }
+  - {Source: Resources\values\strings.xml.t4, Target: Resources\values\strings.xml, IsTemplate: true }

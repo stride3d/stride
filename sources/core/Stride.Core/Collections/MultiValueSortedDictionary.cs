@@ -258,11 +258,11 @@ namespace Stride.Core.Collections
 
         /// <summary>
         /// Copies the elements of the KoderHack.MultiValueSortedDictionary&lt;TKey,TValue&gt;
-        /// to the specified array of System.Collections.Generic.KeyValuePair<TKey,TValue>
+        /// to the specified array of <see cref="System.Collections.Generic.KeyValuePair{TKey,TValue}"/>
         /// structures, starting at the specified index.
         /// </summary>
         /// <param name="array">
-        /// The one-dimensional array of System.Collections.Generic.KeyValuePair<TKey,TValue>
+        /// The one-dimensional array of <see cref="System.Collections.Generic.KeyValuePair{TKey,TValue}"/>
         /// structures that is the destination of the elements copied from the current
         /// KoderHack.MultiValueSortedDictionary&lt;TKey,TValue&gt; The array must have
         /// zero-based indexing.
@@ -825,7 +825,7 @@ namespace Stride.Core.Collections
             /// Gets the element at the current position of the enumerator.
             /// </summary>
             /// <returns>
-            /// The element in the System.Collections.Generic.SortedDictionary<TKey,TValue>
+            /// The element in the <see cref="System.Collections.Generic.SortedDictionary{TKey, TValue}"/>
             /// at the current position of the enumerator.
             /// </returns>  
             public KeyValuePair<TKey, TValue> Current => _Current;

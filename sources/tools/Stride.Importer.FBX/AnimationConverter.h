@@ -64,22 +64,29 @@ namespace Stride {
 					return false;
 				}
 
-				AnimationInfo^ ProcessAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations)
+				AnimationInfo^ ProcessAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations, int animationStack)
 				{
 					auto animationData = gcnew AnimationInfo();
 
 					int animStackCount = scene->GetMemberCount<FbxAnimStack>();
 					if (animStackCount == 0)
 						return animationData;
-						
-					// We support only anim stack count == 1
-					if (animStackCount > 1)
+
+					if (animationStack < 0)
 					{
-						logger->Warning(String::Format("Multiple FBX animation stacks detected in '{0}', exporting only the first one to '{1}",
+						animationStack = 0;
+						logger->Warning(String::Format("Animation stack specified in '{0}' less than zero, exporting first stack to '{1}",
+							gcnew String(inputFilename), gcnew String(vfsOutputFilename)), (CallerInfo^)nullptr);
+					}
+						
+					if (animationStack >= animStackCount)
+					{
+						animationStack = animStackCount - 1;
+						logger->Warning(String::Format("Animation stack count in '{0}' greater than specified stack index, exporting last available stack to '{1}",
 							gcnew String(inputFilename), gcnew String(vfsOutputFilename)), (CallerInfo^)nullptr);
 					}
 
-					FbxAnimStack* animStack = scene->GetMember<FbxAnimStack>(0);
+					FbxAnimStack* animStack = scene->GetMember<FbxAnimStack>(animationStack);
 					int animLayerCount = animStack->GetMemberCount<FbxAnimLayer>();
 
 					// We support only anim layer count == 1
@@ -314,6 +321,15 @@ namespace Stride {
 
 					const float framerate = static_cast<float>(FbxTime::GetFrameRate(scene->GetGlobalSettings().GetTimeMode()));
 					auto oneFrame = FbxTime::GetOneFrameValue(scene->GetGlobalSettings().GetTimeMode());
+
+					//FIX: If scene->GetGlobalSettings().GetTimeMode() returns FbxTime::eFrames30Drop then oneFrame is going to be 0.
+					// This is (propably) undesired since time will increment by 0 in the next second loop, resulting in a infinite loop 
+					// that finally leads to a out-of-memory exception.
+
+					if (oneFrame <= 0) 
+						oneFrame = FbxTime::GetOneFrameValue(FbxTime::eNTSCDropFrame); // FbxTime::eNTSCDropFrame is equivalent to FbxTime::eFrames30Drop.
+					//Source: (FBX Docs : http://docs.autodesk.com/FBX/2014/ENU/FBX-SDK-Documentation/index.html?url=cpp_ref/class_fbx_time.html,topicNumber=cpp_ref_class_fbx_time_html29087af6-8c2c-4e9d-aede-7dc5a1c2436c)
+					//Refer to: enum EMode
 
 					// Step1: Pregenerate curve with discontinuities
 					int currentKeyIndices[4];

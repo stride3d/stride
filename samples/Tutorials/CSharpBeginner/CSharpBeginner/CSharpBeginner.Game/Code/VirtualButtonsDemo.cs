@@ -6,6 +6,9 @@ namespace CSharpBeginner.Code
 {
     /// <summary>
     /// This script demonstrates how to create virtual buttons and how to use them.
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/virtual-buttons.html
+    /// </para>
     /// </summary>
     public class VirtualButtonsDemo : SyncScript
     {

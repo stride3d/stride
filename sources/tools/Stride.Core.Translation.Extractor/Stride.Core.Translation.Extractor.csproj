@@ -9,14 +9,13 @@
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.GNU.Getopt" Version="1.0.0.0" />
-    <PackageReference Include="Stride.GNU.Gettext" Version="1.0.0.0" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="Stride.GNU.Getopt" />
+    <PackageReference Include="Stride.GNU.Gettext" />
+    <PackageReference Include="System.ValueTuple" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

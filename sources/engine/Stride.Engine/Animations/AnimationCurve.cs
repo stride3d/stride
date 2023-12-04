@@ -142,11 +142,10 @@ namespace Stride.Animations
         }
 
         /// <inheritdoc/>
-        public override void AddValue(CompressedTimeSpan newTime, IntPtr location)
+        public override unsafe void AddValue(CompressedTimeSpan newTime, nint location)
         {
-            T value;
-            Utilities.UnsafeReadOut(location, out value);
-            KeyFrames.Add(new KeyFrameData<T> { Time = (CompressedTimeSpan)newTime, Value = value });
+            var value = Unsafe.ReadUnaligned<T>((void*)location);
+            KeyFrames.Add(new(newTime, value));
         }
 
         /// <inheritdoc/>

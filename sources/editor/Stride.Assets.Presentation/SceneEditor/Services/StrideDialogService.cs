@@ -25,7 +25,7 @@ namespace Stride.Assets.Presentation.SceneEditor.Services
         public IEntityPickerDialog CreateEntityComponentPickerDialog(EntityHierarchyEditorViewModel editor, Type componentType)
         {
             if (editor == null) throw new ArgumentNullException(nameof(editor));
-            if (!typeof(EntityComponent).IsAssignableFrom(componentType))
+            if (!typeof(EntityComponent).IsAssignableFrom(componentType) && componentType.IsAbstract == false)
                 throw new ArgumentException(@"The given component type does not inherit from EntityComponent.", nameof(componentType));
 
             var picker = new EntityPickerWindow(editor, componentType);

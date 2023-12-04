@@ -61,45 +61,23 @@ namespace Stride.Games
             if (!deviceChangeWillBeFullScreen.HasValue)
                 return;
 
-            window.FullscreenIsBorderlessWindow = FullscreenIsBorderlessWindow;
-
-            if (deviceChangeWillBeFullScreen.Value) //windowed to fullscreen
+            isFullScreenMaximized = deviceChangeWillBeFullScreen.Value;
+            if (window != null)
             {
-                isFullScreenMaximized = true;
-
-                if (window != null)
+                window.FullscreenIsBorderlessWindow = FullscreenIsBorderlessWindow;
+                if (deviceChangeWillBeFullScreen.Value) //windowed to fullscreen
                 {
                     window.ClientSize = new Size2(clientWidth, clientHeight);
+                    window.IsFullScreen = true;
                 }
-
-                // Notifies the GameForm about the fullscreen state
-                var gameForm = window as GameFormSDL;
-                if (gameForm != null)
+                else //fullscreen to windowed or window resize
                 {
-                    gameForm.IsFullScreen = isFullScreenMaximized;
-                    gameForm.BringToFront();
-                }
-
-            }
-            else //fullscreen to windowed or window resize
-            {
-                isFullScreenMaximized = false;
-
-                // Notifies the GameForm about the fullscreen state
-                var gameForm = window as GameFormSDL;
-                if (gameForm != null)
-                {
-                    gameForm.IsFullScreen = isFullScreenMaximized;
-                }
-
-                if (window != null)
-                {
+                    window.IsFullScreen = false;
                     window.ClientSize = new Size2(clientWidth, clientHeight);
                     window.Location = savedFormLocation;
                     UpdateFormBorder();
-                    window.BringToFront();
                 }
-
+                window.BringToFront();
             }
 
             deviceChangeWillBeFullScreen = null;

@@ -9,6 +9,9 @@ namespace CSharpBeginner.Code
     /// This is used during animation of models, ui elements, camera movements and many other scenarios
     /// This example uses Lerp to graduatly move from a start vector3 coordinate to target Vector3 coordinate
     /// The same thing can be done with Vector2 and Vector4
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/linear-interpolation.html
+    /// </para>
     /// </summary>
     public class LerpDemo : SyncScript
     {

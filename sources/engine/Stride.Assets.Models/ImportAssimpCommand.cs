@@ -32,9 +32,9 @@ namespace Stride.Assets.Models
             return supportedExtensions.Any(supExt => supExt.Equals(extToLower));
         }
 
-        private Stride.Importer.AssimpNET.MeshConverter CreateMeshConverter(ICommandContext commandContext)
+        private Stride.Importer.Assimp.MeshConverter CreateMeshConverter(ICommandContext commandContext)
         {
-            return new Stride.Importer.AssimpNET.MeshConverter(commandContext.Logger)
+            return new Stride.Importer.Assimp.MeshConverter(commandContext.Logger)
             {
                 AllowUnsignedBlendIndices = this.AllowUnsignedBlendIndices,
             };
@@ -54,7 +54,7 @@ namespace Stride.Assets.Models
         protected override Dictionary<string, AnimationClip> LoadAnimation(ICommandContext commandContext, ContentManager contentManager, out TimeSpan duration)
         {
             var meshConverter = this.CreateMeshConverter(commandContext);
-            var sceneData = meshConverter.ConvertAnimation(SourcePath, Location);
+            var sceneData = meshConverter.ConvertAnimation(SourcePath, Location, AnimationStack);
 
             duration = sceneData.Duration;
             return sceneData.AnimationClips;

@@ -87,7 +87,7 @@ namespace Stride.Core.Packages
                 {
                     var path = packageSource.GetValueAsPath();
 
-                    if (packageSource.Key.StartsWith(prefixName))
+                    if (packageSource.Key.StartsWith(prefixName, StringComparison.Ordinal))
                     {
                         // Remove entry from packageSources
                         settings.Remove("packageSources", packageSource);
@@ -105,7 +105,7 @@ namespace Stride.Core.Packages
                 {
                     var path = packageSource.GetValueAsPath();
 
-                    if (packageSource.Key.StartsWith(prefixName)
+                    if (packageSource.Key.StartsWith(prefixName, StringComparison.Ordinal)
                         && Uri.TryCreate(path, UriKind.Absolute, out var uri) && uri.IsFile // make sure it's a valid file URI
                         && !Directory.Exists(path)) // detect if directory has been deleted
                     {
@@ -337,7 +337,7 @@ namespace Stride.Core.Packages
 
                         // In case it's a package without any TFM (i.e. Visual Studio plugin), we still need to specify one
                         if (!targetFrameworks.Any())
-                            targetFrameworks = new string[] { "net6.0" };
+                            targetFrameworks = new string[] { "net8.0" };
 
                         // Old version expects to be installed in GamePackages
                         if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)
@@ -729,12 +729,12 @@ namespace Stride.Core.Packages
         {
             return package.Version < new PackageVersion(3, 1, 0, 0)
                 ? File.Exists(GetRedirectFile(package))
-                : (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev") && !package.Version.SpecialVersion.Contains('.'));
+                : (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev", StringComparison.Ordinal) && !package.Version.SpecialVersion.Contains('.'));
         }
 
         public bool IsDevRedirectPackage(NugetServerPackage package)
         {
-            return (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev") && !package.Version.SpecialVersion.Contains('.'));
+            return (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev", StringComparison.Ordinal) && !package.Version.SpecialVersion.Contains('.'));
         }
 
         private void OnPackageInstalled(object sender, PackageOperationEventArgs args)

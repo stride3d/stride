@@ -62,7 +62,7 @@ namespace Stride.LauncherApp.ViewModels
             await UpdateVersionsFromStore();
             Dispatcher.Invoke(UpdateStatus);
         }
-        
+
         /// <inheritdoc/>
         protected override void UpdateStatus()
         {
@@ -81,14 +81,14 @@ namespace Stride.LauncherApp.ViewModels
 
         private string FormatStatus(string status)
         {
-            string vsixTarget = "Visual Studio ";
+            string vsixTarget = "Visual Studio {0} extension";
             switch (vsixSupportedVsVersion)
             {
                 case NugetStore.VsixSupportedVsVersion.VS2019:
-                    vsixTarget += "2019";
+                    vsixTarget = string.Format(vsixTarget,"2019");
                     break;
                 case NugetStore.VsixSupportedVsVersion.VS2022:
-                    vsixTarget += "2022";
+                    vsixTarget = string.Format(vsixTarget, "2022"); ;
                     break;
             }
             return $"{vsixTarget}: {status}";
@@ -114,7 +114,7 @@ namespace Stride.LauncherApp.ViewModels
         /// <inheritdoc/>
         protected override async Task UpdateVersionsFromStore()
         {
-            var versionRange = Store.VsixVersionToStrideRelease[this.vsixSupportedVsVersion];
+            var versionRange = Store.VsixVersionToStrideRelease[vsixSupportedVsVersion];
             var minVersion = versionRange.MinVersion;
             var maxVersion = versionRange.MaxVersion;
 

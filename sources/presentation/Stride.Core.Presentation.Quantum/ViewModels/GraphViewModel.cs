@@ -41,7 +41,6 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
             GraphViewModelService = serviceProvider.TryGet<GraphViewModelService>();
             if (GraphViewModelService == null) throw new InvalidOperationException($"{nameof(GraphViewModel)} requires a {nameof(GraphViewModelService)} in the service provider.");
             Logger = GlobalLogger.GetLogger(DefaultLoggerName);
-            if (rootPresenters == null) throw new ArgumentNullException(nameof(rootNode));
             var viewModelFactory = serviceProvider.Get<GraphViewModelService>().NodeViewModelFactory;
             viewModelFactory.CreateGraph(this, type, rootPresenters);
         }

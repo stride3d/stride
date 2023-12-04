@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #include "stdafx.h"
-#include "../Stride.Importer.Common/ImporterUtils.h"
+#include "ImporterUtils.h"
 
 #include "SceneMapping.h"
 #include "AnimationConverter.h"
@@ -544,7 +544,7 @@ public:
 						auto src_normal = normalElement->GetDirectArray().GetAt(normalIndex);
 						auto normalPointer = ((Vector3*)(vbPointer + normalOffset));
 						normal = sceneMapping->ConvertNormalFromFbx(src_normal);
-						if (isnan(normal.X) || isnan(normal.Y) || isnan(normal.Z))
+						if (isnan(normal.X) || isnan(normal.Y) || isnan(normal.Z) || normal.Length() < FLT_EPSILON)
 							normal = Vector3(1, 0, 0);
 						normal = Vector3::Normalize(normal);
 						*normalPointer = normal;
@@ -568,7 +568,7 @@ public:
 						auto src_tangent = tangentElement->GetDirectArray().GetAt(tangentIndex);
 						auto tangentPointer = ((Vector4*)(vbPointer + tangentOffset));
 						Vector3 tangent = sceneMapping->ConvertNormalFromFbx(src_tangent);
-						if (isnan(tangent.X) || isnan(tangent.Y) || isnan(tangent.Z))
+						if (isnan(tangent.X) || isnan(tangent.Y) || isnan(tangent.Z) || tangent.Length() < FLT_EPSILON)
 						{
 							*tangentPointer = Vector4(1, 0, 0, 1);
 						}
@@ -578,9 +578,16 @@ public:
 
 							int binormalIndex = GetGroupIndexForLayerElementTemplate(binormalElement, controlPointIndex, vertexIndex, edgeIndex, i, meshName, layerIndexFirstTimeError);
 							auto src_binormal = binormalElement->GetDirectArray().GetAt(binormalIndex);
-							Vector3 binormal = sceneMapping->ConvertNormalFromFbx(src_tangent);
-							// See GenerateTangentBinormal()
-							*tangentPointer = Vector4(tangent.X, tangent.Y, tangent.Z, Vector3::Dot(Vector3::Cross(normal, tangent), binormal) < 0.0f ? -1.0f : 1.0f);
+							Vector3 binormal = sceneMapping->ConvertNormalFromFbx(src_binormal);
+							if (isnan(binormal.X) || isnan(binormal.Y) || isnan(binormal.Z) || binormal.Length() < FLT_EPSILON)
+							{
+								*tangentPointer = Vector4(tangent.X, tangent.Y, tangent.Z, 1.0f);
+							}
+							else
+							{
+								// See GenerateTangentBinormal()
+								*tangentPointer = Vector4(tangent.X, tangent.Y, tangent.Z, Vector3::Dot(Vector3::Cross(normal, tangent), binormal) < 0.0f ? -1.0f : 1.0f);
+							}
 						}
 					}
 
@@ -1218,7 +1225,7 @@ public:
 		// First try to get the texture filename by relative path, if not valid then use absolute path
 		// (According to FBX doc, resolved first by absolute name, and relative name if absolute name is not valid)
 		auto fileNameToUse = Path::Combine(inputPath, relFileName);
-		if(fileNameToUse->StartsWith("\\\\"))
+		if(fileNameToUse->StartsWith("\\\\", StringComparison::Ordinal))
 		{
 			logger->Warning(String::Format("Importer detected a network address in referenced assets. This may temporary block the build if the file does not exist. [Address='{0}']", fileNameToUse), (CallerInfo^)nullptr);
 		}
@@ -1634,6 +1641,7 @@ private:
 
 			// remove all bad characters
 			ReplaceCharacter(materialName, ':', '_');
+			ReplaceCharacter(materialName, '/', '_');
 			RemoveCharacter(materialName, ' ');
 			tempNames[lMaterial] = materialName;
 			
@@ -1901,7 +1909,10 @@ private:
 		ret->Materials = gcnew Dictionary<String^, MaterialAsset^>();
 		for (int i = 0; i < materialInstantiations->Count; ++i)
 		{
-			ret->Materials->Add(materialInstantiations[i]->MaterialName, materialInstantiations[i]->Material);
+			if (!ret->Materials->ContainsKey(materialInstantiations[i]->MaterialName))
+			{
+				ret->Materials->Add(materialInstantiations[i]->MaterialName, materialInstantiations[i]->Material);
+			}
 		}
         
 		return ret;
@@ -2008,14 +2019,14 @@ public:
 		return nullptr;
 	}
 
-	double GetAnimationDuration(String^ inputFileName)
+	double GetAnimationDuration(String^ inputFileName, int animationStack)
 	{
 		try
 		{
 			Initialize(inputFileName, nullptr, ImportConfiguration::ImportEntityConfig());
 
 			auto animationConverter = gcnew AnimationConverter(logger, sceneMapping);
-			auto animationData = animationConverter->ProcessAnimation(inputFilename, "", true);
+			auto animationData = animationConverter->ProcessAnimation(inputFilename, "", true, animationStack);
 
 			return animationData->Duration.TotalSeconds;
 		}
@@ -2082,14 +2093,14 @@ public:
 		return nullptr;
 	}
 
-	AnimationInfo^ ConvertAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations)
+	AnimationInfo^ ConvertAnimation(String^ inputFilename, String^ vfsOutputFilename, bool importCustomAttributeAnimations, int animationStack)
 	{
 		try
 		{
 			Initialize(inputFilename, vfsOutputFilename, ImportConfiguration::ImportAnimationsOnly());
 
 			auto animationConverter = gcnew AnimationConverter(logger, sceneMapping);
-			return animationConverter->ProcessAnimation(inputFilename, vfsOutputFilename, importCustomAttributeAnimations);
+			return animationConverter->ProcessAnimation(inputFilename, vfsOutputFilename, importCustomAttributeAnimations, animationStack);
 		}
 		finally
 		{

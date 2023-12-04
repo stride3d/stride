@@ -14,9 +14,6 @@ namespace FirstPersonShooter
     /// </summary>
     public class FpsCamera : AsyncScript
     {
-        private float desiredYaw;
-        private float desiredPitch;
-
         /// <summary>
         /// Gets the camera component used to visualized the scene.
         /// </summary>
@@ -28,14 +25,6 @@ namespace FirstPersonShooter
         public float RotationSpeed { get; set; } = 2.355f;
 
         /// <summary>
-        /// Gets or sets the rate at which orientation is adapted to a target value.
-        /// </summary>
-        /// <value>
-        /// The adaptation rate.
-        /// </value>
-        public float RotationAdaptationSpeed { get; set; } = 5.0f;
-
-        /// <summary>
         /// Gets or sets the Yaw rotation of the camera.
         /// </summary>
         private float Yaw { get; set; }
@@ -44,6 +33,16 @@ namespace FirstPersonShooter
         /// Gets or sets the Pitch rotation of the camera.
         /// </summary>
         private float Pitch { get; set; }
+
+        /// <summary>
+        /// Check to invert the horizontal camera movement
+        /// </summary>
+        public bool InvertX { get; set; } = false;
+
+        /// <summary>
+        /// Check to invert the vertical camera movement
+        /// </summary>
+        public bool InvertY { get; set; } = false;
 
         private readonly EventReceiver<Vector2> cameraDirectionEvent = new EventReceiver<Vector2>(PlayerInput.CameraDirectionEventKey);
 
@@ -61,20 +60,18 @@ namespace FirstPersonShooter
 
         public void Reset()
         {
-            desiredYaw =
-                Yaw =
-                    (float)
-                        Math.Asin(2 * Entity.Transform.Rotation.X * Entity.Transform.Rotation.Y +
-                                  2 * Entity.Transform.Rotation.Z * Entity.Transform.Rotation.W);
-
-            desiredPitch =
-                Pitch =
-                    (float)
-                        Math.Atan2(
-                            2 * Entity.Transform.Rotation.X * Entity.Transform.Rotation.W -
-                            2 * Entity.Transform.Rotation.Y * Entity.Transform.Rotation.Z,
-                            1 - 2 * Entity.Transform.Rotation.X * Entity.Transform.Rotation.X -
-                            2 * Entity.Transform.Rotation.Z * Entity.Transform.Rotation.Z);
+            Yaw =
+                (float)
+                    Math.Asin(2 * Entity.Transform.Rotation.X * Entity.Transform.Rotation.Y +
+                              2 * Entity.Transform.Rotation.Z * Entity.Transform.Rotation.W);
+        
+            Pitch =
+                (float)
+                    Math.Atan2(
+                        2 * Entity.Transform.Rotation.X * Entity.Transform.Rotation.W -
+                        2 * Entity.Transform.Rotation.Y * Entity.Transform.Rotation.Z,
+                        1 - 2 * Entity.Transform.Rotation.X * Entity.Transform.Rotation.X -
+                        2 * Entity.Transform.Rotation.Z * Entity.Transform.Rotation.Z);
         }
 
         /// <summary>
@@ -85,25 +82,12 @@ namespace FirstPersonShooter
             // Camera movement from player input
             Vector2 cameraMovement;
             cameraDirectionEvent.TryReceive(out cameraMovement);
-            // TODO: InvertX
-            // TODO: InvertY
 
-            // Take shortest path
-            var deltaPitch = desiredPitch - Pitch;
-            var deltaYaw = (desiredYaw - Yaw) % MathUtil.TwoPi;
-            if (deltaYaw < 0)
-                deltaYaw += MathUtil.TwoPi;
-            if (deltaYaw > MathUtil.Pi)
-                deltaYaw -= MathUtil.TwoPi;
-            desiredYaw = Yaw + deltaYaw;
-
-            // Perform orientation transition
-            var rotationAdaptation = (float)Game.UpdateTime.Elapsed.TotalSeconds * RotationAdaptationSpeed;
-            Yaw = Math.Abs(deltaYaw) < rotationAdaptation ? desiredYaw : Yaw + rotationAdaptation * Math.Sign(deltaYaw);
-            Pitch = Math.Abs(deltaPitch) < rotationAdaptation ? desiredPitch : Pitch + rotationAdaptation * Math.Sign(deltaPitch);
-
-            desiredYaw = Yaw -= 1.333f * cameraMovement.X * RotationSpeed;
-            desiredPitch = Pitch = MathUtil.Clamp(Pitch + cameraMovement.Y * RotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
+            if (InvertY) cameraMovement.Y *= -1;
+            if (InvertX) cameraMovement.X *= -1;
+            
+            Yaw -= cameraMovement.X * RotationSpeed;
+            Pitch = MathUtil.Clamp(Pitch + cameraMovement.Y * RotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
 
             // Update the camera view matrix
             UpdateViewMatrix();

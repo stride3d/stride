@@ -118,11 +118,11 @@ namespace Stride.Core.Storage
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T data) where T : struct
         {
-            var pData = (int*)Interop.Fixed(ref data);
+            var pData = Unsafe.As<T, uint>(ref data);
             var count = Unsafe.SizeOf<T>() >> 2;
             for (var i = 0; i < count; i++)
             {
-                Write(*pData++);
+                Write(Unsafe.Add(ref pData, i));
             }
         }
 

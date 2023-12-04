@@ -312,7 +312,7 @@ namespace Stride.Core.Presentation.Controls
         protected sealed override void OnValidated()
         {
             double? value;
-            if (double.TryParse(Text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsedValue))
+            if (TryParseValue(Text, out var parsedValue))
             {
                 value = parsedValue;
             }
@@ -328,7 +328,7 @@ namespace Stride.Core.Presentation.Controls
 
         protected override bool IsTextCompatibleWithValueBinding(string text)
         {
-            return double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _);
+            return TryParseValue(text, out _);
         }
 
         /// <inheritdoc/>
@@ -337,7 +337,7 @@ namespace Stride.Core.Presentation.Controls
         {
             baseValue = base.CoerceTextForValidation(baseValue);
             double? value;
-            if (double.TryParse(baseValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsedValue))
+            if (TryParseValue(baseValue, out var parsedValue))
             {
                 value = parsedValue;
 
@@ -411,6 +411,38 @@ namespace Stride.Core.Presentation.Controls
             {
                 SetCurrentValue(ValueProperty, value);
             }
+        }
+
+        /// <summary>
+        /// tries to parse the value of the textbox into a double, accommodating various cultural settings and preferences
+        /// </summary>
+        /// <param name="value">text value of the textbox</param>
+        /// <param name="result">the resulting numeric value if parsing is successful</param>
+        /// <returns>whether parsing the value was successful</returns>
+        private static bool TryParseValue(ReadOnlySpan<char> value, out double result)
+        {
+            //thousands are disallowed as they might lead to decimal seperators falsely being interpreted as thousands
+            const NumberStyles numberStyle = NumberStyles.Any & ~NumberStyles.AllowThousands;
+
+            //try parsing a hex string
+            var span = value.TrimStart('0');
+            if (span.StartsWith("x", StringComparison.OrdinalIgnoreCase) || span.StartsWith("#", StringComparison.OrdinalIgnoreCase))
+            {
+                var span2 = span.TrimStart(stackalloc[] {'x', '#'});
+                if (double.TryParse(span2, NumberStyles.HexNumber, NumberFormatInfo.InvariantInfo, out result))
+                    return true;
+            }
+            //Try parsing in the current culture
+            else if (double.TryParse(value, numberStyle, CultureInfo.CurrentCulture, out result) ||
+                //or in neutral culture
+                double.TryParse(value, numberStyle, CultureInfo.InvariantCulture, out result) ||
+                //or as fallback a culture that has ',' as comma separator
+                double.TryParse(value, numberStyle, CultureInfo.GetCultureInfo("de-DE"), out result))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static void OnValuePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)

@@ -59,6 +59,7 @@ namespace Stride.Core.Assets
         /// </summary>
         /// <value>The location.</value>
         [NotNull]
+        [DataMember]
         public UFile Location { get => location; internal set => location = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
@@ -84,6 +85,7 @@ namespace Stride.Core.Assets
         /// Gets the package where this asset is stored.
         /// </summary>
         /// <value>The package.</value>
+        [DataMember]
         public Package Package { get; internal set; }
 
         /// <summary>
@@ -110,7 +112,7 @@ namespace Stride.Core.Assets
         /// <param name="newAsset">The new asset that will be used in the cloned <see cref="AssetItem"/>. If this parameter
         /// is null, it clones the original asset. otherwise, the specified asset is used as-is in the new <see cref="AssetItem"/>
         /// (no clone on newAsset is performed)</param>
-        /// <param name="flags">Flags used with <see cref="AssetCloner.Clone"/>.</param>
+        /// <param name="flags">Flags used with <see cref="AssetCloner.Clone(object, AssetClonerFlags)"/>.</param>
         /// <returns>A clone of this instance.</returns>
         [NotNull]
         public AssetItem Clone(UFile newLocation = null, Asset newAsset = null, AssetClonerFlags flags = AssetClonerFlags.None)
@@ -127,7 +129,7 @@ namespace Stride.Core.Assets
         /// <param name="newAsset">The new asset that will be used in the cloned <see cref="AssetItem" />. If this parameter
         /// is null, it clones the original asset. otherwise, the specified asset is used as-is in the new <see cref="AssetItem" />
         /// (no clone on newAsset is performed)</param>
-        /// <param name="flags">Flags used with <see cref="AssetCloner.Clone"/>.</param>
+        /// <param name="flags">Flags used with <see cref="AssetCloner.Clone(object, AssetClonerFlags)"/>.</param>
         /// <returns>A clone of this instance.</returns>
         [NotNull]
         public AssetItem Clone(bool keepPackage, UFile newLocation = null, Asset newAsset = null, AssetClonerFlags flags = AssetClonerFlags.None)
@@ -187,6 +189,7 @@ namespace Stride.Core.Assets
         /// </summary>
         /// <value>The asset.</value>
         [NotNull]
+        [DataMember]
         public Asset Asset { get => asset; internal set => asset = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
@@ -197,6 +200,7 @@ namespace Stride.Core.Assets
         /// By default, contains the last modified time of the asset from the disk. If IsDirty is also updated from false to true
         /// , this time will get current time of modification.
         /// </remarks>
+        [DataMember]
         public DateTime ModifiedTime { get; internal set; }
 
         private long version;
@@ -204,6 +208,7 @@ namespace Stride.Core.Assets
         /// <summary>
         /// Gets the asset version incremental counter, increased everytime the asset is edited.
         /// </summary>
+        [DataMember]
         public long Version { get => Interlocked.Read(ref version); internal set => Interlocked.Exchange(ref version, value); }
 
         /// <summary>

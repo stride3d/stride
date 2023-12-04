@@ -10,6 +10,7 @@ using System.Threading;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Threading;
 
@@ -22,6 +23,8 @@ namespace Stride.Rendering
     {
         private readonly ConcurrentCollector<ViewObjectNode> viewObjectNodes = new ConcurrentCollector<ViewObjectNode>();
         private readonly ConcurrentCollector<ObjectNode> objectNodes = new ConcurrentCollector<ObjectNode>();
+        
+        private static readonly ProfilingKey GetOrCreateObjectNodeKey = new ProfilingKey($"{nameof(RootRenderFeature)}.GetOrCreateObjectNode");
 
         // storage for properties (struct of arrays)
         public RenderDataHolder RenderData;
@@ -137,6 +140,7 @@ namespace Stride.Rendering
 
         internal unsafe ObjectNodeReference GetOrCreateObjectNode(RenderObject renderObject)
         {
+            using var _ = Profiler.Begin(GetOrCreateObjectNodeKey);
             fixed (ObjectNodeReference* objectNodeRef = &renderObject.ObjectNode)
             {
                 var oldValue = Interlocked.CompareExchange(ref *(int*)objectNodeRef, -2, -1);

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_UI_SDL
 using System;
+using System.Diagnostics;
 using Silk.NET.SDL;
 using Stride.Core.Mathematics;
 using Point = Stride.Core.Mathematics.Point;
@@ -28,6 +29,9 @@ namespace Stride.Graphics.SDL
         /// <param name="hot_y">Hotspot Y coordinate of cursor</param>
         public unsafe Cursor(byte[] data, byte[] mask, int w, int h, int hot_x, int hot_y)
         {
+            Debug.Assert(
+                (w | h) >= 0 &&
+                (uint)w * (uint)h <= (uint)Math.Min(data.Length, mask.Length));
             fixed (byte* dataPtr = data)
             fixed (byte* maskPtr = mask)
                 Handle = (IntPtr)SDL.CreateCursor(dataPtr, maskPtr, w, h, hot_x, hot_y);

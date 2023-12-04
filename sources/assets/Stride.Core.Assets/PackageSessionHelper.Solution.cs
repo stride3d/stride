@@ -1,13 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NuGet.ProjectModel;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
-using Stride.Core;
+using NuGet.ProjectModel;
 using Stride.Core.Extensions;
 using Stride.Core.VisualStudio;
 
@@ -24,11 +21,11 @@ namespace Stride.Core.Assets
             {
                 // Solution file: extract projects
                 var solutionDirectory = Path.GetDirectoryName(fullPath) ?? "";
-                var solution = Stride.Core.VisualStudio.Solution.FromFile(fullPath);
+                var solution = Solution.FromFile(fullPath);
 
                 foreach (var project in solution.Projects)
                 {
-                    if (project.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || project.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem)
+                    if (project.TypeGuid == KnownProjectTypeGuid.CSharp || project.TypeGuid == KnownProjectTypeGuid.CSharpNewSystem)
                     {
                         var projectPath = project.FullPath;
                         var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), @"obj", LockFileFormat.AssetsFileName);
@@ -47,7 +44,7 @@ namespace Stride.Core.Assets
                             {
                                 if ((library.Type == "package" || library.Type == "project") && (library.Name == "Stride.Engine" || library.Name == "Xenko.Engine"))
                                 {
-                                    return new PackageVersion((string)library.Version.ToString());
+                                    return new PackageVersion(library.Version.ToString());
                                 }
                             }
                         }
@@ -74,15 +71,15 @@ namespace Stride.Core.Assets
             if (project.IsSolutionFolder)
             {
                 foreach (var solutionPackageIdentifier in SolutionPackageIdentifier)
-                if (project.Sections.Contains(solutionPackageIdentifier))
-                {
-                    var propertyItem = project.Sections[solutionPackageIdentifier].Properties.FirstOrDefault();
-                    if (propertyItem != null)
+                    if (project.Sections.Contains(solutionPackageIdentifier))
                     {
-                        packagePathRelative = propertyItem.Name;
-                        return true;
+                        var propertyItem = project.Sections[solutionPackageIdentifier].Properties.FirstOrDefault();
+                        if (propertyItem != null)
+                        {
+                            packagePathRelative = propertyItem.Name;
+                            return true;
+                        }
                     }
-                }
             }
             return false;
         }

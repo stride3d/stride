@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -24,7 +25,9 @@ namespace Stride.Core.Threading
         private static bool isWorkedThread;
         /// <summary> Is the thread reading this property a worker thread </summary>
         public static bool IsWorkedThread => isWorkedThread;
-        
+
+        private static readonly ProfilingKey ProcessWorkItemKey = new ProfilingKey($"{nameof(ThreadPool)}.ProcessWorkItem");
+
         private readonly ConcurrentQueue<Action> workItems = new ConcurrentQueue<Action>();
         private readonly SemaphoreW semaphore;
         
@@ -103,6 +106,7 @@ namespace Stride.Core.Threading
                 Interlocked.Decrement(ref workScheduled);
                 try
                 {
+                    using var _ = Profiler.Begin(ProcessWorkItemKey);
                     workItem.Invoke();
                 }
                 finally

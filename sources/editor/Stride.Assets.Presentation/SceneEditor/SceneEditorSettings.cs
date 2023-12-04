@@ -40,6 +40,14 @@ namespace Stride.Assets.Presentation.SceneEditor
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Move camera down")}"
             };
+            IncreaseCamSpeed = new SettingsKey<Keys>("SceneEditor/KeyBindings/IncreaseCamSpeed", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.OemPlus)
+            {
+                DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Increase camera speed")}"
+            };
+            DecreaseCamSpeed = new SettingsKey<Keys>("SceneEditor/KeyBindings/DecreaseCamSpeed", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.OemMinus)
+            {
+                DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Decrease camera speed")}"
+            };
             InvertPanningAxis = new SettingsKey<bool>("SceneEditor/KeyBindings/InvertPanningAxis", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, true)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Invert mouse panning axis")}"
@@ -51,6 +59,10 @@ namespace Stride.Assets.Presentation.SceneEditor
             SnapSelectionToGrid = new SettingsKey<Keys>("SceneEditor/KeyBindings/SnapSelectionToGrid", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.N)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Snap selection to the grid")}"
+            };
+            ControlDynamicSnapSelectionToGrid = new SettingsKey<Keys>("SceneEditor/KeyBindings/ControlDynamicSnapSelectionToGrid", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.LeftShift)
+            {
+                DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Use snapping while selection is beeing manipulated")}"
             };
             TranslationGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/TranslationGizmo", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.W)
             {
@@ -106,11 +118,17 @@ namespace Stride.Assets.Presentation.SceneEditor
 
         public static SettingsKey<Keys> MoveCamDownward { get; }
 
+        public static SettingsKey<Keys> IncreaseCamSpeed { get; }
+
+        public static SettingsKey<Keys> DecreaseCamSpeed { get; }
+
         public static SettingsKey<bool> InvertPanningAxis { get; }
 
         public static SettingsKey<Keys> CenterViewOnSelection { get; }
 
         public static SettingsKey<Keys> SnapSelectionToGrid { get; }
+
+        public static SettingsKey<Keys> ControlDynamicSnapSelectionToGrid { get; }
 
         public static SettingsKey<Keys> TranslationGizmo { get; }
 

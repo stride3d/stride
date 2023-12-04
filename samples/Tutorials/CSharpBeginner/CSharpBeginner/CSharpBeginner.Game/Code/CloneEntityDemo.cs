@@ -6,6 +6,9 @@ namespace CSharpBeginner.Code
     /// <summary>
     /// This script demonstrates how to clone an existing entity.
     /// Cloned entities can be added to the scene hierarchy.
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/cloning-entities.html
+    /// </para>
     /// </summary>
     public class CloneEntityDemo : SyncScript
     {

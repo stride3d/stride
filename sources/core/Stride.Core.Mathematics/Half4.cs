@@ -211,7 +211,7 @@ namespace Stride.Core.Mathematics
         /// <returns>
         /// <c>true</c> if <paramref name="value1" /> is the same instance as <paramref name="value2" /> or 
         /// if both are <c>null</c> references or if <c>value1.Equals(value2)</c> returns <c>true</c>; otherwise, <c>false</c>.</returns>
-        public static bool Equals(ref Half4 value1, ref Half4 value2)
+        public static bool Equals(ref readonly Half4 value1, ref readonly Half4 value2)
         {
             return (((value1.X == value2.X) && (value1.Y == value2.Y)) && ((value1.Z == value2.Z) && (value1.W == value2.W)));
         }
@@ -264,6 +264,21 @@ namespace Stride.Core.Mathematics
                 return false;
             }
             return this.Equals((Half4)obj);
+        }        
+                
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="x">The X component</param>
+        /// <param name="y">The Y component</param>
+        /// <param name="z">The Z component</param>
+        /// <param name="w">The W component</param>
+        public void Deconstruct(out Half x, out Half y, out Half z, out Half w)
+        {
+            x = X;
+            y = Y;
+            z = Z;
+            w = W;
         }
     }
 }

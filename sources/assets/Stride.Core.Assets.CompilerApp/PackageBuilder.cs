@@ -441,14 +441,6 @@ namespace Stride.Core.Assets.CompilerApp
             var address = "Stride/CompilerApp/PackageBuilderApp/" + Guid.NewGuid();
             var arguments = $"--slave=\"{address}\" --build-path=\"{builderOptions.BuildDirectory}\"";
 
-            using (var debugger = VisualStudioDebugger.GetAttached())
-            {
-                if (debugger != null)
-                {
-                    arguments += $" --reattach-debugger={debugger.ProcessId}";
-                }
-            }
-
             // Start ServiceWire pipe for communication with process
             var processBuilderRemote = new ProcessBuilderRemote(assemblyContainer, commandContext, command);
             var host = new NpHost(address,null,null, new StrideServiceWireSerializer());

@@ -1,6 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.IO;
@@ -23,20 +26,21 @@ namespace Stride.Core.Storage
             this.objectId = objectId;
         }
 
-        internal Blob(ObjectDatabase objectDatabase, ObjectId objectId, IntPtr content, int size)
+        internal unsafe Blob(ObjectDatabase objectDatabase, ObjectId objectId, IntPtr content, int size)
             : this(objectDatabase, objectId)
         {
+            Debug.Assert(size >= 0);
             this.size = size;
             this.content = Marshal.AllocHGlobal(size);
-            Utilities.CopyMemory(this.content, content, size);
+            Unsafe.CopyBlockUnaligned((void*)this.content, (void*)content, (uint)size);
         }
 
-        internal Blob(ObjectDatabase objectDatabase, ObjectId objectId, NativeStream stream)
+        internal unsafe Blob(ObjectDatabase objectDatabase, ObjectId objectId, Stream stream)
             : this(objectDatabase, objectId)
         {
-            this.size = (int)stream.Length;
-            this.content = Marshal.AllocHGlobal(this.size);
-            stream.Read(this.content, this.size);
+            size = (int)stream.Length;
+            content = Marshal.AllocHGlobal(size);
+            stream.Read(new Span<byte>((void*)content, size));
         }
 
         /// <summary>
@@ -78,14 +82,11 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Gets a <see cref="NativeStream"/> over the <see cref="Content"/>.
+        /// Gets a <see cref="Stream"/> over the <see cref="Content"/>.
         /// </summary>
         /// It will keeps a reference to the <see cref="Blob"/> until disposed.
-        /// <returns>A <see cref="NativeStream"/> over the <see cref="Content"/>.</returns>
-        public NativeStream GetContentStream()
-        {
-            return new BlobStream(this);
-        }
+        /// <returns>A <see cref="Stream"/> over the <see cref="Content"/>.</returns>
+        public Stream GetContentStream() => new BlobStream(this);
 
         /// <inheritdoc/>
         protected override void Destroy()

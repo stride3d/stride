@@ -197,6 +197,22 @@ namespace Stride.Core.Mathematics
                                  S.ToString(format, formatProvider),
                                  V.ToString(format, formatProvider),
                                  A.ToString(format, formatProvider));
+        }     
+        
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="h">The H component</param>
+        /// <param name="s">The S component</param>
+        /// <param name="v">The V component</param>
+        /// <param name="a">The A component</param>
+        public void Deconstruct(out float h, out float s, out float v, out float a)
+        {
+            h = H;
+            s = S;
+            v = V;
+            a = A;
         }
+
     }
 }

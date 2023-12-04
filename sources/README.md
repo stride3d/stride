@@ -38,10 +38,11 @@ and used by most projects.
 
 * __Irony__: Parsing library, used by Stride.Core.Shaders. Should later be replaced by ANTLR4.
 * __Stride.Core.Shaders__: Shader parsing, type analysis and conversion library (used by HLSL->GLSL and Stride Shader Language)
+* __Irony.GrammarExplorer__: As the name suggests, language syntax tester, you can check how [Stride Shading Language (SDSL)](https://doc.stride3d.net/latest/en/manual/graphics/effects-and-shaders/shading-language/index.html) works or test the newly introduced features
 
 ### targets ###
 
-* MSBuild target files to create easily cross-platform solutions (Android, iOS, WinRT, WinPhone, etc...), and define behaviors and targets globally. Extensible.
+* MSBuild target files to create easily cross-platform solutions (Android, iOS, WinRT, etc...), and define behaviors and targets globally. Extensible.
 
 ----------
 

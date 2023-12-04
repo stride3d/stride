@@ -23,45 +23,35 @@ namespace Stride.GameStudio.Debugging
         {
             var gameHostAssembly = typeof(GameDebuggerTarget).Assembly.Location;
 
-            using (var debugger = debuggerProcess != null ? VisualStudioDebugger.GetByProcess(debuggerProcess.Id) : null)
+            var address = "Stride/Debugger/" + Guid.NewGuid();
+            var arguments = $"--host=\"{address}\"";
+
+            var startInfo = new ProcessStartInfo
             {
-                var address = "Stride/Debugger/" + Guid.NewGuid();
-                var arguments = $"--host=\"{address}\"";
+                FileName = gameHostAssembly,
+                Arguments = arguments,
+                WorkingDirectory = workingDirectory,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
 
-                // Child process should wait for a debugger to be attached
-                if (debugger != null)
-                    arguments += " --wait-debugger-attach";
+            // Start ServiceWire pipe
+            var gameDebuggerHost = new GameDebuggerHost(logger);
+            ServiceHost = new NpHost(address, null, null);
+            ServiceHost.AddService<IGameDebuggerHost>(gameDebuggerHost);
+            ServiceHost.Open();
 
-                var startInfo = new ProcessStartInfo
-                {
-                    FileName = gameHostAssembly,
-                    Arguments = arguments,
-                    WorkingDirectory = workingDirectory,
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                };
+            var process = new Process { StartInfo = startInfo };
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
 
-                // Start ServiceWire pipe
-                var gameDebuggerHost = new GameDebuggerHost(logger);
-                ServiceHost = new NpHost(address, null, null);
-                ServiceHost.AddService<IGameDebuggerHost>(gameDebuggerHost);
-                ServiceHost.Open();
+            // Make sure proces will be killed if our process is finished unexpectedly
+            attachedChildProcessJob = new AttachedChildProcessJob(process);
 
-                var process = new Process { StartInfo = startInfo };
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                // Make sure proces will be killed if our process is finished unexpectedly
-                attachedChildProcessJob = new AttachedChildProcessJob(process);
-
-                // Attach debugger
-                debugger?.AttachToProcess(process.Id);
-
-                GameHost = gameDebuggerHost;
-            }
+            GameHost = gameDebuggerHost;
         }
 
         public void Stop()

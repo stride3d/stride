@@ -87,11 +87,11 @@ namespace Stride.Core.Collections
         public int Count => size;
 
         /// <summary>
-        /// Gets or sets the element <see cref="T"/> at the specified index.
+        /// Gets or sets the element <typeparamref name="T"/> at the specified index.
         /// </summary>
         /// <param name="index">The index.</param>
         /// <value>
-        /// The element <see cref="T"/>.
+        /// The element <typeparamref name="T"/>.
         /// </value>
         /// <returns>The element at the specified index</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">If index is out of range</exception>

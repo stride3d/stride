@@ -12,6 +12,7 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Engine;
 using Stride.Engine.Processors;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 
 namespace Stride.Assets.Presentation.SceneEditor
 {
@@ -45,7 +46,7 @@ namespace Stride.Assets.Presentation.SceneEditor
         public bool GridVisible = true;
         public Color3 GridColor = (Color3)new Color(180, 180, 180);
         public float GridOpacity = 0.35f;
-        public int GridAxisIndex = 1;
+        public int GridAxisIndex = (int)ViewportGridAxis.Y;
         public bool CameraPreviewVisible = true;
         public RenderMode RenderMode = RenderMode.SingleStream;
         public string ActiveStream = string.Empty;

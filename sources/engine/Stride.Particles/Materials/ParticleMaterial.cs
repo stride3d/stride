@@ -39,7 +39,7 @@ namespace Stride.Particles.Materials
         public abstract string EffectName { get; protected set; }
 
         /// <summary>
-        /// Prepares the material for drawing the current frame with the current <see cref="ParticleVertexBuilder"/> and <see cref="ParticleSorter"/>
+        /// Prepares the material for drawing the current frame with the current <see cref="ParticleVertexBuilder"/> and <see cref="ParticleList"/>
         /// </summary>
         /// <param name="fieldsList">A container for the <see cref="ParticlePool"/> which can poll if a certain field exists as an attribute</param>
         public virtual void PrepareVertexLayout(ParticlePoolFieldsList fieldsList)

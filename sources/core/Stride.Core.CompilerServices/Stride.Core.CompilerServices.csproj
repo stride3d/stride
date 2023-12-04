@@ -1,0 +1,36 @@
+<Project>
+	<Import Project="..\..\targets\Stride.Core.props" />
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Description>Code generators for Stride.Core and its dependents</Description>
+    <LangVersion>preview</LangVersion>
+		<StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <Nullable>enable</Nullable>
+    <!--<DefineConstants>LAUNCH_DEBUGGER;$(DefineConstants)</DefineConstants>-->
+	</PropertyGroup>
+  <ItemGroup>
+    <Using Include="System.Linq" />
+    <Using Include="Microsoft.CodeAnalysis" />
+    <Using Include="Microsoft.CodeAnalysis.Diagnostics" />
+  </ItemGroup>
+	<ItemGroup>
+		<Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+			<Link>Properties\SharedAssemblyInfo.cs</Link>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="CodeFixes\" />
+	  <Folder Include="Common\" />
+	  <Folder Include="Generators\" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System" />
+	</ItemGroup>
+	<Import Project="$(StrideSdkTargets)" />
+</Project>

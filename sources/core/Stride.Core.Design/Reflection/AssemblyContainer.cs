@@ -287,7 +287,7 @@ namespace Stride.Core.Reflection
                                         .Select(runtime => Path.Combine(globalPackagesFolder, library.Path, "runtimes", runtime))
                                         .Where(Directory.Exists)
                                         .SelectMany(folder => Directory.EnumerateDirectories(Path.Combine(folder, "lib")))
-                                        .FirstOrDefault(file => Path.GetFileName(file).StartsWith("net")); // Only consider framework netXX and netstandardX.X
+                                        .FirstOrDefault(file => Path.GetFileName(file).StartsWith("net", StringComparison.Ordinal)); // Only consider framework netXX and netstandardX.X
                                     if (runtimeFolder != null)
                                     {
                                         foreach (var runtimeFile in Directory.EnumerateFiles(runtimeFolder, "*.dll"))
@@ -313,6 +313,11 @@ namespace Stride.Core.Reflection
                         when ((uint)fileLoadException.HResult == unverifiableExecutableWithFixups)
                         {
                             // No way to load from byte array (see https://stackoverflow.com/questions/5005409/exception-with-resolving-assemblies-attempt-to-load-an-unverifiable-executable)
+                            assembly = Assembly.LoadFrom(assemblyFullPath);
+                        }
+                        catch (BadImageFormatException)
+                        {
+                            // It could be a mixed mode assembly (see https://stackoverflow.com/questions/2945080/how-do-i-dynamically-load-raw-assemblies-that-contains-unmanaged-codebypassing)
                             assembly = Assembly.LoadFrom(assemblyFullPath);
                         }
                         loadedAssembly = new LoadedAssembly(this, assemblyFullPath, assembly, dependenciesMapping);

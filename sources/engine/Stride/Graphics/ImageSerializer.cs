@@ -13,12 +13,12 @@ namespace Stride.Graphics
         {
             if (context.Mode == ArchiveMode.Deserialize)
             {
-                var image = Image.Load(stream.NativeStream);
+                var image = Image.Load(stream.UnderlyingStream);
                 textureData.InitializeFrom(image);
             }
             else
             {
-                textureData.Save(stream.NativeStream, ImageFileType.Stride);
+                textureData.Save(stream.UnderlyingStream, ImageFileType.Stride);
             }
         }
 

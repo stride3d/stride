@@ -34,19 +34,21 @@ namespace Stride
 {
     /// <summary>
     /// Reusable, reflection based helper for parsing commandline options.
-    /// Greetings to Shawn Hargreaves, original code http://blogs.msdn.com/b/shawnhar/archive/2012/04/20/a-reusable-reflection-based-command-line-parser.aspx
-    /// This is a modified version of command line parser that adds:
-    /// - .NET 2.0 compatible
-    /// - Allow inheritance to simplify declaration
-    /// - Print exe banner, using AssemblyTitle and AssemblyCopyright.
-    /// - Better padding of options, add descriptor and value text overrides.
-    /// - Add support for - and / starting options.
-    /// - Remove usage of ":" to separate option from parsed option
-    /// - Add "&lt;options&gt;" to the Usage when options are defined
-    /// - Add Console Color handling
     /// </summary>
     /// <remarks>
-    /// This single file is intended to be directly included in the project that needs to handle command line without requiring any SharpDX assembly dependencies.
+    /// <para>Greetings to Shawn Hargreaves, original code http://blogs.msdn.com/b/shawnhar/archive/2012/04/20/a-reusable-reflection-based-command-line-parser.aspx</para>
+    /// <para>This is a modified version of command line parser that adds:</para>
+    /// <list type="bullet">
+    /// <item>.NET 2.0 compatible</item>item>
+    /// <item>Allow inheritance to simplify declaration</item>
+    /// <item>Print exe banner, using AssemblyTitle and AssemblyCopyright.</item>
+    /// <item>Better padding of options, add descriptor and value text overrides.</item>
+    /// <item>Add support for - and / starting options.</item>
+    /// <item>Remove usage of ":" to separate option from parsed option</item>
+    /// <item>Add "&lt;options&gt;" to the Usage when options are defined</item>
+    /// <item>Add Console Color handling</item>
+    /// </list>
+    /// <para>This single file is intended to be directly included in the project that needs to handle command line without requiring any SharpDX assembly dependencies.</para>
     /// </remarks>
     class ConsoleProgram
     {
@@ -169,9 +171,9 @@ namespace Stride
 
         private bool ParseArgument(string arg)
         {
-            if (arg.StartsWith("/") || arg.StartsWith("-"))
+            if (arg.StartsWith('/') || arg.StartsWith('-'))
             {
-                string name = arg.Substring(1);
+                string name = arg[1..];
 
                 string value = null;
 

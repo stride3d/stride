@@ -158,4 +158,7 @@
   <data name="Twitter" xml:space="preserve">
     <value>https://twitter.com/stridedotnet</value>
   </data>
+  <data name="VisualStudio" xml:space="preserve">
+    <value>https://visualstudio.microsoft.com/downloads</value>
+  </data>
 </root>

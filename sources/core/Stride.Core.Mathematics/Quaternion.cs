@@ -7,17 +7,17 @@
 // -----------------------------------------------------------------------------
 /*
 * Copyright (c) 2007-2011 SlimDX Group
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in
 * all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,6 +28,7 @@
 */
 using System;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static System.MathF;
@@ -351,7 +352,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first quaternion to add.</param>
         /// <param name="right">The second quaternion to add.</param>
         /// <param name="result">When the method completes, contains the sum of the two quaternions.</param>
-        public static void Add(ref Quaternion left, ref Quaternion right, out Quaternion result)
+        public static void Add(ref readonly Quaternion left, ref readonly Quaternion right, out Quaternion result)
         {
             result.X = left.X + right.X;
             result.Y = left.Y + right.Y;
@@ -378,7 +379,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first quaternion to subtract.</param>
         /// <param name="right">The second quaternion to subtract.</param>
         /// <param name="result">When the method completes, contains the difference of the two quaternions.</param>
-        public static void Subtract(ref Quaternion left, ref Quaternion right, out Quaternion result)
+        public static void Subtract(ref readonly Quaternion left, ref readonly Quaternion right, out Quaternion result)
         {
             result.X = left.X - right.X;
             result.Y = left.Y - right.Y;
@@ -405,7 +406,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The quaternion to scale.</param>
         /// <param name="scale">The amount by which to scale the quaternion.</param>
         /// <param name="result">When the method completes, contains the scaled quaternion.</param>
-        public static void Multiply(ref Quaternion value, float scale, out Quaternion result)
+        public static void Multiply(ref readonly Quaternion value, float scale, out Quaternion result)
         {
             result.X = value.X * scale;
             result.Y = value.Y * scale;
@@ -432,7 +433,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first quaternion to modulate.</param>
         /// <param name="right">The second quaternion to modulate.</param>
         /// <param name="result">When the moethod completes, contains the modulated quaternion.</param>
-        public static void Multiply(ref Quaternion left, ref Quaternion right, out Quaternion result)
+        public static void Multiply(ref readonly Quaternion left, ref readonly Quaternion right, out Quaternion result)
         {
             float lx = left.X;
             float ly = left.Y;
@@ -472,13 +473,13 @@ namespace Stride.Core.Mathematics
                 (rz * lw + lz * rw + rx * ly) - (ry * lx),
                 (rw * lw) - (rx * lx + ry * ly + rz * lz));
         }
-        
+
         /// <summary>
         /// Reverses the direction of a given quaternion.
         /// </summary>
         /// <param name="value">The quaternion to negate.</param>
         /// <param name="result">When the method completes, contains a quaternion facing in the opposite direction.</param>
-        public static void Negate(ref Quaternion value, out Quaternion result)
+        public static void Negate(ref readonly Quaternion value, out Quaternion result)
         {
             result.X = -value.X;
             result.Y = -value.Y;
@@ -507,11 +508,11 @@ namespace Stride.Core.Mathematics
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
         /// <param name="result">When the method completes, contains a new <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of the specified point.</param>
-        public static void Barycentric(ref Quaternion value1, ref Quaternion value2, ref Quaternion value3, float amount1, float amount2, out Quaternion result)
+        public static void Barycentric(ref readonly Quaternion value1, ref readonly Quaternion value2, ref readonly Quaternion value3, float amount1, float amount2, out Quaternion result)
         {
             Quaternion start, end;
-            Slerp(ref value1, ref value2, amount1 + amount2, out start);
-            Slerp(ref value1, ref value3, amount1 + amount2, out end);
+            Slerp(in value1, in value2, amount1 + amount2, out start);
+            Slerp(in value1, in value3, amount1 + amount2, out end);
             Slerp(ref start, ref end, amount2 / (amount1 + amount2), out result);
         }
 
@@ -536,7 +537,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The quaternion to conjugate.</param>
         /// <param name="result">When the method completes, contains the conjugated quaternion.</param>
-        public static void Conjugate(ref Quaternion value, out Quaternion result)
+        public static void Conjugate(ref readonly Quaternion value, out Quaternion result)
         {
             result.X = -value.X;
             result.Y = -value.Y;
@@ -560,7 +561,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">First source quaternion.</param>
         /// <param name="right">Second source quaternion.</param>
         /// <param name="result">When the method completes, contains the dot product of the two quaternions.</param>
-        public static void Dot(ref Quaternion left, ref Quaternion right, out float result)
+        public static void Dot(ref readonly Quaternion left, ref readonly Quaternion right, out float result)
         {
             result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
         }
@@ -575,7 +576,7 @@ namespace Stride.Core.Mathematics
         {
             return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
         }
-        
+
         /// <summary>
         /// Returns the absolute angle in radians between <paramref name="a"/> and <paramref name="b"/>
         /// </summary>
@@ -589,7 +590,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The quaternion to exponentiate.</param>
         /// <param name="result">When the method completes, contains the exponentiated quaternion.</param>
-        public static void Exponential(ref Quaternion value, out Quaternion result)
+        public static void Exponential(ref readonly Quaternion value, out Quaternion result)
         {
             float angle = MathF.Sqrt((value.X * value.X) + (value.Y * value.Y) + (value.Z * value.Z));
             float sin = MathF.Sin(angle);
@@ -626,7 +627,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The quaternion to conjugate and renormalize.</param>
         /// <param name="result">When the method completes, contains the conjugated and renormalized quaternion.</param>
-        public static void Invert(ref Quaternion value, out Quaternion result)
+        public static void Invert(ref readonly Quaternion value, out Quaternion result)
         {
             result = value;
             result.Invert();
@@ -654,9 +655,9 @@ namespace Stride.Core.Mathematics
         /// <remarks>
         /// This method performs the linear interpolation based on the following formula.
         /// <code>start + (end - start) * amount</code>
-        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
+        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
         /// </remarks>
-        public static void Lerp(ref Quaternion start, ref Quaternion end, float amount, out Quaternion result)
+        public static void Lerp(ref readonly Quaternion start, ref readonly Quaternion end, float amount, out Quaternion result)
         {
             float inverse = 1.0f - amount;
 
@@ -688,7 +689,7 @@ namespace Stride.Core.Mathematics
         /// <remarks>
         /// This method performs the linear interpolation based on the following formula.
         /// <code>start + (end - start) * amount</code>
-        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
+        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
         /// </remarks>
         public static Quaternion Lerp(Quaternion start, Quaternion end, float amount)
         {
@@ -696,7 +697,7 @@ namespace Stride.Core.Mathematics
             Lerp(ref start, ref end, amount, out result);
             return result;
         }
-        
+
         /// <summary>
         /// Returns a rotation whose facing direction points towards <paramref name="forward"/>
         /// and whose up direction points as close as possible to <paramref name="up"/>.
@@ -720,7 +721,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The quaternion whose logarithm will be calculated.</param>
         /// <param name="result">When the method completes, contains the natural logarithm of the quaternion.</param>
-        public static void Logarithm(ref Quaternion value, out Quaternion result)
+        public static void Logarithm(ref readonly Quaternion value, out Quaternion result)
         {
             if (MathF.Abs(value.W) < 1.0f)
             {
@@ -764,7 +765,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The quaternion to normalize.</param>
         /// <param name="result">When the method completes, contains the normalized quaternion.</param>
-        public static void Normalize(ref Quaternion value, out Quaternion result)
+        public static void Normalize(ref readonly Quaternion value, out Quaternion result)
         {
             Quaternion temp = value;
             result = temp;
@@ -802,10 +803,10 @@ namespace Stride.Core.Mathematics
         /// <param name="axis">The axis of rotation.</param>
         /// <param name="angle">The angle of rotation.</param>
         /// <param name="result">When the method completes, contains the newly created quaternion.</param>
-        public static void RotationAxis(ref Vector3 axis, float angle, out Quaternion result)
+        public static void RotationAxis(ref readonly Vector3 axis, float angle, out Quaternion result)
         {
             Vector3 normalized;
-            Vector3.Normalize(ref axis, out normalized);
+            Vector3.Normalize(in axis, out normalized);
 
             float half = angle * 0.5f;
             float sin = MathF.Sin(half);
@@ -835,7 +836,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="matrix">The rotation matrix.</param>
         /// <param name="result">When the method completes, contains the newly created quaternion.</param>
-        public static void RotationMatrix(ref Matrix matrix, out Quaternion result)
+        public static void RotationMatrix(ref readonly Matrix matrix, out Quaternion result)
         {
             float sqrt;
             float half;
@@ -968,15 +969,15 @@ namespace Stride.Core.Mathematics
         /// Calculate the yaw/pitch/roll rotation equivalent to the provided quaternion.
         /// </summary>
         /// <param name="rotation">The input quaternion</param>
-        /// <param name="yaw">The yaw component</param>
-        /// <param name="pitch">The pitch component</param>
-        /// <param name="roll">The roll component</param>
-        public static void RotationYawPitchRoll(ref Quaternion rotation, out float yaw, out float pitch, out float roll)
+        /// <param name="yaw">The yaw component in radians.</param>
+        /// <param name="pitch">The pitch component in radians.</param>
+        /// <param name="roll">The roll component in radians.</param>
+        public static void RotationYawPitchRoll(ref readonly Quaternion rotation, out float yaw, out float pitch, out float roll)
         {
             // Equivalent to:
             //  Matrix rotationMatrix;
             //  Matrix.Rotation(ref cachedRotation, out rotationMatrix);
-            //  rotationMatrix.DecomposeXYZ(out rotationEuler);
+            //  rotationMatrix.Decompose(out float yaw, out float pitch, out float roll);
 
             var xx = rotation.X * rotation.X;
             var yy = rotation.Y * rotation.Y;
@@ -988,16 +989,40 @@ namespace Stride.Core.Mathematics
             var yz = rotation.Y * rotation.Z;
             var xw = rotation.X * rotation.W;
 
-            pitch = MathF.Asin(2.0f * (xw - yz));
-            if (MathF.Cos(pitch) > MathUtil.ZeroTolerance)
+            var M11 = 1.0f - (2.0f * (yy + zz));
+            var M12 = 2.0f * (xy + zw);
+            //var M13 = 2.0f * (zx - yw);
+            var M21 = 2.0f * (xy - zw);
+            var M22 = 1.0f - (2.0f * (zz + xx));
+            //var M23 = 2.0f * (yz + xw);
+            var M31 = 2.0f * (zx + yw);
+            var M32 = 2.0f * (yz - xw);
+            var M33 = 1.0f - (2.0f * (yy + xx));
+
+            /*** Refer to Matrix.Decompose(out float yaw, out float pitch, out float roll) for code and license ***/
+            if (MathUtil.IsOne(Math.Abs(M32)))
             {
-                roll = MathF.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (zz + xx)));
-                yaw = MathF.Atan2(2.0f * (zx + yw), 1.0f - (2.0f * (yy + xx)));
+                if (M32 >= 0)
+                {
+                    // Edge case where M32 == +1
+                    pitch = -MathUtil.PiOverTwo;
+                    yaw = MathF.Atan2(-M21, M11);
+                    roll = 0;
+                }
+                else
+                {
+                    // Edge case where M32 == -1
+                    pitch = MathUtil.PiOverTwo;
+                    yaw = -MathF.Atan2(-M21, M11);
+                    roll = 0;
+                }
             }
             else
             {
-                roll = MathF.Atan2(-2.0f * (xy - zw), 1.0f - (2.0f * (yy + zz)));
-                yaw = 0.0f;
+                // Common case
+                pitch = MathF.Asin(-M32);
+                yaw = MathF.Atan2(M31, M33);
+                roll = MathF.Atan2(M12, M22);
             }
         }
 
@@ -1013,7 +1038,7 @@ namespace Stride.Core.Mathematics
             var halfRoll = roll * 0.5f;
             var halfPitch = pitch * 0.5f;
             var halfYaw = yaw * 0.5f;
-            
+
             var sinRoll = MathF.Sin(halfRoll);
             var cosRoll = MathF.Cos(halfRoll);
             var sinPitch = MathF.Sin(halfPitch);
@@ -1031,11 +1056,11 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Creates a quaternion given a yaw, pitch, and roll value.
+        /// Creates a quaternion given a yaw, pitch, and roll value (angles in radians).
         /// </summary>
-        /// <param name="yaw">The yaw of rotation.</param>
-        /// <param name="pitch">The pitch of rotation.</param>
-        /// <param name="roll">The roll of rotation.</param>
+        /// <param name="yaw">The yaw of rotation in radians.</param>
+        /// <param name="pitch">The pitch of rotation in radians.</param>
+        /// <param name="roll">The roll of rotation in radians.</param>
         /// <returns>The newly created quaternion.</returns>
         public static Quaternion RotationYawPitchRoll(float yaw, float pitch, float roll)
         {
@@ -1063,7 +1088,7 @@ namespace Stride.Core.Mathematics
         /// <param name="source">The source vector of the transformation.</param>
         /// <param name="target">The target vector of the transformation.</param>
         /// <param name="result">The resulting quaternion corresponding to the transformation of the source vector to the target vector.</param>
-        public static void BetweenDirections(ref Vector3 source, ref Vector3 target, out Quaternion result)
+        public static void BetweenDirections(ref readonly Vector3 source, ref readonly Vector3 target, out Quaternion result)
         {
             var norms = MathF.Sqrt(source.LengthSquared() * target.LengthSquared());
             var real = norms + Vector3.Dot(source, target);
@@ -1091,7 +1116,7 @@ namespace Stride.Core.Mathematics
         /// <param name="end">End quaternion.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <param name="result">When the method completes, contains the spherical linear interpolation of the two quaternions.</param>
-        public static void Slerp(ref Quaternion start, ref Quaternion end, float amount, out Quaternion result)
+        public static void Slerp(ref readonly Quaternion start, ref readonly Quaternion end, float amount, out Quaternion result)
         {
             float opposite;
             float inverse;
@@ -1151,7 +1176,7 @@ namespace Stride.Core.Mathematics
             result.W = (inverse * start.W) + (opposite * end.W);
             return result;
         }
-        
+
         /// <summary>
         /// Rotate <paramref name="current"/> towards <paramref name="target"/> by <paramref name="angle"/>.
         /// </summary>
@@ -1174,11 +1199,11 @@ namespace Stride.Core.Mathematics
         /// <param name="value4">Fourth source quaternion.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of interpolation.</param>
         /// <param name="result">When the method completes, contains the spherical quadrangle interpolation of the quaternions.</param>
-        public static void Squad(ref Quaternion value1, ref Quaternion value2, ref Quaternion value3, ref Quaternion value4, float amount, out Quaternion result)
+        public static void Squad(ref readonly Quaternion value1, ref readonly Quaternion value2, ref readonly Quaternion value3, ref readonly Quaternion value4, float amount, out Quaternion result)
         {
             Quaternion start, end;
-            Slerp(ref value1, ref value4, amount, out start);
-            Slerp(ref value2, ref value3, amount, out end);
+            Slerp(in value1, in value4, amount, out start);
+            Slerp(in value2, in value3, amount, out end);
             Slerp(ref start, ref end, 2.0f * amount * (1.0f - amount), out result);
         }
 
@@ -1231,10 +1256,10 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first quaternion to add.</param>
         /// <param name="right">The second quaternion to add.</param>
         /// <returns>The sum of the two quaternions.</returns>
-        public static Quaternion operator +(Quaternion left, Quaternion right)
+        public static Quaternion operator +(in Quaternion left, in Quaternion right)
         {
             Quaternion result;
-            Add(ref left, ref right, out result);
+            Add(in left, in right, out result);
             return result;
         }
 
@@ -1244,10 +1269,10 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first quaternion to subtract.</param>
         /// <param name="right">The second quaternion to subtract.</param>
         /// <returns>The difference of the two quaternions.</returns>
-        public static Quaternion operator -(Quaternion left, Quaternion right)
+        public static Quaternion operator -(in Quaternion left, in Quaternion right)
         {
             Quaternion result;
-            Subtract(ref left, ref right, out result);
+            Subtract(in left, in right, out result);
             return result;
         }
 
@@ -1256,10 +1281,10 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The quaternion to negate.</param>
         /// <returns>A quaternion facing in the opposite direction.</returns>
-        public static Quaternion operator -(Quaternion value)
+        public static Quaternion operator -(in Quaternion value)
         {
             Quaternion result;
-            Negate(ref value, out result);
+            Negate(in value, out result);
             return result;
         }
 
@@ -1269,10 +1294,10 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The quaternion to scale.</param>
         /// <param name="scale">The amount by which to scale the quaternion.</param>
         /// <returns>The scaled quaternion.</returns>
-        public static Quaternion operator *(float scale, Quaternion value)
+        public static Quaternion operator *(float scale, in Quaternion value)
         {
             Quaternion result;
-            Multiply(ref value, scale, out result);
+            Multiply(in value, scale, out result);
             return result;
         }
 
@@ -1282,10 +1307,10 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The quaternion to scale.</param>
         /// <param name="scale">The amount by which to scale the quaternion.</param>
         /// <returns>The scaled quaternion.</returns>
-        public static Quaternion operator *(Quaternion value, float scale)
+        public static Quaternion operator *(in Quaternion value, float scale)
         {
             Quaternion result;
-            Multiply(ref value, scale, out result);
+            Multiply(in value, scale, out result);
             return result;
         }
 
@@ -1297,7 +1322,9 @@ namespace Stride.Core.Mathematics
         /// <returns>The multiplied quaternion.</returns>
         public static Quaternion operator *(in Quaternion left, in Quaternion right)
         {
-            return Multiply(left, right);
+            Quaternion result;
+            Multiply(in left, in right, out result);
+            return result;
         }
 
         /// <summary>
@@ -1395,7 +1422,7 @@ namespace Stride.Core.Mathematics
         /// Returns a hash code for this instance.
         /// </summary>
         /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
         /// </returns>
         public override readonly int GetHashCode()
         {

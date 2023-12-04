@@ -62,6 +62,7 @@
   <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#040405" />
   <SolidColorBrush x:Key="DisabledBorderBrush" Color="#AAA" />
   <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FF595959" />
+  <SolidColorBrush x:Key="StatusBarBackgroundBrush" Color="#007ACC" />
 
   <SolidColorBrush x:Key="ToggleButtonNormalBackground" Color="#FF808080"/>
   <SolidColorBrush x:Key="ComboToggleButtonBackground" Color="Transparent" />
@@ -106,6 +107,9 @@
   <SolidColorBrush x:Key="CodeEditorBackgroundBrush" Color="#FF1E1E1E" />
 
   <SolidColorBrush x:Key="GraphicsCompositorNodeTextBrush" Color="#EBEBEB" />
+
+  <SolidColorBrush x:Key="LinkTextColor" Color="#FFB0D3FF" />
+  <SolidColorBrush x:Key="PrefabTextColor" Color="#FFB0FFD3" />
 
   <!--TextLogViewer colors-->
   <SolidColorBrush x:Key="TextLogDebugBrush" Color="DarkGray"/>

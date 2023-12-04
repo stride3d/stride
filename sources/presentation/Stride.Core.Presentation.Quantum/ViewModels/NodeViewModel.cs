@@ -40,6 +40,7 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         private string displayName;
         private bool isHighlighted;
         private bool valueChanging;
+        private readonly (Type declarer, int token)? sortingHint;
 
 #if DEBUG
         private static bool DebugQuantumPropertyChanges = true;
@@ -71,6 +72,12 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
                 nodePresenter.ValueChanging += ValueChanging;
                 nodePresenter.ValueChanged += ValueChanged;
                 nodePresenter.AttachedProperties.PropertyUpdated += AttachedPropertyUpdated;
+
+                if (nodePresenter is MemberNodePresenter memberNodePresenter)
+                {
+                    var descriptor = memberNodePresenter.MemberDescriptor;
+                    sortingHint = (descriptor.MemberInfo.DeclaringType, descriptor.MemberInfo.MetadataToken);
+                }
             }
 
             UpdateViewModelProperties();
@@ -683,11 +690,12 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
                 return (a.Order ?? 0).CompareTo(b.Order ?? 0);
 
             // Then, try to use metadata token (if members)
-            if (a.MemberInfo != null || b.MemberInfo != null)
+            if (a.sortingHint is var (leftType, leftToken) && b.sortingHint is var (rightType, rightToken))
             {
-                var comparison = a.MemberInfo.CompareMetadataTokenWith(b.MemberInfo);
-                if (comparison != 0)
-                    return comparison;
+                if (leftType == rightType)
+                    return leftToken.CompareTo(rightToken);
+                else
+                    return leftType.IsSubclassOf(rightType) ? 1 : -1;
             }
 
             // Then we use name, only if both orders are unset.

@@ -146,22 +146,6 @@ namespace Stride.Core.Assets.CompilerApp
                     }
                 }
                 },
-                {
-                    "reattach-debugger=", "Reattach to a Visual Studio debugger", v =>
-                    {
-                        int debuggerProcessId;
-                        if (!string.IsNullOrEmpty(v) && int.TryParse(v, out debuggerProcessId))
-                        {
-                            if (!Debugger.IsAttached)
-                            {
-                                using (var debugger = VisualStudioDebugger.GetByProcess(debuggerProcessId))
-                                {
-                                    debugger?.Attach();
-                                }
-                            }
-                        }
-                    }
-                },
             };
 
             TextWriterLogListener fileLogListener = null;

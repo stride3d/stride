@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Serialization;
 
@@ -35,12 +36,9 @@ namespace Stride.Animations
         {
             if (mode == ArchiveMode.Deserialize)
             {
-                int count = obj.Length;
-                var rawData = stream.ReadBytes(Unsafe.SizeOf<AnimationKeyValuePair<T>>() * count);
-                fixed (void* rawDataPtr = rawData)
-                {
-                    Utilities.Read((IntPtr)rawDataPtr, obj, 0, count);
-                }
+                var rawData = stream.ReadBytes(Unsafe.SizeOf<AnimationKeyValuePair<T>>() * obj.Length);
+                var destination = MemoryMarshal.AsBytes(obj.AsSpan());
+                rawData.AsSpan().CopyTo(destination);
             }
             else if (mode == ArchiveMode.Serialize)
             {

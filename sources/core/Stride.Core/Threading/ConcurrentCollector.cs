@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Threading
 {
@@ -64,7 +65,7 @@ namespace Stride.Core.Threading
     public class ConcurrentCollector<T> : IReadOnlyList<T>
     {
         private const int DefaultCapacity = 16;
-
+        private static readonly ProfilingKey CloseKey = new ProfilingKey($"ConcurrentCollector<{typeof(T).Name}>.Close");
         private class Segment
         {
             public T[] Items;
@@ -99,6 +100,7 @@ namespace Stride.Core.Threading
         /// </summary>
         public void Close()
         {
+            using var _ = Profiler.Begin(CloseKey);
             if (head.Next != null)
             {
                 var newItems = new T[tail.Offset + tail.Items.Length];

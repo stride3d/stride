@@ -24,7 +24,7 @@ namespace Stride.Editor.CrashReport
             settings = storeCrashEmailSetting;
             currentData = crashReport;
             InitializeComponent();
-            textBoxLog.Text = crashReport.ToString();            
+            textBoxLog.Text = crashReport.ToString();
             if (settings == null)
             {
                 emailCheckbox.Visible = false;
@@ -82,7 +82,7 @@ namespace Stride.Editor.CrashReport
                 settings.Email = "";
                 settings.Save();
             }
-            
+
             RefreshReport();
             MailReport(currentData);
 
@@ -107,7 +107,11 @@ namespace Stride.Editor.CrashReport
         {
             try
             {
-                Process.Start(PrivacyPolicyUrl);
+                //Open URL in user's default browser when clicked
+                Process process = new Process();
+                process.StartInfo.FileName = PrivacyPolicyUrl;
+                process.StartInfo.UseShellExecute = true;
+                process.Start();
             }
             // FIXME: catch only specific exceptions?
             catch (Exception)

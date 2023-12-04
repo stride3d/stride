@@ -56,7 +56,7 @@ namespace Stride.Graphics
             /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
             /// <param name="usage">The usage.</param>
             /// <returns>A Raw buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
                 return Buffer.New<T>(device, 1, BufferFlags.RawBuffer | additionalBindings, usage);
             }
@@ -70,7 +70,7 @@ namespace Stride.Graphics
             /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Raw buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
                 return Buffer.New(device, ref value, BufferFlags.RawBuffer | additionalBindings, usage);
             }
@@ -84,7 +84,7 @@ namespace Stride.Graphics
             /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Raw buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
                 return Buffer.New(device, value, BufferFlags.RawBuffer | additionalBindings, usage);
             }

@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Serialization
@@ -97,6 +97,21 @@ namespace Stride.Core.Serialization
 
             dataSerializer.PreSerialize(ref obj, mode, stream);
             dataSerializer.Serialize(ref obj, mode, stream);
+        }
+        /// <summary>Serializes or deserializes the memory using <see cref="SerializationStream.Serialize(Span{byte})"/>.</summary>
+        [Obsolete("Use Serialize(Span<byte>)")]
+        public static unsafe void Serialize(this SerializationStream serializer, nint ptr, int length)
+            => serializer.Serialize((void*)ptr, length);
+        /// <summary>Serializes or deserializes the memory using <see cref="SerializationStream.Serialize(Span{byte})"/>.</summary>
+        [Obsolete("Use Serialize(Span<byte>)")]
+        public static unsafe void Serialize(this SerializationStream serializer, void* ptr, int length)
+            => serializer.Serialize(new Span<byte>(ptr, length));
+        /// <summary>Serializes or deserializes the value using <see cref="SerializationStream.Serialize(Span{byte})"/>.</summary>
+        public static void Serialize<T>(this SerializationStream serializer, ref T value)
+        {
+            ref var b = ref Unsafe.As<T, byte>(ref value);
+            var span = MemoryMarshal.CreateSpan(ref b, Unsafe.SizeOf<T>());
+            serializer.Serialize(span);
         }
 
         /// <summary>
@@ -274,6 +289,7 @@ namespace Stride.Core.Serialization
         /// <param name="stream">The stream.</param>
         /// <param name="count"></param>
         /// <returns>A byte array containing the data read from the stream.</returns>
+        [Obsolete("Allocates. Read into the destination.")]
         [NotNull]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] ReadBytes([NotNull] this SerializationStream stream, int count)
