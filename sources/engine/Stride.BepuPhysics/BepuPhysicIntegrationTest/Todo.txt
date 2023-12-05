@@ -14,7 +14,8 @@ https://github.com/stride3d/stride/blob/938da4928cbddd9194f9a07c7380d5cc115f521e
 
 -Add Shape "instancing"
 
+-Refactoring : Change project name, Remove "Integration" Folder, etc
+
 Bonus : 
 
 -Add Newt generation system (using marching cube and/or voxel ?)
--Add Chain generation system (to make ropes, chains, bridges, ..)

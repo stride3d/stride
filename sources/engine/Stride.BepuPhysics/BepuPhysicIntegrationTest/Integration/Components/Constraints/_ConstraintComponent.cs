@@ -38,6 +38,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
         /// ContainerData is the bridge to Bepu.
         /// Automatically set by processor.
         /// </summary>
+        [DataMemberIgnore]
         internal ConstraintData? ConstraintData { get; set; }
     }
 }

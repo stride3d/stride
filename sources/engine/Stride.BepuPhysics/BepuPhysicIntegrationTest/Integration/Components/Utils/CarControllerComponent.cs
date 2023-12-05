@@ -12,17 +12,21 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Utils")]
     public class CarControllerComponent : SyncScript
     {
-        private float _acceleration = 0.5f;
+        private float _accelerationForce = 1000;
+        private float _breakingForce = 4000f;
+
+
+        private float _acceleration = 0.02f;
         private float _engineBrakeCoef = 0.99f;
         private float _speed = 0;
         private float _previousSpeed = 0;
         private float _maximumSpeed = 100;
         private float _minimumSpeed = -40;
 
-        private float steeringSpeed = 0.1f;
+        private float steeringSpeed = 0.35f;
         private float steeringAngle = 0;
         private float previousSteeringAngle = 0;
-        private float MaximumSteeringAngle = 10; //maybe reduce steerringSpeed/maximum with speed
+        private float MaximumSteeringAngle = 30; //maybe reduce steerringSpeed/maximum with speed
 
 
 
@@ -58,6 +62,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             {
                 _speed -= _acceleration;
             }
+            else if (Input.IsKeyDown(Keys.Space))
+            {
+                _speed = 0;
+            }
             else
             {
                 _speed *= _engineBrakeCoef;
@@ -66,6 +74,16 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             _speed = MathF.Max(MathF.Min(_maximumSpeed, _speed), _minimumSpeed);
             if (_speed != _previousSpeed)
             {
+                if (MathF.Abs(_speed) > MathF.Abs(_previousSpeed) && LeftMotor.MotorMaximumForce != _accelerationForce)
+                {
+                    LeftMotor.MotorMaximumForce = _accelerationForce;
+                    RightMotor.MotorMaximumForce = _accelerationForce;
+                }
+                else if (LeftMotor.MotorMaximumForce != _breakingForce)
+                {
+                    LeftMotor.MotorMaximumForce = _breakingForce;
+                    RightMotor.MotorMaximumForce = _breakingForce;
+                }
                 LeftMotor.TargetVelocity = _speed;
                 //LeftBMotor.TargetVelocity = _speed;
                 RightMotor.TargetVelocity = _speed;
