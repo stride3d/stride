@@ -10,6 +10,7 @@ using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;

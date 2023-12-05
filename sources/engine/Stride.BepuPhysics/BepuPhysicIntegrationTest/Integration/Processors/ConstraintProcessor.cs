@@ -156,6 +156,9 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 case WeldConstraintComponent _wcc:
                     CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _wcc._bepuConstraint);
                     break;
+                case StaticCharacterConstraint _scc:
+					CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _scc._bepuConstraint);
+					break;
                 default:
                     break;
             }
