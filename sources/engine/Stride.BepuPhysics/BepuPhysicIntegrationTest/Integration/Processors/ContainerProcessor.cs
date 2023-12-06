@@ -81,7 +81,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 int stepCount = 0;
                 while (bepuSim.RemainingUpdateTime >= bepuSim.SimulationFixedStep & stepCount < bepuSim.MaxStepPerFrame)
                 {
-                    bepuSim.CallSimulationUpdate(bepuSim.SimulationFixedStep);//cal the SimulationUpdate with the real step time of the sim in secs
+                    bepuSim.CallSimulationUpdate(bepuSim.SimulationFixedStep / 1000f);//cal the SimulationUpdate with the real step time of the sim in secs
                     bepuSim.Simulation.Timestep(bepuSim.SimulationFixedStep / 1000f, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
                     bepuSim.RemainingUpdateTime -= bepuSim.SimulationFixedStep;
                     stepCount++;
