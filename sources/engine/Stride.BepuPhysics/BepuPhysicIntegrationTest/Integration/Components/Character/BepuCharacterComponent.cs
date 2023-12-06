@@ -51,6 +51,12 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 	{
 		var body = CharacterBody.GetPhysicBody();
 
+		DebugText.Print(body.Value.Awake.ToString(), new Int2(50, 125));
+
+		// probably inneficient but I needed a way to wake up the body
+		// else it sleeps after a second.
+		body.Value.SetLocalInertia(body.Value.LocalInertia);
+
 		body.Value.Pose.Orientation = Orientation.ToNumericQuaternion();
 		body.Value.Velocity.Linear += Velocity.ToNumericVector();
 	}
