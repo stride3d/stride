@@ -20,13 +20,11 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 
 	public BodyContainerComponent? CharacterBody { get; set; }
 
-	private BodyReference? _bodyReference;
-
 	public override void Start()
 	{
-		_bodyReference = CharacterBody?.GetPhysicBody().Value;
+		var body = CharacterBody?.GetPhysicBody().Value;
 		// prevent tipping of character while moving
-		_bodyReference.Value.LocalInertia = new BodyInertia { InverseMass = 1f };
+		body.Value.LocalInertia = new BodyInertia { InverseMass = 1f };
 
 		base.Start();
 	}
@@ -55,22 +53,29 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 
 	public override void SimulationUpdate(float simTimeStep)
 	{
-		// probably inneficient but I needed a way to wake up the body
-		// or else it sleeps after a second.
-		BepuSimulation.Simulation.Awakener.AwakenBody(_bodyReference.Value.Handle);
+		var body = CharacterBody?.GetPhysicBody().Value;
 
-		_bodyReference.Value.Pose.Orientation = Orientation.ToNumericQuaternion();
+        if (body == null)
+        {
+			return;
+        }
 
-		_bodyReference.Value.Velocity.Linear = new System.Numerics.Vector3
-			(Velocity.ToNumericVector().X, _bodyReference.Value.Velocity.Linear.Y, Velocity.ToNumericVector().Z);
+        // needed a way to wake up the body or else it sleeps after a second.
+		var value = body.Value;
+		value.Awake = true;
+
+		body.Value.Pose.Orientation = Orientation.ToNumericQuaternion();
+
+		body.Value.Velocity.Linear = new System.Numerics.Vector3
+			(Velocity.ToNumericVector().X, body.Value.Velocity.Linear.Y, Velocity.ToNumericVector().Z);
 
 		// prevent character from sliding
 		if(Velocity.Length() < 0.01f)
-			_bodyReference.Value.Velocity.Linear = new System.Numerics.Vector3(0, _bodyReference.Value.Velocity.Linear.Y, 0);
+			body.Value.Velocity.Linear = new System.Numerics.Vector3(0, body.Value.Velocity.Linear.Y, 0);
 
         if (TryJump)
         {
-			_bodyReference.Value.ApplyLinearImpulse(System.Numerics.Vector3.UnitY * JumpSpeed * 10);
+			body.Value.ApplyLinearImpulse(System.Numerics.Vector3.UnitY * JumpSpeed * 10);
 			TryJump = false;
         }
     }
