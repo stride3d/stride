@@ -4,7 +4,9 @@ using System.Linq;
 using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Extensions;
+using BepuPhysics;
 using Silk.NET.OpenGL;
+using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -17,9 +19,18 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     {
         public int MinRPM { get; set; } = 1000;
         public int MaxRPM { get; set; } = 10000;
-        public float EngineInertia { get; set; } = 1f;
+        public float EngineBreakForce { get; set; } = 0.001f;
 
-        public List<EngineGear> Gears { get; set; } = new List<EngineGear>() { new() { AccelerationForce = 500, GearRatio = -0.001f }, new() { AccelerationForce = 1000, GearRatio = 0.001f } }; //0 => reverse, 1 => first, ..
+        //[DataMember(DataMemberMode.Assign)]
+        public List<EngineGear> Gears { get; set; } = new List<EngineGear>() { 
+            new() { AccelerationForce = 0.0300f, GearRatio = -0.001f }, 
+
+            new() { AccelerationForce = 0.0450f, GearRatio = 0.0012f },
+            new() { AccelerationForce = 0.0800f, GearRatio = 0.003f },
+            new() { AccelerationForce = 0.0800f, GearRatio = 0.006f }, 
+            new() { AccelerationForce = 0.0750f, GearRatio = 0.012f },
+            new() { AccelerationForce = 0.0600f, GearRatio = 0.016f }
+        }; //0 => reverse, 1 => first, ..
 
     }
     public class EngineGear
@@ -39,7 +50,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Car")]
     public class CarComponent : SimulationUpdateComponent
     {
-
         public const float GEAR_UP_VALUE = 0.9f;
         public const float GEAR_DOWN_VALUE = 0.1f;
 
@@ -54,21 +64,21 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         //--Parameters--
         //keybind
-        public List<Keys> AccelerateKeys { get; set; } = new() { Keys.Up };
-        public List<Keys> ReverseKeys { get; set; } = new() { Keys.Down };
-        public List<Keys> BreakKeys { get; set; } = new() { Keys.Space };
+        public List<Keys> AccelerateKeys { get; set; } = new();// = new() { Keys.Up };
+        public List<Keys> ReverseKeys { get; set; } = new();// = new() { Keys.Down };
+        public List<Keys> BreakKeys { get; set; } = new();// = new() { Keys.Space };
 
-        public List<Keys> SteerLeftKeys { get; set; } = new() { Keys.Left };
-        public List<Keys> SteerRightKeys { get; set; } = new() { Keys.Right };
+        public List<Keys> SteerLeftKeys { get; set; } = new();// = new() { Keys.Left };
+        public List<Keys> SteerRightKeys { get; set; } = new();// = new() { Keys.Right };
 
-        public List<Keys> GearUpKeys { get; set; } = new() { Keys.NumPad0 };
-        public List<Keys> GearDownKeys { get; set; } = new() { Keys.RightCtrl };
-        public List<Keys> ClutchKeys { get; set; } = new() { Keys.Decimal };
-        public List<Keys> StarterKeys { get; set; } = new() { Keys.Enter };
+        public List<Keys> GearUpKeys { get; set; } = new();// = new() { Keys.NumPad0 };
+        public List<Keys> GearDownKeys { get; set; } = new();// = new() { Keys.RightCtrl };
+        public List<Keys> ClutchKeys { get; set; } = new();// = new() { Keys.Decimal };
+        public List<Keys> StarterKeys { get; set; } = new();// = new() { Keys.Enter };
 
         //car
         public Engine CarEngine { get; set; } = new();
-        public float BreakingForce { get; set; } = 4000f;
+        public float BreakingForce { get; set; } = 0.1f;
         public float MaximumSteeringAngle { get; set; } = 30;
         public float SteeringSpeed { get; set; } = 0.5f;
 
@@ -151,21 +161,32 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             base.Start();
         }
 
+        private List<int> MeanRPM = new();
         public override void Update()
         {
             var bodies = DriveWheels.Select(e => (BepuPhysics.BodyReference)e.Get<BodyContainerComponent>().GetPhysicBody());
-            var wheelMeanRPM = bodies.Select(e => e.Velocity.Angular.Length()).Aggregate((a, b) => a + b) / bodies.Count();
-            var engineMeanRPM = CurrentGear == -1 ? 0 : wheelMeanRPM / CarEngine.Gears[CurrentGear].GearRatio;
+            var wheelCurrentMeanRPM = bodies.Select(e => e.Velocity.Angular.Length()).Aggregate((a, b) => a + b) / bodies.Count();
+
+            MeanRPM.Add(CurrentRPM);
+            if (MeanRPM.Count > 120)
+                MeanRPM.RemoveAt(0);
 
             DebugText.Print($"Clutch:{Clutch}" + " | " +
                 $"Starter:{Starter}" + " | " +
                 $"SteeringAngle:{SteeringAngle}" + " | " +
                 $"CurrentGear:{CurrentGear}" + " | " +
-                $"CurrentRPM:{CurrentRPM}" + " | " +
                 $"EngineRunning:{EngineRunning}" + " | " +
-                $"wheelMeanRPM:{wheelMeanRPM}" + " | " +
-                $"engineMeanRPM:{engineMeanRPM}" + " | " +
+                $"wheelCurrentMeanRPM:{wheelCurrentMeanRPM}" + " | " +
+                $"AverageRPM:{(int)MeanRPM.Average()}" + " | " +
+                $"CurrentRPM:{CurrentRPM}" + " | " +
                 $"", new(100, 100));
+        }
+        public override void SimulationUpdate(float simTimeStep)
+        {
+            HandleGearing();
+            HandleEngineStartingAndUpdate();
+            HandleEngine();
+            HandleSteering();
         }
 
         private void HandleGearing()
@@ -174,26 +195,37 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             {
                 var deltaRPM = CarEngine.MaxRPM - CarEngine.MinRPM;
 
+                var breaking = BreakKeys.Any(Input.IsKeyDown);
+                var reversing = ReverseKeys.Any(Input.IsKeyDown);
+                var accelerating = AccelerateKeys.Any(Input.IsKeyDown);
+
                 if (CurrentRPM > CarEngine.MinRPM + GEAR_UP_VALUE * deltaRPM)
                 {
                     var notInMaxGear = CurrentGear < CarEngine.Gears.Count() - 1;
                     if (CurrentGear > 0 && notInMaxGear)
                         CurrentGear++;
-                    else if (CurrentGear == -1)
+                    else if (CurrentGear == -1 && accelerating && !reversing)
                     {
                         CurrentGear = 1;
                         Clutch = false;
+                        UnclutchFromStop();
+                    }
+                    else if (CurrentGear == -1 && reversing && !accelerating)
+                    {
+                        CurrentGear = 0;
+                        Clutch = false;
+                        UnclutchFromStop();
                     }
                 }
                 else if (CurrentRPM < CarEngine.MinRPM + GEAR_DOWN_VALUE * deltaRPM)
                 {
                     if (CurrentGear > 1)
                         CurrentGear--;
-                    //else
-                    //{
-                    //    CurrentGear = -1;
-                    //    Clutch = true;
-                    //}
+                    else if ((reversing && CurrentGear != 0) || breaking || (accelerating && CurrentGear == 0))
+                    {
+                        CurrentGear = -1;
+                        Clutch = true;
+                    }
                 }
             }
             else
@@ -225,31 +257,67 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
         {
             if (EngineRunning)
             {
-                var engineAcceleration = false;
+                float engineForce = (CurrentRPM > CarEngine.MinRPM ? -1 : 1) * CarEngine.EngineBreakForce;
+                float BrakeForce = 0f;
 
 
-                if (AccelerateKeys.Any(Input.IsKeyDown))
+                if (AccelerateKeys.Any(Input.IsKeyDown) && CurrentRPM < CarEngine.MaxRPM)
                 {
-                    engineAcceleration = true;
-                    CurrentRPM = (int)(CurrentRPM * 1.02f);
+                    if (CurrentGear == 0)
+                    {
+                        BrakeForce = BreakingForce;
+                    }
+                    else if (CurrentGear != -1)
+                    {
+                        engineForce = CarEngine.Gears[CurrentGear].AccelerationForce;
+                    }
                 }
-                //TODO elseif
+                if (ReverseKeys.Any(Input.IsKeyDown) && CurrentRPM < CarEngine.MaxRPM)
+                {
+                    if (CurrentGear == 0)
+                    {
+                        engineForce = CarEngine.Gears[CurrentGear].AccelerationForce;
+                    }
+                    else
+                    {
+                        BrakeForce = BreakingForce;
+                    }
+                }
 
+                if (BreakKeys.Any(Input.IsKeyDown))
+                {
+                    BrakeForce = BreakingForce;
+                }
 
-                if (!engineAcceleration)
-                    CurrentRPM = (int)(CurrentRPM * 0.95f);
+                if (!Clutch)
+                    DriveWheels.ForEach(e =>
+                    {
+                        var wheelBody = e.Get<BodyContainerComponent>();
+                        var physicBody = wheelBody.GetPhysicBody().Value;
 
+                        var currentAngularVel = physicBody.Velocity.Angular.ToStrideVector();
+                        currentAngularVel.Normalize();
 
-                CurrentRPM = Math.Min(CarEngine.MaxRPM, CurrentRPM);
-                CurrentRPM = Math.Max(CarEngine.MinRPM, CurrentRPM);
+                        physicBody.ApplyAngularImpulse(currentAngularVel.ToNumericVector() * engineForce);
+                        physicBody.Awake = true;
+                    });
 
-                //DriveWheels.ForEach(e =>
-                //{
-                //    var aamcc = e.Get<AngularAxisMotorConstraintComponent>();
-                //    aamcc.TargetVelocity = CurrentGear == -1 ? 0 : CurrentRPM * CarEngine.Gears[CurrentGear].GearRatio;
-                //    aamcc.MotorMaximumForce = CurrentGear == -1 ? 0 : CarEngine.Gears[CurrentGear].AccelerationForce;
-                //    aamcc.Enabled = !Clutch;
-                //});
+                if (BrakeForce != 0f)
+                    BreakWheels.ForEach(e =>
+                    {
+                        var wheelBody = e.Get<BodyContainerComponent>();
+                        var physicBody = wheelBody.GetPhysicBody().Value;
+
+                        var currentAngularVel = physicBody.Velocity.Angular.ToStrideVector();
+                        if (currentAngularVel.Length() > 1)
+                        {
+                            currentAngularVel.Normalize();
+                            currentAngularVel *= BrakeForce;
+                        }
+
+                        physicBody.ApplyAngularImpulse(-currentAngularVel.ToNumericVector());
+                        physicBody.Awake = true;
+                    });
             }
         }
         private void HandleSteering()
@@ -295,23 +363,37 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
         private void SetEngineParametersFromPhysic()
         {
             if (Clutch || CurrentGear == -1)
-                return;
+            {
+                var acc = AccelerateKeys.Any(Input.IsKeyDown);
+                var rev = ReverseKeys.Any(Input.IsKeyDown);
+                if (((acc  || (rev && CurrentGear == -1)) && CurrentRPM < CarEngine.MaxRPM) || CurrentRPM < CarEngine.MinRPM)
+                {
+                    CurrentRPM = (int)(CurrentRPM * 1.04f);
+                    CurrentRPM = Math.Min(CurrentRPM, CarEngine.MaxRPM);
+                }
+                else if (CurrentRPM > CarEngine.MinRPM)
+                {
+                    CurrentRPM = (int)(CurrentRPM * 0.97f);
+                    CurrentRPM = Math.Max(CurrentRPM, CarEngine.MinRPM);
+                }
+            }
+            else
+            {
+                var bodies = DriveWheels.Select(e => (BepuPhysics.BodyReference)e.Get<BodyContainerComponent>().GetPhysicBody());
+                var wheelMeanRPM = bodies.Select(e => e.Velocity.Angular.Length()).Aggregate((a, b) => a + b) / bodies.Count();
+                var engineMeanRPM = Math.Abs(wheelMeanRPM / CarEngine.Gears[CurrentGear].GearRatio); //TODO Change Velocity.Angular.Len to a real calcul of the velocity & ten - * - => +
 
-            var bodies = DriveWheels.Select(e => (BepuPhysics.BodyReference)e.Get<BodyContainerComponent>().GetPhysicBody());
-            var wheelMeanRPM = bodies.Select(e => e.Velocity.Angular.Length()).Aggregate((a, b) => a + b) / bodies.Count();
-            var engineMeanRPM = wheelMeanRPM / CarEngine.Gears[CurrentGear].GearRatio;
-            CurrentRPM = (int)((CurrentRPM * CarEngine.EngineInertia + engineMeanRPM) / (CarEngine.EngineInertia + 1));
-
-            //TODO : set velocity in the right direction    
-            bodies.ForEach(e => e.Velocity.Angular = new System.Numerics.Vector3(0, 0, CurrentRPM * CarEngine.Gears[CurrentGear].GearRatio)); //deltaRPM * CarEngine.EngineInertia * CarEngine.Gears[CurrentGear].GearRatio
+                CurrentRPM = (int)(engineMeanRPM);
+            }
         }
-
-        public override void SimulationUpdate(float simTimeStep)
+        private void UnclutchFromStop()
         {
-            HandleGearing();
-            HandleEngineStartingAndUpdate();
-            HandleEngine();
-            HandleSteering();
+            DriveWheels.ForEach(e =>
+            {
+                var wheelBody = e.Get<BodyContainerComponent>();
+                wheelBody.GetPhysicBody().Value.Velocity.Angular = new System.Numerics.Vector3(0, 0, CurrentRPM * CarEngine.Gears[CurrentGear].GearRatio);
+            });
         }
+
     }
 }

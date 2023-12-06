@@ -922,172 +922,71 @@ Hierarchy:
                         MaxLookDownAngle: 40.0
                         MinimumCameraDistance: 1.5
                         CameraOffset: {X: 0.0, Y: 0.0, Z: 5.0}
-                    04375ac9cd16331a7694a722b1830389: !BepuPhysicIntegrationTest.Integration.Components.Utils.CarComponent,BepuPhysicIntegrationTest
-                        Id: 721c89f8-8b53-4424-99c9-1d4322d758d2
+                    bd6ae33980731ac1d52b1a53f6e53142: !BepuPhysicIntegrationTest.Integration.Components.Utils.CarComponent,BepuPhysicIntegrationTest
+                        Id: 533c4590-9695-4403-bdc4-ac3622587260
                         SimulationIndex: 0
                         CarBody: ref!! f84ae702-83f2-4e43-b3bf-64da64d3487d
                         Wheels:
-                            64a0131a455bc7569569959194cde28f: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
-                            6d8abcf90aace6c7ac4110815f92dd71: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
-                            9a5a4823bd951c9b1c71f85b07e8ab00: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
-                            af727c2a9baa10d5d58e508f12539d51: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
+                            266d7268d3476c4f9782385172e0dd57: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            2b7045eae922fd44e756bfceb43f85c9: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            b16ab4f117f42ffb9c8f59b54b617793: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
+                            1a2c78d9cdf08d7c5263e799434fe760: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
                         SteerWheels:
-                            4d315574e729de6fdb086e7e24f2514d: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
-                            88fe23184736bf52131f268c82f2ab8e: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            6fa3255091c841391250f9d2fd07df52: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            f16975d4b58b3ec9918545e351246f19: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
                         DriveWheels:
-                            5e1d0e3eb217efba239937fd00ca8048: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
-                            6fb081892ccdd57e027947036d176a3e: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
-                        BreakWheels: {}
+                            3fbfb1f3ea6c03e95fb2665ed0a4ba15: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            2f26c3bc6255121a28889b052fbba783: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                        BreakWheels:
+                            28f68904ce7c474063f6dea35a00dbc9: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            4757559945d7ccc825075b2b27d416bf: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            f56cc087e37d33f60f5fe35082d7aa64: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
+                            8b4d1d9faa8ba1396214a38876b01626: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
                         AccelerateKeys:
-                            8a3e0685e21a7394f7c903c96adee7de: Up
-                            72f426595df9cc7df0e8005bf1803f34: Up
-                            be8f3e214a7371b6a22a9ae6cb05f429: Up
-                            e5c89cee003b35fab0c358e16c523c24: Up
-                            be4330c541297dde8af8971b132687db: Up
-                            64f7179aa7c38055b36017609029964a: Up
-                            f60794e69e29cba38055b4db1fe589c2: Up
-                            db1af447ac1421ad78777d7c455fda07: Up
-                            c7d2ee5dda120648c2449e5eb1fc6e2f: Up
+                            ba14c10c8a04c441d65687cfb3e33a83: Up
                         ReverseKeys:
-                            6a778e62e0b833557930ea7cf0cd396f: Down
-                            dc9a80e2ab5c841ef55971fc6346b38c: Down
-                            c4f2c0d3b89512ea230a829386493521: Down
-                            fd39760097a01444fc948982bcba012d: Down
-                            8b54072846fd473b1ec0941bed982a4d: Down
-                            c326566da8239aacba95ce84df841033: Down
-                            cd0c2fddaa94f39affa3117f6859a122: Down
-                            87b9880d37e1d7d21377523f5edb6ad4: Down
-                            6bfe962ac3ac5a5fd30e125f375e1180: Down
+                            29f8161d2aed1f9243923bf19b58cf8d: Down
                         BreakKeys:
-                            85f147f77dc864753c5fd8c2b032dc4e: Space
-                            8adc73b0aa48fe649dae5aee7844cbe4: Space
-                            a8c69dcda0d9febe74eed8bb85847579: Space
-                            7f10daedb631160168a0b801da3aef28: Space
-                            4969a27c8a29cf0af59b9c5aa6fbba6c: Space
-                            afec8aaa747cc0111ff139b668018070: Space
-                            b0982235efec50061dde29502aad9f2f: Space
-                            fdb1943c76529b0bf79d9b7002ba6d8c: Space
-                            11c16f16e07f18f67fce404c83892e5a: Space
+                            64fcb76f8879dec5a9176ad057ed12f8: Space
                         SteerLeftKeys:
-                            9e4baae7d7c9167442b1ed02b68af4cd: Left
-                            b8416a60ad89603b94b18b341647e331: Left
-                            cb7a601d1372bdf1b4608c98efc41e41: Left
-                            883fa19e258528686eb3189f053f759c: Left
-                            065b804f93d03e0c27b1dc400243a6ff: Left
-                            3d7194b1e74789ca700a215d8851a98b: Left
-                            a25e8abf9de9a022981d936c2ec993ea: Left
-                            6848b044b5d4ea4c0080a0b66a9570d6: Left
-                            6579e8aeabf2e25ad0e49f05928f1c68: Left
+                            85a325ddb9410c559706a366ff385c90: Left
                         SteerRightKeys:
-                            f1801a2e0d1da73cc681f0f9fb68b7a3: Right
-                            688f7bfa83a2c42207788d45388a9bbd: Right
-                            0ff34d9c62306238154e3fd79931ab05: Right
-                            74df09434d3d79c7e6f3b4682f9312f6: Right
-                            83b8711fa0de7f1ddb48c87c658dcd6e: Right
-                            ecdf93596d376a9dd3231bc695af001b: Right
-                            fa44d0fee9e438a5394d34082bf9ee77: Right
-                            ef043816fb02b31a302faa2eef8ce394: Right
-                            59af5537c23edb7098de0900e3c774af: Right
+                            311d419a1a857f2b85f1660e682875d7: Right
                         GearUpKeys:
-                            4de0174af2b0e6d02a77448d35c5d13b: NumPad0
-                            ddabd73f2598723342fe68d7364d8bf7: NumPad0
-                            00b9a812d1391bfcd7280036845d9403: NumPad0
-                            1ce7d58617998b07dcfb202acffc93a1: NumPad0
-                            5acbe1cc965c44223c5989df50179769: NumPad0
-                            ef9634a1c1a15be9792bff5cc5895e8e: NumPad0
-                            41cf3c916b9f61c507930aa08c9affd7: NumPad0
-                            6970f60af79af6695c117dc2ba092074: NumPad0
-                            38db3a1edd90b1eb714809a0aa4ca049: NumPad0
+                            a32903f955286187b88fd6ba647c538f: NumPad0
                         GearDownKeys:
-                            7feb2929d3e1f7b8bbea7d24e55929a7: RightCtrl
-                            0dfbda231b404d1d2d21a72ebd292d82: RightCtrl
-                            aa8bcb8b143403176457e7551a775ab7: RightCtrl
-                            117e40b6e210fe28285b17cae80eea6e: RightCtrl
-                            ba2ea87a2247c2a5b6cdf8c93eec5021: RightCtrl
-                            0a8faa2555404466f885312064dc1e84: RightCtrl
-                            cfe7059bd74e72a7a8103caa36d64950: RightCtrl
-                            9165b5bcd9ce4bbb8d1efe3bdf15174b: RightCtrl
-                            3b25daf03bd54632198ad4691a94ba39: RightCtrl
+                            82c0701bbb7c144f1145ad4e537c4a25: RightCtrl
                         ClutchKeys:
-                            2a033be8fd03ea8313653d869c9b1ebf: Decimal
-                            f1159ca460fcf18bb1c2ea272e145705: Decimal
-                            93c4cca5f56bd375d79a27e190d5332a: Decimal
-                            6517f224398e32bda8301786aa0c2516: Decimal
-                            f074d38499578d8503219fc2e0f8d591: Decimal
-                            3457d741c613b2ad15ea173c963c639c: Decimal
-                            8924797c5e8a7ce02cb79dae40231329: Decimal
-                            4f240242ddf10cc9912ec3f8405ea7f1: Decimal
-                            37e2d259db96fef950be01e116d40f5d: Decimal
+                            7be631886905f7fdc08ac0586383627d: Decimal
                         StarterKeys:
-                            b5f9be8a86e925e93a77d1a7e282d260: Enter
-                            c71e9d309ef9dff6d01feaa4bf696938: Enter
-                            aeeb0dd8a803d850d18f76769c3cc2cb: Enter
-                            3e390ae606a61ddce4159249e8d9d21b: Enter
-                            c42b8969835df3e85e8996d3075ed247: Enter
-                            2a8b574db120883cd9ecabea22a626c8: Enter
-                            e7fcfc5e3ddc4ea1b8e607bcf092d231: Enter
-                            d03c4daf05086b44af9b79e0d4e0f0cb: Enter
-                            9c2a86e08aaf6c382c4986f589df66de: Enter
+                            b7f5d3ea453f06d44e61fa8d09dce1a1: Enter
                         CarEngine:
                             MinRPM: 1000
                             MaxRPM: 10000
-                            EngineInertia: 1.0
+                            EngineBreakForce: 0.001
                             Gears:
-                                6c3870963694df7497d576f23a7bbe53:
-                                    AccelerationForce: 500.0
+                                fe2aef890c265c51ee45e548bfeee2d3:
+                                    AccelerationForce: 0.005
                                     GearRatio: -0.001
-                                aa194b55081306a7db7a94cdebc0bce4:
-                                    AccelerationForce: 1000.0
+                                27756b512b8463a4fcc83430231417b6:
+                                    AccelerationForce: 0.01
                                     GearRatio: 0.001
-                                06631d55fcdf014f2dc0c33de3dc597a:
-                                    AccelerationForce: 500.0
+                                beb49d4d133ecaef3373ac144544e8ab:
+                                    AccelerationForce: 0.007
+                                    GearRatio: 0.002
+                                ad357e2411f54ff49cf4fad3caa06ada:
+                                    AccelerationForce: 0.005
+                                    GearRatio: 0.003
+                                50e6658345b41c56271fa1f10943965a:
+                                    AccelerationForce: 0.001
                                     GearRatio: -0.001
-                                b724cd3ea106faddd76001f002a320b7:
-                                    AccelerationForce: 1000.0
+                                8d15d4a4e692ef6e9f973ceeb17f520b:
+                                    AccelerationForce: 0.002
                                     GearRatio: 0.001
-                                5a8fd8e6fc17e05ded5e48a27e293435:
-                                    AccelerationForce: 500.0
-                                    GearRatio: -0.001
-                                cc92e45540670b8e21d06f5d4818e82f:
-                                    AccelerationForce: 1000.0
-                                    GearRatio: 0.001
-                                5b6cd3b532f0256460c57f393034939d:
-                                    AccelerationForce: 500.0
-                                    GearRatio: -0.001
-                                250966f8164f7502155fcc8f16ff3b93:
-                                    AccelerationForce: 1000.0
-                                    GearRatio: 0.001
-                                56093adc6ccbc45e7102e83b5946fc70:
-                                    AccelerationForce: 500.0
-                                    GearRatio: -0.001
-                                3e5ce9cd67492a684e46249abdc4920a:
-                                    AccelerationForce: 1000.0
-                                    GearRatio: 0.001
-                                d2274e1b2161fa57e948cd6b2e75be54:
-                                    AccelerationForce: 500.0
-                                    GearRatio: -0.001
-                                5ea26c74068ef786d402e49444d7c67a:
-                                    AccelerationForce: 1000.0
-                                    GearRatio: 0.001
-                                f95e9b93d1876860f1df03047fc67f0e:
-                                    AccelerationForce: 500.0
-                                    GearRatio: -0.001
-                                e6e52f2227511c47ed2eb7967060bd4d:
-                                    AccelerationForce: 1000.0
-                                    GearRatio: 0.001
-                                6cf3a5d4ce6359c172090cb7961b8506:
-                                    AccelerationForce: 500.0
-                                    GearRatio: -0.001
-                                bfe222c16e5bc8ab3f0026499ee44321:
-                                    AccelerationForce: 1000.0
-                                    GearRatio: 0.001
-                                45d733731a175a59784df453f60ab29e:
-                                    AccelerationForce: 500.0
-                                    GearRatio: -0.001
-                                0e084d93c8098dfd2eec1de529e67063:
-                                    AccelerationForce: 1000.0
-                                    GearRatio: 0.001
-                        BreakingForce: 4000.0
+                                0788c338aec7e2863e19105722643b85:
+                                    AccelerationForce: 0.001
+                                    GearRatio: 0.002
+                        BreakingForce: 0.1
                         MaximumSteeringAngle: 30.0
                         SteeringSpeed: 0.5
                         Clutch: true
