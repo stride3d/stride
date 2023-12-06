@@ -74,19 +74,13 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 var SimTimeStep = dt * bepuSim.TimeWarp; //Calculate the theoretical time step of the simulation
                 bepuSim.RemainingUpdateTime += SimTimeStep; //Add it to the counter
 
-                var realSimTimeStepInSec = (bepuSim.RemainingUpdateTime - (bepuSim.RemainingUpdateTime % bepuSim.SimulationFixedStep)) / 1000f; //Calculate the real time step of the simulation
-                realSimTimeStepInSec = Math.Min(realSimTimeStepInSec, (bepuSim.MaxStepPerFrame * bepuSim.SimulationFixedStep) / 1000);
                 //Debug.WriteLine($"    SimTimeStepSinceLastFrame : {SimTimeStep}\n    realSimTimeStep : {realSimTimeStepInSec*1000}");
-
-
-                //simUpdWatch.Start();
-                bepuSim.CallSimulationUpdate(realSimTimeStepInSec); //cal the SimulationUpdate with the real step time of the sim in secs
-                //simUpdWatch.Stop();
 
                 //simStepWatch.Start();
                 int stepCount = 0;
                 while (bepuSim.RemainingUpdateTime >= bepuSim.SimulationFixedStep & stepCount < bepuSim.MaxStepPerFrame)
                 {
+                    bepuSim.CallSimulationUpdate(bepuSim.SimulationFixedStep);//cal the SimulationUpdate with the real step time of the sim in secs
                     bepuSim.Simulation.Timestep(bepuSim.SimulationFixedStep / 1000f, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
                     bepuSim.RemainingUpdateTime -= bepuSim.SimulationFixedStep;
                     stepCount++;
