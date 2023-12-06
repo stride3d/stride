@@ -23,7 +23,9 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         private BepuConfiguration _bepuConfiguration = new();
         private IGame _game;
 
+#pragma warning disable CS8618 
         public ContainerProcessor()
+#pragma warning restore CS8618 
         {
             Order = 10000;
         }
