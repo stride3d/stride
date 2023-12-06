@@ -31,7 +31,7 @@ Hierarchy:
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
                     196a2828e44889ac96cd71a74b149182: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 1fc0f90b-0284-4821-b4d5-9ba3a5090237
-                        SimulationIndex: 0
+                        SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -104,7 +104,7 @@ Hierarchy:
                         Size: {X: 2500.0, Y: 0.1, Z: 2500.0}
                     667a6d677839dc9b735795df85f9e0d7: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
                         Id: 96752ac7-15be-4847-8c4d-d41d35b5990c
-                        SimulationIndex: 0
+                        SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -170,7 +170,7 @@ Hierarchy:
                             9c043aa05eeeb48303292605df5d47a7: ref!! 208628ad-d844-4b8f-85da-051838e7a82d
                     b7110c9c8c51e0455af2bf8a655a6aac: !BepuPhysicIntegrationTest.Integration.Components.Utils.BepuCharacterComponent,BepuPhysicIntegrationTest
                         Id: a131ea29-573b-4c28-bcfe-21ac55240494
-                        SimulationIndex: 0
+                        SimulationIndex: 1
                         Speed: 1.0
                         JumpSpeed: 1.0
                         CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153
@@ -187,10 +187,10 @@ Hierarchy:
                         Length: 1.0
                     672f629e832394ac3bf7be464b178ae3: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: f6ebac31-2bed-4a87-ba4f-34b56c9a2153
-                        SimulationIndex: 0
+                        SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 100.0
-                        FrictionCoefficient: 5.0
+                        FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
                         Kinematic: false

@@ -30,6 +30,15 @@ public class CharacterControllerComponent : SyncScript
 			Game.IsMouseVisible = true;
 		}
 
+		Move();
+		Rotate();
+
+		if (Input.IsKeyPressed(Keys.Space))
+			Character?.Jump();
+	}
+
+	private void Move()
+	{
 		// Keyboard movement
 		var moveDirection = Vector2.Zero;
 		if (Input.IsKeyDown(Keys.W))
@@ -46,7 +55,6 @@ public class CharacterControllerComponent : SyncScript
 
 		velocity = Vector3.Transform(velocity, Entity.Transform.Rotation);
 		Character.Move(velocity);
-		Rotate();
 	}
 
 	private void Rotate()

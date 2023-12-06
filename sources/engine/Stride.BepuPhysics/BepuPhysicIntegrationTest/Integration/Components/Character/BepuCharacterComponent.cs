@@ -1,4 +1,5 @@
 ﻿using BepuPhysicIntegrationTest.Integration.Components.Containers;
+using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using Stride.Core;
@@ -16,6 +17,8 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 	public Quaternion Orientation { get; set; }
 	[DataMemberIgnore]
 	public Vector3 Velocity { get; set; }
+	[DataMemberIgnore]
+	public bool TryJump { get; set; }
 
 	public BodyContainerComponent? CharacterBody { get; set; }
 
@@ -47,13 +50,24 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 		Orientation = rotation;
 	}
 
+	public void Jump()
+	{
+		TryJump = true;
+	}
+
 	public override void SimulationUpdate(float simTimeStep)
 	{
 		// probably inneficient but I needed a way to wake up the body
 		// or else it sleeps after a second.
-		_bodyReference.Value.SetLocalInertia(_bodyReference.Value.LocalInertia);
+		BepuSimulation.Simulation.Awakener.AwakenBody(_bodyReference.Value.Handle);
 
 		_bodyReference.Value.Pose.Orientation = Orientation.ToNumericQuaternion();
 		_bodyReference.Value.Velocity.Linear += Velocity.ToNumericVector();
-	}
+
+        if (TryJump)
+        {
+			_bodyReference.Value.ApplyLinearImpulse(System.Numerics.Vector3.UnitY * JumpSpeed * 10);
+			TryJump = false;
+        }
+    }
 }
