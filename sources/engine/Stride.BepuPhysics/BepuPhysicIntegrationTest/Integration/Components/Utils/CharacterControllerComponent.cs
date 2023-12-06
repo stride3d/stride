@@ -13,12 +13,22 @@ public class CharacterControllerComponent : SyncScript
 	public CameraComponent? Camera { get; set; }
 	public BepuCharacterComponent? Character { get; set; }
 
+	private Vector3 _cameraDirection;
+
 	public override void Start()
 	{
+		Input.LockMousePosition(true);
+		Game.IsMouseVisible = false;
 	}
 
 	public override void Update()
 	{
+		if(Input.IsKeyPressed(Keys.Escape))
+		{
+			Input.UnlockMousePosition();
+			Game.IsMouseVisible = true;
+		}
+
 		// Keyboard movement
 		var moveDirection = Vector2.Zero;
 		if (Input.IsKeyDown(Keys.W))
@@ -35,5 +45,16 @@ public class CharacterControllerComponent : SyncScript
 
 		velocity = Vector3.Transform(velocity, Camera.Entity.Transform.Rotation);
 		Character.Move(velocity);
+		Rotate();
+	}
+
+	private void Rotate()
+	{
+		var delta = Input.Mouse.Delta;
+
+		_cameraDirection.X -= delta.X;
+		_cameraDirection.Y -= delta.Y;
+
+		Character.Rotate(Quaternion.RotationY(_cameraDirection.X));
 	}
 }
