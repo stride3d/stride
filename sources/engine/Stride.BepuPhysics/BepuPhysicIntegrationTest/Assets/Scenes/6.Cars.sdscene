@@ -41,6 +41,35 @@ Hierarchy:
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
         -   Entity:
+                Id: 0715b09d-da88-480a-a504-44620c099c35
+                Name: Jump7
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 393a34d2-ef9d-4aec-8779-ca6038f29a65
+                        Position: {X: 40.0, Y: 3.6963282, Z: -300.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.21643962, W: 0.976296}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 0109ec7d-5f1a-48b9-80b1-7a3f2e9bf15a
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 1728dfd4-6c3b-4d8e-8244-e04678d8d093
+                        Mass: 1.0
+                        Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                    51feea7bbdcad82ac4361ac7256d8d36: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 0508740f-381f-4538-8f6e-0ffe8bec42bd
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
                 Id: 0d2e38de-beac-4d90-8c1e-fb774d425bb0
                 Name: CubeInstancing
                 Components:
@@ -118,11 +147,11 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: 18a07917-f18f-4060-8851-0e4d1699a86e
-                Name: Car
+                Name: CarManual
                 Components:
                     d4d70a19362138eaa821eecdfe8d9853: !TransformComponent
                         Id: 5caec0a4-ed7f-4ac9-b8eb-0646d0de0e28
-                        Position: {X: 200.0, Y: 10.0, Z: 0.0}
+                        Position: {X: 200.0, Y: 10.0, Z: 50.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
@@ -131,15 +160,6 @@ Hierarchy:
                             f53db0c23cba98c6dd06674cbcfe222a: ref!! cc0fe3c4-a92a-4219-b937-d7211b4a5878
                             0b444408e5ac9b8f4727d5fba5b7ff35: ref!! eafdc650-50bd-49a2-9138-d4a6f0e777f6
                             b9e2a044841d4d5dfc9017e4c413f242: ref!! 321daa08-0926-484d-b9e3-f03304448b61
-                    25adfcf1fd9c9b04bd801f5e1f3e6045: !BepuPhysicIntegrationTest.Integration.Components.Utils.CarControllerComponent,BepuPhysicIntegrationTest
-                        Id: 52907c33-397a-4d7a-801d-552254cbd748
-                        CarBody: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                        LeftMotor: ref!! da7b57ed-8aab-49e8-ac88-940f2fa6bfe0
-                        RightMotor: ref!! eb9f01d2-403f-49b3-b5f6-de7c7426be03
-                        LeftBMotor: ref!! af28e7ed-1db9-406d-8714-116dce851285
-                        RightBMotor: ref!! 9889e200-b095-498c-883c-93f4490027ec
-                        LeftWheel: ref!! b3fbaf02-4fdd-4057-9b92-b10db94ef9df
-                        RightWheel: ref!! a2e4c401-6edc-44bd-b7d8-0d4e3cb903cd
         -   Entity:
                 Id: 205ba9ce-aed2-4688-8742-318162acbd1d
                 Name: GeoSphere
@@ -178,7 +198,7 @@ Hierarchy:
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
-                        FrictionCoefficient: 1.5
+                        FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
                         Kinematic: false
@@ -186,9 +206,9 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     0debde8052fd601b6f02ae19bf1ee640: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
                         Id: e2f8fa5d-ccce-4da4-b64f-6042fab538e9
-                        Mass: 0.1
+                        Mass: 0.5
                         Radius: 0.5
-                        Length: 0.3
+                        Length: 0.25
                     1d034f9ad6857b4845cffbbce7d2c1a7: !BepuPhysicIntegrationTest.Integration.Components.Constraints.PointOnLineServoConstraintComponent,BepuPhysicIntegrationTest
                         Id: 4e527631-0ee8-40f5-8894-abf2ee65c914
                         Bodies:
@@ -246,7 +266,7 @@ Hierarchy:
                         Id: eafdc650-50bd-49a2-9138-d4a6f0e777f6
                         Position: {X: 1.75, Y: -0.8, Z: 1.25}
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 0.3, Z: 1.0}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
         -   Entity:
                 Id: 29f85f96-b79a-4023-a8ea-2cacf394249a
@@ -336,6 +356,17 @@ Hierarchy:
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
         -   Entity:
+                Id: 454cdd54-ab3a-49d7-a1db-ed1f6f99319d
+                Name: ThirdPersonPivot
+                Components:
+                    68e2c19ca27d3022aae4bbbaa52c97fd: !TransformComponent
+                        Id: 5584b930-109c-405e-9cc2-a42aee7b1857
+                        Position: {X: 0.0, Y: 0.0, Z: 3.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            3a987e3cdd253b561abc86bbf549cf9f: ref!! 1f662e52-b1e0-451d-971d-1d8fbaeb358b
+        -   Entity:
                 Id: 4b25ed0b-fad4-4661-87c6-a1c5cf238a16
                 Name: GeoSphere
                 Components:
@@ -372,7 +403,7 @@ Hierarchy:
                         Id: d3bc9254-0a4c-4f23-8c75-59d63d0a1e2e
                         Position: {X: -1.75, Y: -0.8, Z: 1.25}
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 0.3, Z: 1.0}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
                     0bc27905abb2c55050be6bc4ac56447a: !ModelComponent
                         Id: a1394fbb-eadb-4da2-afb2-8102c3594be8
@@ -382,8 +413,8 @@ Hierarchy:
                         Id: 81c84323-291e-478c-9517-190389e60b27
                         SimulationIndex: 0
                         SpringFrequency: 30.0
-                        SpringDampingRatio: 3.0
-                        FrictionCoefficient: 2.5
+                        SpringDampingRatio: 5.0
+                        FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
                         Kinematic: false
@@ -391,9 +422,9 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     9f8c578020d8e74d7b56d6231cfa11d7: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
                         Id: 170b16da-7488-4d1d-9c28-5ca4ed1582b1
-                        Mass: 0.1
+                        Mass: 0.5
                         Radius: 0.5
-                        Length: 0.3
+                        Length: 0.25
                     9691dfa549655d6a6a1f143a627091fd: !BepuPhysicIntegrationTest.Integration.Components.Constraints.PointOnLineServoConstraintComponent,BepuPhysicIntegrationTest
                         Id: 7c1be5b7-029f-4ea9-b099-1a39e44f30b7
                         Bodies:
@@ -428,11 +459,11 @@ Hierarchy:
                         Bodies:
                             2c39b0d2f00e08228851475215236131: ref!! 81c84323-291e-478c-9517-190389e60b27
                             b428c208a3e68e46f03a723debfbc227: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                        Enabled: true
+                        Enabled: false
                         LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         TargetVelocity: 0.0
                         MotorDamping: 15.0
-                        MotorMaximumForce: 15000.0
+                        MotorMaximumForce: 10000.0
                     49beb12319826e4b7f2ed047e42c6474: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularHingeConstraintComponent,BepuPhysicIntegrationTest
                         Id: b3fbaf02-4fdd-4057-9b92-b10db94ef9df
                         Bodies:
@@ -451,7 +482,7 @@ Hierarchy:
                         Id: 42ff5c03-7fad-4963-9159-860c090d4817
                         Position: {X: 0.0, Y: 20.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 5.0, Y: 1.0, Z: 5.0}
+                        Scale: {X: 40.0, Y: 1.0, Z: 20.0}
                         Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: f03f8434-1990-4067-be87-364be65490e9
@@ -459,8 +490,8 @@ Hierarchy:
                         Materials: {}
                     43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: b82df08f-75c5-42c1-9616-a2eb352578c1
-                        Mass: 1.0
-                        Size: {X: 5.0, Y: 1.0, Z: 5.0}
+                        Mass: 5.0
+                        Size: {X: 40.0, Y: 1.0, Z: 20.0}
                     b042c04ebbd62706d8b5a6a31b88c02d: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: ce88c894-9648-4913-a22c-38c12b0c267f
                         SimulationIndex: 0
@@ -470,6 +501,35 @@ Hierarchy:
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
                         Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
+                Id: 6495df80-ec4c-4fbd-b2d1-ba3fa8b46896
+                Name: Jump6
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: c2bfd577-4d21-40bb-8dc4-b268e50f3670
+                        Position: {X: 40.0, Y: 2.7783315, Z: -250.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.17364818, W: 0.9848077}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 9afb982f-f8b7-4159-bb6a-3c6290e38661
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: c1c4e82d-b5e3-4d84-beca-fe09f4dfbfee
+                        Mass: 1.0
+                        Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                    51feea7bbdcad82ac4361ac7256d8d36: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 8b6aae43-734a-4185-ad4a-19cfa275a9c3
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
         -   Entity:
@@ -510,7 +570,7 @@ Hierarchy:
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
-                        FrictionCoefficient: 1.5
+                        FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
                         Kinematic: false
@@ -518,9 +578,9 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     0debde8052fd601b6f02ae19bf1ee640: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
                         Id: d55d5f01-7d9a-4d74-9d09-8c089f48539e
-                        Mass: 0.1
+                        Mass: 0.5
                         Radius: 0.5
-                        Length: 0.3
+                        Length: 0.25
                     49e98ce8e7167ac39e92b50a22079759: !BepuPhysicIntegrationTest.Integration.Components.Constraints.PointOnLineServoConstraintComponent,BepuPhysicIntegrationTest
                         Id: d7dd29db-98db-447c-b280-243a75b5a19a
                         Bodies:
@@ -578,7 +638,7 @@ Hierarchy:
                         Id: 321daa08-0926-484d-b9e3-f03304448b61
                         Position: {X: 1.75, Y: -0.8, Z: -1.25}
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 0.3, Z: 1.0}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
         -   Entity:
                 Id: 81515b44-d6b2-4f52-b49e-ac44c4472471
@@ -615,7 +675,7 @@ Hierarchy:
                 Components:
                     6961414337769221283ce59319f70fa8: !TransformComponent
                         Id: 92bfdb31-5ce6-4365-b076-44f0478bc0d4
-                        Position: {X: 0.0, Y: 15.0, Z: 0.0}
+                        Position: {X: 0.0, Y: 17.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -665,6 +725,17 @@ Hierarchy:
                                 BiasParameters: {}
                         Intensity: 0.2
         -   Entity:
+                Id: 91912d45-330e-421a-87d5-d656f2d52390
+                Name: FirstPersonPivot
+                Components:
+                    618b4444a78d7b53aeb5692c8a021f6c: !TransformComponent
+                        Id: 7fb7a2c0-1d02-4dae-8907-1a488bff98f7
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            d9eca7d3ecfc509cabc2f60beaf0b319: ref!! 5584b930-109c-405e-9cc2-a42aee7b1857
+        -   Entity:
                 Id: 9307421d-cfe4-4b08-9e76-238a196e1983
                 Name: Balls
                 Components:
@@ -712,6 +783,93 @@ Hierarchy:
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
         -   Entity:
+                Id: 9372f2e7-5d24-4968-a90e-3e4c58b63eef
+                Name: Jump3
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 174a4870-3496-42ea-89f3-c2497bdc412b
+                        Position: {X: 40.0, Y: 0.326226, Z: -100.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.043619387, W: 0.99904823}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 4dd9898c-b1e6-4c0e-b1e6-d5aea0042718
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 6a09f54f-bfa6-45dc-a14d-d4961a4f1aab
+                        Mass: 1.0
+                        Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                    51feea7bbdcad82ac4361ac7256d8d36: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: a2986570-bc9f-4f0b-a468-df27b1ad03c7
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
+                Id: 950454f1-70b5-4301-b3cc-245cea2ebbe3
+                Name: Jump4
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: a140f06b-8dca-4330-b435-e90b5dc3fd2c
+                        Position: {X: 40.0, Y: 1.2228761, Z: -150.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.08715574, W: 0.9961947}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 7262933c-9e08-4bbc-9c64-35017f95efa5
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: c6694228-0108-4543-8983-c638a248f516
+                        Mass: 1.0
+                        Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                    51feea7bbdcad82ac4361ac7256d8d36: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: a2cfd5ef-a469-4432-b463-7c03426a402a
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
+                Id: 9ab59b3e-b542-4cd4-896a-aa1252f44e65
+                Name: Jump5
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 2ab1eeb2-f522-4642-ae5f-078f5e1ed683
+                        Position: {X: 40.0, Y: 2.0680501, Z: -200.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.1305262, W: 0.9914449}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 832a26ea-554d-472a-bbb8-cccbda7251dd
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 24490b38-9e00-494b-a0ca-00f8fbadf68c
+                        Mass: 1.0
+                        Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                    51feea7bbdcad82ac4361ac7256d8d36: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 638d77cf-5647-4ff6-84ff-3ced764109b5
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
                 Id: 9eefaa3c-8d8f-4a6e-a9b2-7bfebe2c04bc
                 Name: Wall
                 Components:
@@ -740,6 +898,202 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
+                Id: 9fa49e88-3c7f-445f-a550-58d7b2d81da6
+                Name: SuperCar
+                Components:
+                    d4d70a19362138eaa821eecdfe8d9853: !TransformComponent
+                        Id: b64996cc-8acb-47f0-887a-03506172ef5c
+                        Position: {X: 200.0, Y: 10.0, Z: -50.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            788fa0c6ec08d7793e4dbf513bd641a9: ref!! 61addb5f-924b-431f-a781-88cb311318ee
+                            3ffc18ad3c1cb957e908ef9d1cf5b1ff: ref!! 9b5d3078-489d-414a-b97a-2dba55ee4e7b
+                            f53db0c23cba98c6dd06674cbcfe222a: ref!! 5d626e02-fc12-43fb-9586-29fd060a1e03
+                            0b444408e5ac9b8f4727d5fba5b7ff35: ref!! ca78e3cb-213b-45f3-b4a8-08b9d06fc2b7
+                            b9e2a044841d4d5dfc9017e4c413f242: ref!! ccca35c6-38e1-4282-a88a-5cec10834d5b
+                    4b7bf4632208bbb6787c56c916602efd: !BepuPhysicIntegrationTest.Camera.ThirdPersonCamera,BepuPhysicIntegrationTest
+                        Id: 36db22b3-1e2d-403c-a600-9283a2c3bfbf
+                        Enabled: true
+                        InvertMouseY: true
+                        MouseSpeed: {X: 1.5, Y: 1.5}
+                        MaxLookUpAngle: -40.0
+                        MaxLookDownAngle: 40.0
+                        MinimumCameraDistance: 1.5
+                        CameraOffset: {X: 0.0, Y: 0.0, Z: 5.0}
+                    04375ac9cd16331a7694a722b1830389: !BepuPhysicIntegrationTest.Integration.Components.Utils.CarComponent,BepuPhysicIntegrationTest
+                        Id: 721c89f8-8b53-4424-99c9-1d4322d758d2
+                        SimulationIndex: 0
+                        CarBody: ref!! f84ae702-83f2-4e43-b3bf-64da64d3487d
+                        Wheels:
+                            64a0131a455bc7569569959194cde28f: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            6d8abcf90aace6c7ac4110815f92dd71: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            9a5a4823bd951c9b1c71f85b07e8ab00: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
+                            af727c2a9baa10d5d58e508f12539d51: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
+                        SteerWheels:
+                            4d315574e729de6fdb086e7e24f2514d: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            88fe23184736bf52131f268c82f2ab8e: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                        DriveWheels:
+                            5e1d0e3eb217efba239937fd00ca8048: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            6fb081892ccdd57e027947036d176a3e: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                        BreakWheels: {}
+                        AccelerateKeys:
+                            8a3e0685e21a7394f7c903c96adee7de: Up
+                            72f426595df9cc7df0e8005bf1803f34: Up
+                            be8f3e214a7371b6a22a9ae6cb05f429: Up
+                            e5c89cee003b35fab0c358e16c523c24: Up
+                            be4330c541297dde8af8971b132687db: Up
+                            64f7179aa7c38055b36017609029964a: Up
+                            f60794e69e29cba38055b4db1fe589c2: Up
+                            db1af447ac1421ad78777d7c455fda07: Up
+                            c7d2ee5dda120648c2449e5eb1fc6e2f: Up
+                        ReverseKeys:
+                            6a778e62e0b833557930ea7cf0cd396f: Down
+                            dc9a80e2ab5c841ef55971fc6346b38c: Down
+                            c4f2c0d3b89512ea230a829386493521: Down
+                            fd39760097a01444fc948982bcba012d: Down
+                            8b54072846fd473b1ec0941bed982a4d: Down
+                            c326566da8239aacba95ce84df841033: Down
+                            cd0c2fddaa94f39affa3117f6859a122: Down
+                            87b9880d37e1d7d21377523f5edb6ad4: Down
+                            6bfe962ac3ac5a5fd30e125f375e1180: Down
+                        BreakKeys:
+                            85f147f77dc864753c5fd8c2b032dc4e: Space
+                            8adc73b0aa48fe649dae5aee7844cbe4: Space
+                            a8c69dcda0d9febe74eed8bb85847579: Space
+                            7f10daedb631160168a0b801da3aef28: Space
+                            4969a27c8a29cf0af59b9c5aa6fbba6c: Space
+                            afec8aaa747cc0111ff139b668018070: Space
+                            b0982235efec50061dde29502aad9f2f: Space
+                            fdb1943c76529b0bf79d9b7002ba6d8c: Space
+                            11c16f16e07f18f67fce404c83892e5a: Space
+                        SteerLeftKeys:
+                            9e4baae7d7c9167442b1ed02b68af4cd: Left
+                            b8416a60ad89603b94b18b341647e331: Left
+                            cb7a601d1372bdf1b4608c98efc41e41: Left
+                            883fa19e258528686eb3189f053f759c: Left
+                            065b804f93d03e0c27b1dc400243a6ff: Left
+                            3d7194b1e74789ca700a215d8851a98b: Left
+                            a25e8abf9de9a022981d936c2ec993ea: Left
+                            6848b044b5d4ea4c0080a0b66a9570d6: Left
+                            6579e8aeabf2e25ad0e49f05928f1c68: Left
+                        SteerRightKeys:
+                            f1801a2e0d1da73cc681f0f9fb68b7a3: Right
+                            688f7bfa83a2c42207788d45388a9bbd: Right
+                            0ff34d9c62306238154e3fd79931ab05: Right
+                            74df09434d3d79c7e6f3b4682f9312f6: Right
+                            83b8711fa0de7f1ddb48c87c658dcd6e: Right
+                            ecdf93596d376a9dd3231bc695af001b: Right
+                            fa44d0fee9e438a5394d34082bf9ee77: Right
+                            ef043816fb02b31a302faa2eef8ce394: Right
+                            59af5537c23edb7098de0900e3c774af: Right
+                        GearUpKeys:
+                            4de0174af2b0e6d02a77448d35c5d13b: NumPad0
+                            ddabd73f2598723342fe68d7364d8bf7: NumPad0
+                            00b9a812d1391bfcd7280036845d9403: NumPad0
+                            1ce7d58617998b07dcfb202acffc93a1: NumPad0
+                            5acbe1cc965c44223c5989df50179769: NumPad0
+                            ef9634a1c1a15be9792bff5cc5895e8e: NumPad0
+                            41cf3c916b9f61c507930aa08c9affd7: NumPad0
+                            6970f60af79af6695c117dc2ba092074: NumPad0
+                            38db3a1edd90b1eb714809a0aa4ca049: NumPad0
+                        GearDownKeys:
+                            7feb2929d3e1f7b8bbea7d24e55929a7: RightCtrl
+                            0dfbda231b404d1d2d21a72ebd292d82: RightCtrl
+                            aa8bcb8b143403176457e7551a775ab7: RightCtrl
+                            117e40b6e210fe28285b17cae80eea6e: RightCtrl
+                            ba2ea87a2247c2a5b6cdf8c93eec5021: RightCtrl
+                            0a8faa2555404466f885312064dc1e84: RightCtrl
+                            cfe7059bd74e72a7a8103caa36d64950: RightCtrl
+                            9165b5bcd9ce4bbb8d1efe3bdf15174b: RightCtrl
+                            3b25daf03bd54632198ad4691a94ba39: RightCtrl
+                        ClutchKeys:
+                            2a033be8fd03ea8313653d869c9b1ebf: Decimal
+                            f1159ca460fcf18bb1c2ea272e145705: Decimal
+                            93c4cca5f56bd375d79a27e190d5332a: Decimal
+                            6517f224398e32bda8301786aa0c2516: Decimal
+                            f074d38499578d8503219fc2e0f8d591: Decimal
+                            3457d741c613b2ad15ea173c963c639c: Decimal
+                            8924797c5e8a7ce02cb79dae40231329: Decimal
+                            4f240242ddf10cc9912ec3f8405ea7f1: Decimal
+                            37e2d259db96fef950be01e116d40f5d: Decimal
+                        StarterKeys:
+                            b5f9be8a86e925e93a77d1a7e282d260: Enter
+                            c71e9d309ef9dff6d01feaa4bf696938: Enter
+                            aeeb0dd8a803d850d18f76769c3cc2cb: Enter
+                            3e390ae606a61ddce4159249e8d9d21b: Enter
+                            c42b8969835df3e85e8996d3075ed247: Enter
+                            2a8b574db120883cd9ecabea22a626c8: Enter
+                            e7fcfc5e3ddc4ea1b8e607bcf092d231: Enter
+                            d03c4daf05086b44af9b79e0d4e0f0cb: Enter
+                            9c2a86e08aaf6c382c4986f589df66de: Enter
+                        CarEngine:
+                            MinRPM: 1000
+                            MaxRPM: 10000
+                            EngineInertia: 1.0
+                            Gears:
+                                6c3870963694df7497d576f23a7bbe53:
+                                    AccelerationForce: 500.0
+                                    GearRatio: -0.001
+                                aa194b55081306a7db7a94cdebc0bce4:
+                                    AccelerationForce: 1000.0
+                                    GearRatio: 0.001
+                                06631d55fcdf014f2dc0c33de3dc597a:
+                                    AccelerationForce: 500.0
+                                    GearRatio: -0.001
+                                b724cd3ea106faddd76001f002a320b7:
+                                    AccelerationForce: 1000.0
+                                    GearRatio: 0.001
+                                5a8fd8e6fc17e05ded5e48a27e293435:
+                                    AccelerationForce: 500.0
+                                    GearRatio: -0.001
+                                cc92e45540670b8e21d06f5d4818e82f:
+                                    AccelerationForce: 1000.0
+                                    GearRatio: 0.001
+                                5b6cd3b532f0256460c57f393034939d:
+                                    AccelerationForce: 500.0
+                                    GearRatio: -0.001
+                                250966f8164f7502155fcc8f16ff3b93:
+                                    AccelerationForce: 1000.0
+                                    GearRatio: 0.001
+                                56093adc6ccbc45e7102e83b5946fc70:
+                                    AccelerationForce: 500.0
+                                    GearRatio: -0.001
+                                3e5ce9cd67492a684e46249abdc4920a:
+                                    AccelerationForce: 1000.0
+                                    GearRatio: 0.001
+                                d2274e1b2161fa57e948cd6b2e75be54:
+                                    AccelerationForce: 500.0
+                                    GearRatio: -0.001
+                                5ea26c74068ef786d402e49444d7c67a:
+                                    AccelerationForce: 1000.0
+                                    GearRatio: 0.001
+                                f95e9b93d1876860f1df03047fc67f0e:
+                                    AccelerationForce: 500.0
+                                    GearRatio: -0.001
+                                e6e52f2227511c47ed2eb7967060bd4d:
+                                    AccelerationForce: 1000.0
+                                    GearRatio: 0.001
+                                6cf3a5d4ce6359c172090cb7961b8506:
+                                    AccelerationForce: 500.0
+                                    GearRatio: -0.001
+                                bfe222c16e5bc8ab3f0026499ee44321:
+                                    AccelerationForce: 1000.0
+                                    GearRatio: 0.001
+                                45d733731a175a59784df453f60ab29e:
+                                    AccelerationForce: 500.0
+                                    GearRatio: -0.001
+                                0e084d93c8098dfd2eec1de529e67063:
+                                    AccelerationForce: 1000.0
+                                    GearRatio: 0.001
+                        BreakingForce: 4000.0
+                        MaximumSteeringAngle: 30.0
+                        SteeringSpeed: 0.5
+                        Clutch: true
+                        Starter: false
+                        AutomaticGearing: true
+                        AutomaticStart: true
         -   Entity:
                 Id: a0a6e0e3-71f9-4449-973c-eccc644440fd
                 Name: GeoSphere
@@ -781,11 +1135,17 @@ Hierarchy:
                         Children:
                             a5869266007b42af6b5ba5e5468a5478: ref!! 7eed3082-0ebe-4e8d-8d59-fa2d9691db53
                             b307fda26ede9482a6cb9da54c4ba114: ref!! d46dc554-31d1-4015-a39d-d1a4ceea6e98
-                            e2b655a2c6c948316d3d92fa021992eb: ref!! 5caec0a4-ed7f-4ac9-b8eb-0646d0de0e28
                             302847c9ce487c99f8414e78e5eda6f0: ref!! b74e8202-b238-406d-9039-27250ce78b63
                             75ba82bcfcd2b02d69975d0e74d30925: ref!! c20a7335-06d4-4656-b2b3-a863b266a9a8
+                            e6acddc02f2b736fbf1fe04551eda9c4: ref!! 174a4870-3496-42ea-89f3-c2497bdc412b
+                            fb5e7f180f31ed3fa71c2c4228ae5ebe: ref!! a140f06b-8dca-4330-b435-e90b5dc3fd2c
+                            9c7c6806b02725f1d0efdd7f56eb8578: ref!! 2ab1eeb2-f522-4642-ae5f-078f5e1ed683
+                            e4e564216c4103195fb3a23d6a5e998c: ref!! c2bfd577-4d21-40bb-8dc4-b268e50f3670
+                            21c61beefc8551b81eb9029b0fb3fb00: ref!! 393a34d2-ef9d-4aec-8779-ca6038f29a65
                             4f26a4a065b23ac49c5201f9d47d0ee1: ref!! 9cf3a258-c28f-4c43-95e9-71936e849779
                             c901d373bcdba9c3416135b212e23887: ref!! 536ccb4b-dfee-4506-9fd9-a4d8f93e0dda
+                            6cf654b77dc8de2f36875b312ec0858a: ref!! 5caec0a4-ed7f-4ac9-b8eb-0646d0de0e28
+                            ff4ca892a76181aa0ecd4781babdba13: ref!! b64996cc-8acb-47f0-887a-03506172ef5c
                     eeabfda15ef248d6bb1e4f6914eb65e5: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
                         Id: b3a2f1eb-a8c3-4cf0-8025-3c2680399555
                         SimulationIndex: 0
@@ -806,7 +1166,7 @@ Hierarchy:
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
-                        APos: {X: 2.0, Y: 0.5, Z: 2.0}
+                        APos: {X: 10.0, Y: 0.5, Z: 10.0}
                         B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     df8df1e9078962519bb2e906ff5bd744: !BepuPhysicIntegrationTest.Integration.Components.Utils.RopeSpawnerComponent,BepuPhysicIntegrationTest
@@ -814,7 +1174,7 @@ Hierarchy:
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
-                        APos: {X: 2.0, Y: 0.5, Z: -2.0}
+                        APos: {X: 10.0, Y: 0.5, Z: -10.0}
                         B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     f0b1089156066784aa5bb1948f7006de: !BepuPhysicIntegrationTest.Integration.Components.Utils.RopeSpawnerComponent,BepuPhysicIntegrationTest
@@ -822,7 +1182,7 @@ Hierarchy:
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
-                        APos: {X: -2.0, Y: 0.5, Z: -2.0}
+                        APos: {X: -10.0, Y: 0.5, Z: -10.0}
                         B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     5a9e25158e14dc991ac2cf5110b5492b: !BepuPhysicIntegrationTest.Integration.Components.Utils.RopeSpawnerComponent,BepuPhysicIntegrationTest
@@ -830,7 +1190,7 @@ Hierarchy:
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
-                        APos: {X: -2.0, Y: 0.5, Z: 2.0}
+                        APos: {X: -10.0, Y: 0.5, Z: 10.0}
                         B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
         -   Entity:
@@ -877,6 +1237,20 @@ Hierarchy:
                         Mass: 1.0
                         Radius: 0.5
         -   Entity:
+                Id: a9bb2541-fe09-4f7e-8dcf-4452ac6c17ca
+                Name: Model
+                Components:
+                    cd7f7ce28cb08e446913782fa70f57a9: !TransformComponent
+                        Id: c30993d7-6b25-4b35-b4fc-e442346b5082
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 4.0, Y: 1.0, Z: 2.5}
+                        Children: {}
+                    9e6851a4057a44538ec3c1ea9b07fdc7: !ModelComponent
+                        Id: 8e94eb48-6559-4f1c-920f-b12c23359109
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+        -   Entity:
                 Id: ae8f0dfd-98c0-465e-a0e3-2eb197227cf1
                 Name: GeoSphere
                 Components:
@@ -911,8 +1285,8 @@ Hierarchy:
                 Components:
                     191a9580bfac05d33d042a46b9b519ac: !TransformComponent
                         Id: 1f662e52-b1e0-451d-971d-1d8fbaeb358b
-                        Position: {X: 3.0, Y: 2.5, Z: 0.0}
-                        Rotation: {X: -0.15304594, Y: 0.6903455, Z: 0.15304592, W: 0.6903456}
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     c73c973e1799365d3dd49db196d92934: !CameraComponent
@@ -928,15 +1302,6 @@ Hierarchy:
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
-                    99b1574d7ac509addd4dfc6d460f2d7b: !BepuPhysicIntegrationTest.BasicCameraController,BepuPhysicIntegrationTest
-                        Id: a969aa15-239e-4bf4-9b66-d385ff6ab972
-                        Gamepad: false
-                        KeyboardMovementSpeed: {X: 10.0, Y: 10.0, Z: 10.0}
-                        TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
-                        SpeedFactor: 5.0
-                        KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
-                        MouseRotationSpeed: {X: 1.0, Y: 1.0}
-                        TouchRotationSpeed: {X: 1.0, Y: 0.7}
         -   Entity:
                 Id: cbda80eb-fa37-4ab9-84fb-f5c1df506fd6
                 Name: GeoSphere
@@ -975,8 +1340,7 @@ Hierarchy:
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 4.0, Y: 1.0, Z: 2.5}
-                        Children:
-                            bf8a09cd1af287f685874a202ffe1ac9: ref!! 1f662e52-b1e0-451d-971d-1d8fbaeb358b
+                        Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: d64dc8f1-3e36-464d-81c4-4900c994749d
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
@@ -1015,6 +1379,37 @@ Hierarchy:
                         Type: !LightSkybox
                             Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
                         Intensity: 0.1
+        -   Folder: null
+            Entity:
+                Id: d3895810-3bbd-478a-b81b-5426dfed53a4
+                Name: WheelBR
+                Components:
+                    aa244c743a3eb88f50917768b93d8f5b: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 59e4ebf6-14b1-4911-bc4b-66063fafa34a
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 0.9
+                        MaximumRecoveryVelocity: 10000.0
+                        ColliderGroupMask: 1
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    0debde8052fd601b6f02ae19bf1ee640: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
+                        Id: 2522e291-9a42-44d4-9d71-2f11eae64c29
+                        Mass: 0.5
+                        Radius: 0.5
+                        Length: 0.25
+                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
+                        Id: 4ba05cad-1f8b-4884-b109-47aea3fe62ae
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
+                        Id: ccca35c6-38e1-4282-a88a-5cec10834d5b
+                        Position: {X: 1.75, Y: -0.8, Z: -1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
+                        Children: {}
         -   Entity:
                 Id: d64ab099-739d-4371-b046-889704e95fee
                 Name: Pendulum
@@ -1028,12 +1423,13 @@ Hierarchy:
                             385968f975d4fb224fe1574393e3d577: ref!! 42ff5c03-7fad-4963-9159-860c090d4817
                             147c5a71ca2e03d61a7493a722e51d9d: ref!! 7bd38eb8-af97-4ed9-8105-a5c26dab8a1a
                             0c6f079f038598ae7eb6cb886611dbae: ref!! 92bfdb31-5ce6-4365-b076-44f0478bc0d4
-        -   Entity:
-                Id: f5a93013-a22a-4753-aae0-d7061845f91e
+        -   Folder: null
+            Entity:
+                Id: daee5aa7-0fdb-4c25-9919-84b935d31898
                 Name: WheelFR
                 Components:
                     aa244c743a3eb88f50917768b93d8f5b: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
-                        Id: e0178323-63ee-4423-afce-1fe03b4eccd1
+                        Id: c1d32a7a-610f-48d6-84d8-b68762b119b8
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -1044,10 +1440,102 @@ Hierarchy:
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                     0debde8052fd601b6f02ae19bf1ee640: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
-                        Id: 6e4ae638-819b-4668-bf8a-e6e4a17f5812
-                        Mass: 0.1
+                        Id: c0b78f7b-9ccf-4c1a-9931-c99a2d95e6c0
+                        Mass: 0.5
                         Radius: 0.5
-                        Length: 0.3
+                        Length: 0.25
+                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
+                        Id: 83acb87a-2cbe-40c7-9dc2-f43936b6af73
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
+                        Id: 5d626e02-fc12-43fb-9586-29fd060a1e03
+                        Position: {X: -1.75, Y: -0.8, Z: -1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
+                        Children: {}
+        -   Folder: null
+            Entity:
+                Id: dffecd2b-9f10-4217-a8ee-bbcacbe0a234
+                Name: WheelBL
+                Components:
+                    aa244c743a3eb88f50917768b93d8f5b: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 68c75021-31aa-43d1-9be2-be63b703ed83
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 0.9
+                        MaximumRecoveryVelocity: 10000.0
+                        ColliderGroupMask: 1
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    0debde8052fd601b6f02ae19bf1ee640: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
+                        Id: 9be36c8f-a59b-46f4-81fc-1776d2f086c5
+                        Mass: 0.5
+                        Radius: 0.5
+                        Length: 0.25
+                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
+                        Id: 9be78237-30ac-47fb-81b4-485988ba91cc
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
+                        Id: ca78e3cb-213b-45f3-b4a8-08b9d06fc2b7
+                        Position: {X: 1.75, Y: -0.8, Z: 1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
+                        Children: {}
+        -   Folder: null
+            Entity:
+                Id: efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                Name: WheelFL
+                Components:
+                    3504b54c9577de66b546d3e02b48932a: !TransformComponent
+                        Id: 9b5d3078-489d-414a-b97a-2dba55ee4e7b
+                        Position: {X: -1.75, Y: -0.8, Z: 1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
+                        Children: {}
+                    0bc27905abb2c55050be6bc4ac56447a: !ModelComponent
+                        Id: 67259073-d036-4a1d-b83b-dafff069397f
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    ca8176b1058b680a9e92e817af47f8bf: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: b013e2de-4def-42c8-9d3a-d9cd5d29e664
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 2.5
+                        MaximumRecoveryVelocity: 10000.0
+                        ColliderGroupMask: 1
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    9f8c578020d8e74d7b56d6231cfa11d7: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
+                        Id: 0e6eb99b-9146-4211-877b-e9d77879de48
+                        Mass: 0.5
+                        Radius: 0.5
+                        Length: 0.25
+        -   Entity:
+                Id: f5a93013-a22a-4753-aae0-d7061845f91e
+                Name: WheelFR
+                Components:
+                    aa244c743a3eb88f50917768b93d8f5b: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: e0178323-63ee-4423-afce-1fe03b4eccd1
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 5.0
+                        FrictionCoefficient: 2.0
+                        MaximumRecoveryVelocity: 10000.0
+                        ColliderGroupMask: 1
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    0debde8052fd601b6f02ae19bf1ee640: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CylinderColliderComponent,BepuPhysicIntegrationTest
+                        Id: 6e4ae638-819b-4668-bf8a-e6e4a17f5812
+                        Mass: 0.5
+                        Radius: 0.5
+                        Length: 0.25
                     083421aea268ea87d09edd7e3cb662c9: !BepuPhysicIntegrationTest.Integration.Components.Constraints.PointOnLineServoConstraintComponent,BepuPhysicIntegrationTest
                         Id: ca6874a9-bdbc-46eb-8de2-6b22cbafe652
                         Bodies:
@@ -1082,11 +1570,11 @@ Hierarchy:
                         Bodies:
                             2c39b0d2f00e08228851475215236131: ref!! e0178323-63ee-4423-afce-1fe03b4eccd1
                             b428c208a3e68e46f03a723debfbc227: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                        Enabled: true
+                        Enabled: false
                         LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         TargetVelocity: 0.0
                         MotorDamping: 15.0
-                        MotorMaximumForce: 15000.0
+                        MotorMaximumForce: 10000.0
                     64f388da8c6a87fd2382e568c4dba167: !BepuPhysicIntegrationTest.Integration.Components.Constraints.AngularHingeConstraintComponent,BepuPhysicIntegrationTest
                         Id: a2e4c401-6edc-44bd-b7d8-0d4e3cb903cd
                         Bodies:
@@ -1105,7 +1593,7 @@ Hierarchy:
                         Id: cc0fe3c4-a92a-4219-b937-d7211b4a5878
                         Position: {X: -1.75, Y: -0.8, Z: -1.25}
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 0.3, Z: 1.0}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
         -   Entity:
                 Id: f7aa93cc-fde5-44c7-b9a6-6b7c753b14fd
@@ -1165,3 +1653,31 @@ Hierarchy:
                         Id: ba44e4c5-acc0-4cc7-b39f-2fd6793ce2f9
                         Mass: 1.0
                         Radius: 0.5
+        -   Folder: null
+            Entity:
+                Id: f84ae702-83f2-4e43-b3bf-64da64d3487d
+                Name: CarBody
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 61addb5f-924b-431f-a781-88cb311318ee
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            c4e62ca9bd7fc0c51227f1ed763321da: ref!! c30993d7-6b25-4b35-b4fc-e442346b5082
+                            a138792f8c3c976a03c2696f61197fbb: ref!! 7fb7a2c0-1d02-4dae-8907-1a488bff98f7
+                    e433217afc16eeb130d60437d39781ec: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
+                        Id: 1571cbc7-6324-40cd-90a7-0b2d0fefcfe9
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 254
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    43eb7a912500e1f2355d60d691ce93ee: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
+                        Id: 9aac8776-b0c3-4bb0-a2bf-ae6787ee3cfe
+                        Mass: 3.0
+                        Size: {X: 4.0, Y: 1.0, Z: 2.5}

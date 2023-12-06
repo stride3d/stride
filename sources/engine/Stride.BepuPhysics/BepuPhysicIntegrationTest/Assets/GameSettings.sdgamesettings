@@ -28,11 +28,11 @@ Defaults:
                 PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
                 PoseLinearDamping: 0.05
                 PoseAngularDamping: 0.05
-                SolveIteration: 1
-                SolveSubStep: 10
+                SolveIteration: 2
+                SolveSubStep: 16
                 ParallelUpdate: true
-                SimulationFixedStep: 30.0
-                MaxStepPerFrame: 1
+                SimulationFixedStep: 17.0
+                MaxStepPerFrame: 2
 Overrides: []
 PlatformFilters:
     - PowerVR SGX 54[0-9]

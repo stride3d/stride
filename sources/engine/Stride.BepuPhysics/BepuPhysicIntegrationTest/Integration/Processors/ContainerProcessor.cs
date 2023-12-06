@@ -98,7 +98,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
                 if (bepuSim.ParallelUpdate)
                 {
-                    var a = Parallel.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) =>
+                    Dispatcher.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) =>
                     {
                         var handle = bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
                         var BodyContainer = bepuSim.BodiesContainers[handle];
