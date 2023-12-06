@@ -4,13 +4,11 @@ using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine;
-using Stride.Input;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Utils;
 public class BepuCharacterComponent : SimulationUpdateComponent
 {
-	public float Speed { get; set; } = 1f;
+	public float Speed { get; set; } = 10f;
 	public float JumpSpeed { get; set; } = 1f;
 
 	[DataMemberIgnore]
@@ -62,7 +60,13 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 		BepuSimulation.Simulation.Awakener.AwakenBody(_bodyReference.Value.Handle);
 
 		_bodyReference.Value.Pose.Orientation = Orientation.ToNumericQuaternion();
-		_bodyReference.Value.Velocity.Linear += Velocity.ToNumericVector();
+
+		_bodyReference.Value.Velocity.Linear = new System.Numerics.Vector3
+			(Velocity.ToNumericVector().X, _bodyReference.Value.Velocity.Linear.Y, Velocity.ToNumericVector().Z);
+
+		// prevent character from sliding
+		if(Velocity.Length() < 0.01f)
+			_bodyReference.Value.Velocity.Linear = new System.Numerics.Vector3(0, _bodyReference.Value.Velocity.Linear.Y, 0);
 
         if (TryJump)
         {
