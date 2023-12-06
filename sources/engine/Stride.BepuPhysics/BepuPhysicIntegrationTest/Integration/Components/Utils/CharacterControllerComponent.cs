@@ -5,8 +5,11 @@ using Stride.Input;
 namespace BepuPhysicIntegrationTest.Integration.Components.Utils;
 public class CharacterControllerComponent : SyncScript
 {
-	public CameraComponent? Camera { get; set; }
+	public Entity? CameraPivot{ get; set; }
 	public BepuCharacterComponent? Character { get; set; }
+
+	public float MinCameraAngle { get; set; }
+	public float MaxCameraAngle { get; set; }
 
 	private Vector3 _cameraDirection;
 
@@ -14,6 +17,9 @@ public class CharacterControllerComponent : SyncScript
 	{
 		Input.LockMousePosition(true);
 		Game.IsMouseVisible = false;
+
+		MaxCameraAngle = MathUtil.DegreesToRadians(MaxCameraAngle);
+		MinCameraAngle = MathUtil.DegreesToRadians(MinCameraAngle);
 	}
 
 	public override void Update()
@@ -47,9 +53,11 @@ public class CharacterControllerComponent : SyncScript
 	{
 		var delta = Input.Mouse.Delta;
 
-		_cameraDirection.X -= delta.X;
-		_cameraDirection.Y -= delta.Y;
+		_cameraDirection.X -= delta.Y;
+		_cameraDirection.Y -= delta.X;
+		_cameraDirection.X = MathUtil.Clamp(_cameraDirection.X, MinCameraAngle, MaxCameraAngle);
 
-		Character.Rotate(Quaternion.RotationY(_cameraDirection.X));
+		Character.Rotate(Quaternion.RotationY(_cameraDirection.Y));
+		CameraPivot.Transform.Rotation = Quaternion.RotationX(_cameraDirection.X);
 	}
 }

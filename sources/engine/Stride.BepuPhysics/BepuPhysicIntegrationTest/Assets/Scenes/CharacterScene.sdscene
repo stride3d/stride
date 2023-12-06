@@ -167,7 +167,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
-                            8b1bb14dddc670a04ec034941f65c0f6: ref!! fbd3e932-6bf5-4b35-85bb-bc169f5206f4
+                            9c043aa05eeeb48303292605df5d47a7: ref!! 208628ad-d844-4b8f-85da-051838e7a82d
                     b7110c9c8c51e0455af2bf8a655a6aac: !BepuPhysicIntegrationTest.Integration.Components.Utils.BepuCharacterComponent,BepuPhysicIntegrationTest
                         Id: a131ea29-573b-4c28-bcfe-21ac55240494
                         SimulationIndex: 0
@@ -176,8 +176,10 @@ Hierarchy:
                         CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153
                     3eb8764040f9f592300c41e20487413e: !BepuPhysicIntegrationTest.Integration.Components.Utils.CharacterControllerComponent,BepuPhysicIntegrationTest
                         Id: bc91d70a-eeea-43ee-b8aa-a20873a9c7c5
-                        Camera: ref!! 6b596901-2d10-42e2-bfeb-5f7cad34f49a
+                        CameraPivot: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a
                         Character: ref!! a131ea29-573b-4c28-bcfe-21ac55240494
+                        MinCameraAngle: -90.0
+                        MaxCameraAngle: 90.0
                     0bc21671e675022db8706abb28542933: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CapsuleColliderComponent,BepuPhysicIntegrationTest
                         Id: 985dc8b0-37af-465f-ab06-bfd602779684
                         Mass: 1.0
@@ -187,10 +189,21 @@ Hierarchy:
                         Id: f6ebac31-2bed-4a87-ba4f-34b56c9a2153
                         SimulationIndex: 0
                         SpringFrequency: 30.0
-                        SpringDampingRatio: 3.0
-                        FrictionCoefficient: 1.0
+                        SpringDampingRatio: 100.0
+                        FrictionCoefficient: 5.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
+                Id: e941dadf-4371-495f-9d46-9cc617fd1f4a
+                Name: Head
+                Components:
+                    07f6257b1aa5e5e23d41e4d7bdd02b3e: !TransformComponent
+                        Id: 208628ad-d844-4b8f-85da-051838e7a82d
+                        Position: {X: 0.0, Y: 0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            db8142cc8137d12c68337cc406d5bebd: ref!! fbd3e932-6bf5-4b35-85bb-bc169f5206f4

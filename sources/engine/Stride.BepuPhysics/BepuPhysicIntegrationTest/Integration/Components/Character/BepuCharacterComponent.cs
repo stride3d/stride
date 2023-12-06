@@ -49,15 +49,11 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 
 	public override void SimulationUpdate(float simTimeStep)
 	{
-		var body = CharacterBody.GetPhysicBody();
-
-		DebugText.Print(body.Value.Awake.ToString(), new Int2(50, 125));
-
 		// probably inneficient but I needed a way to wake up the body
-		// else it sleeps after a second.
-		body.Value.SetLocalInertia(body.Value.LocalInertia);
+		// or else it sleeps after a second.
+		_bodyReference.Value.SetLocalInertia(_bodyReference.Value.LocalInertia);
 
-		body.Value.Pose.Orientation = Orientation.ToNumericQuaternion();
-		body.Value.Velocity.Linear += Velocity.ToNumericVector();
+		_bodyReference.Value.Pose.Orientation = Orientation.ToNumericQuaternion();
+		_bodyReference.Value.Velocity.Linear += Velocity.ToNumericVector();
 	}
 }
