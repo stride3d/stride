@@ -50,8 +50,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     [ComponentCategory("Bepu - Car")]
     public class CarComponent : SimulationUpdateComponent
     {
-        string x = "";
-
         public const float GEAR_UP_VALUE = 0.9f;
         public const float GEAR_DOWN_VALUE = 0.1f;
 
