@@ -15,7 +15,6 @@
     <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.2043" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Integration\Components\Character\" />
     <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 </Project>

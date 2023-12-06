@@ -170,6 +170,7 @@ Hierarchy:
                             8b1bb14dddc670a04ec034941f65c0f6: ref!! fbd3e932-6bf5-4b35-85bb-bc169f5206f4
                     b7110c9c8c51e0455af2bf8a655a6aac: !BepuPhysicIntegrationTest.Integration.Components.Utils.BepuCharacterComponent,BepuPhysicIntegrationTest
                         Id: a131ea29-573b-4c28-bcfe-21ac55240494
+                        SimulationIndex: 0
                         Speed: 1.0
                         JumpSpeed: 1.0
                         CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153

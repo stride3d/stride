@@ -1,11 +1,6 @@
 ﻿using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Utils;
 public class CharacterControllerComponent : SyncScript
@@ -43,7 +38,7 @@ public class CharacterControllerComponent : SyncScript
 		var velocity = new Vector3(moveDirection.X, 0, -moveDirection.Y);
 		velocity.Normalize();
 
-		velocity = Vector3.Transform(velocity, Camera.Entity.Transform.Rotation);
+		velocity = Vector3.Transform(velocity, Entity.Transform.Rotation);
 		Character.Move(velocity);
 		Rotate();
 	}
