@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using BepuPhysicIntegrationTest.Integration.Components;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Components.Utils;
 using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using BepuPhysics.CollisionDetection;

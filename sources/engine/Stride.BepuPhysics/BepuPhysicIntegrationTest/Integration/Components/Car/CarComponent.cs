@@ -210,7 +210,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
                         Clutch = false;
                         UnclutchFromStop();
                     }
-                    else if (CurrentGear == -1 && reversing && !accelerating && Math.Abs(GetWheelsAverageRPM()) < 0.2f)
+                    else if (CurrentGear == -1 && reversing && !accelerating && GetWheelsAverageRPM() < 0.1f)
                     {
                         CurrentGear = 0;
                         Clutch = false;

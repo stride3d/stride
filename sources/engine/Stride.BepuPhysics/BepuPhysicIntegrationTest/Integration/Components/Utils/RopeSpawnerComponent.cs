@@ -13,7 +13,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
     [ComponentCategory("Bepu - Utils")]
-    public class RopeSpawnerComponent : SyncScript
+    public class RopeSpawnerComponent : StartupScript
     {
         public Prefab? RopePart { get; set; } //The rope part must be long in Z
         public float RopePartSize { get; set; } = 1.0f; //the z size of the rope part
@@ -85,10 +85,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
             Entity.Add(bs1);
             Entity.Add(bs2);
-        }
-
-        public override void Update()
-        {
         }
     }
 }
