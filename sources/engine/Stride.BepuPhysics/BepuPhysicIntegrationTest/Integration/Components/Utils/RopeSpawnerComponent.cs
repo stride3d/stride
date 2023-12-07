@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Input;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 {
@@ -53,7 +51,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
                 var bds = new[] { bodiesContainers[i - 1], bodiesContainers[i] };
                 var bs = new BallSocketConstraintComponent();
                 var sl = new SwingLimitConstraintComponent();
-                
+
                 bs.Bodies.AddRange(bds);
                 bs.LocalOffsetA = (Vector3.UnitZ * RopePartSize) / 2f;
                 bs.LocalOffsetB = -bs.LocalOffsetA;

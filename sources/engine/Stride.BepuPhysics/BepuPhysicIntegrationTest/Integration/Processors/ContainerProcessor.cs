@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Configurations;
@@ -8,7 +7,6 @@ using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
-using SharpDX.DXGI;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
@@ -184,7 +182,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
             var colliders = ContainerComponent.Entity.GetComponentsInDescendants<ColliderComponent>(true).ToList();
 
-            if (ContainerComponent is BodyMeshContainerComponent _b )
+            if (ContainerComponent is BodyMeshContainerComponent _b)
             {
                 if (colliders.Count > 0)
                     throw new Exception("MeshContainer cannot have compound colliders.");

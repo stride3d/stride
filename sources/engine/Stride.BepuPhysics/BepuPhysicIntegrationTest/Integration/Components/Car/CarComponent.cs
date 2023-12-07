@@ -5,9 +5,6 @@ using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
-using Silk.NET.OpenGL;
-using Stride.Core;
-using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
@@ -162,7 +159,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             base.Start();
         }
 
-        private List<int> LastsRPMList = new() { 0 };
+        private readonly List<int> LastsRPMList = new() { 0 };
         public override void Update()
         {
             var WheelAverageRPM = GetWheelsAverageRPM();
@@ -325,9 +322,9 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
                         // Adjust the braking force to avoid over-braking
                         var brakeVectorLen = brakeVector.Length();
-                        if (brakeVectorLen  > Math.Abs(averageWheelRPM) * 0.01f)
+                        if (brakeVectorLen > Math.Abs(averageWheelRPM) * 0.01f)
                         {
-                              brakeVector = (brakeVector / brakeVectorLen) * Math.Abs(averageWheelRPM) * 0.01f;
+                            brakeVector = (brakeVector / brakeVectorLen) * Math.Abs(averageWheelRPM) * 0.01f;
                         }
 
                         // Apply the braking force
@@ -384,7 +381,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
                 var rev = ReverseKeys.Any(Input.IsKeyDown);
                 if (((acc || (rev && CurrentGear == -1)) && CurrentRPM < CarEngine.MaxRPM) || CurrentRPM < CarEngine.MinRPM)
                 {
-                    if (CurrentRPM < CarEngine.MinRPM /2)
+                    if (CurrentRPM < CarEngine.MinRPM / 2)
                     {
                         CurrentRPM = 0;
                     }

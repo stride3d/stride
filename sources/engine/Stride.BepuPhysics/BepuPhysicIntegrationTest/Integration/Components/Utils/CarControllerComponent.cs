@@ -1,7 +1,6 @@
 ﻿using System;
 using BepuPhysicIntegrationTest.Integration.Components.Constraints;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;

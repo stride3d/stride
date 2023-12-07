@@ -16,7 +16,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Constraints
         internal LinearAxisServo _bepuConstraint = new()
         {
             SpringSettings = new SpringSettings(30, 5),
-            ServoSettings = new ServoSettings(10,1,1000)
+            ServoSettings = new ServoSettings(10, 1, 1000)
         };
 
         public Vector3 LocalOffsetA
