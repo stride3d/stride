@@ -71,7 +71,7 @@ public class ContactEvents : IDisposable
     /// <param name="threadDispatcher">Thread dispatcher to pull per-thread buffer pools from, if any.</param>
     /// <param name="pool">Buffer pool used to manage resources internally. If null, the simulation's pool will be used.</param>
     /// <param name="initialListenerCapacity">Number of listeners to allocate space for initially.</param>
-    public ContactEvents(IThreadDispatcher threadDispatcher = null, BufferPool pool = null, int initialListenerCapacity = 64)
+    public ContactEvents(IThreadDispatcher? threadDispatcher = null, BufferPool? pool = null, int initialListenerCapacity = 64)
     {
         this.threadDispatcher = threadDispatcher;
         this.pool = pool;
@@ -202,7 +202,21 @@ public class ContactEvents : IDisposable
             return bodyListenerFlags.Contains(collidable.RawHandleValue);
         }
     }
-
+    
+    /// <summary>
+    /// Checks if a collidable is registered as a listener.
+    /// </summary>
+    public bool IsListener(BodyHandle body)
+    {
+        return IsListener(simulation.Bodies[body].CollidableReference);
+    }
+    /// <summary>
+    /// Checks if a collidable is registered as a listener.
+    /// </summary>
+    public bool IsListener(StaticHandle staticHandle)
+    {
+        return IsListener(simulation.Statics[staticHandle].CollidableReference);
+    }
     /// <summary>
     /// Callback attached to the simulation's ITimestepper which executes just prior to collision detection to take a snapshot of activity states to determine which pairs we should expect updates in.
     /// </summary>

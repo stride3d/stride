@@ -89,6 +89,45 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
             }
         }
 
+        public bool RegisterContact(IContactEventHandler handler)
+        {
+            if (ContainerData?.Exist != true || ContactEventHandler != null)
+                return false;
+
+            ContactEventHandler = handler;
+
+            if (ContainerData.isStatic)
+                ContainerData.BepuSimulation.ContactEvents.Register(ContainerData.SHandle, ContactEventHandler);
+            else
+                ContainerData.BepuSimulation.ContactEvents.Register(ContainerData.BHandle, ContactEventHandler);
+
+            return true;
+        }
+        public bool UnregisterContact()
+        {
+            if (ContainerData?.Exist != true || ContactEventHandler == null)
+                return false;
+
+            ContactEventHandler = null;
+
+            if (ContainerData.isStatic)
+                ContainerData.BepuSimulation.ContactEvents.Unregister(ContainerData.SHandle);
+            else
+                ContainerData.BepuSimulation.ContactEvents.Unregister(ContainerData.BHandle);
+
+            return true;
+        }
+        public bool IsRegistered()
+        {
+            if (ContainerData?.Exist != true)
+                return false;
+
+
+            if (ContainerData.isStatic)
+                return ContainerData.BepuSimulation.ContactEvents.IsListener(ContainerData.SHandle);
+            else
+                return ContainerData.BepuSimulation.ContactEvents.IsListener(ContainerData.BHandle);
+        }
 
         public Vector3 CenterOfMass { get; internal set; } = new Vector3();
 
@@ -99,7 +138,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
         [DataMemberIgnore]
         internal ContainerData? ContainerData { get; set; }
 
-        //Should this be in the container?
         [DataMemberIgnore]
         internal IContactEventHandler? ContactEventHandler { get; set; }
     }
