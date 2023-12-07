@@ -139,19 +139,25 @@ Colliders define the shapes and properties of physical objects within a Bepu phy
 5. **Sphere Collider**: Shapes objects as spheres, suitable for entities like balls or spherical objects.
 6. **Triangle Collider**: Uses triangles from a mesh to create a collider, often used for terrain or ground collision.
   
-⚠️ A Mesh **Container**: Allows for collision shapes based on the exact geometry of a mesh, enabling precise collision detection for irregular shapes but it cannot be compounded.
+⚠️ A Mesh **Container**: Allows for collision shapes based on the exact geometry of a mesh, enabling precise collision detection for irregular shapes but it cannot be compounded (so no Colliders in childs nodes).
 
 Each collider type has its advantages and is chosen based on the specific requirements of the objects you're simulating. They come with parameters that can be adjusted such as Height. Note that you can compound any colliders by adding more component. Colliders must be in the same or in the child entities of a **BodyContainer** or a **StaticContainer**.
+If in a child entity, you can move, rotate & scale* it using Transform.
+
+*Only ConvexHullCollider & MeshContainer can be scaled.
 
 ### Properties
 
-1. Bodies
-   - **Type:** List<BodyContainerComponent>
-   - **Description:** Allows you to choose wich bodies to apply the constraint on. *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details on how many entities for each constraints.)*
+1. Dimensional (Height, radius, ..)
+   - **Type:** float
+   - **Description:** Allows you to choose the size of the collider *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2).)*
 
-2. Others
+2. Mass
+   - **Type:** float
+   - **Description:** Allows you to choose the mass of the collider volume *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2).)*
+
+3. Others
    - **Description:** *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details on others properties.)*
-
 
 ## Constraints
 
@@ -187,9 +193,14 @@ These scripts allow runtime modification of the simulation using keyboard inputs
 Check out the [TODO.txt](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/blob/master/BepuPhysicIntegrationTest/Todo.txt) for pending tasks and issues.
 
 ## Videos
+Note that in some videos, Bepu simulation settings had been tweaked to maximize performance.
 
 - [Demo](https://www.youtube.com/watch?v=EfCq23aUThM)
 - [Stress Test](https://www.youtube.com/watch?v=-3EgJr2k4uE)
 - [The Mixer](https://www.youtube.com/watch?v=dMS5TSkN6q0)
+- [Optimisations](https://youtu.be/71fn0AcVWng) 
+- [Car & Ropes](https://youtu.be/Odmg_he3CQ4)
+- [Super Car](https://youtu.be/IxJKTk29Nsw)
+- [AllScenes (comming soon](https://www.youtube.com/@Nicogo17)
 
 *These videos were recorded in 1080p using OBS, demonstrating the integration in Debug mode on hardware featuring an i7 6700k & GTX 970.*
