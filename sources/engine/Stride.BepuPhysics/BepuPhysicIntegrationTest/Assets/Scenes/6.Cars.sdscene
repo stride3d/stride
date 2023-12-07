@@ -559,7 +559,7 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Mass: 100.0
+                        Mass: 10.0
                         Closed: true
                         ModelData: ref!! bbf8c384-4c2d-49a8-a698-6b2336539054
         -   Entity:
