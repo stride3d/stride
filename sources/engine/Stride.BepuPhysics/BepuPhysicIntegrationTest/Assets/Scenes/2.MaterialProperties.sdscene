@@ -32,6 +32,7 @@ Hierarchy:
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -67,6 +68,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -90,6 +92,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 17
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -128,6 +131,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -184,6 +188,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 9
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -250,6 +255,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
         -   Folder: LowRecovery
             Entity:
                 Id: 700235d2-dac0-421e-8ab5-69e540128cc9
@@ -270,6 +276,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -299,6 +306,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -406,6 +414,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -439,6 +448,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -490,6 +500,7 @@ Hierarchy:
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -513,6 +524,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -547,6 +559,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -577,6 +590,7 @@ Hierarchy:
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -658,6 +672,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 3
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -700,6 +715,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 5
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -735,6 +751,7 @@ Hierarchy:
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32

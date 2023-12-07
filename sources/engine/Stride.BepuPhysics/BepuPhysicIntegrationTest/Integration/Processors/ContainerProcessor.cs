@@ -48,10 +48,14 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
             component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.BuildOrUpdateContainer();
-            _bepuConfiguration.BepuSimulations[0].Simulation.Bodies.GetDescription(component.ContainerData.BHandle, out var desc);            
+            if (component.ContactEventHandler != null && !component.IsRegistered())
+                component.RegisterContact();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
+            if (component.IsRegistered())
+                component.UnregisterContact();
+
             component.ContainerData?.DestroyContainer();
             component.ContainerData = null;
         }

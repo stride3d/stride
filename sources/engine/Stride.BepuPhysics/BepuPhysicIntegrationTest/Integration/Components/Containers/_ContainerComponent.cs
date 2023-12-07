@@ -21,6 +21,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
         private float _maximumRecoveryVelocity = 1000;
         private byte _colliderGroupMask = byte.MaxValue; //1111 1111 => collide with everything
 
+        private IContactEventHandler? _contactEventHandler = null;
+
         public int SimulationIndex
         {
             get => _simulationIndex ?? 0;
@@ -89,12 +91,10 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
             }
         }
 
-        public bool RegisterContact(IContactEventHandler handler)
+        internal bool RegisterContact()
         {
-            if (ContainerData?.Exist != true || ContactEventHandler != null)
+            if (ContainerData?.Exist != true || ContactEventHandler == null)
                 return false;
-
-            ContactEventHandler = handler;
 
             if (ContainerData.isStatic)
                 ContainerData.BepuSimulation.ContactEvents.Register(ContainerData.SHandle, ContactEventHandler);
@@ -103,25 +103,21 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
 
             return true;
         }
-        public bool UnregisterContact()
+        internal bool UnregisterContact()
         {
-            if (ContainerData?.Exist != true || ContactEventHandler == null)
+            if (ContainerData?.Exist != true)
                 return false;
-
-            ContactEventHandler = null;
 
             if (ContainerData.isStatic)
                 ContainerData.BepuSimulation.ContactEvents.Unregister(ContainerData.SHandle);
             else
                 ContainerData.BepuSimulation.ContactEvents.Unregister(ContainerData.BHandle);
-
             return true;
         }
         public bool IsRegistered()
         {
             if (ContainerData?.Exist != true)
                 return false;
-
 
             if (ContainerData.isStatic)
                 return ContainerData.BepuSimulation.ContactEvents.IsListener(ContainerData.SHandle);
@@ -138,7 +134,17 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
         [DataMemberIgnore]
         internal ContainerData? ContainerData { get; set; }
 
-        [DataMemberIgnore]
-        internal IContactEventHandler? ContactEventHandler { get; set; }
+        public IContactEventHandler? ContactEventHandler
+        {
+            get => _contactEventHandler;
+            set
+            {
+                if (IsRegistered())
+                    UnregisterContact();
+
+                _contactEventHandler = value;
+                RegisterContact();
+            }
+        }
     }
 }
