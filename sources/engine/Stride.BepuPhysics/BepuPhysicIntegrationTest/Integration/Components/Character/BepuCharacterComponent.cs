@@ -1,9 +1,10 @@
-﻿using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Configurations;
+﻿using BepuPhysicIntegrationTest.Integration.Components.Character;
+using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System;
 
 namespace BepuPhysicIntegrationTest.Integration.Components.Utils;
 public class BepuCharacterComponent : SimulationUpdateComponent
@@ -17,8 +18,12 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 	public Vector3 Velocity { get; set; }
 	[DataMemberIgnore]
 	public bool TryJump { get; set; }
+	[DataMemberIgnore]
+	public bool IsGrounded { get; set; }
 
 	public BodyContainerComponent? CharacterBody { get; set; }
+
+	private CharacterCollisionEvents _collisionEvents = new();
 
 	public override void Start()
 	{
@@ -26,7 +31,10 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 		// prevent tipping of character while moving
 		body.Value.LocalInertia = new BodyInertia { InverseMass = 1f };
 
+
 		base.Start();
+		_collisionEvents.Simulation = BepuSimulation.Simulation;
+		CharacterBody.ContactEventHandler = _collisionEvents;
 	}
 
 	public override void Update()
@@ -34,6 +42,7 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 		DebugText.Print(Input.MouseDelta.ToString(), new Int2(50, 50));
 		DebugText.Print(Velocity.ToString(), new Int2(50, 75));
 		DebugText.Print(Orientation.ToString(), new Int2(50, 100));
+		DebugText.Print(IsGrounded.ToString(), new Int2(50, 125));
 	}
 
 	public void Move(Vector3 direction)
@@ -54,8 +63,9 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 	public override void SimulationUpdate(float simTimeStep)
 	{
 		var body = CharacterBody?.GetPhysicBody().Value;
+		CheckGrounded();
 
-        if (body == null)
+		if (body == null)
         {
 			return;
         }
@@ -79,4 +89,31 @@ public class BepuCharacterComponent : SimulationUpdateComponent
 			TryJump = false;
         }
     }
+
+	private void CheckGrounded()
+	{
+		IsGrounded = false;
+		foreach(var contact in _collisionEvents.ContactPoints.Values)
+		{
+			var worldPos = Entity.Transform.WorldMatrix.TranslationVector;
+			var v = new Vector2(contact.X, contact.Z);
+			var u = new Vector2(worldPos.X, worldPos.Z);
+			var vLength = v.Length();
+			var uLength = u.Length();
+			var dot = Vector2.Dot(v, u);
+
+			var angleInRadians = (float)Math.Acos(dot / (vLength * uLength));
+
+			DebugText.Print($"grounded {angleInRadians}", new Int2(50, 150));
+			DebugText.Print($"grounded {contact}", new Int2(50, 175));
+			DebugText.Print($"grounded {Entity.Transform.WorldMatrix.TranslationVector}", new Int2(50, 200));
+			if (angleInRadians > -2.7 && angleInRadians < -2.3)
+			{
+				IsGrounded = true;
+				return;
+			}
+		}
+	}
 }
+
+
