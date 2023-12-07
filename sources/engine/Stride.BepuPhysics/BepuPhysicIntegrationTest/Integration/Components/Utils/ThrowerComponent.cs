@@ -12,8 +12,14 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
         public float Speed { get; set; } = 20f;
 
-        public override void SimulationUpdate(float timeStep)
+        public override void SimulationUpdate(float simTimeStep)
         {
+        }
+
+        public override void Update()
+        {
+            DebugText.Print("Throw a prefab (T)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 125));
+
             if (SpawnPosition == null) return;
 
             if (Input.IsKeyPressed(Keys.T))
@@ -23,11 +29,6 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
 
                 Spawn(SpawnPosition.Transform.GetWorldPos(), (forward * Speed).ToStrideVector(), new());
             }
-        }
-
-        public override void Update()
-        {
-            DebugText.Print("Throw a prefab (T)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 125));
         }
     }
 }

@@ -2,7 +2,7 @@
 using Stride.Core;
 using Stride.Engine;
 
-namespace BepuPhysicIntegrationTest.Integration.Components.Utils
+namespace BepuPhysicIntegrationTest.Integration.Components
 {
     public abstract class SimulationUpdateComponent : SyncScript
     {

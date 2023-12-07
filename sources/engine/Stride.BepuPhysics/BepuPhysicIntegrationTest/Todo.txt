@@ -2,6 +2,8 @@ Ordered by importance !
 
 -Fix //TODO in code !!
 
+-Fix the last misssing runtime editable feature (MeshContainer Mesh, ...)
+
 -Add wireframe from the Bullet Physics processor (debugging is a pain otherwise)
 https://github.com/stride3d/stride/blob/938da4928cbddd9194f9a07c7380d5cc115f521e/sources/engine/Stride.Physics/Engine/PhysicsShapesRenderingService.cs#L15
 https://github.com/stride3d/stride/blob/938da4928cbddd9194f9a07c7380d5cc115f521e/sources/engine/Stride.Physics/Engine/PhysicsProcessor.cs#L35

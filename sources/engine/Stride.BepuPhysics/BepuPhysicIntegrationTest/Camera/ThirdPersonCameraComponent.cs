@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Stride.Core.Mathematics;
+﻿using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
-using Stride.Physics;
 
 namespace BepuPhysicIntegrationTest.Camera
 {
@@ -23,13 +17,13 @@ namespace BepuPhysicIntegrationTest.Camera
         public bool InvertMouseY = true;
 
         public Vector2 MouseSpeed = new Vector2(1.5f, 1.5f);
-        public float MaxLookUpAngle = -40;
-        public float MaxLookDownAngle = 40;
+        public float MaxLookUpAngle = -360;
+        public float MaxLookDownAngle = 360;
 
         public float MinimumCameraDistance = 1.5f;
         public Vector3 CameraOffset = new Vector3(0, 0, 5);
 
-     
+
 
         public override void Start()
         {
@@ -65,8 +59,9 @@ namespace BepuPhysicIntegrationTest.Camera
                 // Update rotation values with the mouse movement
                 camRotation.Y += mouseMovement.X;
                 camRotation.X += InvertMouseY ? mouseMovement.Y : -mouseMovement.Y;
+
                 camRotation.X = MathUtil.Clamp(camRotation.X, maxCameraAnglesRadians.X, maxCameraAnglesRadians.Y);
-              
+
                 _firstPersonPivot.Transform.Rotation = Quaternion.RotationX(camRotation.X) * Quaternion.RotationY(camRotation.Y);
                 _thirdPersonPivot.Transform.Position = dynCameraOffset;
                 _thirdPersonPivot.Transform.UpdateWorldMatrix();

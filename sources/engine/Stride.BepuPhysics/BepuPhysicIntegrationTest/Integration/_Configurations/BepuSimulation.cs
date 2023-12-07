@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using BepuPhysicIntegrationTest.Integration.Components;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
-using BepuPhysicIntegrationTest.Integration.Components.Utils;
 using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
-using BepuPhysics.CollisionDetection;
-using BepuPhysics.Constraints;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using Stride.Core;
@@ -85,7 +83,6 @@ public class BepuSimulation
     }
     internal void Clear()
     {
-        //TODO : Check if something else should be clear
         //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
         BufferPool.Clear();
         BodiesContainers.Clear();

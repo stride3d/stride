@@ -10,14 +10,40 @@ Hierarchy:
         - ref!! a9aba88b-eb7c-4390-956b-d9a38dcf452b
         - ref!! 68a236eb-82e6-4b17-b8aa-49499ada47f9
         - ref!! b20e7c40-03a8-4243-b6e4-24d201c52765
+        - ref!! 0cb3ed35-97c8-482c-8a58-87b38df65b12
     Parts:
+        -   Entity:
+                Id: 0cb3ed35-97c8-482c-8a58-87b38df65b12
+                Name: dungeon
+                Components:
+                    dfd75f91fa5ef860cf3ab18d38b04a4a: !TransformComponent
+                        Id: 861b66cd-18c9-4c38-ab25-6fb692425503
+                        Position: {X: -12.3661, Y: -26.047407, Z: -78.35221}
+                        Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4533050dfd3fcc4176d50100a32b74b8: !ModelComponent
+                        Id: 4af700c8-d47b-4baf-bc04-9843b70c1518
+                        Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
+                        Materials: {}
+                    fb3724dbdb6f98a022857cad704f28c1: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticMeshContainerComponent,BepuPhysicIntegrationTest
+                        Id: 5e47ca2b-f546-496b-a2d8-777a5c01e2b9
+                        SimulationIndex: 1
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Mass: 1.0
+                        Closed: true
+                        ModelData: ref!! 4af700c8-d47b-4baf-bc04-9843b70c1518
         -   Entity:
                 Id: 104f8ef5-ef01-4361-8f1b-f68d5614bc43
                 Name: Jump1
                 Components:
                     6961414337769221283ce59319f70fa8: !TransformComponent
                         Id: 25462615-7805-4d0f-b283-7aa629da5b3f
-                        Position: {X: -2.8730469, Y: 2.0680501, Z: -29.468857}
+                        Position: {X: -2.8730469, Y: 2.0680501, Z: -13.428349}
                         Rotation: {X: -0.0, Y: 0.0, Z: -0.1305262, W: 0.9914449}
                         Scale: {X: 20.0, Y: 1.0, Z: 20.0}
                         Children: {}
@@ -92,7 +118,7 @@ Hierarchy:
                         Id: 018fa520-5a6d-4d83-9b06-754454499938
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 2500.0, Y: 0.1, Z: 2500.0}
+                        Scale: {X: 50.0, Y: 0.1, Z: 50.0}
                         Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: 093547a1-c196-47ba-8a17-e29c4962de44
@@ -101,7 +127,7 @@ Hierarchy:
                     bdbc7f545c2343e10feb20e6c047b62a: !BepuPhysicIntegrationTest.Integration.Components.Colliders.BoxColliderComponent,BepuPhysicIntegrationTest
                         Id: 68c0ae71-0e42-4a88-98ee-a59084a0b558
                         Mass: 1.0
-                        Size: {X: 2500.0, Y: 0.1, Z: 2500.0}
+                        Size: {X: 50.0, Y: 0.1, Z: 50.0}
                     667a6d677839dc9b735795df85f9e0d7: !BepuPhysicIntegrationTest.Integration.Components.Containers.StaticContainerComponent,BepuPhysicIntegrationTest
                         Id: 96752ac7-15be-4847-8c4d-d41d35b5990c
                         SimulationIndex: 1
@@ -163,7 +189,7 @@ Hierarchy:
                 Components:
                     1b1890cd56924572b6b78c4ce729b9f2: !TransformComponent
                         Id: 648c4506-eb45-4d91-9abc-d20ad8a2b840
-                        Position: {X: 0.0, Y: 4.5056386, Z: 0.0}
+                        Position: {X: 0.0, Y: 4.5056386, Z: 6.5684724}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
