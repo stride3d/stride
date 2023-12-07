@@ -7,7 +7,7 @@ using BepuPhysics.CollisionDetection;
 using BepuPhysics.Constraints;
 using BepuUtilities;
 
-//TODO : allow in editor modifications
+//TODO : allow better Editor/runtime modifications of StridePoseIntegratorCallbacks
 
 namespace BepuPhysicIntegrationTest.Integration
 {

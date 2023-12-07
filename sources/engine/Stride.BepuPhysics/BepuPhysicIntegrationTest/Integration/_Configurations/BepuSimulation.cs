@@ -83,7 +83,6 @@ public class BepuSimulation
     }
     internal void Clear()
     {
-        //TODO : Check if something else should be clear
         //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
         BufferPool.Clear();
         BodiesContainers.Clear();
