@@ -64,7 +64,7 @@ public interface IContactEventHandler
     /// <param name="pair">Collidable pair triggering the event.</param>
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
+    void OnTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, Vector3 contactOffset, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
