@@ -394,6 +394,21 @@ Hierarchy:
                         Closed: true
                         ModelData: ref!! 297791ce-93e6-4420-8645-8cb75cecea52
         -   Entity:
+                Id: 41074201-12d7-44e3-9d28-77d4e368a099
+                Name: RayStart
+                Components:
+                    d525eab18798b4dce3ff7bcc219da3a3: !BepuPhysicIntegrationTest.Integration.Components.Utils.RayCastComponent,BepuPhysicIntegrationTest
+                        Id: 385ee1d2-119d-4023-8bb2-0f4cca6ea316
+                        Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Dir: {X: -1.0, Y: 0.0, Z: 0.0}
+                        MaxT: 100.0
+                    278e2616c6a57b80eef83c84b9629b27: !TransformComponent
+                        Id: 416544b2-7078-4044-aca3-a9f9097d737a
+                        Position: {X: -2.1, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
                 Id: 454cdd54-ab3a-49d7-a1db-ed1f6f99319d
                 Name: ThirdPersonPivot
                 Components:
@@ -1090,6 +1105,150 @@ Hierarchy:
                                 523f53017f71623ed186bc143e9b9578:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
+                                70532cd88bddae7d098ede761737cb6d:
+                                    AccelerationForce: 0.03
+                                    GearRatio: -0.001
+                                c759596e3f139acbda56901211d05689:
+                                    AccelerationForce: 0.045
+                                    GearRatio: 0.0012
+                                149f44aeffe5a28f2d98ab20bdc960c3:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.003
+                                ea7035b53d38088fc9e5f772e002b5fc:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.006
+                                7c9feeca83a06f7ecdd61c12da5f775b:
+                                    AccelerationForce: 0.075
+                                    GearRatio: 0.012
+                                bddc5fc3ff5c1378eb7c4a61b8f8b54b:
+                                    AccelerationForce: 0.06
+                                    GearRatio: 0.016
+                                99d799e3424a698b1c5e7ede293847e2:
+                                    AccelerationForce: 0.03
+                                    GearRatio: -0.001
+                                d6d2ad8ab1b96e6a26107f61761c5a24:
+                                    AccelerationForce: 0.045
+                                    GearRatio: 0.0012
+                                cfdaaa8ed144ce67baa3d8ebe76dc282:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.003
+                                c8ff0fa34d7f21918752771b62066c2a:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.006
+                                5dfc53e7cd5cf79726f1eeb4c5ed56a0:
+                                    AccelerationForce: 0.075
+                                    GearRatio: 0.012
+                                4641b35ff971b770c7338c1d2dcc1c94:
+                                    AccelerationForce: 0.06
+                                    GearRatio: 0.016
+                                70e3e45d8dfac98b1c5a3dfad72f3d81:
+                                    AccelerationForce: 0.03
+                                    GearRatio: -0.001
+                                581f15a0a24d885fd55c8a776fb1ca39:
+                                    AccelerationForce: 0.045
+                                    GearRatio: 0.0012
+                                da94974a123826163e2dcecfdc70d848:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.003
+                                b36d5b342b6c5345711d3cc8b90302dc:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.006
+                                0ab953f3de30ef2570a8670a6c74ec85:
+                                    AccelerationForce: 0.075
+                                    GearRatio: 0.012
+                                69b1009667324e5171114b6fb183860c:
+                                    AccelerationForce: 0.06
+                                    GearRatio: 0.016
+                                887d7e33130344ba6da0f77582c6e556:
+                                    AccelerationForce: 0.03
+                                    GearRatio: -0.001
+                                003f94476920feece497ba03749172aa:
+                                    AccelerationForce: 0.045
+                                    GearRatio: 0.0012
+                                fdaa6bd89377417818050121c8f16984:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.003
+                                2a6bd9f18123d82bdea9d901b7ada825:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.006
+                                26d36c7f6502a5ea4ed5fedb1b68fcb7:
+                                    AccelerationForce: 0.075
+                                    GearRatio: 0.012
+                                4db9156c564a2aa75ef80a58f1f862d7:
+                                    AccelerationForce: 0.06
+                                    GearRatio: 0.016
+                                303440df9e8c975f142205eeb4bc0213:
+                                    AccelerationForce: 0.03
+                                    GearRatio: -0.001
+                                811ed8ff6160745a4274a7ced9db7b2b:
+                                    AccelerationForce: 0.045
+                                    GearRatio: 0.0012
+                                a0f8045959c1a6fb429b0f52ff85f2bb:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.003
+                                bbe4dcbaaad81b7a0a2392bd75649213:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.006
+                                fed59026ba7f15933a81cc9719f42d45:
+                                    AccelerationForce: 0.075
+                                    GearRatio: 0.012
+                                35fec7f2f8bc90189b57cb0ff9faec5f:
+                                    AccelerationForce: 0.06
+                                    GearRatio: 0.016
+                                d52b84cf10b2afc1453eae970507558c:
+                                    AccelerationForce: 0.03
+                                    GearRatio: -0.001
+                                b051fbd56fe87e6f9ae2cb07fc63b7e6:
+                                    AccelerationForce: 0.045
+                                    GearRatio: 0.0012
+                                3c114f50fbb561648d919d01f2538041:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.003
+                                65efe68f9d968a42c7939edfc2d211e8:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.006
+                                7df1f4f755deb229c7ccc6725d347314:
+                                    AccelerationForce: 0.075
+                                    GearRatio: 0.012
+                                830349ac223e31160f0039d96ec4d925:
+                                    AccelerationForce: 0.06
+                                    GearRatio: 0.016
+                                b07f0805bbdaa94260e53c2872ca1f95:
+                                    AccelerationForce: 0.03
+                                    GearRatio: -0.001
+                                f600fd80c3b635a2bd9b42098cc9f6d8:
+                                    AccelerationForce: 0.045
+                                    GearRatio: 0.0012
+                                e5cb506261168f72fa93f2b87986f9d4:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.003
+                                73f9e28474b7c609d0e8f8f2c7ec85c8:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.006
+                                792c91944e6d7e426c8a411a6ac525b3:
+                                    AccelerationForce: 0.075
+                                    GearRatio: 0.012
+                                ca0c385a5c14e3765e07a2b6cf9d1343:
+                                    AccelerationForce: 0.06
+                                    GearRatio: 0.016
+                                bbcbe2acad7d2a00432469363b9a7ee8:
+                                    AccelerationForce: 0.03
+                                    GearRatio: -0.001
+                                fa919908107e6059d651fdc9f2754c6f:
+                                    AccelerationForce: 0.045
+                                    GearRatio: 0.0012
+                                b8afb00f01bebd0037556006ba9b09e8:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.003
+                                bafa150e55f8f9161b8eac8003d43da2:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.006
+                                3b2cf28a6e18b7327d4c2d33a7524b85:
+                                    AccelerationForce: 0.075
+                                    GearRatio: 0.012
+                                b7f50a7ba3086aefaa554858c5d7d8cc:
+                                    AccelerationForce: 0.06
+                                    GearRatio: 0.016
                         BreakingForce: 0.1
                         MaximumSteeringAngle: 30.0
                         SteeringSpeed: 0.5
@@ -1749,6 +1908,7 @@ Hierarchy:
                         Children:
                             c4e62ca9bd7fc0c51227f1ed763321da: ref!! c30993d7-6b25-4b35-b4fc-e442346b5082
                             a138792f8c3c976a03c2696f61197fbb: ref!! 7fb7a2c0-1d02-4dae-8907-1a488bff98f7
+                            392917acfae12231b81cafd754e41495: ref!! 416544b2-7078-4044-aca3-a9f9097d737a
                     e433217afc16eeb130d60437d39781ec: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 1571cbc7-6324-40cd-90a7-0b2d0fefcfe9
                         SimulationIndex: 0

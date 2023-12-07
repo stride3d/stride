@@ -18,11 +18,13 @@ namespace BepuPhysicIntegrationTest.Integration.Configurations;
 public class BepuSimulation
 {
     private readonly List<SimulationUpdateComponent> _simulationUpdateComponents = new();
+    private HitHandler DefaultHitHandler = new HitHandler();
 
     internal ThreadDispatcher ThreadDispatcher { get; set; }
     internal BufferPool BufferPool { get; set; }
     internal ContactEvents ContactEvents { get; private set; }
-    internal Simulation Simulation { get; private set; }
+    [DataMemberIgnore]
+    public Simulation Simulation { get; private set; }
 
     internal Dictionary<BodyHandle, BodyContainerComponent> BodiesContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
     internal Dictionary<StaticHandle, StaticContainerComponent> StaticsContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
@@ -69,12 +71,12 @@ public class BepuSimulation
     [Display(32, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 
-    private HitHandler DefaultHitHandler = new HitHandler();
 
     public HitResult RayCast(Vector3 origin, Vector3 dir, float maxT)
     {
+        DefaultHitHandler.Reset();
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultHitHandler);
-        return DefaultHitHandler.Hit.DeepClone();
+        return DefaultHitHandler.Hit;
     }
 
 #pragma warning disable CS8618 //Done in setup to avoid 2 times the samecode.

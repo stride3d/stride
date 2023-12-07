@@ -15,6 +15,7 @@ namespace BepuPhysicIntegrationTest.Integration.Configurations
     {
         public HitHandler()
         {
+            Reset();
         }
 
         public HitResult Hit = new();
@@ -31,7 +32,14 @@ namespace BepuPhysicIntegrationTest.Integration.Configurations
             return true;
         }
 
-        public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
+        public void Reset()
+        {
+            Hit.Normal = Vector3.Zero;
+            Hit.T = 0;
+            Hit.Collidable = null;
+            Hit.Hit = false;
+        }
+        void IRayHitHandler.OnRayHit(in BepuPhysics.Trees.RayData ray, ref float maximumT, float t, System.Numerics.Vector3 normal, BepuPhysics.Collidables.CollidableReference collidable, int childIndex)
         {
             Hit.Normal = normal;
             Hit.T = t;
@@ -44,7 +52,7 @@ namespace BepuPhysicIntegrationTest.Integration.Configurations
     {
         public Vector3 Normal;
         public float T;
-        public CollidableReference Collidable;
+        public CollidableReference? Collidable;
         public bool Hit;
     }
 }
