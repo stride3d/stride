@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using BepuPhysicIntegrationTest.Integration.Components.Collisions;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
@@ -120,7 +121,8 @@ namespace BepuPhysicIntegrationTest.Integration
             public byte colliderGroupMask;
         }
 
-        public CollidableProperty<MaterialProperties> CollidableMaterials;
+        internal CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
+        internal ContactEvents ContactEvents { get; set; }
 
         public void Initialize(Simulation simulation)
         {
@@ -162,6 +164,7 @@ namespace BepuPhysicIntegrationTest.Integration
             pairMaterial.FrictionCoefficient = a.FrictionCoefficient * b.FrictionCoefficient;
             pairMaterial.MaximumRecoveryVelocity = MathF.Max(a.MaximumRecoveryVelocity, b.MaximumRecoveryVelocity);
             pairMaterial.SpringSettings = pairMaterial.MaximumRecoveryVelocity == a.MaximumRecoveryVelocity ? a.SpringSettings : b.SpringSettings;
+            ContactEvents.HandleManifold(workerIndex, pair, ref manifold);
             return true;
         }
 
