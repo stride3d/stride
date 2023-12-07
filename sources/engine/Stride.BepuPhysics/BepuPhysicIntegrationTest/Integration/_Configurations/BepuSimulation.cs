@@ -9,6 +9,7 @@ using BepuUtilities;
 using BepuUtilities.Memory;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Core.Shaders.Ast;
 using static BepuPhysicIntegrationTest.Integration.StrideNarrowPhaseCallbacks;
 
 namespace BepuPhysicIntegrationTest.Integration.Configurations;
@@ -68,6 +69,14 @@ public class BepuSimulation
     [Display(32, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 
+    private HitHandler DefaultHitHandler = new HitHandler();
+
+    public HitResult RayCast(Vector3 origin, Vector3 dir, float maxT)
+    {
+        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultHitHandler);
+        return DefaultHitHandler.Hit.DeepClone();
+    }
+
 #pragma warning disable CS8618 //Done in setup to avoid 2 times the samecode.
     public BepuSimulation()
 #pragma warning restore CS8618 
@@ -95,6 +104,7 @@ public class BepuSimulation
         BufferPool.Clear();
         BodiesContainers.Clear();
         StaticsContainers.Clear();
+        ContactEvents.Dispose();
         Setup();
     }
 

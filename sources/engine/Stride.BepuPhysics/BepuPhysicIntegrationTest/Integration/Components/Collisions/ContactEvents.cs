@@ -34,8 +34,8 @@ public class ContactEvents : IDisposable
     }
 
     Simulation simulation;
-    IThreadDispatcher threadDispatcher;
-    BufferPool pool;
+    IThreadDispatcher? threadDispatcher;
+    BufferPool? pool;
 
     //We'll use a handle->index mapping in a CollidableProperty to point at our contiguously stored listeners (in the later listeners array).
     //Note that there's also IndexSets for the statics and bodies; those will be checked first before accessing the listenerIndices.
