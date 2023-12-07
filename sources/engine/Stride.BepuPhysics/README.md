@@ -2,6 +2,16 @@
 
 Integrating [Bepu Physics v2](https://github.com/bepu/bepuphysics2) into [Stride](https://github.com/stride3d/stride).
 
+## Features
+
+1. Simulations: Highly configurable simulation & multi-simulation
+2. Bodies: Static, dynamic, and kinematic
+3. Colliders: MeshCollider, ConvexHullCollider, Box, Sphere, Cylinder, Capsule, Triangle (Note: MeshCollider is categorized as a "body"; further details in the documentation)
+4. Collision Handler System by body & RayCast system
+5. CharacterController (Work in Progress)
+6. CarController
+7. Numerous utility scripts & scenes to aid understanding and usage of this Bepu implementation in Stride.
+
 ## Usage
 
 Clone this repository to your local machine and utilize it either as a library within your Stride project or as an independent Stride project.
