@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
+using BepuPhysicIntegrationTest.Integration.Components.Collisions;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysicIntegrationTest.Integration.Extensions;
@@ -19,11 +20,9 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
         private BepuConfiguration _bepuConfiguration = new();
-        private IGame _game;
+        private IGame? _game = null;
 
-#pragma warning disable CS8618 
         public ContainerProcessor()
-#pragma warning restore CS8618 
         {
             Order = 10000;
         }
@@ -44,11 +43,19 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
+            if (_game == null)
+                throw new Exception("Game is null");
+
             component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.BuildOrUpdateContainer();
+            if (component.ContactEventHandler != null && !component.IsRegistered())
+                component.RegisterContact();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
+            if (component.IsRegistered())
+                component.UnregisterContact();
+
             component.ContainerData?.DestroyContainer();
             component.ContainerData = null;
         }
@@ -83,6 +90,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 {
                     bepuSim.CallSimulationUpdate(bepuSim.SimulationFixedStep / 1000f);//cal the SimulationUpdate with the real step time of the sim in secs
                     bepuSim.Simulation.Timestep(bepuSim.SimulationFixedStep / 1000f, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
+                    bepuSim.ContactEvents.Flush(); //Fire events handlers stuffs.
                     bepuSim.RemainingUpdateTime -= bepuSim.SimulationFixedStep;
                     stepCount++;
                 }
@@ -166,7 +174,6 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             ContainerComponent = containerComponent;
             BepuConfiguration = bepuConfiguration;
             _game = game;
-
         }
 
         internal void BuildOrUpdateContainer()
@@ -342,6 +349,11 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         internal void DestroyContainer()
         {
             ContainerComponent.CenterOfMass = new();
+
+            if (ContainerComponent.IsRegistered())
+            {
+                ContainerComponent.UnregisterContact();
+            }
 
             if (BHandle.Value != -1 && BepuSimulation.Simulation.Bodies.BodyExists(BHandle))
             {

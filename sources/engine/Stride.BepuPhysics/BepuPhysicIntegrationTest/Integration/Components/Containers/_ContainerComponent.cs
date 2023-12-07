@@ -1,4 +1,5 @@
-﻿using BepuPhysicIntegrationTest.Integration.Processors;
+﻿using BepuPhysicIntegrationTest.Integration.Components.Collisions;
+using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -19,6 +20,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
         private float _frictionCoefficient = 1f;
         private float _maximumRecoveryVelocity = 1000;
         private byte _colliderGroupMask = byte.MaxValue; //1111 1111 => collide with everything
+
+        private IContactEventHandler? _contactEventHandler = null;
 
         public int SimulationIndex
         {
@@ -88,6 +91,39 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
             }
         }
 
+        internal bool RegisterContact()
+        {
+            if (ContainerData?.Exist != true || ContactEventHandler == null)
+                return false;
+
+            if (ContainerData.isStatic)
+                ContainerData.BepuSimulation.ContactEvents.Register(ContainerData.SHandle, ContactEventHandler);
+            else
+                ContainerData.BepuSimulation.ContactEvents.Register(ContainerData.BHandle, ContactEventHandler);
+
+            return true;
+        }
+        internal bool UnregisterContact()
+        {
+            if (ContainerData?.Exist != true)
+                return false;
+
+            if (ContainerData.isStatic)
+                ContainerData.BepuSimulation.ContactEvents.Unregister(ContainerData.SHandle);
+            else
+                ContainerData.BepuSimulation.ContactEvents.Unregister(ContainerData.BHandle);
+            return true;
+        }
+        public bool IsRegistered()
+        {
+            if (ContainerData?.Exist != true)
+                return false;
+
+            if (ContainerData.isStatic)
+                return ContainerData.BepuSimulation.ContactEvents.IsListener(ContainerData.SHandle);
+            else
+                return ContainerData.BepuSimulation.ContactEvents.IsListener(ContainerData.BHandle);
+        }
 
         public Vector3 CenterOfMass { get; internal set; } = new Vector3();
 
@@ -97,5 +133,18 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
         /// </summary>
         [DataMemberIgnore]
         internal ContainerData? ContainerData { get; set; }
+
+        public IContactEventHandler? ContactEventHandler
+        {
+            get => _contactEventHandler;
+            set
+            {
+                if (IsRegistered())
+                    UnregisterContact();
+
+                _contactEventHandler = value;
+                RegisterContact();
+            }
+        }
     }
 }

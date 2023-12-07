@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using BepuPhysicIntegrationTest.Integration.Components;
+using BepuPhysicIntegrationTest.Integration.Components.Collisions;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
@@ -8,6 +9,7 @@ using BepuUtilities;
 using BepuUtilities.Memory;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Core.Shaders.Ast;
 using static BepuPhysicIntegrationTest.Integration.StrideNarrowPhaseCallbacks;
 
 namespace BepuPhysicIntegrationTest.Integration.Configurations;
@@ -16,12 +18,17 @@ namespace BepuPhysicIntegrationTest.Integration.Configurations;
 public class BepuSimulation
 {
     private readonly List<SimulationUpdateComponent> _simulationUpdateComponents = new();
+    private HitHandler DefaultHitHandler = new HitHandler();
 
     internal ThreadDispatcher ThreadDispatcher { get; set; }
     internal BufferPool BufferPool { get; set; }
-    internal Simulation Simulation { get; private set; }
+    internal ContactEvents ContactEvents { get; private set; }
+    [DataMemberIgnore]
+    public Simulation Simulation { get; private set; }
+
     internal Dictionary<BodyHandle, BodyContainerComponent> BodiesContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
     internal Dictionary<StaticHandle, StaticContainerComponent> StaticsContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
+
     internal float RemainingUpdateTime { get; set; } = 0;
 
     internal CollidableProperty<MaterialProperties> CollidableMaterials = new CollidableProperty<MaterialProperties>();
@@ -64,6 +71,14 @@ public class BepuSimulation
     [Display(32, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 
+
+    public HitResult RayCast(Vector3 origin, Vector3 dir, float maxT)
+    {
+        DefaultHitHandler.Reset();
+        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultHitHandler);
+        return DefaultHitHandler.Hit;
+    }
+
 #pragma warning disable CS8618 //Done in setup to avoid 2 times the samecode.
     public BepuSimulation()
 #pragma warning restore CS8618 
@@ -72,14 +87,18 @@ public class BepuSimulation
     }
     private void Setup()
     {
-        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
-        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials };
-        var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks();
-        var _solveDescription = new SolveDescription(1, 1);
+        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);      
 
         ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
         BufferPool = new BufferPool();
+        ContactEvents = new ContactEvents(ThreadDispatcher, BufferPool);
+
+        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials, ContactEvents = ContactEvents };
+        var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks();
+        var _solveDescription = new SolveDescription(1, 1);
+
         Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
+        ContactEvents.Initialize(Simulation);
     }
     internal void Clear()
     {
@@ -87,6 +106,7 @@ public class BepuSimulation
         BufferPool.Clear();
         BodiesContainers.Clear();
         StaticsContainers.Clear();
+        ContactEvents.Dispose();
         Setup();
     }
 

@@ -37,6 +37,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -66,6 +67,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -109,6 +111,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -142,6 +145,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -182,6 +186,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -201,6 +206,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -294,6 +300,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -319,6 +326,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -352,6 +360,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -377,12 +386,28 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Mass: 10.0
                         Closed: true
                         ModelData: ref!! 297791ce-93e6-4420-8645-8cb75cecea52
+        -   Entity:
+                Id: 41074201-12d7-44e3-9d28-77d4e368a099
+                Name: RayStart
+                Components:
+                    d525eab18798b4dce3ff7bcc219da3a3: !BepuPhysicIntegrationTest.Integration.Components.Utils.RayCastComponent,BepuPhysicIntegrationTest
+                        Id: 385ee1d2-119d-4023-8bb2-0f4cca6ea316
+                        Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Dir: {X: -1.0, Y: 0.0, Z: 0.0}
+                        MaxT: 100.0
+                    278e2616c6a57b80eef83c84b9629b27: !TransformComponent
+                        Id: 416544b2-7078-4044-aca3-a9f9097d737a
+                        Position: {X: -2.1, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
         -   Entity:
                 Id: 454cdd54-ab3a-49d7-a1db-ed1f6f99319d
                 Name: ThirdPersonPivot
@@ -416,6 +441,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -445,6 +471,7 @@ Hierarchy:
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -528,6 +555,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -557,6 +585,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -582,6 +611,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -614,6 +644,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -629,6 +660,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -722,6 +754,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -751,6 +784,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -838,6 +872,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
         -   Entity:
                 Id: 9372f2e7-5d24-4968-a90e-3e4c58b63eef
                 Name: Jump3
@@ -864,6 +899,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -893,6 +929,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -922,6 +959,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -951,6 +989,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1012,238 +1051,202 @@ Hierarchy:
                             MaxRPM: 10000
                             EngineBreakForce: 0.001
                             Gears:
-                                70ef10c36ad23dca48e18a574386b037:
+                                697d8064101cea48c60c052c5432b22f:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                8de9efac3a6a5265f83f5a121d70f41a:
+                                322c3dc1418df7fbc565ea172fadaf24:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                7bc4d28657bfa201ea6f0a200ea6677e:
+                                8e09b072fdd9bd4718264b99f1ee638c:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                f1ed52bb6039538c3cf3ab081cbfe235:
+                                6cab1c08f074cbb217dfea9feee96a24:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                1fe2253845965fe54062bdf1d75680dd:
+                                767c1351e55900e068470730ec3cd405:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                0b3170dcc84432931f530dcc55a74f40:
+                                9b98b47d3134e42077e3380f2e02c45d:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                be809b325a29aacd61f54d70b0e9882c:
+                                59cc4ede37e7472ae07aeda5e35a1aaa:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                bb4b0f2bf3f506fd548fa23c422602fb:
+                                49ad8714d2f7485856d48aaee536815d:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                09501e82b71f8af6665e6008fb5a80c3:
+                                83174e0e5ec23b4c51a899d158fdc08d:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                51174ebc1123ab360501c6c54679560b:
+                                84df3d63c59062e66c255fc947e92dd2:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                d8abc707d33358b5aabf5ec194839777:
+                                19d662192294c423127c30d8f8c02031:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                91d41833596fb2a642cdcff5ef192349:
+                                ad94656ff55e55bce2d77b478357bf88:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                ab30207cf77ff70aac8dad7aa30e119b:
+                                cbee59e50efe543a07e4c9241f031ebd:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                0af12d5ae161a1a743cc5dbcf957d821:
+                                1af1118c7141b48c0aef53cea1690d61:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                7f858512651a39416ed44c2f20bfef9b:
+                                47544fdefa24d90ba40f61dec5f5813a:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                f9098e11d055f4008021494a8f634371:
+                                dfde727c0cc8d2263cb02e508f014f44:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                8b82b154b133a0429688be09424dd523:
+                                dbc382774e85c6b6cb455c6920bbef4e:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                cd943f88c89e12c7466cadc6ad1c78f4:
+                                523f53017f71623ed186bc143e9b9578:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                97931d66eacf2c19dbf8bf1b97ad2a13:
+                                70532cd88bddae7d098ede761737cb6d:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                a31e9a6ee668ce467dce9052334a9bbb:
+                                c759596e3f139acbda56901211d05689:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                103b03af6d010b5f205fcec37640177f:
+                                149f44aeffe5a28f2d98ab20bdc960c3:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                fa044f6e68b6f18dfd2bccaa3e111e3e:
+                                ea7035b53d38088fc9e5f772e002b5fc:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                ede5308e4a99e2aaf86ebf18527518f0:
+                                7c9feeca83a06f7ecdd61c12da5f775b:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                8171813e63851dd44902b12519d8b077:
+                                bddc5fc3ff5c1378eb7c4a61b8f8b54b:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                136e828f2f8f06af4c5759669a385154:
+                                99d799e3424a698b1c5e7ede293847e2:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                e58da253d9d9fcff333995e0ad99fc20:
+                                d6d2ad8ab1b96e6a26107f61761c5a24:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                83d0a407989e10f6a8e6e93cb0377f39:
+                                cfdaaa8ed144ce67baa3d8ebe76dc282:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                3a20cdb060f9b9acfb894b2c56d8ffa8:
+                                c8ff0fa34d7f21918752771b62066c2a:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                fe9c07530f41e8e1a9a4dc54e3730a5f:
+                                5dfc53e7cd5cf79726f1eeb4c5ed56a0:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                cbe88606904fa6848370e97bfa5ececb:
+                                4641b35ff971b770c7338c1d2dcc1c94:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                9d75f0b8a6383992ef4ca5c83ef937fd:
+                                70e3e45d8dfac98b1c5a3dfad72f3d81:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                77ec83880da749c2a20575759f6bc55a:
+                                581f15a0a24d885fd55c8a776fb1ca39:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                9701fb6a4e1e2044696d70a9240a11ad:
+                                da94974a123826163e2dcecfdc70d848:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                c15663053b13a939828af180f9c0c265:
+                                b36d5b342b6c5345711d3cc8b90302dc:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                53838dec5c5234563d899550036573a3:
+                                0ab953f3de30ef2570a8670a6c74ec85:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                0e05fb8fbe20393ced4570e2eb7f5922:
+                                69b1009667324e5171114b6fb183860c:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                fce41650847b00eec488202558b7d8d7:
+                                887d7e33130344ba6da0f77582c6e556:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                dfe3831122a59ff6e758dfd19b35fe5f:
+                                003f94476920feece497ba03749172aa:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                bdd9a8fa9989401ffda135624f89a9c6:
+                                fdaa6bd89377417818050121c8f16984:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                5bb81bb7bb2974ecc5a70cc39fc7b52b:
+                                2a6bd9f18123d82bdea9d901b7ada825:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                3c9bc72dbe1805d429f5be87e8530271:
+                                26d36c7f6502a5ea4ed5fedb1b68fcb7:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                e90609116ce5065ce3c55fcd3e22bbd1:
+                                4db9156c564a2aa75ef80a58f1f862d7:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                e22448245b38c31e59980e6fa35ec73d:
+                                303440df9e8c975f142205eeb4bc0213:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                da11abaca2b0df43348d78e2993c782e:
+                                811ed8ff6160745a4274a7ced9db7b2b:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                8de70da28665892398c1f813b7542ca6:
+                                a0f8045959c1a6fb429b0f52ff85f2bb:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                0886988451f258ad3024673c6f798753:
+                                bbe4dcbaaad81b7a0a2392bd75649213:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                5704f3a02214eb8dc1c803af6d5861b3:
+                                fed59026ba7f15933a81cc9719f42d45:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                8072c2428c04e660bb820a9892b76841:
+                                35fec7f2f8bc90189b57cb0ff9faec5f:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                9ce4c6fc4f6f19b3268454c0d838df12:
+                                d52b84cf10b2afc1453eae970507558c:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                9c4d56b57095f90ee05db65db9c3fb66:
+                                b051fbd56fe87e6f9ae2cb07fc63b7e6:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                7e2c145bd39a39c7441e54b286d359ef:
+                                3c114f50fbb561648d919d01f2538041:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                74dafb5db9ed0f37367c004638022b7b:
+                                65efe68f9d968a42c7939edfc2d211e8:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                ad8028844c17e179b3aebc5b0d1030ee:
+                                7df1f4f755deb229c7ccc6725d347314:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                20c8d9d49e864096fafadf1e00f3d371:
+                                830349ac223e31160f0039d96ec4d925:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                370415e67adcb4aa06c5f66889db8e2a:
+                                b07f0805bbdaa94260e53c2872ca1f95:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                aab95c210ac5a2f62bea25802c8f643a:
+                                f600fd80c3b635a2bd9b42098cc9f6d8:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                1c7bcc23d2750461d5b7bb19c63891e4:
+                                e5cb506261168f72fa93f2b87986f9d4:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                bf7273378c25aecfc88dd3d8e172d9bb:
+                                73f9e28474b7c609d0e8f8f2c7ec85c8:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                a55c9069ed857cbabbda7cc891477752:
+                                792c91944e6d7e426c8a411a6ac525b3:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                c208583379cfb76401bb21a1aebf167d:
+                                ca0c385a5c14e3765e07a2b6cf9d1343:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                cebe53c69e5922e4954868901203d321:
+                                bbcbe2acad7d2a00432469363b9a7ee8:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                3542c90a59bcc83f403b6d5e621dde63:
+                                fa919908107e6059d651fdc9f2754c6f:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                d56383e28c5bba94ff315ab089a26590:
+                                b8afb00f01bebd0037556006ba9b09e8:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                2d751df8b7d8684219369e176bae5a91:
+                                bafa150e55f8f9161b8eac8003d43da2:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                8a238c9569cfdb41854e6917b282392f:
+                                3b2cf28a6e18b7327d4c2d33a7524b85:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                40d9f4fc0ef6608c21cfcc5ff87b1fa8:
-                                    AccelerationForce: 0.06
-                                    GearRatio: 0.016
-                                d2e4c4fe056f9f8ab9f3bbff11ec4922:
-                                    AccelerationForce: 0.03
-                                    GearRatio: -0.001
-                                ed0b3ce21527f6db9124c8ba56ec1b0c:
-                                    AccelerationForce: 0.045
-                                    GearRatio: 0.0012
-                                9ac07e2887f9ac5d1a2d0aff404f78c8:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.003
-                                25ff6ebb11c009cd5cf1f61d8d737438:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.006
-                                be451d4c35dc190e240049ec7ca72ab9:
-                                    AccelerationForce: 0.075
-                                    GearRatio: 0.012
-                                96902084c5b3b66cc80abea78b402443:
-                                    AccelerationForce: 0.06
-                                    GearRatio: 0.016
-                                cda7aaf4a1386735e878823d1d7e2ba4:
-                                    AccelerationForce: 0.03
-                                    GearRatio: -0.001
-                                f3be2524117bd43fd6f212291e783d8b:
-                                    AccelerationForce: 0.045
-                                    GearRatio: 0.0012
-                                d2c7a5c699b1b9c20ed4a6d49de00863:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.003
-                                1008ad88e712438bc4ff9c28d5e4182b:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.006
-                                4a619a69134f032cc96091bb7eb7d2c9:
-                                    AccelerationForce: 0.075
-                                    GearRatio: 0.012
-                                a218c94341e57769fa2de398748194d0:
+                                b7f50a7ba3086aefaa554858c5d7d8cc:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
                         BreakingForce: 0.1
@@ -1262,6 +1265,12 @@ Hierarchy:
                         MaxLookDownAngle: 360.0
                         MinimumCameraDistance: 1.5
                         CameraOffset: {X: 0.0, Y: 0.0, Z: 10.0}
+                    c32de4ce2f91d8c288a1714c07f8d4f8: !BepuPhysicIntegrationTest.Integration.Components.Utils.CollisionComponent,BepuPhysicIntegrationTest
+                        Id: c52b4d28-a79b-4b73-aae5-31aa2664d5dc
+                        Container1: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest ref!! b013e2de-4def-42c8-9d3a-d9cd5d29e664
+                        Container2: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest ref!! c1d32a7a-610f-48d6-84d8-b68762b119b8
+                        Container3: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest ref!! 68c75021-31aa-43d1-9be2-be63b703ed83
+                        Container4: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest ref!! 59e4ebf6-14b1-4911-bc4b-66063fafa34a
         -   Entity:
                 Id: a0a6e0e3-71f9-4449-973c-eccc644440fd
                 Name: GeoSphere
@@ -1284,6 +1293,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1400,6 +1410,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1443,6 +1454,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Mass: 1.0
                         Closed: true
                         ModelData: ref!! ff4715b1-1ada-4874-a4dc-c0539009c02d
@@ -1468,6 +1480,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1520,6 +1533,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1549,6 +1563,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 254
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1588,6 +1603,7 @@ Hierarchy:
                         FrictionCoefficient: 0.9
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1638,6 +1654,7 @@ Hierarchy:
                         FrictionCoefficient: 2.5
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1675,6 +1692,7 @@ Hierarchy:
                         FrictionCoefficient: 0.9
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1722,6 +1740,7 @@ Hierarchy:
                         FrictionCoefficient: 2.5
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1748,6 +1767,7 @@ Hierarchy:
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1837,6 +1857,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1866,6 +1887,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1886,6 +1908,7 @@ Hierarchy:
                         Children:
                             c4e62ca9bd7fc0c51227f1ed763321da: ref!! c30993d7-6b25-4b35-b4fc-e442346b5082
                             a138792f8c3c976a03c2696f61197fbb: ref!! 7fb7a2c0-1d02-4dae-8907-1a488bff98f7
+                            392917acfae12231b81cafd754e41495: ref!! 416544b2-7078-4044-aca3-a9f9097d737a
                     e433217afc16eeb130d60437d39781ec: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: 1571cbc7-6324-40cd-90a7-0b2d0fefcfe9
                         SimulationIndex: 0
@@ -1894,6 +1917,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 254
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32

@@ -96,6 +96,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
         -   Entity:
                 Id: 760df096-af47-4f0e-8994-35fbdea3f9bd
                 Name: Directional light
