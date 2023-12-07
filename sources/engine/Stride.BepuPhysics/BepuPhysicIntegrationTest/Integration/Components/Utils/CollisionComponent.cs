@@ -45,36 +45,15 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
     {
         public bool Contact { get; private set; } = false;
 
-        void IContactEventHandler.OnPairCreated<TManifold>(BepuPhysics.Collidables.CollidableReference eventSource, BepuPhysics.CollisionDetection.CollidablePair pair, ref TManifold contactManifold, int workerIndex)
-        {
-            Console.WriteLine("pc");
-        }
-
-        void IContactEventHandler.OnPairEnded(BepuPhysics.Collidables.CollidableReference eventSource, BepuPhysics.CollisionDetection.CollidablePair pair)
-        {
-            Console.WriteLine("pe");
-        }
-
-        void IContactEventHandler.OnStartedTouching<TManifold>(BepuPhysics.Collidables.CollidableReference eventSource, BepuPhysics.CollisionDetection.CollidablePair pair, ref TManifold contactManifold, int workerIndex)
+        void IContactEventHandler.OnStartedTouching<TManifold>(BepuPhysics.Collidables.CollidableReference eventSource, BepuPhysics.CollisionDetection.CollidablePair pair, ref TManifold contactManifold, int contactIndex, int workerIndex)
         {
             Contact = true;
-            Console.WriteLine("stot");
+
         }
 
-        void IContactEventHandler.OnStoppedTouching<TManifold>(BepuPhysics.Collidables.CollidableReference eventSource, BepuPhysics.CollisionDetection.CollidablePair pair, ref TManifold contactManifold, int workerIndex)
+        void IContactEventHandler.OnStoppedTouching<TManifold>(BepuPhysics.Collidables.CollidableReference eventSource, BepuPhysics.CollisionDetection.CollidablePair pair, ref TManifold contactManifold, int contactIndex, int workerIndex)
         {
             Contact = false;
-            Console.WriteLine("stat");
-        }
-
-        void IContactEventHandler.OnContactAdded<TManifold>(BepuPhysics.Collidables.CollidableReference eventSource, BepuPhysics.CollisionDetection.CollidablePair pair, ref TManifold contactManifold, System.Numerics.Vector3 contactOffset, System.Numerics.Vector3 contactNormal, float depth, int featureId, int contactIndex, int workerIndex)
-        {
-            Console.WriteLine("ca");
-        }
-
-        void IContactEventHandler.OnContactRemoved<TManifold>(BepuPhysics.Collidables.CollidableReference eventSource, BepuPhysics.CollisionDetection.CollidablePair pair, ref TManifold contactManifold, int removedFeatureId, int workerIndex)
-        {
-            Console.WriteLine("cr");
         }
 
     }

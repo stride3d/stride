@@ -10,7 +10,6 @@ Hierarchy:
         - ref!! a9aba88b-eb7c-4390-956b-d9a38dcf452b
         - ref!! 68a236eb-82e6-4b17-b8aa-49499ada47f9
         - ref!! b20e7c40-03a8-4243-b6e4-24d201c52765
-        - ref!! 0cb3ed35-97c8-482c-8a58-87b38df65b12
     Parts:
         -   Entity:
                 Id: 0cb3ed35-97c8-482c-8a58-87b38df65b12
@@ -18,7 +17,7 @@ Hierarchy:
                 Components:
                     dfd75f91fa5ef860cf3ab18d38b04a4a: !TransformComponent
                         Id: 861b66cd-18c9-4c38-ab25-6fb692425503
-                        Position: {X: -12.3661, Y: -26.047407, Z: -78.35221}
+                        Position: {X: -12.3661, Y: -24.865467, Z: -78.35221}
                         Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -34,6 +33,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Mass: 1.0
                         Closed: true
                         ModelData: ref!! 4af700c8-d47b-4baf-bc04-9843b70c1518
@@ -63,6 +63,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -118,7 +119,7 @@ Hierarchy:
                         Id: 018fa520-5a6d-4d83-9b06-754454499938
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 50.0, Y: 0.1, Z: 50.0}
+                        Scale: {X: 50.0, Y: 0.5, Z: 50.0}
                         Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: 093547a1-c196-47ba-8a17-e29c4962de44
@@ -136,13 +137,14 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
         -   Entity:
                 Id: 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                 Name: Camera
                 Components:
                     16a829ff2882b04998b348f6e38aafdf: !TransformComponent
                         Id: fbd3e932-6bf5-4b35-85bb-bc169f5206f4
-                        Position: {X: 0.0, Y: 1.5, Z: 0.0}
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -151,6 +153,20 @@ Hierarchy:
                         Name: null
                         Projection: Perspective
                         Slot: be74c9be-5861-4bea-90b0-b175535210f7
+        -   Entity:
+                Id: a5ab85f6-8ddb-4a0f-b14b-85843643fc60
+                Name: CapsuleModel
+                Components:
+                    6e28ce73a4a382e33e8e744326ed1fda: !TransformComponent
+                        Id: c7eaa95d-05cc-4032-84cf-e78be01fb256
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5ae917ac24a68c3a380400a6c8e2bfa6: !ModelComponent
+                        Id: 92240795-6d15-49da-ae41-7a3c06b12903
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Materials: {}
         -   Entity:
                 Id: a9aba88b-eb7c-4390-956b-d9a38dcf452b
                 Name: Skybox
@@ -183,6 +199,21 @@ Hierarchy:
                             9732fe286d70b4dee2d3598d7a29238c: ref!! 018fa520-5a6d-4d83-9b06-754454499938
                             35b09a039adfe1787082d9434605c512: ref!! 648c4506-eb45-4d91-9abc-d20ad8a2b840
                             2bc520bb455f5094a9577cacebb484a0: ref!! 25462615-7805-4d0f-b283-7aa629da5b3f
+                            66268939822ec9ff72ab954ab26bb449: ref!! 861b66cd-18c9-4c38-ab25-6fb692425503
+        -   Entity:
+                Id: b694adab-d89a-4d0c-aa3f-c12d05d48831
+                Name: HeadModel
+                Components:
+                    29e94d9ae9bc8d24d85e6154bf7e312b: !TransformComponent
+                        Id: 56937389-79d7-4227-9bc0-0778bb55ba15
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.4, Y: 0.4, Z: 0.4}
+                        Children: {}
+                    6ec11bfd503d584f4a2d56d8b71b7322: !ModelComponent
+                        Id: 5dcf1c78-6682-4e7e-9173-13ae78f5dc2f
+                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Materials: {}
         -   Entity:
                 Id: bdc9f16d-92a2-401f-a719-5c385c3b68ad
                 Name: Player
@@ -194,12 +225,14 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             9c043aa05eeeb48303292605df5d47a7: ref!! 208628ad-d844-4b8f-85da-051838e7a82d
+                            d598fb00d865cb8c873573206ac94e9f: ref!! c7eaa95d-05cc-4032-84cf-e78be01fb256
                     b7110c9c8c51e0455af2bf8a655a6aac: !BepuPhysicIntegrationTest.Integration.Components.Utils.BepuCharacterComponent,BepuPhysicIntegrationTest
                         Id: a131ea29-573b-4c28-bcfe-21ac55240494
                         SimulationIndex: 1
                         Speed: 10.0
                         JumpSpeed: 1.0
                         CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153
+                        CharacterCapsule: ref!! 985dc8b0-37af-465f-ab06-bfd602779684
                     3eb8764040f9f592300c41e20487413e: !BepuPhysicIntegrationTest.Integration.Components.Utils.CharacterControllerComponent,BepuPhysicIntegrationTest
                         Id: bc91d70a-eeea-43ee-b8aa-a20873a9c7c5
                         CameraPivot: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a
@@ -209,8 +242,8 @@ Hierarchy:
                     0bc21671e675022db8706abb28542933: !BepuPhysicIntegrationTest.Integration.Components.Colliders.CapsuleColliderComponent,BepuPhysicIntegrationTest
                         Id: 985dc8b0-37af-465f-ab06-bfd602779684
                         Mass: 1.0
-                        Radius: 1.0
-                        Length: 1.0
+                        Radius: 0.35
+                        Length: 0.5
                     672f629e832394ac3bf7be464b178ae3: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyContainerComponent,BepuPhysicIntegrationTest
                         Id: f6ebac31-2bed-4a87-ba4f-34b56c9a2153
                         SimulationIndex: 1
@@ -219,6 +252,7 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
+                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -228,8 +262,13 @@ Hierarchy:
                 Components:
                     07f6257b1aa5e5e23d41e4d7bdd02b3e: !TransformComponent
                         Id: 208628ad-d844-4b8f-85da-051838e7a82d
-                        Position: {X: 0.0, Y: 0.5, Z: 0.0}
+                        Position: {X: 0.0, Y: 0.8, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db8142cc8137d12c68337cc406d5bebd: ref!! fbd3e932-6bf5-4b35-85bb-bc169f5206f4
+                            fe75b2f4da8a70e1fbd2608754b0c0af: ref!! 56937389-79d7-4227-9bc0-0778bb55ba15
+                    5c35081b119df8735d24283fa349ccb1: !BepuPhysicIntegrationTest.Integration.Components.Colliders.SphereColliderComponent,BepuPhysicIntegrationTest
+                        Id: 69326fdd-82fa-41e3-b510-4b5f9eabea1a
+                        Mass: 1.0
+                        Radius: 0.4

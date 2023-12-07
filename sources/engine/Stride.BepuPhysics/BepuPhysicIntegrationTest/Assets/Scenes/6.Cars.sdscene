@@ -1051,202 +1051,130 @@ Hierarchy:
                             MaxRPM: 10000
                             EngineBreakForce: 0.001
                             Gears:
-                                697d8064101cea48c60c052c5432b22f:
+                                2257df4b37f7d053daf9615c969ee6ab:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                322c3dc1418df7fbc565ea172fadaf24:
+                                c062b69e214083fbd3a08b08d9bf5ef5:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                8e09b072fdd9bd4718264b99f1ee638c:
+                                d34ba9685312990809d5e545604d2d48:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                6cab1c08f074cbb217dfea9feee96a24:
+                                e0cb15532fa59c914fe0b1d472ac1504:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                767c1351e55900e068470730ec3cd405:
+                                8759539bc23cae5b77fafc376905fd83:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                9b98b47d3134e42077e3380f2e02c45d:
+                                69a3015b9e5a84691e6f37ef2e89199d:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                59cc4ede37e7472ae07aeda5e35a1aaa:
+                                d454ba26be0dc345908ebd7081f5d46f:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                49ad8714d2f7485856d48aaee536815d:
+                                9a0be3bcd9f99198a50179abe1662533:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                83174e0e5ec23b4c51a899d158fdc08d:
+                                0c8e276db78508b8a029309f1f1f77c0:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                84df3d63c59062e66c255fc947e92dd2:
+                                9d21a3758ee02e29d740e7e550e2784b:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                19d662192294c423127c30d8f8c02031:
+                                1faea4c3521e549c04bab88b8e64bb11:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                ad94656ff55e55bce2d77b478357bf88:
+                                122dbfa8c3ac5712a0114a5d8f774230:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                cbee59e50efe543a07e4c9241f031ebd:
+                                2622ae71ec44730822a2a253abc20352:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                1af1118c7141b48c0aef53cea1690d61:
+                                c80dac572c867192a9eb4900e273df1a:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                47544fdefa24d90ba40f61dec5f5813a:
+                                2aebc48f2b5b6419eddeb0a7b7e81e11:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                dfde727c0cc8d2263cb02e508f014f44:
+                                076e87b7130c93085b150497b2508889:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                dbc382774e85c6b6cb455c6920bbef4e:
+                                7be68550445eba40bb9ceb31cfdc9a98:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                523f53017f71623ed186bc143e9b9578:
+                                c64507138218781804514497675f6560:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                70532cd88bddae7d098ede761737cb6d:
+                                b217b995eaf0e5b44a9db449f332f49a:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                c759596e3f139acbda56901211d05689:
+                                7f08823ebc616a54099a490304e594c6:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                149f44aeffe5a28f2d98ab20bdc960c3:
+                                b6a33f0f79eac652e5f5f2fb1c541330:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                ea7035b53d38088fc9e5f772e002b5fc:
+                                1a1abeb3866fbdd91c1ad9abd9bd0e85:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                7c9feeca83a06f7ecdd61c12da5f775b:
+                                d4d3e839b6ea652673a2db5f141d6c8f:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                bddc5fc3ff5c1378eb7c4a61b8f8b54b:
+                                5993c8a0caba721b28057db3c9f523aa:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                99d799e3424a698b1c5e7ede293847e2:
+                                e2b8da1119a95cf59da232d589885ccf:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                d6d2ad8ab1b96e6a26107f61761c5a24:
+                                2d895cc0cc5716241b47f6b47821b322:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                cfdaaa8ed144ce67baa3d8ebe76dc282:
+                                45bdb1c695cf3efddc2c0e0407971c1a:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                c8ff0fa34d7f21918752771b62066c2a:
+                                ff8ebbba3a5449879f3c6153c9624e6a:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                5dfc53e7cd5cf79726f1eeb4c5ed56a0:
+                                a5f16ff5ac0a9e5f3f945381a08d451f:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                4641b35ff971b770c7338c1d2dcc1c94:
+                                1e99cd022a6f4b6b995b261ebb6b5970:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                70e3e45d8dfac98b1c5a3dfad72f3d81:
+                                34ae1a6a1ddf3baf4d627e22505e4255:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                581f15a0a24d885fd55c8a776fb1ca39:
+                                c8e1e23ef027df3ae19ffd4a8913f3fd:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                da94974a123826163e2dcecfdc70d848:
+                                a3ec739ed422f242f55e809338ecc4e1:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                b36d5b342b6c5345711d3cc8b90302dc:
+                                001b20c1830461c84cbd91c5f4f2ae50:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                0ab953f3de30ef2570a8670a6c74ec85:
+                                e04cd7c724ca0ad9407d1a50bdd5e70e:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                69b1009667324e5171114b6fb183860c:
+                                e8424c226f70a2fd635a34ceae553792:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
-                                887d7e33130344ba6da0f77582c6e556:
+                                7bea4df6d11ba56bc88ae2047530b8ae:
                                     AccelerationForce: 0.03
                                     GearRatio: -0.001
-                                003f94476920feece497ba03749172aa:
+                                aa73d79824634eeb8123582edcc7fab8:
                                     AccelerationForce: 0.045
                                     GearRatio: 0.0012
-                                fdaa6bd89377417818050121c8f16984:
+                                7833e11acbc6aea65c0d1ccbd26736dc:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.003
-                                2a6bd9f18123d82bdea9d901b7ada825:
+                                76f7081b11cc0c601f6e36691a73de36:
                                     AccelerationForce: 0.08
                                     GearRatio: 0.006
-                                26d36c7f6502a5ea4ed5fedb1b68fcb7:
+                                6e28d8e6ff583c9df2782d3bdd4d6e9d:
                                     AccelerationForce: 0.075
                                     GearRatio: 0.012
-                                4db9156c564a2aa75ef80a58f1f862d7:
-                                    AccelerationForce: 0.06
-                                    GearRatio: 0.016
-                                303440df9e8c975f142205eeb4bc0213:
-                                    AccelerationForce: 0.03
-                                    GearRatio: -0.001
-                                811ed8ff6160745a4274a7ced9db7b2b:
-                                    AccelerationForce: 0.045
-                                    GearRatio: 0.0012
-                                a0f8045959c1a6fb429b0f52ff85f2bb:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.003
-                                bbe4dcbaaad81b7a0a2392bd75649213:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.006
-                                fed59026ba7f15933a81cc9719f42d45:
-                                    AccelerationForce: 0.075
-                                    GearRatio: 0.012
-                                35fec7f2f8bc90189b57cb0ff9faec5f:
-                                    AccelerationForce: 0.06
-                                    GearRatio: 0.016
-                                d52b84cf10b2afc1453eae970507558c:
-                                    AccelerationForce: 0.03
-                                    GearRatio: -0.001
-                                b051fbd56fe87e6f9ae2cb07fc63b7e6:
-                                    AccelerationForce: 0.045
-                                    GearRatio: 0.0012
-                                3c114f50fbb561648d919d01f2538041:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.003
-                                65efe68f9d968a42c7939edfc2d211e8:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.006
-                                7df1f4f755deb229c7ccc6725d347314:
-                                    AccelerationForce: 0.075
-                                    GearRatio: 0.012
-                                830349ac223e31160f0039d96ec4d925:
-                                    AccelerationForce: 0.06
-                                    GearRatio: 0.016
-                                b07f0805bbdaa94260e53c2872ca1f95:
-                                    AccelerationForce: 0.03
-                                    GearRatio: -0.001
-                                f600fd80c3b635a2bd9b42098cc9f6d8:
-                                    AccelerationForce: 0.045
-                                    GearRatio: 0.0012
-                                e5cb506261168f72fa93f2b87986f9d4:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.003
-                                73f9e28474b7c609d0e8f8f2c7ec85c8:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.006
-                                792c91944e6d7e426c8a411a6ac525b3:
-                                    AccelerationForce: 0.075
-                                    GearRatio: 0.012
-                                ca0c385a5c14e3765e07a2b6cf9d1343:
-                                    AccelerationForce: 0.06
-                                    GearRatio: 0.016
-                                bbcbe2acad7d2a00432469363b9a7ee8:
-                                    AccelerationForce: 0.03
-                                    GearRatio: -0.001
-                                fa919908107e6059d651fdc9f2754c6f:
-                                    AccelerationForce: 0.045
-                                    GearRatio: 0.0012
-                                b8afb00f01bebd0037556006ba9b09e8:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.003
-                                bafa150e55f8f9161b8eac8003d43da2:
-                                    AccelerationForce: 0.08
-                                    GearRatio: 0.006
-                                3b2cf28a6e18b7327d4c2d33a7524b85:
-                                    AccelerationForce: 0.075
-                                    GearRatio: 0.012
-                                b7f50a7ba3086aefaa554858c5d7d8cc:
+                                2872cd763935c9fbe0c4df27dab77f6f:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
                         BreakingForce: 0.1
