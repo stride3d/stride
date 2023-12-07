@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using BepuPhysicIntegrationTest.Integration.Components.Colliders;
+using BepuPhysicIntegrationTest.Integration.Components.Collisions;
 using BepuPhysicIntegrationTest.Integration.Components.Containers;
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysicIntegrationTest.Integration.Extensions;
@@ -20,6 +21,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
     {
         private BepuConfiguration _bepuConfiguration = new();
         private IGame _game;
+        private ContactEvents _contactEvents;
 
 #pragma warning disable CS8618 
         public ContainerProcessor()
@@ -39,6 +41,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 _bepuConfiguration.BepuSimulations.Add(new BepuSimulation());
             }
 
+            _contactEvents = new();
+
             Services.AddService(_bepuConfiguration);
         }
 
@@ -46,6 +50,9 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
         {
             component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.BuildOrUpdateContainer();
+            _bepuConfiguration.BepuSimulations[0].Simulation.Bodies.GetDescription(component.ContainerData.BHandle, out var desc);
+            // need to be able to access the CollidableReference
+            //_contactEvents.Register(desc.Collidable, component.ContactEventHandler);
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {

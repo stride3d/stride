@@ -1,4 +1,5 @@
-﻿using BepuPhysicIntegrationTest.Integration.Processors;
+﻿using BepuPhysicIntegrationTest.Integration.Components.Collisions;
+using BepuPhysicIntegrationTest.Integration.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -97,5 +98,9 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
         /// </summary>
         [DataMemberIgnore]
         internal ContainerData? ContainerData { get; set; }
+
+        //Should this be in the container?
+        [DataMemberIgnore]
+        internal IContactEventHandler? ContactEventHandler { get; set; }
     }
 }
