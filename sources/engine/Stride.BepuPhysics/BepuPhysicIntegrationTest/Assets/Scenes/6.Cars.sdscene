@@ -1118,6 +1118,24 @@ Hierarchy:
                                 20c8d9d49e864096fafadf1e00f3d371:
                                     AccelerationForce: 0.06
                                     GearRatio: 0.016
+                                370415e67adcb4aa06c5f66889db8e2a:
+                                    AccelerationForce: 0.03
+                                    GearRatio: -0.001
+                                aab95c210ac5a2f62bea25802c8f643a:
+                                    AccelerationForce: 0.045
+                                    GearRatio: 0.0012
+                                1c7bcc23d2750461d5b7bb19c63891e4:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.003
+                                bf7273378c25aecfc88dd3d8e172d9bb:
+                                    AccelerationForce: 0.08
+                                    GearRatio: 0.006
+                                a55c9069ed857cbabbda7cc891477752:
+                                    AccelerationForce: 0.075
+                                    GearRatio: 0.012
+                                c208583379cfb76401bb21a1aebf167d:
+                                    AccelerationForce: 0.06
+                                    GearRatio: 0.016
                         BreakingForce: 0.1
                         MaximumSteeringAngle: 30.0
                         SteeringSpeed: 0.5

@@ -8,13 +8,13 @@ using BepuPhysicIntegrationTest.Integration.Extensions;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
+using SharpDX.DXGI;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
-using static BulletSharp.Dbvt;
 
 namespace BepuPhysicIntegrationTest.Integration.Processors
 {
@@ -155,8 +155,8 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
         internal bool isStatic { get; set; } = false;
 
-        internal BodyInertia ShapeInertia { get; set; }
         internal TypedIndex ShapeIndex { get; set; }
+        internal BodyInertia ShapeInertia { get; set; }
 
         internal BodyHandle BHandle { get; set; } = new(-1);
         internal StaticHandle SHandle { get; set; } = new(-1);
@@ -182,66 +182,115 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
             ContainerComponent.Entity.Transform.UpdateWorldMatrix();
             ContainerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
 
-            var colliders = ContainerComponent.Entity.GetComponentsInDescendants<ColliderComponent>(true);
+            var colliders = ContainerComponent.Entity.GetComponentsInDescendants<ColliderComponent>(true).ToList();
 
-            if (colliders.Count() == 0)
+            if (ContainerComponent is BodyMeshContainerComponent _b )
             {
-                DestroyContainer();
-                return;
+                if (colliders.Count > 0)
+                    throw new Exception("MeshContainer cannot have compound colliders.");
+
+                if (_b.ModelData == null)
+                {
+                    DestroyContainer();
+                    return;
+                }
+
+                var meshTriangles = GetMeshTriangles(_b.ModelData);
+                var pool = new BufferPool();
+                pool.Take<Triangle>(meshTriangles.Length, out var triangles);
+                for (int i = 0; i < meshTriangles.Length; ++i)
+                {
+                    triangles[i] = new Triangle(meshTriangles[i].A, meshTriangles[i].B, meshTriangles[i].C);
+                }
+                var mesh = new Mesh(triangles, _b.Entity.Transform.Scale.ToNumericVector(), pool);
+
+                ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
+                ShapeInertia = (_b.Closed ? mesh.ComputeClosedInertia(_b.Mass) : mesh.ComputeOpenInertia(_b.Mass));
+                //ContainerComponent.CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector(); //TODO : check why it is not needed 
+            }
+            else if (ContainerComponent is StaticMeshContainerComponent _s)
+            {
+                if (colliders.Count > 0)
+                    throw new Exception("MeshContainer cannot have compound colliders.");
+
+                if (_s.ModelData == null)
+                {
+                    DestroyContainer();
+                    return;
+                }
+
+                var meshTriangles = GetMeshTriangles(_s.ModelData);
+                var pool = new BufferPool();
+                pool.Take<Triangle>(meshTriangles.Length, out var triangles);
+                for (int i = 0; i < meshTriangles.Length; ++i)
+                {
+                    triangles[i] = new Triangle(meshTriangles[i].A, meshTriangles[i].B, meshTriangles[i].C);
+                }
+                var mesh = new Mesh(triangles, _s.Entity.Transform.Scale.ToNumericVector(), pool);
+
+                ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
+                ShapeInertia = (_s.Closed ? mesh.ComputeClosedInertia(_s.Mass) : mesh.ComputeOpenInertia(_s.Mass));
+                ContainerComponent.CenterOfMass = (_s.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();
             }
             else
             {
-                using (var compoundBuilder = new CompoundBuilder(BepuSimulation.BufferPool, BepuSimulation.Simulation.Shapes, colliders.Count()))
+                if (colliders.Count() == 0)
                 {
-                    BepuUtilities.Memory.Buffer<CompoundChild> compoundChildren;
-                    BodyInertia shapeInertia;
-                    System.Numerics.Vector3 shapeCenter;
-
-                    foreach (var collider in colliders)
+                    DestroyContainer();
+                    return;
+                }
+                else
+                {
+                    using (var compoundBuilder = new CompoundBuilder(BepuSimulation.BufferPool, BepuSimulation.Simulation.Shapes, colliders.Count()))
                     {
-                        collider.Entity.Transform.UpdateWorldMatrix();
-                        collider.Entity.Transform.WorldMatrix.Decompose(out Vector3 colliderWorldScale, out Quaternion colliderWorldRotation, out Vector3 colliderWorldTranslation);
+                        Buffer<CompoundChild> compoundChildren;
+                        BodyInertia shapeInertia;
+                        System.Numerics.Vector3 shapeCenter;
 
-                        var localTra = colliderWorldTranslation - containerWorldTranslation;
-                        var localRot = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation;
-                        var localPose = new RigidPose(localTra.ToNumericVector(), localRot.ToNumericQuaternion());
-
-                        switch (collider)
+                        foreach (var collider in colliders)
                         {
-                            case BoxColliderComponent box:
-                                compoundBuilder.Add(new Box(box.Size.X, box.Size.Y, box.Size.Z), localPose, collider.Mass);
-                                break;
+                            collider.Entity.Transform.UpdateWorldMatrix();
+                            collider.Entity.Transform.WorldMatrix.Decompose(out Vector3 colliderWorldScale, out Quaternion colliderWorldRotation, out Vector3 colliderWorldTranslation);
 
-                            case CapsuleColliderComponent capsule:
-                                compoundBuilder.Add(new Capsule(capsule.Radius, capsule.Length), localPose, collider.Mass);
-                                break;
-                            case ConvexHullColliderComponent convexHull:
-                                compoundBuilder.Add(new ConvexHull(GetMeshColliderShape(convexHull), new BufferPool(), out _), localPose, collider.Mass);
-                                break;
-                            case CylinderColliderComponent cylinder:
-                                compoundBuilder.Add(new Cylinder(cylinder.Radius, cylinder.Length), localPose, collider.Mass);
-                                break;
-                            //case MeshColliderComponent mesh: //TODO : wait for Norbo to answer. In worst case, we may need to create a new MeshContainer
-                            //    compoundBuilder.Add(new Mesh(), localPose, collider.Mass);
-                            //    break;
-                            case SphereColliderComponent sphere:
-                                compoundBuilder.Add(new Sphere(sphere.Radius), localPose, collider.Mass);
-                                break;
-                            case TriangleColliderComponent triangle:
-                                compoundBuilder.Add(new Triangle(triangle.A.ToNumericVector(), triangle.B.ToNumericVector(), triangle.C.ToNumericVector()), localPose, collider.Mass);
-                                break;
-                            default:
-                                throw new Exception("Unknown Shape");
+                            var localTra = colliderWorldTranslation - containerWorldTranslation;
+                            var localRot = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation;
+                            var localPose = new RigidPose(localTra.ToNumericVector(), localRot.ToNumericQuaternion());
+
+                            switch (collider)
+                            {
+                                case BoxColliderComponent box:
+                                    compoundBuilder.Add(new Box(box.Size.X, box.Size.Y, box.Size.Z), localPose, collider.Mass);
+                                    break;
+
+                                case CapsuleColliderComponent capsule:
+                                    compoundBuilder.Add(new Capsule(capsule.Radius, capsule.Length), localPose, collider.Mass);
+                                    break;
+                                case ConvexHullColliderComponent convexHull:
+                                    compoundBuilder.Add(new ConvexHull(GetMeshPoints(convexHull), new BufferPool(), out _), localPose, collider.Mass);
+                                    break;
+                                case CylinderColliderComponent cylinder:
+                                    compoundBuilder.Add(new Cylinder(cylinder.Radius, cylinder.Length), localPose, collider.Mass);
+                                    break;
+                                case SphereColliderComponent sphere:
+                                    compoundBuilder.Add(new Sphere(sphere.Radius), localPose, collider.Mass);
+                                    break;
+                                case TriangleColliderComponent triangle:
+                                    compoundBuilder.Add(new Triangle(triangle.A.ToNumericVector(), triangle.B.ToNumericVector(), triangle.C.ToNumericVector()), localPose, collider.Mass);
+                                    break;
+                                default:
+                                    throw new Exception("Unknown Shape");
+                            }
                         }
+
+                        compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
+
+                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
+                        ShapeInertia = shapeInertia;
+                        ContainerComponent.CenterOfMass = shapeCenter.ToStrideVector();
                     }
-
-                    compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
-
-                    ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
-                    ShapeInertia = shapeInertia;
-                    ContainerComponent.CenterOfMass = shapeCenter.ToStrideVector();
                 }
             }
+
 
             var ContainerPose = new RigidPose(containerWorldTranslation.ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
             switch (ContainerComponent)
@@ -312,7 +361,26 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
                 BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
         }
 
-        private Span<System.Numerics.Vector3> GetMeshColliderShape(ConvexHullColliderComponent collider)
+        private Span<Triangle> GetMeshTriangles(ModelComponent model)
+        {
+            (var verts, var indices) = model.Model.GetMeshVerticesAndIndices(_game);
+
+            // Create an array to hold the triangles
+            Triangle[] triangles = new Triangle[indices.Count / 3];
+
+            // Loop through the indices to form triangles directly
+            for (int i = 0; i < indices.Count; i += 3)
+            {
+                triangles[i / 3] = new Triangle(
+                    verts[indices[i]].ToNumericVector(),
+                    verts[indices[i + 1]].ToNumericVector(),
+                    verts[indices[i + 2]].ToNumericVector()
+                );
+            }
+
+            return triangles.AsSpan();
+        }
+        private Span<System.Numerics.Vector3> GetMeshPoints(ConvexHullColliderComponent collider)
         {
             if (collider.ModelData == null)
                 return new();
@@ -327,6 +395,7 @@ namespace BepuPhysicIntegrationTest.Integration.Processors
 
             return bepuVerts.AsSpan();
         }
+
     }
 
 }

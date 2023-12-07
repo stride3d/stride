@@ -86,6 +86,16 @@ Hierarchy:
                         FilteringMode: Fps
                         ResultPage: 1
         -   Entity:
+                Id: 70121f17-0d60-4623-b389-3bcf4aa8fef7
+                Name: Entity
+                Components:
+                    119c979d1a298e0128d7b80437ecc46b: !TransformComponent
+                        Id: 9e6bf531-1798-4abc-a767-a3b62b9d8a0a
+                        Position: {X: 0.0, Y: 10.0, Z: 20.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
                 Id: b5a7568b-fd59-4906-8fd5-37893c7dfaf8
                 Name: Skybox
                 Components:
@@ -131,6 +141,34 @@ Hierarchy:
                                 BiasParameters: {}
                         Intensity: 0.2
         -   Entity:
+                Id: bc2ec41b-e7cd-49b4-b447-705e2d840f59
+                Name: MeshContainer
+                Components:
+                    fa564e5e1414da68022c2e0e89cc0edd: !TransformComponent
+                        Id: f424efd2-8a25-41c5-8fa7-917fc2fe8671
+                        Position: {X: 0.0, Y: 10.0, Z: 20.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b39a4827790222f729c163ab38671420: !ModelComponent
+                        Id: 6d778a37-85fb-4ac0-a5dc-f36de5703345
+                        Model: 77e7e900-fdb0-4501-8a3f-8658f67c30d3:Models/Wagon_A_green
+                        Materials: {}
+                    32d4daf1326a184b1ec6ade5902808f1: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyMeshContainerComponent,BepuPhysicIntegrationTest
+                        Id: e6d3aad3-d50a-4530-ad50-2c777597a867
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        Mass: 1.0
+                        Closed: true
+                        ModelData: ref!! 6d778a37-85fb-4ac0-a5dc-f36de5703345
+        -   Entity:
                 Id: d11956cc-c083-481b-a12d-1626df8d32fe
                 Name: Hex
                 Components:
@@ -170,6 +208,8 @@ Hierarchy:
                         Children:
                             a5869266007b42af6b5ba5e5468a5478: ref!! 5363a599-3161-4a1c-b60b-05f9bde2e216
                             b9583be1ef532576598946b565ad7cda: ref!! f7225640-729f-4c2b-8183-b6cac491f034
+                            a22e30ca7428735d08eed9e59ad7c184: ref!! f424efd2-8a25-41c5-8fa7-917fc2fe8671
+                            ea567bfcafa61ae976179264bde2bf93: ref!! 9e6bf531-1798-4abc-a767-a3b62b9d8a0a
                     eeabfda15ef248d6bb1e4f6914eb65e5: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
                         Id: db22e701-c1c0-43cd-a3ed-e5c432420af0
                         SimulationIndex: 0
