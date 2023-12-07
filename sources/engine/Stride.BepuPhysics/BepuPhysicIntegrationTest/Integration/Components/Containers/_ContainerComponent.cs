@@ -98,6 +98,8 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Containers
         /// </summary>
         [DataMemberIgnore]
         internal ContainerData? ContainerData { get; set; }
+
+        //Should this be in the container?
         [DataMemberIgnore]
         internal IContactEventHandler? ContactEventHandler { get; set; }
     }
