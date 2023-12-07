@@ -86,15 +86,33 @@ Hierarchy:
                         FilteringMode: Fps
                         ResultPage: 1
         -   Entity:
-                Id: 70121f17-0d60-4623-b389-3bcf4aa8fef7
-                Name: Entity
+                Id: 653a8a5f-3a25-494f-9335-b38f1d853f59
+                Name: MeshContainer2
                 Components:
-                    119c979d1a298e0128d7b80437ecc46b: !TransformComponent
-                        Id: 9e6bf531-1798-4abc-a767-a3b62b9d8a0a
-                        Position: {X: 0.0, Y: 10.0, Z: 20.0}
+                    66cac410afc07a16ebb76822d8064ccb: !TransformComponent
+                        Id: 54515d4f-6db5-42f7-84e7-9b1023ee5e67
+                        Position: {X: 10.0, Y: 10.0, Z: 30.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
+                    207514e1bffd4dc7dd5702d8a60ca54d: !ModelComponent
+                        Id: 2645ce2b-57f5-41b2-8748-9933186c9859
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                        Materials: {}
+                    0b58198bdbe58566bb7d760ef8434fa2: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyMeshContainerComponent,BepuPhysicIntegrationTest
+                        Id: 9c384156-5813-4753-b8d3-668783b839ef
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        Mass: 1.0
+                        Closed: true
+                        ModelData: ref!! 2645ce2b-57f5-41b2-8748-9933186c9859
         -   Entity:
                 Id: b5a7568b-fd59-4906-8fd5-37893c7dfaf8
                 Name: Skybox
@@ -146,7 +164,7 @@ Hierarchy:
                 Components:
                     fa564e5e1414da68022c2e0e89cc0edd: !TransformComponent
                         Id: f424efd2-8a25-41c5-8fa7-917fc2fe8671
-                        Position: {X: 0.0, Y: 10.0, Z: 20.0}
+                        Position: {X: 0.0, Y: 9.4, Z: 19.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -209,7 +227,7 @@ Hierarchy:
                             a5869266007b42af6b5ba5e5468a5478: ref!! 5363a599-3161-4a1c-b60b-05f9bde2e216
                             b9583be1ef532576598946b565ad7cda: ref!! f7225640-729f-4c2b-8183-b6cac491f034
                             a22e30ca7428735d08eed9e59ad7c184: ref!! f424efd2-8a25-41c5-8fa7-917fc2fe8671
-                            ea567bfcafa61ae976179264bde2bf93: ref!! 9e6bf531-1798-4abc-a767-a3b62b9d8a0a
+                            f39891ebe138ab2a03f959db1010df3d: ref!! 54515d4f-6db5-42f7-84e7-9b1023ee5e67
                     eeabfda15ef248d6bb1e4f6914eb65e5: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
                         Id: db22e701-c1c0-43cd-a3ed-e5c432420af0
                         SimulationIndex: 0
