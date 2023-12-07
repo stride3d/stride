@@ -10,8 +10,6 @@ Hierarchy:
         - ref!! d1cf6b43-15ff-4f13-8efe-1811b3ac0641
         - ref!! 0d2e38de-beac-4d90-8c1e-fb774d425bb0
         - ref!! a41abb91-43d7-46b3-908f-4f6ef69fc3ae
-        - ref!! ac612ecd-52e0-4e17-8b8d-e17a560b3118
-        - ref!! 6a967106-41ca-4f22-87bb-4c5d155bd58c
     Parts:
         -   Entity:
                 Id: 00895c9b-e6b2-4bc9-8e45-1865bc887452
@@ -357,6 +355,34 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+        -   Entity:
+                Id: 3156dd1b-4b3d-4de6-9d15-02766a536f18
+                Name: FatBodyBridge
+                Components:
+                    f8b64ae82d05af3c41344ae985864f85: !TransformComponent
+                        Id: 241c9b4e-4599-4c1c-933e-01e36fbba8c6
+                        Position: {X: -50.0, Y: 22.704458, Z: 120.0}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 10.0, Y: 10.0, Z: 10.0}
+                        Children: {}
+                    e946980e7fbd4507b8d7058df237d47e: !ModelComponent
+                        Id: 297791ce-93e6-4420-8645-8cb75cecea52
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                        Materials: {}
+                    0561d3d39ca07c1585c417e580432c12: !BepuPhysicIntegrationTest.Integration.Components.Containers.BodyMeshContainerComponent,BepuPhysicIntegrationTest
+                        Id: 435fb189-26b9-48e0-b03b-4ff19c269c89
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        Mass: 10.0
+                        Closed: true
+                        ModelData: ref!! 297791ce-93e6-4420-8645-8cb75cecea52
         -   Entity:
                 Id: 454cdd54-ab3a-49d7-a1db-ed1f6f99319d
                 Name: ThirdPersonPivot
@@ -1288,6 +1314,9 @@ Hierarchy:
                             c901d373bcdba9c3416135b212e23887: ref!! 536ccb4b-dfee-4506-9fd9-a4d8f93e0dda
                             6cf654b77dc8de2f36875b312ec0858a: ref!! 5caec0a4-ed7f-4ac9-b8eb-0646d0de0e28
                             ff4ca892a76181aa0ecd4781babdba13: ref!! b64996cc-8acb-47f0-887a-03506172ef5c
+                            b3dd38a7c59023a37450d16f0afb1ae4: ref!! 494eb75e-904b-446f-9539-4653859f9975
+                            44770610e35038f4cce942628d09d6b4: ref!! 170d9808-345e-4ed1-8521-636cd54c9791
+                            0044f9d3ad653598850a1079cefc5731: ref!! 241c9b4e-4599-4c1c-933e-01e36fbba8c6
                     eeabfda15ef248d6bb1e4f6914eb65e5: !BepuPhysicIntegrationTest.Integration.Components.Utils.ThrowerComponent,BepuPhysicIntegrationTest
                         Id: b3a2f1eb-a8c3-4cf0-8025-3c2680399555
                         SimulationIndex: 0
