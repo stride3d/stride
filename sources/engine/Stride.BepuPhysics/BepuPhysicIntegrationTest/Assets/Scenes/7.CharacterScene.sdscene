@@ -249,7 +249,7 @@ Hierarchy:
                         SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 100.0
-                        FrictionCoefficient: 1.0
+                        FrictionCoefficient: 0.5
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
                         ContactEventHandler: null

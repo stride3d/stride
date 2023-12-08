@@ -27,7 +27,6 @@ public class BepuCharacterComponent : SimulationUpdateComponent
     public CapsuleColliderComponent? CharacterCapsule { get; set; }
 
     private CharacterCollisionEvents _collisionEvents = new();
-    private float angleInRadians;
 
     public override void Start()
     {
@@ -35,8 +34,8 @@ public class BepuCharacterComponent : SimulationUpdateComponent
         // prevent tipping of character while moving
         body.Value.LocalInertia = new BodyInertia { InverseMass = 1f };
 
-
         base.Start();
+
         _collisionEvents.Simulation = BepuSimulation.Simulation;
         CharacterBody.ContactEventHandler = _collisionEvents;
     }
@@ -46,7 +45,6 @@ public class BepuCharacterComponent : SimulationUpdateComponent
         DebugText.Print($"Mouse delta : {Input.MouseDelta}", new Int2(50, 50));
         DebugText.Print($"Velocity : {Velocity}", new Int2(50, 75));
         DebugText.Print($"Orientation : {Orientation}", new Int2(50, 100));
-        DebugText.Print($"Contact Angle (rad) {angleInRadians}", new Int2(50, 125));
         DebugText.Print($"IsGrounded : {IsGrounded}", new Int2(50, 150));
         DebugText.Print($"ContactPoints count : {_collisionEvents.ContactPoints.Count}", new Int2(50, 175));
     }
@@ -117,7 +115,6 @@ public class BepuCharacterComponent : SimulationUpdateComponent
             }
         }
         IsGrounded = false;
-        angleInRadians = 0;
     }
 }
 
