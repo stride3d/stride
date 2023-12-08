@@ -1,10 +1,10 @@
-name: .NET Core Desktop
+name: Build Windows Demo
 
 on:
   push:
     branches: [ "master" ]    
-#    tags:
-#      - 'v*.*.*.*'
+    tags:
+      - 'v*.*.*.*'
 
 jobs:
 
