@@ -264,8 +264,8 @@ Hierarchy:
                         Id: 7e569c77-2794-4b73-8eb1-0503382198ac
                         CameraPivot: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a
                         Character: ref!! d2d1354c-76b6-42d4-9515-6ce00e95bf99
-                        MinCameraAngle: 0.0
-                        MaxCameraAngle: 0.0
+                        MinCameraAngle: -90.0
+                        MaxCameraAngle: 90.0
         -   Entity:
                 Id: e941dadf-4371-495f-9d46-9cc617fd1f4a
                 Name: Head

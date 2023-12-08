@@ -9,8 +9,8 @@ public class CharacterControllerComponent : SyncScript
     public Entity? CameraPivot { get; set; }
     public CharacterComponent? Character { get; set; }
 
-    public float MinCameraAngle { get; set; }
-    public float MaxCameraAngle { get; set; }
+    public float MinCameraAngle { get; set; } = -90;
+    public float MaxCameraAngle { get; set; } = 90;
 
     private Vector3 _cameraDirection;
 
@@ -25,10 +25,13 @@ public class CharacterControllerComponent : SyncScript
 
     public override void Update()
     {
-        if (Input.IsKeyPressed(Keys.Escape))
+        if (Input.IsKeyPressed(Keys.Tab))
         {
-            Input.UnlockMousePosition();
-            Game.IsMouseVisible = true;
+            if (Game.IsMouseVisible)
+                Input.UnlockMousePosition();
+            else
+                Input.LockMousePosition(true);
+            Game.IsMouseVisible = !Game.IsMouseVisible;
         }
 
         Move();
@@ -55,6 +58,10 @@ public class CharacterControllerComponent : SyncScript
         velocity.Normalize();
 
         velocity = Vector3.Transform(velocity, Entity.Transform.Rotation);
+
+        if (Input.IsKeyDown(Keys.LeftShift))
+            velocity *= 2f;
+
         Character?.Move(velocity);
     }
 
