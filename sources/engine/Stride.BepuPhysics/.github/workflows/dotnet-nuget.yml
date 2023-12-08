@@ -34,10 +34,7 @@ jobs:
         echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
       
     - name: Build
-      run: dotnet build ./Stride.BepuPhysics/Stride.BepuPhysics.csproj -p:Version=${{ env.PACKAGE_VERSION }} --no-restore 
-
-    - name: display files
-      run: Get-ChildItem -Path "D:\a" -Force -Recurse
+      run: dotnet build ./Stride.BepuPhysics/Stride.BepuPhysics.csproj -p:Version=${{ env.PACKAGE_VERSION }} --no-restore     
     
-#    - name: Publish
-#      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGETAPIKEY}}
+    - name: Publish
+      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGETAPIKEY}}
