@@ -53,7 +53,7 @@ public class CharacterComponent : SimulationUpdateComponent
         DebugText.Print($"Velocity : {Velocity}", new Int2(50, 75));
         DebugText.Print($"Orientation : {Orientation}", new Int2(50, 100));
         DebugText.Print($"IsGrounded : {IsGrounded}", new Int2(50, 150));
-        DebugText.Print($"ContactPoints count : {_collisionEvents.ContactPoints.Count}", new Int2(50, 175));
+        DebugText.Print($"ContactPoints count : {_collisionEvents?.ContactPoints.Count ?? 0}", new Int2(50, 175));
     }
 
     public void Move(Vector3 direction)
@@ -73,7 +73,7 @@ public class CharacterComponent : SimulationUpdateComponent
 
     public override void SimulationUpdate(float simTimeStep)
     {
-        var body = CharacterBody?.GetPhysicBody().Value;
+        var body = CharacterBody?.GetPhysicBody();
         CheckGrounded();
 
         if (body == null)
@@ -102,6 +102,10 @@ public class CharacterComponent : SimulationUpdateComponent
 
     private void CheckGrounded()
     {
+        IsGrounded = false;
+        if (_collisionEvents == null || _collisionEvents.ContactPoints.Count == 0)
+            return;
+
         float capsuleLength = CharacterCapsule?.Length ?? 0.5f;
         float capsuleRadius = (CharacterCapsule?.Radius ?? 0.35f) * 1.15f;
 
@@ -119,11 +123,6 @@ public class CharacterComponent : SimulationUpdateComponent
                 return;
             }
         }
-        if (_collisionEvents.ContactPoints.Count != 0)
-        {
-            var x = 0;
-        }
-        IsGrounded = false;
     }
 }
 

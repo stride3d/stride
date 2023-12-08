@@ -15,8 +15,6 @@ public static class MeshExtensions
 
     static unsafe (List<Vector3> verts, List<int> indices) GetMeshData(Model model, IServiceRegistry services, IGame game)
     {
-        Matrix[] nodeTransforms = null;
-
         int totalVerts = 0, totalIndices = 0;
         foreach (var meshData in model.Meshes)
         {
@@ -52,13 +50,6 @@ public static class MeshExtensions
                 for (int i = 0, vHead = vBindings.Offset; i < count; i++, vHead += stride)
                 {
                     var pos = *(Vector3*)(bytePtr + vHead);
-                    if (nodeTransforms != null)
-                    {
-                        Matrix posMatrix = Matrix.Translation(pos);
-                        Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
-                        pos = finalMatrix.TranslationVector;
-                    }
-
                     combinedVerts.Add(pos);
                 }
             }

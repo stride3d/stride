@@ -70,14 +70,16 @@ public class ContactEvents : IDisposable
     /// <param name="threadDispatcher">Thread dispatcher to pull per-thread buffer pools from, if any.</param>
     /// <param name="pool">Buffer pool used to manage resources internally. If null, the simulation's pool will be used.</param>
     /// <param name="initialListenerCapacity">Number of listeners to allocate space for initially.</param>
+#pragma warning disable CS8618 // Un champ non-nullable doit contenir une valeur non-null lors de la fermeture du constructeur. Envisagez de déclarer le champ comme nullable.
     public ContactEvents(IThreadDispatcher? threadDispatcher = null, BufferPool? pool = null, int initialListenerCapacity = 64)
+#pragma warning restore CS8618 // Un champ non-nullable doit contenir une valeur non-null lors de la fermeture du constructeur. Envisagez de déclarer le champ comme nullable.
     {
         this.threadDispatcher = threadDispatcher;
         this.pool = pool;
         listeners = new Listener[initialListenerCapacity];
     }
 
-    BufferPool GetPoolForWorker(int workerIndex)
+    BufferPool? GetPoolForWorker(int workerIndex)
     {
         return threadDispatcher == null ? pool : threadDispatcher.WorkerPools[workerIndex];
     }

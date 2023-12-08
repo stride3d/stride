@@ -67,6 +67,7 @@ public class CharacterControllerComponent : SyncScript
         _cameraDirection.X = MathUtil.Clamp(_cameraDirection.X, MinCameraAngle, MaxCameraAngle);
 
         Character?.Rotate(Quaternion.RotationY(_cameraDirection.Y));
-        CameraPivot.Transform.Rotation = Quaternion.RotationX(_cameraDirection.X);
+        if (CameraPivot != null)
+            CameraPivot.Transform.Rotation = Quaternion.RotationX(_cameraDirection.X);
     }
 }
