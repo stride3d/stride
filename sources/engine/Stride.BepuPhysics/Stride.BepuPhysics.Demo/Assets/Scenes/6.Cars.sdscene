@@ -399,6 +399,7 @@ Hierarchy:
                 Components:
                     d525eab18798b4dce3ff7bcc219da3a3: !Stride.BepuPhysics.Components.Utils.RayCastComponent,Stride.BepuPhysics
                         Id: 385ee1d2-119d-4023-8bb2-0f4cca6ea316
+                        SimulationIndex: 0
                         Offset: {X: 0.0, Y: 0.0, Z: 0.0}
                         Dir: {X: -1.0, Y: 0.0, Z: 0.0}
                         MaxT: 100.0
@@ -1125,6 +1126,7 @@ Hierarchy:
                         Speed: 20.0
                     807fd6f1bfea6cedc2abc9907e906240: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
                         Id: 776b908f-e979-4957-bacd-d537a8f45453
+                        SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         A: ref!! bd4f161f-4e51-404b-9725-416b0cb068ad
@@ -1133,6 +1135,7 @@ Hierarchy:
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
                         Id: e93bbc26-9f0a-404e-bd82-855be9420ecf
+                        SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
@@ -1141,6 +1144,7 @@ Hierarchy:
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     df8df1e9078962519bb2e906ff5bd744: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
                         Id: 1b2f6c2e-1961-4f3a-ab07-ba0a16d9b4e3
+                        SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
@@ -1149,6 +1153,7 @@ Hierarchy:
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     f0b1089156066784aa5bb1948f7006de: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
                         Id: 1f48afb2-9108-4642-8805-3f48614415e3
+                        SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
@@ -1157,6 +1162,7 @@ Hierarchy:
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
                         Id: 2969ea40-fe06-4fc1-aac2-b2fe7af56f42
+                        SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f

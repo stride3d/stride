@@ -17,19 +17,23 @@ namespace Stride.BepuPhysics.Components.Utils
 
             var entity = SpawnPrefab.Instantiate().First();
             entity.Transform.Position = position;
-            Entity.AddChild(entity);
 
             var instance = entity.Get<InstanceComponent>();
             if (instance != null)
             {
                 instance.Master = Instancing;
             }
+            
+            Entity.AddChild(entity);
 
             var container = entity.Get<ContainerComponent>();
             if (container != null && container is BodyContainerComponent body)
             {
-                body.GetPhysicBody()?.ApplyImpulse(Impulse.ToNumericVector(), ImpulsePos.ToNumericVector());
+                body.SimulationIndex = SimulationIndex;
+                var bepuBody = body.GetPhysicBody();
+                bepuBody?.ApplyImpulse(Impulse.ToNumericVector(), ImpulsePos.ToNumericVector());
             }
+
         }
 
     }

@@ -40,7 +40,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 2edb6027-0fde-422b-a752-0af05223f621
-                        SimulationIndex: 0
+                        SimulationIndex*: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -73,7 +73,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: befd947e-d1a5-4a14-9423-d272129d4ae5
-                        SimulationIndex: 0
+                        SimulationIndex*: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -189,7 +189,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 78849a09-b196-40e6-939b-d2e152105b33
-                        SimulationIndex: 0
+                        SimulationIndex*: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -257,7 +257,7 @@ Hierarchy:
                         Size: {X: 250.0, Y: 0.1, Z: 250.0}
                     b18e400f6ef857c50bac5d706493e368: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
                         Id: db7b2be3-34c2-4669-9085-21e5b900299e
-                        SimulationIndex: 0
+                        SimulationIndex: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -327,7 +327,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: ddca45b8-ae96-4a8e-b002-2b9d02ebb4a4
-                        SimulationIndex: 0
+                        SimulationIndex*: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -390,7 +390,7 @@ Hierarchy:
                             af5a48be6263c42fac20d8f9c0c60f1c: ref!! 2ca9c743-62d3-4a2a-8130-97aeef63a141
                     2a98c48e5b96344a0ab24da7de9a794b: !Stride.BepuPhysics.Components.Utils.SpawnerComponent,Stride.BepuPhysics
                         Id: 1c668912-b904-41f5-9576-2a81b27ba0a3
-                        SimulationIndex: 0
+                        SimulationIndex: 2
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
                         Instancing: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
                         SpawnPosition: ref!! 6ff0c913-081a-44cf-ae47-b31d76a53e32
@@ -400,14 +400,14 @@ Hierarchy:
                         SpawnVelocityRange: {X: 20.0, Y: 0.0, Z: 20.0}
                     eeabfda15ef248d6bb1e4f6914eb65e5: !Stride.BepuPhysics.Components.Utils.ThrowerComponent,Stride.BepuPhysics
                         Id: d84374af-26b0-4258-ae0e-77e5da022085
-                        SimulationIndex: 0
+                        SimulationIndex: 2
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
                         Instancing: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
                         SpawnPosition: ref!! fe8e33bb-9b06-454b-8fc0-fab0c4346474
                         Speed: 50.0
                     8ff30ff71af73fad50d330cdb9500d9a: !Stride.BepuPhysics.Components.Utils.TimeControlComponent,Stride.BepuPhysics
                         Id: e90f6354-3def-4afd-8ee0-54a414aea317
-                        SimulationIndex: 0
+                        SimulationIndex: 2
                     d1f2aa97c4c6d4a84cb414c73d5cfa0c: !Stride.BepuPhysics.Components.Utils.ColliderEditorComponent,Stride.BepuPhysics
                         Id: b8afeed9-7c80-49cb-aa0d-463e37d6ef0e
                         Component: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics ref!! 55171983-b9ec-40a2-b247-0484393bb569
@@ -439,7 +439,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 5e28516e-c85a-4ac0-858c-1069ceae480f
-                        SimulationIndex: 0
+                        SimulationIndex*: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -472,7 +472,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: c0c77c50-9753-4efd-8b21-ef67dd301d24
-                        SimulationIndex: 0
+                        SimulationIndex*: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -505,7 +505,7 @@ Hierarchy:
                         Children: {}
                     5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
-                        SimulationIndex: 0
+                        SimulationIndex*: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0

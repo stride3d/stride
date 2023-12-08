@@ -17,7 +17,7 @@ namespace Stride.BepuPhysics.Configurations;
 public class BepuSimulation
 {
     private readonly List<SimulationUpdateComponent> _simulationUpdateComponents = new();
-    private HitHandler DefaultHitHandler = new HitHandler();
+    private HitHandler DefaultHitHandler;
 
     internal ThreadDispatcher ThreadDispatcher { get; set; }
     internal BufferPool BufferPool { get; set; }
@@ -71,9 +71,9 @@ public class BepuSimulation
     public int MaxStepPerFrame { get; set; } = 3;
 
 
-    public HitResult RayCast(Vector3 origin, Vector3 dir, float maxT)
+    public HitResult RayCast(Vector3 origin, Vector3 dir, float maxT, bool stopAtFirstHit = false, byte collisionMask = 255)
     {
-        DefaultHitHandler.Reset();
+        DefaultHitHandler.Prepare(stopAtFirstHit, collisionMask);
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultHitHandler);
         return DefaultHitHandler.Hit;
     }
@@ -83,6 +83,7 @@ public class BepuSimulation
 #pragma warning restore CS8618 
     {
         Setup();
+        DefaultHitHandler = new HitHandler(this);
     }
     private void Setup()
     {
@@ -122,4 +123,5 @@ public class BepuSimulation
     {
         _simulationUpdateComponents.Remove(simulationUpdateComponent);
     }
+
 }

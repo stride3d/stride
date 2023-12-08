@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Components.Containers;
 
 namespace Stride.BepuPhysics.Definitions.Raycast
 {
@@ -7,6 +8,7 @@ namespace Stride.BepuPhysics.Definitions.Raycast
     {
         public Vector3 Normal;
         public float T;
-        public CollidableReference? Collidable;
+        public ContainerComponent? Container;
+        public CollidableReference? collidableRef;
     }
 }

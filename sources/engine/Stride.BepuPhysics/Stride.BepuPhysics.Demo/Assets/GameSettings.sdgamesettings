@@ -43,6 +43,16 @@ Defaults:
                 ParallelUpdate: true
                 SimulationFixedStep: 16.0
                 MaxStepPerFrame: 3
+            -   Enabled: true
+                TimeWarp: 1.0
+                PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
+                PoseLinearDamping: 0.05
+                PoseAngularDamping: 0.05
+                SolveIteration: 1
+                SolveSubStep: 2
+                ParallelUpdate: true
+                SimulationFixedStep: 30.0
+                MaxStepPerFrame: 3
 Overrides: []
 PlatformFilters:
     - PowerVR SGX 54[0-9]

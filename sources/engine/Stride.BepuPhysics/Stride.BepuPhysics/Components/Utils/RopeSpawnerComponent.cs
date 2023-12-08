@@ -10,6 +10,7 @@ namespace Stride.BepuPhysics.Components.Utils
     [ComponentCategory("Bepu - Utils")]
     public class RopeSpawnerComponent : StartupScript
     {
+        public int SimulationIndex { get; set; } = 0;
         public Prefab? RopePart { get; set; } //The rope part must be long in Z
         public float RopePartSize { get; set; } = 1.0f; //the z size of the rope part
 
@@ -40,7 +41,9 @@ namespace Stride.BepuPhysics.Components.Utils
                 entity.Transform.Position = start + dir * RopePartSize * i;
                 entity.Transform.Rotation = Quaternion.LookRotation(dir, Vector3.UnitY);
                 entity.SetParent(Entity);
-                bodiesContainers.Add(entity.Get<BodyContainerComponent>());
+                var body = entity.Get<BodyContainerComponent>();
+                body.SimulationIndex = SimulationIndex;
+                bodiesContainers.Add(body);
             }
 
             for (int i = 1; i < bodiesContainers.Count; i++)

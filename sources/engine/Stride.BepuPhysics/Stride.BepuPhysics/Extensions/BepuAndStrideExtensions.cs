@@ -15,6 +15,11 @@ namespace Stride.BepuPhysics.Extensions
             tr.WorldMatrix.Decompose(out var _1, out Core.Mathematics.Quaternion _2, out var _3);
             return _3;
         }
+        public static Core.Mathematics.Quaternion GetWorldRot(this TransformComponent tr)
+        {
+            tr.WorldMatrix.Decompose(out var _1, out Core.Mathematics.Quaternion _2, out var _3);
+            return _2;
+        }
 
         public static Vector3 ToNumericVector(this Core.Mathematics.Vector3 vec)
         {

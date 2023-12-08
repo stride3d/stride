@@ -13,7 +13,7 @@ namespace Stride.BepuPhysics.Components.Containers
 
     public abstract class ContainerComponent : EntityComponent
     {
-        private int? _simulationIndex = 0;
+        private int _simulationIndex = 0;
 
         private float _springFrequency = 30;
         private float _springDampingRatio = 3;
@@ -25,9 +25,12 @@ namespace Stride.BepuPhysics.Components.Containers
 
         public int SimulationIndex
         {
-            get => _simulationIndex ?? 0;
+            get => _simulationIndex;
             set
             {
+                if (_simulationIndex == value)
+                    return;
+
                 ContainerData?.DestroyContainer();
                 _simulationIndex = value;
                 ContainerData?.BuildOrUpdateContainer();

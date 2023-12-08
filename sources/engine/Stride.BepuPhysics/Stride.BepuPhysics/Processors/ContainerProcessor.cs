@@ -356,16 +356,21 @@ namespace Stride.BepuPhysics.Processors
             {
                 BepuSimulation.Simulation.Bodies.Remove(BHandle);
                 BepuSimulation.BodiesContainers.Remove(BHandle);
+                BHandle = new(-1);
             }
 
             if (SHandle.Value != -1 && BepuSimulation.Simulation.Statics.StaticExists(SHandle))
             {
                 BepuSimulation.Simulation.Statics.Remove(SHandle);
                 BepuSimulation.StaticsContainers.Remove(SHandle);
+                SHandle = new(-1);
             }
 
             if (ShapeIndex.Exists)
+            {
                 BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
+                ShapeIndex = default;
+            }
         }
 
         private Span<Triangle> GetMeshTriangles(ModelComponent model)

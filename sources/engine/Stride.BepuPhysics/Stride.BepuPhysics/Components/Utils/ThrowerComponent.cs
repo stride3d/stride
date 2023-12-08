@@ -25,7 +25,7 @@ namespace Stride.BepuPhysics.Components.Utils
             if (Input.IsKeyPressed(Keys.T))
             {
                 var camera = Game.Services.GetService<SceneSystem>().GraphicsCompositor.Cameras[0].Camera;
-                var forward = Core.Mathematics.Vector3.TransformNormal(-Core.Mathematics.Vector3.UnitZ, Core.Mathematics.Matrix.RotationQuaternion(camera.Entity.Transform.Rotation)).ToNumericVector();
+                var forward = Core.Mathematics.Vector3.TransformNormal(-Core.Mathematics.Vector3.UnitZ, Core.Mathematics.Matrix.RotationQuaternion(camera.Entity.Transform.GetWorldRot())).ToNumericVector();
 
                 Spawn(SpawnPosition.Transform.GetWorldPos(), (forward * Speed).ToStrideVector(), new());
             }
