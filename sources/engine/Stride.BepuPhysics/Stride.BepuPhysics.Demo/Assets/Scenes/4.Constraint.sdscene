@@ -1,0 +1,156 @@
+!SceneAsset
+Id: effd55be-d7a3-4d2a-89d7-7ef55924d9e1
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 89330a84-831a-4de1-94f2-b3b015aeeaea
+        - ref!! 760df096-af47-4f0e-8994-35fbdea3f9bd
+        - ref!! 10ee4c52-b8b9-415f-b8f5-c794ddc16f3a
+        - ref!! 3749bc3d-6cc1-49cb-8595-e37f26064fbd
+        - ref!! 1211ef6c-581c-40c2-883d-dba446451007
+    Parts:
+        -   Entity:
+                Id: 10ee4c52-b8b9-415f-b8f5-c794ddc16f3a
+                Name: Skybox
+                Components:
+                    869607da036a2f5b690715353a842081: !TransformComponent
+                        Id: 41ff5c87-4462-4a6e-80aa-bec79103f48a
+                        Position: {X: 0.0, Y: 2.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f06cd2af4f2551332eac077780c19eff: !BackgroundComponent
+                        Id: 9b6ea7c9-5f9b-46b0-9d22-0935c1956c17
+                        Texture: be26a913-4c76-45ec-a5e0-9fd6ceead086:Skybox texture
+                        Intensity: 0.1
+                    0d373b4518bc761153fde0d2540f118b: !LightComponent
+                        Id: 62846940-f48a-454c-820e-f8f2db7e9cce
+                        Type: !LightSkybox
+                            Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
+                        Intensity: 0.1
+        -   Entity:
+                Id: 1211ef6c-581c-40c2-883d-dba446451007
+                Name: BepuPhysics
+                Components:
+                    eda2202b601b97655c522d8b2e932ae5: !TransformComponent
+                        Id: 22719442-95ce-4c97-9560-c8867e0af725
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a5869266007b42af6b5ba5e5468a5478: ref!! 0e148ed8-d93a-484b-a7e9-2ff2e6de6116
+                    eeabfda15ef248d6bb1e4f6914eb65e5: !Stride.BepuPhysics.Components.Utils.ThrowerComponent,Stride.BepuPhysics
+                        Id: 74beffbd-014e-4714-baea-807a33e7a028
+                        SimulationIndex: 0
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        Instancing: ref!! ccc91ddb-b1aa-4126-b9fa-d46997c95559
+                        SpawnPosition: ref!! 89330a84-831a-4de1-94f2-b3b015aeeaea
+                        Speed: 50.0
+                    8ff30ff71af73fad50d330cdb9500d9a: !Stride.BepuPhysics.Components.Utils.TimeControlComponent,Stride.BepuPhysics
+                        Id: 12a717b6-4a41-4e30-be69-45d1c2a2b3cb
+                        SimulationIndex: 0
+        -   Entity:
+                Id: 3749bc3d-6cc1-49cb-8595-e37f26064fbd
+                Name: CubeInstancing
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 06b45326-4a72-44e0-91dd-1b81537cea90
+                        Position: {X: 0.0, Y: -10.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
+                        Id: 429e3428-f294-4706-afcd-f9bfc4ca70b5
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials:
+                            a4372207e9cfb015a5973f7fcb15a3a8~0: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
+                    8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
+                        Id: ccc91ddb-b1aa-4126-b9fa-d46997c95559
+                        Type: !InstancingEntityTransform {}
+        -   Entity:
+                Id: 6598867d-177f-4345-8e5a-d1a826a81c97
+                Name: Floor
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 0e148ed8-d93a-484b-a7e9-2ff2e6de6116
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 250.0, Y: 0.1, Z: 250.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: ef9a25cc-d718-4f42-9170-63467e31521d
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    43eb7a912500e1f2355d60d691ce93ee: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: d76d05fe-6979-4b23-9b4a-e55b82ac537c
+                        Mass: 1.0
+                        Size: {X: 250.0, Y: 0.1, Z: 250.0}
+                    b18e400f6ef857c50bac5d706493e368: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                        Id: 7da3d269-e6d9-4f46-a9c3-42ee470b6a15
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+        -   Entity:
+                Id: 760df096-af47-4f0e-8994-35fbdea3f9bd
+                Name: Directional light
+                Components:
+                    ba7701dac6ff028029e020b0fa73a5ee: !TransformComponent
+                        Id: f8c9ada8-bceb-4049-9007-db878f52152d
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 1.131334E-08, Y: -0.9659258, Z: -0.25881904, W: -4.222196E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    25d69094bde55b0756a7486a0e64b72d: !LightComponent
+                        Id: b4c1d334-371a-4194-8d87-9ba4e1434000
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow: !LightDirectionalShadowMap
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+                        Intensity: 0.2
+        -   Entity:
+                Id: 89330a84-831a-4de1-94f2-b3b015aeeaea
+                Name: Camera
+                Components:
+                    191a9580bfac05d33d042a46b9b519ac: !TransformComponent
+                        Id: 0724e57e-4d4c-4d2e-8399-113f8309b1e9
+                        Position: {X: 0.0, Y: 20.0, Z: 50.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c73c973e1799365d3dd49db196d92934: !CameraComponent
+                        Id: f24e1626-7169-4170-99ec-4de92c44830b
+                        Name: null
+                        Projection: Perspective
+                        Slot: be74c9be-5861-4bea-90b0-b175535210f7
+                    3745e157a09217638833d608b3d5fb1e: !Stride.BepuPhysics.Demo.Camera.BasicCameraControllerComponent,Stride.BepuPhysics.Demo
+                        Id: 08a9ce0a-fd56-4c96-bc06-0ccaca3fd15a
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 10.0, Y: 10.0, Z: 10.0}
+                        TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
+                        SpeedFactor: 5.0
+                        KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
+                        MouseRotationSpeed: {X: 1.0, Y: 1.0}
+                        TouchRotationSpeed: {X: 1.0, Y: 0.7}
+                    e7c4b7b9abe82b4c21938cc25f0f6831: !Stride.BepuPhysics.Demo.GameProfilerComponent,Stride.BepuPhysics.Demo
+                        Id: 6eb034fc-22ed-49c5-abe5-1a0e2a5fd197
+                        Enabled: true
+                        TextColor: {R: 144, G: 238, B: 144, A: 255}
+                        RefreshTime: 500.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1

@@ -1,0 +1,811 @@
+!SceneAsset
+Id: f405e7aa-df9b-4d6a-b95b-5a579edcb556
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! ba8fd7f6-3fb8-440c-a044-2172025b16be
+        - ref!! 69da8ba3-c27f-46ef-b5f7-949931403b63
+        - ref!! 881f9158-ccdd-4d6b-bb8f-f0f6b3e87656
+        - ref!! eb1c3907-f790-4553-8354-36fcb53876b2
+        - ref!! 9c33fac5-ed8b-4870-9a6e-6cdcfbfc400f
+    Parts:
+        -   Folder: HighFrictionRed
+            Entity:
+                Id: 0202d97d-d1e7-4730-b5ab-8824c63e8526
+                Name: BepuCapsule
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 77492cb8-1bc8-48a2-9528-6474ce30341c
+                        Position: {X: 6.0, Y: 5.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            77038c72b4783e9c3a2e9cecb2a6d5ed: ref!! 44b0cdc3-b272-4c88-8017-8dbe47cbf81f
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 3502d1a0-67e2-45fe-be59-ed41df13dc89
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1000.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
+                        Id: 2459b71a-2116-42a1-8ed5-f63b2479f44c
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Materials:
+                            99f00747999587f6986df091de16c466~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: LowRecoveryBlue
+            Entity:
+                Id: 02a3585f-f1cd-48af-8c04-f29037b9b340
+                Name: BepuCube
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: 45e98e83-850e-45d1-9b5e-6ea5b674aa26
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials:
+                            2c3b2357069d2f8a58f970af5ee3eb90~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 53046372-4319-4e1d-bc07-81d767b6ac6e
+                        Position: {X: 0.0, Y: 5.0, Z: -10.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            efedf12625fd2ddecbb10b51d87feafe: ref!! 0a42717b-6900-42e4-8615-36bf8d996edd
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 6f6d76ff-1818-48f6-a2b5-ea6056868bc6
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 0.001
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: MasksGreen
+            Entity:
+                Id: 07d92544-09f7-49eb-8f31-f89ce4a8a991
+                Name: BepuCapsule
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 9b53a999-9b05-4bd9-a152-5a0de072afdc
+                        Position: {X: 6.0, Y: 5.0, Z: -15.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 3a51828d-5596-4a16-80d2-8cc6ef086e41
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 17
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    7bea7685de2fe13c89414aeb2df53d81: !Stride.BepuPhysics.Components.Colliders.CapsuleColliderComponent,Stride.BepuPhysics
+                        Id: 987f06a0-19ac-4b21-8cf2-3ded46b3f68b
+                        Mass: 1.0
+                        Radius: 0.35
+                        Length: 0.5
+                    66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
+                        Id: 65d4152c-783a-4b27-8d5b-4c5c6f8d2abf
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Materials:
+                            3f228c9529ee2898c9808f28134f3138~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: Default
+            Entity:
+                Id: 13a850fd-01a3-4edd-84f9-4aff2d82f8f6
+                Name: BepuCube
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: becd82ae-b7d6-4185-9f81-babb1ac191e7
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 3b219d44-2efd-4e8e-8650-71b89fcf3ad1
+                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: f1cf9fd7-be91-4b89-9ae4-a3bc1b997df3
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 7e81f126-d1b6-4720-a4dd-3ed1e5fe6622
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Entity:
+                Id: 449d98d3-6952-4e9e-bffe-87e3cf806aad
+                Name: Entity
+                Components:
+                    65e23ef7e6c21675bd1e6778e0d17c9e: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: ad886fdc-e40d-437d-9245-0d243ff917e7
+                        Mass: 1.0
+                        Radius: 0.5
+                    4e45e281e89b6e4c7d414a59bd441929: !TransformComponent
+                        Id: 2a6b707a-7047-4681-9d9a-a3fe34aaa65f
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: 5f96c370-74cd-4e35-8ae4-b9a68db68696
+                Name: Entity
+                Components:
+                    dded08e2b1d6a599da285d0b98d67567: !Stride.BepuPhysics.Components.Colliders.CapsuleColliderComponent,Stride.BepuPhysics
+                        Id: a4fbddd3-3d46-4441-bfd5-d3d7fce2856b
+                        Mass: 1.0
+                        Radius: 0.35
+                        Length: 0.5
+                    2337f3d473bed998f0f66efbec64771b: !TransformComponent
+                        Id: 8a9d321b-54d5-4604-b5b2-35cea3bc9806
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Folder: MasksGreen
+            Entity:
+                Id: 63c76648-0bdc-4b05-a7d6-7fcf0cf85ea3
+                Name: BepuSphere
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: abb3e224-98ec-4c72-8656-dce83b68009d
+                        Position: {X: 4.0, Y: 5.0, Z: -15.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 932abf0a-52fb-44f3-8715-b6358c7831e3
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 9
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    29842b5f73ec396f8aa776c15f2961ca: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: c1557e11-d0ca-44b8-ab06-872f626ae1a3
+                        Mass: 1.0
+                        Radius: 0.5
+                    b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
+                        Id: 7897b4da-b58c-4435-80ed-c9991f3e7e2c
+                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Materials:
+                            7d73a0e1116ee483dc5876c6ad4b1f86~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Entity:
+                Id: 69da8ba3-c27f-46ef-b5f7-949931403b63
+                Name: Directional light
+                Components:
+                    ba7701dac6ff028029e020b0fa73a5ee: !TransformComponent
+                        Id: b9f3c95d-43ca-4f8e-a7ad-b119b73b6595
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 1.131334E-08, Y: -0.9659258, Z: -0.25881904, W: -4.222196E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    25d69094bde55b0756a7486a0e64b72d: !LightComponent
+                        Id: 99fd7d26-bf4e-4505-855e-17d9fdc71d59
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow: !LightDirectionalShadowMap
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+                        Intensity: 0.2
+        -   Entity:
+                Id: 6ef5abb3-f01c-4572-a493-238d14e055b6
+                Name: Floor
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 6b56cdc8-753d-46a5-a156-4a659f626c54
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 250.0, Y: 0.1, Z: 250.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: fe0ec3f1-b5b2-4b91-93a7-a5e76d122bdc
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    43eb7a912500e1f2355d60d691ce93ee: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 8d90f5e6-903f-45a5-800d-fb3be2224a7d
+                        Mass: 1.0
+                        Size: {X: 250.0, Y: 0.1, Z: 250.0}
+                    b18e400f6ef857c50bac5d706493e368: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                        Id: 696c6712-7284-4d7c-addc-2999872a5eb0
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+        -   Folder: LowRecoveryBlue
+            Entity:
+                Id: 700235d2-dac0-421e-8ab5-69e540128cc9
+                Name: BepuCapsule
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: b077ce12-2c4c-4742-ab4b-ac4a2c1af009
+                        Position: {X: 6.0, Y: 5.0, Z: -10.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            77038c72b4783e9c3a2e9cecb2a6d5ed: ref!! 8a9d321b-54d5-4604-b5b2-35cea3bc9806
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: ba87bf9a-470e-4e33-8e11-c2b2c72b89ea
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 0.001
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
+                        Id: 0b5157e6-a92f-49b0-b53c-d10c646c253c
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Materials:
+                            9ad5a2dddc489f2c6d840f99da177742~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: Default
+            Entity:
+                Id: 78e5264d-fa47-4350-bb93-7f7f5859eff0
+                Name: BepuCylinder
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: aeb7c90d-0209-44fe-8d31-1098d26424c5
+                        Position: {X: 2.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: b2fb0d85-a7a2-47d8-9db2-864dfac11bb2
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    cce83b299ea932d20e2a8795894a050a: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
+                        Id: 5017d8e3-4dbd-47cc-9ae0-631923f9aca9
+                        Mass: 1.0
+                        Radius: 0.5
+                        Length: 1.0
+                    9ce36a86273c51904994abd3986c418a: !ModelComponent
+                        Id: b243d047-cc50-4e22-84bf-87ea636dd1bb
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: null
+            Entity:
+                Id: 7e11022d-0b1b-40b6-b0fe-fed8940eb39f
+                Name: Entity
+                Components:
+                    6beaa138f4ad4feb6d939aa82a57704f: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: d054fac1-9c96-41c2-9937-62e3a3c8d9c9
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    af7a7ddbf23f154047a007f64b4a7139: !TransformComponent
+                        Id: ce47601f-8743-4eea-a86b-38c15e0da1fe
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: 881f9158-ccdd-4d6b-bb8f-f0f6b3e87656
+                Name: Skybox
+                Components:
+                    869607da036a2f5b690715353a842081: !TransformComponent
+                        Id: 987b3575-d470-4ca6-a382-18eeb8ce8a05
+                        Position: {X: 0.0, Y: 2.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f06cd2af4f2551332eac077780c19eff: !BackgroundComponent
+                        Id: 806d674f-a0db-412f-ba7a-0c346e9fb0df
+                        Texture: be26a913-4c76-45ec-a5e0-9fd6ceead086:Skybox texture
+                        Intensity: 0.1
+                    0d373b4518bc761153fde0d2540f118b: !LightComponent
+                        Id: 52a43778-da3e-4baf-9485-ab8782d81f58
+                        Type: !LightSkybox
+                            Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
+                        Intensity: 0.1
+        -   Entity:
+                Id: 9c33fac5-ed8b-4870-9a6e-6cdcfbfc400f
+                Name: BepuPhysics
+                Components:
+                    eda2202b601b97655c522d8b2e932ae5: !TransformComponent
+                        Id: 0149eeb6-ec9f-47b4-aa22-107a27c3dbb0
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a5869266007b42af6b5ba5e5468a5478: ref!! 6b56cdc8-753d-46a5-a156-4a659f626c54
+                            f65456ffd01fb6c29c666556bca7200d: ref!! 53046372-4319-4e1d-bc07-81d767b6ac6e
+                            9feb81b9696cb84467dcbb248b4db27d: ref!! 29855dc9-2fa0-4859-87f9-608b3299b7ed
+                            87772d81c11505c7bf54ed927f5f3bf5: ref!! 7ccca92d-cc9f-4931-a81b-cfa4963fa617
+                            dd4b92b779f4c0468d8d6aefebe5f45d: ref!! b077ce12-2c4c-4742-ab4b-ac4a2c1af009
+                            efd139001a46f117287c796fc0569449: ref!! 4cb479f0-5894-44a3-9ab8-c6d192c6e6d3
+                            f6a81ff7c7cb17557441bd9c513d80bf: ref!! b98e6b4a-1cc6-4c7e-a04b-d86e5d61d1c1
+                            f163080269f1c8aff5cb9d77c914246a: ref!! abb3e224-98ec-4c72-8656-dce83b68009d
+                            f6539611304ac242c77f55b1c8b8a7b6: ref!! 9b53a999-9b05-4bd9-a152-5a0de072afdc
+                            581921d34d29798d2b1867548341d61b: ref!! 34ace4d0-ef86-4475-8ffd-ff60954c53e3
+                            73e51a908d3b24a06897828e78e133d0: ref!! e6469b53-fb6e-4936-a160-1394d6449bd9
+                            a4d60c0a60b73a7613682b988d5a4002: ref!! 152c9526-9b2d-4359-8162-92172812074e
+                            7fc238eb958176284cb7ba61bdfd2389: ref!! 77492cb8-1bc8-48a2-9528-6474ce30341c
+                            1c9e949a4e3c1b3347763afc9e3ea38c: ref!! 3b219d44-2efd-4e8e-8650-71b89fcf3ad1
+                            32f813ebfd35bc05a7a9fae60aaf4cdb: ref!! aeb7c90d-0209-44fe-8d31-1098d26424c5
+                            d55a2fcd08b584b40e63e0de9da52a33: ref!! 14293874-01b0-44da-8ab4-028038e5be45
+                            17cb7d097e5690629d957cb27f63f688: ref!! 480715ab-d35e-4d7f-9ab1-fdbc2df3b3bc
+                    eeabfda15ef248d6bb1e4f6914eb65e5: !Stride.BepuPhysics.Components.Utils.ThrowerComponent,Stride.BepuPhysics
+                        Id: 62767d9f-6694-4af7-bc47-51b272e688cf
+                        SimulationIndex: 0
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        Instancing: ref!! fc114bd5-5497-4e62-82c3-1f2de47d71bf
+                        SpawnPosition: ref!! ba8fd7f6-3fb8-440c-a044-2172025b16be
+                        Speed: 50.0
+                    8ff30ff71af73fad50d330cdb9500d9a: !Stride.BepuPhysics.Components.Utils.TimeControlComponent,Stride.BepuPhysics
+                        Id: 34da6808-57d1-4aa0-bbbf-e42f9b847ea7
+                        SimulationIndex: 0
+                    d1f2aa97c4c6d4a84cb414c73d5cfa0c: !Stride.BepuPhysics.Components.Utils.ColliderEditorComponent,Stride.BepuPhysics
+                        Id: 4bc6ec65-ee3b-4bc2-a9ba-8fdd7aaf9c53
+                        Component: null
+        -   Folder: Default
+            Entity:
+                Id: a22bdaf1-cdcf-495d-a7e4-fec735f4f1b7
+                Name: BepuSphere
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 14293874-01b0-44da-8ab4-028038e5be45
+                        Position: {X: 4.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: e2fef213-7fa3-4564-9219-bbc042117e6d
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    29842b5f73ec396f8aa776c15f2961ca: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: 289abb05-c8df-4050-b8ab-c5e416edf573
+                        Mass: 1.0
+                        Radius: 0.5
+                    b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
+                        Id: 5bbca541-8566-4c10-9e42-f231957d8410
+                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Materials: {}
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: LowRecoveryBlue
+            Entity:
+                Id: a3b1741e-8147-436a-a415-c24711c3be55
+                Name: BepuSphere
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 7ccca92d-cc9f-4931-a81b-cfa4963fa617
+                        Position: {X: 4.0, Y: 5.0, Z: -10.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            3e6b900f93413bee693248cc3ac7a0cf: ref!! 2a6b707a-7047-4681-9d9a-a3fe34aaa65f
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 4bba11cf-9118-438d-830d-b4454b5af495
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 0.001
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
+                        Id: cdf55051-a94c-4962-a489-795ae5697a18
+                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Materials:
+                            c7889db017f3d1810b21e736f6b6d7f4~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: null
+            Entity:
+                Id: ad1bac8f-e32f-45ec-bac5-d8935bf234f5
+                Name: Entity
+                Components:
+                    d75a2f514283dbdba3917f9a8b4fcb34: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
+                        Id: 85fd7932-4963-40cc-b466-81de7579a5c2
+                        Mass: 1.0
+                        Radius: 0.5
+                        Length: 1.0
+                    97dd06753db9e08a1136bd4d30e52abe: !TransformComponent
+                        Id: 0e14536f-7dc3-46ee-abf2-753b915639fc
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Folder: HighFrictionRed
+            Entity:
+                Id: ad1c6576-7a5e-438b-bbdc-704b7d7980f8
+                Name: BepuCube
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: fe29dede-9fdf-4a9c-9208-6d1891a73a69
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials:
+                            54cc3ab5b9d6a2a9bb34625952a8e324~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 34ace4d0-ef86-4475-8ffd-ff60954c53e3
+                        Position: {X: 0.0, Y: 5.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            efedf12625fd2ddecbb10b51d87feafe: ref!! ce47601f-8743-4eea-a86b-38c15e0da1fe
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: b3d742f3-fc3e-44dc-ab4c-cae89915b9b8
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1000.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: Default
+            Entity:
+                Id: af866351-1009-4b49-aecc-d220577dfb74
+                Name: BepuCapsule
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 480715ab-d35e-4d7f-9ab1-fdbc2df3b3bc
+                        Position: {X: 6.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 3019c207-0194-4379-a63e-d15413bf0641
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    7bea7685de2fe13c89414aeb2df53d81: !Stride.BepuPhysics.Components.Colliders.CapsuleColliderComponent,Stride.BepuPhysics
+                        Id: 1a27d780-3af7-4238-aa67-45bc9666c062
+                        Mass: 1.0
+                        Radius: 0.35
+                        Length: 0.5
+                    66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
+                        Id: 7af5dd1e-092f-423e-bee5-cbdccdfdd141
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Materials: {}
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: LowRecoveryBlue
+            Entity:
+                Id: b34707f1-220d-4516-a0fe-af0aa2a689a9
+                Name: BepuCylinder
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 29855dc9-2fa0-4859-87f9-608b3299b7ed
+                        Position: {X: 2.0, Y: 5.0, Z: -10.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            e7ae19c353c8428ee08541c2efcfb487: ref!! 560ab54f-eedc-422a-97f0-07b6d08b3cbb
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 0eb715e4-e35d-4313-bc54-c726c4dde879
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 0.001
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    9ce36a86273c51904994abd3986c418a: !ModelComponent
+                        Id: 0d794cd9-0a15-4812-beb0-434918cc397c
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials:
+                            de91457b362a371fefd24e4802fabfb7~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: HighFrictionRed
+            Entity:
+                Id: b5b198d8-a248-491f-932a-d8508a8c0908
+                Name: BepuCylinder
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: e6469b53-fb6e-4936-a160-1394d6449bd9
+                        Position: {X: 2.0, Y: 5.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            e7ae19c353c8428ee08541c2efcfb487: ref!! 0e14536f-7dc3-46ee-abf2-753b915639fc
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 28b6cb70-5852-4032-8c63-46da8ce32059
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1000.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    9ce36a86273c51904994abd3986c418a: !ModelComponent
+                        Id: e3373374-c7d7-4bd4-936c-6328fdc44488
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials:
+                            c5f4490f1365f0a6349f5f276fd91c4e~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Entity:
+                Id: b6e70b10-4cbc-4b94-be96-6c360b1816bb
+                Name: Entity
+                Components:
+                    d75a2f514283dbdba3917f9a8b4fcb34: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
+                        Id: bdb1b44d-6a72-42c5-a7a0-94ac0a586bf3
+                        Mass: 1.0
+                        Radius: 0.5
+                        Length: 1.0
+                    97dd06753db9e08a1136bd4d30e52abe: !TransformComponent
+                        Id: 560ab54f-eedc-422a-97f0-07b6d08b3cbb
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: ba8fd7f6-3fb8-440c-a044-2172025b16be
+                Name: Camera
+                Components:
+                    191a9580bfac05d33d042a46b9b519ac: !TransformComponent
+                        Id: c6d14d96-1ffc-4d2b-af89-8c8c876ca041
+                        Position: {X: 0.0, Y: 20.0, Z: 50.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c73c973e1799365d3dd49db196d92934: !CameraComponent
+                        Id: 4e45240e-fcd2-4a13-85a8-3790d33a451d
+                        Name: null
+                        Projection: Perspective
+                        Slot: be74c9be-5861-4bea-90b0-b175535210f7
+                    ac4f5873e0f1eef36e7ea844e5f59a5e: !Stride.BepuPhysics.Demo.Camera.BasicCameraControllerComponent,Stride.BepuPhysics.Demo
+                        Id: cc73f22e-657a-4a27-9b63-15e63268448a
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 10.0, Y: 10.0, Z: 10.0}
+                        TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
+                        SpeedFactor: 5.0
+                        KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
+                        MouseRotationSpeed: {X: 1.0, Y: 1.0}
+                        TouchRotationSpeed: {X: 1.0, Y: 0.7}
+                    a962cff84864e2c3fda145d7322523dd: !Stride.BepuPhysics.Demo.GameProfilerComponent,Stride.BepuPhysics.Demo
+                        Id: bce5446a-b48d-46f1-a873-3231f80b01ff
+                        Enabled: true
+                        TextColor: {R: 144, G: 238, B: 144, A: 255}
+                        RefreshTime: 500.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1
+        -   Folder: MasksGreen
+            Entity:
+                Id: c28e1c15-b112-4d53-adbf-df4f1a77b973
+                Name: BepuCube
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: 38865ce5-de03-4946-a523-d95235576331
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials:
+                            c0212928d7dee7b7dabba672b36d9cbb~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 4cb479f0-5894-44a3-9ab8-c6d192c6e6d3
+                        Position: {X: 0.0, Y: 5.0, Z: -15.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 55abba5e-1c36-4775-bb6c-581c9b5ee795
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 3
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 0522c201-e68d-4d3a-87be-c64d5e734839
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: null
+            Entity:
+                Id: d35f277e-8299-420a-8d17-c546fdd4edc6
+                Name: Entity
+                Components:
+                    65e23ef7e6c21675bd1e6778e0d17c9e: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: 8018cdd2-2685-410b-9955-a2e559d4a085
+                        Mass: 1.0
+                        Radius: 0.5
+                    4e45e281e89b6e4c7d414a59bd441929: !TransformComponent
+                        Id: a9424084-23ec-4b88-8050-72ce24afb0a0
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Folder: MasksGreen
+            Entity:
+                Id: e721b62a-0093-4c12-a97c-45758fda075d
+                Name: BepuCylinder
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: b98e6b4a-1cc6-4c7e-a04b-d86e5d61d1c1
+                        Position: {X: 2.0, Y: 5.0, Z: -15.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: f9bdb9b3-323a-483c-9cc6-5dbfd6c9317b
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 5
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    cce83b299ea932d20e2a8795894a050a: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
+                        Id: 3ffadd54-638b-4aec-9041-d38740a985f3
+                        Mass: 1.0
+                        Radius: 0.5
+                        Length: 1.0
+                    9ce36a86273c51904994abd3986c418a: !ModelComponent
+                        Id: ad0b9c93-f035-423f-9f35-c528a0e0d926
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials:
+                            428a540fa3c4bd8a6304f2b6693b4039~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Folder: HighFrictionRed
+            Entity:
+                Id: ea19c3e8-68ed-479f-bb7b-e3a1a509c14a
+                Name: BepuSphere
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 152c9526-9b2d-4359-8162-92172812074e
+                        Position: {X: 4.0, Y: 5.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            3e6b900f93413bee693248cc3ac7a0cf: ref!! a9424084-23ec-4b88-8050-72ce24afb0a0
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 82b59277-8f06-4182-b914-34472655a7d2
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1000.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ContactEventHandler: null
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
+                        Id: f09c8e7f-9659-43ba-ba52-fc94b98c1be1
+                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Materials:
+                            54147cf5c590a33e3e2df6d7a4cff44b~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                    ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Entity:
+                Id: eb1c3907-f790-4553-8354-36fcb53876b2
+                Name: CubeInstancing
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 32a68a4c-cf41-4dc1-9a0f-d352845da22f
+                        Position: {X: 0.0, Y: -10.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
+                        Id: 7245cfe5-9165-4223-8c7b-68b277253d44
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials:
+                            a4372207e9cfb015a5973f7fcb15a3a8~0: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
+                    8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
+                        Id: fc114bd5-5497-4e62-82c3-1f2de47d71bf
+                        Type: !InstancingEntityTransform {}
+        -   Entity:
+                Id: f2495b91-10b2-4fd7-b132-5ba31209a828
+                Name: Entity
+                Components:
+                    6beaa138f4ad4feb6d939aa82a57704f: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 761c7839-a2ae-4ed0-8c38-b150fdbfd397
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    af7a7ddbf23f154047a007f64b4a7139: !TransformComponent
+                        Id: 0a42717b-6900-42e4-8615-36bf8d996edd
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Folder: null
+            Entity:
+                Id: f94d49ee-f39b-4975-a82b-d75adae5a9d1
+                Name: Entity
+                Components:
+                    dded08e2b1d6a599da285d0b98d67567: !Stride.BepuPhysics.Components.Colliders.CapsuleColliderComponent,Stride.BepuPhysics
+                        Id: c09a2473-f6d0-4c2c-8028-2067f40e1d45
+                        Mass: 1.0
+                        Radius: 0.35
+                        Length: 0.5
+                    2337f3d473bed998f0f66efbec64771b: !TransformComponent
+                        Id: 44b0cdc3-b272-4c88-8017-8dbe47cbf81f
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
