@@ -5,9 +5,9 @@ name: Build
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches: [ "master" ]    
+    tags:
+      - 'v*.*.*.*'
 
 jobs:
   build:
