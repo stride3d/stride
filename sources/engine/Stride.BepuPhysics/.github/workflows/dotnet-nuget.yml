@@ -26,10 +26,10 @@ jobs:
       id: version
       run: |
         if [[ "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          echo ::set-env name=PACKAGE_VERSION::${{ github.ref/refs\/tags\/v/ }}
+          export PACKAGE_VERSION=${{ github.ref/refs\/tags\/v/ }}
         else
           echo "Invalid tag format, setting default version..."
-          echo ::set-env name=PACKAGE_VERSION::0.0.0.0
+          export PACKAGE_VERSION=0.0.0.0
         fi
       
     - name: Build
