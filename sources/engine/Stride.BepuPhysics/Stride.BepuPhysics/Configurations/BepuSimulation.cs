@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using BepuPhysics;
+﻿using BepuPhysics;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Components;
@@ -11,7 +9,6 @@ using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Core.Shaders.Ast;
 using static Stride.BepuPhysics.Definitions.StrideNarrowPhaseCallbacks;
 
 namespace Stride.BepuPhysics.Configurations;

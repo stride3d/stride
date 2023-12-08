@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Stride.Core;
+﻿using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Games;

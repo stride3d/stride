@@ -1,7 +1,7 @@
-﻿using BepuPhysics.Constraints;
+﻿using System.Numerics;
+using BepuPhysics.Constraints;
 using BepuUtilities;
 using BepuUtilities.Memory;
-using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.CharacterConstraints;
 //Constraint descriptions provide an explicit mapping from the array-of-structures format to the internal array-of-structures-of-arrays format used by the solver.

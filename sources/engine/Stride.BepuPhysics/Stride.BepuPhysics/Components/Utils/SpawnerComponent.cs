@@ -1,5 +1,4 @@
-﻿using System;
-using Stride.BepuPhysics.Extensions;
+﻿using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;

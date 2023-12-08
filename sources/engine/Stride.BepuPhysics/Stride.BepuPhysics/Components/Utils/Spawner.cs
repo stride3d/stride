@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using Stride.BepuPhysics.Components;
-using Stride.BepuPhysics.Components.Containers;
+﻿using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;

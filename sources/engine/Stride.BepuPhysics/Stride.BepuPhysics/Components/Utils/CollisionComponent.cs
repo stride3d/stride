@@ -1,11 +1,9 @@
-﻿using System;
+﻿using BepuPhysics.Collidables;
+using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions.Collisions;
 using Stride.BepuPhysics.Extensions;
 using Stride.Engine;
-using Stride.Input;
-using BepuPhysics.Collidables;
-using BepuPhysics.CollisionDetection;
 
 namespace Stride.BepuPhysics.Components.Utils
 {

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Stride.BepuPhysics.Components.Containers;
+﻿using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Engine;

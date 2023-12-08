@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Stride.BepuPhysics.Definitions.Raycast
+﻿namespace Stride.BepuPhysics.Definitions.Raycast
 {
     public struct HitResult
     {

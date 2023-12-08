@@ -1,6 +1,4 @@
 ﻿using BepuPhysics;
-using Silk.NET.OpenGL;
-using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions.Character;
@@ -8,7 +6,6 @@ using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using System;
 
 namespace Stride.BepuPhysics.Components.Character;
 

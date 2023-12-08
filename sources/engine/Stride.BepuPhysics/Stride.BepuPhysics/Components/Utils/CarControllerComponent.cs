@@ -1,5 +1,4 @@
-﻿using System;
-using Stride.BepuPhysics.Components.Constraints;
+﻿using Stride.BepuPhysics.Components.Constraints;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.Core.Mathematics;
 using Stride.Engine;

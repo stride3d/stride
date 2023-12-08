@@ -1,5 +1,5 @@
-﻿using BepuUtilities;
-using System.Numerics;
+﻿using System.Numerics;
+using BepuUtilities;
 
 namespace Stride.BepuPhysics.Definitions.CharacterConstraints;
 public struct CharacterMotionAccumulatedImpulse

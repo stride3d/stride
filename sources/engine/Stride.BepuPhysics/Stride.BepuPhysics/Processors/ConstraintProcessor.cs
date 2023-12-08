@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
-using BepuPhysics;
+﻿using BepuPhysics;
+using Silk.NET.OpenGL;
 using Stride.BepuPhysics.Components.Constraints;
+using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions.CharacterConstraints;
 using Stride.Core.Annotations;
@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Processors
 {
     public class ConstraintProcessor : EntityProcessor<ConstraintComponent>
     {
-        private BepuConfiguration _bepuConfig = new();
+        private BepuConfiguration _bepuConfiguration = new();
 
         public ConstraintProcessor()
         {
@@ -20,13 +20,13 @@ namespace Stride.BepuPhysics.Processors
 
         protected override void OnSystemAdd()
         {
-            _bepuConfig = Services.GetService<BepuConfiguration>();
+            _bepuConfiguration = Services.GetService<BepuConfiguration>();
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
         {
             base.OnEntityComponentAdding(entity, component, data);
-            component.ConstraintData = new(component, _bepuConfig.BepuSimulations[0]); //TODO : get Index from bodies
+            component.ConstraintData = new(component, _bepuConfiguration);
             component.ConstraintData.BuildConstraint();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
@@ -39,18 +39,21 @@ namespace Stride.BepuPhysics.Processors
 
     internal class ConstraintData
     {
-        internal ConstraintComponent ConstraintComponent { get; }
-        internal BepuSimulation BepuSimulation { get; }
+        private BepuConfiguration _bepuConfig = new();
+        private int _simulationIndex = 0;
 
+        internal BepuSimulation BepuSimulation => _bepuConfig.BepuSimulations[_simulationIndex];
+
+        internal ConstraintComponent ConstraintComponent { get; }
         internal ConstraintHandle CHandle { get; set; } = new(-1);
 
 
         public bool Exist => CHandle.Value != -1 && BepuSimulation.Simulation.Solver.ConstraintExists(CHandle);
 
-        public ConstraintData(ConstraintComponent constraintComponent, BepuSimulation bepuSimulation)
+        public ConstraintData(ConstraintComponent constraintComponent, BepuConfiguration bepuConfig)
         {
             ConstraintComponent = constraintComponent;
-            BepuSimulation = bepuSimulation;
+            _bepuConfig = bepuConfig;
         }
 
         internal void BuildConstraint()
@@ -58,11 +61,16 @@ namespace Stride.BepuPhysics.Processors
 #pragma warning disable CS8602 
             var bodies = new Span<BodyHandle>(ConstraintComponent.Bodies.Where(e => e.ContainerData != null).Select(e => e.ContainerData.BHandle).ToArray());
 #pragma warning restore CS8602
-
+                       
             if (Exist)
                 DestroyConstraint();
 
-            if (!ConstraintComponent.Enabled)
+            if (ConstraintComponent.Bodies.Count() == 0 )
+                return;
+
+            _simulationIndex = ConstraintComponent.Bodies[0].SimulationIndex;
+
+            if (!ConstraintComponent.Enabled || ConstraintComponent.Bodies.Any(e => e.SimulationIndex != _simulationIndex))
                 return;
 
             switch (ConstraintComponent) //maybe add a IConstraintDescription to ConstraintComponent and use it instead of that switch of hell
@@ -171,6 +179,7 @@ namespace Stride.BepuPhysics.Processors
                 BepuSimulation.Simulation.Solver.Remove(CHandle);
             }
         }
+
     }
 
 }

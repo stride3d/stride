@@ -1,7 +1,7 @@
-﻿using BepuPhysics.Collidables;
+﻿using System.Numerics;
 using BepuPhysics;
+using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
-using System.Numerics;
 using Stride.BepuPhysics.Definitions.Collisions;
 
 namespace Stride.BepuPhysics.Definitions.Character;

@@ -1,5 +1,5 @@
-﻿using BepuUtilities;
-using System.Numerics;
+﻿using System.Numerics;
+using BepuUtilities;
 
 namespace Stride.BepuPhysics.Definitions.CharacterConstraints;
 //Note that all the solver-side data is in terms of 'Wide' data types- the solver never works on just one constraint at a time. Instead,

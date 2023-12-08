@@ -1,12 +1,11 @@
-﻿using BepuPhysics.Collidables;
-using BepuPhysics.CollisionDetection;
-using BepuPhysics;
-using BepuUtilities.Collections;
-using BepuUtilities;
-using System;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Numerics;
+using BepuPhysics;
+using BepuPhysics.Collidables;
+using BepuPhysics.CollisionDetection;
+using BepuUtilities;
+using BepuUtilities.Collections;
 using BepuUtilities.Memory;
 
 namespace Stride.BepuPhysics.Definitions.Collisions;

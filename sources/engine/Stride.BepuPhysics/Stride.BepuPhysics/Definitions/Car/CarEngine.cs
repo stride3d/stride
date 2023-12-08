@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Stride.Core;
+﻿using Stride.Core;
 
 namespace Stride.BepuPhysics.Definitions.Car
 {

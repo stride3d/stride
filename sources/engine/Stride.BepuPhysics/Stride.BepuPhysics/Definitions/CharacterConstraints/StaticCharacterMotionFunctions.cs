@@ -1,8 +1,8 @@
-﻿using BepuPhysics.Constraints;
-using BepuPhysics;
-using BepuUtilities;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
+using BepuPhysics;
+using BepuPhysics.Constraints;
+using BepuUtilities;
 
 namespace Stride.BepuPhysics.Definitions.CharacterConstraints;
 

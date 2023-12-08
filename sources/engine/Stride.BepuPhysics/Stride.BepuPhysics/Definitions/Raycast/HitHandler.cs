@@ -1,12 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
-using BepuPhysics;
-using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Raycast
 {

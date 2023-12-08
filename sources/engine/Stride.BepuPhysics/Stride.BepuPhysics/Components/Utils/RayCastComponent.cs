@@ -1,11 +1,7 @@
-﻿using System;
-using System.Linq;
-using Silk.NET.OpenGL;
-using Stride.BepuPhysics.Configurations;
+﻿using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Input;
 
 namespace Stride.BepuPhysics.Components.Utils
 {

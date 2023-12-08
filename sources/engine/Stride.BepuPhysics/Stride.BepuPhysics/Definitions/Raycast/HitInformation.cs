@@ -1,5 +1,5 @@
-﻿using BepuPhysics.Collidables;
-using System.Numerics;
+﻿using System.Numerics;
+using BepuPhysics.Collidables;
 
 namespace Stride.BepuPhysics.Definitions.Raycast
 {

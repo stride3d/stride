@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using BepuPhysics;
+﻿using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Components.Colliders;
