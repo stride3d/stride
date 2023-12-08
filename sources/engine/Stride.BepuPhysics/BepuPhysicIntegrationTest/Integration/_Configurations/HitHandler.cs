@@ -13,6 +13,9 @@ namespace BepuPhysicIntegrationTest.Integration.Configurations
 {
     public struct HitHandler : IRayHitHandler
     {
+        public bool StopAtFirstHit { get; set; } = false; //TODO
+        public byte CollisionMask { get; set; } = 255; //TODO
+
         public HitHandler()
         {
             Reset();
@@ -34,25 +37,28 @@ namespace BepuPhysicIntegrationTest.Integration.Configurations
 
         public void Reset()
         {
-            Hit.Normal = Vector3.Zero;
-            Hit.T = 0;
-            Hit.Collidable = null;
+            if (Hit.HitInformations == null)
+                Hit.HitInformations = new();
+            Hit.HitInformations.Clear();
             Hit.Hit = false;
         }
         void IRayHitHandler.OnRayHit(in BepuPhysics.Trees.RayData ray, ref float maximumT, float t, System.Numerics.Vector3 normal, BepuPhysics.Collidables.CollidableReference collidable, int childIndex)
         {
-            Hit.Normal = normal;
-            Hit.T = t;
-            Hit.Collidable = collidable;
+            Hit.HitInformations.Add(new() { Collidable = collidable, Normal = normal, T = t});
             Hit.Hit = true;
         }
     }
 
-    public struct HitResult
+    public struct HitInformation
     {
         public Vector3 Normal;
         public float T;
         public CollidableReference? Collidable;
+    }
+
+    public struct HitResult
+    {
+        public List<HitInformation> HitInformations;
         public bool Hit;
     }
 }

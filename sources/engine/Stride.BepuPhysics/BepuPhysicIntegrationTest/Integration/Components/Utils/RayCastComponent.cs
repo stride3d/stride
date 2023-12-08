@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using BepuPhysicIntegrationTest.Integration.Components.Collisions;
 using BepuPhysicIntegrationTest.Integration.Configurations;
 using BepuPhysicIntegrationTest.Integration.Extensions;
@@ -34,7 +35,7 @@ namespace BepuPhysicIntegrationTest.Integration.Components.Utils
             var worldDir = Dir;
             rotation.Rotate(ref worldDir);
             var r = _bepuConfig.BepuSimulations[0].RayCast(Entity.Transform.GetWorldPos() + Offset, worldDir, MaxT);
-            DebugText.Print($"hit : {r.Hit}  |  T : {r.T}  |  normal : {r.Normal}  |  col : {r.Collidable} (worldDir : {worldDir})", new((int)(BepuAndStrideExtensions.X_DEBUG_TEXT_POS / 1.3f), 830));
+            DebugText.Print($"hit : {r.Hit}  |  T : {r.HitInformations.FirstOrDefault().T}  |  normal : {r.HitInformations.FirstOrDefault().Normal}  |  col : {r.HitInformations.FirstOrDefault().Collidable} (worldDir : {worldDir})", new((int)(BepuAndStrideExtensions.X_DEBUG_TEXT_POS / 1.3f), 830));
         }
     }
 

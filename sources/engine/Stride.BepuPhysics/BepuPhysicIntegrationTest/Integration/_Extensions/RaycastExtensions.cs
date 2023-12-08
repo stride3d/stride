@@ -11,8 +11,11 @@ public static class RaycastExtensions
 	/// <param name="rayCastResult"></param>
 	/// <param name="simulation"></param>
 	/// <returns></returns>
-	public static Entity? GetEntityComponents(this HitResult rayCastResult, BepuSimulation simulation)
+	public static Entity? GetEntityComponents(this HitInformation rayCastResult, BepuSimulation simulation)
 	{
+		if (rayCastResult.Collidable == null)
+			return null;
+
 		if (simulation.BodiesContainers.TryGetValue(rayCastResult.Collidable.Value.BodyHandle, out var bodyContainer))
 			return bodyContainer.Entity;
 
