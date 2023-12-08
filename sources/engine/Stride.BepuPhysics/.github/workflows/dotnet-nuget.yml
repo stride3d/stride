@@ -26,11 +26,12 @@ jobs:
       id: version
       run: |
         if [[ "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          export PACKAGE_VERSION=${{ github.ref/refs\/tags\/v/ }}
+          PACKAGE_VERSION=$(echo "${{ github.ref }}" | sed 's/^refs\/tags\/v//')
         else
           echo "Invalid tag format, setting default version..."
-          export PACKAGE_VERSION=0.0.0.0
+          PACKAGE_VERSION=0.0.0.0
         fi
+        echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
       
     - name: Build
       run: dotnet build ./Stride.BepuPhysics/Stride.BepuPhysics.csproj -p:Version=${{ env.PACKAGE_VERSION }} --no-restore 
