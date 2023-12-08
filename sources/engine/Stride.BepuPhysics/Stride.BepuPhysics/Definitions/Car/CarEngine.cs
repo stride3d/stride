@@ -2,6 +2,7 @@
 
 namespace Stride.BepuPhysics.Definitions.Car
 {
+    [DataContract]
     public class CarEngine
     {
         public int MinRPM { get; set; } = 1000;

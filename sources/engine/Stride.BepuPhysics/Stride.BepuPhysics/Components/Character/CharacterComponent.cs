@@ -19,11 +19,11 @@ public class CharacterComponent : SimulationUpdateComponent
     public float JumpSpeed { get; set; } = 1f;
 
     [DataMemberIgnore]
-    public Quaternion Orientation { get; private set; }
+    public Quaternion Orientation { get; set; }
     [DataMemberIgnore]
-    public Vector3 Velocity { get; private set; }
+    public Vector3 Velocity { get; set; }
     [DataMemberIgnore]
-    public bool IsGrounded { get; private set; }
+    public bool IsGrounded { get; set; }
 
     public BodyContainerComponent? CharacterBody { get; set; }
     public CapsuleColliderComponent? CharacterCapsule { get; set; }

@@ -1,5 +1,8 @@
-﻿namespace Stride.BepuPhysics.Definitions.Car
+﻿using Stride.Core;
+
+namespace Stride.BepuPhysics.Definitions.Car
 {
+    [DataContract]
     public class CarEngineGear
     {
         public float AccelerationForce { get; set; }
