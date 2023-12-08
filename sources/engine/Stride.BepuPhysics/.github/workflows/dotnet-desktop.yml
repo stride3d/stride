@@ -12,7 +12,7 @@ jobs:
 
     env:
       Configuration: 'Release'
-      Solution_Name: ''
+      Solution_Name: 'Stride.BepuPhysics.sln'
 
     runs-on: windows-latest
 
@@ -36,6 +36,10 @@ jobs:
     - name: Restore the application
       run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
 
+    # Build the solution in Release configuration
+    - name: Build the solution in Release configuration
+      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration /t:Build
+      
     - name: display files
       run: Get-ChildItem -Path "D:\a" -Force -Recurse
 
