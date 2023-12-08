@@ -1297,6 +1297,8 @@ Hierarchy:
                         Id: db535494-c5f6-4680-95a2-0df867dadd54
                         Name: null
                         Projection: Perspective
+                        NearClipPlane: 0.01
+                        FarClipPlane: 2000.0
                         Slot: be74c9be-5861-4bea-90b0-b175535210f7
                     59f90f253209b5b0da21a689b90bfb52: !Stride.BepuPhysics.Demo.GameProfilerComponent,Stride.BepuPhysics.Demo
                         Id: 3b4f3268-3e4b-4782-bdce-a1370a5b29d9

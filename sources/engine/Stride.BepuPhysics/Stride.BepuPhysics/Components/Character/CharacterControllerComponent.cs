@@ -27,11 +27,11 @@ public class CharacterControllerComponent : SyncScript
     {
         if (Input.IsKeyPressed(Keys.Tab))
         {
+            Game.IsMouseVisible = !Game.IsMouseVisible;
             if (Game.IsMouseVisible)
                 Input.UnlockMousePosition();
             else
                 Input.LockMousePosition(true);
-            Game.IsMouseVisible = !Game.IsMouseVisible;
         }
 
         Move();

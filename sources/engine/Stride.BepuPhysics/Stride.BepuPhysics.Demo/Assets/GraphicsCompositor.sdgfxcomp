@@ -137,7 +137,7 @@ SharedRenderers:
             RequiredApis: {}
             Overlays: {}
         SubsurfaceScatteringBlurEffect: null
-        MSAALevel: None
+        MSAALevel*: None
         MSAAResolver: {}
     d5b2e71c088247e21556decdce138d96: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine
         Id: 0fab1efb-7192-40d6-b78a-b1676f1cd9d3
@@ -179,7 +179,8 @@ SharedRenderers:
         LocalReflections:
             Enabled*: true
             ResolvePassResolution: Full
-            DepthResolution: Half
+            DepthResolution*: Full
+            RayTracePassResolution*: Full
         DepthOfField:
             Enabled: false
             DOFAreas: {X: 0.5, Y: 6.0, Z: 50.0, W: 200.0}
