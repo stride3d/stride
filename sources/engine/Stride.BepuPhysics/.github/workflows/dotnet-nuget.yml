@@ -23,5 +23,10 @@ jobs:
       run: dotnet restore
       
     - name: Build
-      run: dotnet build --no-restore ./Stride.BepuPhysics/Stride.BepuPhysics.csproj
+      run: dotnet build ./Stride.BepuPhysics/Stride.BepuPhysics.csproj -p:Version=${{ github.ref }} --no-restore 
+
+    - name: display files
+      run: Get-ChildItem -Path "D:\a" -Force -Recurse
     
+#    - name: Publish
+#      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGETAPIKEY}}
