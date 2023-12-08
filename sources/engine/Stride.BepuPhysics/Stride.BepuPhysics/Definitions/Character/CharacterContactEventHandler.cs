@@ -5,12 +5,12 @@ using System.Numerics;
 using Stride.BepuPhysics.Definitions.Collisions;
 
 namespace Stride.BepuPhysics.Definitions.Character;
-public class CharacterCollisionEvents : IContactEventHandler
+public class CharacterContactEventHandler : IContactEventHandler
 {
     private Simulation _simulation;
     public List<Vector3> ContactPoints { get; } = new();
 
-    public CharacterCollisionEvents(Simulation Simulation)
+    public CharacterContactEventHandler(Simulation Simulation)
     {
         _simulation = Simulation;
     }

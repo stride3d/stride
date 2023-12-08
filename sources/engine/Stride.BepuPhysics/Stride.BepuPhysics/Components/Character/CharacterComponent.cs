@@ -15,7 +15,7 @@ namespace Stride.BepuPhysics.Components.Character;
 [ComponentCategory("Bepu - Character")]
 public class CharacterComponent : SimulationUpdateComponent
 {
-    private CharacterCollisionEvents? _collisionEvents;
+    private CharacterContactEventHandler? _collisionEvents;
     private bool _tryJump { get; set; }
 
     public float Speed { get; set; } = 10f;
