@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components
 
 
         [DataMemberIgnore]
-        protected BepuSimulation? BepuSimulation { get; set; }
+        public BepuSimulation? BepuSimulation { get; set; }
 
         public override void Start()
         {

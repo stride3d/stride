@@ -43,7 +43,7 @@ public class CharacterComponent : SimulationUpdateComponent
 
         body.Value.LocalInertia = new BodyInertia { InverseMass = 1f };
 
-        _collisionEvents = new(BepuSimulation.Simulation);
+        _collisionEvents = new(this);
         CharacterBody.ContactEventHandler = _collisionEvents;
     }
 
@@ -111,7 +111,7 @@ public class CharacterComponent : SimulationUpdateComponent
 
         foreach (var contact in _collisionEvents.ContactPoints)
         {
-            var contactWorldPos = contact.ToStrideVector() + Entity.Transform.GetWorldPos() + Entity.Get<BodyContainerComponent>().CenterOfMass;
+            var contactWorldPos = contact.ToStrideVector();
             var capsuleBottom = Entity.Transform.WorldMatrix.TranslationVector - Entity.Transform.WorldMatrix.Up * capsuleLength / 2;
 
             var distanceToBottom = Vector3.Distance(contactWorldPos, capsuleBottom);

@@ -255,7 +255,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     b1ce2a2824d6553ad40641980dc23fd3: !Stride.BepuPhysics.Components.Character.CharacterComponent,Stride.BepuPhysics
                         Id: d2d1354c-76b6-42d4-9515-6ce00e95bf99
-                        SimulationIndex: 0
+                        SimulationIndex: 1
                         Speed: 10.0
                         JumpSpeed: 1.0
                         CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153
