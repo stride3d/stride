@@ -44,19 +44,9 @@ public partial class App : Application
             desktop.MainWindow.Closed += (_, __) => cts.Cancel();
             desktop.MainWindow.Show();
         }
-        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
+        else
         {
-            singleViewPlatform.MainView = new MainView
-            {
-                DataContext = new MainViewModel
-                {
-                    Tests =
-                    {
-                        SetInteractiveMode = setInteractiveMode,
-                        IsInteractiveMode = true,
-                    }
-                }
-            };
+            throw new PlatformNotSupportedException("This application only runs on desktop.");
         }
 
         base.OnFrameworkInitializationCompleted();
