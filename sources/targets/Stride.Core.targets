@@ -74,7 +74,8 @@
     <!-- If StrideCompilerTargetsEnable is set to false, override LanguageTargets to an empty one -->
     <LanguageTargets Condition="'$(StrideCompilerTargetsEnable)' == 'false'">$(MSBuildThisFileDirectory)Stride.Core.DisableBuild.targets</LanguageTargets>
 
-    <StrideAssemblyProcessorFramework>netstandard2.0</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">net8.0</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' != 'Core'">netstandard2.0</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorExt>.dll</StrideAssemblyProcessorExt>
     <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt).hash'))</StrideAssemblyProcessorHash>
     <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorTempBasePath>
