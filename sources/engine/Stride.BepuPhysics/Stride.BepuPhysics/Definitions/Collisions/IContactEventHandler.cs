@@ -1,5 +1,6 @@
 ﻿using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Collisions;
 /// <summary>
@@ -14,10 +15,6 @@ public interface IContactEventHandler
     /// <param name="eventSource">Collidable that the event was attached to.</param>
     /// <param name="pair">Collidable pair triggering the event.</param>
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
-    /// <param name="contactOffset">Offset from the pair's local origin to the new contact.</param>
-    /// <param name="contactNormal">Normal of the new contact.</param>
-    /// <param name="depth">Depth of the new contact.</param>
-    /// <param name="featureId">Feature id of the new contact.</param>
     /// <param name="contactIndex">Index of the new contact in the contact manifold.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
     void OnContactAdded<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
@@ -33,7 +30,7 @@ public interface IContactEventHandler
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="removedFeatureId">Feature id of the contact that was removed and is no longer present in the contact manifold.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnContactRemoved<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int removedFeatureId, int contactIndex, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
+    void OnContactRemoved<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int removedFeatureId, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -45,7 +42,7 @@ public interface IContactEventHandler
     /// <param name="pair">Collidable pair triggering the event.</param>
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
+    void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -57,7 +54,7 @@ public interface IContactEventHandler
     /// <param name="pair">Collidable pair triggering the event.</param>
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
+    void OnTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -70,7 +67,7 @@ public interface IContactEventHandler
     /// <param name="pair">Collidable pair triggering the event.</param>
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
+    void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 

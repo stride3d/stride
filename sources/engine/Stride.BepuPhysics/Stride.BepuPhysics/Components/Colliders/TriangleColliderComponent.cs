@@ -1,15 +1,21 @@
-﻿using Stride.BepuPhysics.Processors;
+﻿using BepuPhysics;
+using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Extensions;
+using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Games;
+
+#warning I don't think this would have any actual use, you can keep this internal if you want to keep it for debugging purposes
 
 namespace Stride.BepuPhysics.Components.Colliders
 {
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Colliders")]
-    public class TriangleColliderComponent : ColliderComponent
+    public sealed class TriangleColliderComponent : ColliderComponent
     {
         private Vector3 _a = new(1, 1, 1);
         private Vector3 _b = new(1, 1, 1);
@@ -21,8 +27,7 @@ namespace Stride.BepuPhysics.Components.Colliders
             set
             {
                 _a = value;
-                if (Container?.ContainerData?.Exist == true)
-                    Container?.ContainerData.BuildOrUpdateContainer();
+                Container?.ContainerData?.TryUpdateContainer();
             }
         }
 
@@ -32,8 +37,7 @@ namespace Stride.BepuPhysics.Components.Colliders
             set
             {
                 _b = value;
-                if (Container?.ContainerData?.Exist == true)
-                    Container?.ContainerData.BuildOrUpdateContainer();
+                Container?.ContainerData?.TryUpdateContainer();
             }
         }
 
@@ -43,9 +47,13 @@ namespace Stride.BepuPhysics.Components.Colliders
             set
             {
                 _c = value;
-                if (Container?.ContainerData?.Exist == true)
-                    Container?.ContainerData.BuildOrUpdateContainer();
+                Container?.ContainerData?.TryUpdateContainer();
             }
+        }
+
+        internal override void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose)
+        {
+            builder.Add(new Triangle(A.ToNumericVector(), B.ToNumericVector(), C.ToNumericVector()), localPose, Mass);
         }
     }
 }

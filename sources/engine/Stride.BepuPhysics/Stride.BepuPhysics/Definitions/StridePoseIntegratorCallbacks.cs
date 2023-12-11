@@ -51,9 +51,6 @@ namespace Stride.BepuPhysics.Definitions
         /// <summary>
         /// Creates a new set of simple callbacks for the demos.
         /// </summary>
-        /// <param name="gravity">Gravity to apply to dynamic bodies in the simulation.</param>
-        /// <param name="linearDamping">Fraction of dynamic body linear velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.</param>
-        /// <param name="angularDamping">Fraction of dynamic body angular velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.</param>
         public StridePoseIntegratorCallbacks()
         {
             Gravity = new(0, -9.8f, 0);

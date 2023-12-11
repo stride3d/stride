@@ -9,29 +9,27 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class CenterDistanceLimitConstraintComponent : ConstraintComponent
+    public sealed class CenterDistanceLimitConstraintComponent : ConstraintComponent<CenterDistanceLimit>
     {
-        internal CenterDistanceLimit _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        public CenterDistanceLimitConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
         public float MinimumDistance
         {
-            get { return _bepuConstraint.MinimumDistance; }
+            get { return BepuConstraint.MinimumDistance; }
             set
             {
-                _bepuConstraint.MinimumDistance = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.MinimumDistance = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
         public float MaximumDistance
         {
-            get { return _bepuConstraint.MaximumDistance; }
+            get { return BepuConstraint.MaximumDistance; }
             set
             {
-                _bepuConstraint.MaximumDistance = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.MaximumDistance = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -39,13 +37,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.Frequency;
+                return BepuConstraint.SpringSettings.Frequency;
             }
             set
             {
-                _bepuConstraint.SpringSettings.Frequency = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.Frequency = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -53,13 +50,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.DampingRatio;
+                return BepuConstraint.SpringSettings.DampingRatio;
             }
             set
             {
-                _bepuConstraint.SpringSettings.DampingRatio = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.DampingRatio = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
     }

@@ -6,6 +6,7 @@ using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using NVector3 = System.Numerics.Vector3;
 
 namespace Stride.BepuPhysics.Components.Character;
 
@@ -23,17 +24,20 @@ public class CharacterComponent : SimulationUpdateComponent
     [DataMemberIgnore]
     public Vector3 Velocity { get; set; }
     [DataMemberIgnore]
-    public bool IsGrounded { get; set; }
+    public bool IsGrounded { get; private set; }
 
+    #warning if it requires a 'BodyContainerComponent' we should consider inheriting from 'BodyContainerComponent', that way ownership over the component is implied and we can override some of the behaviors appropriately
     public BodyContainerComponent? CharacterBody { get; set; }
-    public CapsuleColliderComponent? CharacterCapsule { get; set; }
 
 
     public override void Start()
     {
         base.Start();
 
-        if (CharacterBody == null || BepuSimulation == null)
+        if (CharacterBody == null)
+            throw new NullReferenceException(nameof(CharacterBody));
+
+        if (BepuSimulation == null)
             return;
 
         var body = CharacterBody.GetPhysicBody();
@@ -41,6 +45,7 @@ public class CharacterComponent : SimulationUpdateComponent
         if (body == null)
             return;
 
+        CharacterBody.FrictionCoefficient = 0f;
         body.Value.LocalInertia = new BodyInertia { InverseMass = 1f };
 
         _collisionEvents = new(this);
@@ -53,7 +58,7 @@ public class CharacterComponent : SimulationUpdateComponent
         DebugText.Print($"Velocity : {Velocity}", new Int2(50, 75));
         DebugText.Print($"Orientation : {Orientation}", new Int2(50, 100));
         DebugText.Print($"IsGrounded : {IsGrounded}", new Int2(50, 150));
-        DebugText.Print($"ContactPoints count : {_collisionEvents?.ContactPoints.Count ?? 0}", new Int2(50, 175));
+        DebugText.Print($"ContactPoints count : {_collisionEvents?.Contacts.Count ?? 0}", new Int2(50, 175));
     }
 
     public void Move(Vector3 direction)
@@ -66,7 +71,10 @@ public class CharacterComponent : SimulationUpdateComponent
         Orientation = rotation;
     }
 
-    public void Jump()
+    /// <summary>
+    /// Will jump if grounded
+    /// </summary>
+    public void TryJump()
     {
         _tryJump = true;
     }
@@ -76,7 +84,7 @@ public class CharacterComponent : SimulationUpdateComponent
         var body = CharacterBody?.GetPhysicBody();
         CheckGrounded();
 
-        if (body == null)
+        if (body == null || CharacterBody?.Simulation == null)
         {
             return;
         }
@@ -86,16 +94,17 @@ public class CharacterComponent : SimulationUpdateComponent
         value.Awake = true;
 
         body.Value.Pose.Orientation = Orientation.ToNumericQuaternion();
-        body.Value.Velocity.Linear = new System.Numerics.Vector3(Velocity.X, body.Value.Velocity.Linear.Y, Velocity.Z);
+        body.Value.Velocity.Linear = new NVector3(Velocity.X, body.Value.Velocity.Linear.Y, Velocity.Z);
 
-        // prevent character from sliding
+        #warning fix character sliding down slopes through overriding friction or gravity
+        // prevent character from sliding - doesn't work as gravity is applied after this
         if (Velocity.Length() < 0.01f)
-            body.Value.Velocity.Linear *= new System.Numerics.Vector3(.01f, 1, .01f);
+            body.Value.Velocity.Linear *= new NVector3(.01f, 1, .01f);
 
         if (_tryJump)
         {
             if (IsGrounded)
-                body.Value.ApplyLinearImpulse(System.Numerics.Vector3.UnitY * JumpSpeed * 10);
+                body.Value.ApplyLinearImpulse(NVector3.UnitY * JumpSpeed * 10);
             _tryJump = false;
         }
     }
@@ -103,21 +112,15 @@ public class CharacterComponent : SimulationUpdateComponent
     private void CheckGrounded()
     {
         IsGrounded = false;
-        if (_collisionEvents == null || _collisionEvents.ContactPoints.Count == 0)
+        if (_collisionEvents == null || CharacterBody?.Simulation == null || _collisionEvents.Contacts.Count == 0)
             return;
 
-        float capsuleLength = CharacterCapsule?.Length ?? 0.5f;
-        float capsuleRadius = (CharacterCapsule?.Radius ?? 0.35f) * 1.15f;
-
-        foreach (var contact in _collisionEvents.ContactPoints)
+        var gravity = CharacterBody.Simulation.PoseGravity.ToNumericVector();
+        foreach (var contact in _collisionEvents.Contacts)
         {
-            var contactWorldPos = contact.ToStrideVector();
-            var capsuleBottom = Entity.Transform.WorldMatrix.TranslationVector - Entity.Transform.WorldMatrix.Up * capsuleLength / 2;
+            var contactNormal = contact.Contact.Normal;
 
-            var distanceToBottom = Vector3.Distance(contactWorldPos, capsuleBottom);
-
-            // If the contact point is close enough to the capsule's top or bottom, consider the entity grounded
-            if (distanceToBottom < capsuleRadius)
+            if (NVector3.Dot(gravity, contactNormal) < 0) // If the body is supported by a contact whose surface is against gravity
             {
                 IsGrounded = true;
                 return;

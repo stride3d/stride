@@ -11,21 +11,20 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class SwingLimitConstraintComponent : ConstraintComponent
+    public sealed class SwingLimitConstraintComponent : ConstraintComponent<SwingLimit>
     {
-        internal SwingLimit _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        public SwingLimitConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
         public Vector3 AxisLocalA
         {
             get
             {
-                return _bepuConstraint.AxisLocalA.ToStrideVector();
+                return BepuConstraint.AxisLocalA.ToStrideVector();
             }
             set
             {
-                _bepuConstraint.AxisLocalA = value.ToNumericVector();
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.AxisLocalA = value.ToNumericVector();
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -33,24 +32,22 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.AxisLocalB.ToStrideVector();
+                return BepuConstraint.AxisLocalB.ToStrideVector();
             }
             set
             {
-                _bepuConstraint.AxisLocalB = value.ToNumericVector();
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.AxisLocalB = value.ToNumericVector();
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
         public float MinimumDot
         {
-            get { return _bepuConstraint.MinimumDot; }
+            get { return BepuConstraint.MinimumDot; }
             set
             {
-                _bepuConstraint.MinimumDot = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.MinimumDot = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -60,8 +57,7 @@ namespace Stride.BepuPhysics.Components.Constraints
             set
             {
                 MinimumDot = (float)Math.Cos(value);
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -69,13 +65,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.Frequency;
+                return BepuConstraint.SpringSettings.Frequency;
             }
             set
             {
-                _bepuConstraint.SpringSettings.Frequency = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.Frequency = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -83,13 +78,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.DampingRatio;
+                return BepuConstraint.SpringSettings.DampingRatio;
             }
             set
             {
-                _bepuConstraint.SpringSettings.DampingRatio = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.DampingRatio = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
     }

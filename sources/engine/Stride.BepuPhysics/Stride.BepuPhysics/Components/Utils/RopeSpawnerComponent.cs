@@ -1,8 +1,11 @@
 ﻿using Stride.BepuPhysics.Components.Constraints;
 using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+
+#warning This should not be part of the base API, move it to demo/sample
 
 namespace Stride.BepuPhysics.Components.Utils
 {
@@ -35,6 +38,7 @@ namespace Stride.BepuPhysics.Components.Utils
             var len = seg.Length() / RopePartSize;
             var bodiesContainers = new List<BodyContainerComponent>();
 
+            var simulation = Services.GetService<BepuConfiguration>().BepuSimulations[SimulationIndex];
             for (var i = 0; i < len; i++)
             {
                 var entity = RopePart.Instantiate().First();
@@ -42,7 +46,7 @@ namespace Stride.BepuPhysics.Components.Utils
                 entity.Transform.Rotation = Quaternion.LookRotation(dir, Vector3.UnitY);
                 entity.SetParent(Entity);
                 var body = entity.Get<BodyContainerComponent>();
-                body.SimulationIndex = SimulationIndex;
+                body.Simulation = simulation;
                 bodiesContainers.Add(body);
             }
 

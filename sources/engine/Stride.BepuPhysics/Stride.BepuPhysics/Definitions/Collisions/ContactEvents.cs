@@ -297,8 +297,6 @@ public class ContactEvents : IDisposable
                     int previousContactsStillExist = 0;
                     for (int contactIndex = 0; contactIndex < manifold.Count; ++contactIndex)
                     {
-                        manifold.GetContact(contactIndex, out var offset, out var normal, out var depth, out _);
-
                         //We can check if each contact was already present in the previous frame by looking at contact feature ids. See the 'PreviousCollision' type for a little more info on FeatureIds.
                         var featureId = manifold.GetFeatureId(contactIndex);
                         var featureIdWasInPreviousCollision = false;
@@ -317,31 +315,29 @@ public class ContactEvents : IDisposable
                         }
                         if (manifold.GetDepth(contactIndex) >= 0)
                             isTouching = true;
-
-
-                        if (previousContactsStillExist != (1 << collision.ContactCount) - 1)
+                    }
+                    if (previousContactsStillExist != (1 << collision.ContactCount) - 1)
+                    {
+                        //At least one contact that used to exist no longer does.
+                        for (int previousContactIndex = 0; previousContactIndex < collision.ContactCount; ++previousContactIndex)
                         {
-                            //At least one contact that used to exist no longer does.
-                            for (int previousContactIndex = 0; previousContactIndex < collision.ContactCount; ++previousContactIndex)
+                            if ((previousContactsStillExist & (1 << previousContactIndex)) == 0)
                             {
-                                if ((previousContactsStillExist & 1 << previousContactIndex) == 0)
-                                {
-                                    listener.Handler.OnContactRemoved(source, pair, ref manifold, Unsafe.Add(ref collision.FeatureId0, previousContactIndex), contactIndex, workerIndex);
-                                }
+                                listener.Handler.OnContactRemoved(source, pair, ref manifold, Unsafe.Add(ref collision.FeatureId0, previousContactIndex), workerIndex);
                             }
                         }
-                        if (!collision.WasTouching && isTouching)
-                        {
-                            listener.Handler.OnStartedTouching(source, pair, ref manifold, contactIndex, workerIndex);
-                        }
-                        else if (collision.WasTouching && !isTouching)
-                        {
-                            listener.Handler.OnStoppedTouching(source, pair, ref manifold, contactIndex, workerIndex);
-                        }
-                        if (isTouching)
-                        {
-                            listener.Handler.OnTouching(source, pair, ref manifold, contactIndex, workerIndex);
-                        }
+                    }
+                    if (!collision.WasTouching && isTouching)
+                    {
+                        listener.Handler.OnStartedTouching(source, pair, ref manifold, workerIndex);
+                    }
+                    else if (collision.WasTouching && !isTouching)
+                    {
+                        listener.Handler.OnStoppedTouching(source, pair, ref manifold, workerIndex);
+                    }
+                    if (isTouching)
+                    {
+                        listener.Handler.OnTouching(source, pair, ref manifold, workerIndex);
                     }
                     UpdatePreviousCollision(ref collision, ref manifold, isTouching);
                     break;
@@ -360,16 +356,14 @@ public class ContactEvents : IDisposable
                 //Dispatch events for all contacts in this new manifold.
                 for (int i = 0; i < manifold.Count; ++i)
                 {
-                    manifold.GetContact(i, out var offset, out var normal, out var depth, out var featureId);
                     listener.Handler.OnContactAdded(source, pair, ref manifold, i, workerIndex);
-                    if (depth >= 0)
+                    if (manifold.GetDepth(i) >= 0)
                         isTouching = true;
-
-                    if (isTouching)
-                    {
-                        listener.Handler.OnStartedTouching(source, pair, ref manifold, i, workerIndex);
-                        listener.Handler.OnTouching(source, pair, ref manifold, i, workerIndex);
-                    }
+                }
+                if (isTouching)
+                {
+                    listener.Handler.OnStartedTouching(source, pair, ref manifold, workerIndex);
+                    listener.Handler.OnTouching(source, pair, ref manifold, workerIndex);
                 }
                 UpdatePreviousCollision(ref pendingAdd.Collision, ref manifold, isTouching);
             }
@@ -429,10 +423,10 @@ public class ContactEvents : IDisposable
                         var emptyManifold = new EmptyManifold();
                         for (int previousContactCount = 0; previousContactCount < collision.ContactCount; ++previousContactCount)
                         {
-                            listener.Handler.OnContactRemoved(listener.Source, pair, ref emptyManifold, Unsafe.Add(ref collision.FeatureId0, previousContactCount), -1, 0);
+                            listener.Handler.OnContactRemoved(listener.Source, pair, ref emptyManifold, Unsafe.Add(ref collision.FeatureId0, previousContactCount), 0);
                         }
                         if (collision.WasTouching)
-                            listener.Handler.OnStoppedTouching(listener.Source, pair, ref emptyManifold, -1, 0);
+                            listener.Handler.OnStoppedTouching(listener.Source, pair, ref emptyManifold, 0);
                     }
                     listener.Handler.OnPairEnded(collision.Collidable, pair);
                     //This collision was not updated since the last flush despite being active. It should be removed.

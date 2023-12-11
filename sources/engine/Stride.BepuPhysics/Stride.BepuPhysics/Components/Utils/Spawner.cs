@@ -3,6 +3,8 @@ using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
+#warning This should not be part of the base API, move it to demo/sample
+
 namespace Stride.BepuPhysics.Components.Utils
 {
     public abstract class Spawner : SimulationUpdateComponent
@@ -26,15 +28,12 @@ namespace Stride.BepuPhysics.Components.Utils
             
             Entity.AddChild(entity);
 
-            var container = entity.Get<ContainerComponent>();
-            if (container != null && container is BodyContainerComponent body)
+            if (entity.Get<ContainerComponent>() is BodyContainerComponent body)
             {
-                body.SimulationIndex = SimulationIndex;
+                body.Simulation = BepuSimulation;
                 var bepuBody = body.GetPhysicBody();
                 bepuBody?.ApplyImpulse(Impulse.ToNumericVector(), ImpulsePos.ToNumericVector());
             }
-
         }
-
     }
 }

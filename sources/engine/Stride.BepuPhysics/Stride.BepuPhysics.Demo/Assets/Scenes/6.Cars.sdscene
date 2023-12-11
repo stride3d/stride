@@ -37,7 +37,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -67,7 +66,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -111,7 +109,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -145,7 +142,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -186,7 +182,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -206,7 +201,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -216,10 +210,8 @@ Hierarchy:
                         Radius: 0.5
                         Length: 0.25
                     1d034f9ad6857b4845cffbbce7d2c1a7: !Stride.BepuPhysics.Components.Constraints.PointOnLineServoConstraintComponent,Stride.BepuPhysics
-                        Id: 4e527631-0ee8-40f5-8894-abf2ee65c914
-                        Bodies:
-                            4910769f1b7b8471691eea68cd672571: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            cb43f6161a957f805de0ab573cbd174a: ref!! 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
+                        Id: a28b4c87-034e-480c-ab8e-7afcd26be51d
+                        Bodies: {}
                         Enabled: true
                         LocalOffsetA: {X: 1.75, Y: -1.0, Z: 1.25}
                         LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -230,10 +222,8 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 2.0
                     f123bf95cc1d0718f212f4fa72c2de07: !Stride.BepuPhysics.Components.Constraints.LinearAxisServoConstraintComponent,Stride.BepuPhysics
-                        Id: 140811e1-ed78-44c5-8644-e9727191d9f2
-                        Bodies:
-                            7158dc44ff9c6ae39dc5deff5b44e21c: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            d3cca56a05061707aa6005214a431560: ref!! 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
+                        Id: ea2779af-548f-45cd-ad3a-b783cd91e293
+                        Bodies: {}
                         Enabled: true
                         LocalOffsetA: {X: 1.75, Y: -1.0, Z: 1.25}
                         LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -245,20 +235,16 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 2.0
                     9802a48ac8a7ae0f208448e10f7665b9: !Stride.BepuPhysics.Components.Constraints.AngularAxisMotorConstraintComponent,Stride.BepuPhysics
-                        Id: af28e7ed-1db9-406d-8714-116dce851285
-                        Bodies:
-                            2c39b0d2f00e08228851475215236131: ref!! 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
-                            b428c208a3e68e46f03a723debfbc227: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                        Enabled: false
+                        Id: 1fa7ec36-05e3-4204-8e57-717bebfe400c
+                        Bodies: {}
+                        Enabled: true
                         LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         TargetVelocity: 0.0
                         MotorDamping: 15.0
                         MotorMaximumForce: 15000.0
                     df75ea2e6876416955e128df20caeca6: !Stride.BepuPhysics.Components.Constraints.AngularHingeConstraintComponent,Stride.BepuPhysics
-                        Id: db4f12c8-877e-4b5b-a862-491d58f63eeb
-                        Bodies:
-                            8a6f7dc906a33d7171920adf1029b5d0: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            c74958954b545be03871cdb2e1c5f7cf: ref!! 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
+                        Id: c71b4dbb-9fd5-4650-95c3-d7b5a8143b56
+                        Bodies: {}
                         Enabled: true
                         LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
                         LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
@@ -300,7 +286,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -326,7 +311,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -360,7 +344,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -386,13 +369,12 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Mass: 10.0
                         Closed: true
-                        ModelData: ref!! 297791ce-93e6-4420-8645-8cb75cecea52
+                        Model: null
         -   Entity:
                 Id: 41074201-12d7-44e3-9d28-77d4e368a099
                 Name: RayStart
@@ -442,7 +424,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -472,7 +453,6 @@ Hierarchy:
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -482,10 +462,8 @@ Hierarchy:
                         Radius: 0.5
                         Length: 0.25
                     9691dfa549655d6a6a1f143a627091fd: !Stride.BepuPhysics.Components.Constraints.PointOnLineServoConstraintComponent,Stride.BepuPhysics
-                        Id: 7c1be5b7-029f-4ea9-b099-1a39e44f30b7
-                        Bodies:
-                            4910769f1b7b8471691eea68cd672571: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            cb43f6161a957f805de0ab573cbd174a: ref!! 81c84323-291e-478c-9517-190389e60b27
+                        Id: f01cb31c-86b9-4ecc-9f9b-f92d9c93cfa9
+                        Bodies: {}
                         Enabled: true
                         LocalOffsetA: {X: -1.75, Y: -1.0, Z: 1.25}
                         LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -496,10 +474,8 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 2.0
                     41137b091068704e4be234188c090777: !Stride.BepuPhysics.Components.Constraints.LinearAxisServoConstraintComponent,Stride.BepuPhysics
-                        Id: 9302cac5-9a7c-42b1-80db-7e1988c673c9
-                        Bodies:
-                            7158dc44ff9c6ae39dc5deff5b44e21c: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            d3cca56a05061707aa6005214a431560: ref!! 81c84323-291e-478c-9517-190389e60b27
+                        Id: f3a1170c-cc3f-4c07-a9b3-9870fc887723
+                        Bodies: {}
                         Enabled: true
                         LocalOffsetA: {X: -1.75, Y: -1.0, Z: 1.25}
                         LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -511,20 +487,16 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 2.0
                     7a4b7f95ef6d17aaebfc713cd5eae976: !Stride.BepuPhysics.Components.Constraints.AngularAxisMotorConstraintComponent,Stride.BepuPhysics
-                        Id: da7b57ed-8aab-49e8-ac88-940f2fa6bfe0
-                        Bodies:
-                            2c39b0d2f00e08228851475215236131: ref!! 81c84323-291e-478c-9517-190389e60b27
-                            b428c208a3e68e46f03a723debfbc227: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                        Enabled: false
+                        Id: 1eaca2f6-9ed9-4b99-ac98-660cf13aa055
+                        Bodies: {}
+                        Enabled: true
                         LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         TargetVelocity: 0.0
                         MotorDamping: 15.0
                         MotorMaximumForce: 10000.0
                     49beb12319826e4b7f2ed047e42c6474: !Stride.BepuPhysics.Components.Constraints.AngularHingeConstraintComponent,Stride.BepuPhysics
-                        Id: b3fbaf02-4fdd-4057-9b92-b10db94ef9df
-                        Bodies:
-                            8a6f7dc906a33d7171920adf1029b5d0: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            c74958954b545be03871cdb2e1c5f7cf: ref!! 81c84323-291e-478c-9517-190389e60b27
+                        Id: 4199def7-f6c3-4c78-983a-a0a299978866
+                        Bodies: {}
                         Enabled: true
                         LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
                         LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
@@ -556,7 +528,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -586,7 +557,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -612,13 +582,12 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Mass: 10.0
                         Closed: true
-                        ModelData: ref!! bbf8c384-4c2d-49a8-a698-6b2336539054
+                        Model: null
         -   Entity:
                 Id: 7363a9f5-96b3-45d9-8d5f-9a734ab3aec5
                 Name: Wall
@@ -645,7 +614,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -661,7 +629,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -671,10 +638,8 @@ Hierarchy:
                         Radius: 0.5
                         Length: 0.25
                     49e98ce8e7167ac39e92b50a22079759: !Stride.BepuPhysics.Components.Constraints.PointOnLineServoConstraintComponent,Stride.BepuPhysics
-                        Id: d7dd29db-98db-447c-b280-243a75b5a19a
-                        Bodies:
-                            4910769f1b7b8471691eea68cd672571: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            cb43f6161a957f805de0ab573cbd174a: ref!! d16e6186-92a7-48ea-8eeb-8ed47463275d
+                        Id: a34d1f38-583d-4961-b87b-4bb8156f71e6
+                        Bodies: {}
                         Enabled: true
                         LocalOffsetA: {X: 1.75, Y: -1.0, Z: -1.25}
                         LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -685,10 +650,8 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 2.0
                     4e42a695805d96becc03041e5f55b6aa: !Stride.BepuPhysics.Components.Constraints.LinearAxisServoConstraintComponent,Stride.BepuPhysics
-                        Id: 1e75776e-2922-48b8-a317-70fceef5ebf0
-                        Bodies:
-                            7158dc44ff9c6ae39dc5deff5b44e21c: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            d3cca56a05061707aa6005214a431560: ref!! d16e6186-92a7-48ea-8eeb-8ed47463275d
+                        Id: cf110527-9ee6-4b87-a636-b0d15c7dc1c0
+                        Bodies: {}
                         Enabled: true
                         LocalOffsetA: {X: 1.75, Y: -1.0, Z: -1.25}
                         LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -700,20 +663,16 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 2.0
                     7bf699175057f86753ffb764e2e8484c: !Stride.BepuPhysics.Components.Constraints.AngularAxisMotorConstraintComponent,Stride.BepuPhysics
-                        Id: 9889e200-b095-498c-883c-93f4490027ec
-                        Bodies:
-                            2c39b0d2f00e08228851475215236131: ref!! d16e6186-92a7-48ea-8eeb-8ed47463275d
-                            b428c208a3e68e46f03a723debfbc227: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                        Enabled: false
+                        Id: 191f5803-64d2-477e-a634-0672c2bacf23
+                        Bodies: {}
+                        Enabled: true
                         LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         TargetVelocity: 0.0
                         MotorDamping: 15.0
                         MotorMaximumForce: 15000.0
                     97d5653cd5c93a0e2357b32db3c5ca2d: !Stride.BepuPhysics.Components.Constraints.AngularHingeConstraintComponent,Stride.BepuPhysics
-                        Id: 51e62b87-847b-4cd4-8f5d-0b9f4185c7f5
-                        Bodies:
-                            8a6f7dc906a33d7171920adf1029b5d0: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            c74958954b545be03871cdb2e1c5f7cf: ref!! d16e6186-92a7-48ea-8eeb-8ed47463275d
+                        Id: ab00258d-480f-4e71-97f4-c4b51c951b69
+                        Bodies: {}
                         Enabled: true
                         LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
                         LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
@@ -755,7 +714,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -785,7 +743,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -872,7 +829,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
         -   Entity:
                 Id: 9372f2e7-5d24-4968-a90e-3e4c58b63eef
                 Name: Jump3
@@ -899,7 +855,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -929,7 +884,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -959,7 +913,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -989,7 +942,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1083,7 +1035,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1205,7 +1156,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1249,10 +1199,9 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Mass: 1.0
                         Closed: true
-                        ModelData: ref!! ff4715b1-1ada-4874-a4dc-c0539009c02d
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
         -   Entity:
                 Id: ae8f0dfd-98c0-465e-a0e3-2eb197227cf1
                 Name: GeoSphere
@@ -1275,7 +1224,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1330,7 +1278,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1360,7 +1307,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 254
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1400,7 +1346,6 @@ Hierarchy:
                         FrictionCoefficient: 1.5
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1450,7 +1395,6 @@ Hierarchy:
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1487,7 +1431,6 @@ Hierarchy:
                         FrictionCoefficient: 1.5
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1534,7 +1477,6 @@ Hierarchy:
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1560,7 +1502,6 @@ Hierarchy:
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1570,10 +1511,8 @@ Hierarchy:
                         Radius: 0.5
                         Length: 0.25
                     083421aea268ea87d09edd7e3cb662c9: !Stride.BepuPhysics.Components.Constraints.PointOnLineServoConstraintComponent,Stride.BepuPhysics
-                        Id: ca6874a9-bdbc-46eb-8de2-6b22cbafe652
-                        Bodies:
-                            4910769f1b7b8471691eea68cd672571: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            cb43f6161a957f805de0ab573cbd174a: ref!! e0178323-63ee-4423-afce-1fe03b4eccd1
+                        Id: fc4be0e1-5d14-40a1-9f58-a0642118b371
+                        Bodies: {}
                         Enabled: true
                         LocalOffsetA: {X: -1.75, Y: -1.0, Z: -1.25}
                         LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -1584,10 +1523,8 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 2.0
                     da0422778633c5ea6c4e9a3e0a96a90a: !Stride.BepuPhysics.Components.Constraints.LinearAxisServoConstraintComponent,Stride.BepuPhysics
-                        Id: 99f86680-b1fa-4484-a222-690986143406
-                        Bodies:
-                            7158dc44ff9c6ae39dc5deff5b44e21c: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            d3cca56a05061707aa6005214a431560: ref!! e0178323-63ee-4423-afce-1fe03b4eccd1
+                        Id: 73090a77-a594-4fa5-bcd9-cde2ffac40d6
+                        Bodies: {}
                         Enabled: true
                         LocalOffsetA: {X: -1.75, Y: -1.0, Z: -1.25}
                         LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -1599,20 +1536,16 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 2.0
                     7e6b72e08706872516aafabdab84616c: !Stride.BepuPhysics.Components.Constraints.AngularAxisMotorConstraintComponent,Stride.BepuPhysics
-                        Id: eb9f01d2-403f-49b3-b5f6-de7c7426be03
-                        Bodies:
-                            2c39b0d2f00e08228851475215236131: ref!! e0178323-63ee-4423-afce-1fe03b4eccd1
-                            b428c208a3e68e46f03a723debfbc227: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                        Enabled: false
+                        Id: b42805dd-9f68-4ccc-86db-9b4321b3108d
+                        Bodies: {}
+                        Enabled: true
                         LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         TargetVelocity: 0.0
                         MotorDamping: 15.0
                         MotorMaximumForce: 10000.0
                     64f388da8c6a87fd2382e568c4dba167: !Stride.BepuPhysics.Components.Constraints.AngularHingeConstraintComponent,Stride.BepuPhysics
-                        Id: a2e4c401-6edc-44bd-b7d8-0d4e3cb903cd
-                        Bodies:
-                            8a6f7dc906a33d7171920adf1029b5d0: ref!! f0dd6703-a39f-4b46-ae72-95e2e8908406
-                            c74958954b545be03871cdb2e1c5f7cf: ref!! e0178323-63ee-4423-afce-1fe03b4eccd1
+                        Id: 41973257-be92-48ed-b66d-17ba2b642d21
+                        Bodies: {}
                         Enabled: true
                         LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
                         LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
@@ -1650,7 +1583,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1680,7 +1612,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1710,7 +1641,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 254
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32

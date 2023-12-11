@@ -1,14 +1,17 @@
-﻿using Stride.BepuPhysics.Processors;
+﻿using BepuPhysics;
+using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Games;
 
 namespace Stride.BepuPhysics.Components.Colliders
 {
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Colliders")]
-    public class CylinderColliderComponent : ColliderComponent
+    public sealed class CylinderColliderComponent : ColliderComponent
     {
         private float _radius = 1f;
         private float _length = 1f;
@@ -19,8 +22,7 @@ namespace Stride.BepuPhysics.Components.Colliders
             set
             {
                 _radius = value;
-                if (Container?.ContainerData?.Exist == true)
-                    Container?.ContainerData.BuildOrUpdateContainer();
+                Container?.ContainerData?.TryUpdateContainer();
             }
         }
 
@@ -30,9 +32,13 @@ namespace Stride.BepuPhysics.Components.Colliders
             set
             {
                 _length = value;
-                if (Container?.ContainerData?.Exist == true)
-                    Container?.ContainerData.BuildOrUpdateContainer();
+                Container?.ContainerData?.TryUpdateContainer();
             }
+        }
+
+        internal override void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose)
+        {
+            builder.Add(new Cylinder(Radius, Length), localPose, Mass);
         }
     }
 }

@@ -6,7 +6,6 @@ namespace Stride.BepuPhysics.Processors
 {
     public class ColliderProcessor : EntityProcessor<ColliderComponent>
     {
-
         public ColliderProcessor()
         {
             Order = 10010;
@@ -14,13 +13,14 @@ namespace Stride.BepuPhysics.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ColliderComponent component, [NotNull] ColliderComponent data)
         {
-            component.Container?.ContainerData?.BuildOrUpdateContainer();
+            component.Container?.ContainerData?.RebuildContainer();
         }
+
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ColliderComponent component, [NotNull] ColliderComponent data)
         {
-            component.Container?.ContainerData?.BuildOrUpdateContainer();
+            var previousContainer = component.Container;
+            component.Container = null;
+            previousContainer?.ContainerData?.RebuildContainer();
         }
-
     }
-
 }

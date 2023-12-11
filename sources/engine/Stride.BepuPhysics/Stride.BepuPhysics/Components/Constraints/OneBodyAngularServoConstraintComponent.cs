@@ -11,9 +11,9 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class OneBodyAngularServoConstraintComponent : ConstraintComponent
+    public sealed class OneBodyAngularServoConstraintComponent : ConstraintComponent<OneBodyAngularServo>
     {
-        internal OneBodyAngularServo _bepuConstraint = new()
+        public OneBodyAngularServoConstraintComponent() => BepuConstraint = new()
         {
             ServoSettings = new ServoSettings(),
             SpringSettings = new SpringSettings(30, 5)
@@ -23,13 +23,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.TargetOrientation.ToStrideQuaternion();
+                return BepuConstraint.TargetOrientation.ToStrideQuaternion();
             }
             set
             {
-                _bepuConstraint.TargetOrientation = value.ToNumericQuaternion();
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.TargetOrientation = value.ToNumericQuaternion();
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -37,13 +36,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.Frequency;
+                return BepuConstraint.SpringSettings.Frequency;
             }
             set
             {
-                _bepuConstraint.SpringSettings.Frequency = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.Frequency = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -51,13 +49,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.DampingRatio;
+                return BepuConstraint.SpringSettings.DampingRatio;
             }
             set
             {
-                _bepuConstraint.SpringSettings.DampingRatio = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.DampingRatio = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -65,13 +62,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.ServoSettings.MaximumSpeed;
+                return BepuConstraint.ServoSettings.MaximumSpeed;
             }
             set
             {
-                _bepuConstraint.ServoSettings.MaximumSpeed = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.ServoSettings.MaximumSpeed = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -79,13 +75,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.ServoSettings.BaseSpeed;
+                return BepuConstraint.ServoSettings.BaseSpeed;
             }
             set
             {
-                _bepuConstraint.ServoSettings.BaseSpeed = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.ServoSettings.BaseSpeed = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -93,13 +88,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.ServoSettings.MaximumForce;
+                return BepuConstraint.ServoSettings.MaximumForce;
             }
             set
             {
-                _bepuConstraint.ServoSettings.MaximumForce = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.ServoSettings.MaximumForce = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
     }
