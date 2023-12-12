@@ -3,13 +3,15 @@ using Stride.BepuPhysics.Extensions;
 using Stride.Engine;
 using Stride.Input;
 
+#warning This should not be part of the base API, move it to demo/sample
+
 namespace Stride.BepuPhysics.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
     [ComponentCategory("Bepu - Utils")]
     public class ConstraintEditorComponent : SyncScript
     {
-        public ConstraintComponent? Component { get; set; }
+        public BaseConstraintComponent? Component { get; set; }
 
 
         public override void Start()

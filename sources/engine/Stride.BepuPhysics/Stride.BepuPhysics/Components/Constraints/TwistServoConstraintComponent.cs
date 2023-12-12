@@ -11,21 +11,20 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class TwistServoConstraintComponent : ConstraintComponent
+    public sealed class TwistServoConstraintComponent : ConstraintComponent<TwistServo>
     {
-        internal TwistServo _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5), ServoSettings = new ServoSettings(10, 1, 1000) };
+        public TwistServoConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5), ServoSettings = new ServoSettings(10, 1, 1000) };
 
         public Quaternion LocalBasisA
         {
             get
             {
-                return _bepuConstraint.LocalBasisA.ToStrideQuaternion();
+                return BepuConstraint.LocalBasisA.ToStrideQuaternion();
             }
             set
             {
-                _bepuConstraint.LocalBasisA = value.ToNumericQuaternion();
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.LocalBasisA = value.ToNumericQuaternion();
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -33,24 +32,22 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.LocalBasisB.ToStrideQuaternion();
+                return BepuConstraint.LocalBasisB.ToStrideQuaternion();
             }
             set
             {
-                _bepuConstraint.LocalBasisB = value.ToNumericQuaternion();
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.LocalBasisB = value.ToNumericQuaternion();
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
         public float TargetAngle
         {
-            get { return _bepuConstraint.TargetAngle; }
+            get { return BepuConstraint.TargetAngle; }
             set
             {
-                _bepuConstraint.TargetAngle = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.TargetAngle = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -58,13 +55,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.Frequency;
+                return BepuConstraint.SpringSettings.Frequency;
             }
             set
             {
-                _bepuConstraint.SpringSettings.Frequency = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.Frequency = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -72,13 +68,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.DampingRatio;
+                return BepuConstraint.SpringSettings.DampingRatio;
             }
             set
             {
-                _bepuConstraint.SpringSettings.DampingRatio = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.DampingRatio = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -86,13 +81,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.ServoSettings.MaximumSpeed;
+                return BepuConstraint.ServoSettings.MaximumSpeed;
             }
             set
             {
-                _bepuConstraint.ServoSettings.MaximumSpeed = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.ServoSettings.MaximumSpeed = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -100,13 +94,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.ServoSettings.BaseSpeed;
+                return BepuConstraint.ServoSettings.BaseSpeed;
             }
             set
             {
-                _bepuConstraint.ServoSettings.BaseSpeed = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.ServoSettings.BaseSpeed = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -114,13 +107,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.ServoSettings.MaximumForce;
+                return BepuConstraint.ServoSettings.MaximumForce;
             }
             set
             {
-                _bepuConstraint.ServoSettings.MaximumForce = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.ServoSettings.MaximumForce = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
     }

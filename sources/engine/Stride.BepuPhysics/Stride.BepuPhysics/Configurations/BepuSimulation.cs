@@ -112,7 +112,10 @@ public class BepuSimulation
 
     internal void CallSimulationUpdate(float simTimeStep)
     {
-        _simulationUpdateComponents.ForEach(e => e.SimulationUpdate(simTimeStep));
+        foreach (var updateComponent in _simulationUpdateComponents)
+        {
+            updateComponent.SimulationUpdate(simTimeStep);
+        }
     }
 
     internal void Register(SimulationUpdateComponent simulationUpdateComponent)
@@ -123,5 +126,4 @@ public class BepuSimulation
     {
         _simulationUpdateComponents.Remove(simulationUpdateComponent);
     }
-
 }

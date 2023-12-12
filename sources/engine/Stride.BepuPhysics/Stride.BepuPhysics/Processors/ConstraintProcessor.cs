@@ -1,15 +1,13 @@
 ﻿using BepuPhysics;
-using Silk.NET.OpenGL;
+using BepuPhysics.Constraints;
 using Stride.BepuPhysics.Components.Constraints;
-using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions.CharacterConstraints;
 using Stride.Core.Annotations;
 using Stride.Engine;
 
 namespace Stride.BepuPhysics.Processors
 {
-    public class ConstraintProcessor : EntityProcessor<ConstraintComponent>
+    public class ConstraintProcessor : EntityProcessor<BaseConstraintComponent>
     {
         private BepuConfiguration _bepuConfiguration = new();
 
@@ -23,163 +21,87 @@ namespace Stride.BepuPhysics.Processors
             _bepuConfiguration = Services.GetService<BepuConfiguration>();
         }
 
-        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
+        protected override void OnEntityComponentAdding(Entity entity, [NotNull] BaseConstraintComponent component, [NotNull] BaseConstraintComponent data)
         {
             base.OnEntityComponentAdding(entity, component, data);
-            component.ConstraintData = new(component, _bepuConfiguration);
-            component.ConstraintData.BuildConstraint();
+            var constraint = component.CreateProcessorData(_bepuConfiguration);
+            constraint.BuildConstraint();
         }
-        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
+        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] BaseConstraintComponent component, [NotNull] BaseConstraintComponent data)
         {
             base.OnEntityComponentRemoved(entity, component, data);
-            component.ConstraintData?.DestroyConstraint();
-            component.ConstraintData = null;
+            component.UntypedConstraintData?.DestroyConstraint();
         }
     }
 
-    internal class ConstraintData
+    internal abstract class BaseConstraintData
     {
-        private BepuConfiguration _bepuConfig = new();
-        private int _simulationIndex = 0;
+        internal abstract void BuildConstraint();
+        internal abstract void DestroyConstraint();
+        internal abstract void TryUpdateDescription();
+    }
 
-        internal BepuSimulation BepuSimulation => _bepuConfig.BepuSimulations[_simulationIndex];
+    internal sealed class ConstraintData<T> : BaseConstraintData where T : unmanaged, IConstraintDescription<T>
+    {
+        private readonly ConstraintComponent<T> _constraintComponent;
+        private readonly BepuConfiguration _bepuConfig;
+        private ConstraintHandle _cHandle = new(-1);
+        private BepuSimulation _bepuSimulation;
 
-        internal ConstraintComponent ConstraintComponent { get; }
-        internal ConstraintHandle CHandle { get; set; } = new(-1);
-
-
-        public bool Exist => CHandle.Value != -1 && BepuSimulation.Simulation.Solver.ConstraintExists(CHandle);
-
-        public ConstraintData(ConstraintComponent constraintComponent, BepuConfiguration bepuConfig)
+        public ConstraintData(ConstraintComponent<T> constraintComponent, BepuConfiguration bepuConfig)
         {
-            ConstraintComponent = constraintComponent;
+            _constraintComponent = constraintComponent;
             _bepuConfig = bepuConfig;
+            _bepuSimulation = _bepuConfig.BepuSimulations[_constraintComponent.Bodies[0].SimulationIndex];
         }
 
-        internal void BuildConstraint()
+        internal override void BuildConstraint()
         {
-#pragma warning disable CS8602 
-            var bodies = new Span<BodyHandle>(ConstraintComponent.Bodies.Where(e => e.ContainerData != null).Select(e => e.ContainerData.BHandle).ToArray());
-#pragma warning restore CS8602
-                       
-            if (Exist)
+            if (_cHandle.Value != -1)
                 DestroyConstraint();
 
-            if (ConstraintComponent.Bodies.Count() == 0 )
+            if (_constraintComponent.Bodies.Count == 0 || !_constraintComponent.Enabled)
                 return;
 
-            _simulationIndex = ConstraintComponent.Bodies[0].SimulationIndex;
-
-            if (!ConstraintComponent.Enabled || ConstraintComponent.Bodies.Any(e => e.SimulationIndex != _simulationIndex))
-                return;
-
-            switch (ConstraintComponent) //maybe add a IConstraintDescription to ConstraintComponent and use it instead of that switch of hell
+            _bepuSimulation = _bepuConfig.BepuSimulations[_constraintComponent.Bodies[0].SimulationIndex];
+            foreach (var component in _constraintComponent.Bodies)
             {
-                case AngularAxisGearMotorConstraintComponent _aagmcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _aagmcc._bepuConstraint);
-                    break;
-                case AngularAxisMotorConstraintComponent _aamcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _aamcc._bepuConstraint);
-                    break;
-                case AngularHingeConstraintComponent _ahcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _ahcc._bepuConstraint);
-                    break;
-                case AngularMotorConstraintComponent _amcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _amcc._bepuConstraint);
-                    break;
-                case AngularServoConstraintComponent _ascc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _ascc._bepuConstraint);
-                    break;
-                case AngularSwivelHingeConstraintComponent _ashcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _ashcc._bepuConstraint);
-                    break;
-                case AreaConstraintComponent _acc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _acc._bepuConstraint);
-                    break;
-                case BallSocketConstraintComponent _bscc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _bscc._bepuConstraint);
-                    break;
-                case BallSocketMotorConstraintComponent _bsmcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _bsmcc._bepuConstraint);
-                    break;
-                case BallSocketServoConstraintComponent _bsscc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _bsscc._bepuConstraint);
-                    break;
-                case CenterDistanceConstraintComponent _cdcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _cdcc._bepuConstraint);
-                    break;
-                case CenterDistanceLimitConstraintComponent _cdlcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _cdlcc._bepuConstraint);
-                    break;
-                case DistanceLimitConstraintComponent _dlcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _dlcc._bepuConstraint);
-                    break;
-                case DistanceServoConstraintComponent _dscc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _dscc._bepuConstraint);
-                    break;
-                case HingeConstraintComponent _hcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _hcc._bepuConstraint);
-                    break;
-                case LinearAxisLimitConstraintComponent _lalcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _lalcc._bepuConstraint);
-                    break;
-                case LinearAxisMotorConstraintComponent _lamcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _lamcc._bepuConstraint);
-                    break;
-                case LinearAxisServoConstraintComponent _lascc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _lascc._bepuConstraint);
-                    break;
-                case OneBodyAngularMotorConstraintComponent _obamcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _obamcc._bepuConstraint);
-                    break;
-                case OneBodyAngularServoConstraintComponent _obascc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _obascc._bepuConstraint);
-                    break;
-                case OneBodyLinearMotorConstraintComponent _oblmcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _oblmcc._bepuConstraint);
-                    break;
-                case OneBodyLinearServoConstraintComponent _oblscc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _oblscc._bepuConstraint);
-                    break;
-                case PointOnLineServoConstraintComponent _polscc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _polscc._bepuConstraint);
-                    break;
-                case SwingLimitConstraintComponent _slcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _slcc._bepuConstraint);
-                    break;
-                case SwivelHingeConstraintComponent _shcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _shcc._bepuConstraint);
-                    break;
-                case TwistLimitConstraintComponent _tlcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _tlcc._bepuConstraint);
-                    break;
-                case TwistMotorConstraintComponent _tmcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _tmcc._bepuConstraint);
-                    break;
-                case TwistServoConstraintComponent _tscc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _tscc._bepuConstraint);
-                    break;
-                case VolumeConstraintComponent _vcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _vcc._bepuConstraint);
-                    break;
-                case WeldConstraintComponent _wcc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _wcc._bepuConstraint);
-                    break;
-                case StaticCharacterConstraint _scc:
-                    CHandle = BepuSimulation.Simulation.Solver.Add(bodies, _scc._bepuConstraint);
-                    break;
-                default:
-                    break;
+                #warning maybe send a warning, like the missing camera notification in the engine, instead of silently failing
+                if (component.Simulation != _bepuSimulation)
+                    return;
             }
+
+            Span<BodyHandle> bodies = stackalloc BodyHandle[_constraintComponent.Bodies.Count];
+            int count = 0;
+
+            foreach (var component1 in _constraintComponent.Bodies)
+            {
+                if (component1.ContainerData != null)
+                    bodies[count++] = component1.ContainerData.BHandle;
+            }
+
+            Span<BodyHandle> validBodies = bodies[..count];
+
+            _cHandle = _bepuSimulation.Simulation.Solver.Add(validBodies, _constraintComponent.BepuConstraint);
         }
-        internal void DestroyConstraint()
+
+        internal override void DestroyConstraint()
         {
-            if (Exist)
+            if (_cHandle.Value != -1)
             {
-                BepuSimulation.Simulation.Solver.Remove(CHandle);
+                _bepuSimulation.Simulation.Solver.Remove(_cHandle);
+                _cHandle = new(-1);
             }
+
+            _constraintComponent.ConstraintData = null;
         }
 
+        internal override void TryUpdateDescription()
+        {
+            if (_cHandle.Value != -1)
+            {
+                _bepuSimulation.Simulation.Solver.ApplyDescription(_cHandle, _constraintComponent.BepuConstraint);
+            }
+        }
     }
-
 }

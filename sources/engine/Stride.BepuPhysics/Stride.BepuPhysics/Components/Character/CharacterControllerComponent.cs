@@ -2,6 +2,8 @@
 using Stride.Engine;
 using Stride.Input;
 
+#warning this should be moved to demo/sample
+
 namespace Stride.BepuPhysics.Components.Character;
 [ComponentCategory("Bepu - Character")]
 public class CharacterControllerComponent : SyncScript
@@ -38,7 +40,7 @@ public class CharacterControllerComponent : SyncScript
         Rotate();
 
         if (Input.IsKeyPressed(Keys.Space))
-            Character?.Jump();
+            Character?.TryJump();
     }
 
     private void Move()

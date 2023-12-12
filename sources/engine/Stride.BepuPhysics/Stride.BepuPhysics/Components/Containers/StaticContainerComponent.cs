@@ -11,7 +11,8 @@ namespace Stride.BepuPhysics.Components.Containers
     [ComponentCategory("Bepu - Containers")]
     public class StaticContainerComponent : ContainerComponent
     {
-        public StaticReference? GetPhysicStatic()
+        #warning same as with the BodyContainerComponent, dump the methods users might need in here and hide it away
+        StaticReference? GetPhysicStatic()
         {
             return ContainerData?.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
         }

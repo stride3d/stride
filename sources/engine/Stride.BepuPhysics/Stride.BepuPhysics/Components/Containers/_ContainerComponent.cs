@@ -1,4 +1,5 @@
-﻿using Stride.BepuPhysics.Definitions.Collisions;
+﻿using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions.Collisions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -13,7 +14,7 @@ namespace Stride.BepuPhysics.Components.Containers
 
     public abstract class ContainerComponent : EntityComponent
     {
-        private int _simulationIndex = 0;
+        private BepuSimulation? _simulation = null;
 
         private float _springFrequency = 30;
         private float _springDampingRatio = 3;
@@ -23,17 +24,20 @@ namespace Stride.BepuPhysics.Components.Containers
 
         private IContactEventHandler? _contactEventHandler = null;
 
-        public int SimulationIndex
+        public int SimulationIndex;
+
+        [DataMemberIgnore]
+        public BepuSimulation? Simulation
         {
-            get => _simulationIndex;
+            get => _simulation;
             set
             {
-                if (_simulationIndex == value)
+                if (_simulation == value)
                     return;
 
                 ContainerData?.DestroyContainer();
-                _simulationIndex = value;
-                ContainerData?.BuildOrUpdateContainer();
+                _simulation = value;
+                ContainerData?.RebuildContainer();
             }
         }
 
@@ -46,8 +50,7 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _springFrequency = value;
-                if (ContainerData?.Exist == true)
-                    ContainerData.BuildOrUpdateContainer();
+                ContainerData?.TryUpdateContainer();
             }
         }
         public float SpringDampingRatio
@@ -59,8 +62,7 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _springDampingRatio = value;
-                if (ContainerData?.Exist == true)
-                    ContainerData.BuildOrUpdateContainer();
+                ContainerData?.TryUpdateContainer();
             }
         }
         public float FrictionCoefficient
@@ -69,8 +71,7 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _frictionCoefficient = value;
-                if (ContainerData?.Exist == true)
-                    ContainerData.BuildOrUpdateContainer();
+                ContainerData?.TryUpdateContainer();
             }
         }
         public float MaximumRecoveryVelocity
@@ -79,8 +80,7 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _maximumRecoveryVelocity = value;
-                if (ContainerData?.Exist == true)
-                    ContainerData.BuildOrUpdateContainer();
+                ContainerData?.TryUpdateContainer();
             }
         }
         public byte ColliderGroupMask
@@ -89,43 +89,8 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _colliderGroupMask = value;
-                if (ContainerData?.Exist == true)
-                    ContainerData.BuildOrUpdateContainer();
+                ContainerData?.TryUpdateContainer();
             }
-        }
-
-        internal bool RegisterContact()
-        {
-            if (ContainerData?.Exist != true || ContactEventHandler == null)
-                return false;
-
-            if (ContainerData.isStatic)
-                ContainerData.BepuSimulation.ContactEvents.Register(ContainerData.SHandle, ContactEventHandler);
-            else
-                ContainerData.BepuSimulation.ContactEvents.Register(ContainerData.BHandle, ContactEventHandler);
-
-            return true;
-        }
-        internal bool UnregisterContact()
-        {
-            if (ContainerData?.Exist != true)
-                return false;
-
-            if (ContainerData.isStatic)
-                ContainerData.BepuSimulation.ContactEvents.Unregister(ContainerData.SHandle);
-            else
-                ContainerData.BepuSimulation.ContactEvents.Unregister(ContainerData.BHandle);
-            return true;
-        }
-        public bool IsRegistered()
-        {
-            if (ContainerData?.Exist != true)
-                return false;
-
-            if (ContainerData.isStatic)
-                return ContainerData.BepuSimulation.ContactEvents.IsListener(ContainerData.SHandle);
-            else
-                return ContainerData.BepuSimulation.ContactEvents.IsListener(ContainerData.BHandle);
         }
 
         public Vector3 CenterOfMass { get; internal set; } = new Vector3();
@@ -137,16 +102,17 @@ namespace Stride.BepuPhysics.Components.Containers
         [DataMemberIgnore]
         internal ContainerData? ContainerData { get; set; }
 
+        [DataMemberIgnore]
         public IContactEventHandler? ContactEventHandler
         {
             get => _contactEventHandler;
             set
             {
-                if (IsRegistered())
-                    UnregisterContact();
+                if (ContainerData?.IsRegistered() == true)
+                    ContainerData?.UnregisterContact();
 
                 _contactEventHandler = value;
-                RegisterContact();
+                ContainerData?.RegisterContact();
             }
         }
     }

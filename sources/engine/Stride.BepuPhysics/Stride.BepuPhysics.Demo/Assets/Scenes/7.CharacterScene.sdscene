@@ -33,10 +33,9 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Mass: 1.0
                         Closed: true
-                        ModelData: ref!! 4af700c8-d47b-4baf-bc04-9843b70c1518
+                        Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
         -   Entity:
                 Id: 104f8ef5-ef01-4361-8f1b-f68d5614bc43
                 Name: Jump1
@@ -63,7 +62,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -136,7 +134,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
         -   Entity:
                 Id: 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                 Name: Camera
@@ -249,7 +246,6 @@ Hierarchy:
                         FrictionCoefficient: 0.1
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -259,7 +255,6 @@ Hierarchy:
                         Speed: 10.0
                         JumpSpeed: 1.0
                         CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153
-                        CharacterCapsule: ref!! 985dc8b0-37af-465f-ab06-bfd602779684
                     ed9e2b8947b0daaeede8bffa0cc9c5cd: !Stride.BepuPhysics.Components.Character.CharacterControllerComponent,Stride.BepuPhysics
                         Id: 7e569c77-2794-4b73-8eb1-0503382198ac
                         CameraPivot: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a

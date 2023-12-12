@@ -5,6 +5,8 @@ using Stride.BepuPhysics.Definitions.Collisions;
 using Stride.BepuPhysics.Extensions;
 using Stride.Engine;
 
+#warning This should not be part of the base API, move it to demo/sample
+
 namespace Stride.BepuPhysics.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
@@ -44,12 +46,12 @@ namespace Stride.BepuPhysics.Components.Utils
     {
         public bool Contact { get; private set; } = false;
 
-        void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex, int workerIndex)
+        void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex)
         {
             Contact = true;
         }
 
-        void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex, int workerIndex)
+        void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex)
         {
             Contact = false;
         }

@@ -1,9 +1,12 @@
-﻿using Stride.BepuPhysics.Components.Containers;
+﻿using BepuPhysics;
+using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Games;
 
 namespace Stride.BepuPhysics.Components.Colliders
 {
@@ -21,12 +24,13 @@ namespace Stride.BepuPhysics.Components.Colliders
             set
             {
                 _mass = value;
-                if (Container?.ContainerData?.Exist == true)
-                    Container?.ContainerData.BuildOrUpdateContainer();
+                Container?.ContainerData?.TryUpdateContainer();
             }
         }
 
         [DataMemberIgnore]
-        internal ContainerComponent? Container => Entity?.GetComponentsInParents<ContainerComponent>(true).FirstOrDefault();
+        internal ContainerComponent? Container { get; set; }
+
+        internal abstract void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose);
     }
 }

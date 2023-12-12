@@ -25,7 +25,7 @@ Hierarchy:
                     6832c610657ed1c7d8c733d2b57e4218: !Stride.BepuPhysics.Components.Colliders.ConvexHullColliderComponent,Stride.BepuPhysics
                         Id: e2a75a06-7275-4282-90b2-0e6acfcf23af
                         Mass: 1.0
-                        ModelData: ref!! b2952cdd-63cd-4693-bb13-9d16fdcdd596
+                        Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
         -   Folder: null
             Entity:
                 Id: 25b5be55-3d0b-4a70-8b40-0b7c3f1c9108
@@ -115,7 +115,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Mass: 1.0
                         Closed: true
-                        ModelData: ref!! 2645ce2b-57f5-41b2-8748-9933186c9859
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
         -   Entity:
                 Id: b5a7568b-fd59-4906-8fd5-37893c7dfaf8
                 Name: Skybox
@@ -191,7 +191,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Mass: 1.0
                         Closed: true
-                        ModelData: ref!! 6d778a37-85fb-4ac0-a5dc-f36de5703345
+                        Model: 77e7e900-fdb0-4501-8a3f-8658f67c30d3:Models/Wagon_A_green
         -   Entity:
                 Id: d11956cc-c083-481b-a12d-1626df8d32fe
                 Name: HexConvexHull

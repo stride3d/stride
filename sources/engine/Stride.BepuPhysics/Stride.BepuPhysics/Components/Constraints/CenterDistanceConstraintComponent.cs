@@ -9,21 +9,20 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public class CenterDistanceConstraintComponent : ConstraintComponent
+    public sealed class CenterDistanceConstraintComponent : ConstraintComponent<CenterDistanceConstraint>
     {
-        internal CenterDistanceConstraint _bepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+        public CenterDistanceConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
         public float TargetDistance
         {
             get
             {
-                return _bepuConstraint.TargetDistance;
+                return BepuConstraint.TargetDistance;
             }
             set
             {
-                _bepuConstraint.TargetDistance = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.TargetDistance = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -31,13 +30,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.Frequency;
+                return BepuConstraint.SpringSettings.Frequency;
             }
             set
             {
-                _bepuConstraint.SpringSettings.Frequency = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.Frequency = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 
@@ -45,13 +43,12 @@ namespace Stride.BepuPhysics.Components.Constraints
         {
             get
             {
-                return _bepuConstraint.SpringSettings.DampingRatio;
+                return BepuConstraint.SpringSettings.DampingRatio;
             }
             set
             {
-                _bepuConstraint.SpringSettings.DampingRatio = value;
-                if (ConstraintData?.Exist == true)
-                    ConstraintData.BepuSimulation.Simulation.Solver.ApplyDescription(ConstraintData.CHandle, _bepuConstraint);
+                BepuConstraint.SpringSettings.DampingRatio = value;
+                ConstraintData?.TryUpdateDescription();
             }
         }
 

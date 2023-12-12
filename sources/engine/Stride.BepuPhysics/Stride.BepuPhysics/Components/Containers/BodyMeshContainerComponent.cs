@@ -2,13 +2,14 @@
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Rendering;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Containers")]
-    public class BodyMeshContainerComponent : BodyContainerComponent
+    public class BodyMeshContainerComponent : BodyContainerComponent, IMeshContainerComponent
     {
 
         private float _mass = 1f;
@@ -20,8 +21,7 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _mass = value;
-                if (ContainerData?.Exist == true)
-                    ContainerData.BuildOrUpdateContainer();
+                ContainerData?.TryUpdateContainer();
             }
         }
         public bool Closed
@@ -30,12 +30,10 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _closed = value;
-                if (ContainerData?.Exist == true)
-                    ContainerData.BuildOrUpdateContainer();
+                ContainerData?.TryUpdateContainer();
             }
         }
 
-        public ModelComponent? ModelData { get; set; }
-
+        public Model? Model { get; set; }
     }
 }
