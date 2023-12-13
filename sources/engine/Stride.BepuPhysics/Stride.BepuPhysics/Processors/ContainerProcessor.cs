@@ -95,7 +95,7 @@ namespace Stride.BepuPhysics.Processors
                     stepCount++;
                 }
 
-                #warning I don't think this should be user-controllable ? We don't provide control over the other parts of the engine when they run through the dispatcher and having it on or of doesn't (or rather shouldn't) actually change the result, just how fast it resolves
+#warning I don't think this should be user-controllable ? We don't provide control over the other parts of the engine when they run through the dispatcher and having it on or of doesn't (or rather shouldn't) actually change the result, just how fast it resolves
                 // I guess it could make sense when running on a low power device, but at that point might as well make the change to Dispatcher itself
                 if (bepuSim.ParallelUpdate)
                 {
@@ -113,10 +113,10 @@ namespace Stride.BepuPhysics.Processors
                         }
 
                         var entityTransform = bodyContainer.Entity.Transform;
-                        #warning fix this part, conversion from local to world is just halfway done here
+#warning fix this part, conversion from local to world is just halfway done here
                         entityTransform.Position = body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityTransform;
                         entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
-                        #warning this operation is not thread safe if multiple containers are in the same hierarchy, perhaps best to avoid calling this method and instead let the engine update world matrix itself, maybe by moving this processor right before that process
+#warning this operation is not thread safe if multiple containers are in the same hierarchy, perhaps best to avoid calling this method and instead let the engine update world matrix itself, maybe by moving this processor right before that process
                         entityTransform.UpdateWorldMatrix();
                     });
                 }
@@ -206,7 +206,7 @@ namespace Stride.BepuPhysics.Processors
 
                 if (_containerComponent is BodyMeshContainerComponent _b)
                 {
-                    #warning check why it is not needed
+#warning check why it is not needed
                     //ContainerComponent.CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();
                 }
                 else if (_containerComponent is StaticMeshContainerComponent _s)
@@ -378,6 +378,9 @@ namespace Stride.BepuPhysics.Processors
                 var descendant = stack.Pop();
                 foreach (var child in descendant.Transform.Children)
                     stack.Push(child.Entity);
+
+                if (entity != descendant && entity.Get<ContainerComponent>() != null) //if a child entity that is not the main Entity has a container, we don't Add it's colliders.
+                    continue;
 
                 foreach (var component in descendant.Components)
                 {

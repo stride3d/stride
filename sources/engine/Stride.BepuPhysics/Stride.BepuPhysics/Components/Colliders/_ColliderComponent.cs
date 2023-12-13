@@ -10,7 +10,7 @@ using Stride.Games;
 
 namespace Stride.BepuPhysics.Components.Colliders
 {
-    [DataContract]
+    [DataContract(Inherited = true)]
     [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Colliders")]
     [AllowMultipleComponents]
