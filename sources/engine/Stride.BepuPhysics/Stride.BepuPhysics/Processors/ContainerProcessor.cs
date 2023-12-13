@@ -174,7 +174,10 @@ namespace Stride.BepuPhysics.Processors
         internal void RebuildContainer()
         {
             if (_shapeIndex.Exists)
+            {
                 BepuSimulation.Simulation.Shapes.Remove(_shapeIndex);
+                _shapeIndex = default;
+            }
 
             _containerComponent.Entity.Transform.UpdateWorldMatrix();
             _containerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
@@ -311,6 +314,12 @@ namespace Stride.BepuPhysics.Processors
             {
                 UnregisterContact();
             }
+            
+            if (_shapeIndex.Exists)
+            {
+                BepuSimulation.Simulation.Shapes.Remove(_shapeIndex);
+                _shapeIndex = default;
+            }
 
             if (BHandle.Value != -1 && BepuSimulation.Simulation.Bodies.BodyExists(BHandle))
             {
@@ -326,12 +335,6 @@ namespace Stride.BepuPhysics.Processors
                 BepuSimulation.StaticsContainers.Remove(SHandle);
                 SHandle = new(-1);
                 _exist = false;
-            }
-
-            if (_shapeIndex.Exists)
-            {
-                BepuSimulation.Simulation.Shapes.Remove(_shapeIndex);
-                _shapeIndex = default;
             }
         }
 

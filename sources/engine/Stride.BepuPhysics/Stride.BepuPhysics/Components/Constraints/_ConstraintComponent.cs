@@ -17,8 +17,6 @@ namespace Stride.BepuPhysics.Components.Constraints
     public abstract class BaseConstraintComponent : EntityComponent
     {
         private bool _enabled = true;
-
-        public ObservableCollection<BodyContainerComponent> Bodies { get; set; }
         public bool Enabled
         {
             get
@@ -31,11 +29,11 @@ namespace Stride.BepuPhysics.Components.Constraints
                 UntypedConstraintData?.RebuildConstraint();
             }
         }
+        public BodyContainerList Bodies { get; set; } = new();
 
         public BaseConstraintComponent()
         {
-            Bodies = new();
-            Bodies.CollectionChanged += (s, e) => UntypedConstraintData?.RebuildConstraint();
+            Bodies.OnEditCallBack = () => UntypedConstraintData?.RebuildConstraint();
         }
 
         internal abstract void RemoveDataRef();
@@ -45,38 +43,46 @@ namespace Stride.BepuPhysics.Components.Constraints
         internal abstract BaseConstraintData CreateProcessorData(BepuConfiguration bepuConfiguration);
     }
 
-    //TODO : choose observable or update that implementation.
+    //TODO : maybe replace by stride impl
+    [DataContract]
     public sealed class BodyContainerList : List<BodyContainerComponent>
     {
-        private Action _editedCallBack { get; }
-        public BodyContainerList(Action editedCallBack)
-        {
-            _editedCallBack = editedCallBack;
-        }
-
+        public Action? OnEditCallBack { get; internal set; }
 
         public new void Add(BodyContainerComponent item)
         {
             base.Add(item);
-            _editedCallBack?.Invoke();
+            OnEditCallBack?.Invoke();
         }
-
         public new void Remove(BodyContainerComponent item)
         {
             base.Remove(item);
-            _editedCallBack?.Invoke();
+            OnEditCallBack?.Invoke();
         }
-
+        public new void RemoveAll(Predicate<BodyContainerComponent> match)
+        {
+            base.RemoveAll(match);
+            OnEditCallBack?.Invoke();
+        }
+        public new void RemoveAt(int index)
+        {
+            base.RemoveAt(index);
+            OnEditCallBack?.Invoke();
+        }
+        public new void RemoveRange(int index, int count)
+        {
+            base.RemoveRange(index, count);
+            OnEditCallBack?.Invoke();
+        }
         public new void AddRange(IEnumerable<BodyContainerComponent> collection)
         {
             base.AddRange(collection);
-            _editedCallBack?.Invoke();
+            OnEditCallBack?.Invoke();
         }
-
         public new void Clear()
         {
             base.Clear();
-            _editedCallBack?.Invoke();
+            OnEditCallBack?.Invoke();
         }
     }
 

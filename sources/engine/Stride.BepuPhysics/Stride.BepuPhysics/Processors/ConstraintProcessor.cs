@@ -57,30 +57,27 @@ namespace Stride.BepuPhysics.Processors
 
         internal override void RebuildConstraint()
         {
-            if (_cHandle.Value != -1)
-                DestroyConstraint();
+            DestroyConstraint();
 
             if (_constraintComponent.Bodies.Count == 0 || !_constraintComponent.Enabled) //TODO check that the body count == Constraint.BodyCount (some need 1, 2 or more bodies)
                 return;
 
             var simIndex = _constraintComponent.Bodies[0].SimulationIndex;
-            _bepuSimulation = _bepuConfig.BepuSimulations[simIndex];
-            foreach (var component in _constraintComponent.Bodies)
-            {
-#warning maybe send a warning, like the missing camera notification in the engine, instead of exception
-                if (component.SimulationIndex != simIndex)
-                    throw new Exception("A constraint between object with different SimulationIndex is not possible");
-            }
-
             Span<BodyHandle> bodies = stackalloc BodyHandle[_constraintComponent.Bodies.Count];
             int count = 0;
 
-            foreach (var ContainerComponent in _constraintComponent.Bodies)
+            _bepuSimulation = _bepuConfig.BepuSimulations[simIndex];
+
+            foreach (var component in _constraintComponent.Bodies)
             {
-                if (ContainerComponent.ContainerData == null)
+                #warning maybe send a warning, like the missing camera notification in the engine, instead of exception
+                if (component.SimulationIndex != simIndex)
+                    throw new Exception("A constraint between object with different SimulationIndex is not possible");
+            
+                if (component.ContainerData == null)
                     throw new Exception("Cannot build a constraint with a ContainerComponent that is not existing");
 
-                bodies[count++] = ContainerComponent.ContainerData.BHandle;
+                bodies[count++] = component.ContainerData.BHandle;
             }
 
             Span<BodyHandle> validBodies = bodies[..count];
@@ -90,7 +87,7 @@ namespace Stride.BepuPhysics.Processors
 
         internal override void DestroyConstraint()
         {
-            if (_cHandle.Value != -1)
+            if (_cHandle.Value != -1 && _bepuSimulation.Simulation.Solver.ConstraintExists(_cHandle))
             {
                 _bepuSimulation.Simulation.Solver.Remove(_cHandle);
                 _cHandle = new(-1);
@@ -100,7 +97,7 @@ namespace Stride.BepuPhysics.Processors
 
         internal override void TryUpdateDescription()
         {
-            if (_cHandle.Value != -1)
+            if (_cHandle.Value != -1 && _bepuSimulation.Simulation.Solver.ConstraintExists(_cHandle))
             {
                 _bepuSimulation.Simulation.Solver.ApplyDescription(_cHandle, _constraintComponent.BepuConstraint);
             }

@@ -18,9 +18,8 @@ namespace Stride.BepuPhysics.Processors
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ColliderComponent component, [NotNull] ColliderComponent data)
         {
-            var previousContainer = component.Container;
+            component.Container?.ContainerData?.RebuildContainer();
             component.Container = null;
-            previousContainer?.ContainerData?.RebuildContainer();
         }
     }
 }
