@@ -119,5 +119,6 @@ namespace Stride.BepuPhysics.Components.Containers
                 ContainerData?.RegisterContact();
             }
         }
+        
     }
 }

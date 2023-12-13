@@ -15,6 +15,7 @@ namespace Stride.BepuPhysics.Definitions
             public float FrictionCoefficient;
             public float MaximumRecoveryVelocity;
             public byte colliderGroupMask;
+            public bool trigger;
         }
 
         internal CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
@@ -61,6 +62,12 @@ namespace Stride.BepuPhysics.Definitions
             pairMaterial.MaximumRecoveryVelocity = MathF.Max(a.MaximumRecoveryVelocity, b.MaximumRecoveryVelocity);
             pairMaterial.SpringSettings = pairMaterial.MaximumRecoveryVelocity == a.MaximumRecoveryVelocity ? a.SpringSettings : b.SpringSettings;
             ContactEvents.HandleManifold(workerIndex, pair, ref manifold);
+           
+            if (a.trigger || b.trigger)
+            {
+                 return false;
+            }
+
             return true;
         }
 

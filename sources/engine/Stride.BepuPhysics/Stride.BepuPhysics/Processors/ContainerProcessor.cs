@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Colliders;
@@ -113,7 +114,7 @@ namespace Stride.BepuPhysics.Processors
                         entityTransform.Position = body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityTransform;
                         entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
 #warning this operation is not thread safe if multiple containers are in the same hierarchy, perhaps best to avoid calling this method and instead let the engine update world matrix itself, maybe by moving this processor right before that process
-                        entityTransform.UpdateWorldMatrix();
+                        //entityTransform.UpdateWorldMatrix();
                     });
                 }
                 else
@@ -269,13 +270,13 @@ namespace Stride.BepuPhysics.Processors
                         BepuSimulation.Simulation.Bodies[BHandle].GetDescription(out var tmpDesc);
                         bDescription.Velocity = tmpDesc.Velocity; //Keep velocity when updating
                         BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, bDescription);
-                        BepuSimulation.CollidableMaterials[BHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask };
+                        BepuSimulation.CollidableMaterials[BHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask, trigger = false };
                     }
                     else
                     {
                         BHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
                         BepuSimulation.BodiesContainers.Add(BHandle, _c);
-                        BepuSimulation.CollidableMaterials.Allocate(BHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask };
+                        BepuSimulation.CollidableMaterials.Allocate(BHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask, trigger = false };
                         _exist = true;
                     }
 
@@ -284,17 +285,18 @@ namespace Stride.BepuPhysics.Processors
                     _isStatic = true;
 
                     var sDescription = new StaticDescription(ContainerPose, _shapeIndex);
+                    var isTrigger = _c is TriggerContainerComponent;
 
                     if (SHandle.Value != -1)
                     {
                         BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, sDescription);
-                        BepuSimulation.CollidableMaterials[SHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask };
+                        BepuSimulation.CollidableMaterials[SHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask, trigger = isTrigger };
                     }
                     else
                     {
                         SHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
                         BepuSimulation.StaticsContainers.Add(SHandle, _c);
-                        BepuSimulation.CollidableMaterials.Allocate(SHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask };
+                        BepuSimulation.CollidableMaterials.Allocate(SHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask, trigger = isTrigger };
                         _exist = true;
                     }
 
@@ -315,7 +317,7 @@ namespace Stride.BepuPhysics.Processors
             {
                 UnregisterContact();
             }
-            
+
             if (_shapeIndex.Exists)
             {
                 BepuSimulation.Simulation.Shapes.Remove(_shapeIndex);

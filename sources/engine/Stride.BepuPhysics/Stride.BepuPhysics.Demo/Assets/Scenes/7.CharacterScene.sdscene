@@ -135,6 +135,32 @@ Hierarchy:
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
         -   Entity:
+                Id: 79048271-9d2d-4c88-85d4-af918b1fc277
+                Name: Trig
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 2ff871dc-8080-49b6-b7f8-6b28a514574a
+                        Position: {X: 20.0, Y: 3.0, Z: 20.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 5.0, Y: 5.0, Z: 5.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 588053a1-b036-4d07-993a-43ba72d313cb
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    cfe6ca477f4cc95536e596656bac380c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 1ee747ba-d2b3-45b9-8133-f9232d2eea5f
+                        Mass: 1.0
+                        Size: {X: 5.0, Y: 5.0, Z: 5.0}
+                    131b29d1bfa5788de12bb234fb91afd5: !Stride.BepuPhysics.Components.Containers.TriggerContainerComponent,Stride.BepuPhysics
+                        Id: 4f3dc2aa-51ed-4b02-8fe2-da628f85faaf
+                        SimulationIndex: 1
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+        -   Entity:
                 Id: 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                 Name: Camera
                 Components:
@@ -206,6 +232,14 @@ Hierarchy:
                             35b09a039adfe1787082d9434605c512: ref!! 648c4506-eb45-4d91-9abc-d20ad8a2b840
                             2bc520bb455f5094a9577cacebb484a0: ref!! 25462615-7805-4d0f-b283-7aa629da5b3f
                             66268939822ec9ff72ab954ab26bb449: ref!! 861b66cd-18c9-4c38-ab25-6fb692425503
+                            9f628a38173c41f6d6e6df09f67afe8f: ref!! 2ff871dc-8080-49b6-b7f8-6b28a514574a
+                    674c554e0660785c2634bc55f27fc4ed: !Stride.BepuPhysics.Components.Utils.ThrowerComponent,Stride.BepuPhysics
+                        Id: 36fcd029-0f0f-4673-9b02-4829c8a35511
+                        SimulationIndex: 1
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        Instancing: ref!! 191e406f-0e44-44c1-b32d-acbfc269c2b6
+                        SpawnPosition: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a
+                        Speed: 20.0
         -   Entity:
                 Id: b694adab-d89a-4d0c-aa3f-c12d05d48831
                 Name: HeadModel
