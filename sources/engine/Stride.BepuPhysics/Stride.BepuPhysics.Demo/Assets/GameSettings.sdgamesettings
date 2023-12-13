@@ -25,6 +25,7 @@ Defaults:
         BepuSimulations:
             -   Enabled: true
                 TimeWarp: 1.0
+                UsePerBodyAttributes: true
                 PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
                 PoseLinearDamping: 0.05
                 PoseAngularDamping: 0.05
@@ -35,6 +36,7 @@ Defaults:
                 MaxStepPerFrame: 2
             -   Enabled: true
                 TimeWarp: 1.0
+                UsePerBodyAttributes: true
                 PoseGravity: {X: 0.0, Y: -30.0, Z: 0.0}
                 PoseLinearDamping: 0.05
                 PoseAngularDamping: 0.05
@@ -45,6 +47,7 @@ Defaults:
                 MaxStepPerFrame: 3
             -   Enabled: true
                 TimeWarp: 1.0
+                UsePerBodyAttributes: false
                 PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
                 PoseLinearDamping: 0.05
                 PoseAngularDamping: 0.05

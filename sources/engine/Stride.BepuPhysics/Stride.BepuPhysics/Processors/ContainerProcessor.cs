@@ -79,17 +79,19 @@ namespace Stride.BepuPhysics.Processors
                 if (!bepuSim.Enabled)
                     continue;
 
-                var SimTimeStep = dt * bepuSim.TimeWarp; //Calculate the theoretical time step of the simulation
-                bepuSim.RemainingUpdateTime += SimTimeStep; //Add it to the counter
+                var totalTimeStepInMillisec = dt * bepuSim.TimeWarp; //Calculate the theoretical time step of the simulation
+                bepuSim.RemainingUpdateTime += totalTimeStepInMillisec; //Add it to the counter
 
                 int stepCount = 0;
                 while (bepuSim.RemainingUpdateTime >= bepuSim.SimulationFixedStep & stepCount < bepuSim.MaxStepPerFrame)
                 {
-                    bepuSim.CallSimulationUpdate(bepuSim.SimulationFixedStep / 1000f);//cal the SimulationUpdate with the real step time of the sim in secs
-                    bepuSim.Simulation.Timestep(bepuSim.SimulationFixedStep / 1000f, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
+                    var simTimeStepInSec = bepuSim.SimulationFixedStep / 1000f;
+                    bepuSim.CallSimulationUpdate(simTimeStepInSec);//cal the SimulationUpdate with the real step time of the sim in secs
+                    bepuSim.Simulation.Timestep(simTimeStepInSec, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
                     bepuSim.ContactEvents.Flush(); //Fire events handlers stuffs.
-                    bepuSim.RemainingUpdateTime -= bepuSim.SimulationFixedStep;
+                    bepuSim.RemainingUpdateTime -= bepuSim.SimulationFixedStep; //in millisec
                     stepCount++;
+                    bepuSim.CallAfterSimulationUpdate(simTimeStepInSec);//cal the AfterSimulationUpdate with the real step time of the sim in secs
                 }
 
 #warning I don't think this should be user-controllable ? We don't provide control over the other parts of the engine when they run through the dispatcher and having it on or of doesn't (or rather shouldn't) actually change the result, just how fast it resolves
@@ -171,6 +173,19 @@ namespace Stride.BepuPhysics.Processors
         {
             if (_exist)
                 RebuildContainer();
+        }
+
+        internal void UpdateMaterialProperties()
+        {
+            if (!_exist)
+                return;
+
+            var isTrigger = _containerComponent is TriggerContainerComponent;
+
+            if (_isStatic)
+                BepuSimulation.CollidableMaterials[SHandle] = new() { SpringSettings = new(_containerComponent.SpringFrequency, _containerComponent.SpringDampingRatio), FrictionCoefficient = _containerComponent.FrictionCoefficient, MaximumRecoveryVelocity = _containerComponent.MaximumRecoveryVelocity, ColliderGroupMask = _containerComponent.ColliderGroupMask, Trigger = isTrigger, IgnoreGravity = _containerComponent.IgnoreGravity };
+            else
+                BepuSimulation.CollidableMaterials[BHandle] = new() { SpringSettings = new(_containerComponent.SpringFrequency, _containerComponent.SpringDampingRatio), FrictionCoefficient = _containerComponent.FrictionCoefficient, MaximumRecoveryVelocity = _containerComponent.MaximumRecoveryVelocity, ColliderGroupMask = _containerComponent.ColliderGroupMask, Trigger = isTrigger, IgnoreGravity = _containerComponent.IgnoreGravity };
         }
 
         internal void RebuildContainer()
@@ -270,13 +285,13 @@ namespace Stride.BepuPhysics.Processors
                         BepuSimulation.Simulation.Bodies[BHandle].GetDescription(out var tmpDesc);
                         bDescription.Velocity = tmpDesc.Velocity; //Keep velocity when updating
                         BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, bDescription);
-                        BepuSimulation.CollidableMaterials[BHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask, trigger = false };
+                        BepuSimulation.CollidableMaterials[BHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, ColliderGroupMask = _c.ColliderGroupMask, Trigger = false, IgnoreGravity = _containerComponent.IgnoreGravity };
                     }
                     else
                     {
                         BHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
                         BepuSimulation.BodiesContainers.Add(BHandle, _c);
-                        BepuSimulation.CollidableMaterials.Allocate(BHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask, trigger = false };
+                        BepuSimulation.CollidableMaterials.Allocate(BHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, ColliderGroupMask = _c.ColliderGroupMask, Trigger = false, IgnoreGravity = _containerComponent.IgnoreGravity };
                         _exist = true;
                     }
 
@@ -290,13 +305,13 @@ namespace Stride.BepuPhysics.Processors
                     if (SHandle.Value != -1)
                     {
                         BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, sDescription);
-                        BepuSimulation.CollidableMaterials[SHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask, trigger = isTrigger };
+                        BepuSimulation.CollidableMaterials[SHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, ColliderGroupMask = _c.ColliderGroupMask, Trigger = isTrigger, IgnoreGravity = _containerComponent.IgnoreGravity };
                     }
                     else
                     {
                         SHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
                         BepuSimulation.StaticsContainers.Add(SHandle, _c);
-                        BepuSimulation.CollidableMaterials.Allocate(SHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, colliderGroupMask = _c.ColliderGroupMask, trigger = isTrigger };
+                        BepuSimulation.CollidableMaterials.Allocate(SHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, ColliderGroupMask = _c.ColliderGroupMask, Trigger = isTrigger, IgnoreGravity = _containerComponent.IgnoreGravity };
                         _exist = true;
                     }
 

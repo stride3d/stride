@@ -8,18 +8,29 @@ namespace Stride.BepuPhysics.Definitions
 {
     public struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
+        private Bodies _bodies;
+
+        private Vector3Wide gravityWideDt = default;
+        private Vector<float> linearDampingDt = default;
+        private Vector<float> angularDampingDt = default;
+
+
+        internal CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
+
+        public bool UsePerBodyAttributes { get; set; } = true;
+
         /// <summary>
         /// Gravity to apply to dynamic bodies in the simulation.
         /// </summary>
-        public Vector3 Gravity;
+        public Vector3 Gravity { get; set; } = new(0, -9.8f, 0);
         /// <summary>
         /// Fraction of dynamic body linear velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.
         /// </summary>
-        public float LinearDamping;
+        public float LinearDamping { get; set; } = 0.05f;
         /// <summary>
         /// Fraction of dynamic body angular velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.
         /// </summary>
-        public float AngularDamping;
+        public float AngularDamping { get; set; } = 0.05f;
 
 
         /// <summary>
@@ -42,25 +53,15 @@ namespace Stride.BepuPhysics.Definitions
         /// </summary>
         public readonly bool IntegrateVelocityForKinematics => false;
 
-        public void Initialize(Simulation simulation)
-        {
-            //In this demo, we don't need to initialize anything.
-            //If you had a simulation with per body gravity stored in a CollidableProperty<T> or something similar, having the simulation provided in a callback can be helpful.
-        }
 
-        /// <summary>
-        /// Creates a new set of simple callbacks for the demos.
-        /// </summary>
         public StridePoseIntegratorCallbacks()
         {
-            Gravity = new(0, -9.8f, 0);
-            LinearDamping = 0.05f;
-            AngularDamping = 0.05f;
         }
 
-        Vector3Wide gravityWideDt = default;
-        Vector<float> linearDampingDt = default;
-        Vector<float> angularDampingDt = default;
+        public void Initialize(Simulation simulation)
+        {
+            _bodies = simulation.Bodies;
+        }
 
         /// <summary>
         /// Callback invoked ahead of dispatches that may call into <see cref="IntegrateVelocity"/>.
@@ -98,8 +99,38 @@ namespace Stride.BepuPhysics.Definitions
             //Note that these are SIMD operations and "Wide" types. There are Vector<float>.Count lanes of execution being evaluated simultaneously.
             //The types are laid out in array-of-structures-of-arrays (AOSOA) format. That's because this function is frequently called from vectorized contexts within the solver.
             //Transforming to "array of structures" (AOS) format for the callback and then back to AOSOA would involve a lot of overhead, so instead the callback works on the AOSOA representation directly.
-            velocity.Linear = (velocity.Linear + gravityWideDt) * linearDampingDt;
-            velocity.Angular = velocity.Angular * angularDampingDt;
+            if (UsePerBodyAttributes)
+            {
+                Span<float> ignoreGravitySpan = stackalloc float[Vector<float>.Count];
+                for (int bundleSlotIndex = 0; bundleSlotIndex < Vector<int>.Count; ++bundleSlotIndex)
+                {
+                    var bodyIndex = bodyIndices[bundleSlotIndex];
+                    //Not every slot in the SIMD vector is guaranteed to be filled.
+                    //The integration mask tells us which ones are active in a way that's convenient for vectorized operations, but the bodyIndex for empty lanes will also be -1.
+                    if (bodyIndex >= 0 && bodyIndex < _bodies.ActiveSet.Count)
+                    {
+                        var bodyHandle = _bodies.ActiveSet.IndexToHandle[bodyIndex];
+                        ignoreGravitySpan[bundleSlotIndex] = CollidableMaterials[bodyHandle].IgnoreGravity ? 0f : 1f;
+                    }
+                    else if (bodyIndex >= 0)
+                    {
+                        ignoreGravitySpan[bundleSlotIndex] = 1f;
+                        //Should not happend but it's happening.
+                    }
+                }
+
+                var GravityVec = new Vector<float>(ignoreGravitySpan);
+
+
+                velocity.Linear = (velocity.Linear + (gravityWideDt * GravityVec)) * linearDampingDt;
+                velocity.Angular = velocity.Angular * angularDampingDt;
+            }
+            else
+            {
+                velocity.Linear = (velocity.Linear + gravityWideDt) * linearDampingDt;
+                velocity.Angular = velocity.Angular * angularDampingDt;
+            }
+
         }
     }
 

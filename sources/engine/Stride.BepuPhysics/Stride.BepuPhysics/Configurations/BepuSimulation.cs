@@ -26,24 +26,31 @@ public class BepuSimulation
 
     internal ThreadDispatcher ThreadDispatcher { get; private set; }
     internal BufferPool BufferPool { get; private set; }
+
+    internal CollidableProperty<MaterialProperties> CollidableMaterials { get; private set; } = new CollidableProperty<MaterialProperties>();
     internal ContactEvents ContactEvents { get; private set; }
     //internal CollisionBatcher<BatcherCallbacks> CollisionBatcher { get; private set; }
-
-    [DataMemberIgnore]
-    public Simulation Simulation { get; private set; }
 
     internal Dictionary<BodyHandle, BodyContainerComponent> BodiesContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
     internal Dictionary<StaticHandle, StaticContainerComponent> StaticsContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
 
     internal float RemainingUpdateTime { get; set; } = 0;
 
-    internal CollidableProperty<MaterialProperties> CollidableMaterials = new CollidableProperty<MaterialProperties>();
+    [DataMemberIgnore]
+    public Simulation Simulation { get; private set; }
 
 
     [Display(0, "Enabled")]
     public bool Enabled { get; set; } = true;
     [Display(1, "TimeWarp")]
     public float TimeWarp { get; set; } = 1f;
+
+    [Display(11, "UsePerBodyAttributes")]
+    public bool UsePerBodyAttributes //Warning, set this to false can disable some features used by components.
+    {
+        get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.UsePerBodyAttributes;
+        set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.UsePerBodyAttributes = value;
+    }
 
     [Display(12, "PoseGravity")]
     public Vector3 PoseGravity
@@ -101,10 +108,12 @@ public class BepuSimulation
         ContactEvents = new ContactEvents(ThreadDispatcher, BufferPool);
 
         var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials, ContactEvents = ContactEvents };
-        var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks();
+        var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks() { CollidableMaterials = CollidableMaterials };
         var _solveDescription = new SolveDescription(1, 1);
 
         Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
+       
+        CollidableMaterials.Initialize(Simulation);
         ContactEvents.Initialize(Simulation);
         //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
     }
@@ -123,6 +132,13 @@ public class BepuSimulation
         foreach (var updateComponent in _simulationUpdateComponents)
         {
             updateComponent.SimulationUpdate(simTimeStep);
+        }
+    }
+    internal void CallAfterSimulationUpdate(float simTimeStep)
+    {
+        foreach (var updateComponent in _simulationUpdateComponents)
+        {
+            updateComponent.AfterSimulationUpdate(simTimeStep);
         }
     }
 

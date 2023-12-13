@@ -27,5 +27,6 @@ namespace Stride.BepuPhysics.Components
         }
 
         public abstract void SimulationUpdate(float simTimeStep);
+        public virtual void AfterSimulationUpdate(float simTimeStep) { }
     }
 }

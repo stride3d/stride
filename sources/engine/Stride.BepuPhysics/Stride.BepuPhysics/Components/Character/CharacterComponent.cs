@@ -1,4 +1,5 @@
-﻿using BepuPhysics;
+﻿using System.Diagnostics;
+using BepuPhysics;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions.Character;
 using Stride.BepuPhysics.Extensions;
@@ -99,7 +100,26 @@ public class CharacterComponent : SimulationUpdateComponent
             _tryJump = false;
         }
     }
+    public override void AfterSimulationUpdate(float simTimeStep)
+    {
+        if (CharacterBody == null)
+            return;
 
+        var body = CharacterBody.GetPhysicBody();
+        if (body != null && IsGrounded)
+        {
+            var linVeloExceptY = body.Value.Velocity.Linear * new NVector3(1, 0, 1);
+            var linVeloExceptYLen = linVeloExceptY.Length();
+
+            if (linVeloExceptYLen < 0.8f && linVeloExceptYLen > 0.000001f)
+            {
+                body.Value.Velocity.Linear = new NVector3(0, 0, 0);
+                CharacterBody.IgnoreGravity = true;
+            }
+            return;
+        }
+        CharacterBody.IgnoreGravity = false;
+    }
     private void CheckGrounded()
     {
         IsGrounded = false;

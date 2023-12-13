@@ -22,8 +22,17 @@ namespace Stride.BepuPhysics.Components.Containers
         private float _frictionCoefficient = 1f;
         private float _maximumRecoveryVelocity = 1000;
         private byte _colliderGroupMask = byte.MaxValue; //1111 1111 => collide with everything
+        private bool _ignoreGravity = false;
 
         private IContactEventHandler? _contactEventHandler = null;
+
+        /// <summary>
+        /// ContainerData is the bridge to Bepu.
+        /// Automatically set by processor.
+        /// </summary>
+        [DataMemberIgnore]
+        internal ContainerData? ContainerData { get; set; }
+
 
         public int SimulationIndex
         {
@@ -54,7 +63,7 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _springFrequency = value;
-                ContainerData?.TryUpdateContainer();
+                ContainerData?.UpdateMaterialProperties();
             }
         }
         public float SpringDampingRatio
@@ -66,7 +75,7 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _springDampingRatio = value;
-                ContainerData?.TryUpdateContainer();
+                ContainerData?.UpdateMaterialProperties();
             }
         }
         public float FrictionCoefficient
@@ -75,7 +84,7 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _frictionCoefficient = value;
-                ContainerData?.TryUpdateContainer();
+                ContainerData?.UpdateMaterialProperties();
             }
         }
         public float MaximumRecoveryVelocity
@@ -84,7 +93,7 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _maximumRecoveryVelocity = value;
-                ContainerData?.TryUpdateContainer();
+                ContainerData?.UpdateMaterialProperties();
             }
         }
         public byte ColliderGroupMask
@@ -93,18 +102,23 @@ namespace Stride.BepuPhysics.Components.Containers
             set
             {
                 _colliderGroupMask = value;
-                ContainerData?.TryUpdateContainer();
+                ContainerData?.UpdateMaterialProperties();
+            }
+        }
+        public bool IgnoreGravity
+        {
+            get => _ignoreGravity;
+            set
+            {
+                if (_ignoreGravity == value)
+                    return;
+
+                _ignoreGravity = value;
+                ContainerData?.UpdateMaterialProperties();
             }
         }
 
-        public Vector3 CenterOfMass { get; internal set; } = new Vector3();
-
-        /// <summary>
-        /// ContainerData is the bridge to Bepu.
-        /// Automatically set by processor.
-        /// </summary>
-        [DataMemberIgnore]
-        internal ContainerData? ContainerData { get; set; }
+        public Vector3 CenterOfMass { get; internal set; } = new Vector3();       
 
         [DataMemberIgnore]
         public IContactEventHandler? ContactEventHandler

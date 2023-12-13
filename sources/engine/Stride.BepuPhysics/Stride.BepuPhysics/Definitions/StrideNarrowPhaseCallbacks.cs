@@ -2,28 +2,18 @@
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
-using BepuPhysics.Constraints;
 using Stride.BepuPhysics.Definitions.Collisions;
 
 namespace Stride.BepuPhysics.Definitions
 {
-    public unsafe struct StrideNarrowPhaseCallbacks : INarrowPhaseCallbacks
+    public unsafe partial struct StrideNarrowPhaseCallbacks : INarrowPhaseCallbacks
     {
-        public struct MaterialProperties
-        {
-            public SpringSettings SpringSettings;
-            public float FrictionCoefficient;
-            public float MaximumRecoveryVelocity;
-            public byte colliderGroupMask;
-            public bool trigger;
-        }
 
         internal CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
         internal ContactEvents ContactEvents { get; set; }
 
         public void Initialize(Simulation simulation)
         {
-            CollidableMaterials.Initialize(simulation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -37,8 +27,8 @@ namespace Stride.BepuPhysics.Definitions
         {
             var a = CollidableMaterials[pair.A];
             var b = CollidableMaterials[pair.B];
-            var com = a.colliderGroupMask & b.colliderGroupMask;
-            return com == a.colliderGroupMask || com == b.colliderGroupMask && com != 0;
+            var com = a.ColliderGroupMask & b.ColliderGroupMask;
+            return com == a.ColliderGroupMask || com == b.ColliderGroupMask && com != 0;
         }
         //Table of thruth. If the number in the table is present on X/Y (inside '()') collision occur exept if result is "0".
         //! indicate no collision
@@ -63,7 +53,7 @@ namespace Stride.BepuPhysics.Definitions
             pairMaterial.SpringSettings = pairMaterial.MaximumRecoveryVelocity == a.MaximumRecoveryVelocity ? a.SpringSettings : b.SpringSettings;
             ContactEvents.HandleManifold(workerIndex, pair, ref manifold);
            
-            if (a.trigger || b.trigger)
+            if (a.Trigger || b.Trigger)
             {
                  return false;
             }
