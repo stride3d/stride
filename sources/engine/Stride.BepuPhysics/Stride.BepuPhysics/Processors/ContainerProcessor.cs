@@ -18,7 +18,7 @@ using Mesh = BepuPhysics.Collidables.Mesh;
 
 namespace Stride.BepuPhysics.Processors
 {
-    public class ContainerProcessor : EntityProcessor<ContainerComponent, ContainerData>
+    public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
         private BepuConfiguration _bepuConfiguration = new();
         private IGame? _game = null;
@@ -42,26 +42,26 @@ namespace Stride.BepuPhysics.Processors
             Services.AddService(_bepuConfiguration);
         }
 
-        protected override ContainerData GenerateComponentData(Entity entity, ContainerComponent component)
+        //protected override ContainerData GenerateComponentData(Entity entity, ContainerComponent component)
+        //{
+        //    if (_game == null)
+        //        throw new NullReferenceException(nameof(_game));
+
+        //    return new(component, _bepuConfiguration, _game);
+        //}
+
+        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
             if (_game == null)
                 throw new NullReferenceException(nameof(_game));
 
-            return new(component, _bepuConfiguration, _game);
+            component.ContainerData = new(component, _bepuConfiguration, _game);
+            component.ContainerData.RebuildContainer();
         }
 
-        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerData data)
+        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            if (_game == null)
-                throw new NullReferenceException(nameof(_game));
-
-            component.ContainerData = data;
-            data.RebuildContainer();
-        }
-
-        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerData data)
-        {
-            data.DestroyContainer();
+            component.ContainerData?.DestroyContainer();
             component.ContainerData = null;
         }
 
@@ -157,6 +157,7 @@ namespace Stride.BepuPhysics.Processors
         internal BodyHandle BHandle { get; set; } = new(-1);
         internal StaticHandle SHandle { get; set; } = new(-1);
 
+        internal bool Exist => _exist;
 
         public ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game)
         {

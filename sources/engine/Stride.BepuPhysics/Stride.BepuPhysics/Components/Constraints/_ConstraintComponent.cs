@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
     [AllowMultipleComponents]
-    public abstract class BaseConstraintComponent : EntityComponent
+    public abstract class BaseConstraintComponent : SyncScript
     {
         private bool _enabled = true;
         public bool Enabled
@@ -36,11 +36,19 @@ namespace Stride.BepuPhysics.Components.Constraints
             Bodies.OnEditCallBack = () => UntypedConstraintData?.RebuildConstraint();
         }
 
+        public override void Update()
+        {
+            if (UntypedConstraintData?.Exist != true)
+                UntypedConstraintData?.RebuildConstraint();
+        }
+
         internal abstract void RemoveDataRef();
 
         internal abstract BaseConstraintData? UntypedConstraintData { get; }
 
         internal abstract BaseConstraintData CreateProcessorData(BepuConfiguration bepuConfiguration);
+
+       
     }
 
     //TODO : maybe replace by stride impl

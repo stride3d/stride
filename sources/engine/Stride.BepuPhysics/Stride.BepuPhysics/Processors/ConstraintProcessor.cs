@@ -1,5 +1,6 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Constraints;
+using SharpDX.D3DCompiler;
 using Stride.BepuPhysics.Components.Constraints;
 using Stride.BepuPhysics.Configurations;
 using Stride.Core.Annotations;
@@ -36,6 +37,8 @@ namespace Stride.BepuPhysics.Processors
 
     internal abstract class BaseConstraintData
     {
+        public abstract bool Exist { get; }
+
         internal abstract void RebuildConstraint();
         internal abstract void DestroyConstraint();
         internal abstract void TryUpdateDescription();
@@ -47,6 +50,9 @@ namespace Stride.BepuPhysics.Processors
         private readonly BepuConfiguration _bepuConfig;
         private ConstraintHandle _cHandle = new(-1);
         private BepuSimulation? _bepuSimulation;
+        private bool _exist = false;
+
+        public override bool Exist => _exist;
 
         public ConstraintData(ConstraintComponent<T> constraintComponent, BepuConfiguration bepuConfig)
         {
@@ -72,9 +78,9 @@ namespace Stride.BepuPhysics.Processors
                 #warning maybe send a warning, like the missing camera notification in the engine, instead of exception
                 if (component.SimulationIndex != simIndex)
                     throw new Exception("A constraint between object with different SimulationIndex is not possible");
-            
+
                 if (component.ContainerData == null)
-                    throw new Exception("Cannot build a constraint with a ContainerComponent that is not existing");
+                    return; //need to wait for body to be instanced
 
                 bodies[count++] = component.ContainerData.BHandle;
             }
@@ -82,21 +88,26 @@ namespace Stride.BepuPhysics.Processors
             Span<BodyHandle> validBodies = bodies[..count];
 
             _cHandle = _bepuSimulation.Simulation.Solver.Add(validBodies, _constraintComponent.BepuConstraint);
+            _exist = true;
         }
 
         internal override void DestroyConstraint()
         {
-            if (_cHandle.Value != -1 && _bepuSimulation.Simulation.Solver.ConstraintExists(_cHandle))
+            if (_cHandle.Value != -1 && _bepuSimulation != null && _bepuSimulation.Simulation.Solver.ConstraintExists(_cHandle))
             {
                 _bepuSimulation.Simulation.Solver.Remove(_cHandle);
                 _cHandle = new(-1);
             }
 
             _bepuSimulation = null;
+            _exist = false;
         }
 
         internal override void TryUpdateDescription()
         {
+            if (_bepuSimulation == null)
+                throw new Exception("_bepuSimulation is null");
+
             if (_cHandle.Value != -1 && _bepuSimulation.Simulation.Solver.ConstraintExists(_cHandle))
             {
                 _bepuSimulation.Simulation.Solver.ApplyDescription(_cHandle, _constraintComponent.BepuConstraint);
