@@ -85,7 +85,6 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        ContactEventHandler: null
         -   Entity:
                 Id: b155c235-5d9a-4749-a9b7-733d3b0b5d1e
                 Name: Camera

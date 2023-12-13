@@ -146,21 +146,6 @@ Hierarchy:
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
         -   Entity:
-                Id: 18a07917-f18f-4060-8851-0e4d1699a86e
-                Name: CarManual
-                Components:
-                    d4d70a19362138eaa821eecdfe8d9853: !TransformComponent
-                        Id: 5caec0a4-ed7f-4ac9-b8eb-0646d0de0e28
-                        Position: {X: 200.0, Y: 10.0, Z: 50.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            788fa0c6ec08d7793e4dbf513bd641a9: ref!! b4360c48-709b-4819-a2cf-aa6cbfca3527
-                            3ffc18ad3c1cb957e908ef9d1cf5b1ff: ref!! d3bc9254-0a4c-4f23-8c75-59d63d0a1e2e
-                            f53db0c23cba98c6dd06674cbcfe222a: ref!! cc0fe3c4-a92a-4219-b937-d7211b4a5878
-                            0b444408e5ac9b8f4727d5fba5b7ff35: ref!! eafdc650-50bd-49a2-9138-d4a6f0e777f6
-                            b9e2a044841d4d5dfc9017e4c413f242: ref!! 321daa08-0926-484d-b9e3-f03304448b61
-        -   Entity:
                 Id: 205ba9ce-aed2-4688-8742-318162acbd1d
                 Name: GeoSphere
                 Components:
@@ -189,77 +174,6 @@ Hierarchy:
                         Id: 4402975e-6254-4525-bcf9-d6bf1a06c8dc
                         Mass: 1.0
                         Radius: 0.5
-        -   Entity:
-                Id: 2762c75e-8526-48e3-8b53-30db19ba7bb0
-                Name: WheelBL
-                Components:
-                    aa244c743a3eb88f50917768b93d8f5b: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
-                        Id: 27ef8921-c0e3-414b-a7a4-ddfa78f81e3c
-                        SimulationIndex: 0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 3.0
-                        FrictionCoefficient: 1.0
-                        MaximumRecoveryVelocity: 10000.0
-                        ColliderGroupMask: 1
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
-                    0debde8052fd601b6f02ae19bf1ee640: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
-                        Id: e2f8fa5d-ccce-4da4-b64f-6042fab538e9
-                        Mass: 0.5
-                        Radius: 0.5
-                        Length: 0.25
-                    1d034f9ad6857b4845cffbbce7d2c1a7: !Stride.BepuPhysics.Components.Constraints.PointOnLineServoConstraintComponent,Stride.BepuPhysics
-                        Id: a28b4c87-034e-480c-ab8e-7afcd26be51d
-                        Bodies: {}
-                        Enabled: true
-                        LocalOffsetA: {X: 1.75, Y: -1.0, Z: 1.25}
-                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
-                        LocalDirection: {X: 0.0, Y: 1.0, Z: 0.0}
-                        ServoMaximumSpeed: 10.0
-                        ServoBaseSpeed: 1.0
-                        ServoMaximumForce: 10000.0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    f123bf95cc1d0718f212f4fa72c2de07: !Stride.BepuPhysics.Components.Constraints.LinearAxisServoConstraintComponent,Stride.BepuPhysics
-                        Id: ea2779af-548f-45cd-ad3a-b783cd91e293
-                        Bodies: {}
-                        Enabled: true
-                        LocalOffsetA: {X: 1.75, Y: -1.0, Z: 1.25}
-                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
-                        LocalPlaneNormal: {X: 0.0, Y: 1.0, Z: 0.0}
-                        TargetOffset: 0.2
-                        ServoMaximumSpeed: 10.0
-                        ServoBaseSpeed: 0.5
-                        ServoMaximumForce: 1000.0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    9802a48ac8a7ae0f208448e10f7665b9: !Stride.BepuPhysics.Components.Constraints.AngularAxisMotorConstraintComponent,Stride.BepuPhysics
-                        Id: 1fa7ec36-05e3-4204-8e57-717bebfe400c
-                        Bodies: {}
-                        Enabled: true
-                        LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
-                        TargetVelocity: 0.0
-                        MotorDamping: 15.0
-                        MotorMaximumForce: 15000.0
-                    df75ea2e6876416955e128df20caeca6: !Stride.BepuPhysics.Components.Constraints.AngularHingeConstraintComponent,Stride.BepuPhysics
-                        Id: c71b4dbb-9fd5-4650-95c3-d7b5a8143b56
-                        Bodies: {}
-                        Enabled: true
-                        LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
-                        LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
-                        Id: edda379e-dbbd-4515-aa35-387bb07931d9
-                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
-                        Materials: {}
-                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
-                        Id: eafdc650-50bd-49a2-9138-d4a6f0e777f6
-                        Position: {X: 1.75, Y: -0.8, Z: 1.25}
-                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
-                        Children: {}
         -   Entity:
                 Id: 29f85f96-b79a-4023-a8ea-2cacf394249a
                 Name: Wall
@@ -432,77 +346,6 @@ Hierarchy:
                         Mass: 1.0
                         Radius: 0.5
         -   Entity:
-                Id: 4ca01020-d3bf-435e-8280-7167525a8acf
-                Name: WheelFL
-                Components:
-                    3504b54c9577de66b546d3e02b48932a: !TransformComponent
-                        Id: d3bc9254-0a4c-4f23-8c75-59d63d0a1e2e
-                        Position: {X: -1.75, Y: -0.8, Z: 1.25}
-                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
-                        Children: {}
-                    0bc27905abb2c55050be6bc4ac56447a: !ModelComponent
-                        Id: a1394fbb-eadb-4da2-afb2-8102c3594be8
-                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
-                        Materials: {}
-                    ca8176b1058b680a9e92e817af47f8bf: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
-                        Id: 81c84323-291e-478c-9517-190389e60b27
-                        SimulationIndex: 0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 5.0
-                        FrictionCoefficient: 2.0
-                        MaximumRecoveryVelocity: 10000.0
-                        ColliderGroupMask: 1
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
-                    9f8c578020d8e74d7b56d6231cfa11d7: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
-                        Id: 170b16da-7488-4d1d-9c28-5ca4ed1582b1
-                        Mass: 0.5
-                        Radius: 0.5
-                        Length: 0.25
-                    9691dfa549655d6a6a1f143a627091fd: !Stride.BepuPhysics.Components.Constraints.PointOnLineServoConstraintComponent,Stride.BepuPhysics
-                        Id: f01cb31c-86b9-4ecc-9f9b-f92d9c93cfa9
-                        Bodies: {}
-                        Enabled: true
-                        LocalOffsetA: {X: -1.75, Y: -1.0, Z: 1.25}
-                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
-                        LocalDirection: {X: 0.0, Y: 1.0, Z: 0.0}
-                        ServoMaximumSpeed: 10.0
-                        ServoBaseSpeed: 1.0
-                        ServoMaximumForce: 10000.0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    41137b091068704e4be234188c090777: !Stride.BepuPhysics.Components.Constraints.LinearAxisServoConstraintComponent,Stride.BepuPhysics
-                        Id: f3a1170c-cc3f-4c07-a9b3-9870fc887723
-                        Bodies: {}
-                        Enabled: true
-                        LocalOffsetA: {X: -1.75, Y: -1.0, Z: 1.25}
-                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
-                        LocalPlaneNormal: {X: 0.0, Y: 1.0, Z: 0.0}
-                        TargetOffset: 0.2
-                        ServoMaximumSpeed: 10.0
-                        ServoBaseSpeed: 0.5
-                        ServoMaximumForce: 1000.0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    7a4b7f95ef6d17aaebfc713cd5eae976: !Stride.BepuPhysics.Components.Constraints.AngularAxisMotorConstraintComponent,Stride.BepuPhysics
-                        Id: 1eaca2f6-9ed9-4b99-ac98-660cf13aa055
-                        Bodies: {}
-                        Enabled: true
-                        LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
-                        TargetVelocity: 0.0
-                        MotorDamping: 15.0
-                        MotorMaximumForce: 10000.0
-                    49beb12319826e4b7f2ed047e42c6474: !Stride.BepuPhysics.Components.Constraints.AngularHingeConstraintComponent,Stride.BepuPhysics
-                        Id: 4199def7-f6c3-4c78-983a-a0a299978866
-                        Bodies: {}
-                        Enabled: true
-                        LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
-                        LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-        -   Entity:
                 Id: 4f02d2d7-9a5f-4508-bdea-ec68de5f9f84
                 Name: D
                 Components:
@@ -617,77 +460,6 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-        -   Entity:
-                Id: 760c6d95-c0c3-48aa-bfe3-42d9739f50f3
-                Name: WheelBR
-                Components:
-                    aa244c743a3eb88f50917768b93d8f5b: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
-                        Id: d16e6186-92a7-48ea-8eeb-8ed47463275d
-                        SimulationIndex: 0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 3.0
-                        FrictionCoefficient: 1.0
-                        MaximumRecoveryVelocity: 10000.0
-                        ColliderGroupMask: 1
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
-                    0debde8052fd601b6f02ae19bf1ee640: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
-                        Id: d55d5f01-7d9a-4d74-9d09-8c089f48539e
-                        Mass: 0.5
-                        Radius: 0.5
-                        Length: 0.25
-                    49e98ce8e7167ac39e92b50a22079759: !Stride.BepuPhysics.Components.Constraints.PointOnLineServoConstraintComponent,Stride.BepuPhysics
-                        Id: a34d1f38-583d-4961-b87b-4bb8156f71e6
-                        Bodies: {}
-                        Enabled: true
-                        LocalOffsetA: {X: 1.75, Y: -1.0, Z: -1.25}
-                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
-                        LocalDirection: {X: 0.0, Y: 1.0, Z: 0.0}
-                        ServoMaximumSpeed: 10.0
-                        ServoBaseSpeed: 1.0
-                        ServoMaximumForce: 10000.0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    4e42a695805d96becc03041e5f55b6aa: !Stride.BepuPhysics.Components.Constraints.LinearAxisServoConstraintComponent,Stride.BepuPhysics
-                        Id: cf110527-9ee6-4b87-a636-b0d15c7dc1c0
-                        Bodies: {}
-                        Enabled: true
-                        LocalOffsetA: {X: 1.75, Y: -1.0, Z: -1.25}
-                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
-                        LocalPlaneNormal: {X: 0.0, Y: 1.0, Z: 0.0}
-                        TargetOffset: 0.2
-                        ServoMaximumSpeed: 10.0
-                        ServoBaseSpeed: 0.5
-                        ServoMaximumForce: 1000.0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    7bf699175057f86753ffb764e2e8484c: !Stride.BepuPhysics.Components.Constraints.AngularAxisMotorConstraintComponent,Stride.BepuPhysics
-                        Id: 191f5803-64d2-477e-a634-0672c2bacf23
-                        Bodies: {}
-                        Enabled: true
-                        LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
-                        TargetVelocity: 0.0
-                        MotorDamping: 15.0
-                        MotorMaximumForce: 15000.0
-                    97d5653cd5c93a0e2357b32db3c5ca2d: !Stride.BepuPhysics.Components.Constraints.AngularHingeConstraintComponent,Stride.BepuPhysics
-                        Id: ab00258d-480f-4e71-97f4-c4b51c951b69
-                        Bodies: {}
-                        Enabled: true
-                        LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
-                        LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
-                        Id: f9cd9d17-f8a0-4139-96e4-0d09a41f9e11
-                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
-                        Materials: {}
-                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
-                        Id: 321daa08-0926-484d-b9e3-f03304448b61
-                        Position: {X: 1.75, Y: -0.8, Z: -1.25}
-                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
-                        Children: {}
         -   Entity:
                 Id: 81515b44-d6b2-4f52-b49e-ac44c4472471
                 Name: Jump1
@@ -1063,7 +835,6 @@ Hierarchy:
                             21c61beefc8551b81eb9029b0fb3fb00: ref!! 393a34d2-ef9d-4aec-8779-ca6038f29a65
                             4f26a4a065b23ac49c5201f9d47d0ee1: ref!! 9cf3a258-c28f-4c43-95e9-71936e849779
                             c901d373bcdba9c3416135b212e23887: ref!! 536ccb4b-dfee-4506-9fd9-a4d8f93e0dda
-                            6cf654b77dc8de2f36875b312ec0858a: ref!! 5caec0a4-ed7f-4ac9-b8eb-0646d0de0e28
                             ff4ca892a76181aa0ecd4781babdba13: ref!! b64996cc-8acb-47f0-887a-03506172ef5c
                             b3dd38a7c59023a37450d16f0afb1ae4: ref!! 494eb75e-904b-446f-9539-4653859f9975
                             44770610e35038f4cce942628d09d6b4: ref!! 170d9808-345e-4ed1-8521-636cd54c9791
@@ -1286,35 +1057,6 @@ Hierarchy:
                         Mass: 1.0
                         Radius: 0.5
         -   Entity:
-                Id: cc4d785e-3455-4b16-8f63-fbea2d7936b1
-                Name: CarBody
-                Components:
-                    6961414337769221283ce59319f70fa8: !TransformComponent
-                        Id: b4360c48-709b-4819-a2cf-aa6cbfca3527
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 4.0, Y: 1.0, Z: 2.5}
-                        Children: {}
-                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
-                        Id: d64dc8f1-3e36-464d-81c4-4900c994749d
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
-                        Materials: {}
-                    e433217afc16eeb130d60437d39781ec: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
-                        Id: f0dd6703-a39f-4b46-ae72-95e2e8908406
-                        SimulationIndex: 0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 3.0
-                        FrictionCoefficient: 1.0
-                        MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 254
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
-                    43eb7a912500e1f2355d60d691ce93ee: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
-                        Id: 420241d9-c9e1-4fb7-ac0d-b630d3afc60c
-                        Mass: 10.0
-                        Size: {X: 4.0, Y: 1.0, Z: 2.5}
-        -   Entity:
                 Id: d1cf6b43-15ff-4f13-8efe-1811b3ac0641
                 Name: Skybox
                 Components:
@@ -1490,77 +1232,6 @@ Hierarchy:
                         DamperLen: 0.5
                         DamperRatio: 0.01
                         DamperForce: 1000.0
-        -   Entity:
-                Id: f5a93013-a22a-4753-aae0-d7061845f91e
-                Name: WheelFR
-                Components:
-                    aa244c743a3eb88f50917768b93d8f5b: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
-                        Id: e0178323-63ee-4423-afce-1fe03b4eccd1
-                        SimulationIndex: 0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 5.0
-                        FrictionCoefficient: 2.0
-                        MaximumRecoveryVelocity: 10000.0
-                        ColliderGroupMask: 1
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
-                    0debde8052fd601b6f02ae19bf1ee640: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
-                        Id: 6e4ae638-819b-4668-bf8a-e6e4a17f5812
-                        Mass: 0.5
-                        Radius: 0.5
-                        Length: 0.25
-                    083421aea268ea87d09edd7e3cb662c9: !Stride.BepuPhysics.Components.Constraints.PointOnLineServoConstraintComponent,Stride.BepuPhysics
-                        Id: fc4be0e1-5d14-40a1-9f58-a0642118b371
-                        Bodies: {}
-                        Enabled: true
-                        LocalOffsetA: {X: -1.75, Y: -1.0, Z: -1.25}
-                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
-                        LocalDirection: {X: 0.0, Y: 1.0, Z: 0.0}
-                        ServoMaximumSpeed: 10.0
-                        ServoBaseSpeed: 1.0
-                        ServoMaximumForce: 10000.0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    da0422778633c5ea6c4e9a3e0a96a90a: !Stride.BepuPhysics.Components.Constraints.LinearAxisServoConstraintComponent,Stride.BepuPhysics
-                        Id: 73090a77-a594-4fa5-bcd9-cde2ffac40d6
-                        Bodies: {}
-                        Enabled: true
-                        LocalOffsetA: {X: -1.75, Y: -1.0, Z: -1.25}
-                        LocalOffsetB: {X: 0.0, Y: 0.0, Z: 0.0}
-                        LocalPlaneNormal: {X: 0.0, Y: 1.0, Z: 0.0}
-                        TargetOffset: 0.2
-                        ServoMaximumSpeed: 10.0
-                        ServoBaseSpeed: 0.5
-                        ServoMaximumForce: 1000.0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    7e6b72e08706872516aafabdab84616c: !Stride.BepuPhysics.Components.Constraints.AngularAxisMotorConstraintComponent,Stride.BepuPhysics
-                        Id: b42805dd-9f68-4ccc-86db-9b4321b3108d
-                        Bodies: {}
-                        Enabled: true
-                        LocalAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
-                        TargetVelocity: 0.0
-                        MotorDamping: 15.0
-                        MotorMaximumForce: 10000.0
-                    64f388da8c6a87fd2382e568c4dba167: !Stride.BepuPhysics.Components.Constraints.AngularHingeConstraintComponent,Stride.BepuPhysics
-                        Id: 41973257-be92-48ed-b66d-17ba2b642d21
-                        Bodies: {}
-                        Enabled: true
-                        LocalHingeAxisA: {X: 0.0, Y: 0.0, Z: 1.0}
-                        LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 2.0
-                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
-                        Id: a2a24da2-b096-478b-8270-d7d1e91fd85e
-                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
-                        Materials: {}
-                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
-                        Id: cc0fe3c4-a92a-4219-b937-d7211b4a5878
-                        Position: {X: -1.75, Y: -0.8, Z: -1.25}
-                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
-                        Children: {}
         -   Entity:
                 Id: f7aa93cc-fde5-44c7-b9a6-6b7c753b14fd
                 Name: GeoSphere

@@ -24,19 +24,19 @@ namespace Stride.BepuPhysics.Processors
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] BaseConstraintComponent component, [NotNull] BaseConstraintComponent data)
         {
             base.OnEntityComponentAdding(entity, component, data);
-            var constraint = component.CreateProcessorData(_bepuConfiguration);
-            constraint.BuildConstraint();
+            component.CreateProcessorData(_bepuConfiguration).RebuildConstraint();
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] BaseConstraintComponent component, [NotNull] BaseConstraintComponent data)
         {
             base.OnEntityComponentRemoved(entity, component, data);
             component.UntypedConstraintData?.DestroyConstraint();
+            component.RemoveDataRef();
         }
     }
 
     internal abstract class BaseConstraintData
     {
-        internal abstract void BuildConstraint();
+        internal abstract void RebuildConstraint();
         internal abstract void DestroyConstraint();
         internal abstract void TryUpdateDescription();
     }
@@ -55,12 +55,12 @@ namespace Stride.BepuPhysics.Processors
             _bepuSimulation = _bepuConfig.BepuSimulations[_constraintComponent.Bodies[0].SimulationIndex];
         }
 
-        internal override void BuildConstraint()
+        internal override void RebuildConstraint()
         {
             if (_cHandle.Value != -1)
                 DestroyConstraint();
 
-            if (_constraintComponent.Bodies.Count == 0 || !_constraintComponent.Enabled)
+            if (_constraintComponent.Bodies.Count == 0 || !_constraintComponent.Enabled) //TODO check that the body count == Constraint.BodyCount (some need 1, 2 or more bodies)
                 return;
 
             var simIndex = _constraintComponent.Bodies[0].SimulationIndex;
@@ -75,10 +75,12 @@ namespace Stride.BepuPhysics.Processors
             Span<BodyHandle> bodies = stackalloc BodyHandle[_constraintComponent.Bodies.Count];
             int count = 0;
 
-            foreach (var component1 in _constraintComponent.Bodies)
+            foreach (var ContainerComponent in _constraintComponent.Bodies)
             {
-                if (component1.ContainerData != null)
-                    bodies[count++] = component1.ContainerData.BHandle;
+                if (ContainerComponent.ContainerData == null)
+                    throw new Exception("Cannot build a constraint with a ContainerComponent that is not existing");
+
+                bodies[count++] = ContainerComponent.ContainerData.BHandle;
             }
 
             Span<BodyHandle> validBodies = bodies[..count];
@@ -94,7 +96,6 @@ namespace Stride.BepuPhysics.Processors
                 _cHandle = new(-1);
             }
 
-            _constraintComponent.ConstraintData = null;
         }
 
         internal override void TryUpdateDescription()

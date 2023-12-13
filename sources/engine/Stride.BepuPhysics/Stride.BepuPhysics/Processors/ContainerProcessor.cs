@@ -1,4 +1,5 @@
-﻿using BepuPhysics;
+﻿using System.ComponentModel;
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Components.Containers;
@@ -56,15 +57,10 @@ namespace Stride.BepuPhysics.Processors
 
             component.ContainerData = data;
             data.RebuildContainer();
-            if (component.ContactEventHandler != null && !component.ContainerData.IsRegistered())
-                component.ContainerData.RegisterContact();
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerData data)
         {
-            if (data.IsRegistered())
-                data.UnregisterContact();
-
             data.DestroyContainer();
             component.ContainerData = null;
         }
@@ -302,6 +298,9 @@ namespace Stride.BepuPhysics.Processors
                 default:
                     break;
             }
+
+            if (_containerComponent.ContactEventHandler != null && !IsRegistered())
+                RegisterContact();
         }
 
         internal void DestroyContainer()
@@ -379,13 +378,12 @@ namespace Stride.BepuPhysics.Processors
                 foreach (var child in descendant.Transform.Children)
                     stack.Push(child.Entity);
 
-                if (entity != descendant && entity.Get<ContainerComponent>() != null) //if a child entity that is not the main Entity has a container, we don't Add it's colliders.
+                if (entity != descendant && descendant.Get<ContainerComponent>() != null) //if a child entity that is not the main Entity has a container, we don't Add it's colliders.
                     continue;
 
-                foreach (var component in descendant.Components)
+                foreach (var component in descendant.GetAll<T>())
                 {
-                    if (component is T t)
-                        collection.Add(t);
+                    collection.Add(component);
                 }
             } while (stack.Count > 0);
         }

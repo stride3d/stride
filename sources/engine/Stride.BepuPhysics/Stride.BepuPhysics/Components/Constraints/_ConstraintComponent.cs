@@ -28,15 +28,17 @@ namespace Stride.BepuPhysics.Components.Constraints
             set
             {
                 _enabled = value;
-                UntypedConstraintData?.BuildConstraint();
+                UntypedConstraintData?.RebuildConstraint();
             }
         }
 
         public BaseConstraintComponent()
         {
             Bodies = new();
-            Bodies.CollectionChanged += (s, e) => UntypedConstraintData?.BuildConstraint();
+            Bodies.CollectionChanged += (s, e) => UntypedConstraintData?.RebuildConstraint();
         }
+
+        internal abstract void RemoveDataRef();
 
         internal abstract BaseConstraintData? UntypedConstraintData { get; }
 
@@ -88,6 +90,11 @@ namespace Stride.BepuPhysics.Components.Constraints
         /// </summary>
         [DataMemberIgnore]
         internal ConstraintData<T>? ConstraintData { get; set; }
+
+        internal override void RemoveDataRef()
+        {
+            ConstraintData = null;
+        }
 
         internal override BaseConstraintData? UntypedConstraintData => ConstraintData;
 
