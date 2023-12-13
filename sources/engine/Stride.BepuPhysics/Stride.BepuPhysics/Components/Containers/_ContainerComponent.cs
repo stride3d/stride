@@ -24,6 +24,8 @@ namespace Stride.BepuPhysics.Components.Containers
 
         private IContactEventHandler? _contactEventHandler = null;
 
+        internal List<ContainerComponent> ChildsContainerComponent { get; } = new();
+
         /// <summary>
         /// ContainerData is the bridge to Bepu.
         /// Automatically set by processor.

@@ -58,12 +58,24 @@ namespace Stride.BepuPhysics.Processors
 
             component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.RebuildContainer();
+
+            var parent = GetComponentsInParents<ContainerComponent>(entity).FirstOrDefault();
+            if (parent != null)
+            {
+                parent.ContainerData?.RebuildContainer();
+            }
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
             component.ContainerData?.DestroyContainer();
             component.ContainerData = null;
+
+            var parent = GetComponentsInParents<ContainerComponent>(entity).FirstOrDefault();
+            if (parent != null)
+            {
+                parent.ContainerData?.RebuildContainer();
+            }
         }
 
         public override void Update(GameTime time)
@@ -94,43 +106,77 @@ namespace Stride.BepuPhysics.Processors
                     bepuSim.CallAfterSimulationUpdate(simTimeStepInSec);//cal the AfterSimulationUpdate with the real step time of the sim in secs
                 }
 
-                var updateBodiesPositionFunction = (int i) =>
-                {
-                    var handle = bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                    var bodyContainer = bepuSim.BodiesContainers[handle];
-                    var body = bepuSim.Simulation.Bodies[handle];
 
-                    var parentEntityPosition = new Vector3();
-                    var parentEntityRotation = Quaternion.Identity;
-                    var parent = bodyContainer.Entity.Transform.Parent;
-                    if (parent != null)
-                    {
-                        parent.WorldMatrix.Decompose(out Vector3 _, out parentEntityRotation, out parentEntityPosition);
-                    }
-
-                    var entityTransform = bodyContainer.Entity.Transform;
-
-                    Vector3 localPosition = (body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityPosition);
-                    entityTransform.Position = Vector3.Transform(localPosition, Quaternion.Invert(parentEntityRotation));
-                    entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion() * Quaternion.Invert(parentEntityRotation);
-                    //entityTransform.UpdateWorldMatrix();
-                };
 
 #warning I don't think this should be user-controllable ? We don't provide control over the other parts of the engine when they run through the dispatcher and having it on or of doesn't (or rather shouldn't) actually change the result, just how fast it resolves
                 // I guess it could make sense when running on a low power device, but at that point might as well make the change to Dispatcher itself
                 if (bepuSim.ParallelUpdate)
                 {
-                    Dispatcher.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, updateBodiesPositionFunction);
+                    Dispatcher.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) => UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim));
                 }
                 else
                 {
                     for (int i = 0; i < bepuSim.Simulation.Bodies.ActiveSet.Count; i++)
                     {
-                        updateBodiesPositionFunction(i);
+                        UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim);
                     }
                 }
             }
         }
+
+        private static void UpdateBodiesPositionFunction(BodyHandle handle, BepuSimulation bepuSim)
+        {
+            var bodyContainer = bepuSim.BodiesContainers[handle];
+            var body = bepuSim.Simulation.Bodies[handle];
+
+            var parentEntityPosition = new Vector3();
+            var parentEntityRotation = Quaternion.Identity;
+            var parent = bodyContainer.Entity.Transform.Parent;
+            if (parent != null)
+            {
+                parent.WorldMatrix.Decompose(out Vector3 _, out parentEntityRotation, out parentEntityPosition);
+            }
+
+            var entityTransform = bodyContainer.Entity.Transform;
+
+            Vector3 localPosition = (body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityPosition);
+            entityTransform.Position = Vector3.Transform(localPosition, Quaternion.Invert(parentEntityRotation));
+            entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion() * Quaternion.Invert(parentEntityRotation);
+
+            if (bodyContainer.ChildsContainerComponent.Count > 0)
+            {
+                entityTransform.UpdateWorldMatrix(); //Warning this may cause threading-race issues (but i did large tests and never had issues)
+                foreach (var item in bodyContainer.ChildsContainerComponent)
+                {
+                    //We need to call 
+                    if (item.ContainerData != null && !item.ContainerData.IsStatic)
+                        UpdateBodiesPositionFunction(item.ContainerData.BHandle, bepuSim);
+                }
+            }
+
+        }
+
+        private static IEnumerable<Entity> GetParents(Entity entity, bool includeMyself = false)
+        {
+            if (includeMyself)
+                yield return entity;
+
+            var parent = entity.GetParent();
+            while (parent != null)
+            {
+                yield return parent;
+                parent = parent.GetParent(); //Here
+            }
+        }
+        private static IEnumerable<T> GetComponentsInParents<T>(Entity entity, bool includeMyself = false) where T : EntityComponent
+        {
+            foreach (var parent in GetParents(entity, includeMyself))
+            {
+                if (parent.Get<T>() is T component)
+                    yield return component;
+            }
+        }
+
     }
 
     public class ContainerData
@@ -150,6 +196,7 @@ namespace Stride.BepuPhysics.Processors
         internal StaticHandle SHandle { get; set; } = new(-1);
 
         internal bool Exist => _exist;
+        internal bool IsStatic => _isStatic;
 
         public ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game)
         {
@@ -189,7 +236,7 @@ namespace Stride.BepuPhysics.Processors
             _containerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
 
             var colliders = new List<ColliderComponent>();
-            CollectComponentsInHierarchy<ColliderComponent, List<ColliderComponent>>(_containerComponent.Entity, colliders);
+            CollectComponentsInHierarchy<ColliderComponent, List<ColliderComponent>>(_containerComponent.Entity, _containerComponent, colliders);
 
             if (_containerComponent is IMeshContainerComponent meshContainer)
             {
@@ -378,8 +425,9 @@ namespace Stride.BepuPhysics.Processors
                 return BepuSimulation.ContactEvents.IsListener(BHandle);
         }
 
-        static void CollectComponentsInHierarchy<T, T2>(Entity entity, T2 collection) where T : EntityComponent where T2 : ICollection<T>
+        static void CollectComponentsInHierarchy<T, T2>(Entity entity, ContainerComponent entityContainer, T2 collection) where T : EntityComponent where T2 : ICollection<T>
         {
+            entityContainer.ChildsContainerComponent.Clear();
             var stack = new Stack<Entity>();
             stack.Push(entity);
             do
@@ -388,8 +436,15 @@ namespace Stride.BepuPhysics.Processors
                 foreach (var child in descendant.Transform.Children)
                     stack.Push(child.Entity);
 
-                if (entity != descendant && descendant.Get<ContainerComponent>() != null) //if a child entity that is not the main Entity has a container, we don't Add it's colliders.
-                    continue;
+                if (entity != descendant) //if a child entity that is not the main Entity has a container, we don't Add it's colliders and we register it as a child.
+                {
+                    var childContainerComponent = descendant.Get<ContainerComponent>();
+                    if (childContainerComponent != null)
+                    {
+                        entityContainer.ChildsContainerComponent.Add(childContainerComponent);
+                        continue;
+                    }
+                }
 
                 foreach (var component in descendant.GetAll<T>())
                 {
