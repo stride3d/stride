@@ -14,8 +14,6 @@ namespace Stride.BepuPhysics.Components.Containers
 
     public abstract class ContainerComponent : EntityComponent
     {
-        private BepuSimulation? _simulation = null;
-
         private int _simulationIndex = 0;
         private float _springFrequency = 30;
         private float _springDampingRatio = 3;

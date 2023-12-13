@@ -1,6 +1,8 @@
 ﻿using BepuPhysics;
+using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 
@@ -11,10 +13,39 @@ namespace Stride.BepuPhysics.Components.Containers
     [ComponentCategory("Bepu - Containers")]
     public class StaticContainerComponent : ContainerComponent
     {
-        #warning same as with the BodyContainerComponent, dump the methods users might need in here and hide it away
+        #warning This will be deleted !!!
         StaticReference? GetPhysicStatic()
         {
             return ContainerData?.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
+        }
+
+        private StaticReference GetRef()
+        {
+            if (ContainerData == null)
+                throw new Exception("");
+
+            return ContainerData.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
+        }
+
+        [DataMemberIgnore]
+        public Vector3 Position
+        {
+            get => GetRef().Pose.Position.ToStrideVector();
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Pose.Position = value.ToNumericVector();
+            }
+        }
+        [DataMemberIgnore]
+        public Quaternion Orientation
+        {
+            get => GetRef().Pose.Orientation.ToStrideQuaternion();
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Pose.Orientation = value.ToNumericQuaternion();
+            }
         }
     }
 }

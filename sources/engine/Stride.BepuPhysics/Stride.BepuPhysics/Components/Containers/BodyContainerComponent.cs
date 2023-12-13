@@ -1,6 +1,8 @@
 ﻿using BepuPhysics;
+using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 
@@ -43,12 +45,84 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        #warning Users should not have to interact with this method directly, have a look at the car component to see how awkward it is to use
-        // the struct doesn't seem safe to store either, what happens if the body is removed from the sim but users still interact with the struct, they're affecting the body that replaced it in that slot, right ?
-        // We could copy the method that struct contains into this component and call them from here, hiding away the additional nonsense we have to deal with
+#warning This will be deleted !!!
         public BodyReference? GetPhysicBody()
         {
             return ContainerData?.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
+        }
+
+        private BodyReference GetRef()
+        {
+            if (ContainerData == null)
+                throw new Exception("");
+
+            return ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
+        }
+
+        [DataMemberIgnore]
+        public bool Awake
+        {
+            get => GetRef().Awake;
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Awake = value;
+            }
+        }
+
+        [DataMemberIgnore]
+        public Vector3 LinearVelocity
+        {
+            get => GetRef().Velocity.Linear.ToStrideVector();
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Velocity.Linear = value.ToNumericVector();
+            }
+        }
+        [DataMemberIgnore]
+        public Vector3 AngularVelocity
+        {
+            get => GetRef().Velocity.Angular.ToStrideVector();
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Velocity.Angular = value.ToNumericVector();
+            }
+        }
+
+        [DataMemberIgnore]
+        public Vector3 Position
+        {
+            get => GetRef().Pose.Position.ToStrideVector();
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Pose.Position = value.ToNumericVector();
+            }
+        }
+        [DataMemberIgnore]
+        public Quaternion Orientation
+        {
+            get => GetRef().Pose.Orientation.ToStrideQuaternion();
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Pose.Orientation = value.ToNumericQuaternion();
+            }
+        }
+
+        public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
+        {
+            GetRef().ApplyImpulse(impulse.ToNumericVector(), impulseOffset.ToNumericVector());
+        }
+        public void ApplyAngularImpulse(Vector3 impulse)
+        {
+            GetRef().ApplyAngularImpulse(impulse.ToNumericVector());
+        }
+        public void ApplyImpulse(Vector3 impulse)
+        {
+            GetRef().ApplyLinearImpulse(impulse.ToNumericVector());
         }
     }
 }
