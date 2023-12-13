@@ -6,7 +6,7 @@ using Stride.BepuPhysics.Definitions.Collisions;
 
 namespace Stride.BepuPhysics.Definitions
 {
-    public unsafe partial struct StrideNarrowPhaseCallbacks : INarrowPhaseCallbacks
+    public unsafe struct StrideNarrowPhaseCallbacks : INarrowPhaseCallbacks
     {
 
         internal CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
