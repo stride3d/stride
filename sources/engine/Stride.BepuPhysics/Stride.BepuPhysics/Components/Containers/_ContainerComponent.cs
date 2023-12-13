@@ -16,6 +16,7 @@ namespace Stride.BepuPhysics.Components.Containers
     {
         private BepuSimulation? _simulation = null;
 
+        private int _simulationIndex = 0;
         private float _springFrequency = 30;
         private float _springDampingRatio = 3;
         private float _frictionCoefficient = 1f;
@@ -24,21 +25,24 @@ namespace Stride.BepuPhysics.Components.Containers
 
         private IContactEventHandler? _contactEventHandler = null;
 
-        public int SimulationIndex;
+        public int SimulationIndex
+        {
+            get
+            {
+                return _simulationIndex;
+            }
+            set
+            {
+                ContainerData?.DestroyContainer();
+                _simulationIndex = value;
+                ContainerData?.RebuildContainer();
+            }
+        }
 
         [DataMemberIgnore]
         public BepuSimulation? Simulation
         {
-            get => _simulation;
-            set
-            {
-                if (_simulation == value)
-                    return;
-
-                ContainerData?.DestroyContainer();
-                _simulation = value;
-                ContainerData?.RebuildContainer();
-            }
+            get => ContainerData?.BepuSimulation;
         }
 
         public float SpringFrequency

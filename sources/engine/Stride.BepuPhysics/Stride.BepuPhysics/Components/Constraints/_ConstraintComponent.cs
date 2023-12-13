@@ -1,4 +1,5 @@
-﻿using BepuPhysics;
+﻿using System.Collections.ObjectModel;
+using BepuPhysics;
 using BepuPhysics.Constraints;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
@@ -15,26 +16,66 @@ namespace Stride.BepuPhysics.Components.Constraints
     [AllowMultipleComponents]
     public abstract class BaseConstraintComponent : EntityComponent
     {
-        public List<BodyContainerComponent> Bodies { get; set; } = new(); //TODO implement list with updates
+        private bool _enabled = true;
 
-        private bool _update = true;
-
+        public ObservableCollection<BodyContainerComponent> Bodies { get; set; }
         public bool Enabled
         {
             get
             {
-                return _update;
+                return _enabled;
             }
             set
             {
-                _update = value;
+                _enabled = value;
                 UntypedConstraintData?.BuildConstraint();
             }
+        }
+
+        public BaseConstraintComponent()
+        {
+            Bodies = new();
+            Bodies.CollectionChanged += (s, e) => UntypedConstraintData?.BuildConstraint();
         }
 
         internal abstract BaseConstraintData? UntypedConstraintData { get; }
 
         internal abstract BaseConstraintData CreateProcessorData(BepuConfiguration bepuConfiguration);
+    }
+
+    //TODO : choose observable or update that implementation.
+    public sealed class BodyContainerList : List<BodyContainerComponent>
+    {
+        private Action _editedCallBack { get; }
+        public BodyContainerList(Action editedCallBack)
+        {
+            _editedCallBack = editedCallBack;
+        }
+
+
+        public new void Add(BodyContainerComponent item)
+        {
+            base.Add(item);
+            _editedCallBack?.Invoke();
+        }
+
+        public new void Remove(BodyContainerComponent item)
+        {
+            base.Remove(item);
+            _editedCallBack?.Invoke();
+        }
+
+        public new void AddRange(IEnumerable<BodyContainerComponent> collection)
+        {
+            base.AddRange(collection);
+            _editedCallBack?.Invoke();
+        }
+
+        public new void Clear()
+        {
+            base.Clear();
+            _editedCallBack?.Invoke();
+        }
     }
 
     public abstract class ConstraintComponent<T> : BaseConstraintComponent where T : unmanaged, IConstraintDescription<T>

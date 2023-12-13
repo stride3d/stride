@@ -38,7 +38,6 @@ namespace Stride.BepuPhysics.Components.Utils
             var len = seg.Length() / RopePartSize;
             var bodiesContainers = new List<BodyContainerComponent>();
 
-            var simulation = Services.GetService<BepuConfiguration>().BepuSimulations[SimulationIndex];
             for (var i = 0; i < len; i++)
             {
                 var entity = RopePart.Instantiate().First();
@@ -46,7 +45,7 @@ namespace Stride.BepuPhysics.Components.Utils
                 entity.Transform.Rotation = Quaternion.LookRotation(dir, Vector3.UnitY);
                 entity.SetParent(Entity);
                 var body = entity.Get<BodyContainerComponent>();
-                body.Simulation = simulation;
+                body.SimulationIndex = SimulationIndex;
                 bodiesContainers.Add(body);
             }
 
@@ -56,13 +55,15 @@ namespace Stride.BepuPhysics.Components.Utils
                 var bs = new BallSocketConstraintComponent();
                 var sl = new SwingLimitConstraintComponent();
 
-                bs.Bodies.AddRange(bds);
+                bs.Bodies.Add(bodiesContainers[i - 1]);
+                bs.Bodies.Add(bodiesContainers[i]);
                 bs.LocalOffsetA = Vector3.UnitZ * RopePartSize / 2f;
                 bs.LocalOffsetB = -bs.LocalOffsetA;
                 bs.SpringFrequency = 120;
                 bs.SpringDampingRatio = 1;
 
-                sl.Bodies.AddRange(bds);
+                sl.Bodies.Add(bodiesContainers[i - 1]);
+                sl.Bodies.Add(bodiesContainers[i]);
                 sl.AxisLocalA = Vector3.UnitZ;
                 sl.AxisLocalB = Vector3.UnitZ;
                 sl.SpringFrequency = 120;

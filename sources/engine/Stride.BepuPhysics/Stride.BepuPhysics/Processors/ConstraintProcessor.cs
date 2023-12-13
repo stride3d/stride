@@ -63,12 +63,13 @@ namespace Stride.BepuPhysics.Processors
             if (_constraintComponent.Bodies.Count == 0 || !_constraintComponent.Enabled)
                 return;
 
-            _bepuSimulation = _bepuConfig.BepuSimulations[_constraintComponent.Bodies[0].SimulationIndex];
+            var simIndex = _constraintComponent.Bodies[0].SimulationIndex;
+            _bepuSimulation = _bepuConfig.BepuSimulations[simIndex];
             foreach (var component in _constraintComponent.Bodies)
             {
-                #warning maybe send a warning, like the missing camera notification in the engine, instead of silently failing
-                if (component.Simulation != _bepuSimulation)
-                    return;
+#warning maybe send a warning, like the missing camera notification in the engine, instead of exception
+                if (component.SimulationIndex != simIndex)
+                    throw new Exception("A constraint between object with different SimulationIndex is not possible");
             }
 
             Span<BodyHandle> bodies = stackalloc BodyHandle[_constraintComponent.Bodies.Count];

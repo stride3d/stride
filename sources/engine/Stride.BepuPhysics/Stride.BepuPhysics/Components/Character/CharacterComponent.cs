@@ -1,5 +1,4 @@
 ﻿using BepuPhysics;
-using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions.Character;
 using Stride.BepuPhysics.Extensions;
@@ -26,7 +25,7 @@ public class CharacterComponent : SimulationUpdateComponent
     [DataMemberIgnore]
     public bool IsGrounded { get; private set; }
 
-    #warning if it requires a 'BodyContainerComponent' we should consider inheriting from 'BodyContainerComponent', that way ownership over the component is implied and we can override some of the behaviors appropriately
+#warning if it requires a 'BodyContainerComponent' we should consider inheriting from 'BodyContainerComponent', that way ownership over the component is implied and we can override some of the behaviors appropriately
     public BodyContainerComponent? CharacterBody { get; set; }
 
 
@@ -84,27 +83,19 @@ public class CharacterComponent : SimulationUpdateComponent
         var body = CharacterBody?.GetPhysicBody();
         CheckGrounded();
 
-        if (body == null || CharacterBody?.Simulation == null)
-        {
+        if (body == null)
             return;
-        }
 
-        // needed a way to wake up the body or else it sleeps after a second.
-        var value = body.Value;
-        value.Awake = true;
+        var bodyValue = body.Value;
+        bodyValue.Awake = true;
 
-        body.Value.Pose.Orientation = Orientation.ToNumericQuaternion();
-        body.Value.Velocity.Linear = new NVector3(Velocity.X, body.Value.Velocity.Linear.Y, Velocity.Z);
-
-        #warning fix character sliding down slopes through overriding friction or gravity
-        // prevent character from sliding - doesn't work as gravity is applied after this
-        if (Velocity.Length() < 0.01f)
-            body.Value.Velocity.Linear *= new NVector3(.01f, 1, .01f);
+        bodyValue.Pose.Orientation = Orientation.ToNumericQuaternion();
+        bodyValue.Velocity.Linear = new NVector3(Velocity.X, body.Value.Velocity.Linear.Y, Velocity.Z);
 
         if (_tryJump)
         {
             if (IsGrounded)
-                body.Value.ApplyLinearImpulse(NVector3.UnitY * JumpSpeed * 10);
+                bodyValue.ApplyLinearImpulse(NVector3.UnitY * JumpSpeed * 10);
             _tryJump = false;
         }
     }

@@ -43,7 +43,10 @@ namespace Stride.BepuPhysics.Processors
 
         protected override ContainerData GenerateComponentData(Entity entity, ContainerComponent component)
         {
-            return new(component, _bepuConfiguration.BepuSimulations[component.SimulationIndex], _game);
+            if (_game == null)
+                throw new NullReferenceException(nameof(_game));
+
+            return new(component, _bepuConfiguration, _game);
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerData data)
@@ -52,7 +55,7 @@ namespace Stride.BepuPhysics.Processors
                 throw new NullReferenceException(nameof(_game));
 
             component.ContainerData = data;
-            component.Simulation = data.BepuSimulation; // This will call 'BuildOrUpdateContainer'
+            data.RebuildContainer();
             if (component.ContactEventHandler != null && !component.ContainerData.IsRegistered())
                 component.ContainerData.RegisterContact();
         }
@@ -64,7 +67,6 @@ namespace Stride.BepuPhysics.Processors
 
             data.DestroyContainer();
             component.ContainerData = null;
-            component.Simulation = null;
         }
 
         public override void Update(GameTime time)
@@ -152,15 +154,17 @@ namespace Stride.BepuPhysics.Processors
         private bool _isStatic;
         private bool _exist;
 
-        internal BepuSimulation BepuSimulation { get; private set; }
+        private BepuConfiguration _config;
+
+        internal BepuSimulation BepuSimulation => _config.BepuSimulations[_containerComponent.SimulationIndex];
 
         internal BodyHandle BHandle { get; set; } = new(-1);
         internal StaticHandle SHandle { get; set; } = new(-1);
 
 
-        public ContainerData(ContainerComponent containerComponent, BepuSimulation simulation, IGame game)
+        public ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game)
         {
-            BepuSimulation = simulation;
+            _config = config;
             _containerComponent = containerComponent;
             _game = game;
         }
@@ -173,7 +177,6 @@ namespace Stride.BepuPhysics.Processors
 
         internal void RebuildContainer()
         {
-            BepuSimulation = _containerComponent.Simulation ?? throw new NullReferenceException("Containers must have a BepuSimulation.");
             if (_shapeIndex.Exists)
                 BepuSimulation.Simulation.Shapes.Remove(_shapeIndex);
 

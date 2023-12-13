@@ -30,7 +30,7 @@ namespace Stride.BepuPhysics.Components.Utils
 
             if (entity.Get<ContainerComponent>() is BodyContainerComponent body)
             {
-                body.Simulation = BepuSimulation;
+                body.SimulationIndex = SimulationIndex;
                 var bepuBody = body.GetPhysicBody();
                 bepuBody?.ApplyImpulse(Impulse.ToNumericVector(), ImpulsePos.ToNumericVector());
             }
