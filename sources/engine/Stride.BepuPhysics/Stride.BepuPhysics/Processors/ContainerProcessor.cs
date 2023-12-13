@@ -109,7 +109,9 @@ namespace Stride.BepuPhysics.Processors
                     }
 
                     var entityTransform = bodyContainer.Entity.Transform;
-                    entityTransform.Position = body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityPosition;
+
+                    Vector3 localPosition = (body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityPosition);
+                    entityTransform.Position = Vector3.Transform(localPosition, Quaternion.Invert(parentEntityRotation));
                     entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion() * Quaternion.Invert(parentEntityRotation);
                     //entityTransform.UpdateWorldMatrix();
                 };
@@ -232,7 +234,7 @@ namespace Stride.BepuPhysics.Processors
                         collider.Entity.Transform.UpdateWorldMatrix();
                         collider.Entity.Transform.WorldMatrix.Decompose(out Vector3 colliderWorldScale, out Quaternion colliderWorldRotation, out Vector3 colliderWorldTranslation);
 
-                        var localTra = colliderWorldTranslation - containerWorldTranslation;
+                        var localTra = Vector3.Transform(colliderWorldTranslation - containerWorldTranslation, Quaternion.Invert(colliderWorldRotation));
                         var localRot = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation;
                         var localPose = new RigidPose(localTra.ToNumericVector(), localRot.ToNumericQuaternion());
 
