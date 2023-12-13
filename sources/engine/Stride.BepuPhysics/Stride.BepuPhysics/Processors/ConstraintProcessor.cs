@@ -46,13 +46,12 @@ namespace Stride.BepuPhysics.Processors
         private readonly ConstraintComponent<T> _constraintComponent;
         private readonly BepuConfiguration _bepuConfig;
         private ConstraintHandle _cHandle = new(-1);
-        private BepuSimulation _bepuSimulation;
+        private BepuSimulation? _bepuSimulation;
 
         public ConstraintData(ConstraintComponent<T> constraintComponent, BepuConfiguration bepuConfig)
         {
             _constraintComponent = constraintComponent;
             _bepuConfig = bepuConfig;
-            _bepuSimulation = _bepuConfig.BepuSimulations[_constraintComponent.Bodies[0].SimulationIndex];
         }
 
         internal override void RebuildConstraint()
@@ -93,6 +92,7 @@ namespace Stride.BepuPhysics.Processors
                 _cHandle = new(-1);
             }
 
+            _bepuSimulation = null;
         }
 
         internal override void TryUpdateDescription()
