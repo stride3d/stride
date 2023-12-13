@@ -14,6 +14,7 @@ Hierarchy:
         - ref!! e5cbb37b-5ed6-42df-ad23-d56227c3e6f8
         - ref!! 33e3b956-fc9f-4cf1-9168-87b32dcf3c76
         - ref!! d5e976ef-c377-48c4-820e-25d6b1560f51
+        - ref!! 399809ba-da57-4414-835b-33a523f5825a
     Parts:
         -   Entity:
                 Id: 092a9aa5-9f0b-4df2-bc7f-1f6463fda293
@@ -261,6 +262,37 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
+        -   Entity:
+                Id: 399809ba-da57-4414-835b-33a523f5825a
+                Name: TestNoParentEntities
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: 9c539d05-8d0c-45ec-9c6a-383aa2d60adc
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 43e6e3d9-a2b2-439a-9eef-23a8ea5ea323
+                        Position: {X: -20.0, Y: 7.0, Z: 0.0}
+                        Rotation: {X: 0.3535534, Y: 0.3535534, Z: -0.14644663, W: 0.85355335}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: e483723d-fbe7-40d9-aac5-070b3b2c46fd
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: b3ff1641-659e-497b-8d7d-01600e8317df
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: null
             Entity:
                 Id: 3b62593b-460c-4ff6-8e55-484caf284bc4
@@ -355,7 +387,7 @@ Hierarchy:
                         Children: {}
         -   Entity:
                 Id: 7ccf1a57-0e98-47bf-97cf-8534f53ff4ee
-                Name: TestNoParentEntities
+                Name: IdentityCubeInOffsetEntity
                 Components:
                     b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
                         Id: f9d73b79-079b-4577-a1e7-5a188260dbe1
@@ -583,7 +615,7 @@ Hierarchy:
                         Intensity: 0.1
         -   Entity:
                 Id: d5e976ef-c377-48c4-820e-25d6b1560f51
-                Name: Test
+                Name: OffsetEntity
                 Components:
                     af1299af1f5edc3aee7e1ebd7b8435c9: !TransformComponent
                         Id: 5ef80e2b-c7d2-4b73-82c5-2ee439ce2955
