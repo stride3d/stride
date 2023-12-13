@@ -134,7 +134,7 @@ The collision mask system allows precise control over collision interactions bet
 | 1                     | 1   | 1 | 1 | 1 | 0!|
 | 3                     | 3   | 1 | 3 | 1!| 0!|
 | 5                     | 5   | 1 | 1!| 5 | 0!|
-| 0                     | 0   | 0 | 0 | 0 | 0 |
+| 0                     | 0!  | 0!| 0!| 0!| 0!|
 
 ## Colliders
 
