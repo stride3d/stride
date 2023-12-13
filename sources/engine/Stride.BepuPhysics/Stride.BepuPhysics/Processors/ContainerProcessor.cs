@@ -94,50 +94,37 @@ namespace Stride.BepuPhysics.Processors
                     bepuSim.CallAfterSimulationUpdate(simTimeStepInSec);//cal the AfterSimulationUpdate with the real step time of the sim in secs
                 }
 
+                var updateBodiesPositionFunction = (int i) =>
+                {
+                    var handle = bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
+                    var bodyContainer = bepuSim.BodiesContainers[handle];
+                    var body = bepuSim.Simulation.Bodies[handle];
+
+                    var parentEntityPosition = new Vector3();
+                    var parentEntityRotation = Quaternion.Identity;
+                    var parent = bodyContainer.Entity.Transform.Parent;
+                    if (parent != null)
+                    {
+                        parent.WorldMatrix.Decompose(out Vector3 _, out parentEntityRotation, out parentEntityPosition);
+                    }
+
+                    var entityTransform = bodyContainer.Entity.Transform;
+                    entityTransform.Position = body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityPosition;
+                    entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion() * Quaternion.Invert(parentEntityRotation);
+                    //entityTransform.UpdateWorldMatrix();
+                };
+
 #warning I don't think this should be user-controllable ? We don't provide control over the other parts of the engine when they run through the dispatcher and having it on or of doesn't (or rather shouldn't) actually change the result, just how fast it resolves
                 // I guess it could make sense when running on a low power device, but at that point might as well make the change to Dispatcher itself
                 if (bepuSim.ParallelUpdate)
                 {
-                    Dispatcher.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) =>
-                    {
-                        var handle = bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                        var bodyContainer = bepuSim.BodiesContainers[handle];
-                        var body = bepuSim.Simulation.Bodies[handle];
-
-                        var parentEntityTransform = new Vector3();
-                        var parent = bodyContainer.Entity.Transform.Parent;
-                        if (parent != null)
-                        {
-                            parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion _, out parentEntityTransform);
-                        }
-
-                        var entityTransform = bodyContainer.Entity.Transform;
-#warning fix this part, conversion from local to world is just halfway done here
-                        entityTransform.Position = body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityTransform;
-                        entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
-#warning this operation is not thread safe if multiple containers are in the same hierarchy, perhaps best to avoid calling this method and instead let the engine update world matrix itself, maybe by moving this processor right before that process
-                        //entityTransform.UpdateWorldMatrix();
-                    });
+                    Dispatcher.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, updateBodiesPositionFunction);
                 }
                 else
                 {
                     for (int i = 0; i < bepuSim.Simulation.Bodies.ActiveSet.Count; i++)
                     {
-                        var handle = bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                        var bodyContainer = bepuSim.BodiesContainers[handle];
-                        var body = bepuSim.Simulation.Bodies[handle];
-
-                        var parentEntityTransform = new Vector3();
-                        var parent = bodyContainer.Entity.Transform.Parent;
-                        if (parent != null)
-                        {
-                            parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion _, out parentEntityTransform);
-                        }
-
-                        var entityTransform = bodyContainer.Entity.Transform;
-                        entityTransform.Position = body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityTransform;
-                        entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion();
-                        entityTransform.UpdateWorldMatrix();
+                        updateBodiesPositionFunction(i);
                     }
                 }
             }

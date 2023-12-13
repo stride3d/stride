@@ -279,7 +279,9 @@ Hierarchy:
                     5227e93d8e92a719fee863a12a1f5b1c: !Stride.BepuPhysics.Components.Constraints.HingeConstraintComponent,Stride.BepuPhysics
                         Id: 4a876034-62f5-4e4c-b8cf-2df09e5a7148
                         Enabled: true
-                        Bodies: {}
+                        Bodies:
+                            7e125dafc56f122eead52ed7864c043e: ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
+                            ac720dfa9d9b0249e13a593a2a0214f9: ref!! befd947e-d1a5-4a14-9423-d272129d4ae5
                         LocalOffsetA: {X: 0.0, Y: 2.0, Z: 0.0}
                         LocalHingeAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         LocalOffsetB: {X: 0.0, Y: -0.55, Z: 0.0}
