@@ -187,16 +187,8 @@ Hierarchy:
                 Id: 9c1bb67e-c89e-4650-9a10-c5d8158854dd
                 Name: Mixer
                 Components:
-                    392c6efc71d162019ec67003511fddbc: !TransformComponent
-                        Id: ae65c5f7-bb2c-427b-943a-9cbaa9585d3d
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            c4be3cde9267c1a84ebd34fce78c8e1e: ref!! c254cc22-a0d2-4bf0-b411-f31dafbd3d9c
-                            2de7129a3af3a0a764eb2962d5236ecb: ref!! 2eb3e534-e1d5-4e84-b951-760ceefc8f1d
-                    5227e93d8e92a719fee863a12a1f5b1c: !Stride.BepuPhysics.Components.Constraints.HingeConstraintComponent,Stride.BepuPhysics
-                        Id: 44974f14-a30b-4467-850a-b84003f8cef0
+                    e957efcaa001e20b5637a5b538cd6f7f: !Stride.BepuPhysics.Components.Constraints.HingeConstraintComponent,Stride.BepuPhysics
+                        Id: 585ce5ce-97ea-45c2-afb8-3594ee83fba7
                         Enabled: true
                         Bodies:
                             03e4d3438824c2425eb3baf7c910ad0a: ref!! 1372b92c-275a-4169-ab7b-45b3d2307f07
@@ -207,21 +199,22 @@ Hierarchy:
                         LocalHingeAxisB: {X: 0.0, Y: 1.0, Z: 0.0}
                         SpringFrequency: 30.0
                         SpringDampingRatio: 5.0
-                    619b100d97c364ec93b73a21e441a1ba: !Stride.BepuPhysics.Components.Constraints.OneBodyAngularMotorConstraintComponent,Stride.BepuPhysics
-                        Id: 43e9e890-9713-4630-a58e-b1c825d2041a
+                    392c6efc71d162019ec67003511fddbc: !TransformComponent
+                        Id: ae65c5f7-bb2c-427b-943a-9cbaa9585d3d
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            c4be3cde9267c1a84ebd34fce78c8e1e: ref!! c254cc22-a0d2-4bf0-b411-f31dafbd3d9c
+                            2de7129a3af3a0a764eb2962d5236ecb: ref!! 2eb3e534-e1d5-4e84-b951-760ceefc8f1d
+                    01daaba4402ed0f2be02fbf85f4a8e60: !Stride.BepuPhysics.Components.Constraints.OneBodyAngularMotorConstraintComponent,Stride.BepuPhysics
+                        Id: 5aa8b66a-d154-4ac8-bf8c-b9c94353b2ef
                         Enabled: true
                         Bodies:
-                            07826bbf73fefe192b6b0a84820b22ff: ref!! 1372b92c-275a-4169-ab7b-45b3d2307f07
-                            e75de651717d8742f9a6055721fd06a4: ref!! 0fbda8b8-e747-4560-9795-659b2faafa85
-                        TargetVelocity: {X: 0.0, Y: 0.5, Z: 0.0}
-                        MotorDamping: 100.0
+                            b1039e6fa7ddbeb3209cd76b1f5bfee4: ref!! 1372b92c-275a-4169-ab7b-45b3d2307f07
+                        TargetVelocity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        MotorDamping: 50.0
                         MotorMaximumForce: 10000000.0
-                    4948847f19df5c0514ca9dd09b3f0317: !Stride.BepuPhysics.Components.Utils.ConstraintToggleComponent,Stride.BepuPhysics
-                        Id: a9e6aebf-b131-47a7-9422-72bb4fe831a8
-                        Component: !Stride.BepuPhysics.Components.Constraints.OneBodyAngularMotorConstraintComponent,Stride.BepuPhysics ref!! 43e9e890-9713-4630-a58e-b1c825d2041a
-                    87ba906d5c7ed08a59e35fcbf8c77524: !Stride.BepuPhysics.Components.Utils.ConstraintToggleComponent,Stride.BepuPhysics
-                        Id: 777297f5-e7b9-499b-8ce8-0dde1f839310
-                        Component: !Stride.BepuPhysics.Components.Constraints.HingeConstraintComponent,Stride.BepuPhysics ref!! 44974f14-a30b-4467-850a-b84003f8cef0
         -   Folder: null
             Entity:
                 Id: 9cdc27ea-6fd0-4e38-87ea-52b27bc49470
