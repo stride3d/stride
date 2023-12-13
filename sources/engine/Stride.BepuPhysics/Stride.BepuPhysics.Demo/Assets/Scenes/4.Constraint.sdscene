@@ -216,6 +216,12 @@ Hierarchy:
                         TargetVelocity: {X: 0.0, Y: 0.5, Z: 0.0}
                         MotorDamping: 100.0
                         MotorMaximumForce: 10000000.0
+                    48a2a68a7cb30b5cd538b18fc8d13961: !Stride.BepuPhysics.Components.Utils.ConstraintToggleComponent,Stride.BepuPhysics
+                        Id: 5670aba7-8ef3-4f8e-bf6f-257e96b2de6a
+                        Component: !Stride.BepuPhysics.Components.Constraints.HingeConstraintComponent,Stride.BepuPhysics ref!! 44974f14-a30b-4467-850a-b84003f8cef0
+                    4948847f19df5c0514ca9dd09b3f0317: !Stride.BepuPhysics.Components.Utils.ConstraintToggleComponent,Stride.BepuPhysics
+                        Id: a9e6aebf-b131-47a7-9422-72bb4fe831a8
+                        Component: !Stride.BepuPhysics.Components.Constraints.OneBodyAngularMotorConstraintComponent,Stride.BepuPhysics ref!! 43e9e890-9713-4630-a58e-b1c825d2041a
         -   Folder: null
             Entity:
                 Id: 9cdc27ea-6fd0-4e38-87ea-52b27bc49470
