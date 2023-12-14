@@ -51,7 +51,7 @@ namespace Stride.BepuPhysics.Components.Utils
             if (LeftMotor == null || RightMotor == null || LeftBMotor == null || RightBMotor == null || LeftWheel == null || RightWheel == null)
                 return;
 
-            DebugText.Print($"steeringAngle : {steeringAngle} | _speed : {_speed} <==> real : {LeftMotor.Bodies[0].GetPhysicBody()?.Velocity.Angular.Length()} | linear speed {CarBody?.GetPhysicBody()?.Velocity.Linear.Length()}", new(100, 100));
+            DebugText.Print($"steeringAngle : {steeringAngle} | _speed : {_speed} <==> real : {LeftMotor.Bodies[0].AngularVelocity.Length()} | linear speed {CarBody?.LinearVelocity.Length()}", new(100, 100));
 
             //Motor
             if (Input.IsKeyDown(Keys.Up))
