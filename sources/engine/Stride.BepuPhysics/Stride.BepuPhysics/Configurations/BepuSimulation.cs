@@ -16,6 +16,7 @@ namespace Stride.BepuPhysics.Configurations;
 #warning Trigger HERE
 //I started to implement https://github.com/bepu/bepuphysics2/blob/master/Demos/Demos/CollisionQueryDemo.cs
 //But it work really well with StaticContainer, so we need to ask Norbo if worth it.
+//update : it doesn't worth it from what norbo said. Since trigger in game need to be always there, it's betterr than an one time querrry per frame.
 
 [DataContract]
 public class BepuSimulation
@@ -31,8 +32,8 @@ public class BepuSimulation
     internal ContactEvents ContactEvents { get; private set; }
     //internal CollisionBatcher<BatcherCallbacks> CollisionBatcher { get; private set; }
 
-    internal Dictionary<BodyHandle, BodyContainerComponent> BodiesContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
-    internal Dictionary<StaticHandle, StaticContainerComponent> StaticsContainers { get; } = new(BepuAndStrideExtensions.LIST_SIZE);
+    internal Dictionary<BodyHandle, BodyContainerComponent> BodiesContainers { get; } = new();
+    internal Dictionary<StaticHandle, StaticContainerComponent> StaticsContainers { get; } = new();
 
     internal float RemainingUpdateTime { get; set; } = 0;
 
@@ -90,6 +91,13 @@ public class BepuSimulation
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultHitHandler);
         return DefaultHitHandler.Hit;
     }
+
+    //public HitResult Sweep(Vector3 origin, Vector3 dir, float maxT, bool stopAtFirstHit = false, byte collisionMask = 255) //== collider "RayCast"
+    //{
+    //    DefaultHitHandler.Prepare(stopAtFirstHit, collisionMask);
+    //    Simulation.Sweep(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultHitHandler);
+    //    return DefaultHitHandler.Hit;
+    //}
 
 #pragma warning disable CS8618 //Done in setup to avoid 2 times the samecode.
     public BepuSimulation()

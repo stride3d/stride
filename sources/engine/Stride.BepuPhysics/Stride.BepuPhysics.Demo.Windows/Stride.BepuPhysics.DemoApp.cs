@@ -1,6 +1,6 @@
 using Stride.Engine;
 
-namespace BepuPhysicIntegrationTest
+namespace Stride.BepuPhysics.Demo.Windows
 {
     class BepuPhysicIntegrationTestApp
     {

@@ -18,8 +18,8 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    0755294b6c62d11d0bdf547160234a81: !Stride.BepuPhysics.Demo.SceneSelectorComponent,Stride.BepuPhysics.Demo
-                        Id: 5f4c423c-9376-4426-86b1-de176daa0c0f
+                    dde7250cbb8a02f46cd1f1869206e3b3: !Stride.BepuPhysics.Demo.Components.SceneSelectorComponent,Stride.BepuPhysics.Demo
+                        Id: e84d8fd7-bbe0-4764-9ad2-a6f381c3ce27
                         MainScene: c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
                         Scene0: 21f7a4e4-7908-4ce9-ad5c-76a910db6167:Scenes/0.Colliders
                         Scene1: 9717c0b6-feb7-4800-a772-93627f8bdbb6:Scenes/1.ConvexAndMeshCollider
@@ -29,5 +29,5 @@ Hierarchy:
                         Scene5: 468de2d3-48bf-474e-afee-d76d3c1ab21e:Scenes/5.Ropes
                         Scene6: 58094e9a-bebf-43e4-99b7-b009bfdbbae9:Scenes/6.Cars
                         Scene7: b21cf271-4ad8-453a-8c8d-cf132e044a9c:Scenes/7.CharacterScene
-                        Scene8: null
+                        Scene8: 8a83a722-d865-4dc3-87a3-00a509ea3988:Scenes/8.Navigation
                         Scene9: bef30700-cda8-4d43-b804-3da6717bea2c:Scenes/9.Demo

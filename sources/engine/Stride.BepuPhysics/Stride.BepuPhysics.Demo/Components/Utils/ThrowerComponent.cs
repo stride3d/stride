@@ -4,10 +4,10 @@ using Stride.Input;
 
 #warning This should not be part of the base API, move it to demo/sample
 
-namespace Stride.BepuPhysics.Components.Utils
+namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
-    [ComponentCategory("Bepu - Utils")]
+    [ComponentCategory("BepuDemo - Utils")]
     public class ThrowerComponent : Spawner
     {
         public Entity? SpawnPosition { get; set; }
@@ -20,7 +20,7 @@ namespace Stride.BepuPhysics.Components.Utils
 
         public override void Update()
         {
-            DebugText.Print("Throw a prefab (T)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 125));
+            DebugText.Print("Throw a prefab (T)", new(Game.Window.PreferredWindowedSize.X - 500, 125));
 
             if (SpawnPosition == null) return;
 

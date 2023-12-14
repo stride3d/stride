@@ -6,10 +6,10 @@ using Stride.Engine;
 
 #warning This should not be part of the base API, move it to demo/sample
 
-namespace Stride.BepuPhysics.Components.Utils
+namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
-    [ComponentCategory("Bepu - Utils")]
+    [ComponentCategory("BepuDemo - Utils")]
     public class RayCastComponent : SyncScript
     {
         private BepuConfiguration? _bepuConfig;
@@ -39,13 +39,13 @@ namespace Stride.BepuPhysics.Components.Utils
                 var i = 0;
                 foreach (var hitInfo in result.HitInformations)
                 {
-                    DebugText.Print($"T : {hitInfo.T}  |  normal : {hitInfo.Normal}  |  Entity : {hitInfo.Container?.Entity} (worldDir : {worldDir})", new((int)(BepuAndStrideExtensions.X_DEBUG_TEXT_POS / 1.3f), 830 + 25 * i));
+                    DebugText.Print($"T : {hitInfo.T}  |  normal : {hitInfo.Normal}  |  Entity : {hitInfo.Container?.Entity} (worldDir : {worldDir})", new((int)(Game.Window.PreferredWindowedSize.X - 500 / 1.3f), 830 + 25 * i));
                     i++;
                 }
             }
             else
             {
-                DebugText.Print($"no raycast hit", new((int)(BepuAndStrideExtensions.X_DEBUG_TEXT_POS / 1.3f), 830));
+                DebugText.Print($"no raycast hit", new((int)(Game.Window.PreferredWindowedSize.X - 500 / 1.3f), 830));
             }
         }
     }

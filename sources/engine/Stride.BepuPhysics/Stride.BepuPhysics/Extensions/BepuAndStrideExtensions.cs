@@ -7,9 +7,6 @@ namespace Stride.BepuPhysics.Extensions
 {
     public static class BepuAndStrideExtensions
     {
-        public const int LIST_SIZE = 50000;
-        public const int X_DEBUG_TEXT_POS = 2000; //1200
-
         public static Core.Mathematics.Vector3 GetWorldPos(this TransformComponent tr)
         {
             tr.WorldMatrix.Decompose(out var _1, out Core.Mathematics.Quaternion _2, out var _3);

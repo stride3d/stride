@@ -6,7 +6,8 @@ ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
-        - ref!! 89330a84-831a-4de1-94f2-b3b015aeeaea
+        - ref!! 818daec3-4bfb-4ec1-8133-4436fa4f70c6
+        - ref!! baefdb79-0e02-473a-aa5f-4fd27fae295a
         - ref!! 760df096-af47-4f0e-8994-35fbdea3f9bd
         - ref!! 10ee4c52-b8b9-415f-b8f5-c794ddc16f3a
         - ref!! 3749bc3d-6cc1-49cb-8595-e37f26064fbd
@@ -43,16 +44,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a5869266007b42af6b5ba5e5468a5478: ref!! 0e148ed8-d93a-484b-a7e9-2ff2e6de6116
-                    eeabfda15ef248d6bb1e4f6914eb65e5: !Stride.BepuPhysics.Components.Utils.ThrowerComponent,Stride.BepuPhysics
-                        Id: 74beffbd-014e-4714-baea-807a33e7a028
-                        SimulationIndex: 0
-                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                        Instancing: ref!! ccc91ddb-b1aa-4126-b9fa-d46997c95559
-                        SpawnPosition: ref!! 89330a84-831a-4de1-94f2-b3b015aeeaea
-                        Speed: 50.0
-                    8ff30ff71af73fad50d330cdb9500d9a: !Stride.BepuPhysics.Components.Utils.TimeControlComponent,Stride.BepuPhysics
-                        Id: 12a717b6-4a41-4e30-be69-45d1c2a2b3cb
-                        SimulationIndex: 0
         -   Entity:
                 Id: 3749bc3d-6cc1-49cb-8595-e37f26064fbd
                 Name: CubeInstancing
@@ -154,37 +145,36 @@ Hierarchy:
                                 BiasParameters: {}
                         Intensity: 0.2
         -   Entity:
-                Id: 89330a84-831a-4de1-94f2-b3b015aeeaea
-                Name: Camera
+                Id: 818daec3-4bfb-4ec1-8133-4436fa4f70c6
+                Name: DefaultScripts
                 Components:
-                    191a9580bfac05d33d042a46b9b519ac: !TransformComponent
-                        Id: 0724e57e-4d4c-4d2e-8399-113f8309b1e9
-                        Position: {X: 0.0, Y: 20.0, Z: 50.0}
+                    99c6bf5dff884f29788bacf78e62a0ad: !Stride.BepuPhysics.Demo.Components.Utils.ThrowerComponent,Stride.BepuPhysics.Demo
+                        Id: ba7d1a5d-41db-4483-8d1c-43a26bac3756
+                        SimulationIndex: 0
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        Instancing: ref!! ccc91ddb-b1aa-4126-b9fa-d46997c95559
+                        SpawnPosition: ref!! baefdb79-0e02-473a-aa5f-4fd27fae295a
+                        Speed: 20.0
+                    c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
+                        Id: 4732ca8a-1a8e-4575-bbdc-5b1779453901
+                        Description: 'SimIndex : 0. Sample usages of colliders.'
+                    4082eead088a8122a68e86af53d3eb11: !TransformComponent
+                        Id: 65d3196f-619e-45af-bd2a-aabc71b0601e
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    c73c973e1799365d3dd49db196d92934: !CameraComponent
-                        Id: f24e1626-7169-4170-99ec-4de92c44830b
-                        Name: null
-                        Projection: Perspective
-                        Slot: be74c9be-5861-4bea-90b0-b175535210f7
-                    3745e157a09217638833d608b3d5fb1e: !Stride.BepuPhysics.Demo.Camera.BasicCameraControllerComponent,Stride.BepuPhysics.Demo
-                        Id: 08a9ce0a-fd56-4c96-bc06-0ccaca3fd15a
-                        Gamepad: false
-                        KeyboardMovementSpeed: {X: 10.0, Y: 10.0, Z: 10.0}
-                        TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
-                        SpeedFactor: 5.0
-                        KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
-                        MouseRotationSpeed: {X: 1.0, Y: 1.0}
-                        TouchRotationSpeed: {X: 1.0, Y: 0.7}
-                    e7c4b7b9abe82b4c21938cc25f0f6831: !Stride.BepuPhysics.Demo.GameProfilerComponent,Stride.BepuPhysics.Demo
-                        Id: 6eb034fc-22ed-49c5-abe5-1a0e2a5fd197
+                    c5f58958d5a8e2827a5d5a1f0c686b15: !Stride.BepuPhysics.Demo.Components.GameProfilerComponent,Stride.BepuPhysics.Demo
+                        Id: 215a71fe-6db9-4083-b25d-eec75c3162f5
                         Enabled: true
                         TextColor: {R: 144, G: 238, B: 144, A: 255}
                         RefreshTime: 500.0
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
+                    d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
+                        Id: b5232849-ca7d-47c5-944e-4151547a76cd
+                        SimulationIndex: 0
         -   Entity:
                 Id: 9c1bb67e-c89e-4650-9a10-c5d8158854dd
                 Name: Mixer
@@ -247,3 +237,29 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: b97b7c95-c96a-4ba0-b426-ec885ca7054c
                         Master*: ref!! ccc91ddb-b1aa-4126-b9fa-d46997c95559
+        -   Entity:
+                Id: baefdb79-0e02-473a-aa5f-4fd27fae295a
+                Name: Camera
+                Components:
+                    191a9580bfac05d33d042a46b9b519ac: !TransformComponent
+                        Id: dbb39460-6b6b-4556-95ef-7523923de1fc
+                        Position: {X: 0.0, Y: 20.0, Z: 50.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c73c973e1799365d3dd49db196d92934: !CameraComponent
+                        Id: 661a581a-e216-412a-8779-18f57e75d9a7
+                        Name: Main
+                        Projection: Perspective
+                        NearClipPlane: 0.01
+                        FarClipPlane: 10000.0
+                        Slot: be74c9be-5861-4bea-90b0-b175535210f7
+                    d986a5552032bee5aa22b98d43929462: !Stride.BepuPhysics.Demo.Components.Camera.BasicCameraControllerComponent,Stride.BepuPhysics.Demo
+                        Id: 2b2735ad-a897-42b3-981b-1f9f1ad469c9
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 10.0, Y: 10.0, Z: 10.0}
+                        TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
+                        SpeedFactor: 5.0
+                        KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
+                        MouseRotationSpeed: {X: 1.0, Y: 1.0}
+                        TouchRotationSpeed: {X: 1.0, Y: 0.7}

@@ -14,6 +14,7 @@ namespace Stride.BepuPhysics.Components.Containers
 
         private float _mass = 1f;
         private bool _closed = true;
+        private Model? _model;
 
         public float Mass
         {
@@ -34,6 +35,14 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        public Model? Model { get; set; }
+        public Model? Model
+        {
+            get => _model;
+            set
+            {
+                _model = value;
+                ContainerData?.TryUpdateContainer();
+            }
+        }
     }
 }
