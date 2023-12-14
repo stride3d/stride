@@ -14,7 +14,7 @@ Hierarchy:
     Parts:
         -   Entity:
                 Id: 0cb3ed35-97c8-482c-8a58-87b38df65b12
-                Name: dungeon
+                Name: Dungeon
                 Components:
                     dfd75f91fa5ef860cf3ab18d38b04a4a: !TransformComponent
                         Id: 861b66cd-18c9-4c38-ab25-6fb692425503
@@ -40,7 +40,7 @@ Hierarchy:
                         Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
         -   Entity:
                 Id: 0e49b5d5-76b2-4dd2-9887-32a6d9dfa51a
-                Name: Jump1
+                Name: Jump2
                 Components:
                     6961414337769221283ce59319f70fa8: !TransformComponent
                         Id: b2c551a1-b7fa-42b5-b14d-1dd153ac3435
@@ -212,16 +212,6 @@ Hierarchy:
                         Projection: Perspective
                         Slot: be74c9be-5861-4bea-90b0-b175535210f7
         -   Entity:
-                Id: a23173eb-4951-4790-9d49-e4a70905a1bd
-                Name: Entity
-                Components:
-                    3d387ab43393d40813d08ffaea91ab95: !TransformComponent
-                        Id: 5f11b510-ca5d-40cc-b5eb-777d51d24d3d
-                        Position: {X: 0.0, Y: -1.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-        -   Entity:
                 Id: a5ab85f6-8ddb-4a0f-b14b-85843643fc60
                 Name: CapsuleModel
                 Components:
@@ -296,7 +286,6 @@ Hierarchy:
                         Children:
                             9c043aa05eeeb48303292605df5d47a7: ref!! 208628ad-d844-4b8f-85da-051838e7a82d
                             d598fb00d865cb8c873573206ac94e9f: ref!! c7eaa95d-05cc-4032-84cf-e78be01fb256
-                            d0398d5730eef42c4eded234f0f7ffa8: ref!! 5f11b510-ca5d-40cc-b5eb-777d51d24d3d
                     0bc21671e675022db8706abb28542933: !Stride.BepuPhysics.Components.Colliders.CapsuleColliderComponent,Stride.BepuPhysics
                         Id: 985dc8b0-37af-465f-ab06-bfd602779684
                         Mass: 1.0

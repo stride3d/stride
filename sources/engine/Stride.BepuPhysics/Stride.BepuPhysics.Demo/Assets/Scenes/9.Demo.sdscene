@@ -58,10 +58,6 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 510e9607-ec00-4bf0-b727-b070de23fc4d
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
-            Base:
-                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
-                InstanceId: 48f5a863-449c-4f81-a831-fe0325a80d4c
         -   Entity:
                 Id: 28ec9b9f-1a8b-41c7-8ce4-e80fd0039765
                 Name*: BepuFixedCube
@@ -91,10 +87,6 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 97861c59-6c5d-471e-aa7e-5a316ec6a40b
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
-            Base:
-                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
-                InstanceId: 69333842-e02c-44af-af1c-a9c44c2ed83c
         -   Entity:
                 Id: 2b7bd7d3-9e19-4785-bd70-90b1388f08f6
                 Name: Spot light
@@ -207,10 +199,6 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 4297943c-1da0-485c-8713-79f21e9a3234
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
-            Base:
-                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
-                InstanceId: 24ebb51e-b284-4d10-b1de-fac14d7d42d3
         -   Entity:
                 Id: 69356f47-0634-48a6-a544-65d34973ae6e
                 Name: ConeB
@@ -376,10 +364,6 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 253911d6-1013-4e72-9018-7808ad3739a5
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
-            Base:
-                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
-                InstanceId: 07fdfeda-de54-4de7-a67d-6bc0e3862998
         -   Entity:
                 Id: bbb1ad30-632a-456d-9147-073c24249203
                 Name: Spot light
@@ -475,10 +459,6 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 8e3800c1-864b-421d-828c-7dd9137e16a4
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
-            Base:
-                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
-                InstanceId: 9a976624-633a-4edd-97d2-89f2729b9408
         -   Entity:
                 Id: e2e482ba-8391-4d96-976e-2b1254746ac6
                 Name*: BepuBorderB
@@ -508,10 +488,6 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 80b31454-a3f9-4993-96b6-42d43ed9d88a
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
-            Base:
-                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
-                InstanceId: c2faf631-c9cb-492a-b987-60a0c7417b45
         -   Entity:
                 Id: f165003b-bdf6-4375-90d0-a31c87180ec4
                 Name*: BepuBlade
@@ -541,10 +517,6 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: c4fedc49-7d9f-401f-a837-6bfe1dc45941
                         Master*: ref!! 07d89da4-4f97-41b4-a347-7eeb9c895d5f
-            Base:
-                BasePartAsset: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                BasePartId: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
-                InstanceId: 2a9222b3-32a1-44d4-bcfb-2947a6130046
         -   Entity:
                 Id: fe8e33bb-9b06-454b-8fc0-fab0c4346474
                 Name: Camera
