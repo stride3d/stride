@@ -185,6 +185,7 @@ namespace Stride.BepuPhysics.Components.Containers
 					break;
 				case 5:
 					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(shape.Index);
+					GetConvexData(convex);
 					break;
 			}
 
@@ -259,7 +260,7 @@ namespace Stride.BepuPhysics.Components.Containers
 			};
 			return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
 		}
-		private unsafe void GetConvexVerts(ConvexHull convex)
+		private void GetConvexData(ConvexHull convex)
 		{
             BodyShapeData shapeData = new BodyShapeData();
 
