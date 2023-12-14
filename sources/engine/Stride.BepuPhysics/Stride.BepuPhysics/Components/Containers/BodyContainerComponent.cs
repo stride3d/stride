@@ -1,4 +1,5 @@
 ﻿using BepuPhysics;
+using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
@@ -69,7 +70,6 @@ namespace Stride.BepuPhysics.Components.Containers
                 bodyRef.Awake = value;
             }
         }
-
         [DataMemberIgnore]
         public Vector3 LinearVelocity
         {
@@ -90,7 +90,6 @@ namespace Stride.BepuPhysics.Components.Containers
                 bodyRef.Velocity.Angular = value.ToNumericVector();
             }
         }
-
         [DataMemberIgnore]
         public Vector3 Position
         {
@@ -111,7 +110,6 @@ namespace Stride.BepuPhysics.Components.Containers
                 bodyRef.Pose.Orientation = value.ToNumericQuaternion();
             }
         }
-
         [DataMemberIgnore]
         public BodyInertia BodyInertia
         {
@@ -120,6 +118,26 @@ namespace Stride.BepuPhysics.Components.Containers
             {
                 var bodyRef = GetRef();
                 bodyRef.LocalInertia = value;
+            }
+        }
+        [DataMemberIgnore]
+        public float SpeculativeMargin
+        {
+            get => GetRef().Collidable.SpeculativeMargin;
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Collidable.SpeculativeMargin = value;
+            }
+        }
+        [DataMemberIgnore]
+        public ContinuousDetection ContinuousDetection
+        {
+            get => GetRef().Collidable.Continuity;
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Collidable.Continuity = value;
             }
         }
 

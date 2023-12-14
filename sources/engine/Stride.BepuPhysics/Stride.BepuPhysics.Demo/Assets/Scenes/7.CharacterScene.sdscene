@@ -18,7 +18,7 @@ Hierarchy:
                 Components:
                     dfd75f91fa5ef860cf3ab18d38b04a4a: !TransformComponent
                         Id: 861b66cd-18c9-4c38-ab25-6fb692425503
-                        Position: {X: -12.0, Y: -24.865467, Z: -78.0}
+                        Position: {X: -25.0, Y: -24.865467, Z: -78.0}
                         Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -38,6 +38,36 @@ Hierarchy:
                         Mass: 1.0
                         Closed: true
                         Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
+        -   Entity:
+                Id: 0e49b5d5-76b2-4dd2-9887-32a6d9dfa51a
+                Name: Jump1
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: b2c551a1-b7fa-42b5-b14d-1dd153ac3435
+                        Position: {X: -3.0, Y: 4.2128296, Z: -35.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.25881904, W: 0.9659258}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: a6800149-06e4-4a29-beef-db3555f976c5
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    cfe6ca477f4cc95536e596656bac380c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 3cf1e53c-8417-4063-9221-a87b91de3ef1
+                        Mass: 1.0
+                        Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                    196a2828e44889ac96cd71a74b149182: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: b5908f7f-9770-4192-baba-007762533031
+                        SimulationIndex: 1
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: 104f8ef5-ef01-4361-8f1b-f68d5614bc43
                 Name: Jump1
@@ -119,7 +149,7 @@ Hierarchy:
                         Id: 018fa520-5a6d-4d83-9b06-754454499938
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 50.0, Y: 0.5, Z: 50.0}
+                        Scale: {X: 75.0, Y: 0.5, Z: 75.0}
                         Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: 093547a1-c196-47ba-8a17-e29c4962de44
@@ -128,7 +158,7 @@ Hierarchy:
                     bdbc7f545c2343e10feb20e6c047b62a: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: 68c0ae71-0e42-4a88-98ee-a59084a0b558
                         Mass: 1.0
-                        Size: {X: 50.0, Y: 0.5, Z: 50.0}
+                        Size: {X: 75.0, Y: 0.5, Z: 75.0}
                     667a6d677839dc9b735795df85f9e0d7: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
                         Id: 96752ac7-15be-4847-8c4d-d41d35b5990c
                         SimulationIndex: 1
@@ -151,7 +181,8 @@ Hierarchy:
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: 588053a1-b036-4d07-993a-43ba72d313cb
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
-                        Materials: {}
+                        Materials:
+                            109b39960c5fe62d147a976f17c859e0~0: cc61e97a-203f-46ef-b432-966557e2ca14:Materials/QRTransMat
                     cfe6ca477f4cc95536e596656bac380c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: 1ee747ba-d2b3-45b9-8133-f9232d2eea5f
                         Mass: 1.0
@@ -236,6 +267,7 @@ Hierarchy:
                             9732fe286d70b4dee2d3598d7a29238c: ref!! 018fa520-5a6d-4d83-9b06-754454499938
                             35b09a039adfe1787082d9434605c512: ref!! 648c4506-eb45-4d91-9abc-d20ad8a2b840
                             2bc520bb455f5094a9577cacebb484a0: ref!! 25462615-7805-4d0f-b283-7aa629da5b3f
+                            749ce78b972a1bf21d94c3c499d33abd: ref!! b2c551a1-b7fa-42b5-b14d-1dd153ac3435
                             66268939822ec9ff72ab954ab26bb449: ref!! 861b66cd-18c9-4c38-ab25-6fb692425503
                             9f628a38173c41f6d6e6df09f67afe8f: ref!! 2ff871dc-8080-49b6-b7f8-6b28a514574a
         -   Entity:
@@ -307,7 +339,7 @@ Hierarchy:
                         Speed: 20.0
                     c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
                         Id: f7215efc-74fa-437d-b2d5-4a9866d68fb8
-                        Description: 'SimIndex : 0. Sample usages of colliders.'
+                        Description: 'SimIndex : 1. Sample of a player in first person.'
                     4082eead088a8122a68e86af53d3eb11: !TransformComponent
                         Id: 7ab527b7-537c-40d1-aa58-f7abcc073733
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
