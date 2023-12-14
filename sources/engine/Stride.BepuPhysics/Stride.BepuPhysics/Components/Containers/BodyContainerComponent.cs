@@ -127,7 +127,6 @@ namespace Stride.BepuPhysics.Components.Containers
         public void UpdateInertia(BodyInertia inertia)
         {
             GetRef().LocalInertia = inertia;
-
 		}
     }
 }
