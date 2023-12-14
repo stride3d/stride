@@ -2,9 +2,9 @@
 
 #warning I can see this being useful, but it would have to be far more flexible and probably its own project, so maybe move this to demo/sample for now
 
-namespace Stride.BepuPhysics.Components.Car
+namespace Stride.BepuPhysics.Demo.Components.Car
 {
-    [ComponentCategory("Bepu - Car")]
+    [ComponentCategory("BepuDemo - Car")]
     public class WheelComponent : StartupScript
     {
         public float DamperLen { get; set; } = 0.5f;

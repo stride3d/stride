@@ -14,26 +14,43 @@ namespace Stride.BepuPhysics.Components.Containers
 
         private float _mass = 1f;
         private bool _closed = true;
+        private Model? _model;
 
         public float Mass
         {
             get => _mass;
             set
             {
-                _mass = value;
-                ContainerData?.TryUpdateContainer();
+                if (_mass != value)
+                {
+                    _mass = value;
+                    ContainerData?.TryUpdateContainer();
+                }
             }
         }
+
         public bool Closed
         {
             get => _closed;
             set
             {
-                _closed = value;
+                if (_closed != value)
+                {
+                    _closed = value;
+                    ContainerData?.TryUpdateContainer();
+                }
+            }
+        }
+
+        public Model? Model
+        {
+            get => _model;
+            set
+            {
+                _model = value;
                 ContainerData?.TryUpdateContainer();
             }
         }
 
-        public Model? Model { get; set; }
     }
 }

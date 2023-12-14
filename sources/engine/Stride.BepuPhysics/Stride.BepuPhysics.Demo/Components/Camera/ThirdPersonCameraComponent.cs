@@ -2,8 +2,9 @@
 using Stride.Engine;
 using Stride.Input;
 
-namespace Stride.BepuPhysics.Demo.Camera
+namespace Stride.BepuPhysics.Demo.Components.Camera
 {
+    [ComponentCategory("BepuDemo - Camera")]
     public class ThirdPersonCamera : SyncScript
     {
         private Entity? _firstPersonPivot;

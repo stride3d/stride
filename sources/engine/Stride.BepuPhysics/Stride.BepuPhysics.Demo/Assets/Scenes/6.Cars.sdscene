@@ -6,6 +6,7 @@ ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
+        - ref!! cccc7630-3a3b-4c4d-a1f0-aba092fac2ef
         - ref!! 88d4f114-4d3b-46fc-8430-8c2f56b4fd75
         - ref!! d1cf6b43-15ff-4f13-8efe-1811b3ac0641
         - ref!! 0d2e38de-beac-4d90-8c1e-fb774d425bb0
@@ -302,25 +303,25 @@ Hierarchy:
                 Id: 41074201-12d7-44e3-9d28-77d4e368a099
                 Name: RayStart
                 Components:
-                    d525eab18798b4dce3ff7bcc219da3a3: !Stride.BepuPhysics.Components.Utils.RayCastComponent,Stride.BepuPhysics
-                        Id: 385ee1d2-119d-4023-8bb2-0f4cca6ea316
-                        SimulationIndex: 0
-                        Offset: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Dir: {X: -1.0, Y: 0.0, Z: 0.0}
-                        MaxT: 100.0
                     278e2616c6a57b80eef83c84b9629b27: !TransformComponent
                         Id: 416544b2-7078-4044-aca3-a9f9097d737a
                         Position: {X: -2.1, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
+                    d7daad56958583b9b79a2491c42dcc46: !Stride.BepuPhysics.Demo.Components.Utils.RayCastComponent,Stride.BepuPhysics.Demo
+                        Id: 3f067378-88da-40dc-b69a-8a8c783e80df
+                        SimulationIndex: 0
+                        Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Dir: {X: -1.0, Y: 0.0, Z: 1.0}
+                        MaxT: 100.0
         -   Entity:
                 Id: 454cdd54-ab3a-49d7-a1db-ed1f6f99319d
                 Name: ThirdPersonPivot
                 Components:
                     68e2c19ca27d3022aae4bbbaa52c97fd: !TransformComponent
                         Id: 5584b930-109c-405e-9cc2-a42aee7b1857
-                        Position: {X: 0.0, Y: 0.0, Z: 3.0}
+                        Position: {X: 0.0, Y: 0.0, Z: 8.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
@@ -753,44 +754,40 @@ Hierarchy:
                             f53db0c23cba98c6dd06674cbcfe222a: ref!! 5d626e02-fc12-43fb-9586-29fd060a1e03
                             0b444408e5ac9b8f4727d5fba5b7ff35: ref!! ca78e3cb-213b-45f3-b4a8-08b9d06fc2b7
                             b9e2a044841d4d5dfc9017e4c413f242: ref!! ccca35c6-38e1-4282-a88a-5cec10834d5b
-                    c32de4ce2f91d8c288a1714c07f8d4f8: !Stride.BepuPhysics.Components.Utils.CollisionComponent,Stride.BepuPhysics
-                        Id: c52b4d28-a79b-4b73-aae5-31aa2664d5dc
-                        Container1: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b013e2de-4def-42c8-9d3a-d9cd5d29e664
-                        Container2: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! c1d32a7a-610f-48d6-84d8-b68762b119b8
-                        Container3: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! 68c75021-31aa-43d1-9be2-be63b703ed83
-                        Container4: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! 59e4ebf6-14b1-4911-bc4b-66063fafa34a
-                    f163578a7f00e63d3280186225bb452f: !Stride.BepuPhysics.Components.Car.CarComponent,Stride.BepuPhysics
-                        Id: e8cb4aba-b6e4-405b-bf8e-7f98ace984ee
+                    d913c936f236e55cfc774cddf02457b7: !Stride.BepuPhysics.Demo.Components.Car.CarComponent,Stride.BepuPhysics.Demo
+                        Id: b35cfac2-1756-48d9-806b-23756edc7b7d
                         SimulationIndex: 0
                         CarBody: ref!! f84ae702-83f2-4e43-b3bf-64da64d3487d
                         Wheels:
-                            80531aa0903d16fc91f889808a568c55: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
-                            bae71c19e3115e03276734ff6f1fcbe6: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
-                            236550062d22a231501c44c957395348: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
-                            e3db7700189da9e3c1c932f77be0900a: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
+                            87970579bcd98b0f6ac367fe4caec23a: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            e1270889a6e52409497fa04040d2a421: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            2738d2c361e8593f06d795be8b106247: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
+                            68ac4e728ae0245562826da797cac832: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
                         SteerWheels:
-                            b7053082b73dc6a375777d69d65e99b6: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
-                            367e078d70a9c6f84a79598163b0d1ad: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            fbe6adfe3ce8a0ce8889fe523195e49f: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            39e32436ff8a134346387fe1798c04e9: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
                         DriveWheels:
-                            5687066dd6179917b7eff82c341ac54a: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
-                            8694cbd9a3a91df1e069ee9ea2a88827: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            63588890b0d0f1b5f0f6820fe2f136a3: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            8dfcbce0af73d359082097275e84eb55: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
                         BreakWheels:
-                            4bc314852a962a716029f6d9d55bd60e: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
-                            db39c4440c15efa123e9631b015a2031: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
-                            82a4bfca8853271134639a02b17630f1: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
-                            7e5f2aef7b2e1de1bb744f4040705c14: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
+                            10c8bfb46db63eef972ceb7bcda65c56: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            e8fb951bb118dad79c175d307330535c: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            de3b91894b958ab8298a4df5be4ffad7: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
+                            aff30461e7fe10fdfbfb3381cb2203d9: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
                         AccelerateKeys:
-                            9b9a5c5421ffe05f2971c0920c856c86: Z
-                            93d8d99dd7483995b4f248f7f1a6f09a: W
+                            ee1c76685395dbd0a146abd82ab549e3: Z
+                            ef77c049c3164711ed661427d5f816f6: W
+                            44740503f51e45029b45399962bb317a: Up
                         ReverseKeys:
-                            f35d19757d1436c5d07330df13eba7e9: S
+                            5e86403a8fcbb3d44d71ac90d160193f: S
+                            8523c04c5846ef0c4548fb8941cde2cc: Down
                         BreakKeys:
-                            05579acb8408f0de2be18b6b3214a6c0: Space
+                            e3c41287d01579647faf412a4d777de8: Space
                         SteerLeftKeys:
-                            8cfe9ba02dc634caeaf1d932dc141bcb: Q
-                            e8932f4538e738c06737422681609865: A
+                            187fe4404c8c67ec92527de53989e03e: Q
+                            9ddd06b340784727a274d47f4d148cbf: A
                         SteerRightKeys:
-                            83feac42292e43363baa0c6384a998be: D
+                            25f0d9124b3488c357c1233a45302ffb: D
                         GearUpKeys: {}
                         GearDownKeys: {}
                         ClutchKeys: {}
@@ -802,10 +799,16 @@ Hierarchy:
                         BreakingForce: 0.1
                         MaximumSteeringAngle: 30.0
                         SteeringSpeed: 0.5
-                        Clutch: false
+                        Clutch: true
                         Starter: false
                         AutomaticGearing: true
                         AutomaticStart: true
+                    0b5ac15dc96b97d823db9bfe6a5a27bf: !Stride.BepuPhysics.Demo.Components.Utils.CollisionComponent,Stride.BepuPhysics.Demo
+                        Id: c55e02d8-9dd0-4665-bcf0-9cc82a86985e
+                        Container1: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b013e2de-4def-42c8-9d3a-d9cd5d29e664
+                        Container2: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! c1d32a7a-610f-48d6-84d8-b68762b119b8
+                        Container3: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! 68c75021-31aa-43d1-9be2-be63b703ed83
+                        Container4: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! 59e4ebf6-14b1-4911-bc4b-66063fafa34a
         -   Entity:
                 Id: a0a6e0e3-71f9-4449-973c-eccc644440fd
                 Name: GeoSphere
@@ -861,14 +864,7 @@ Hierarchy:
                             b3dd38a7c59023a37450d16f0afb1ae4: ref!! 494eb75e-904b-446f-9539-4653859f9975
                             44770610e35038f4cce942628d09d6b4: ref!! 170d9808-345e-4ed1-8521-636cd54c9791
                             0044f9d3ad653598850a1079cefc5731: ref!! 241c9b4e-4599-4c1c-933e-01e36fbba8c6
-                    eeabfda15ef248d6bb1e4f6914eb65e5: !Stride.BepuPhysics.Components.Utils.ThrowerComponent,Stride.BepuPhysics
-                        Id: b3a2f1eb-a8c3-4cf0-8025-3c2680399555
-                        SimulationIndex: 0
-                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                        Instancing: ref!! c9c947fa-78a6-4fd7-bb81-24983ca6b3ff
-                        SpawnPosition: ref!! b27fbebd-9210-4f5a-9fa1-930d6c7c21cd
-                        Speed: 20.0
-                    807fd6f1bfea6cedc2abc9907e906240: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
+                    807fd6f1bfea6cedc2abc9907e906240: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 776b908f-e979-4957-bacd-d537a8f45453
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
@@ -877,7 +873,7 @@ Hierarchy:
                         APos: {X: 0.5, Y: 0.0, Z: 0.0}
                         B: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
+                    2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: e93bbc26-9f0a-404e-bd82-855be9420ecf
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
@@ -886,7 +882,7 @@ Hierarchy:
                         APos: {X: 10.0, Y: 0.5, Z: 10.0}
                         B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    df8df1e9078962519bb2e906ff5bd744: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
+                    df8df1e9078962519bb2e906ff5bd744: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 1b2f6c2e-1961-4f3a-ab07-ba0a16d9b4e3
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
@@ -895,7 +891,7 @@ Hierarchy:
                         APos: {X: 10.0, Y: 0.5, Z: -10.0}
                         B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    f0b1089156066784aa5bb1948f7006de: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
+                    f0b1089156066784aa5bb1948f7006de: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 1f48afb2-9108-4642-8805-3f48614415e3
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
@@ -904,7 +900,7 @@ Hierarchy:
                         APos: {X: -10.0, Y: 0.5, Z: -10.0}
                         B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuPhysics.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics
+                    5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 2969ea40-fe06-4fc1-aac2-b2fe7af56f42
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
@@ -1044,14 +1040,6 @@ Hierarchy:
                         NearClipPlane: 0.01
                         FarClipPlane: 2000.0
                         Slot: be74c9be-5861-4bea-90b0-b175535210f7
-                    59f90f253209b5b0da21a689b90bfb52: !Stride.BepuPhysics.Demo.GameProfilerComponent,Stride.BepuPhysics.Demo
-                        Id: 3b4f3268-3e4b-4782-bdce-a1370a5b29d9
-                        Enabled: true
-                        TextColor: {R: 144, G: 238, B: 144, A: 255}
-                        RefreshTime: 500.0
-                        SortingMode: ByTime
-                        FilteringMode: Fps
-                        ResultPage: 1
         -   Entity:
                 Id: cbda80eb-fa37-4ab9-84fb-f5c1df506fd6
                 Name: GeoSphere
@@ -1082,6 +1070,37 @@ Hierarchy:
                         Id: 3b9586fd-d89d-4e2c-b940-98523cae7efa
                         Mass: 1.0
                         Radius: 0.5
+        -   Entity:
+                Id: cccc7630-3a3b-4c4d-a1f0-aba092fac2ef
+                Name: DefaultScripts
+                Components:
+                    99c6bf5dff884f29788bacf78e62a0ad: !Stride.BepuPhysics.Demo.Components.Utils.ThrowerComponent,Stride.BepuPhysics.Demo
+                        Id: b6d6c3d6-0215-4c8e-9298-067071fec188
+                        SimulationIndex: 0
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        Instancing: ref!! c9c947fa-78a6-4fd7-bb81-24983ca6b3ff
+                        SpawnPosition: ref!! b27fbebd-9210-4f5a-9fa1-930d6c7c21cd
+                        Speed: 20.0
+                    c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
+                        Id: ce73554c-389f-4fb5-98d6-8193bd216c74
+                        Description: 'SimIndex : 0. Sample usages of colliders.'
+                    4082eead088a8122a68e86af53d3eb11: !TransformComponent
+                        Id: 23a689e7-5111-4afa-bfcb-6a7ccdc97cdf
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c10a8a3d21015a9bbcccd175c7dea82b: !Stride.BepuPhysics.Demo.Components.GameProfilerComponent,Stride.BepuPhysics.Demo
+                        Id: eb1c7eb7-9f7e-438e-a8ac-01197a813fff
+                        Enabled: true
+                        TextColor: {R: 144, G: 238, B: 144, A: 255}
+                        RefreshTime: 500.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1
+                    d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
+                        Id: 23e42ba6-61a9-4542-9454-2a78601fae56
+                        SimulationIndex: 0
         -   Entity:
                 Id: d1cf6b43-15ff-4f13-8efe-1811b3ac0641
                 Name: Skybox
@@ -1133,8 +1152,8 @@ Hierarchy:
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
-                    3a66a62bdc4e57fbc8766c6129a4269d: !Stride.BepuPhysics.Components.Car.WheelComponent,Stride.BepuPhysics
-                        Id: cf480967-3767-47a7-9f3a-8ce19bc7f8cc
+                    53f85851391a377bdd9ddb1abf0077fc: !Stride.BepuPhysics.Demo.Components.Car.WheelComponent,Stride.BepuPhysics.Demo
+                        Id: 86012dae-5367-4d3c-9cd0-b2e0a3d6b234
                         DamperLen: 0.5
                         DamperRatio: 0.01
                         DamperForce: 1000.0
@@ -1183,8 +1202,8 @@ Hierarchy:
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
-                    78be4371657821c0b895f9bf7aca5f3d: !Stride.BepuPhysics.Components.Car.WheelComponent,Stride.BepuPhysics
-                        Id: 4e4e80c5-42de-4d63-b12d-07690a56fcc8
+                    91f739bf880c6e28af3f3876195efa90: !Stride.BepuPhysics.Demo.Components.Car.WheelComponent,Stride.BepuPhysics.Demo
+                        Id: c260d23a-6c4e-4b41-9549-80f67b5fa7c8
                         DamperLen: 0.5
                         DamperRatio: 0.01
                         DamperForce: 1000.0
@@ -1220,8 +1239,8 @@ Hierarchy:
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
-                    d1fb7fcf3c12450d798a92beb4e1ca35: !Stride.BepuPhysics.Components.Car.WheelComponent,Stride.BepuPhysics
-                        Id: 2174a406-647d-4038-b470-32df57a8580b
+                    a7eb1775b2752c2a3a65023dbd4e1091: !Stride.BepuPhysics.Demo.Components.Car.WheelComponent,Stride.BepuPhysics.Demo
+                        Id: 8e48c195-d42b-4386-a775-ecd9a64434d7
                         DamperLen: 0.5
                         DamperRatio: 0.01
                         DamperForce: 1000.0
@@ -1257,8 +1276,8 @@ Hierarchy:
                         Mass: 0.5
                         Radius: 0.5
                         Length: 0.25
-                    7c490e4c59c78e4ba83f0f547d1cbe2d: !Stride.BepuPhysics.Components.Car.WheelComponent,Stride.BepuPhysics
-                        Id: cd20fe89-a66e-4b1e-97f0-3ed44655b3f6
+                    4fe16080c6d3c3d977ea1045e0f1de6f: !Stride.BepuPhysics.Demo.Components.Car.WheelComponent,Stride.BepuPhysics.Demo
+                        Id: bc8e46f8-9dde-4317-bc12-197803db2c6b
                         DamperLen: 0.5
                         DamperRatio: 0.01
                         DamperForce: 1000.0
@@ -1352,8 +1371,8 @@ Hierarchy:
                         Id: 9aac8776-b0c3-4bb0-a2bf-ae6787ee3cfe
                         Mass: 3.0
                         Size: {X: 4.0, Y: 1.0, Z: 2.5}
-                    f68bb6ccbd661e0e72ffd54af746f207: !Stride.BepuPhysics.Demo.Camera.ThirdPersonCamera,Stride.BepuPhysics.Demo
-                        Id: bd6be1c4-cca7-46c0-a066-97e0a0e92753
+                    c868c869df07c02f8950073fa31470a9: !Stride.BepuPhysics.Demo.Components.Camera.ThirdPersonCamera,Stride.BepuPhysics.Demo
+                        Id: cde7383e-aa0b-433c-9185-74be4a77de10
                         Enabled: true
                         InvertMouseY: true
                         MouseSpeed: {X: 1.5, Y: 1.5}

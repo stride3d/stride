@@ -1,14 +1,15 @@
-﻿using Stride.BepuPhysics.Extensions;
+﻿using System;
+using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
 #warning This should not be part of the base API, move it to demo/sample
 
-namespace Stride.BepuPhysics.Components.Utils
+namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
-    [ComponentCategory("Bepu - Utils")]
+    [ComponentCategory("BepuDemo - Utils")]
     public class SpawnerComponent : Spawner
     {
         public Entity? SpawnPosition { get; set; } //set it from a (empty) entity at the wanted location
@@ -63,8 +64,8 @@ namespace Stride.BepuPhysics.Components.Utils
                 SpawnRate /= 1.1f;
             }
 
-            DebugText.Print($"Prefab count : {currentCount}/{Count}", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 25));
-            DebugText.Print($"Spawn by Physic time : {SpawnRate} (p & m)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 50));
+            DebugText.Print($"Prefab count : {currentCount}/{Count}", new(Game.Window.PreferredWindowedSize.X - 500, 25));
+            DebugText.Print($"Spawn by Physic time : {SpawnRate} (p & m)", new(Game.Window.PreferredWindowedSize.X - 500, 50));
         }
     }
 }

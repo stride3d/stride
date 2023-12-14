@@ -6,6 +6,7 @@ ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
+        - ref!! ce3fc329-9038-4602-93b7-71ac6ce61daa
         - ref!! 718407b2-5728-4811-8b58-3a7b206d2c09
         - ref!! a9aba88b-eb7c-4390-956b-d9a38dcf452b
         - ref!! 68a236eb-82e6-4b17-b8aa-49499ada47f9
@@ -237,13 +238,6 @@ Hierarchy:
                             2bc520bb455f5094a9577cacebb484a0: ref!! 25462615-7805-4d0f-b283-7aa629da5b3f
                             66268939822ec9ff72ab954ab26bb449: ref!! 861b66cd-18c9-4c38-ab25-6fb692425503
                             9f628a38173c41f6d6e6df09f67afe8f: ref!! 2ff871dc-8080-49b6-b7f8-6b28a514574a
-                    674c554e0660785c2634bc55f27fc4ed: !Stride.BepuPhysics.Components.Utils.ThrowerComponent,Stride.BepuPhysics
-                        Id: 36fcd029-0f0f-4673-9b02-4829c8a35511
-                        SimulationIndex: 1
-                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                        Instancing: ref!! 191e406f-0e44-44c1-b32d-acbfc269c2b6
-                        SpawnPosition: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a
-                        Speed: 20.0
         -   Entity:
                 Id: b694adab-d89a-4d0c-aa3f-c12d05d48831
                 Name: HeadModel
@@ -294,12 +288,43 @@ Hierarchy:
                         Speed: 10.0
                         JumpSpeed: 1.0
                         CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153
-                    ed9e2b8947b0daaeede8bffa0cc9c5cd: !Stride.BepuPhysics.Components.Character.CharacterControllerComponent,Stride.BepuPhysics
-                        Id: 7e569c77-2794-4b73-8eb1-0503382198ac
+                    643c56ad282de3b130386f69a6e94b5f: !Stride.BepuPhysics.Demo.Components.Character.CharacterControllerComponent,Stride.BepuPhysics.Demo
+                        Id: cd4ade13-0099-4e24-af15-ea4fd74f3655
                         CameraPivot: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a
                         Character: ref!! d2d1354c-76b6-42d4-9515-6ce00e95bf99
                         MinCameraAngle: -90.0
                         MaxCameraAngle: 90.0
+        -   Entity:
+                Id: ce3fc329-9038-4602-93b7-71ac6ce61daa
+                Name: DefaultScripts
+                Components:
+                    99c6bf5dff884f29788bacf78e62a0ad: !Stride.BepuPhysics.Demo.Components.Utils.ThrowerComponent,Stride.BepuPhysics.Demo
+                        Id: 67df5532-0bbd-478a-ae89-cd0a40c696f1
+                        SimulationIndex: 1
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        Instancing: ref!! 191e406f-0e44-44c1-b32d-acbfc269c2b6
+                        SpawnPosition: ref!! 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
+                        Speed: 20.0
+                    c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
+                        Id: f7215efc-74fa-437d-b2d5-4a9866d68fb8
+                        Description: 'SimIndex : 0. Sample usages of colliders.'
+                    4082eead088a8122a68e86af53d3eb11: !TransformComponent
+                        Id: 7ab527b7-537c-40d1-aa58-f7abcc073733
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7b119e8460ac94de261d1ac43fec51e8: !Stride.BepuPhysics.Demo.Components.GameProfilerComponent,Stride.BepuPhysics.Demo
+                        Id: abaa2053-9855-4b5f-8bed-699c332d9b71
+                        Enabled: true
+                        TextColor: {R: 144, G: 238, B: 144, A: 255}
+                        RefreshTime: 500.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1
+                    d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
+                        Id: 7d2ba482-6949-4481-a60a-fa8c769c71a6
+                        SimulationIndex: 1
         -   Entity:
                 Id: e941dadf-4371-495f-9d46-9cc617fd1f4a
                 Name: Head

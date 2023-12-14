@@ -3,8 +3,9 @@ using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Input;
 
-namespace Stride.BepuPhysics.Demo
+namespace Stride.BepuPhysics.Demo.Components
 {
+    [ComponentCategory("BepuDemo")]
     public class SceneSelectorComponent : SyncScript
     {
         public Scene? MainScene { get; set; }
@@ -26,11 +27,11 @@ namespace Stride.BepuPhysics.Demo
         {
             Game.Window.AllowUserResizing = true;
             //Game.Window.IsFullscreen = true;
-            Game.Window.Title = "StrideGo";
+            Game.Window.Title = "Stride and Bepu Physics V2";
         }
         public override void Update()
         {
-            DebugText.Print("USE NUMPAD number :", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 500));
+            DebugText.Print("USE NUMPAD number :", new(800, 10));
 
             for (int i = 0; i < 10; i++)
             {
@@ -38,7 +39,7 @@ namespace Stride.BepuPhysics.Demo
                 if (sceneRef == null)
                     continue;
 
-                DebugText.Print($"{i} => {sceneRef.Url}", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 500 + (i + 1) * 25));
+                DebugText.Print($"{i} => {sceneRef.Url}", new(800, 5 + (i + 1) * 25));
 
                 if (Input.IsKeyPressed(Keys.NumPad0 + i) || Input.IsKeyPressed(Keys.D0 + i))
                 {

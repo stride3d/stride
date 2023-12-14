@@ -58,7 +58,7 @@ namespace Stride.BepuPhysics.Components.Containers
         private BodyReference GetRef()
         {
             if (ContainerData == null)
-                throw new Exception("");
+                throw new Exception("Container data is null");
 
             return ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
         }
@@ -116,6 +116,17 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
+        [DataMemberIgnore]
+        public BodyInertia BodyInertia
+        {
+            get => GetRef().LocalInertia;
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.LocalInertia = value;
+            }
+        }
+
         public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
         {
             GetRef().ApplyImpulse(impulse.ToNumericVector(), impulseOffset.ToNumericVector());
@@ -124,13 +135,9 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             GetRef().ApplyAngularImpulse(impulse.ToNumericVector());
         }
-        public void ApplyImpulse(Vector3 impulse)
+        public void ApplyLinearImpulse(Vector3 impulse)
         {
             GetRef().ApplyLinearImpulse(impulse.ToNumericVector());
         }
-        public void UpdateInertia(BodyInertia inertia)
-        {
-            GetRef().LocalInertia = inertia;
-		}
-	}
+    }
 }

@@ -6,8 +6,9 @@ using Stride.Engine;
 using Stride.Input;
 using Stride.Profiling;
 
-namespace Stride.BepuPhysics.Demo
+namespace Stride.BepuPhysics.Demo.Components
 {
+    [ComponentCategory("BepuDemo")]
     public class GameProfilerComponent : AsyncScript
     {
         /// <summary>

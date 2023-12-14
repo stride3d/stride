@@ -5,10 +5,10 @@ using Stride.Input;
 
 #warning This should not be part of the base API, move it to demo/sample
 
-namespace Stride.BepuPhysics.Components.Utils
+namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
-    [ComponentCategory("Bepu - Utils")]
+    [ComponentCategory("BepuDemo - Utils")]
     public class TimeControlComponent : SyncScript
     {
         private BepuSimulation? _bepuSimulation { get; set; }
@@ -50,9 +50,9 @@ namespace Stride.BepuPhysics.Components.Utils
                 _bepuSimulation.PoseGravity -= new Core.Mathematics.Vector3(0, 1, 0);
             }
 
-            DebugText.Print($"Physic Enabled : {_bepuSimulation.Enabled} (Numpad *)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 225));
-            DebugText.Print($"Time multiplicator : {_bepuSimulation.TimeWarp} (numpad + & -)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 250));
-            DebugText.Print($"Gravity : {_bepuSimulation.PoseGravity} (numpad o & l)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 275));
+            DebugText.Print($"Physic Enabled : {_bepuSimulation.Enabled} (Numpad *)", new(Game.Window.PreferredWindowedSize.X - 500, 225));
+            DebugText.Print($"Time multiplicator : {_bepuSimulation.TimeWarp} (numpad + & -)", new(Game.Window.PreferredWindowedSize.X - 500, 250));
+            DebugText.Print($"Gravity : {_bepuSimulation.PoseGravity} (numpad o & l)", new(Game.Window.PreferredWindowedSize.X - 500, 275));
         }
     }
 }

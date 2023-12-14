@@ -6,15 +6,13 @@ ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
+        - ref!! 8b578961-0a95-443d-8a01-7d4964b31121
         - ref!! f06c3f0f-39a1-40b9-8be8-c4b3b3b07770
         - ref!! 1f51304e-3c68-4069-9d14-4570a2fdb885
         - ref!! cb21fba6-1512-4923-87fc-9039b85cba7e
         - ref!! 092a9aa5-9f0b-4df2-bc7f-1f6463fda293
         - ref!! b4f64e3c-27a7-4df5-a2b7-69752c15f37c
         - ref!! e5cbb37b-5ed6-42df-ad23-d56227c3e6f8
-        - ref!! 33e3b956-fc9f-4cf1-9168-87b32dcf3c76
-        - ref!! d5e976ef-c377-48c4-820e-25d6b1560f51
-        - ref!! 399809ba-da57-4414-835b-33a523f5825a
     Parts:
         -   Entity:
                 Id: 092a9aa5-9f0b-4df2-bc7f-1f6463fda293
@@ -447,6 +445,37 @@ Hierarchy:
                             d9dee8229e64f6c3bb7043d3e99ae4cd~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Entity:
+                Id: 8b578961-0a95-443d-8a01-7d4964b31121
+                Name: DefaultScripts
+                Components:
+                    99c6bf5dff884f29788bacf78e62a0ad: !Stride.BepuPhysics.Demo.Components.Utils.ThrowerComponent,Stride.BepuPhysics.Demo
+                        Id: 7fce2df0-a5f9-47dc-baad-5d0eaa862956
+                        SimulationIndex: 0
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        Instancing: ref!! 1c9d86d7-bb42-4183-bf0f-9ec8fa5cf41b
+                        SpawnPosition: ref!! f06c3f0f-39a1-40b9-8be8-c4b3b3b07770
+                        Speed: 20.0
+                    c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
+                        Id: 913dc41c-c784-4ab4-94dc-11fd4d43418d
+                        Description: 'SimIndex : 0. Sample usages of colliders.'
+                    4082eead088a8122a68e86af53d3eb11: !TransformComponent
+                        Id: cafcc2e8-3034-4554-a6d1-2c3845012892
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
+                        Id: d816ff76-077c-41e6-a5ee-3e973ccdb373
+                        SimulationIndex: 0
+                    2a6837977767a5a889c048518e854744: !Stride.BepuPhysics.Demo.Components.GameProfilerComponent,Stride.BepuPhysics.Demo
+                        Id: 5439ccba-f075-459d-87b3-2a1ef97276f7
+                        Enabled: true
+                        TextColor: {R: 144, G: 238, B: 144, A: 255}
+                        RefreshTime: 500.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1
         -   Folder: null
             Entity:
                 Id: 9e73e77d-498e-4792-a56e-959204b76a4f
@@ -535,19 +564,9 @@ Hierarchy:
                             fc84aafd36debf501a8fc7eaafde37c8: ref!! 761b1ce4-9de9-42e9-92c4-a634bf5286c7
                             8b95a64821220345ce0032e83b338e4a: ref!! ffef751e-2175-4d03-bd5a-f0c765989778
                             3c2807da4c13dae80d3f1b17cc40669b: ref!! 2e4afe6e-a469-4936-8d07-4163a98a68e4
-                    eeabfda15ef248d6bb1e4f6914eb65e5: !Stride.BepuPhysics.Components.Utils.ThrowerComponent,Stride.BepuPhysics
-                        Id: 406707e7-3d0d-4842-85d2-8faf3e4e65cc
-                        SimulationIndex: 0
-                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
-                        Instancing: ref!! 1c9d86d7-bb42-4183-bf0f-9ec8fa5cf41b
-                        SpawnPosition: ref!! f06c3f0f-39a1-40b9-8be8-c4b3b3b07770
-                        Speed: 50.0
-                    8ff30ff71af73fad50d330cdb9500d9a: !Stride.BepuPhysics.Components.Utils.TimeControlComponent,Stride.BepuPhysics
-                        Id: b82879a8-097b-4afd-b691-29f077043a06
-                        SimulationIndex: 0
-                    d1f2aa97c4c6d4a84cb414c73d5cfa0c: !Stride.BepuPhysics.Components.Utils.ColliderEditorComponent,Stride.BepuPhysics
-                        Id: 09c424f0-8887-4b58-a0dd-41ecb58a361b
-                        Component: null
+                            b7e8d1ae279cf3efc8dc677bd2b6a60d: ref!! b50f1d47-dd77-4461-9f0d-559f090e7ff7
+                            005760d06ed0dd901b35dc8e8b6aff54: ref!! 5ef80e2b-c7d2-4b73-82c5-2ee439ce2955
+                            cfabad3183ffc9dd8a197cf2b6808cf6: ref!! 43e6e3d9-a2b2-439a-9eef-23a8ea5ea323
         -   Folder: 2.InChildrenBlue
             Entity:
                 Id: b8b251f1-cb5e-41ff-8b09-3e5cbdbe578c
@@ -820,11 +839,13 @@ Hierarchy:
                         Children: {}
                     c73c973e1799365d3dd49db196d92934: !CameraComponent
                         Id: 12cd454b-7e0a-4fdc-930f-91d88692dfa2
-                        Name: null
+                        Name: Main
                         Projection: Perspective
+                        NearClipPlane: 0.01
+                        FarClipPlane: 10000.0
                         Slot: be74c9be-5861-4bea-90b0-b175535210f7
-                    3407cfd095f9cd64d764718d068a6bcc: !Stride.BepuPhysics.Demo.Camera.BasicCameraControllerComponent,Stride.BepuPhysics.Demo
-                        Id: 6d8669f4-59be-4a3c-b2c9-9231fa61e6b6
+                    d986a5552032bee5aa22b98d43929462: !Stride.BepuPhysics.Demo.Components.Camera.BasicCameraControllerComponent,Stride.BepuPhysics.Demo
+                        Id: e1b34385-7bdc-471b-a149-a2d67d6c224f
                         Gamepad: false
                         KeyboardMovementSpeed: {X: 10.0, Y: 10.0, Z: 10.0}
                         TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
@@ -832,14 +853,6 @@ Hierarchy:
                         KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
                         MouseRotationSpeed: {X: 1.0, Y: 1.0}
                         TouchRotationSpeed: {X: 1.0, Y: 0.7}
-                    f92fb653e16ef821d96c579b93add936: !Stride.BepuPhysics.Demo.GameProfilerComponent,Stride.BepuPhysics.Demo
-                        Id: 39d4bbf9-c691-4361-9032-b277c9fec072
-                        Enabled: true
-                        TextColor: {R: 144, G: 238, B: 144, A: 255}
-                        RefreshTime: 500.0
-                        SortingMode: ByTime
-                        FilteringMode: Fps
-                        ResultPage: 1
         -   Folder: 2.InChildrenBlue
             Entity:
                 Id: f91d3b51-295b-44d1-a20d-d35f36b97860
