@@ -116,7 +116,18 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
+		[DataMemberIgnore]
+		public BodyInertia BodyInertia
+		{
+			get => GetRef().LocalInertia;
+			set
+			{
+				var bodyRef = GetRef();
+				bodyRef.LocalInertia = value;
+			}
+		}
+
+		public void ApplyLinearImpulse(Vector3 impulse, Vector3 impulseOffset)
         {
             GetRef().ApplyImpulse(impulse.ToNumericVector(), impulseOffset.ToNumericVector());
         }

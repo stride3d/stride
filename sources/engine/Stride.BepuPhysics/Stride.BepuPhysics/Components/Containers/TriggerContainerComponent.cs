@@ -1,12 +1,9 @@
-﻿using BepuPhysics;
-using BepuPhysics.Collidables;
+﻿using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions.Collisions;
-using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
-using Stride.Core.Extensions;
 using Stride.Engine;
 using Stride.Engine.Design;
 
