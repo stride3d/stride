@@ -1,10 +1,14 @@
 ﻿using BepuPhysics;
+using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Graphics;
+using Stride.Graphics.GeometricPrimitives;
+using Stride.Physics;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
@@ -128,5 +132,74 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             GetRef().LocalInertia = inertia;
 		}
-    }
+
+        public GeometricMeshData<VertexPositionNormalTexture> GetShapeData()
+        {
+			var bodyRef = GetRef();
+            var shape = bodyRef.Collidable.Shape;
+            var type = shape.Type;
+            switch(type)
+            {
+                case 0:
+					var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(shape.Index);
+                    return GetSphereVerts(sphere);
+					break;
+				case 1:
+					var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(shape.Index);
+                    return GetCapsuleVerts(capsule);
+					break;
+				case 2:
+					var box = Simulation.Simulation.Shapes.GetShape<Box>(shape.Index);
+                    return GetBoxVerts(box);
+					break;
+				case 3:
+					var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(shape.Index);
+					break;
+				case 4:
+					var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(shape.Index);
+                    return GetCylinderVerts(cyliner);
+					break;
+				case 5:
+					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(shape.Index);
+					break;
+			}
+            return null;
+		}
+        private GeometricMeshData<VertexPositionNormalTexture> GetBoxVerts(Box box)
+        {
+            var boxDescription = new BoxColliderShapeDesc()
+            {
+
+            };
+            return GeometricPrimitive.Cube.New(boxDescription.Size, toLeftHanded: true);
+            //box.
+        }
+        private GeometricMeshData<VertexPositionNormalTexture> GetCapsuleVerts(Capsule capsule)
+        {
+            var capsuleDescription = new CapsuleColliderShapeDesc()
+            {
+
+			};
+            return GeometricPrimitive.Capsule.New(capsuleDescription.Length, capsuleDescription.Radius, 8, toLeftHanded: true);
+        }
+        private GeometricMeshData<VertexPositionNormalTexture> GetSphereVerts(Sphere sphere)
+        {
+            var sphereDescription = new SphereColliderShapeDesc()
+            {
+            };
+            return GeometricPrimitive.Sphere.New(sphereDescription.Radius, 16, toLeftHanded: true);
+        }
+        private GeometricMeshData<VertexPositionNormalTexture> GetCylinderVerts(Cylinder cylinder)
+        {
+			var cylinderDescription = new CylinderColliderShapeDesc()
+            {
+			};
+			return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
+		}
+		private void GetConvexVerts(ConvexHull convex)
+		{
+			var test = convex.Points;
+		}
+
+	}
 }
