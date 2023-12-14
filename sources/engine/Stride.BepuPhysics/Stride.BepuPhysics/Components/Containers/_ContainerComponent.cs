@@ -1,10 +1,17 @@
-﻿using Stride.BepuPhysics.Configurations;
+﻿using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions.Collisions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Graphics.GeometricPrimitives;
+using Stride.Graphics;
+using Stride.Physics;
+using BepuPhysics;
+using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Extensions;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
@@ -132,7 +139,137 @@ namespace Stride.BepuPhysics.Components.Containers
                 _contactEventHandler = value;
                 ContainerData?.RegisterContact();
             }
-        }
-        
-    }
+		}
+
+		private BodyReference GetRef()
+		{
+			if (ContainerData == null)
+				throw new Exception("");
+
+			return ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
+		}
+
+		public BodyShapeData GetShapeData()
+		{
+			var bodyRef = GetRef();
+			var shape = bodyRef.Collidable.Shape;
+			var type = shape.Type;
+
+            GeometricMeshData<VertexPositionNormalTexture> meshData;
+            BodyShapeData shapeData = new BodyShapeData();
+
+			switch (type)
+			{
+				case 0:
+					var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(shape.Index);
+					meshData = GetSphereVerts(sphere);
+                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
+					break;
+				case 1:
+					var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(shape.Index);
+					meshData = GetCapsuleVerts(capsule);
+					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
+					break;
+				case 2:
+					var box = Simulation.Simulation.Shapes.GetShape<Box>(shape.Index);
+					meshData = GetBoxVerts(box);
+					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
+					break;
+				case 3:
+					var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(shape.Index);
+					break;
+				case 4:
+					var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(shape.Index);
+					meshData = GetCylinderVerts(cyliner);
+					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
+					break;
+				case 5:
+					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(shape.Index);
+					break;
+			}
+
+            return shapeData;
+		}
+
+        private BodyShapeData GetBodyShapeData(GeometricMeshData<VertexPositionNormalTexture> meshData, Matrix objectTransform)
+		{
+            BodyShapeData shapeData = new BodyShapeData();
+
+			// Transform box points
+			for (int i = 0; i < meshData.Vertices.Length; i++)
+			{
+				VertexPositionNormalTexture point = meshData.Vertices[i];
+				point.Position = Vector3.Transform(point.Position, objectTransform).XYZ();
+				shapeData.Points.Add(point.Position);
+			}
+
+			if (meshData.IsLeftHanded)
+			{
+				// Copy indices with offset applied
+				for (int i = 0; i < meshData.Indices.Length; i += 3)
+				{
+					shapeData.Indices.Add(meshData.Indices[i]);
+					shapeData.Indices.Add(meshData.Indices[i + 2]);
+					shapeData.Indices.Add(meshData.Indices[i + 1]);
+				}
+			}
+			else
+			{
+				// Copy indices with offset applied
+				for (int i = 0; i < meshData.Indices.Length; i++)
+				{
+					shapeData.Indices.Add(meshData.Indices[i]);
+				}
+			}
+
+            return shapeData;
+		}
+
+		private GeometricMeshData<VertexPositionNormalTexture> GetBoxVerts(Box box)
+		{
+			var boxDescription = new BoxColliderShapeDesc()
+			{
+				Size = new Vector3(box.Width, box.Height, box.Length)
+			};
+			return GeometricPrimitive.Cube.New(boxDescription.Size, toLeftHanded: true);
+		}
+		private GeometricMeshData<VertexPositionNormalTexture> GetCapsuleVerts(Capsule capsule)
+		{
+			var capsuleDescription = new CapsuleColliderShapeDesc()
+			{
+				Length = capsule.Length,
+				Radius = capsule.Radius
+			};
+			return GeometricPrimitive.Capsule.New(capsuleDescription.Length, capsuleDescription.Radius, 8, toLeftHanded: true);
+		}
+		private GeometricMeshData<VertexPositionNormalTexture> GetSphereVerts(Sphere sphere)
+		{
+			var sphereDescription = new SphereColliderShapeDesc()
+			{
+				Radius = sphere.Radius
+			};
+			return GeometricPrimitive.Sphere.New(sphereDescription.Radius, 16, toLeftHanded: true);
+		}
+		private GeometricMeshData<VertexPositionNormalTexture> GetCylinderVerts(Cylinder cylinder)
+		{
+			var cylinderDescription = new CylinderColliderShapeDesc()
+			{
+				Height = cylinder.Length,
+				Radius = cylinder.Radius
+			};
+			return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
+		}
+		private unsafe void GetConvexVerts(ConvexHull convex)
+		{
+            BodyShapeData shapeData = new BodyShapeData();
+
+            for(int i = 0; i < convex.FaceToVertexIndicesStart.Length; i++)
+            {
+                // will need to get the points from the convex hull
+                convex.GetPoint(convex.FaceToVertexIndicesStart[i], out var point);
+                shapeData.Points.Add(point.ToStrideVector());
+			}
+		}
+
+	}
 }
