@@ -1,4 +1,7 @@
-﻿using BepuPhysics;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Components.Constraints;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions.Car;
@@ -7,12 +10,10 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
-#warning I can see this being useful, but it would have to be far more flexible and probably its own project, so maybe move this to demo/sample for now
-
-namespace Stride.BepuPhysics.Components.Car
+namespace Stride.BepuPhysics.Demo.Components.Car
 {
 
-    [ComponentCategory("Bepu - Car")]
+    [ComponentCategory("BepuDemo - Car")]
     public class CarComponent : SimulationUpdateComponent
     {
         public const float GEAR_UP_VALUE = 0.9f;
@@ -136,7 +137,7 @@ namespace Stride.BepuPhysics.Components.Car
                 $"WheelAverageRPM:{WheelAverageRPM}" + " | " +
                 $"AverageRPM:{(int)LastsRPMList.Average()}" + " | " +
                 $"CurrentRPM:{CurrentRPM}" + " | " +
-                $"", new(100, 100));
+                $"", new(100, 1000));
         }
         public override void SimulationUpdate(float simTimeStep)
         {
@@ -258,8 +259,8 @@ namespace Stride.BepuPhysics.Components.Car
                         var wheelBody = e.Get<BodyContainerComponent>();
                         // do we want to get rid of the GetPhysicBody() method? 
                         var rotationNormal = GetWheelRotationNormal(wheelBody);
-						wheelBody.ApplyAngularImpulse(rotationNormal * engineForce);
-						wheelBody.Awake = true;
+                        wheelBody.ApplyAngularImpulse(rotationNormal * engineForce);
+                        wheelBody.Awake = true;
                     });
 
                 if (brakeForce != 0f)
@@ -280,15 +281,15 @@ namespace Stride.BepuPhysics.Components.Car
                         var brakeVectorLen = brakeVector.Length();
                         if (brakeVectorLen > Math.Abs(averageWheelRPM) * 0.01f)
                         {
-							//brakeVector = brakeVector / brakeVectorLen * Math.Abs(averageWheelRPM) * 0.01f;
-							wheelBody.AngularVelocity = Vector3.Zero;
+                            //brakeVector = brakeVector / brakeVectorLen * Math.Abs(averageWheelRPM) * 0.01f;
+                            wheelBody.AngularVelocity = Vector3.Zero;
                         }
                         else
                         {
-							// Apply the braking force
-							wheelBody.ApplyAngularImpulse(brakeVector);
+                            // Apply the braking force
+                            wheelBody.ApplyAngularImpulse(brakeVector);
                         }
-						wheelBody.Awake = true;
+                        wheelBody.Awake = true;
                     });
             }
         }
@@ -377,7 +378,7 @@ namespace Stride.BepuPhysics.Components.Car
                 var wheelBody = e.Get<BodyContainerComponent>();
 
                 var rotationNormal = GetWheelRotationNormal(wheelBody);
-				wheelBody.AngularVelocity = CurrentRPM * CarEngine.Gears[CurrentGear].GearRatio * rotationNormal;
+                wheelBody.AngularVelocity = CurrentRPM * CarEngine.Gears[CurrentGear].GearRatio * rotationNormal;
             });
         }
 

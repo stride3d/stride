@@ -41,7 +41,7 @@ public class CharacterComponent : SimulationUpdateComponent
             return;
 
         CharacterBody.FrictionCoefficient = 0f;
-        CharacterBody.UpdateInertia(new BodyInertia { InverseMass = 1f });
+        CharacterBody.BodyInertia = new BodyInertia { InverseMass = 1f };
 
         _collisionEvents = new(this);
         CharacterBody.ContactEventHandler = _collisionEvents;
@@ -49,11 +49,11 @@ public class CharacterComponent : SimulationUpdateComponent
 
     public override void Update()
     {
-        DebugText.Print($"Mouse delta : {Input.MouseDelta}", new Int2(50, 50));
-        DebugText.Print($"Velocity : {Velocity}", new Int2(50, 75));
-        DebugText.Print($"Orientation : {Orientation}", new Int2(50, 100));
-        DebugText.Print($"IsGrounded : {IsGrounded}", new Int2(50, 150));
-        DebugText.Print($"ContactPoints count : {_collisionEvents?.Contacts.Count ?? 0}", new Int2(50, 175));
+        DebugText.Print($"Mouse delta : {Input.MouseDelta}", new Int2(50, 950));
+        DebugText.Print($"Velocity : {Velocity}", new Int2(50, 975));
+        DebugText.Print($"Orientation : {Orientation}", new Int2(50, 1000));
+        DebugText.Print($"IsGrounded : {IsGrounded}", new Int2(50, 1025));
+        DebugText.Print($"ContactPoints count : {_collisionEvents?.Contacts.Count ?? 0}", new Int2(50, 1050));
     }
 
     public void Move(Vector3 direction)
@@ -89,7 +89,7 @@ public class CharacterComponent : SimulationUpdateComponent
         if (_tryJump)
         {
             if (IsGrounded)
-				CharacterBody.ApplyImpulse(Vector3.UnitY * JumpSpeed * 10);
+				CharacterBody.ApplyLinearImpulse(Vector3.UnitY * JumpSpeed * 10);
             _tryJump = false;
         }
     }
@@ -98,7 +98,7 @@ public class CharacterComponent : SimulationUpdateComponent
         if (CharacterBody == null)
             return;
         
-        if (CharacterBody != null && IsGrounded)
+        if (IsGrounded)
         {
             var linVeloExceptY = CharacterBody.LinearVelocity * new Vector3(1, 0, 1);
             var linVeloExceptYLen = linVeloExceptY.Length();

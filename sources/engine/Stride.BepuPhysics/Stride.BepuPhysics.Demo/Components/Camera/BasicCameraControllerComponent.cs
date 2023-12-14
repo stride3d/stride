@@ -4,7 +4,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
-namespace Stride.BepuPhysics.Demo.Camera
+namespace Stride.BepuPhysics.Demo.Components.Camera
 {
     /// <summary>
     /// A script that allows to move and rotate an entity through keyboard, mouse and touch input to provide basic camera navigation.
@@ -13,6 +13,7 @@ namespace Stride.BepuPhysics.Demo.Camera
     /// The entity can be moved using W, A, S, D, Q and E, arrow keys, a gamepad's left stick or dragging/scaling using multi-touch.
     /// Rotation is achieved using the Numpad, the mouse while holding the right mouse button, a gamepad's right stick, or dragging using single-touch.
     /// </remarks>
+    [ComponentCategory("BepuDemo - Camera")]
     public class BasicCameraControllerComponent : SyncScript
     {
         private const float MaximumPitch = MathUtil.PiOverTwo * 0.99f;

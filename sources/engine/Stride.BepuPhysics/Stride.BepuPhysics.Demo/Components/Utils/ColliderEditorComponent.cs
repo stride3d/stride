@@ -6,10 +6,10 @@ using Stride.Input;
 
 #warning This should not be part of the base API, move it to demo/sample
 
-namespace Stride.BepuPhysics.Components.Utils
+namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
-    [ComponentCategory("Bepu - Utils")]
+    [ComponentCategory("BepuDemo - Utils")]
     public class ColliderEditorComponent : SyncScript
     {
         public ColliderComponent? Component { get; set; }
@@ -40,7 +40,7 @@ namespace Stride.BepuPhysics.Components.Utils
                 if (rr != null)
                     rr.Kinematic = !rr.Kinematic;
             }
-            DebugText.Print($"Size : {((BoxColliderComponent)Component).Size} (numpad u & j) + n for toggle kinematic", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 350));
+            DebugText.Print($"Size : {((BoxColliderComponent)Component).Size} (numpad u & j) + n for toggle kinematic", new(Game.Window.PreferredWindowedSize.X - 500, 350));
         }
     }
 }

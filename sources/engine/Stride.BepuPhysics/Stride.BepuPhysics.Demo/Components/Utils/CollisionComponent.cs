@@ -7,10 +7,10 @@ using Stride.Engine;
 
 #warning This should not be part of the base API, move it to demo/sample
 
-namespace Stride.BepuPhysics.Components.Utils
+namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
-    [ComponentCategory("Bepu - Utils")]
+    [ComponentCategory("BepuDemo - Utils")]
     public class CollisionComponent : SyncScript
     {
 
@@ -38,7 +38,7 @@ namespace Stride.BepuPhysics.Components.Utils
 
         public override void Update()
         {
-            DebugText.Print($"1 : {MyCustomContactEventHandler1.Contact}  |  2 : {MyCustomContactEventHandler2.Contact}  |  3 : {MyCustomContactEventHandler3.Contact}  |  4 : {MyCustomContactEventHandler4.Contact}", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 800));
+            DebugText.Print($"1 : {MyCustomContactEventHandler1.Contact}  |  2 : {MyCustomContactEventHandler2.Contact}  |  3 : {MyCustomContactEventHandler3.Contact}  |  4 : {MyCustomContactEventHandler4.Contact}", new(Game.Window.PreferredWindowedSize.X - 500, 800));
         }
     }
 

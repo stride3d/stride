@@ -1,11 +1,12 @@
-﻿using Stride.Core.Mathematics;
+﻿using Stride.BepuPhysics.Components.Character;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
 #warning this should be moved to demo/sample
 
-namespace Stride.BepuPhysics.Components.Character;
-[ComponentCategory("Bepu - Character")]
+namespace Stride.BepuPhysics.Demo.Components.Character;
+[ComponentCategory("BepuDemo - Character")]
 public class CharacterControllerComponent : SyncScript
 {
     public Entity? CameraPivot { get; set; }

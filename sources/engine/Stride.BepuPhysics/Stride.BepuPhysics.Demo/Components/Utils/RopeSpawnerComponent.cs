@@ -1,16 +1,18 @@
-﻿using Stride.BepuPhysics.Components.Constraints;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Stride.BepuPhysics.Components.Constraints;
 using Stride.BepuPhysics.Components.Containers;
-using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
 #warning This should not be part of the base API, move it to demo/sample
 
-namespace Stride.BepuPhysics.Components.Utils
+namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
-    [ComponentCategory("Bepu - Utils")]
+    [ComponentCategory("BepuDemo - Utils")]
     public class RopeSpawnerComponent : StartupScript
     {
         public int SimulationIndex { get; set; } = 0;

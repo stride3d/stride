@@ -5,10 +5,10 @@ using Stride.Input;
 
 #warning This should not be part of the base API, move it to demo/sample
 
-namespace Stride.BepuPhysics.Components.Utils
+namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
-    [ComponentCategory("Bepu - Utils")]
+    [ComponentCategory("BepuDemo - Utils")]
     public class ConstraintEditorComponent : SyncScript
     {
         public BaseConstraintComponent? Component { get; set; }
@@ -32,7 +32,7 @@ namespace Stride.BepuPhysics.Components.Utils
                 ((BallSocketConstraintComponent)Component).LocalOffsetB -= new Core.Mathematics.Vector3(0, 1, 0);
             }
 
-            DebugText.Print($"LocalOffsetB : {((BallSocketConstraintComponent)Component).LocalOffsetB} (numpad i & k)", new(BepuAndStrideExtensions.X_DEBUG_TEXT_POS, 300));
+            DebugText.Print($"LocalOffsetB : {((BallSocketConstraintComponent)Component).LocalOffsetB} (numpad i & k)", new(Game.Window.PreferredWindowedSize.X - 500, 300));
         }
     }
 }

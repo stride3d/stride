@@ -1,11 +1,13 @@
-﻿using Stride.BepuPhysics.Components.Containers;
+﻿using System.Linq;
+using Stride.BepuPhysics.Components;
+using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
 #warning This should not be part of the base API, move it to demo/sample
 
-namespace Stride.BepuPhysics.Components.Utils
+namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     public abstract class Spawner : SimulationUpdateComponent
     {
@@ -25,13 +27,13 @@ namespace Stride.BepuPhysics.Components.Utils
             {
                 instance.Master = Instancing;
             }
-            
+
             Entity.AddChild(entity);
 
             if (entity.Get<ContainerComponent>() is BodyContainerComponent body)
             {
                 body.SimulationIndex = SimulationIndex;
-				body?.ApplyImpulse(Impulse, ImpulsePos);
+                body?.ApplyImpulse(Impulse, ImpulsePos);
             }
         }
     }
