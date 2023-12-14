@@ -41,7 +41,7 @@ public class CharacterComponent : SimulationUpdateComponent
             return;
 
         CharacterBody.FrictionCoefficient = 0f;
-        CharacterBody.BodyInertia = new BodyInertia { InverseMass = 1f };
+        CharacterBody.UpdateInertia(new BodyInertia { InverseMass = 1f });
 
         _collisionEvents = new(this);
         CharacterBody.ContactEventHandler = _collisionEvents;
@@ -89,7 +89,7 @@ public class CharacterComponent : SimulationUpdateComponent
         if (_tryJump)
         {
             if (IsGrounded)
-				CharacterBody.ApplyLinearImpulse(Vector3.UnitY * JumpSpeed * 10);
+				CharacterBody.ApplyImpulse(Vector3.UnitY * JumpSpeed * 10);
             _tryJump = false;
         }
     }

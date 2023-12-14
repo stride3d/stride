@@ -1,4 +1,3 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33723.286
@@ -8,6 +7,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Demo", "Stride.BepuPhysics.Demo\Stride.BepuPhysics.Demo.csproj", "{C72D80DB-B3A3-49F3-AB1A-A7FCF01959AF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Demo.Windows", "Stride.BepuPhysics.Demo.Windows\Stride.BepuPhysics.Demo.Windows.csproj", "{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics.Navigation", "Stride.BepuPhysics.Navigation\Stride.BepuPhysics.Navigation.csproj", "{B40B5174-1168-421E-AF88-18B32E82E96D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +28,10 @@ Global
 		{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B40B5174-1168-421E-AF88-18B32E82E96D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B40B5174-1168-421E-AF88-18B32E82E96D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B40B5174-1168-421E-AF88-18B32E82E96D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B40B5174-1168-421E-AF88-18B32E82E96D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

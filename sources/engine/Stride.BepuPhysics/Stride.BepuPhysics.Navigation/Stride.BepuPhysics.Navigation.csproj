@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotRecast.Core" Version="2023.11.1" />
+    <PackageReference Include="DotRecast.Detour" Version="2023.11.1" />
+    <PackageReference Include="DotRecast.Recast" Version="2023.11.1" />
+    <PackageReference Include="DotRecast.Recast.Toolset" Version="2023.11.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
+  </ItemGroup>
+
+</Project>
