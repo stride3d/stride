@@ -275,7 +275,7 @@ Hierarchy:
                 Components:
                     f8b64ae82d05af3c41344ae985864f85: !TransformComponent
                         Id: 241c9b4e-4599-4c1c-933e-01e36fbba8c6
-                        Position: {X: -50.0, Y: 22.704458, Z: 120.0}
+                        Position: {X: -50.0, Y: 25.0, Z: 120.0}
                         Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
                         Scale: {X: 10.0, Y: 10.0, Z: 10.0}
                         Children: {}
@@ -297,7 +297,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Mass: 10.0
                         Closed: true
-                        Model: null
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
         -   Entity:
                 Id: 41074201-12d7-44e3-9d28-77d4e368a099
                 Name: RayStart
@@ -443,7 +443,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Mass: 10.0
                         Closed: true
-                        Model: null
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
         -   Entity:
                 Id: 7363a9f5-96b3-45d9-8d5f-9a734ab3aec5
                 Name: Wall

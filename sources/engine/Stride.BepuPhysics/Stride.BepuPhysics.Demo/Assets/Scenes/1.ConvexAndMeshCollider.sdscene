@@ -235,6 +235,7 @@ Hierarchy:
                             b9583be1ef532576598946b565ad7cda: ref!! f7225640-729f-4c2b-8183-b6cac491f034
                             a22e30ca7428735d08eed9e59ad7c184: ref!! f424efd2-8a25-41c5-8fa7-917fc2fe8671
                             f39891ebe138ab2a03f959db1010df3d: ref!! 54515d4f-6db5-42f7-84e7-9b1023ee5e67
+                            c7e5954a32fc50377c413bbd91784fac: ref!! daae391d-82fd-4c12-8ebb-e610f51495cb
                     eeabfda15ef248d6bb1e4f6914eb65e5: !Stride.BepuPhysics.Components.Utils.ThrowerComponent,Stride.BepuPhysics
                         Id: db22e701-c1c0-43cd-a3ed-e5c432420af0
                         SimulationIndex: 0
@@ -242,6 +243,37 @@ Hierarchy:
                         Instancing: ref!! 111e74c1-c110-46d9-982e-12db7994528e
                         SpawnPosition: ref!! 51d95bd6-85f7-428e-bb1c-1c29b077e964
                         Speed: 10.0
+        -   Entity:
+                Id: ebf4c5b5-32de-47a3-8acb-4cb55cb42ea6
+                Name: HexMeshContainer
+                Components:
+                    66cac410afc07a16ebb76822d8064ccb: !TransformComponent
+                        Id: daae391d-82fd-4c12-8ebb-e610f51495cb
+                        Position: {X: 0.0, Y: 25.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    207514e1bffd4dc7dd5702d8a60ca54d: !ModelComponent
+                        Id: 6d258551-edf6-44f8-912b-9d4567254e8f
+                        Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
+                        Materials:
+                            b5330a6b01f889d72e378d43ee7f5913~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                            e1fde20fec8c37dfcd862bc055bd12da~1: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                    0b58198bdbe58566bb7d760ef8434fa2: !Stride.BepuPhysics.Components.Containers.BodyMeshContainerComponent,Stride.BepuPhysics
+                        Id: 7fc5c406-3821-4ead-89e7-0cbcbf912835
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        Mass: 1.0
+                        Closed: true
+                        Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
         -   Entity:
                 Id: f1fb92e1-1faf-4538-9668-05f1417337b6
                 Name: CubeInstancing
