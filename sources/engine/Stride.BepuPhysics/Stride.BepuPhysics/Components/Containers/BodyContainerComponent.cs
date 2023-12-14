@@ -163,13 +163,14 @@ namespace Stride.BepuPhysics.Components.Containers
 					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(shape.Index);
 					break;
 			}
+
             return null;
 		}
         private GeometricMeshData<VertexPositionNormalTexture> GetBoxVerts(Box box)
         {
             var boxDescription = new BoxColliderShapeDesc()
             {
-
+                Size = new Vector3(box.Width, box.Height, box.Length)
             };
             return GeometricPrimitive.Cube.New(boxDescription.Size, toLeftHanded: true);
             //box.
@@ -178,7 +179,8 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             var capsuleDescription = new CapsuleColliderShapeDesc()
             {
-
+                Length = capsule.Length,
+                Radius = capsule.Radius
 			};
             return GeometricPrimitive.Capsule.New(capsuleDescription.Length, capsuleDescription.Radius, 8, toLeftHanded: true);
         }
@@ -186,6 +188,7 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             var sphereDescription = new SphereColliderShapeDesc()
             {
+                Radius = sphere.Radius
             };
             return GeometricPrimitive.Sphere.New(sphereDescription.Radius, 16, toLeftHanded: true);
         }
@@ -193,6 +196,8 @@ namespace Stride.BepuPhysics.Components.Containers
         {
 			var cylinderDescription = new CylinderColliderShapeDesc()
             {
+                Height = cylinder.Length,
+				Radius = cylinder.Radius
 			};
 			return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
 		}
