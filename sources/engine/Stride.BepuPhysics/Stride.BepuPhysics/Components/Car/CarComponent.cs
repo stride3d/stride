@@ -256,47 +256,39 @@ namespace Stride.BepuPhysics.Components.Car
                     DriveWheels.ForEach(e =>
                     {
                         var wheelBody = e.Get<BodyContainerComponent>();
-                        var bodyRef = wheelBody.GetPhysicBody();
-                        if (bodyRef == null)
-                            return;
-                        var bodyRefn = bodyRef.Value;
-
-                        var rotationNormal = GetWheelRotationNormal(bodyRefn);
-                        bodyRefn.ApplyAngularImpulse(rotationNormal.ToNumericVector() * engineForce);
-                        bodyRefn.Awake = true;
+                        // do we want to get rid of the GetPhysicBody() method? 
+                        var rotationNormal = GetWheelRotationNormal(wheelBody);
+						wheelBody.ApplyAngularImpulse(rotationNormal * engineForce);
+						wheelBody.Awake = true;
                     });
 
                 if (brakeForce != 0f)
                     BreakWheels.ForEach(e =>
                     {
                         var wheelBody = e.Get<BodyContainerComponent>();
-                        var bodyRef = wheelBody.GetPhysicBody();
-                        if (bodyRef == null)
-                            return;
-                        var bodyRefn = bodyRef.Value;
 
-                        var rotationNormal = GetWheelRotationNormal(bodyRefn);
-                        var averageWheelRPM = GetWheelAverageRPM(bodyRefn);
+                        var rotationNormal = GetWheelRotationNormal(wheelBody);
+                        var averageWheelRPM = GetWheelAverageRPM(wheelBody);
 
                         // Determine the direction of rotation
                         float rotationDirection = averageWheelRPM > 0 ? -1f : 1f;
 
                         // Calculate the braking force vector
-                        var brakeVector = rotationDirection * rotationNormal.ToNumericVector() * brakeForce;
+                        var brakeVector = rotationDirection * rotationNormal * brakeForce;
 
                         // Adjust the braking force to avoid over-braking
                         var brakeVectorLen = brakeVector.Length();
                         if (brakeVectorLen > Math.Abs(averageWheelRPM) * 0.01f)
                         {
-                            //brakeVector = brakeVector / brakeVectorLen * Math.Abs(averageWheelRPM) * 0.01f;
-                            bodyRefn.Velocity.Angular = Vector3.Zero.ToNumericVector();
+							//brakeVector = brakeVector / brakeVectorLen * Math.Abs(averageWheelRPM) * 0.01f;
+							wheelBody.AngularVelocity = Vector3.Zero;
                         }
                         else
                         {
-                            // Apply the braking force
-                            bodyRefn.ApplyAngularImpulse(brakeVector);
+							// Apply the braking force
+							wheelBody.ApplyAngularImpulse(brakeVector);
                         }
-                        bodyRefn.Awake = true;
+						wheelBody.Awake = true;
                     });
             }
         }
@@ -383,37 +375,32 @@ namespace Stride.BepuPhysics.Components.Car
             DriveWheels.ForEach(e =>
             {
                 var wheelBody = e.Get<BodyContainerComponent>();
-                var bodyRef = wheelBody.GetPhysicBody();
-                if (bodyRef == null)
-                    return;
 
-                var rotationNormal = GetWheelRotationNormal(bodyRef.Value);
-                bodyRef.Value.Velocity.Angular = CurrentRPM * CarEngine.Gears[CurrentGear].GearRatio * rotationNormal.ToNumericVector();
+                var rotationNormal = GetWheelRotationNormal(wheelBody);
+				wheelBody.AngularVelocity = CurrentRPM * CarEngine.Gears[CurrentGear].GearRatio * rotationNormal;
             });
         }
 
         private float GetWheelsAverageRPM() => DriveWheels.Select(e =>
         {
             var wheelBody = e.Get<BodyContainerComponent>();
-            var bodyRef = wheelBody.GetPhysicBody();
-            if (bodyRef == null)
-                return 0;
-            return GetWheelAverageRPM(bodyRef.Value);
+
+            return GetWheelAverageRPM(wheelBody);
         }).Average();
-        private float GetWheelAverageRPM(BodyReference e)
+        private float GetWheelAverageRPM(BodyContainerComponent e)
         {
             var rotationNormal = GetWheelRotationNormal(e);
-            var angularVelocity = e.Velocity.Angular.ToStrideVector();
+            var angularVelocity = e.AngularVelocity;
 
             var dotProduct = Vector3.Dot(angularVelocity, rotationNormal);
             var result = dotProduct;
 
             return result;
         }
-        private Vector3 GetWheelRotationNormal(BodyReference e)
+        private Vector3 GetWheelRotationNormal(BodyContainerComponent e)
         {
             var unitVec = new Vector3(0, 1, 0);
-            e.Pose.Orientation.ToStrideQuaternion().Rotate(ref unitVec);
+            e.Orientation.Rotate(ref unitVec);
             return unitVec;
         }
 

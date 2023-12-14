@@ -124,5 +124,9 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             GetRef().ApplyLinearImpulse(impulse.ToNumericVector());
         }
+        public void UpdateInertia(BodyInertia inertia)
+        {
+            GetRef().LocalInertia = inertia;
+		}
     }
 }
