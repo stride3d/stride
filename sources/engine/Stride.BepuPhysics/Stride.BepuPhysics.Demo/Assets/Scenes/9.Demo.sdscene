@@ -310,7 +310,7 @@ Hierarchy:
                         Speed: 20.0
                     c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
                         Id: 838f3106-85d9-418c-af01-4e6b0dc4d306
-                        Description: 'SimIndex : 0. Sample usages of colliders.'
+                        Description: 'SimIndex : 0. Demo for showcase.'
                     4082eead088a8122a68e86af53d3eb11: !TransformComponent
                         Id: 0dcc10a4-d9cf-4a0f-929e-da8aa6dce4c3
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}

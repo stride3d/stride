@@ -122,7 +122,7 @@ Hierarchy:
                         Speed: 20.0
                     c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
                         Id: 898a23c5-9c7c-46f9-bf17-d9cc3fa67e88
-                        Description: 'SimIndex : 0. Sample usages of colliders.'
+                        Description: 'SimIndex : 0. Sample of materials properties. Red = high friction, Blue = low recovery, green = colliderMask'
                     4082eead088a8122a68e86af53d3eb11: !TransformComponent
                         Id: 8657283a-2d68-4623-bb85-529e22eab6e5
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
