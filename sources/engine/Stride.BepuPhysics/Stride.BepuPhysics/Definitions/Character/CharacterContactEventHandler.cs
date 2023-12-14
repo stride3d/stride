@@ -52,7 +52,8 @@ public class CharacterContactEventHandler : IContactEventHandler
         var otherContainer = _characterComponent.CharacterBody == containerA ? containerB : containerA;
 
         contactManifold.GetContact(contactIndex, out var contact);
-        #warning likely need to transform contact from local to world instead of this ?
+        #warning likely need to transform contact from local to world instead of this 
+        //Nicogo : It is a world pos, just did it the easy and bad way
         contact.Offset = contact.Offset + containerA.Entity.Transform.GetWorldPos().ToNumericVector() + containerA.CenterOfMass.ToNumericVector();
         Contacts.Add((otherContainer, contact));
     }

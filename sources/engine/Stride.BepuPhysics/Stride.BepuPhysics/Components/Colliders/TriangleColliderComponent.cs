@@ -9,6 +9,7 @@ using Stride.Engine.Design;
 using Stride.Games;
 
 #warning I don't think this would have any actual use, you can keep this internal if you want to keep it for debugging purposes
+//Nicogo : i'm mostly ok with that statement, but it's here & free, i think someone will find an use case ;)
 
 namespace Stride.BepuPhysics.Components.Colliders
 {

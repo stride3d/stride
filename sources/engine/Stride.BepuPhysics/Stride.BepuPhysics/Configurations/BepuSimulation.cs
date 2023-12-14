@@ -326,5 +326,4 @@ public class BepuSimulation
 
     #endregion
 
-
 }
