@@ -176,7 +176,7 @@ Hierarchy:
                         Id: 2ff871dc-8080-49b6-b7f8-6b28a514574a
                         Position: {X: 20.0, Y: 3.0, Z: 20.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 5.0, Y: 5.0, Z: 5.0}
+                        Scale: {X: 10.0, Y: 5.0, Z: 10.0}
                         Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: 588053a1-b036-4d07-993a-43ba72d313cb
@@ -186,7 +186,7 @@ Hierarchy:
                     cfe6ca477f4cc95536e596656bac380c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: 1ee747ba-d2b3-45b9-8133-f9232d2eea5f
                         Mass: 1.0
-                        Size: {X: 5.0, Y: 5.0, Z: 5.0}
+                        Size: {X: 10.0, Y: 5.0, Z: 10.0}
                     131b29d1bfa5788de12bb234fb91afd5: !Stride.BepuPhysics.Components.Containers.TriggerContainerComponent,Stride.BepuPhysics
                         Id: 4f3dc2aa-51ed-4b02-8fe2-da628f85faaf
                         SimulationIndex: 1
