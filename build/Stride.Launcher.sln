@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation.Pre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Packages", "..\sources\assets\Stride.Core.Packages\Stride.Core.Packages.csproj", "{1F5FBA04-C334-41C2-895A-ACC4B786F99E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
@@ -99,6 +101,10 @@ Global
 		{1F5FBA04-C334-41C2-895A-ACC4B786F99E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F5FBA04-C334-41C2-895A-ACC4B786F99E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F5FBA04-C334-41C2-895A-ACC4B786F99E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
