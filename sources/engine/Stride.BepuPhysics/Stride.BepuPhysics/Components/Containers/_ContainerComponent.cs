@@ -287,8 +287,8 @@ namespace Stride.BepuPhysics.Components.Containers
 		{
 			var capsuleDescription = new CapsuleColliderShapeDesc()
 			{
-				Length = capsule.Length,
-				Radius = capsule.Radius
+				//Length = capsule.Length,
+				//Radius = capsule.Radius
 			};
 			return GeometricPrimitive.Capsule.New(capsuleDescription.Length, capsuleDescription.Radius, 8, toLeftHanded: true);
 		}
@@ -296,7 +296,7 @@ namespace Stride.BepuPhysics.Components.Containers
 		{
 			var sphereDescription = new SphereColliderShapeDesc()
 			{
-				Radius = sphere.Radius
+				//Radius = sphere.Radius
 			};
 			return GeometricPrimitive.Sphere.New(sphereDescription.Radius, 16, toLeftHanded: true);
 		}
@@ -304,8 +304,8 @@ namespace Stride.BepuPhysics.Components.Containers
 		{
 			var cylinderDescription = new CylinderColliderShapeDesc()
 			{
-				Height = cylinder.Length,
-				Radius = cylinder.Radius
+				//Height = cylinder.Length,
+				//Radius = cylinder.Radius
 			};
 			return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
 		}
