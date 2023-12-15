@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.IO", "..\source
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.MicroThreading", "..\sources\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj", "{076940AD-70F3-47A8-827C-8E722714F937}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{61E90191-22FF-4ADC-AFD0-FAB662589AB4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Wpf", "..\sources\presentation\Stride.Core.Presentation.Wpf\Stride.Core.Presentation.Wpf.csproj", "{61E90191-22FF-4ADC-AFD0-FAB662589AB4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Dialogs", "..\sources\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Dialogs.csproj", "{5EB0493A-076D-4488-AF08-D812FB3FDF7C}"
 EndProject

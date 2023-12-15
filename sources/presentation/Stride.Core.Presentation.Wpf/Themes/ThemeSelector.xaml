@@ -28,7 +28,7 @@
                     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="generic.xaml"/>
-    <ResourceDictionary Source="pack://application:,,,/Stride.Core.Presentation;component/Resources/VectorResources.xaml" />
+    <ResourceDictionary Source="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/VectorResources.xaml" />
     <!--
     // ExpressionDark is the default/fallback theme.
     // When adding a new theme, ensure all themes:ThemeResourceDictionary in every *.xaml files
@@ -56,22 +56,22 @@
 
   <Geometry x:Key="GeometryDelete">F1 M 25.3333,23.75L 50.6667,23.75C 51.5411,23.75 51.8541,27.3125 51.8541,27.3125L 24.1458,27.3125C 24.1458,27.3125 24.4589,23.75 25.3333,23.75 Z M 35.625,19.7917L 40.375,19.7917C 40.8122,19.7917 41.9583,20.9378 41.9583,21.375C 41.9583,21.8122 40.8122,22.9584 40.375,22.9584L 35.625,22.9584C 35.1878,22.9584 34.0416,21.8122 34.0416,21.375C 34.0416,20.9378 35.1878,19.7917 35.625,19.7917 Z M 27.7083,28.5L 48.2916,28.5C 49.1661,28.5 49.875,29.2089 49.875,30.0834L 48.2916,53.8334C 48.2916,54.7078 47.5828,55.4167 46.7083,55.4167L 29.2917,55.4167C 28.4172,55.4167 27.7083,54.7078 27.7083,53.8334L 26.125,30.0834C 26.125,29.2089 26.8339,28.5 27.7083,28.5 Z M 30.0833,31.6667L 30.4792,52.25L 33.25,52.25L 32.8542,31.6667L 30.0833,31.6667 Z M 36.4167,31.6667L 36.4167,52.25L 39.5833,52.25L 39.5833,31.6667L 36.4167,31.6667 Z M 43.1458,31.6667L 42.75,52.25L 45.5208,52.25L 45.9167,31.6667L 43.1458,31.6667 Z</Geometry>
 
-  <BitmapImage x:Key="ImageCloseWindow" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/close_window.png" />
-  <BitmapImage x:Key="ImageMaximizeWindow" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/maximize_window.png" />
-  <BitmapImage x:Key="ImageMinimizeWindow" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/minimize_window.png" />
-  <BitmapImage x:Key="ImageRestoreWindow" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/restore_window.png" />
+  <BitmapImage x:Key="ImageCloseWindow" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/close_window.png" />
+  <BitmapImage x:Key="ImageMaximizeWindow" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/maximize_window.png" />
+  <BitmapImage x:Key="ImageMinimizeWindow" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/minimize_window.png" />
+  <BitmapImage x:Key="ImageRestoreWindow" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/restore_window.png" />
 
-  <BitmapImage x:Key="ImageErrorDialog" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/error-32.png" />
-  <BitmapImage x:Key="ImageInformationDialog" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/info-32.png" />
-  <BitmapImage x:Key="ImageQuestionDialog" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/question-32.png" />
-  <BitmapImage x:Key="ImageWarningDialog" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/warning-32.png" />
+  <BitmapImage x:Key="ImageErrorDialog" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/error-32.png" />
+  <BitmapImage x:Key="ImageInformationDialog" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/info-32.png" />
+  <BitmapImage x:Key="ImageQuestionDialog" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/question-32.png" />
+  <BitmapImage x:Key="ImageWarningDialog" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/warning-32.png" />
 
-  <BitmapImage x:Key="ImageAdvancedEditionVector" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/gear--pencil.png" />
-  <BitmapImage x:Key="ImagePickDateTime" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/calendar--pencil.png" />
-  <BitmapImage x:Key="ImageReset" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/eraser.png" />
-  <BitmapImage x:Key="ImageLocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock.png" />
-  <BitmapImage x:Key="ImageUnlocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock-unlock.png" />
-  <BitmapImage x:Key="ImageLength" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/ruler-triangle.png" />
+  <BitmapImage x:Key="ImageAdvancedEditionVector" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/gear--pencil.png" />
+  <BitmapImage x:Key="ImagePickDateTime" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/calendar--pencil.png" />
+  <BitmapImage x:Key="ImageReset" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/eraser.png" />
+  <BitmapImage x:Key="ImageLocked" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/lock.png" />
+  <BitmapImage x:Key="ImageUnlocked" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/lock-unlock.png" />
+  <BitmapImage x:Key="ImageLength" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/ruler-triangle.png" />
 
   <!--  WINDOWS  -->
   <ControlTemplate x:Key="MainWindowButtonTemplate" TargetType="{x:Type Button}">
@@ -1800,7 +1800,7 @@
     <Setter Property="interactivity:Interaction.Behaviors">
       <Setter.Value>
         <interactivity:BehaviorCollection>
-          <behaviors:NumericTextBoxDragBehavior UsePreviewEvents="True" DragCursor="/Stride.Core.Presentation;component/Resources/Cursors/CursorDrag.cur" />
+          <behaviors:NumericTextBoxDragBehavior UsePreviewEvents="True" DragCursor="/Stride.Core.Presentation.Wpf;component/Resources/Cursors/CursorDrag.cur" />
         </interactivity:BehaviorCollection>
       </Setter.Value>
     </Setter>

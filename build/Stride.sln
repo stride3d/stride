@@ -93,7 +93,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stride.Importer.FBX", "..\s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Shaders", "..\sources\shaders\Stride.Core.Shaders\Stride.Core.Shaders.csproj", "{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{47AFCC2E-E9F0-47D6-9D75-9E646546A92B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Wpf", "..\sources\presentation\Stride.Core.Presentation.Wpf\Stride.Core.Presentation.Wpf.csproj", "{47AFCC2E-E9F0-47D6-9D75-9E646546A92B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Tests", "..\sources\presentation\Stride.Core.Presentation.Tests\Stride.Core.Presentation.Tests.csproj", "{C223FCD7-CDCC-4943-9E11-9C2CC8FA9FC4}"
 EndProject
