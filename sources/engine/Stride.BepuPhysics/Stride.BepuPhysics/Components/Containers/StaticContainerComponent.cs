@@ -1,4 +1,5 @@
 ﻿using BepuPhysics;
+using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
@@ -22,7 +23,7 @@ namespace Stride.BepuPhysics.Components.Containers
         private StaticReference GetRef()
         {
             if (ContainerData == null)
-                throw new Exception("");
+                throw new Exception("Container data is null");
 
             return ContainerData.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
         }
@@ -45,6 +46,16 @@ namespace Stride.BepuPhysics.Components.Containers
             {
                 var bodyRef = GetRef();
                 bodyRef.Pose.Orientation = value.ToNumericQuaternion();
+            }
+        }
+        [DataMemberIgnore]
+        public ContinuousDetection ContinuousDetection
+        {
+            get => GetRef().Continuity;
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Continuity = value;
             }
         }
     }

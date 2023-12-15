@@ -189,45 +189,45 @@ Hierarchy:
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! 285dee99-ee5a-459e-a32f-964531565982
+                        AEntity: ref!! 9da4a590-4d5f-4025-a7d8-d1af645dfa72
                         APos: {X: 0.5, Y: 0.0, Z: 0.0}
-                        B: ref!! 5f8aa385-ebee-4437-b8da-7b71732ed9aa
+                        BEntity: ref!! 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 37338386-f1fd-4664-99fe-e47c8c2e3018
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! 5f8aa385-ebee-4437-b8da-7b71732ed9aa
+                        AEntity: ref!! 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                         APos: {X: 2.0, Y: 0.5, Z: 2.0}
-                        B: ref!! 76b25967-557a-4d2b-ac23-6ea43102150b
+                        BEntity: ref!! fc3864a2-35be-443a-88ba-a14633caf048
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     df8df1e9078962519bb2e906ff5bd744: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: fb6d5eec-10f1-4d6e-bf7b-2321f55c82ed
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! 5f8aa385-ebee-4437-b8da-7b71732ed9aa
+                        AEntity: ref!! 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                         APos: {X: 2.0, Y: 0.5, Z: -2.0}
-                        B: ref!! 76b25967-557a-4d2b-ac23-6ea43102150b
+                        BEntity: ref!! fc3864a2-35be-443a-88ba-a14633caf048
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     f0b1089156066784aa5bb1948f7006de: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 80da0e79-7044-45fa-a057-3fb90902eef1
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! 5f8aa385-ebee-4437-b8da-7b71732ed9aa
+                        AEntity: ref!! 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                         APos: {X: -2.0, Y: 0.5, Z: -2.0}
-                        B: ref!! 76b25967-557a-4d2b-ac23-6ea43102150b
+                        BEntity: ref!! fc3864a2-35be-443a-88ba-a14633caf048
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 57bb2f6a-2f88-4e56-9fba-0a0244447727
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! 5f8aa385-ebee-4437-b8da-7b71732ed9aa
+                        AEntity: ref!! 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                         APos: {X: -2.0, Y: 0.5, Z: 2.0}
-                        B: ref!! 76b25967-557a-4d2b-ac23-6ea43102150b
+                        BEntity: ref!! fc3864a2-35be-443a-88ba-a14633caf048
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
         -   Entity:
                 Id: e3de1bb7-28f2-4979-9d06-118916f511a6
@@ -261,7 +261,7 @@ Hierarchy:
                         Speed: 20.0
                     c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
                         Id: 8da92ee3-7a6a-4b50-b694-247ef911befb
-                        Description: 'SimIndex : 0. Sample usages of colliders.'
+                        Description: 'SimIndex : 0. Sample of ropes.'
                     4082eead088a8122a68e86af53d3eb11: !TransformComponent
                         Id: 46f7cb0b-9f84-4361-b752-537ce5805e48
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}

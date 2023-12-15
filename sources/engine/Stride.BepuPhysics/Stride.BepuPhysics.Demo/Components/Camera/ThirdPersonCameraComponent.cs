@@ -67,7 +67,7 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
                 _thirdPersonPivot.Transform.Position = dynCameraOffset;
                 _thirdPersonPivot.Transform.UpdateWorldMatrix();
 
-                //TODO Bepu raycast
+#warning Bepu raycast could be nice
                 // Raycast from first person pivot to third person pivot
                 //var raycastStart = firstPersonPivot.Transform.WorldMatrix.TranslationVector;
                 //var raycastEnd = thirdPersonPivot.Transform.WorldMatrix.TranslationVector;

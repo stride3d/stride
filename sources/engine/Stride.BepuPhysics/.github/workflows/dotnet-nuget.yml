@@ -36,5 +36,5 @@ jobs:
       run: dotnet build ./Stride.BepuPhysics/Stride.BepuPhysics.csproj -p:Version=${{ env.PACKAGE_VERSION }} --no-restore     
     
     - name: Publish
-      run: dotnet nuget push **\*.nupkg --api-key ${{secrets.NUGETAPIKEY}} --source "github"
-      #run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGETAPIKEY}}
+      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGETAPIKEY}}
+      #run: dotnet nuget push **\*.nupkg --api-key ${{secrets.NUGETAPIKEY}} --source "github"

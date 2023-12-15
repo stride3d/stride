@@ -1,5 +1,7 @@
 # Bepu Physics V2 Integration with Stride 3D - Work in Progress
 
+[![Build nuget package](https://github.com/Nicogo1705/Stride.BepuPhysics/actions/workflows/dotnet-nuget.yml/badge.svg)](https://github.com/Nicogo1705/Stride.BepuPhysics/actions/workflows/dotnet-nuget.yml)
+
 Integrating [Bepu Physics v2](https://github.com/bepu/bepuphysics2) into [Stride](https://github.com/stride3d/stride).
 
 ## Features
@@ -14,7 +16,9 @@ Integrating [Bepu Physics v2](https://github.com/bepu/bepuphysics2) into [Stride
 
 ## Usage
 
-Clone this repository to your local machine and utilize it either as a library within your Stride project or as an independent Stride project.
+-Clone this repository to your local machine and run the stride project. You will have some samples to look at.
+
+-Use our nuget : https://www.nuget.org/packages/Stride.BepuPhysics/
 
 1. **Add Bepu Settings** :
 
@@ -200,7 +204,7 @@ These scripts allow runtime modification of the simulation using keyboard inputs
 
 ## Issues & To-Do
 
-Check out the [TODO.txt](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/blob/master/BepuPhysicIntegrationTest/Todo.txt) for pending tasks and issues.
+Check out the [TODO.txt](https://github.com/Nicogo1705/Stride.BepuPhysics/blob/master/Stride.BepuPhysics.Demo/Todo.txt) for pending tasks and issues.
 
 ## Videos
 Note that in some videos, Bepu simulation settings had been tweaked to maximize performance.

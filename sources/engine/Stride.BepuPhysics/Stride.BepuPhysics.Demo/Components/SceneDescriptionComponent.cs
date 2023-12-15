@@ -16,7 +16,7 @@ namespace Stride.BepuPhysics.Demo.Components
         }
         public override void Update()
         {
-            DebugText.Print($"{Description}", new(Game.Window.PreferredWindowedSize.X - 500, 10));
+            DebugText.Print($"{Description}", new(Game.Window.PreferredWindowedSize.X - 900, 10));
         }
     }
 }

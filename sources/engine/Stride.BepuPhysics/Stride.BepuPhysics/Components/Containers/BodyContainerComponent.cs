@@ -73,7 +73,6 @@ namespace Stride.BepuPhysics.Components.Containers
                 bodyRef.Awake = value;
             }
         }
-
         [DataMemberIgnore]
         public Vector3 LinearVelocity
         {
@@ -94,7 +93,6 @@ namespace Stride.BepuPhysics.Components.Containers
                 bodyRef.Velocity.Angular = value.ToNumericVector();
             }
         }
-
         [DataMemberIgnore]
         public Vector3 Position
         {
@@ -115,17 +113,36 @@ namespace Stride.BepuPhysics.Components.Containers
                 bodyRef.Pose.Orientation = value.ToNumericQuaternion();
             }
         }
-
-		[DataMemberIgnore]
-		public BodyInertia BodyInertia
-		{
-			get => GetRef().LocalInertia;
-			set
-			{
-				var bodyRef = GetRef();
-				bodyRef.LocalInertia = value;
-			}
-		}
+        [DataMemberIgnore]
+        public BodyInertia BodyInertia
+        {
+            get => GetRef().LocalInertia;
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.LocalInertia = value;
+            }
+        }
+        [DataMemberIgnore]
+        public float SpeculativeMargin
+        {
+            get => GetRef().Collidable.SpeculativeMargin;
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Collidable.SpeculativeMargin = value;
+            }
+        }
+        [DataMemberIgnore]
+        public ContinuousDetection ContinuousDetection
+        {
+            get => GetRef().Collidable.Continuity;
+            set
+            {
+                var bodyRef = GetRef();
+                bodyRef.Collidable.Continuity = value;
+            }
+        }
 
 		public void ApplyLinearImpulse(Vector3 impulse, Vector3 impulseOffset)
         {

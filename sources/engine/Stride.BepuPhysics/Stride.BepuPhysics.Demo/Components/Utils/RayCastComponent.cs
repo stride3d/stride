@@ -39,7 +39,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 var i = 0;
                 foreach (var hitInfo in result.HitInformations)
                 {
-                    DebugText.Print($"T : {hitInfo.T}  |  normal : {hitInfo.Normal}  |  Entity : {hitInfo.Container?.Entity} (worldDir : {worldDir})", new((int)(Game.Window.PreferredWindowedSize.X - 500 / 1.3f), 830 + 25 * i));
+                    DebugText.Print($"T : {hitInfo.Distance}  |  normal : {hitInfo.Normal}  |  Entity : {hitInfo.Container?.Entity} (worldDir : {worldDir})", new((int)(Game.Window.PreferredWindowedSize.X - 500 / 1.3f), 830 + 25 * i));
                     i++;
                 }
             }

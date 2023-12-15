@@ -1,4 +1,5 @@
 ﻿using Stride.BepuPhysics.Components.Character;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
@@ -10,6 +11,8 @@ namespace Stride.BepuPhysics.Demo.Components.Character;
 public class CharacterControllerComponent : SyncScript
 {
     public Entity? CameraPivot { get; set; }
+    public Entity? CharacterEntity { get; set; }
+    [DataMemberIgnore]
     public CharacterComponent? Character { get; set; }
 
     public float MinCameraAngle { get; set; } = -90;
@@ -19,6 +22,7 @@ public class CharacterControllerComponent : SyncScript
 
     public override void Start()
     {
+        Character = CharacterEntity?.Get<CharacterComponent>();
         Input.LockMousePosition(true);
         Game.IsMouseVisible = false;
 

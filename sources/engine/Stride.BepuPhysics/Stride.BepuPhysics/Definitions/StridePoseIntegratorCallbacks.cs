@@ -2,7 +2,7 @@
 using BepuPhysics;
 using BepuUtilities;
 
-//TODO : allow better Editor/runtime modifications of StridePoseIntegratorCallbacks
+#warning allow better Editor/runtime modifications of StridePoseIntegratorCallbacks
 
 namespace Stride.BepuPhysics.Definitions
 {
