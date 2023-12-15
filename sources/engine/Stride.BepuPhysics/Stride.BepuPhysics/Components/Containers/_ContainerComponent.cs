@@ -360,8 +360,8 @@ namespace Stride.BepuPhysics.Components.Containers
 			{
 				var triangle = mesh.Triangles[i];
 				shapeData.Points.Add(Vector3.Transform(triangle.A.ToStrideVector(), objectTransform).XYZ());
-				shapeData.Points.Add(triangle.B.ToStrideVector());
-				shapeData.Points.Add(triangle.C.ToStrideVector());
+				shapeData.Points.Add(Vector3.Transform(triangle.B.ToStrideVector(), objectTransform).XYZ());
+				shapeData.Points.Add(Vector3.Transform(triangle.C.ToStrideVector(), objectTransform).XYZ());
 
 				shapeData.Indices.Add(i * 0);
 				shapeData.Indices.Add(i * 1);
