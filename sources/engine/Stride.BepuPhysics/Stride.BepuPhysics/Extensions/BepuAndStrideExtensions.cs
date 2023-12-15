@@ -1,12 +1,30 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using BepuPhysics;
+using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Configurations;
 using Stride.Engine;
 
 namespace Stride.BepuPhysics.Extensions
 {
     public static class BepuAndStrideExtensions
     {
+
+        public static ContainerComponent? GetContainerFromCollidable(this CollidableReference collidable, BepuSimulation sim)
+        {
+            ContainerComponent? container = null;
+            if (collidable.Mobility == CollidableMobility.Static && sim.StaticsContainers.ContainsKey(collidable.StaticHandle))
+            {
+                container = sim.StaticsContainers[collidable.StaticHandle];
+            }
+            else if (collidable.Mobility != CollidableMobility.Static && sim.BodiesContainers.ContainsKey(collidable.BodyHandle))
+            {
+                container = sim.BodiesContainers[collidable.BodyHandle];
+            }
+            return container;
+        }
+
         public static Core.Mathematics.Vector3 GetWorldPos(this TransformComponent tr)
         {
             tr.WorldMatrix.Decompose(out var _1, out Core.Mathematics.Quaternion _2, out var _3);

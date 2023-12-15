@@ -1,4 +1,5 @@
 ﻿using BepuPhysics;
+using BepuPhysics.Collidables;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Components;
@@ -22,7 +23,8 @@ namespace Stride.BepuPhysics.Configurations;
 public class BepuSimulation
 {
     private readonly List<SimulationUpdateComponent> _simulationUpdateComponents = new();
-    private HitHandler DefaultHitHandler;
+    private RayHitHandler DefaultRayHitHandler;
+    private SweepHitHandler DefaultSweepHitHandler;
     //private BatcherCallbacks DefaultBatcherCallbacks;
 
     internal ThreadDispatcher ThreadDispatcher { get; private set; }
@@ -85,28 +87,31 @@ public class BepuSimulation
     [Display(32, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 
-    public HitResult RayCast(Vector3 origin, Vector3 dir, float maxT, bool stopAtFirstHit = false, byte collisionMask = 255)
-    {
-        DefaultHitHandler.Prepare(stopAtFirstHit, collisionMask);
-        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultHitHandler);
-        return DefaultHitHandler.Hit;
-    }
-
-    //public HitResult Sweep(Vector3 origin, Vector3 dir, float maxT, bool stopAtFirstHit = false, byte collisionMask = 255) //== collider "RayCast"
-    //{
-    //    DefaultHitHandler.Prepare(stopAtFirstHit, collisionMask);
-    //    Simulation.Sweep(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultHitHandler);
-    //    return DefaultHitHandler.Hit;
-    //}
 
 #pragma warning disable CS8618 //Done in setup to avoid 2 times the samecode.
     public BepuSimulation()
 #pragma warning restore CS8618 
     {
         Setup();
-        DefaultHitHandler = new HitHandler(this);
+        DefaultRayHitHandler = new RayHitHandler(this);
+        DefaultSweepHitHandler = new SweepHitHandler(this);
         //DefaultBatcherCallbacks = new();
     }
+
+    public HitResult RayCast(Vector3 origin, Vector3 dir, float maxT, bool stopAtFirstHit = false, byte collisionMask = 255)
+    {
+        DefaultRayHitHandler.Prepare(stopAtFirstHit, collisionMask);
+        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultRayHitHandler);
+        return DefaultRayHitHandler.Hit;
+    }
+
+    public HitResult SweepCast<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxT, bool stopAtFirstHit = false, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    {
+        DefaultSweepHitHandler.Prepare(stopAtFirstHit, collisionMask);
+        Simulation.Sweep(shape, pose, velocity, maxT, BufferPool, ref DefaultSweepHitHandler);
+        return DefaultSweepHitHandler.Hit;
+    }
+
     private void Setup()
     {
         var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
@@ -120,7 +125,7 @@ public class BepuSimulation
         var _solveDescription = new SolveDescription(1, 1);
 
         Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
-       
+
         CollidableMaterials.Initialize(Simulation);
         ContactEvents.Initialize(Simulation);
         //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
