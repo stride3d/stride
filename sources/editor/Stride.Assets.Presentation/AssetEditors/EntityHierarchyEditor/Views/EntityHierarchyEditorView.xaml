@@ -16,6 +16,7 @@
              xmlns:entityFactories="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories"
              xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views"
              xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
+             xmlns:core="clr-namespace:Stride.Core.Presentation.Core;assembly=Stride.Core.Presentation"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance viewModel:EntityHierarchyViewModel}">
@@ -604,15 +605,15 @@
                     <StackPanel DockPanel.Dock="Top">
                       <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Transformation gizmo size:}" Margin="5"/>
                       <Slider HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0"
-                              Maximum="{Binding Length, Source={x:Static sd:Utils.ZoomFactors}, Converter={sd:SumNum}, ConverterParameter=-1}"
-                              Value="{Binding Transform.GizmoSize, Converter={sd:ItemToIndex}, ConverterParameter={x:Static sd:Utils.ZoomFactors}}"/>
+                              Maximum="{Binding Length, Source={x:Static core:Utils.ZoomFactors}, Converter={sd:SumNum}, ConverterParameter=-1}"
+                              Value="{Binding Transform.GizmoSize, Converter={sd:ItemToIndex}, ConverterParameter={x:Static core:Utils.ZoomFactors}}"/>
                       <DockPanel>
                         <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Component gizmo size:}" Margin="5"/>
                         <CheckBox IsChecked="{Binding EntityGizmos.FixedSize}" Content="{sd:Localize Fixed, Context=Button}" HorizontalAlignment="Right" Margin="5"/>
                       </DockPanel>
                       <Slider HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0"
-                              Maximum="{Binding Length, Source={x:Static sd:Utils.ZoomFactors}, Converter={sd:SumNum}, ConverterParameter=-1}"
-                              Value="{Binding EntityGizmos.GizmoSize, Converter={sd:ItemToIndex}, ConverterParameter={x:Static sd:Utils.ZoomFactors}}"/>
+                              Maximum="{Binding Length, Source={x:Static core:Utils.ZoomFactors}, Converter={sd:SumNum}, ConverterParameter=-1}"
+                              Value="{Binding EntityGizmos.GizmoSize, Converter={sd:ItemToIndex}, ConverterParameter={x:Static core:Utils.ZoomFactors}}"/>
                       <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
                         <CheckBox Content="{sd:Localize Camera preview, Context=Button}" Margin="5" IsChecked="{Binding DisplayCameraPreview}"/>
                         <CheckBox Content="{sd:Localize Light probe volumes, Context=Button}" Margin="5" IsChecked="{Binding Lighting.LightProbeWireframeVisible}"/>
