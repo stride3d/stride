@@ -4,6 +4,7 @@ using System.Linq;
 using Stride.BepuPhysics.Components.Constraints;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Extensions;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -19,14 +20,21 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         public Prefab? RopePart { get; set; } //The rope part must be long in Z
         public float RopePartSize { get; set; } = 1.0f; //the z size of the rope part
 
+        public Entity? AEntity { get; set; }
+        [DataMemberIgnore]
         public BodyContainerComponent? A { get; set; }
         public Vector3 APos { get; set; } = new(0.5f, 0, 0);
-        public BodyContainerComponent? B { get; set; }
+        public Entity? BEntity { get; set; }
+		[DataMemberIgnore]
+		public BodyContainerComponent? B { get; set; }
         public Vector3 BPos { get; set; } = new(-0.5f, 0, 0);
 
 
         public override void Start()
         {
+            A = AEntity?.Get<BodyContainerComponent>();
+            B = BEntity?.Get<BodyContainerComponent>();
+
             if (RopePart == null || A == null || B == null)
                 return;
 
