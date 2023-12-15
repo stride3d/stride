@@ -98,17 +98,17 @@ public class BepuSimulation
         //DefaultBatcherCallbacks = new();
     }
 
-    public HitResult RayCast(Vector3 origin, Vector3 dir, float maxT, bool stopAtFirstHit = false, byte collisionMask = 255)
+    public HitResult RayCast(Vector3 origin, Vector3 dir, float maxDistance, bool stopAtFirstHit = false, byte collisionMask = 255)
     {
         DefaultRayHitHandler.Prepare(stopAtFirstHit, collisionMask);
-        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxT, ref DefaultRayHitHandler);
+        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref DefaultRayHitHandler);
         return DefaultRayHitHandler.Hit;
     }
 
-    public HitResult SweepCast<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxT, bool stopAtFirstHit = false, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    public HitResult SweepCast<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, bool stopAtFirstHit = false, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
     {
         DefaultSweepHitHandler.Prepare(stopAtFirstHit, collisionMask);
-        Simulation.Sweep(shape, pose, velocity, maxT, BufferPool, ref DefaultSweepHitHandler);
+        Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref DefaultSweepHitHandler);
         return DefaultSweepHitHandler.Hit;
     }
 
