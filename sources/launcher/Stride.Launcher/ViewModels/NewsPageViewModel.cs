@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.ViewModels;
 using Stride.LauncherApp.Resources;
 

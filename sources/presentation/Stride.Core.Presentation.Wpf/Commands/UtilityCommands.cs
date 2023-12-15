@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Presentation.Commands
 {

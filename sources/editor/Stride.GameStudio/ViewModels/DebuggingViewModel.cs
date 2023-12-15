@@ -31,6 +31,7 @@ using Stride.Core.Translation;
 using Stride.Assets.Presentation.AssetEditors;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Remote;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.ViewModels
 {

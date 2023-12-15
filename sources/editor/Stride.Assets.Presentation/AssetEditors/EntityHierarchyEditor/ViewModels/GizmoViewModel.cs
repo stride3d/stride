@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Annotations;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Presentation.ViewModels;

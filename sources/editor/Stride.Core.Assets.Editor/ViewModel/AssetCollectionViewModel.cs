@@ -30,7 +30,6 @@ using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
 using Stride.Core.Presentation.ViewModels;
 

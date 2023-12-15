@@ -57,51 +57,51 @@ namespace Stride.Core.Presentation.View
         }
 
         /// <inheritdoc/>
-        public Task InvokeAsync(Action callback)
+        public Task InvokeAsync(Action callback, CancellationToken token = default)
         {
-            var operation = dispatcher.InvokeAsync(callback);
+            var operation = dispatcher.InvokeAsync(callback, DispatcherPriority.Normal, token);
             return operation.Task;
         }
 
         /// <inheritdoc/>
-        public Task LowPriorityInvokeAsync(Action callback)
+        public Task LowPriorityInvokeAsync(Action callback, CancellationToken token = default)
         {
-            var operation = dispatcher.InvokeAsync(callback, DispatcherPriority.ApplicationIdle);
+            var operation = dispatcher.InvokeAsync(callback, DispatcherPriority.ApplicationIdle, token);
             return operation.Task;
         }
 
         /// <inheritdoc/>
-        public Task<TResult> InvokeAsync<TResult>(Func<TResult> callback)
+        public Task<TResult> InvokeAsync<TResult>(Func<TResult> callback, CancellationToken token = default)
         {
-            var operation = dispatcher.InvokeAsync(callback);
+            var operation = dispatcher.InvokeAsync(callback, DispatcherPriority.Normal, token);
             return operation.Task;
         }
 
         /// <inheritdoc/>
-        public Task InvokeTask(Func<Task> task)
+        public Task InvokeTask(Func<Task> task, CancellationToken token = default)
         {
-            return InvokeTask(dispatcher, task);
+            return InvokeTask(dispatcher, task, token);
         }
 
         /// <inheritdoc/>
-        public Task<TResult> InvokeTask<TResult>(Func<Task<TResult>> task)
+        public Task<TResult> InvokeTask<TResult>(Func<Task<TResult>> task, CancellationToken token = default)
         {
-            return InvokeTask(dispatcher, task);
+            return InvokeTask(dispatcher, task, token);
         }
 
         [NotNull]
-        public static Task InvokeTask([NotNull] Dispatcher dispatcher, Func<Task> task)
+        public static Task InvokeTask([NotNull] Dispatcher dispatcher, Func<Task> task, CancellationToken token = default)
         {
             var tcs = new TaskCompletionSource<int>();
-            dispatcher.InvokeAsync(async () => { await task(); tcs.SetResult(0); });
+            dispatcher.InvokeAsync(async () => { await task(); tcs.SetResult(0); }, DispatcherPriority.Normal, token);
             return tcs.Task;
         }
 
         [NotNull]
-        public static Task<TResult> InvokeTask<TResult>([NotNull] Dispatcher dispatcher, Func<Task<TResult>> task)
+        public static Task<TResult> InvokeTask<TResult>([NotNull] Dispatcher dispatcher, Func<Task<TResult>> task, CancellationToken token = default)
         {
             var tcs = new TaskCompletionSource<TResult>();
-            dispatcher.InvokeAsync(async () => tcs.SetResult(await task()));
+            dispatcher.InvokeAsync(async () => tcs.SetResult(await task()), DispatcherPriority.Normal, token);
             return tcs.Task;
         }
 
