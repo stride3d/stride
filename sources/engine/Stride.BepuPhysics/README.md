@@ -1,7 +1,9 @@
 # Bepu Physics V2 Integration with Stride 3D - Work in Progress
 
+[![Build nuget package](https://github.com/Nicogo1705/Stride.BepuPhysics/actions/workflows/dotnet-nuget.yml/badge.svg)](https://github.com/Nicogo1705/Stride.BepuPhysics/actions/workflows/dotnet-nuget.yml)
+
 Integrating [Bepu Physics v2](https://github.com/bepu/bepuphysics2) into [Stride](https://github.com/stride3d/stride).
- 
+
 ## Features
 
 1. Simulations: Highly configurable simulation & multi-simulation
