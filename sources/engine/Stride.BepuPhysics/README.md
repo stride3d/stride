@@ -14,7 +14,8 @@ Integrating [Bepu Physics v2](https://github.com/bepu/bepuphysics2) into [Stride
 
 ## Usage
 
-Clone this repository to your local machine and utilize it either as a library within your Stride project or as an independent Stride project.
+-Clone this repository to your local machine and run the stride project. You will have some samples to look at.
+-Use our nuget : https://www.nuget.org/packages/Stride.BepuPhysics/
 
 1. **Add Bepu Settings** :
 
