@@ -152,41 +152,42 @@ namespace Stride.BepuPhysics.Components.Containers
 		public BodyShapeData GetShapeData()
 		{
 			var shape = ContainerData.ShapeIndex.Type;
+			var index = ContainerData.ShapeIndex.Index;
 
-            GeometricMeshData<VertexPositionNormalTexture> meshData;
+			GeometricMeshData<VertexPositionNormalTexture> meshData;
             BodyShapeData shapeData = new BodyShapeData();
 
 			switch (shape)
 			{
 				case 0:
-					var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(shape);
+					var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(index);
 					meshData = GetSphereVerts(sphere);
                     shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 1:
-					var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(shape);
+					var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(index);
 					meshData = GetCapsuleVerts(capsule);
 					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 2:
-					var box = Simulation.Simulation.Shapes.GetShape<Box>(shape);
+					var box = Simulation.Simulation.Shapes.GetShape<Box>(index);
 					meshData = GetBoxVerts(box);
 					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 3:
-					var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(shape);
+					var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
 					break;
 				case 4:
-					var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(shape);
+					var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(index);
 					meshData = GetCylinderVerts(cyliner);
 					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 5:
-					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(shape);
+					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(index);
 					shapeData = GetConvexData(convex);
 					break;
                 case 6:
-                    var compound = Simulation.Simulation.Shapes.GetShape<Compound>(shape);
+                    var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
 					shapeData = GetCompoundData(compound);
 					break;
 			}
@@ -194,42 +195,45 @@ namespace Stride.BepuPhysics.Components.Containers
             return shapeData;
 		}
 
-		public BodyShapeData GetShapeData(int shape)
+		public BodyShapeData GetShapeData(TypedIndex typeIndex)
 		{
+			var shape = typeIndex.Type;
+			var index = typeIndex.Index;
+
 			GeometricMeshData<VertexPositionNormalTexture> meshData;
 			BodyShapeData shapeData = new BodyShapeData();
 
 			switch (shape)
 			{
 				case 0:
-					var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(shape);
+					var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(index);
 					meshData = GetSphereVerts(sphere);
 					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 1:
-					var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(shape);
+					var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(index);
 					meshData = GetCapsuleVerts(capsule);
 					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 2:
-					var box = Simulation.Simulation.Shapes.GetShape<Box>(shape);
+					var box = Simulation.Simulation.Shapes.GetShape<Box>(index);
 					meshData = GetBoxVerts(box);
 					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 3:
-					var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(shape);
+					var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
 					break;
 				case 4:
-					var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(shape);
+					var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(index);
 					meshData = GetCylinderVerts(cyliner);
 					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 5:
-					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(shape);
+					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(index);
 					shapeData = GetConvexData(convex);
 					break;
 				case 6:
-					var compound = Simulation.Simulation.Shapes.GetShape<Compound>(shape);
+					var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
 					shapeData = GetCompoundData(compound);
 					break;
 			}
@@ -271,45 +275,11 @@ namespace Stride.BepuPhysics.Components.Containers
             return shapeData;
 		}
 
-		private BodyShapeData GetBodyShapeData(GeometricMeshData<VertexPositionNormalTexture> meshData, Vector3 objectTransform)
-		{
-			BodyShapeData shapeData = new BodyShapeData();
-
-			// Transform box points
-			for (int i = 0; i < meshData.Vertices.Length; i++)
-			{
-				VertexPositionNormalTexture point = meshData.Vertices[i];
-				point.Position = point.Position + objectTransform;
-				shapeData.Points.Add(point.Position);
-			}
-
-			if (meshData.IsLeftHanded)
-			{
-				// Copy indices with offset applied
-				for (int i = 0; i < meshData.Indices.Length; i += 3)
-				{
-					shapeData.Indices.Add(meshData.Indices[i]);
-					shapeData.Indices.Add(meshData.Indices[i + 2]);
-					shapeData.Indices.Add(meshData.Indices[i + 1]);
-				}
-			}
-			else
-			{
-				// Copy indices with offset applied
-				for (int i = 0; i < meshData.Indices.Length; i++)
-				{
-					shapeData.Indices.Add(meshData.Indices[i]);
-				}
-			}
-
-			return shapeData;
-		}
-
 		private GeometricMeshData<VertexPositionNormalTexture> GetBoxVerts(Box box)
 		{
 			var boxDescription = new BoxColliderShapeDesc()
 			{
-				Size = new Vector3(box.Width, box.Height, box.Length)
+				//Size = new Vector3(box.Width, box.Height, box.Length)
 			};
 			return GeometricPrimitive.Cube.New(boxDescription.Size, toLeftHanded: true);
 		}
@@ -359,8 +329,7 @@ namespace Stride.BepuPhysics.Components.Containers
 			for (int i = 0; i < compound.ChildCount; i++)
             {
 				var child = compound.GetChild(i);
-                var childShape = child.ShapeIndex;
-				var childShapeData = GetShapeData(childShape.Type);
+				var childShapeData = GetShapeData(child.ShapeIndex);
 
 				shapeData.Points.AddRange(childShapeData.Points);
 				shapeData.Indices.AddRange(childShapeData.Indices);

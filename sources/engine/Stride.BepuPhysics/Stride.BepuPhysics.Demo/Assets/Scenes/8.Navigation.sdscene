@@ -54,7 +54,7 @@ Hierarchy:
                     e6e86fefd73e06671b39f1ee96ab716c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: d82f88ce-95a7-45c9-b342-ec1de631e849
                         Mass: 1.0
-                        Size: {X: 100.0, Y: 100.0, Z: 100.0}
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
         -   Entity:
                 Id: 6958ee95-2589-42b4-86f7-b95e75c06a30
                 Name: DefaultScripts

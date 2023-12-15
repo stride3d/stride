@@ -164,8 +164,7 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 		int vbase = Points.Count;
 		for (int i = 0; i < vertices.Length; i++)
 		{
-			var vertex = Vector3.Transform(vertices[i], objectTransform).XYZ();
-			Points.Add(vertex);
+			Points.Add(vertices[i]);
 		}
 
 		// Copy indices with offset applied
