@@ -108,8 +108,27 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 		StrideGeomProvider geom = new StrideGeomProvider(verts, Indices);
 		var result = _tileNavMeshBuilder.Build(geom, new RcNavMeshBuildSettings());
 
-		_navMesh = result.NavMesh;
-		SpawPrefabAtVerts(Points);
+		_navMesh = result.NavMesh; 
+		var tileCount = _navMesh.GetTileCount();
+		var tiles = new List<DtMeshTile>();
+		for (int i = 0; i < tileCount; i++)
+		{
+			tiles.Add(_navMesh.GetTile(i));
+		}
+
+		List<Vector3> strideVerts = new List<Vector3>();
+		List<int> strideIndices = new();
+
+		for (int i = 0; i < tiles.Count; i++)
+		{
+			for (int j = 0; j < tiles[i].data.verts.Count();)
+			{
+				strideVerts.Add(
+					new Vector3(-tiles[i].data.verts[j++], -tiles[i].data.verts[j++], tiles[i].data.verts[j++])
+					);
+			}
+		}
+		SpawPrefabAtVerts(strideVerts);
 	}
 
 	private void SpawPrefabAtVerts(List<Vector3> verts)
