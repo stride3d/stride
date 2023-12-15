@@ -312,7 +312,7 @@ Hierarchy:
                     643c56ad282de3b130386f69a6e94b5f: !Stride.BepuPhysics.Demo.Components.Character.CharacterControllerComponent,Stride.BepuPhysics.Demo
                         Id: cd4ade13-0099-4e24-af15-ea4fd74f3655
                         CameraPivot: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a
-                        Character: ref!! d2d1354c-76b6-42d4-9515-6ce00e95bf99
+                        CharacterEntity: ref!! bdc9f16d-92a2-401f-a719-5c385c3b68ad
                         MinCameraAngle: -90.0
                         MaxCameraAngle: 90.0
         -   Entity:
@@ -358,7 +358,3 @@ Hierarchy:
                         Children:
                             db8142cc8137d12c68337cc406d5bebd: ref!! fbd3e932-6bf5-4b35-85bb-bc169f5206f4
                             fe75b2f4da8a70e1fbd2608754b0c0af: ref!! 56937389-79d7-4227-9bc0-0778bb55ba15
-                    5c35081b119df8735d24283fa349ccb1: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
-                        Id: 69326fdd-82fa-41e3-b510-4b5f9eabea1a
-                        Mass: 1.0
-                        Radius: 0.2
