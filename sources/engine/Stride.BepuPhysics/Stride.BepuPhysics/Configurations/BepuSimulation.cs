@@ -104,7 +104,6 @@ public class BepuSimulation
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref DefaultRayHitHandler);
         return DefaultRayHitHandler.Hit;
     }
-
     public HitResult SweepCast<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, bool stopAtFirstHit = false, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
     {
         DefaultSweepHitHandler.Prepare(stopAtFirstHit, collisionMask);

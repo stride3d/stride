@@ -200,7 +200,7 @@ These scripts allow runtime modification of the simulation using keyboard inputs
 
 ## Issues & To-Do
 
-Check out the [TODO.txt](https://github.com/Nicogo1705/BepuPhysicIntegrationTest/blob/master/BepuPhysicIntegrationTest/Todo.txt) for pending tasks and issues.
+Check out the [TODO.txt](https://github.com/Nicogo1705/Stride.BepuPhysics/blob/master/Stride.BepuPhysics.Demo/Todo.txt) for pending tasks and issues.
 
 ## Videos
 Note that in some videos, Bepu simulation settings had been tweaked to maximize performance.

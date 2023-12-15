@@ -1,19 +1,19 @@
 Ordered by importance !
 
--Fix //TODO/#Warning in code !!
-
+-Fix #Warning in code !!
 -Fix Scaling for hull/mesh
 
--Add wireframe from the Bullet Physics processor (debugging is a pain otherwise)
+-Add navigation system (WIP Doprez)
+
+-Add wireframe from the Bullet Physics processor / we could use the WIP navigation system mesh generator maybe now ?
 https://github.com/stride3d/stride/blob/938da4928cbddd9194f9a07c7380d5cc115f521e/sources/engine/Stride.Physics/Engine/PhysicsShapesRenderingService.cs#L15
 https://github.com/stride3d/stride/blob/938da4928cbddd9194f9a07c7380d5cc115f521e/sources/engine/Stride.Physics/Engine/PhysicsProcessor.cs#L35
 
--Add all constraints with examples in the scene (like ConstraintTestDemo from Bepu)
-
--Make a new Scene with a big demo (like 10 000 cubes in a big mixer, that is supported by some ropes) - WIP nicogo
-
--Add Shape "instancing"
+-Finish Constraint scene (like ConstraintTestDemo from Bepu)
+-Finish Navigation scene 
+-Finish Demo scene using more or less everything
 
 Bonus : 
 
+-Add Shape "instancing"
 -Add Newt/softbody generation system (+ marching cube and/or voxel ?)

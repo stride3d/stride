@@ -51,7 +51,7 @@ namespace Stride.BepuPhysics.Components.Constraints
        
     }
 
-    //TODO : maybe replace by stride impl
+#warning maybe replace by stride impl
     [DataContract]
     public sealed class BodyContainerList : List<BodyContainerComponent>
     {

@@ -64,7 +64,8 @@ namespace Stride.BepuPhysics.Processors
         {
             DestroyConstraint();
 
-            if (_constraintComponent.Bodies.Count == 0 || !_constraintComponent.Enabled) //TODO check that the body count == Constraint.BodyCount (some need 1, 2 or more bodies)
+#warning check that the body count == Constraint.BodyCount (some need 1, 2 or more bodies)
+            if (_constraintComponent.Bodies.Count == 0 || !_constraintComponent.Enabled) 
                 return;
 
             var simIndex = _constraintComponent.Bodies[0].SimulationIndex;

@@ -1,4 +1,5 @@
 ﻿using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Engine;
 
@@ -7,7 +8,21 @@ namespace Stride.BepuPhysics.Components
     public abstract class SimulationUpdateComponent : SyncScript
     {
 
-        public int SimulationIndex { get; set; } = 0; //TODO : Cancel/restart on edit. + Check Services.GetService<BepuConfiguration>().BepuSimulations bounds.
+        private int _simulationIndex = 0;
+
+        public int SimulationIndex
+        {
+            get => _simulationIndex;
+            set
+            {
+                if (_simulationIndex != value)
+                {
+                    Cancel();
+                    _simulationIndex = value;
+                    Start();
+                }
+            }
+        }
 
 
         [DataMemberIgnore]

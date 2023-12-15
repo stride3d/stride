@@ -14,7 +14,20 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         private BepuSimulation? _bepuSimulation { get; set; }
 
 
-        public int SimulationIndex { get; set; } = 0; //TODO : Cancel/restart on edit. + Check Services.GetService<BepuConfiguration>().BepuSimulations bounds.
+        private int _simulationIndex = 0;
+
+        public int SimulationIndex
+        {
+            get => _simulationIndex;
+            set
+            {
+                if (_simulationIndex != value)
+                {
+                    _simulationIndex = value;
+                    Start();
+                }
+            }
+        }
 
         public override void Start()
         {
