@@ -7,7 +7,7 @@ using System.Linq;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.LauncherApp.Services
 {

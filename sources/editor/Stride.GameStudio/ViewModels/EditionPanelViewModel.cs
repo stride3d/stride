@@ -3,6 +3,7 @@
 using System.Runtime.CompilerServices;
 using Stride.Core.Settings;
 using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.ViewModels
 {

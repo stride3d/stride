@@ -14,6 +14,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Transactions;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Presentation.ViewModel
 {

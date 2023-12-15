@@ -5,6 +5,7 @@ using System.Linq;
 using Stride.Core.Transactions;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.Transactions
 {

@@ -26,8 +26,8 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.Windows;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {

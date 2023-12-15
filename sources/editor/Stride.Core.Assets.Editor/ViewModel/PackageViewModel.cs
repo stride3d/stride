@@ -33,6 +33,7 @@ using Stride.Core.Quantum.References;
 using Stride.Core.Translation;
 using System.IO;
 using Stride.Core.Packages;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {

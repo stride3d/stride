@@ -15,13 +15,13 @@ using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
 using Stride.Core.VisualStudio;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Helpers;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.ViewModels
 {

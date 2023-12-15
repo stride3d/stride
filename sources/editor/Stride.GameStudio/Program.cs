@@ -48,6 +48,7 @@ using Stride.GameStudio.Helpers;
 using Stride.GameStudio.ViewModels;
 using Stride.GameStudio.Plugin;
 using Stride.GameStudio.Services;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio;
 

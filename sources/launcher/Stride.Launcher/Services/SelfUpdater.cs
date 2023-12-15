@@ -15,7 +15,7 @@ using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.LauncherApp.Resources;
 using Stride.LauncherApp.Views;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;

@@ -15,9 +15,9 @@ using Stride.Core.Extensions;
 using Stride.Assets.Presentation.View;
 using Stride.Debugger.Target;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
 using Stride.Assets.Presentation.AssetEditors;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Debugging
 {

@@ -5,6 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Presentation.ViewModel
 {

@@ -8,6 +8,7 @@ using Stride.Core.Presentation.ViewModel;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Engine.Processors;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {

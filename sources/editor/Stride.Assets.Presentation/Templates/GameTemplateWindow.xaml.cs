@@ -17,11 +17,11 @@ using Stride.Core.Presentation.Services;
 using Stride.Graphics;
 using Stride.Core.Presentation.ValueConverters;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
 using Stride.Assets.Templates;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.Templates
 {

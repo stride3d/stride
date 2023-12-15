@@ -15,6 +15,7 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Core.Collections;
 using Stride.Engine;
 using Stride.Rendering;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.ViewModel
 {

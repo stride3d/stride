@@ -15,6 +15,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Animations;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {

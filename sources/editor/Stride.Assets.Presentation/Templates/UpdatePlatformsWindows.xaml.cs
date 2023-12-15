@@ -10,13 +10,13 @@ using Stride.Core;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Assets.Templates;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 using MessageBoxResult = Stride.Core.Presentation.Services.MessageBoxResult;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.Templates
 {

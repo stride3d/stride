@@ -11,6 +11,7 @@ using Stride.Engine;
 using Stride.Particles;
 using Stride.Particles.Initializers;
 using Stride.Particles.Modules;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.ViewModel
 {

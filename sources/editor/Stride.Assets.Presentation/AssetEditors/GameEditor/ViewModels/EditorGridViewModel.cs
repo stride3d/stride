@@ -7,6 +7,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
