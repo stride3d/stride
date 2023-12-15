@@ -33,7 +33,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             if (entity.Get<ContainerComponent>() is BodyContainerComponent body)
             {
                 body.SimulationIndex = SimulationIndex;
-                body?.ApplyLinearImpulse(Impulse, ImpulsePos);
+                body?.ApplyImpulse(Impulse, ImpulsePos);
             }
         }
     }

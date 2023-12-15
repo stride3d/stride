@@ -89,7 +89,7 @@ public class CharacterComponent : SimulationUpdateComponent
         if (_tryJump)
         {
             if (IsGrounded)
-				CharacterBody.ApplyImpulse(Vector3.UnitY * JumpSpeed * 10);
+				CharacterBody.ApplyLinearImpulse(Vector3.UnitY * JumpSpeed * 10);
             _tryJump = false;
         }
     }
