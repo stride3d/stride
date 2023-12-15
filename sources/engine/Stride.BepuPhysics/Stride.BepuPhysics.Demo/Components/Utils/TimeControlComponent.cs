@@ -13,21 +13,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
     {
         private BepuSimulation? _bepuSimulation { get; set; }
 
-
-        private int _simulationIndex = 0;
-
-        public int SimulationIndex
-        {
-            get => _simulationIndex;
-            set
-            {
-                if (_simulationIndex != value)
-                {
-                    _simulationIndex = value;
-                    Start();
-                }
-            }
-        }
+        public int SimulationIndex { get; set; } = 0;
 
         public override void Start()
         {
