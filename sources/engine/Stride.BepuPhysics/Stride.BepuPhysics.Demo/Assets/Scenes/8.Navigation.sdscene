@@ -33,6 +33,29 @@ Hierarchy:
                             Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
                         Intensity: 0.1
         -   Entity:
+                Id: 4d66b5ff-b21b-4aa9-800a-06c9018d4cb0
+                Name: BepuBoundingBox
+                Components:
+                    192d2b53f75a198b10db52071f11ab8d: !TransformComponent
+                        Id: c4a946f2-ee6c-49a8-8ae3-6f3ad9932da5
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    3d916bc48da25e3a4313d7c7c9c564ad: !TriggerBoundingBox
+                        Id: 4be24fb4-ef2d-4487-a531-391681e44b51
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                    e6e86fefd73e06671b39f1ee96ab716c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: d82f88ce-95a7-45c9-b342-ec1de631e849
+                        Mass: 1.0
+                        Size: {X: 100.0, Y: 100.0, Z: 100.0}
+        -   Entity:
                 Id: 6958ee95-2589-42b4-86f7-b95e75c06a30
                 Name: DefaultScripts
                 Components:
@@ -168,3 +191,4 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             9732fe286d70b4dee2d3598d7a29238c: ref!! 3ca31b15-4d32-4710-aa0d-55baf6051f5c
+                            30ff2e955fffd8c71a7351d0f98c1e44: ref!! c4a946f2-ee6c-49a8-8ae3-6f3ad9932da5

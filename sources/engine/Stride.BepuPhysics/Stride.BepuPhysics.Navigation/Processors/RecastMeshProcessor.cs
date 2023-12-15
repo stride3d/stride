@@ -12,6 +12,8 @@ using Stride.Rendering;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.Materials;
 using System.Xml.Linq;
+using Stride.Core;
+using Stride.Input;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
@@ -25,15 +27,22 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 	private List<TriggerBoundingBox> _boundingBoxes = new();
 	private IGame _game;
 	private SceneSystem _sceneSystem;
+	private InputManager _input;
 
 	private List<ContainerComponent> _containerComponents = new List<ContainerComponent>();
 	private int _previousContainerCount = 0;
+
+	public RecastMeshProcessor()
+	{
+		Order = 20000;
+	}
 
 	protected override void OnSystemAdd()
 	{
 		base.OnSystemAdd();
 		_game = Services.GetService<IGame>();
 		_sceneSystem = Services.GetService<SceneSystem>();
+		_input = Services.GetSafeServiceAs<InputManager>();
 	}
 
 	protected override void OnEntityComponentAdding(Entity entity, [NotNull] TriggerBoundingBox component, [NotNull] TriggerBoundingBox data)
@@ -41,6 +50,14 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 		_boundingBoxes.Add(data);
 		data.ContainerEnter += ContainerEnter;
 		data.ContainerLeave += ContainerExit;
+		var test = entity.Scene.Entities;
+		foreach (var entityTest in test)
+		{
+			foreach(var child in entityTest.GetChildren())
+			{
+				_containerComponents.Add(child.Get<StaticContainerComponent>());
+			}	
+		}
 	}
 
 	private void ContainerEnter(object? sender, ContainerComponent e)
@@ -66,7 +83,7 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 
 	public override void Update(GameTime time)
 	{
-		if (_previousContainerCount != _containerComponents.Count)
+		if (_input.IsKeyPressed(Keys.Space))
 		{
 			Points.Clear();
 			Indices.Clear();
