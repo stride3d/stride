@@ -190,6 +190,14 @@ namespace Stride.BepuPhysics.Components.Containers
                     var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
 					shapeData = GetCompoundData(compound);
 					break;
+				case 7:
+					throw new NotImplementedException("BigCompounds are not implemented.");
+					break;
+				case 8:
+					var mesh = Simulation.Simulation.Shapes.GetShape<Mesh>(index);
+					shapeData = GetMeshData(mesh, Entity.Transform.WorldMatrix);
+					break;
+
 			}
 
             return shapeData;
@@ -235,6 +243,13 @@ namespace Stride.BepuPhysics.Components.Containers
 				case 6:
 					var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
 					shapeData = GetCompoundData(compound);
+					break;
+				case 7:
+					throw new NotImplementedException("BigCompounds are not implemented.");
+					break;
+				case 8:
+					var mesh = Simulation.Simulation.Shapes.GetShape<Mesh>(index);
+					shapeData = GetMeshData(mesh, Entity.Transform.WorldMatrix);
 					break;
 			}
 
@@ -333,6 +348,24 @@ namespace Stride.BepuPhysics.Components.Containers
 
 				shapeData.Points.AddRange(childShapeData.Points);
 				shapeData.Indices.AddRange(childShapeData.Indices);
+			}
+
+			return shapeData;
+		}
+		private BodyShapeData GetMeshData(Mesh mesh, Matrix objectTransform)
+		{
+			BodyShapeData shapeData = new BodyShapeData();
+
+			for(int i = 0; i < mesh.Triangles.Length; i++)
+			{
+				var triangle = mesh.Triangles[i];
+				shapeData.Points.Add(Vector3.Transform(triangle.A.ToStrideVector(), objectTransform).XYZ());
+				shapeData.Points.Add(triangle.B.ToStrideVector());
+				shapeData.Points.Add(triangle.C.ToStrideVector());
+
+				shapeData.Indices.Add(i * 0);
+				shapeData.Indices.Add(i * 1);
+				shapeData.Indices.Add(i * 2);
 			}
 
 			return shapeData;
