@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#pragma warning disable CS8500 // Pointer not constrained to managed type
+
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using System;
@@ -28,7 +30,7 @@ namespace Stride.Core.Threading
 
         private static readonly ProfilingKey ProcessWorkItemKey = new ProfilingKey($"{nameof(ThreadPool)}.ProcessWorkItem");
 
-        private readonly ConcurrentQueue<Action> workItems = new ConcurrentQueue<Action>();
+        private readonly ConcurrentQueue<Work> workItems = new ConcurrentQueue<Work>();
         private readonly SemaphoreW semaphore;
         
         private long completionCounter;
@@ -66,7 +68,7 @@ namespace Stride.Core.Threading
         /// Queue an action to run on one of the available threads,
         /// it is strongly recommended that the action takes less than a millisecond.
         /// </summary>
-        public void QueueWorkItem([NotNull, Pooled] Action workItem, int amount = 1)
+        public unsafe void QueueWorkItem([NotNull, Pooled] Action workItem, int amount = 1)
         {
             // Throw right here to help debugging
             if (workItem == null)
@@ -88,9 +90,71 @@ namespace Stride.Core.Threading
             for (int i = 0; i < amount; i++)
             {
                 PooledDelegateHelper.AddReference(workItem);
-                workItems.Enqueue(workItem);
+                workItems.Enqueue(new()
+                {
+                    WorkHandler = &Adapter,
+                    Action = workItem
+                });
             }
             semaphore.Release(amount);
+
+            static void Adapter(in Work workItem)
+            {
+                try
+                {
+                    workItem.Action();
+                }
+                finally
+                {
+                    PooledDelegateHelper.Release(workItem.Action);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Queue some work item to run on one of the available threads,
+        /// it is strongly recommended that the action takes less than a millisecond.
+        /// Additionally, the parameter provided must be fixed from this call onward until the action has finished executing
+        /// </summary>
+        public unsafe void QueueUnsafeWorkItem<T>(T* parameter, int amount = 1) where T : IJob
+        {
+            if (parameter == null)
+            {
+                throw new NullReferenceException(nameof(parameter));
+            }
+
+            if (amount < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            }
+
+            if (disposing > 0)
+            {
+                throw new ObjectDisposedException(ToString());
+            }
+
+            Interlocked.Add(ref workScheduled, amount);
+            for (int i = 0; i < amount; i++)
+            {
+                workItems.Enqueue(new()
+                {
+                    DataPtr = parameter,
+                    WorkHandler = &WorkHandler<T>
+                });
+            }
+            semaphore.Release(amount);
+        }
+
+        /// <summary>
+        /// We want generics for optimal performance and flexibility, but we would rather have one collection with all work items instead of one collection per generics -
+        /// we can use a typed generic function pointer to take care of casting the data to the right type and process it appropriately
+        /// </summary>
+        static unsafe void WorkHandler<T>(in Work workItem) where T : IJob
+        {
+            // Do not make this function local to 'QueueUnsafeWorkItem', its mangled name can make debugging confusing
+
+            // The IWork constraint should help the JIT inline the following call
+            ((T*)workItem.DataPtr)->Execute();
         }
 
         /// <summary>
@@ -98,7 +162,7 @@ namespace Stride.Core.Threading
         /// If you absolutely have to block inside one of the threadpool's thread for whatever
         /// reason do a busy loop over this function.
         /// </summary>
-        public bool TryCooperate()
+        public unsafe bool TryCooperate()
         {
             if (workItems.TryDequeue(out var workItem))
             {
@@ -106,12 +170,11 @@ namespace Stride.Core.Threading
                 Interlocked.Decrement(ref workScheduled);
                 try
                 {
-                    using var _ = Profiler.Begin(ProcessWorkItemKey);
-                    workItem.Invoke();
+                    using (Profiler.Begin(ProcessWorkItemKey))
+                        workItem.WorkHandler(workItem);
                 }
                 finally
                 {
-                    PooledDelegateHelper.Release(workItem);
                     Interlocked.Decrement(ref threadsBusy);
                     Interlocked.Increment(ref completionCounter);
                 }
@@ -188,6 +251,21 @@ namespace Stride.Core.Threading
             {
                 
             }
+        }
+
+        public interface IJob
+        {
+            /// <summary>
+            /// This structure will be shared across all threads that have been scheduled for a given job; each threads read and write to the same region in memory
+            /// </summary>
+            void Execute();
+        }
+
+        unsafe struct Work
+        {
+            public void* DataPtr;
+            public delegate*<in Work, void> WorkHandler;
+            public Action Action;
         }
     }
 }

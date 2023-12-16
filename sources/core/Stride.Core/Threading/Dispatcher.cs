@@ -16,7 +16,7 @@ using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Threading
 {
-    public class Dispatcher
+    public static class Dispatcher
     {
 #if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
         public static int MaxDegreeOfParallelism = 1;
@@ -25,496 +25,325 @@ namespace Stride.Core.Threading
 #endif
 
         private static readonly ProfilingKey DispatcherSortKey = new ProfilingKey("Dispatcher.Sort");
+        private static readonly ProfilingKey DispatcherBatched = new ProfilingKey("Dispatcher.Batched");
 
         public delegate void ValueAction<T>(ref T obj);
 
-        public static void For(int fromInclusive, int toExclusive, [Pooled] Action<int> action)
+        static class Pool<T>
         {
-            using (Profile(action))
-            {
-                if (fromInclusive > toExclusive)
-                {
-                    var temp = fromInclusive;
-                    fromInclusive = toExclusive + 1;
-                    toExclusive = temp + 1;
-                }
+            public static ConcurrentPool<T[]> Arrays = new(() => new T[1]);
+        }
 
-                var count = toExclusive - fromInclusive;
-                if (count == 0)
+        /// <summary>
+        /// The call producing the least amount of overhead, other methods are built on top of this one.
+        /// </summary>
+        /// <param name="items">
+        /// The amount of items to process,
+        /// this total will be split into multiple batches,
+        /// each batch runs <typeparamref name="TJob"/>.<see cref="IBatchJob.Process"/> with the range of items for that batch
+        /// </param>
+        /// <param name="batchJob">
+        /// An object shared across all threads running this job,
+        /// it is safe to use <see cref="Interlocked"/> operations on its fields.
+        /// Any modifications during the job will be assigned to <paramref name="batchJob"/> after the job completed.
+        /// </param>
+        /// <exception cref="Exception">If any of the threads executing this job threw an exception, it will be re-thrown in the caller's scope</exception>
+        public static unsafe void ForBatched<TJob>(int items, ref TJob batchJob) where TJob : IBatchJob
+        {
+            using (Profiler.New(DispatcherBatched))
+            {
+                if (items == 0)
                     return;
 
-                if (MaxDegreeOfParallelism <= 1 || count == 1)
+                if (MaxDegreeOfParallelism <= 1 || items == 1)
                 {
-                    ExecuteBatch(fromInclusive, toExclusive, action);
+                    batchJob.Process(0, items);
+                    return;
                 }
-                else
+
+                var arr = Pool<BatchRunner<TJob>>.Arrays.Acquire();
+                try
                 {
-                    var state = BatchState.Acquire();
-                    state.WorkDone = state.StartInclusive = fromInclusive;
-
-                    try
+                    uint total = (uint)items;
+                    uint batches, itemPerBatch;
+                    if (items <= MaxDegreeOfParallelism)
                     {
-                        var batchCount = Math.Min(MaxDegreeOfParallelism, count);
-                        var batchSize = (count + (batchCount - 1)) / batchCount;
+                        batches = (uint)items;
+                        itemPerBatch = 1;
+                    }
+                    else
+                    {
+                        batches = (uint)MaxDegreeOfParallelism;
+                        if (MaxDegreeOfParallelism >= Environment.ProcessorCount)
+                        {
+                            // Make sure that slower cores have less impact by allowing faster cores to steal a portion of their work.
+                            // It shouldn't be too large otherwise inner loops are less efficient.
+                            // If we have at least 8 items per thread, split the job to process at most 2 items per job,
+                            // that way theoretically faster threads can take up to 3/4 of the slower thread's work.
+                            if (batches * 8 <= total)
+                                batches *= 8 / 2;
+                            else if (batches * 4 <= total)
+                                batches *= 4 / 2;
+                        }
 
-                        // Kick off a worker, then perform work synchronously
-                        state.AddReference();
-                        Fork(toExclusive, batchSize, MaxDegreeOfParallelism, action, state);
+                        itemPerBatch = total / batches;
+                        uint itemsLeft = (total - itemPerBatch * batches);
+                        batches += itemsLeft / itemPerBatch + (itemsLeft % itemPerBatch != 0 ? 1u : 0);
+                    }
 
-                        // Wait for all workers to finish
-                        state.WaitCompletion(toExclusive);
+                    fixed (BatchRunner<TJob>* ptr = arr)
+                    {
+                        *ptr = new()
+                        {
+                            Total = total,
+                            ItemsPerBatch = itemPerBatch,
+                            Index = 0,
+                            Scheduled = batches,
+                            BatchesDone = 0,
+                            Lock = arr,
+                            Job = batchJob,
+                        };
 
-                        var ex = Interlocked.Exchange(ref state.ExceptionThrown, null);
+                        ThreadPool.Instance.QueueUnsafeWorkItem(ptr, (int)batches);
+
+                        while (Volatile.Read(ref ptr->BatchesDone) != batches)
+                        {
+                            // Might as well steal some work instead of just waiting,
+                            // also helps prevent potential deadlocks from badly threaded code
+                            if (ThreadPool.Instance.TryCooperate() == false)
+                            {
+                                lock (arr)
+                                {
+                                    if (Volatile.Read(ref ptr->BatchesDone) == batches)
+                                        break;
+
+                                    Monitor.Wait(arr, 0);
+                                }
+                            }
+                        }
+
+                        batchJob = ptr->Job;
+
+                        var ex = Interlocked.Exchange(ref ptr->Exception, null);
                         if (ex != null)
                             throw ex;
                     }
-                    finally
-                    {
-                        state.Release();
-                    }
-                }
-            }
-        }
-
-        public static void For<TLocal>(int fromInclusive, int toExclusive, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<int, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null)
-        {
-            using (Profile(action))
-            {
-                if (fromInclusive > toExclusive)
-                {
-                    var temp = fromInclusive;
-                    fromInclusive = toExclusive + 1;
-                    toExclusive = temp + 1;
-                }
-
-                var count = toExclusive - fromInclusive;
-                if (count == 0)
-                    return;
-
-                if (MaxDegreeOfParallelism <= 1 || count == 1)
-                {
-                    ExecuteBatch(fromInclusive, toExclusive, initializeLocal, action, finalizeLocal);
-                }
-                else
-                {
-                    var state = BatchState.Acquire();
-                    state.WorkDone = state.StartInclusive = fromInclusive;
-
-                    try
-                    {
-                        var batchCount = Math.Min(MaxDegreeOfParallelism, count);
-                        var batchSize = (count + (batchCount - 1)) / batchCount;
-
-                        // Kick off a worker, then perform work synchronously
-                        state.AddReference();
-                        Fork(toExclusive, batchSize, MaxDegreeOfParallelism, initializeLocal, action, finalizeLocal, state);
-
-                        // Wait for all workers to finish
-                        state.WaitCompletion(toExclusive);
-
-                        var ex = Interlocked.Exchange(ref state.ExceptionThrown, null);
-                        if (ex != null)
-                            throw ex;
-                    }
-                    finally
-                    {
-                        state.Release();
-                    }
-                }
-            }
-        }
-        
-        public static void ForEach<TItem, TLocal>([NotNull] IReadOnlyList<TItem> collection, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<TItem, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null)
-        {
-            For(0, collection.Count, initializeLocal, (i, local) => action(collection[i], local), finalizeLocal);
-        }
-
-        public static void ForEach<T>([NotNull] IReadOnlyList<T> collection, [Pooled] Action<T> action)
-        {
-            For(0, collection.Count, i => action(collection[i]));
-        }
-
-        public static void ForEach<T>([NotNull] List<T> collection, [Pooled] Action<T> action)
-        {
-            For(0, collection.Count, i => action(collection[i]));
-        }
-
-        public static void ForEach<TKey, TValue>([NotNull] Dictionary<TKey, TValue> collection, [Pooled] Action<KeyValuePair<TKey, TValue>> action)
-        {
-            if (MaxDegreeOfParallelism <= 1 || collection.Count <= 1)
-            {
-                ExecuteBatch(collection, 0, collection.Count, action);
-            }
-            else
-            {
-                var state = BatchState.Acquire();
-
-                try
-                {
-                    var batchCount = Math.Min(MaxDegreeOfParallelism, collection.Count);
-                    var batchSize = (collection.Count + (batchCount - 1)) / batchCount;
-
-                    // Kick off a worker, then perform work synchronously
-                    state.AddReference();
-                    Fork(collection, batchSize, MaxDegreeOfParallelism, action, state);
-
-                    // Wait for all workers to finish
-                    state.WaitCompletion(collection.Count);
-
-                    var ex = Interlocked.Exchange(ref state.ExceptionThrown, null);
-                    if (ex != null)
-                        throw ex;
                 }
                 finally
                 {
-                    state.Release();
+                    Pool<BatchRunner<TJob>>.Arrays.Release(arr);
                 }
             }
         }
 
-        public static void ForEach<TKey, TValue, TLocal>([NotNull] Dictionary<TKey, TValue> collection, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<KeyValuePair<TKey, TValue>, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null)
+        public static unsafe void ForBatched<T>(int items, in T parameter, delegate*<T, int, int, void> executeBatch)
         {
-            if (MaxDegreeOfParallelism <= 1 || collection.Count <= 1)
+            var batchedDelegate = new BatchedDelegate<T>
             {
-                ExecuteBatch(collection, 0, collection.Count, initializeLocal, action, finalizeLocal);
-            }
-            else
-            {
-                var state = BatchState.Acquire();
+                Param = parameter,
+                Delegate = executeBatch,
+            };
+            ForBatched(items, ref batchedDelegate);
+        }
 
+        public static unsafe void ForBatched<T>(int items, ref T parameter, delegate*<ref T, int, int, void> executeBatch)
+        {
+            var batchedDelegate = new BatchedDelegateRef<T>
+            {
+                Param = parameter,
+                Delegate = executeBatch,
+            };
+            ForBatched(items, ref batchedDelegate);
+        }
+
+        public static unsafe void ForBatched(int items, [Pooled] Action<int, int> executeBatch)
+        {
+            var batchedDelegate = new BatchedDelegate<Action<int, int>>
+            {
+                Param = executeBatch,
+                Delegate = &ForBatchedAction,
+            };
+            ForBatched(items, ref batchedDelegate);
+
+            static void ForBatchedAction(Action<int, int> parameter, int from, int toExclusive)
+            {
+                parameter(from, toExclusive);
+            }
+        }
+
+        public static unsafe void For(int fromInclusive, int toExclusive, [Pooled] Action<int> action)
+        {
+            var parameters = (action, fromInclusive);
+            ForBatched(toExclusive - fromInclusive, parameters, &ForWrapped);
+
+            static void ForWrapped((Action<int> action, int start) parameters, int from, int toExclusive)
+            {
+                for (int i = from; i < toExclusive; i++)
+                {
+                    parameters.action(parameters.start + i);
+                }
+            }
+        }
+
+        public static unsafe void For<TLocal>(int fromInclusive, int toExclusive, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<int, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null)
+        {
+            var parameters = (initializeLocal, action, finalizeLocal, fromInclusive);
+            ForBatched(toExclusive - fromInclusive, parameters, &ForWrapped);
+
+            static void ForWrapped((Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal> finalizeLocal, int start) parameters, int from, int toExclusive)
+            {
+                TLocal local = default(TLocal);
                 try
                 {
-                    var batchCount = Math.Min(MaxDegreeOfParallelism, collection.Count);
-                    var batchSize = (collection.Count + (batchCount - 1)) / batchCount;
+                    if (parameters.initializeLocal != null)
+                    {
+                        local = parameters.initializeLocal.Invoke();
+                    }
 
-                    // Kick off a worker, then perform work synchronously
-                    state.AddReference();
-                    Fork(collection, batchSize, MaxDegreeOfParallelism, initializeLocal, action, finalizeLocal, state);
-
-                    // Wait for all workers to finish
-                    state.WaitCompletion(collection.Count);
-
-                    var ex = Interlocked.Exchange(ref state.ExceptionThrown, null);
-                    if (ex != null)
-                        throw ex;
+                    for (int i = from; i < toExclusive; i++)
+                    {
+                        parameters.action(parameters.start + i, local);
+                    }
                 }
                 finally
                 {
-                    state.Release();
+                    parameters.finalizeLocal?.Invoke(local);
                 }
             }
         }
 
-        public static void ForEach<T>([NotNull] FastCollection<T> collection, [Pooled] Action<T> action)
+        public static void ForEach<T>([NotNull] T[] collection, [Pooled] Action<T> action)
         {
-            For(0, collection.Count, i => action(collection[i]));
-        }
-
-        public static void ForEach<T>([NotNull] FastList<T> collection, [Pooled] Action<T> action)
-        {
-            For(0, collection.Count, i => action(collection.Items[i]));
+            ForEach<T, T[]>(collection, action);
         }
 
         public static void ForEach<T>([NotNull] ConcurrentCollector<T> collection, [Pooled] Action<T> action)
         {
-            For(0, collection.Count, i => action(collection.Items[i]));
+            ForEach<T, ConcurrentCollector<T>>(collection, action);
         }
 
-        public static void ForEach<T>([NotNull] FastList<T> collection, [Pooled] ValueAction<T> action)
+        public static void ForEach<T>([NotNull] List<T> collection, [Pooled] Action<T> action)
         {
-            For(0, collection.Count, i => action(ref collection.Items[i]));
+            ForEach<T, List<T>>(collection, action);
         }
 
-        public static void ForEach<T>([NotNull] ConcurrentCollector<T> collection, [Pooled] ValueAction<T> action)
+        public static void ForEach<T, TLocal>([NotNull] ConcurrentCollector<T> collection, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<T, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null)
         {
-            For(0, collection.Count, i => action(ref collection.Items[i]));
+            ForEach<T, TLocal, ConcurrentCollector<T>>(collection, initializeLocal, action, finalizeLocal);
         }
 
-        private static void Fork<TKey, TValue>([NotNull] Dictionary<TKey, TValue> collection, int batchSize, int maxDegreeOfParallelism, [Pooled] Action<KeyValuePair<TKey, TValue>> action, [NotNull] BatchState state)
+        public static void ForEach<T>([NotNull] FastCollection<T> collection, [Pooled] Action<T> action)
         {
-            // Other threads already processed all work before this one started.
-            if (state.StartInclusive >= collection.Count)
+            ForEach<T, FastCollection<T>>(collection, action);
+        }
+
+        public static unsafe void ForEach<T>([NotNull] ConcurrentCollector<T> collection, [Pooled] ValueAction<T> action)
+        {
+            var parameters = (action, collection);
+            ForBatched(collection.Count, parameters, &ForEachList);
+
+            static void ForEachList((ValueAction<T> action, ConcurrentCollector<T> collection) parameters, int from, int toExclusive)
             {
-                state.Release();
-                return;
-            }
-
-            // Kick off another worker if there's any work left
-            if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < collection.Count)
-            {
-                int workToSchedule = maxDegreeOfParallelism - 1;
-                for (int i = 0; i < workToSchedule; i++)
+                for (int i = from; i < toExclusive; i++)
                 {
-                    state.AddReference();
-                }
-                ThreadPool.Instance.QueueWorkItem(() => Fork(collection, batchSize, 0, action, state), workToSchedule);
-            }
-
-            try
-            {
-                // Process batches synchronously as long as there are any
-                int newStart;
-                while ((newStart = Interlocked.Add(ref state.StartInclusive, batchSize)) - batchSize < collection.Count)
-                {
-                    try
-                    {
-                        // TODO: Reuse enumerator when processing multiple batches synchronously
-                        var start = newStart - batchSize;
-                        ExecuteBatch(collection, newStart - batchSize, Math.Min(collection.Count, newStart) - start, action);
-                    }
-                    finally
-                    {
-                        if (Interlocked.Add(ref state.WorkDone, batchSize) >= collection.Count)
-                        {
-                             // Don't wait for other threads to wake up and signal the BatchState, release as soon as work is finished
-                            state.Finished.Set();
-                        }
-                    }
+                    parameters.action(ref parameters.collection.Items[i]);
                 }
             }
-            catch (Exception e)
+        }
+
+        public static unsafe void ForEach<T, TList>([NotNull] TList collection, [Pooled] Action<T> action) where TList : IReadOnlyList<T>
+        {
+            var parameters = (action, collection);
+            ForBatched(collection.Count, parameters, &ForEachList);
+
+            static void ForEachList((Action<T> action, TList collection) parameters, int from, int toExclusive)
             {
-                Interlocked.Exchange(ref state.ExceptionThrown, e);
-                throw;
-            }
-            finally
-            {
-                state.Release();
+                for (int i = from; i < toExclusive; i++)
+                {
+                    parameters.action(parameters.collection[i]);
+                }
             }
         }
 
-        private static void Fork<TKey, TValue, TLocal>([NotNull] Dictionary<TKey, TValue> collection, int batchSize, int maxDegreeOfParallelism, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<KeyValuePair<TKey, TValue>, TLocal> action, [Pooled] Action<TLocal> finalizeLocal, [NotNull] BatchState state)
+        public static unsafe void ForEach<TItem, TLocal, TList>([NotNull] TList collection, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<TItem, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null) where TList : IReadOnlyList<TItem>
         {
-            // Other threads already processed all work before this one started.
-            if (state.StartInclusive >= collection.Count)
-            {
-                state.Release();
-                return;
-            }
+            var parameters = (initializeLocal, action, finalizeLocal, collection);
+            ForBatched(collection.Count, parameters, &ForEachList);
 
-            // Kick off another worker if there's any work left
-            if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < collection.Count)
+            static void ForEachList((Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal> finalizeLocal, TList collection) parameters, int from, int toExclusive)
             {
-                int workToSchedule = maxDegreeOfParallelism - 1;
-                for (int i = 0; i < workToSchedule; i++)
+                TLocal local = default(TLocal);
+                try
                 {
-                    state.AddReference();
-                }
-                ThreadPool.Instance.QueueWorkItem(() => Fork(collection, batchSize, 0, initializeLocal, action, finalizeLocal, state), workToSchedule);
-            }
-
-            try
-            {
-                // Process batches synchronously as long as there are any
-                int newStart;
-                while ((newStart = Interlocked.Add(ref state.StartInclusive, batchSize)) - batchSize < collection.Count)
-                {
-                    try
+                    if (parameters.initializeLocal != null)
                     {
-                        // TODO: Reuse enumerator when processing multiple batches synchronously
-                        var start = newStart - batchSize;
-                        ExecuteBatch(collection, newStart - batchSize, Math.Min(collection.Count, newStart) - start, initializeLocal, action, finalizeLocal);
+                        local = parameters.initializeLocal.Invoke();
                     }
-                    finally
+
+                    for (int i = from; i < toExclusive; i++)
                     {
-                        if (Interlocked.Add(ref state.WorkDone, batchSize) >= collection.Count)
-                        {
-                             // Don't wait for other threads to wake up and signal the BatchState, release as soon as work is finished
-                            state.Finished.Set();
-                        }
+                        parameters.action(parameters.collection[i], local);
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                Interlocked.Exchange(ref state.ExceptionThrown, e);
-                throw;
-            }
-            finally
-            {
-                state.Release();
+                finally
+                {
+                    parameters.finalizeLocal?.Invoke(local);
+                }
             }
         }
 
-        private static void ExecuteBatch(int fromInclusive, int toExclusive, [Pooled] Action<int> action)
+        public static unsafe void ForEach<TKey, TValue>([NotNull] Dictionary<TKey, TValue> collection, [Pooled] Action<KeyValuePair<TKey, TValue>> action)
         {
-            for (var i = fromInclusive; i < toExclusive; i++)
-            {
-                action(i);
-            }
-        }
+            var parameters = (action, collection);
+            ForBatched(collection.Count, parameters, &ForEachDict);
 
-        private static void ExecuteBatch<TLocal>(int fromInclusive, int toExclusive, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<int, TLocal> action, [Pooled] Action<TLocal> finalizeLocal)
-        {
-            var local = default(TLocal);
-            try
+            static void ForEachDict((Action<KeyValuePair<TKey, TValue>> action, Dictionary<TKey, TValue> collection) parameters, int from, int toExclusive)
             {
-                if (initializeLocal != null)
-                {
-                    local = initializeLocal();
-                }
-
-                for (var i = fromInclusive; i < toExclusive; i++)
-                {
-                    action(i, local);
-                }
-            }
-            finally
-            {
-                finalizeLocal?.Invoke(local);
-            }
-        }
-
-        private static void Fork(int endExclusive, int batchSize, int maxDegreeOfParallelism, [Pooled] Action<int> action, [NotNull] BatchState state)
-        {
-            // Other threads already processed all work before this one started.
-            if (state.StartInclusive >= endExclusive)
-            {
-                state.Release();
-                return;
-            }
-
-            // Kick off another worker if there's any work left
-            if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < endExclusive)
-            {
-                int workToSchedule = maxDegreeOfParallelism - 1;
-                for (int i = 0; i < workToSchedule; i++)
-                {
-                    state.AddReference();
-                }
-                ThreadPool.Instance.QueueWorkItem(() => Fork(endExclusive, batchSize, 0, action, state), workToSchedule);
-            }
-
-            try
-            {
-                // Process batches synchronously as long as there are any
-                int newStart;
-                while ((newStart = Interlocked.Add(ref state.StartInclusive, batchSize)) - batchSize < endExclusive)
-                {
-                    try
-                    {
-                        ExecuteBatch(newStart - batchSize, Math.Min(endExclusive, newStart), action);
-                    }
-                    finally
-                    {
-                        if (Interlocked.Add(ref state.WorkDone, batchSize) >= endExclusive)
-                        {
-                             // Don't wait for other threads to wake up and signal the BatchState, release as soon as work is finished
-                            state.Finished.Set();
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Interlocked.Exchange(ref state.ExceptionThrown, e);
-                throw;
-            }
-            finally
-            {
-                state.Release();
-            }
-        }
-
-        private static void Fork<TLocal>(int endExclusive, int batchSize, int maxDegreeOfParallelism, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<int, TLocal> action, [Pooled] Action<TLocal> finalizeLocal, [NotNull] BatchState state)
-        {
-            // Other threads already processed all work before this one started.
-            if (state.StartInclusive >= endExclusive)
-            {
-                state.Release();
-                return;
-            }
-
-            // Kick off another worker if there's any work left
-            if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < endExclusive)
-            {
-                int workToSchedule = maxDegreeOfParallelism - 1;
-                for (int i = 0; i < workToSchedule; i++)
-                {
-                    state.AddReference();
-                }
-                ThreadPool.Instance.QueueWorkItem(() => Fork(endExclusive, batchSize, 0, initializeLocal, action, finalizeLocal, state), workToSchedule);
-            }
-
-            try
-            {
-                // Process batches synchronously as long as there are any
-                int newStart;
-                while ((newStart = Interlocked.Add(ref state.StartInclusive, batchSize)) - batchSize < endExclusive)
-                {
-                    try
-                    {
-                        ExecuteBatch(newStart - batchSize, Math.Min(endExclusive, newStart), initializeLocal, action, finalizeLocal);
-                    }
-                    finally
-                    {
-                        if (Interlocked.Add(ref state.WorkDone, batchSize) >= endExclusive)
-                        {
-                            // Don't wait for other threads to wake up and signal the BatchState, release as soon as work is finished
-                            state.Finished.Set();
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Interlocked.Exchange(ref state.ExceptionThrown, e);
-                throw;
-            }
-            finally
-            {
-                state.Release();
-            }
-        }
-
-        private static void ExecuteBatch<TKey, TValue>([NotNull] Dictionary<TKey, TValue> dictionary, int offset, int count, [Pooled] Action<KeyValuePair<TKey, TValue>> action)
-        {
-            var enumerator = dictionary.GetEnumerator();
-            var index = 0;
-
-            // Skip to offset
-            while (index < offset && enumerator.MoveNext())
-            {
-                index++;
-            }
-
-            // Process batch
-            while (index < offset + count && enumerator.MoveNext())
-            {
-                action(enumerator.Current);
-                index++;
-            }
-        }
-
-        private static void ExecuteBatch<TKey, TValue, TLocal>([NotNull] Dictionary<TKey, TValue> dictionary, int offset, int count, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<KeyValuePair<TKey, TValue>, TLocal> action, [Pooled] Action<TLocal> finalizeLocal)
-        {
-            var local = default(TLocal);
-            try
-            {
-                if (initializeLocal != null)
-                {
-                    local = initializeLocal();
-                }
-
-                var enumerator = dictionary.GetEnumerator();
-                var index = 0;
+                using var enumerator = parameters.collection.GetEnumerator();
 
                 // Skip to offset
-                while (index < offset && enumerator.MoveNext())
+                for (int i = 0; i < from; i++)
                 {
-                    index++;
+                    enumerator.MoveNext();
                 }
 
                 // Process batch
-                while (index < offset + count && enumerator.MoveNext())
+                for (int i = from; i < toExclusive && enumerator.MoveNext(); i++)
                 {
-                    action(enumerator.Current, local);
-                    index++;
+                    parameters.action(enumerator.Current);
                 }
             }
-            finally
+        }
+
+        public static unsafe void ForEach<TKey, TValue, TLocal>([NotNull] Dictionary<TKey, TValue> collection, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<KeyValuePair<TKey, TValue>, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null)
+        {
+            var parameters = (initializeLocal, action, finalizeLocal, collection);
+            ForBatched(collection.Count, parameters, &ForEachDict);
+
+            static void ForEachDict((Func<TLocal> initializeLocal, Action<KeyValuePair<TKey, TValue>, TLocal> action, Action<TLocal> finalizeLocal, Dictionary<TKey, TValue> collection) parameters, int from, int toExclusive)
             {
-                finalizeLocal?.Invoke(local);
+                using var enumerator = parameters.collection.GetEnumerator();
+
+                for (int i = 0; i < from; i++) // Skip to the start of our batch
+                {
+                    enumerator.MoveNext();
+                }
+
+                TLocal local = default;
+                try
+                {
+                    if (parameters.initializeLocal != null)
+                        local = parameters.initializeLocal.Invoke();
+
+                    for (int i = from; i < toExclusive && enumerator.MoveNext(); i++)
+                    {
+                        parameters.action(enumerator.Current, local);
+                    }
+                }
+                finally
+                {
+                    parameters.finalizeLocal?.Invoke(local);
+                }
             }
         }
 
@@ -665,51 +494,82 @@ namespace Stride.Core.Threading
             collection[j] = temp;
         }
 
-        private class BatchState
+        /// <summary>
+        /// An implementation of a job running in batches.
+        /// This object is shared across all threads scheduled for the job;
+        /// Making changes to it in one thread will be reflected in others.
+        /// Prefer implementing this over struct if possible to inline the call appropriately.
+        /// </summary>
+        public interface IBatchJob
         {
-            private static readonly ConcurrentPool<BatchState> Pool = new ConcurrentPool<BatchState>(() => new BatchState());
+            /// <summary>
+            /// Execute this job over a range of items
+            /// </summary>
+            /// <param name="start">the start of the range</param>
+            /// <param name="endExclusive">the end of the range, iterate as long as i &lt; endExclusive</param>
+            void Process(int start, int endExclusive);
+        }
 
-            private int referenceCount;
+        struct BatchedDelegateRef<T> : IBatchJob
+        {
+            public T Param;
+            public unsafe delegate*<ref T, int, int, void> Delegate;
 
-            public readonly ManualResetEvent Finished = new ManualResetEvent(false);
-
-            public int StartInclusive;
-
-            public int WorkDone;
-
-            public Exception ExceptionThrown;
-
-            [NotNull]
-            public static BatchState Acquire()
+            public unsafe void Process(int start, int endExclusive)
             {
-                var state = Pool.Acquire();
-                state.referenceCount = 1;
-                state.StartInclusive = 0;
-                state.WorkDone = 0;
-                state.ExceptionThrown = null;
-                state.Finished.Reset();
-                return state;
+                Delegate(ref Param, start, endExclusive);
             }
+        }
 
-            public void AddReference()
+        struct BatchedDelegate<T> : IBatchJob
+        {
+            public T Param;
+            public unsafe delegate*<T, int, int, void> Delegate;
+
+            public unsafe void Process(int start, int endExclusive)
             {
-                Interlocked.Increment(ref referenceCount);
+                Delegate(Param, start, endExclusive);
             }
+        }
 
-            public void Release()
+        struct BatchRunner<TJob> : ThreadPool.IJob where TJob : IBatchJob
+        {
+            public uint Total;
+            public uint ItemsPerBatch;
+            public uint Index;
+            public uint Scheduled;
+            public uint BatchesDone;
+            public Exception Exception;
+            public object Lock;
+            public TJob Job;
+
+            public void Execute()
             {
-                if (Interlocked.Decrement(ref referenceCount) == 0)
+                // This structure will be shared across all threads that have been scheduled for a given job; each threads read and write to the same region in memory
+                try
                 {
-                    Pool.Release(this);
+                    // Using uints to account for overflow
+                    uint end = Interlocked.Add(ref Index, ItemsPerBatch);
+                    uint start = end - ItemsPerBatch;
+                    if (end > Total || end < start/*when interlocked wrapped around*/)
+                        end = Total;
+
+                    Job.Process((int)start, (int)end);
                 }
-            }
-            
-            public void WaitCompletion(int end)
-            {
-                // Might as well steal some work instead of just waiting,
-                // also helps prevent potential deadlocks from badly threaded code
-                while(WorkDone < end && Finished.WaitOne(0) == false)
-                    ThreadPool.Instance.TryCooperate();
+                catch (Exception e)
+                {
+                    Interlocked.CompareExchange(ref Exception, e, null);
+                }
+                finally
+                {
+                    if (Interlocked.Increment(ref BatchesDone) == Scheduled)
+                    {
+                        lock (Lock)
+                        {
+                            Monitor.Pulse(Lock);
+                        }
+                    }
+                }
             }
         }
 
