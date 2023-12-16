@@ -317,7 +317,7 @@ namespace Stride.GameStudio.ViewModels
             // Make sure it is Windows platform (only supported for now)
             if (Session.CurrentProject.Platform != PlatformType.Windows)
             {
-                await ServiceProvider.Get<IDialogService>()
+                await ServiceProvider.Get<IDialogService2>()
                     .MessageBox(
                         string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform),
                         MessageBoxButton.OK, MessageBoxImage.Information);
@@ -579,7 +579,7 @@ namespace Stride.GameStudio.ViewModels
             catch (Exception e)
             {
                 logger.Error("An exception occurred during compilation.", e);
-                await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService2>().MessageBox(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
             return !currentBuild.IsCanceled && !logger.HasErrors;
@@ -589,7 +589,7 @@ namespace Stride.GameStudio.ViewModels
         {
             if (Session.CurrentProject == null)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "To process the build, set an executable project as the current project in the session explorer."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "To process the build, set an executable project as the current project in the session explorer."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
 
@@ -597,7 +597,7 @@ namespace Stride.GameStudio.ViewModels
 
             if (!saved)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "To build, save the project first."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "To build, save the project first."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
 
@@ -652,7 +652,7 @@ namespace Stride.GameStudio.ViewModels
             }
             catch (Exception e)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService2>().MessageBox(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
             }
             finally
             {

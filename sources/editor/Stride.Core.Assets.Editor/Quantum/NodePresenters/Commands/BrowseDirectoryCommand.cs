@@ -18,7 +18,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// </summary>
         public const string CommandName = "BrowseDirectory";
 
-        private readonly IDialogService dialogService;
+        private readonly IDialogService2 dialogService;
         private readonly IInitialDirectoryProvider initialDirectoryProvider;
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// </summary>
         /// <param name="dialogService">The dialog service used to pick the folder.</param>
         /// <param name="initialDirectoryProvider">An object that provide the initial directory to use in the picker.</param>
-        public BrowseDirectoryCommand(IDialogService dialogService, IInitialDirectoryProvider initialDirectoryProvider = null)
+        public BrowseDirectoryCommand(IDialogService2 dialogService, IInitialDirectoryProvider initialDirectoryProvider = null)
         {
             if (dialogService == null) throw new ArgumentNullException(nameof(dialogService));
             this.dialogService = dialogService;

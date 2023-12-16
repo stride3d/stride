@@ -282,7 +282,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)
             {
-                await serviceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await serviceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return null;
             }
 
@@ -468,7 +468,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                         new DialogButtonInfo(Tr._p("Button", "Skip"), (int)PackageUpgradeRequestedAnswer.DoNotUpgrade),
                     };
                     var checkBoxMessage = Tr._p("Message", "Do this for every package in the solution");
-                    var messageBoxResult = workProgress.ServiceProvider.Get<IDialogService>().CheckedMessageBox(message.ToString(), false, checkBoxMessage, buttons).Result;
+                    var messageBoxResult = workProgress.ServiceProvider.Get<IDialogService2>().CheckedMessageBox(message.ToString(), false, checkBoxMessage, buttons).Result;
                     var result = (PackageUpgradeRequestedAnswer)messageBoxResult.Result;
                     if (messageBoxResult.IsChecked == true)
                     {
@@ -1565,7 +1565,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var message = $"Are you sure you want to delete {string.Join(" and ", messageParts)}?";
                 var checkedMessage = Tr._p("Settings", "Always delete without asking");
                 var buttons = DialogHelper.CreateButtons(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
-                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBox(message, false, checkedMessage, buttons, MessageBoxImage.Question);
+                var result = await ServiceProvider.Get<IDialogService2>().CheckedMessageBox(message, false, checkedMessage, buttons, MessageBoxImage.Question);
                 if (result.Result != 1)
                     return false;
 

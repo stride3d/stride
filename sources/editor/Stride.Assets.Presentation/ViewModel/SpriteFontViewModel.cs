@@ -39,7 +39,7 @@ namespace Stride.Assets.Presentation.ViewModel
         private async Task GeneratePrecompiledFont()
         {
             var font = (SpriteFontAsset)AssetItem.Asset;
-            var dialogService = ServiceProvider.Get<IDialogService>();
+            var dialogService = ServiceProvider.Get<IDialogService2>();
             // Dynamic font cannot be precompiled
             if (font.FontType is RuntimeRasterizedSpriteFontType)
             {

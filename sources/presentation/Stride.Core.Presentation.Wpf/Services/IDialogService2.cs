@@ -12,7 +12,7 @@ namespace Stride.Core.Presentation.Services
     /// <summary>
     /// An interface to invoke dialogs from commands implemented in view models
     /// </summary>
-    public interface IDialogService
+    public interface IDialogService2 : IDialogService
     {
         /// <summary>
         /// Creates a modal file open dialog.

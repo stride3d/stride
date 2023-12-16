@@ -31,7 +31,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
         /// <summary>
         /// Initializes a new instance of the <see cref="SettingsViewModel"/> class.
         /// </summary>
-        /// <param name="serviceProvider">A service provider that can provide a <see cref="IDispatcherService"/> and an <see cref="IDialogService"/> to use for this view model.</param>
+        /// <param name="serviceProvider">A service provider that can provide a <see cref="IDispatcherService"/> and an <see cref="IDialogService2"/> to use for this view model.</param>
         /// <param name="profile">The profile associated </param>
         public SettingsViewModel([NotNull] IViewModelServiceProvider serviceProvider, SettingsProfile profile)
             : base(serviceProvider, new AssetNodeContainer())
@@ -75,7 +75,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
 #if DEBUG
             DebugTestSettings.Initialize();
 #endif
-            var dialogService = ServiceProvider.Get<IDialogService>();
+            var dialogService = ServiceProvider.Get<IDialogService2>();
             RegisterNodePresenterCommand(new BrowseDirectoryCommand(dialogService));
             RegisterNodePresenterCommand(new BrowseFileCommand(dialogService));
 
@@ -115,7 +115,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
             EditorSettings.Save();
             if (EditorSettings.NeedRestart)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "Some changes will be applied after you restart Game Studio."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "Some changes will be applied after you restart Game Studio."), MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

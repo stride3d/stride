@@ -32,7 +32,7 @@ namespace Stride.Core.Assets.Editor.Services
 
         public static async Task<IEnumerable<UFile>> OpenFileDialog(IViewModelServiceProvider serviceProvider, bool allowMultiSelection, string initialDirectory, IEnumerable<FileDialogFilter> filters = null)
         {
-            var dialogService = serviceProvider.Get<IDialogService>();
+            var dialogService = serviceProvider.Get<IDialogService2>();
             IFileOpenModalDialog dlg = dialogService.CreateFileOpenModalDialog();
             dlg.InitialDirectory = initialDirectory;
 

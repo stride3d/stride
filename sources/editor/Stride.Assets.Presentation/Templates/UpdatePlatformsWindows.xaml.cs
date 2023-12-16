@@ -58,7 +58,7 @@ namespace Stride.Assets.Presentation.Templates
         {
             if (!SelectedPlatforms.Any())
             {
-                await services.Get<IDialogService>().MessageBox(Tr._p("Message", "You must select at least one platform."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService2>().MessageBox(Tr._p("Message", "You must select at least one platform."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -70,7 +70,7 @@ namespace Stride.Assets.Presentation.Templates
                     Tr._p("Button", "Cancel")
                 }, 1, 2);
                 var msg = string.Format(Tr._p("Message", "Are you sure you want to remove these {0} platform(s) from the package?"), AvailablePlatforms.Count(x => x.MarkedToRemove));
-                var result = await services.Get<IDialogService>().MessageBox(msg, buttons, MessageBoxImage.Question);
+                var result = await services.Get<IDialogService2>().MessageBox(msg, buttons, MessageBoxImage.Question);
                 if (result != 1)
                     return;
 

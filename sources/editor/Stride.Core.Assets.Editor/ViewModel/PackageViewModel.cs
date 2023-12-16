@@ -450,7 +450,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -658,7 +658,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             string error;
             if (!IsValidName(newName, out error))
             {
-                ServiceProvider.Get<IDialogService>().BlockingMessageBox(string.Format(Tr._p("Message", "This package couldn't be renamed. {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
+                ServiceProvider.Get<IDialogService2>().BlockingMessageBox(string.Format(Tr._p("Message", "This package couldn't be renamed. {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             var newPath = UFile.Combine(PackagePath.GetFullDirectory(), newName + PackagePath.GetFileExtension());

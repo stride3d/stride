@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Stride.Core.Annotations;
+using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
@@ -14,7 +16,7 @@ using MessageBoxResult = Stride.Core.Presentation.Services.MessageBoxResult;
 
 namespace Stride.Core.Presentation.Dialogs
 {
-    public class DialogService : IDialogService
+    public class DialogService : IDialogService2
     {
         private Action onClosedAction;
 
@@ -97,11 +99,9 @@ namespace Stride.Core.Presentation.Dialogs
 
         public async Task CloseMainWindow(Action onClosed)
         {
-            var window = Application.Current.MainWindow;
-            if (window != null)
+            if (Application.Current.MainWindow is { } window)
             {
-                var asyncClosable = window as IAsyncClosableWindow;
-                if (asyncClosable != null)
+                if (window is IAsyncClosableWindow asyncClosable)
                 {
                     var closed = await asyncClosable.TryClose();
                     if (closed)
@@ -134,6 +134,42 @@ namespace Stride.Core.Presentation.Dialogs
         {
             ((Window)sender).Closed -= MainWindowClosed;
             onClosedAction?.Invoke();
+        }
+
+        bool IDialogService.HasMainWindow => Application.Current.MainWindow is not null;
+
+        void IDialogService.Exit(int exitCode)
+        {
+            if (Application.Current is { } app)
+            {
+                app.Shutdown(exitCode);
+            }
+            else
+            {
+                Environment.Exit(exitCode);
+            }
+        }
+
+        async Task<UFile> IDialogService.OpenFilePickerAsync(UPath initialPath)
+        {
+            var dialog = CreateFileOpenModalDialog();
+            dialog.InitialDirectory = initialPath;
+
+            var result = await dialog.ShowModal();
+            return result == DialogResult.Ok
+                ? dialog.FilePaths.First()
+                : null;
+        }
+
+        async Task<UDirectory> IDialogService.OpenFolderPickerAsync(UPath initialPath)
+        {
+            var dialog = CreateFolderOpenModalDialog();
+            dialog.InitialDirectory = initialPath;
+
+            var result = await dialog.ShowModal();
+            return result == DialogResult.Ok
+                ? dialog.Directory
+                : null;
         }
     }
 }
