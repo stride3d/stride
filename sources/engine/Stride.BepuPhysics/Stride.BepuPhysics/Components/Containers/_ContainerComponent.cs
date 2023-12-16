@@ -363,9 +363,9 @@ namespace Stride.BepuPhysics.Components.Containers
 				shapeData.Points.Add(Vector3.Transform(triangle.B.ToStrideVector(), objectTransform).XYZ());
 				shapeData.Points.Add(Vector3.Transform(triangle.C.ToStrideVector(), objectTransform).XYZ());
 
-				shapeData.Indices.Add(i * 0);
 				shapeData.Indices.Add(i * 1);
 				shapeData.Indices.Add(i * 2);
+				shapeData.Indices.Add(i * 3);
 			}
 
 			return shapeData;
