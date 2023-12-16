@@ -19,34 +19,28 @@ namespace Stride.Core.Assets.Editor.Services
         public static async Task<UFile> BrowseForExistingProject(IViewModelServiceProvider serviceProvider)
         {
             var initialDirectory = InternalSettings.FileDialogLastOpenSessionDirectory.GetValue();
-            var extensions = string.Join(";", EditorViewModel.SolutionFileExtension, EditorViewModel.PackageFileExtension);
-            var filters = new List<FileDialogFilter>
+            var filters = new List<FilePickerFilter>
             {
-                new FileDialogFilter("Solution or package files", extensions),
-                new FileDialogFilter("Solution file", EditorViewModel.SolutionFileExtension),
-                new FileDialogFilter("Package file", EditorViewModel.PackageFileExtension),
+                new("Solution or package files") { Patterns = [EditorViewModel.SolutionFileExtension, EditorViewModel.PackageFileExtension]},
+                new("Solution file") { Patterns = [EditorViewModel.SolutionFileExtension]},
+                new("Package file") { Patterns = [EditorViewModel.PackageFileExtension]},
             };
             var filePaths = await OpenFileDialog(serviceProvider, false, initialDirectory, filters);
             return filePaths?.FirstOrDefault();
         }
 
-        public static async Task<IEnumerable<UFile>> OpenFileDialog(IViewModelServiceProvider serviceProvider, bool allowMultiSelection, string initialDirectory, IEnumerable<FileDialogFilter> filters = null)
+        public static async Task<IEnumerable<UFile>> OpenFileDialog(IViewModelServiceProvider serviceProvider, bool allowMultiSelection, string initialDirectory, IReadOnlyList<FilePickerFilter> filters = null)
         {
-            var dialogService = serviceProvider.Get<IDialogService2>();
-            IFileOpenModalDialog dlg = dialogService.CreateFileOpenModalDialog();
-            dlg.InitialDirectory = initialDirectory;
-
-            dlg.AllowMultiSelection = allowMultiSelection;
-            if (filters != null)
+            if (allowMultiSelection)
             {
-                filters.ForEach(x => dlg.Filters.Add(x));
+                var files = await serviceProvider.Get<IDialogService>().OpenMultipleFilesPickerAsync(initialDirectory, filters);
+                return files.Count > 0 ? files : null;
             }
             else
             {
-                dlg.Filters.Add(new FileDialogFilter("All Files", "*.*"));
+                var file = await serviceProvider.Get<IDialogService>().OpenFilePickerAsync(initialDirectory, filters);
+                return file?.Yield();
             }
-
-            return await dlg.ShowModal() == DialogResult.Ok ? dlg.FilePaths.Select(x => new UFile(x)) : null;
         }
     }
 }

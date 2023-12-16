@@ -465,13 +465,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public async Task AddExistingProject()
         {
-            var fileDialog = ServiceProvider.Get<IEditorDialogService>().CreateFileOpenModalDialog();
-            fileDialog.Filters.Add(new FileDialogFilter("Visual Studio C# project", "csproj"));
-            fileDialog.InitialDirectory = Session.SolutionPath;
-            var result = await fileDialog.ShowModal();
-
-            var projectPath = fileDialog.FilePaths.FirstOrDefault();
-            if (result == DialogResult.Ok && projectPath != null)
+            var file = await ServiceProvider.Get<IDialogService>()
+                .OpenFilePickerAsync(Session.SolutionPath?.GetFullDirectory(), [new FilePickerFilter("Visual Studio C# project") { Patterns = ["*.csproj"] }]);
+            if (file is not null)
             {
                 var loggerResult = new LoggerResult();
                 var cancellationSource = new CancellationTokenSource();
@@ -493,7 +489,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     {
                         try
                         {
-                            Package.AddExistingProject(projectPath, loggerResult);
+                            Package.AddExistingProject(file, loggerResult);
                         }
                         catch (Exception e)
                         {
@@ -504,7 +500,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
                     RefreshPackageReferences();
 
-                    UndoRedoService.SetName(transaction, $"Import project '{new UFile(projectPath).GetFileNameWithoutExtension()}'");
+                    UndoRedoService.SetName(transaction, $"Import project '{file.GetFileNameWithoutExtension()}'");
                 }
 
                 // Notify that the task is finished

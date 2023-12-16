@@ -19,6 +19,7 @@ namespace Stride.Core.Presentation.Services
         /// </summary>
         /// <returns>An instance of <see cref="IFileOpenModalDialog"/>.</returns>
         [NotNull]
+        [Obsolete($"Use {nameof(OpenFilePickerAsync)} or {nameof(OpenMultipleFilesPickerAsync)} instead")]
         IFileOpenModalDialog CreateFileOpenModalDialog();
 
         /// <summary>
@@ -26,7 +27,7 @@ namespace Stride.Core.Presentation.Services
         /// </summary>
         /// <returns>An instance of <see cref="IFolderOpenModalDialog"/>.</returns>
         [NotNull]
-        [Obsolete("Use OpenFolderPickerAsync instead")]
+        [Obsolete($"Use {nameof(OpenFolderPickerAsync)} instead")]
         IFolderOpenModalDialog CreateFolderOpenModalDialog();
 
         /// <summary>

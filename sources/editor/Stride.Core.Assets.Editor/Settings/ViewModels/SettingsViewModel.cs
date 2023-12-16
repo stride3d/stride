@@ -75,7 +75,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
 #if DEBUG
             DebugTestSettings.Initialize();
 #endif
-            var dialogService = ServiceProvider.Get<IDialogService2>();
+            var dialogService = ServiceProvider.Get<IDialogService>();
             RegisterNodePresenterCommand(new BrowseDirectoryCommand(dialogService));
             RegisterNodePresenterCommand(new BrowseFileCommand(dialogService));
 

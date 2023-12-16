@@ -1485,15 +1485,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private async Task SelectFilesToCreateAsset()
         {
-            var dialog = Dialogs.CreateFileOpenModalDialog();
-            dialog.AllowMultiSelection = true;
-            dialog.InitialDirectory = InternalSettings.FileDialogLastImportDirectory.GetValue();
-            var result = await dialog.ShowModal();
-
-            if (result == DialogResult.Ok && dialog.FilePaths.Count > 0)
+            var files = await Dialogs.OpenMultipleFilesPickerAsync(InternalSettings.FileDialogLastImportDirectory.GetValue());
+            if (files.Count > 0)
             {
-                List<UFile> files = dialog.FilePaths.Select(x => new UFile(x)).ToList();
-                // Simulate a drop of file
                 ((IAddChildViewModel)this).AddChildren(files, AddChildModifiers.None);
             }
         }

@@ -136,7 +136,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Gets the current active project for build/startup operations.
         /// </summary>
         // TODO: this property should become cancellable to maintain action stack consistency! Undoing a "mark as root" operation after changing the current package wouldn't work.
-        public ProjectViewModel CurrentProject { get => currentProject; private set { var oldValue = currentProject;  SetValueUncancellable(ref currentProject, value, () => UpdateCurrentProject(oldValue, value)); } }
+        public ProjectViewModel CurrentProject { get => currentProject; private set { var oldValue = currentProject; SetValueUncancellable(ref currentProject, value, () => UpdateCurrentProject(oldValue, value)); } }
 
         [NotNull]
         public ThumbnailsViewModel Thumbnails { get; }
@@ -985,7 +985,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Since notifications will be raised asynchronously, <paramref name="assets"/> collection should not be modified after it has been passed to this method.
         /// If necessary, caller must provide a copy.
         /// </remarks>
-        public async void NotifyAssetPropertiesChanged([ItemNotNull, NotNull]  IReadOnlyCollection<AssetViewModel> assets)
+        public async void NotifyAssetPropertiesChanged([ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets)
         {
             var tasks = assets.Select(x => AssetDependenciesViewModel.NotifyAssetChanged(x.Session, x)).ToList();
             await Task.WhenAll(tasks);
@@ -1088,21 +1088,21 @@ namespace Stride.Core.Assets.Editor.ViewModel
             switch (packageContainer)
             {
                 case SolutionProject project:
-                {
-                    var packageContainerViewModel = new ProjectViewModel(this, project, packageAlreadyInSession);
-                    packageMap.Add(packageContainerViewModel, project);
-                    if (!packageAlreadyInSession)
-                        session.Projects.Add(project);
-                    return packageContainerViewModel;
-                }
+                    {
+                        var packageContainerViewModel = new ProjectViewModel(this, project, packageAlreadyInSession);
+                        packageMap.Add(packageContainerViewModel, project);
+                        if (!packageAlreadyInSession)
+                            session.Projects.Add(project);
+                        return packageContainerViewModel;
+                    }
                 case StandalonePackage standalonePackage:
-                {
-                    var packageContainerViewModel = new PackageViewModel(this, standalonePackage, packageAlreadyInSession);
-                    packageMap.Add(packageContainerViewModel, standalonePackage);
-                    if (!packageAlreadyInSession)
-                        session.Projects.Add(standalonePackage);
-                    return packageContainerViewModel;
-                }
+                    {
+                        var packageContainerViewModel = new PackageViewModel(this, standalonePackage, packageAlreadyInSession);
+                        packageMap.Add(packageContainerViewModel, standalonePackage);
+                        if (!packageAlreadyInSession)
+                            session.Projects.Add(standalonePackage);
+                        return packageContainerViewModel;
+                    }
                 default:
                     throw new ArgumentOutOfRangeException(nameof(packageContainer));
             }
@@ -1211,19 +1211,15 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private async Task AddExistingProject()
         {
-            var fileDialog = ServiceProvider.Get<IEditorDialogService>().CreateFileOpenModalDialog();
-            fileDialog.Filters.Add(new FileDialogFilter("Visual Studio C# project", "csproj"));
-            fileDialog.InitialDirectory = session.SolutionPath;
-            var result = await fileDialog.ShowModal();
-
-            var projectPath = fileDialog.FilePaths.FirstOrDefault();
-            if (result == DialogResult.Ok && projectPath != null)
+            var file = await ServiceProvider.Get<IDialogService>()
+                .OpenFilePickerAsync(session.SolutionPath?.GetFullDirectory(), [new FilePickerFilter("Visual Studio C# project") { Patterns = ["*.csproj"] }]);
+            if (file is not null)
             {
-                await AddExistingProject(projectPath);
+                await AddExistingProject(file);
             }
         }
 
-        public async Task<PackageViewModel> AddExistingProject(string projectPath)
+        public async Task<PackageViewModel> AddExistingProject(UFile projectPath)
         {
             var loggerResult = new LoggerResult();
 
@@ -1263,7 +1259,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             using (var transaction = UndoRedoService.CreateTransaction())
             {
                 ProcessAddedProjects(loggerResult, workProgress, true);
-                UndoRedoService.SetName(transaction, $"Import project '{new UFile(projectPath).GetFileNameWithoutExtension()}'");
+                UndoRedoService.SetName(transaction, $"Import project '{projectPath.GetFileNameWithoutExtension()}'");
             }
 
             // Notify that the task is finished

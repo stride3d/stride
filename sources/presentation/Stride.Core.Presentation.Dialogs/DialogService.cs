@@ -151,7 +151,7 @@ namespace Stride.Core.Presentation.Dialogs
             }
         }
 
-        async Task<UFile> IDialogService.OpenFilePickerAsync(UPath initialPath, IReadOnlyList<FilePickerFilter> filters)
+        async Task<UFile> IDialogService.OpenFilePickerAsync(UDirectory initialPath, IReadOnlyList<FilePickerFilter> filters)
         {
             var dialog = CreateFileOpenModalDialog();
             dialog.AllowMultiSelection = false;
@@ -165,7 +165,7 @@ namespace Stride.Core.Presentation.Dialogs
                 : null;
         }
 
-        async Task<IReadOnlyList<UFile>> IDialogService.OpenMultipleFilesPickerAsync(UPath initialPath, IReadOnlyList<FilePickerFilter> filters)
+        async Task<IReadOnlyList<UFile>> IDialogService.OpenMultipleFilesPickerAsync(UDirectory initialPath, IReadOnlyList<FilePickerFilter> filters)
         {
             var dialog = CreateFileOpenModalDialog();
             dialog.AllowMultiSelection = true;
