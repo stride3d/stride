@@ -97,7 +97,7 @@ namespace Stride.VirtualReality
             window = services.GetService<IGame>().Window;
         }
 
-        public override void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
+        public override void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight, bool requestPassthrough)
         {
             ActualRenderFrameSize = optimalRenderFrameSize = new Size2(mirrorWidth, mirrorHeight);
             MirrorTexture = Texture.New2D(device, ActualRenderFrameSize.Width, ActualRenderFrameSize.Height, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.RenderTarget | TextureFlags.ShaderResource);

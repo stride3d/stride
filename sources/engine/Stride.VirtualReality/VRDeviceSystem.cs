@@ -33,6 +33,8 @@ namespace Stride.VirtualReality
 
         public int MirrorHeight;
 
+        public bool RequestPassthrough;
+
         public bool PreviousUseCustomProjectionMatrix;
 
         public bool PreviousUseCustomViewMatrix;
@@ -123,7 +125,7 @@ postswitch:
                 if (Device != null)
                 {
                     Device.RenderFrameScaling = PreferredScalings[Device.VRApi];
-                    Device.Enable(GraphicsDevice, deviceManager, RequireMirror, MirrorWidth, MirrorHeight);
+                    Device.Enable(GraphicsDevice, deviceManager, RequireMirror, MirrorWidth, MirrorHeight, RequestPassthrough);
                     physicalDeviceInUse = true;
                 }
                 else
@@ -134,7 +136,7 @@ postswitch:
                         Game = Game,
                         RenderFrameScaling = 1.0f,
                     };
-                    Device.Enable(GraphicsDevice, deviceManager, RequireMirror, MirrorWidth, MirrorHeight);
+                    Device.Enable(GraphicsDevice, deviceManager, RequireMirror, MirrorWidth, MirrorHeight, RequestPassthrough);
                 }
             }
         }

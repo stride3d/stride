@@ -63,7 +63,7 @@ namespace Stride.VirtualReality
         {         
         }
 
-        public abstract void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight);
+        public abstract void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight, bool requestPassthrough);
 
         public virtual void Recenter()
         {

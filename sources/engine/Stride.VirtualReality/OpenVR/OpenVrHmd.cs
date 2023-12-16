@@ -37,7 +37,7 @@ namespace Stride.VirtualReality
             recommendedSize = (2160, 1200);
         }
 
-        public override void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
+        public override void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight, bool requestPassthrough)
         {
             this.device = device;
             needsMirror = requireMirror;

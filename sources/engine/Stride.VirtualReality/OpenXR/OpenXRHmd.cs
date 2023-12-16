@@ -58,6 +58,10 @@ namespace Stride.VirtualReality
         internal bool begunFrame, swapImageCollected;
         internal uint swapchainPointer;
 
+        // extensions
+        private bool requestPassthrough;
+        public EXT_FB_passthrough PassthroughExt { get; private set; }
+
         // array of view_count containers for submitting swapchains with rendered VR frames
         CompositionLayerProjectionView[] projection_views;
         View[] views;
@@ -138,9 +142,7 @@ namespace Stride.VirtualReality
             return result;
         }
 
-
-
-        public override unsafe void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
+        public override unsafe void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight, bool requestPassthrough)
         {
             // Changing the form_factor may require changing the view_type too.
             ViewConfigurationType view_type = ViewConfigurationType.PrimaryStereo;
@@ -160,6 +162,9 @@ namespace Stride.VirtualReality
 #if DEBUG_OPENXR
             openXrExtensions.Add("XR_EXT_debug_utils");
 #endif
+            if (requestPassthrough)
+                openXrExtensions.Add("XR_FB_passthrough");
+
             openXrExtensions.AddRange(extensions);
 
             uint propCount = 0;
@@ -484,7 +489,14 @@ namespace Stride.VirtualReality
                 Next = null,
             };
             Xr.StringToPath(Instance, "/user/hand/left", ref leftHandPath);
+
             nextCompositionLayer = 0;
+
+            if (openXrExtensions.Contains("XR_FB_passthrough"))
+            {
+                PassthroughExt = new EXT_FB_passthrough();
+                PassthroughExt.Initialize(Xr, globalSession, Instance);
+            }
         }
 
         private void EndNullFrame()
@@ -664,17 +676,31 @@ namespace Stride.VirtualReality
                     projection_views[eye].Pose = views[eye].Pose;
                 }
 
+
                 unsafe
                 {
-                CompositionLayerProjection projectionLayer;
-                fixed (CompositionLayerProjectionView* projection_views_ptr = &projection_views[0])
-                {
-                    projectionLayer = new CompositionLayerProjection
-                    (
-                        viewCount: (uint)projection_views.Length,
-                        views: projection_views_ptr,
-                        space: globalPlaySpace
-                    );
+                    // Add composition layers from extensions
+                    if (PassthroughExt?.Enabled ?? false)
+                    {
+                        var layer = PassthroughExt.GetCompositionLayer();
+                        if (layer != IntPtr.Zero)
+                        {
+                            this.compositionLayers[0] = (CompositionLayerBaseHeader*)layer;
+                            nextCompositionLayer = 1;
+                        }
+                    }
+
+                    CompositionLayerProjection projectionLayer;
+                    fixed (CompositionLayerProjectionView* projection_views_ptr = &projection_views[0])
+                    {
+                        projectionLayer = new CompositionLayerProjection
+                        (
+                            viewCount: (uint)projection_views.Length,
+                            views: projection_views_ptr,
+                            space: globalPlaySpace,
+                            layerFlags: nextCompositionLayer > 0 ? CompositionLayerFlags.CompositionLayerBlendTextureSourceAlphaBit : 0
+                        );
+                    }
 
                 compositionLayers[nextCompositionLayer] = (CompositionLayerBaseHeader*)&projectionLayer;
                 nextCompositionLayer += 1;
@@ -1049,7 +1075,6 @@ namespace Stride.VirtualReality
                 runtime_event.Type = StructureType.TypeEventDataBuffer;
             }
 
-
             if (state != SessionState.Focused)
             {
                 return;
@@ -1085,6 +1110,9 @@ namespace Stride.VirtualReality
             CheckResult(Xr.DestroySpace(globalPlaySpace), "DestroySpace");
             CheckResult(Xr.DestroyActionSet(globalActionSet), "DestroyActionSet");
             CheckResult(Xr.DestroySwapchain(globalSwapchain), "DestroySwapchain");
+            
+            PassthroughExt?.Destroy();
+
             CheckResult(Xr.DestroySession(globalSession), "DestroySession");
             CheckResult(Xr.DestroyInstance(Instance), "DestroyInstance");
         }
