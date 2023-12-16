@@ -44,7 +44,7 @@ namespace Stride.Assets.Presentation.ViewModel
             if (font.FontType is RuntimeRasterizedSpriteFontType)
             {
                 // Note: Markdown (**, _) are used to format the text.
-                await dialogService.MessageBox(Tr._p("Message", "**Only static fonts can be precompiled.**\r\n\r\nClear the _Is Dynamic_ property on this font and try again."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await dialogService.MessageBoxAsync(Tr._p("Message", "**Only static fonts can be precompiled.**\r\n\r\nClear the _Is Dynamic_ property on this font and try again."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             // Compute unique name

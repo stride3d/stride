@@ -159,7 +159,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
                 var stringPath = path?.ToString().Replace('/', '\\') ?? "";
                 if (!File.Exists(stringPath))
                 {
-                    await ServiceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "Couldn't find the file"), MessageBoxButton.OK, MessageBoxImage.Information);
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Couldn't find the file"), MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
@@ -170,7 +170,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
             catch (Exception ex)
             {
                 var message = string.Format(Tr._p("Message", "There was a problem while editing the image.{0}"), ex.FormatSummary(true));
-                await ServiceProvider.Get<IDialogService2>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -182,7 +182,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
                 var stringPath = path?.ToString().Replace('/', '\\') ?? "";
                 if (!File.Exists(stringPath))
                 {
-                    await ServiceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "Couldn't find the file"), MessageBoxButton.OK, MessageBoxImage.Information);
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Couldn't find the file"), MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
@@ -193,7 +193,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
             catch (Exception ex)
             {
                 var message = string.Format(Tr._p("Message", "There was a problem opening Explorer.{0}"), ex.FormatSummary(true));
-                await ServiceProvider.Get<IDialogService2>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

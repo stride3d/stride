@@ -58,7 +58,7 @@ namespace Stride.Assets.Presentation.Templates
         {
             if (!SelectedPlatforms.Any())
             {
-                await services.Get<IDialogService2>().MessageBox(Tr._p("Message", "You must select at least one platform."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "You must select at least one platform."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 

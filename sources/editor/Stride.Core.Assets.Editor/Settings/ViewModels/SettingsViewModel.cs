@@ -115,7 +115,7 @@ namespace Stride.Core.Assets.Editor.Settings.ViewModels
             EditorSettings.Save();
             if (EditorSettings.NeedRestart)
             {
-                await ServiceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "Some changes will be applied after you restart Game Studio."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Some changes will be applied after you restart Game Studio."), MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

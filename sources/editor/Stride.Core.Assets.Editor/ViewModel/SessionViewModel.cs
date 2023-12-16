@@ -282,7 +282,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)
             {
-                await serviceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await serviceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return null;
             }
 
@@ -725,7 +725,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var path = asset.AssetItem.FullPath.ToWindowsPath();
                 if (!File.Exists(path))
                 {
-                    await Dialogs.MessageBox(Tr._p("Message", "You need to save the file before you can open it."), MessageBoxButton.OK, MessageBoxImage.Information);
+                    await Dialogs.MessageBoxAsync(Tr._p("Message", "You need to save the file before you can open it."), MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
                 var process = new Process { StartInfo = new ProcessStartInfo(editorPath, $"\"{path}\"") { UseShellExecute = true } };
@@ -734,7 +734,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             catch (Exception ex)
             {
                 var message = $"{Tr._p("Message", "There was a problem starting the text editor. Make sure the path to the text editor in Settings is correct.")}{ex.FormatSummary(true)}";
-                await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -769,7 +769,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var fileToOpen = asset.Asset.MainSource;
             if (fileToOpen == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "This asset doesn't have a source file to open."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "This asset doesn't have a source file to open."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -834,7 +834,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var stringPath = path.ToString().Replace('/', '\\');
                 if (asset != null && !File.Exists(stringPath))
                 {
-                    await Dialogs.MessageBox(Tr._p("Message", "You need to save the asset before you can explore it."), MessageBoxButton.OK, MessageBoxImage.Information);
+                    await Dialogs.MessageBoxAsync(Tr._p("Message", "You need to save the asset before you can explore it."), MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
@@ -845,7 +845,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             catch (Exception)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "There was a problem starting the file explorer."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "There was a problem starting the file explorer."), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -854,7 +854,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var filePathToOpen = asset?.Asset?.MainSource;
             if (filePathToOpen == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "This asset doesn't have a source file."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "This asset doesn't have a source file."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -869,7 +869,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     fileSelection = false;
                     if (!Directory.Exists(stringPath))
                     {
-                        await Dialogs.MessageBox(Tr._p("Message", "Source file and path no longer exists."), MessageBoxButton.OK, MessageBoxImage.Information);
+                        await Dialogs.MessageBoxAsync(Tr._p("Message", "Source file and path no longer exists."), MessageBoxButton.OK, MessageBoxImage.Information);
                         return;
                     }
                 }
@@ -881,7 +881,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             catch (Exception)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "There was a problem starting the file explorer."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "There was a problem starting the file explorer."), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -1189,7 +1189,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             await TemplateGeneratorHelper.RunTemplateGeneratorSafe(generator, parameters, workProgress);
@@ -1306,14 +1306,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var message = Tr._p("Message", "Please select a single package.");
             if (ActiveAssetView.SelectedLocations.Count != 1)
             {
-                await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
                 return null;
             }
 
             PackageViewModel selectedPackage = GetContainerPackage(ActiveAssetView.SelectedLocations[0]);
             if (selectedPackage == null)
             {
-                await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
             return selectedPackage;
@@ -1348,7 +1348,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             if (AllPackages.All(x => !packagePicker.Filter(new LoadedPickablePackageViewModel(x))))
             {
-                await Dialogs.MessageBox(Tr._p("Message", "There are no packages that can be added as dependencies to this package."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "There are no packages that can be added as dependencies to this package."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -1406,7 +1406,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // If an error occurred while creating folders, inform the user.
             if (invalidSelectedItem)
             {
-                await Dialogs.MessageBox(locations.Count == 1
+                await Dialogs.MessageBoxAsync(locations.Count == 1
                     ? Tr._p("Message", "Folders can only be created in the Assets hierarchy of a package.")
                     : Tr._p("Message", "Game Studio can't create a folder in some of the locations you selected. Folders can only be created in the Assets hierarchy of a package."));
             }
@@ -1587,7 +1587,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 if (!asset.CanDelete(out error))
                 {
                     error = string.Format(Tr._p("Message", "Stride can't delete the {0} asset. {1}{2}"), asset.Url, Environment.NewLine, error);
-                    await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await Dialogs.MessageBoxAsync(error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
             }
@@ -1597,7 +1597,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 if (!directory.CanDelete(out error))
                 {
                     error = string.Format(Tr._p("Message", "Stride can't delete the {0} folder. {1}{2}"), directory.Name, Environment.NewLine, error);
-                    await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await Dialogs.MessageBoxAsync(error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
             }
@@ -1642,7 +1642,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     // Note: this should never happen. UI rules should ensure that the user cannot attempt a system package deletion.
                     if (selectedPackage.Package.IsSystem && !systemPackageWarningDisplayed)
                     {
-                        await Dialogs.MessageBox(Tr._p("Message", "Stride can't delete the system package."), MessageBoxButton.OK, MessageBoxImage.Information);
+                        await Dialogs.MessageBoxAsync(Tr._p("Message", "Stride can't delete the system package."), MessageBoxButton.OK, MessageBoxImage.Information);
                         systemPackageWarningDisplayed = true;
                         continue;
                     }
@@ -1726,7 +1726,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 if (locations.OfType<AssetMountPointViewModel>().Any())
                 {
                     // We can't delete a root directory
-                    await Dialogs.MessageBox(Tr._p("Message", "Asset root folders can't be deleted."), MessageBoxButton.OK, MessageBoxImage.Information);
+                    await Dialogs.MessageBoxAsync(Tr._p("Message", "Asset root folders can't be deleted."), MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
                 // Delete projects

@@ -87,19 +87,19 @@ namespace Stride.Assets.Presentation.Templates
         {
             if (Orientation == DisplayOrientation.Default)
             {
-                await services.Get<IDialogService2>().MessageBox(Tr._p("Message", "Select an orientation."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Select an orientation."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             if (!SelectedPlatforms.Any())
             {
-                await services.Get<IDialogService2>().MessageBox(Tr._p("Message", "Select at least one platform."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Select at least one platform."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             string error;
             if (!NamingHelper.IsValidNamespace(Namespace, out error))
             {
-                await services.Get<IDialogService2>().MessageBox(string.Format(Tr._p("Message", "Type a valid namespace name. Error with {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "Type a valid namespace name. Error with {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 

@@ -141,7 +141,7 @@ namespace Stride.LauncherApp.Services
 
         private bool DisplayMessage(string message)
         {
-            var result = serviceProvider.Get<IDialogService>().BlockingMessageBox(message, MessageBoxButton.OKCancel);
+            var result = serviceProvider.Get<IDialogService2>().BlockingMessageBox(message, MessageBoxButton.OKCancel);
             return result != MessageBoxResult.Cancel;
         }
 

@@ -35,7 +35,7 @@ namespace Stride.LauncherApp.ViewModels
             }
             catch (Exception)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Strings.ErrorOpeningBrowser, MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.ErrorOpeningBrowser, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -47,7 +47,7 @@ namespace Stride.Core.Presentation.Dialogs
             return new FileSaveModalDialog(Dispatcher);
         }
 
-        public Task<MessageBoxResult> MessageBox(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
+        public Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
             return DialogHelper.MessageBox(Dispatcher, message, ApplicationName, buttons, image);
         }

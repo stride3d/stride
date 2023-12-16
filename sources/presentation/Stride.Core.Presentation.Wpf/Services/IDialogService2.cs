@@ -43,7 +43,8 @@ namespace Stride.Core.Presentation.Services
         /// <param name="image">The image to display in the message box.</param>
         /// <returns>A <see cref="MessageBoxResult"/> value indicating which button the user pressed to close the window.</returns>
         [NotNull]
-        Task<MessageBoxResult> MessageBox(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None);
+        [Obsolete("Use MessageBoxAsync instead")]
+        Task<MessageBoxResult> MessageBox(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None) => MessageBoxAsync(message, buttons, image);
 
         /// <summary>
         /// Displays a modal message box and returns a task that completes when the message box is closed.

@@ -80,7 +80,7 @@ namespace Stride.LauncherApp.Services
             }
             catch (Exception e)
             {
-                await dialogService.MessageBox(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+                await dialogService.MessageBoxAsync(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             // If there is a mandatory intermediate upgrade, take it, otherwise update straight to latest version
@@ -242,7 +242,7 @@ namespace Stride.LauncherApp.Services
                     selfUpdateWindow?.ForceClose();
                 });
 
-                await dialogService.MessageBox(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+                await dialogService.MessageBoxAsync(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -89,7 +89,7 @@ namespace Stride.GameStudio.ViewModels
         {
             if (sessionPath != null && !File.Exists(sessionPath.ToWindowsPath()))
             {
-                await ServiceProvider.Get<IDialogService2>().MessageBox(Tr._p("Message", "The file {0} does not exist.").ToFormat(sessionPath.ToWindowsPath()));
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The file {0} does not exist.").ToFormat(sessionPath.ToWindowsPath()));
                 return;
             }
             if (sessionPath == null)

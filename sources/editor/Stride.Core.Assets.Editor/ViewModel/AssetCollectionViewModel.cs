@@ -485,7 +485,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var templateDescription = template.GetTemplate() as TemplateAssetDescription;
             if (templateDescription == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Unable to use the selected template because it is not an asset template."), MessageBoxButton.OK, MessageBoxImage.Warning);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to use the selected template because it is not an asset template."), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return new List<AssetViewModel>();
             }
             var assetType = templateDescription.GetAssetType();
@@ -540,7 +540,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var path = directory.Path;
             var message = Tr._p("Message", "Do you want to place the resource in the default location ?");
             var finalPath = Path.Combine(directory.Package.Package.ResourceFolders[0], path, file.GetFileName());
-            var pathResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var pathResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (pathResult == MessageBoxResult.No)
             {
                 while(true)
@@ -566,7 +566,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     }
 
                     message = Tr._p("Message", "The selected directory is not a subdirectory of the resources folder!");
-                    await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             return finalPath;
@@ -587,7 +587,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
                     var message = Tr._p("Message", "Source file '{0}' is not inside of your project's resource folders, do you want to copy it?").ToFormat(file.FullPath);
 
-                    var copyResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    var copyResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
                     if (copyResult != MessageBoxResult.Yes)
                         continue;
@@ -601,7 +601,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                         {
                             message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(file.FullPath);
 
-                            copyResult = await Dialogs.MessageBox(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                            copyResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
                             // Abort if the user says no or closes the prompt
                             if (copyResult != MessageBoxResult.Yes)
@@ -620,7 +620,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     catch (Exception ex)
                     {
                         message = Tr._p("Message", $"An error occurred while copying the asset to the resources folder : {ex.Message}");
-                        await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                        await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                         return newAssets;
                     }
                 }
@@ -646,7 +646,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return newAssets;
             }
 
@@ -780,19 +780,19 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var directoryCount = directories.Count;
             if (directoryCount > 1)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Game Studio can't create assets in multiple locations. In the solution explorer, select a single directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Game Studio can't create assets in multiple locations. In the solution explorer, select a single directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return null;
             }
             if (directoryCount == 0)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Game Studio can't create an asset here. In the solution explorer, select a directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Game Studio can't create an asset here. In the solution explorer, select a directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return null;
             }
 
             var directory = directories.First();
             if (!directory.Package.IsEditable)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Game Studio can't create an asset here because the selected directory or package can't be edited. In the solution explorer, select a directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Game Studio can't create an asset here because the selected directory or package can't be edited. In the solution explorer, select a directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return null;
             }
             return directory;
@@ -865,7 +865,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // Ensure all directories can be cut
             if (directories?.Any(d => !d.IsEditable) == true)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Read-only folders can't be cut."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Read-only folders can't be cut."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             var assetsToWrite = await GetCopyCollection(directories, assetsToCut);
@@ -881,7 +881,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 if (!asset.CanDelete(out error))
                 {
                     error = string.Format(Tr._p("Message", "The asset {0} can't be deleted. {1}{2}"), asset.Url, Environment.NewLine, error);
-                    await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await Dialogs.MessageBoxAsync(error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
@@ -911,7 +911,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                         if (!directory.CanDelete(out error))
                         {
                             error = string.Format(Tr._p("Message", "{0} can't be deleted. {1}{2}"), directory.Name, Environment.NewLine, error);
-                            await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
+                            await Dialogs.MessageBoxAsync(error, MessageBoxButton.OK, MessageBoxImage.Error);
                             return;
                         }
                         directory.Delete();
@@ -957,7 +957,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     {
                         if (directories.Contains(parent))
                         {
-                            await Dialogs.MessageBox(Tr._p("Message", "Unable to cut or copy a selection that contains a folder and one of its subfolders."), MessageBoxButton.OK, MessageBoxImage.Information);
+                            await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to cut or copy a selection that contains a folder and one of its subfolders."), MessageBoxButton.OK, MessageBoxImage.Information);
                             return null;
                         }
                         parent = parent.Parent;
@@ -1033,7 +1033,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var directories = GetSelectedDirectories(false);
             if (directories.Count != 1)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Select a valid asset folder to paste the selection to."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Select a valid asset folder to paste the selection to."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             // If the selection is already a directory, paste into it
@@ -1041,7 +1041,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var package = directory.Package;
             if (!package.IsEditable)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "This package or directory can't be modified."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "This package or directory can't be modified."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -1578,7 +1578,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // Note: this should never happen since we have raw assets, litteraly everything can be imported.
             if (templates.Count == 0)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "These files aren't supported."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "These files aren't supported."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 

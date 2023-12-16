@@ -37,7 +37,7 @@ namespace Stride.GameStudio.Debugging
         {
             if (currentProject == null)
             {
-                await editor.Session.Dialogs.MessageBox(Tr._p("Message", "An executable project must be set as current project in the session explorer in order to process build."),
+                await editor.Session.Dialogs.MessageBoxAsync(Tr._p("Message", "An executable project must be set as current project in the session explorer in order to process build."),
                     MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }

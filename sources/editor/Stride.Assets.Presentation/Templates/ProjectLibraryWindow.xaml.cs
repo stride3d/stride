@@ -67,13 +67,13 @@ namespace Stride.Assets.Presentation.Templates
             string error;
             if (!NamingHelper.IsValidNamespace(LibraryName, out error))
             {
-                await services.Get<IDialogService2>().MessageBox(string.Format(Tr._p("Message", "Type a valid library name. Error with {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "Type a valid library name. Error with {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             if (!NamingHelper.IsValidNamespace(Namespace, out error))
             {
-                await services.Get<IDialogService2>().MessageBox(string.Format(Tr._p("Message", "Type a valid namespace name. Error with {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "Type a valid namespace name. Error with {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 

@@ -87,7 +87,7 @@ namespace Stride.GameStudio.View
                     message = Tr._p("Credentials", "An unknown error occurred.");
                     break;
             }
-            Service.MessageBox(message, MessageBoxButton.OK, messageBoxImage);
+            Service.MessageBoxAsync(message, MessageBoxButton.OK, messageBoxImage);
         }
 
         /// <summary>

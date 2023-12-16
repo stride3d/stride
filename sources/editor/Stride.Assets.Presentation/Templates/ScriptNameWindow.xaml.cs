@@ -75,7 +75,7 @@ namespace Stride.Assets.Presentation.Templates
 
             if (string.IsNullOrWhiteSpace(ClassName) || string.IsNullOrWhiteSpace(Namespace))
             {
-                await services.Get<IDialogService2>().MessageBox(Tr._p("Message", "The names you entered are invalid or empty."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The names you entered are invalid or empty."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
