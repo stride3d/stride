@@ -10,19 +10,17 @@ namespace Stride.BepuPhysics.Extensions
 {
     public static class BepuAndStrideExtensions
     {
-
         public static ContainerComponent? GetContainerFromCollidable(this CollidableReference collidable, BepuSimulation sim)
         {
-            ContainerComponent? container = null;
-            if (collidable.Mobility == CollidableMobility.Static && sim.StaticsContainers.ContainsKey(collidable.StaticHandle))
+            if (collidable.Mobility == CollidableMobility.Static && sim.StaticsContainers.TryGetValue(collidable.StaticHandle, out StaticContainerComponent? staticsContainer))
             {
-                container = sim.StaticsContainers[collidable.StaticHandle];
+                return staticsContainer;
             }
-            else if (collidable.Mobility != CollidableMobility.Static && sim.BodiesContainers.ContainsKey(collidable.BodyHandle))
+            else if (collidable.Mobility != CollidableMobility.Static && sim.BodiesContainers.TryGetValue(collidable.BodyHandle, out BodyContainerComponent? bodiesContainer))
             {
-                container = sim.BodiesContainers[collidable.BodyHandle];
+                return bodiesContainer;
             }
-            return container;
+            return null;
         }
 
         public static Core.Mathematics.Vector3 GetWorldPos(this TransformComponent tr)

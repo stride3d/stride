@@ -23,8 +23,6 @@ namespace Stride.BepuPhysics.Configurations;
 public class BepuSimulation
 {
     private readonly List<SimulationUpdateComponent> _simulationUpdateComponents = new();
-    private RayHitHandler DefaultRayHitHandler;
-    private SweepHitHandler DefaultSweepHitHandler;
     //private BatcherCallbacks DefaultBatcherCallbacks;
 
     internal ThreadDispatcher ThreadDispatcher { get; private set; }
@@ -83,7 +81,7 @@ public class BepuSimulation
     [Display(30, "Parallel update")]
     public bool ParallelUpdate { get; set; } = true;
     [Display(31, "Simulation fixed step")]
-    public float SimulationFixedStep { get; set; } = 1000 / 60;
+    public float SimulationFixedStep { get; set; } = 1000f / 60;
     [Display(32, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 
@@ -93,22 +91,127 @@ public class BepuSimulation
 #pragma warning restore CS8618 
     {
         Setup();
-        DefaultRayHitHandler = new RayHitHandler(this);
-        DefaultSweepHitHandler = new SweepHitHandler(this);
         //DefaultBatcherCallbacks = new();
     }
 
-    public HitResult RayCast(Vector3 origin, Vector3 dir, float maxDistance, bool stopAtFirstHit = false, byte collisionMask = 255)
+    /// <summary>
+    /// Finds the closest intersection between this ray and shapes in the simulation.
+    /// </summary>
+    /// <param name="origin">The start position for this ray</param>
+    /// <param name="dir">The normalized direction the ray is facing</param>
+    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="result">An intersection in the world when this method returns true, an undefined value when this method returns false</param>
+    /// <param name="collisionMask"></param>
+    /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
+    public bool RayCast(Vector3 origin, Vector3 dir, float maxDistance, out HitInfo result, byte collisionMask = 255)
     {
-        DefaultRayHitHandler.Prepare(stopAtFirstHit, collisionMask);
-        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref DefaultRayHitHandler);
-        return DefaultRayHitHandler.Hit;
+        var handler = new RayClosestHitHandler(this, collisionMask);
+        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
+        if (handler.HitInformation.HasValue)
+        {
+            result = handler.HitInformation.Value;
+            return true;
+        }
+
+        result = default;
+        return false;
     }
-    public HitResult SweepCast<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, bool stopAtFirstHit = false, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+
+    /// <summary>
+    /// Collect intersections between the given ray and shapes in this simulation. Hits are sorted from closest to furthest away.
+    /// </summary>
+    /// <param name="origin">The start position for this ray</param>
+    /// <param name="dir">The normalized direction the ray is facing</param>
+    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="buffer">
+    /// The collection used to store hits into,
+    /// feel free to rent it from <see cref="System.Buffers.ArrayPool{T}"/> and return it after you processed <paramref name="hits"/>
+    /// </param>
+    /// <param name="hits">Intersections are pushed to <see cref="buffer"/>, this is the subset of <paramref name="buffer"/> that contains valid/assigned values</param>
+    /// <param name="collisionMask"></param>
+    public void RaycastPenetrating(Vector3 origin, Vector3 dir, float maxDistance, HitInfo[] buffer, out Span<HitInfo> hits, byte collisionMask = 255)
     {
-        DefaultSweepHitHandler.Prepare(stopAtFirstHit, collisionMask);
-        Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref DefaultSweepHitHandler);
-        return DefaultSweepHitHandler.Hit;
+        var handler = new RayHitsArrayHandler(this, buffer, collisionMask);
+        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
+        hits = new(buffer, 0, handler.Count);
+    }
+
+    /// <summary>
+    /// Collect intersections between the given ray and shapes in this simulation. Hits are NOT sorted.
+    /// </summary>
+    /// <param name="origin">The start position for this ray</param>
+    /// <param name="dir">The normalized direction the ray is facing</param>
+    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
+    /// <param name="collisionMask"></param>
+    public void RaycastPenetrating(Vector3 origin, Vector3 dir, float maxDistance, ICollection<HitInfo> collection, byte collisionMask = 255)
+    {
+        var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
+        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
+    }
+
+    /// <summary>
+    /// Finds the closest contact between <paramref name="shape"/> and other shapes in the simulation when thrown in <paramref name="velocity"/> direction.
+    /// </summary>
+    /// <param name="shape">The shape thrown at the scene</param>
+    /// <param name="pose">Initial position for the shape</param>
+    /// <param name="velocity">Velocity used to throw the shape</param>
+    /// <param name="maxDistance">The maximum distance, or amount of time along the path of the <paramref name="velocity"/></param>
+    /// <param name="result">The resulting contact when this method returns true, an undefined value when this method returns false</param>
+    /// <param name="collisionMask"></param>
+    /// <typeparam name="TShape"></typeparam>
+    /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
+    public bool SweepCast<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, out HitInfo result, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    {
+        var handler = new RayClosestHitHandler(this, collisionMask);
+        Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref handler);
+        if (handler.HitInformation.HasValue)
+        {
+            result = handler.HitInformation.Value;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Finds contacts between <paramref name="shape"/> and other shapes in the simulation when thrown in <paramref name="velocity"/> direction.
+    /// </summary>
+    /// <param name="shape">The shape thrown at the scene</param>
+    /// <param name="pose">Initial position for the shape</param>
+    /// <param name="velocity">Velocity used to throw the shape</param>
+    /// <param name="maxDistance">The maximum distance, or amount of time along the path of the <paramref name="velocity"/></param>
+    /// <param name="buffer">
+    /// The collection used to store hits into,
+    /// feel free to rent it from <see cref="System.Buffers.ArrayPool{T}"/> and return it after you processed <paramref name="contacts"/>
+    /// </param>
+    /// <param name="contacts">Contacts are pushed to <see cref="buffer"/>, this is the subset of <paramref name="buffer"/> that contains valid/assigned values</param>
+    /// <param name="collisionMask"></param>
+    /// <typeparam name="TShape"></typeparam>
+    /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
+    public void SweepCastPenetrating<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, HitInfo[] buffer, out Span<HitInfo> contacts, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    {
+        var handler = new RayHitsArrayHandler(this, buffer, collisionMask);
+        Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref handler);
+        contacts = new(buffer, 0, handler.Count);
+    }
+
+    /// <summary>
+    /// Finds contacts between <paramref name="shape"/> and other shapes in the simulation when thrown in <paramref name="velocity"/> direction.
+    /// </summary>
+    /// <param name="shape">The shape thrown at the scene</param>
+    /// <param name="pose">Initial position for the shape</param>
+    /// <param name="velocity">Velocity used to throw the shape</param>
+    /// <param name="maxDistance">The maximum distance, or amount of time along the path of the <paramref name="velocity"/></param>
+    /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
+    /// <param name="collisionMask"></param>
+    /// <typeparam name="TShape"></typeparam>
+    /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
+    public void SweepCastPenetrating<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, ICollection<HitInfo> collection, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    {
+        var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
+        Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref handler);
     }
 
     private void Setup()
