@@ -1,6 +1,7 @@
 //// Copyright (c) Stride contributors (https://Stride.com)
 //// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
@@ -8,7 +9,7 @@ using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Engine.Splines.Models
 {
-    public class BoundingBoxMesh
+    public sealed class BoundingBoxMesh: IDisposable
     {
         public MeshDraw MeshDraw;
 
@@ -65,6 +66,22 @@ namespace Stride.Engine.Splines.Models
                 IndexBuffer = new IndexBufferBinding(Buffer.Index.New(graphicsDevice, indices), true, indices.Length),
                 VertexBuffers = new[] { new VertexBufferBinding(vertexBuffer, VertexPositionNormalTexture.Layout, vertexBuffer.ElementCount) },
             };
+        }
+        
+        public void Dispose()
+        {
+            MeshDraw = null;
+
+            if (vertexBuffer != null)
+            {
+                vertexBuffer.Dispose();
+                vertexBuffer = null;
+            }
+        }
+
+        ~BoundingBoxMesh()
+        {
+            Dispose();
         }
     }
 }

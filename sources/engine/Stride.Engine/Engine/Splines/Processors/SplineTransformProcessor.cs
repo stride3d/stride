@@ -29,10 +29,15 @@ namespace Stride.Engine.Splines.Processors
 
         protected override SplineTransformationInfo GenerateComponentData(Entity entity, SplineComponent component)
         {
-            return new SplineTransformationInfo
+            var transformationInfo = new SplineTransformationInfo
             {
                 TransformOperation = new SplineViewHierarchyTransformOperation(component),
             };
+
+            // Assign the SplineProcessor property
+            transformationInfo.SplineProcessor = this;
+
+            return transformationInfo;
         }
 
         protected override bool IsAssociatedDataValid(Entity entity, SplineComponent component, SplineTransformationInfo associatedData)
@@ -42,30 +47,45 @@ namespace Stride.Engine.Splines.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, SplineComponent component, SplineTransformationInfo data)
         {
-            component.Spline.OnSplineDirty += () => splineComponentsToUpdate.Add(component);
+            // Subscribe to the event using the Update method with the component as a delegate
+            component.Spline.OnSplineDirty += () => data.Update(component);
 
+            // Add the component to the list
             splineComponentsToUpdate.Add(component);
 
+            // Add the transformation operation to the entity
             entity.Transform.PostOperations.Add(data.TransformOperation);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, SplineComponent component, SplineTransformationInfo data)
         {
-            component.Spline.OnSplineDirty -= () => splineComponentsToUpdate.Add(component);
+            // Unsubscribe from the event using the Update method
 
+            //TODO: this does not work properly atm
+            component.Spline.OnSplineDirty -= () => data.Update(component);
+
+            // Remove the transformation operation from the entity
             entity.Transform.PostOperations.Remove(data.TransformOperation);
         }
 
         public class SplineTransformationInfo
         {
             public SplineViewHierarchyTransformOperation TransformOperation;
+            public SplineTransformProcessor SplineProcessor;
+            
+
+            //TODO wip
+            public void Update(SplineComponent component)
+            {
+                SplineProcessor.splineComponentsToUpdate.Add(component);
+            }
         }
 
         public override void Draw(RenderContext context)
         {
             foreach (var splineComponent in splineComponentsToUpdate)
             {
-                if (splineComponent.SplineRenderer.SegmentsMaterial.Passes.Count == 0)
+                if (splineComponent.SplineRenderer.SegmentsMaterial == null || splineComponent.SplineRenderer.SegmentsMaterial.Passes.Count == 0)
                     return;
 
                 // Always perform cleanup
