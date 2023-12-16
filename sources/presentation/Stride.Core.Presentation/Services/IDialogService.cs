@@ -26,10 +26,24 @@ public interface IDialogService
     /// <summary>
     /// Creates a modal file picker dialog.
     /// </summary>
-    Task<UFile?> OpenFilePickerAsync(UPath? initialPath = null);
+    /// <returns>
+    /// A file; or <c>null</c> if user canceled the dialog.
+    /// </returns>
+    Task<UFile?> OpenFilePickerAsync(UPath? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null);
+
+    /// <summary>
+    /// Creates a modal files picker dialog.
+    /// </summary>
+    /// <returns>
+    /// A list of files; or an empty collection if user canceled the dialog.
+    /// </returns>
+    Task<IReadOnlyList<UFile>> OpenMultipleFilesPickerAsync(UPath? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null);
 
     /// <summary>
     /// Create a modal folder picker dialog.
     /// </summary>
+    /// <returns>
+    /// A folder; or <c>null</c> if user canceled the dialog.
+    /// </returns>
     Task<UDirectory?> OpenFolderPickerAsync(UDirectory? initialPath = null);
 }

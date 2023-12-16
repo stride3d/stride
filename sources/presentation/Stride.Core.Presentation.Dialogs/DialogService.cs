@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Stride.Core.Annotations;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
@@ -150,15 +151,30 @@ namespace Stride.Core.Presentation.Dialogs
             }
         }
 
-        async Task<UFile> IDialogService.OpenFilePickerAsync(UPath initialPath)
+        async Task<UFile> IDialogService.OpenFilePickerAsync(UPath initialPath, IReadOnlyList<FilePickerFilter> filters)
         {
             var dialog = CreateFileOpenModalDialog();
+            dialog.AllowMultiSelection = false;
             dialog.InitialDirectory = initialPath;
+            if (filters is not null)
+                dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
 
             var result = await dialog.ShowModal();
             return result == DialogResult.Ok
                 ? dialog.FilePaths.First()
                 : null;
+        }
+
+        async Task<IReadOnlyList<UFile>> IDialogService.OpenMultipleFilesPickerAsync(UPath initialPath, IReadOnlyList<FilePickerFilter> filters)
+        {
+            var dialog = CreateFileOpenModalDialog();
+            dialog.AllowMultiSelection = true;
+            dialog.InitialDirectory = initialPath;
+            if (filters is not null)
+                dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
+
+            var result = await dialog.ShowModal();
+            return dialog.FilePaths.Select(x => (UFile)x).ToList();
         }
 
         async Task<UDirectory> IDialogService.OpenFolderPickerAsync(UDirectory initialPath)
