@@ -26,6 +26,7 @@ namespace Stride.Core.Presentation.Services
         /// </summary>
         /// <returns>An instance of <see cref="IFolderOpenModalDialog"/>.</returns>
         [NotNull]
+        [Obsolete("Use OpenFolderPickerAsync instead")]
         IFolderOpenModalDialog CreateFolderOpenModalDialog();
 
         /// <summary>

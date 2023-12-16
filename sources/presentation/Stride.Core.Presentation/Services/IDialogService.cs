@@ -31,5 +31,5 @@ public interface IDialogService
     /// <summary>
     /// Create a modal folder picker dialog.
     /// </summary>
-    Task<UDirectory?> OpenFolderPickerAsync(UPath? initialPath = null);
+    Task<UDirectory?> OpenFolderPickerAsync(UDirectory? initialPath = null);
 }

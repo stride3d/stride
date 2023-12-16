@@ -69,12 +69,9 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         private async Task BrowseDirectory(string variableName)
         {
-            IFolderOpenModalDialog openDialog = ServiceProvider.Get<IDialogService2>().CreateFolderOpenModalDialog();
-            openDialog.InitialDirectory = Location;
-            var result = await openDialog.ShowModal();
-            if (result == DialogResult.Ok)
-            {
-                UDirectory directory = openDialog.Directory;
+            var directory = await ServiceProvider.Get<IDialogService>().OpenFolderPickerAsync(Location);
+            if (directory is not null)
+            {                
                 var property = GetType().GetProperty(variableName);
                 property.SetValue(this, directory);
             }

@@ -161,7 +161,7 @@ namespace Stride.Core.Presentation.Dialogs
                 : null;
         }
 
-        async Task<UDirectory> IDialogService.OpenFolderPickerAsync(UPath initialPath)
+        async Task<UDirectory> IDialogService.OpenFolderPickerAsync(UDirectory initialPath)
         {
             var dialog = CreateFolderOpenModalDialog();
             dialog.InitialDirectory = initialPath;
