@@ -8,6 +8,8 @@ using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using Stride.Rendering.Materials.ComputeColors;
+using Stride.Rendering.Materials;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
 {
@@ -39,8 +41,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
 
         protected override Entity Create()
         {
-            inMaterial = GetMaterial(GraphicsDevice, Color.LightYellow); 
-            outMaterial = GetMaterial(GraphicsDevice, Color.LightSalmon); 
+            inMaterial = GetMaterial(GraphicsDevice, Color.Yellow); 
+            outMaterial = GetMaterial(GraphicsDevice, Color.Blue); 
 
             RenderGroup = RenderGroup.Group4;
 
@@ -135,6 +137,15 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
             }
 
             material = GizmoEmissiveColorMaterial.Create(device, color, color.A == byte.MaxValue ? 0.85f : 0.5f);
+            material.Descriptor = new MaterialDescriptor
+            {
+                Attributes =
+                {
+                    Diffuse = new MaterialDiffuseMapFeature(new ComputeColor()),
+                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
+                    Emissive = new MaterialEmissiveMapFeature(new ComputeColor())
+                }
+            };
             material.Descriptor.Attributes.CullMode = CullMode.None;
             cache.Add(color, material);
 
