@@ -4,10 +4,13 @@ using DotRecast.Recast.Toolset.Builder;
 using DotRecast.Recast.Toolset.Geom;
 using DotRecast.Recast.Toolset;
 using DotRecast.Recast;
+using Stride.Core.Mathematics;
 
 namespace Stride.BepuPhysics.Navigation;
 public class StrideNavMeshBuilder
 {
+	public BoundingBox BoundingBox = BoundingBox.Empty;
+
 	public NavMeshBuildResult Build(IInputGeomProvider geom, RcNavMeshBuildSettings settings)
 	{
 		return Build(geom, settings.tileSize, RcPartitionType.OfValue(settings.partitioning), settings.cellSize, settings.cellHeight, settings.agentMaxSlope, settings.agentHeight, settings.agentRadius, settings.agentMaxClimb, settings.minRegionSize, settings.mergedRegionSize, settings.edgeMaxLen, settings.edgeMaxError, settings.vertsPerPoly, settings.detailSampleDist, settings.detailSampleMaxError, settings.filterLowHangingObstacles, settings.filterLedgeSpans, settings.filterWalkableLowHeightSpans);

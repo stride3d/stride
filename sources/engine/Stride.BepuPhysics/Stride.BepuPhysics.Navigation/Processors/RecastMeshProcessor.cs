@@ -17,7 +17,7 @@ using Stride.Input;
 using DotRecast.Core.Numerics;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
-public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
+public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComponent>
 {
 
 	public List<Vector3> Points = new List<Vector3>();
@@ -26,7 +26,7 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 	private StrideNavMeshBuilder _navMeshBuilder = new();
 	private RcNavMeshBuildSettings _navSettings = new();
 	private DtNavMesh? _navMesh;
-	private List<TriggerBoundingBox> _boundingBoxes = new();
+	private List<BepuNavigationBoundingBoxComponent> _boundingBoxes = new();
 	private IGame _game;
 	private SceneSystem _sceneSystem;
 	private InputManager _input;
@@ -47,17 +47,19 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 		_input = Services.GetSafeServiceAs<InputManager>();
 	}
 
-	protected override void OnEntityComponentAdding(Entity entity, [NotNull] TriggerBoundingBox component, [NotNull] TriggerBoundingBox data)
+	protected override void OnEntityComponentAdding(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
 	{
 		_boundingBoxes.Add(data);
-		data.ContainerEnter += ContainerEnter;
-		data.ContainerLeave += ContainerExit;
 		var test = entity.Scene.Entities;
 		foreach (var entityTest in test)
 		{
 			foreach(var child in entityTest.GetChildren())
 			{
-				_containerComponents.Add(child.Get<StaticContainerComponent>());
+				var container = child.Get<StaticContainerComponent>();
+				if(container != null)
+				{
+					_containerComponents.Add(container);
+				}
 			}	
 		}
 	}
@@ -78,7 +80,7 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 		}
 	}
 
-	protected override void OnEntityComponentRemoved(Entity entity, [NotNull] TriggerBoundingBox component, [NotNull] TriggerBoundingBox data)
+	protected override void OnEntityComponentRemoved(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
 	{
 
 	}
@@ -115,22 +117,6 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 
 		_navMesh = result.NavMesh;
 
-		//for(int i = 0; i < _navMesh.GetMaxTiles(); i++)
-		//{
-		//	var tile = _navMesh.GetTile(i);
-		//	if(tile.data == null)
-		//	{
-		//		continue;
-		//	}
-		//	for (int j = 0; j <  tile.data.verts.Count(); j++)
-		//	{
-		//		if (j % 2 == 0)
-		//		{
-		//			tile.data.verts[j] = -tile.data.verts[j];
-		//		}
-		//	}
-		//}
-
 		var tileCount = _navMesh.GetTileCount();
 		var tiles = new List<DtMeshTile>();
 		for (int i = 0; i < tileCount; i++)
@@ -139,8 +125,8 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 		}
 
 		List<Vector3> strideVerts = new List<Vector3>();
-		List<int> strideIndices = new();
-
+		
+		// TODO: this is just me debugging should remove later
 		for (int i = 0; i < tiles.Count; i++)
 		{
 			for (int j = 0; j < tiles[i].data.verts.Count();)

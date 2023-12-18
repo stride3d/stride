@@ -11,6 +11,7 @@
     <PackageReference Include="DotRecast.Detour" Version="2023.11.1" />
     <PackageReference Include="DotRecast.Recast" Version="2023.11.1" />
     <PackageReference Include="DotRecast.Recast.Toolset" Version="2023.11.1" />
+    <PackageReference Include="Stride.Navigation" Version="4.2.0.2043" />
   </ItemGroup>
 
   <ItemGroup>
