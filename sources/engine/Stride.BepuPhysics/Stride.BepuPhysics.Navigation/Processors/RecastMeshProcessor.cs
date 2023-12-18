@@ -14,6 +14,7 @@ using Stride.Rendering.Materials;
 using System.Xml.Linq;
 using Stride.Core;
 using Stride.Input;
+using DotRecast.Core.Numerics;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
@@ -22,7 +23,8 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 	public List<Vector3> Points = new List<Vector3>();
 	public List<int> Indices = new List<int>();
 
-	private TileNavMeshBuilder _tileNavMeshBuilder = new TileNavMeshBuilder();
+	private StrideNavMeshBuilder _navMeshBuilder = new();
+	private RcNavMeshBuildSettings _navSettings = new();
 	private DtNavMesh? _navMesh;
 	private List<TriggerBoundingBox> _boundingBoxes = new();
 	private IGame _game;
@@ -98,15 +100,18 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 
 	public void CreateNavMesh()
 	{
-		List<float> verts = new List<float>();
+		List<float> verts = new();
+		// dotrecast wants a list of floats, so we need to convert the list of vectors to a list of floats
+		// this may be able to be changed in the StrideGeomProvider class
 		foreach (var v in Points)
 		{
-			verts.Add(v.X);
-			verts.Add(v.Y);
+			// dotrecast expects the x and y to be inverted or else the mesh is wrong.
+			verts.Add(-v.X);
+			verts.Add(-v.Y);
 			verts.Add(v.Z);
 		}
 		StrideGeomProvider geom = new StrideGeomProvider(verts, Indices);
-		var result = _tileNavMeshBuilder.Build(geom, new RcNavMeshBuildSettings());
+		var result = _navMeshBuilder.Build(geom, _navSettings);
 
 		_navMesh = result.NavMesh; 
 		var tileCount = _navMesh.GetTileCount();

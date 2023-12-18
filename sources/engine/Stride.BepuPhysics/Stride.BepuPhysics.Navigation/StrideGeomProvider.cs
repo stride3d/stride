@@ -2,28 +2,21 @@
 using DotRecast.Core.Numerics;
 using DotRecast.Core;
 using DotRecast.Recast.Geom;
-using DotRecast.Recast.Toolset.Geom;
 using DotRecast.Recast;
 
 namespace Stride.BepuPhysics.Navigation;
 internal class StrideGeomProvider : IInputGeomProvider
 {
-	public readonly float[] vertices;
-	public readonly int[] faces;
-	public readonly float[] normals;
-	private readonly RcVec3f bmin;
-	private readonly RcVec3f bmax;
+	public readonly float[] Vertices;
+	public readonly int[] Faces;
+	public readonly float[] Normals;
+
+	private readonly RcVec3f _bmin;
+	private readonly RcVec3f _bmax;
 
 	private readonly List<RcConvexVolume> _convexVolumes = new List<RcConvexVolume>();
 	private readonly List<RcOffMeshConnection> _offMeshConnections = new List<RcOffMeshConnection>();
 	private readonly RcTriMesh _mesh;
-
-	public static DemoInputGeomProvider LoadFile(string objFilePath)
-	{
-		byte[] chunk = RcResources.Load(objFilePath);
-		var context = RcObjImporter.LoadContext(chunk);
-		return new DemoInputGeomProvider(context.vertexPositions, context.meshFaces);
-	}
 
 	public StrideGeomProvider(List<float> vertexPositions, List<int> meshFaces) :
 		this(MapVertices(vertexPositions), MapFaces(meshFaces))
@@ -32,16 +25,16 @@ internal class StrideGeomProvider : IInputGeomProvider
 
 	public StrideGeomProvider(float[] vertices, int[] faces)
 	{
-		this.vertices = vertices;
-		this.faces = faces;
-		normals = new float[faces.Length];
+		Vertices = vertices;
+		Faces = faces;
+		Normals = new float[faces.Length];
 		CalculateNormals();
-		bmin = RcVecUtils.Create(vertices);
-		bmax = RcVecUtils.Create(vertices);
+		_bmin = RcVecUtils.Create(vertices);
+		_bmax = RcVecUtils.Create(vertices);
 		for (int i = 1; i < vertices.Length / 3; i++)
 		{
-			bmin = RcVecUtils.Min(bmin, vertices, i * 3);
-			bmax = RcVecUtils.Max(bmax, vertices, i * 3);
+			_bmin = RcVecUtils.Min(_bmin, vertices, i * 3);
+			_bmax = RcVecUtils.Max(_bmax, vertices, i * 3);
 		}
 
 		_mesh = new RcTriMesh(vertices, faces);
@@ -54,34 +47,34 @@ internal class StrideGeomProvider : IInputGeomProvider
 
 	public RcVec3f GetMeshBoundsMin()
 	{
-		return bmin;
+		return _bmin;
 	}
 
 	public RcVec3f GetMeshBoundsMax()
 	{
-		return bmax;
+		return _bmax;
 	}
 
 	public void CalculateNormals()
 	{
-		for (int i = 0; i < faces.Length; i += 3)
+		for (int i = 0; i < Faces.Length; i += 3)
 		{
-			int v0 = faces[i] * 3;
-			int v1 = faces[i + 1] * 3;
-			int v2 = faces[i + 2] * 3;
-			var e0 = RcVecUtils.Subtract(vertices, v1, v0);
-			var e1 = RcVecUtils.Subtract(vertices, v2, v0);
+			int v0 = Faces[i] * 3;
+			int v1 = Faces[i + 1] * 3;
+			int v2 = Faces[i + 2] * 3;
+			var e0 = RcVecUtils.Subtract(Vertices, v1, v0);
+			var e1 = RcVecUtils.Subtract(Vertices, v2, v0);
 
-			normals[i] = e0.Y * e1.Z - e0.Z * e1.Y;
-			normals[i + 1] = e0.Z * e1.X - e0.X * e1.Z;
-			normals[i + 2] = e0.X * e1.Y - e0.Y * e1.X;
-			float d = MathF.Sqrt(normals[i] * normals[i] + normals[i + 1] * normals[i + 1] + normals[i + 2] * normals[i + 2]);
+			Normals[i] = e0.Y * e1.Z - e0.Z * e1.Y;
+			Normals[i + 1] = e0.Z * e1.X - e0.X * e1.Z;
+			Normals[i + 2] = e0.X * e1.Y - e0.Y * e1.X;
+			float d = MathF.Sqrt(Normals[i] * Normals[i] + Normals[i + 1] * Normals[i + 1] + Normals[i + 2] * Normals[i + 2]);
 			if (d > 0)
 			{
 				d = 1.0f / d;
-				normals[i] *= d;
-				normals[i + 1] *= d;
-				normals[i + 2] *= d;
+				Normals[i] *= d;
+				Normals[i + 1] *= d;
+				Normals[i + 2] *= d;
 			}
 		}
 	}
@@ -117,7 +110,7 @@ internal class StrideGeomProvider : IInputGeomProvider
 		tmin = 1.0f;
 
 		// Prune hit ray.
-		if (!RcIntersections.IsectSegAABB(src, dst, bmin, bmax, out var btmin, out var btmax))
+		if (!RcIntersections.IsectSegAABB(src, dst, _bmin, _bmax, out var btmin, out var btmax))
 		{
 			return false;
 		}
@@ -143,19 +136,19 @@ internal class StrideGeomProvider : IInputGeomProvider
 			for (int j = 0; j < chunk.tris.Length; j += 3)
 			{
 				RcVec3f v1 = new RcVec3f(
-					vertices[tris[j] * 3],
-					vertices[tris[j] * 3 + 1],
-					vertices[tris[j] * 3 + 2]
+					Vertices[tris[j] * 3],
+					Vertices[tris[j] * 3 + 1],
+					Vertices[tris[j] * 3 + 2]
 				);
 				RcVec3f v2 = new RcVec3f(
-					vertices[tris[j + 1] * 3],
-					vertices[tris[j + 1] * 3 + 1],
-					vertices[tris[j + 1] * 3 + 2]
+					Vertices[tris[j + 1] * 3],
+					Vertices[tris[j + 1] * 3 + 1],
+					Vertices[tris[j + 1] * 3 + 2]
 				);
 				RcVec3f v3 = new RcVec3f(
-					vertices[tris[j + 2] * 3],
-					vertices[tris[j + 2] * 3 + 1],
-					vertices[tris[j + 2] * 3 + 2]
+					Vertices[tris[j + 2] * 3],
+					Vertices[tris[j + 2] * 3 + 1],
+					Vertices[tris[j + 2] * 3 + 2]
 				);
 				if (RcIntersections.IntersectSegmentTriangle(src, dst, v1, v2, v3, out var t))
 				{

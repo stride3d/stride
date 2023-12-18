@@ -355,6 +355,7 @@ namespace Stride.BepuPhysics.Components.Containers
 		private BodyShapeData GetMeshData(Mesh mesh, Matrix objectTransform)
 		{
 			BodyShapeData shapeData = new BodyShapeData();
+			int test = 0;
 
 			for(int i = 0; i < mesh.Triangles.Length; i++)
 			{
