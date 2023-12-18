@@ -5,8 +5,6 @@ using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
-#warning This should not be part of the base API, move it to demo/sample
-
 namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
@@ -41,12 +39,12 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 for (int j = 0; j < hits.Length; j++)
                 {
                     var hitInfo = hits[j];
-                    DebugText.Print($"T : {hitInfo.Distance}  |  normal : {hitInfo.Normal}  |  Entity : {hitInfo.Container.Entity} (worldDir : {worldDir})", new((int)(Game.Window.PreferredWindowedSize.X - 500 / 1.3f), 830 + 25 * j));
+                    DebugText.Print($"T : {hitInfo.Distance}  |  normal : {hitInfo.Normal}  |  Entity : {hitInfo.Container.Entity} (worldDir : {worldDir})", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 830 + 25 * j));
                 }
             }
             else
             {
-                DebugText.Print($"no raycast hit", new((int)(Game.Window.PreferredWindowedSize.X - 500 / 1.3f), 830));
+                DebugText.Print($"no raycast hit", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 830));
             }
             System.Buffers.ArrayPool<HitInfo>.Shared.Return(buffer);
         }

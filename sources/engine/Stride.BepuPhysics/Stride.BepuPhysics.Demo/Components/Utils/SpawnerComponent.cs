@@ -4,8 +4,6 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
-#warning This should not be part of the base API, move it to demo/sample
-
 namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]

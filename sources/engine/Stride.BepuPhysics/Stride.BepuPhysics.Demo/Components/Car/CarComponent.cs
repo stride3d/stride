@@ -13,6 +13,7 @@ using Stride.Input;
 namespace Stride.BepuPhysics.Demo.Components.Car
 {
 
+#warning This need rework/Rename and could be part of the API
     [ComponentCategory("BepuDemo - Car")]
     public class CarComponent : SimulationUpdateComponent
     {

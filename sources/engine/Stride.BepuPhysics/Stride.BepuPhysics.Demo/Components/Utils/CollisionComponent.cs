@@ -5,7 +5,6 @@ using Stride.BepuPhysics.Definitions.Collisions;
 using Stride.BepuPhysics.Extensions;
 using Stride.Engine;
 
-#warning This should not be part of the base API, move it to demo/sample
 
 namespace Stride.BepuPhysics.Demo.Components.Utils
 {
