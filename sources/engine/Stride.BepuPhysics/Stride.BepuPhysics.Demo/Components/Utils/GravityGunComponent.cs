@@ -38,12 +38,14 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             _oblscc.ServoBaseSpeed = 0;
             _oblscc.ServoMaximumForce = 1000;
             _oblscc.Bodies.Add(body);
+            _oblscc.Enabled = false;
 
             _obascc = new OneBodyAngularServoConstraintComponent();
             _obascc.ServoMaximumSpeed = float.MaxValue;
             _obascc.ServoBaseSpeed = 0;
             _obascc.ServoMaximumForce = 1000;
             _obascc.Bodies.Add(body);
+            _obascc.Enabled = false;
 
             body.Entity.Add(_oblscc);
             body.Entity.Add(_obascc);
@@ -63,8 +65,10 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             _oblscc.LocalOffset = _localGrabPoint;
             _oblscc.Target = targetPoint;
+            _oblscc.Enabled = true;
 
             _obascc.TargetOrientation = _targetOrientation;
+            _obascc.Enabled = true;
         }
         public void UnsetActive()
         {
