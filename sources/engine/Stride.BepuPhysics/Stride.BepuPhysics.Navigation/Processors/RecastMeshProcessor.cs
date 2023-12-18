@@ -106,14 +106,31 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 		foreach (var v in Points)
 		{
 			// dotrecast expects the x and y to be inverted or else the mesh is wrong.
-			verts.Add(-v.X);
-			verts.Add(-v.Y);
+			verts.Add(v.X);
+			verts.Add(v.Y);
 			verts.Add(v.Z);
 		}
 		StrideGeomProvider geom = new StrideGeomProvider(verts, Indices);
 		var result = _navMeshBuilder.Build(geom, _navSettings);
 
-		_navMesh = result.NavMesh; 
+		_navMesh = result.NavMesh;
+
+		//for(int i = 0; i < _navMesh.GetMaxTiles(); i++)
+		//{
+		//	var tile = _navMesh.GetTile(i);
+		//	if(tile.data == null)
+		//	{
+		//		continue;
+		//	}
+		//	for (int j = 0; j <  tile.data.verts.Count(); j++)
+		//	{
+		//		if (j % 2 == 0)
+		//		{
+		//			tile.data.verts[j] = -tile.data.verts[j];
+		//		}
+		//	}
+		//}
+
 		var tileCount = _navMesh.GetTileCount();
 		var tiles = new List<DtMeshTile>();
 		for (int i = 0; i < tileCount; i++)
@@ -129,7 +146,7 @@ public class RecastMeshProcessor : EntityProcessor<TriggerBoundingBox>
 			for (int j = 0; j < tiles[i].data.verts.Count();)
 			{
 				strideVerts.Add(
-					new Vector3(-tiles[i].data.verts[j++], -tiles[i].data.verts[j++], tiles[i].data.verts[j++])
+					new Vector3(tiles[i].data.verts[j++], tiles[i].data.verts[j++], tiles[i].data.verts[j++])
 					);
 			}
 		}

@@ -62,8 +62,16 @@ internal class StrideGeomProvider : IInputGeomProvider
 			int v0 = Faces[i] * 3;
 			int v1 = Faces[i + 1] * 3;
 			int v2 = Faces[i + 2] * 3;
-			var e0 = RcVecUtils.Subtract(Vertices, v1, v0);
-			var e1 = RcVecUtils.Subtract(Vertices, v2, v0);
+
+			var e0 = new RcVec3f();
+			var e1 = new RcVec3f();
+			e0.X = Vertices[v1 + 0] - Vertices[v0 + 0];
+			e0.Y = Vertices[v1 + 1] - Vertices[v0 + 1];
+			e0.Z = Vertices[v1 + 2] - Vertices[v0 + 2];
+
+			e1.X = Vertices[v2 + 0] - Vertices[v0 + 0];
+			e1.Y = Vertices[v2 + 1] - Vertices[v0 + 1];
+			e1.Z = Vertices[v2 + 2] - Vertices[v0 + 2];
 
 			Normals[i] = e0.Y * e1.Z - e0.Z * e1.Y;
 			Normals[i + 1] = e0.Z * e1.X - e0.X * e1.Z;
