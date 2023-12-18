@@ -107,6 +107,13 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 DebugText.Print($"object should go at {targetPoint} and is at {_body.Position}", new(20, 600));
                 DebugText.Print($"Camera : {Camera.Entity.Transform.GetWorldPos()}", new(20, 650));
 
+                if (Input.IsKeyDown(Keys.K))
+                {
+                    _body.ApplyLinearImpulse(GetCameraRay() * 100f);
+                    UnsetActive();
+                    return;
+                }
+
                 if (Input.IsMouseButtonDown(MouseButton.Left))
                 {
                     UpdateConstraints();
@@ -115,6 +122,8 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 {
                     UnsetActive();
                 }
+                
+
             }
         }
         private Vector3 GetCameraRay()

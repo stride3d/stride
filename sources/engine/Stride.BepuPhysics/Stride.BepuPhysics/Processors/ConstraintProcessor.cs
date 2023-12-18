@@ -106,10 +106,7 @@ namespace Stride.BepuPhysics.Processors
 
         internal override void TryUpdateDescription()
         {
-            if (_bepuSimulation == null)
-                throw new Exception("_bepuSimulation is null");
-
-            if (_cHandle.Value != -1 && _bepuSimulation.Simulation.Solver.ConstraintExists(_cHandle))
+            if (_bepuSimulation != null && _cHandle.Value != -1 && _bepuSimulation.Simulation.Solver.ConstraintExists(_cHandle))
             {
                 _bepuSimulation.Simulation.Solver.ApplyDescription(_cHandle, _constraintComponent.BepuConstraint);
             }
