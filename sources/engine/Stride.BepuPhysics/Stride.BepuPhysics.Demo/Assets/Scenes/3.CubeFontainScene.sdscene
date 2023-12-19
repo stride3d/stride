@@ -112,7 +112,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
         -   Entity:
                 Id: c6f2be1f-050d-4cb2-8122-3199af7119f3
                 Name: DefaultScripts
@@ -141,6 +145,9 @@ Hierarchy:
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
+                    5c9920c95e3aaa7b9b00c523d00c5a2e: !Stride.BepuPhysics.Demo.Components.Utils.GravityGunComponent,Stride.BepuPhysics.Demo
+                        Id: 1673d590-7493-4faf-94a5-4e9e3dc54263
+                        Camera: ref!! cbe1f2d4-4397-4d1c-bcca-defc67191caf
                     d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
                         Id: b57f6aa3-423b-4104-9902-fe6abdf8b204
                         SimulationIndex: 2

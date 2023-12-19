@@ -5,6 +5,7 @@ using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -28,7 +29,6 @@ namespace Stride.BepuPhysics.Processors
         {
             Order = 10000;
         }
-
         protected override void OnSystemAdd()
         {
             var configService = Services.GetService<IGameSettingsService>();
@@ -65,7 +65,6 @@ namespace Stride.BepuPhysics.Processors
                 parent.ContainerData?.RebuildContainer();
             }
         }
-
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
             component.ContainerData?.DestroyContainer();
@@ -124,7 +123,6 @@ namespace Stride.BepuPhysics.Processors
                 }
             }
         }
-
         private static void UpdateBodiesPositionFunction(BodyHandle handle, BepuSimulation bepuSim)
         {
             var bodyContainer = bepuSim.BodiesContainers[handle];
@@ -218,11 +216,31 @@ namespace Stride.BepuPhysics.Processors
                 return;
 
             var isTrigger = _containerComponent is TriggerContainerComponent;
+            MaterialProperties mat;
 
             if (_isStatic)
-                BepuSimulation.CollidableMaterials[SHandle] = new() { SpringSettings = new(_containerComponent.SpringFrequency, _containerComponent.SpringDampingRatio), FrictionCoefficient = _containerComponent.FrictionCoefficient, MaximumRecoveryVelocity = _containerComponent.MaximumRecoveryVelocity, ColliderGroupMask = _containerComponent.ColliderGroupMask, Trigger = isTrigger, IgnoreGravity = _containerComponent.IgnoreGravity };
+                mat = BepuSimulation.CollidableMaterials[SHandle];
             else
-                BepuSimulation.CollidableMaterials[BHandle] = new() { SpringSettings = new(_containerComponent.SpringFrequency, _containerComponent.SpringDampingRatio), FrictionCoefficient = _containerComponent.FrictionCoefficient, MaximumRecoveryVelocity = _containerComponent.MaximumRecoveryVelocity, ColliderGroupMask = _containerComponent.ColliderGroupMask, Trigger = isTrigger, IgnoreGravity = _containerComponent.IgnoreGravity };
+                mat = BepuSimulation.CollidableMaterials[BHandle];
+
+            mat.SpringSettings = new(_containerComponent.SpringFrequency, _containerComponent.SpringDampingRatio);
+            mat.FrictionCoefficient = _containerComponent.FrictionCoefficient;
+            mat.MaximumRecoveryVelocity = _containerComponent.MaximumRecoveryVelocity;
+            mat.IsTrigger = isTrigger;
+
+            mat.ColliderGroupMask = _containerComponent.ColliderGroupMask;
+            mat.FilterByDistanceId = _containerComponent.ColliderFilterByDistanceId;
+            mat.FilterByDistanceX = _containerComponent.ColliderFilterByDistanceX;
+            mat.FilterByDistanceY = _containerComponent.ColliderFilterByDistanceY;
+            mat.FilterByDistanceZ = _containerComponent.ColliderFilterByDistanceZ;
+
+            mat.IgnoreGlobalGravity = _containerComponent.IgnoreGlobalGravity;
+
+            if (_isStatic)
+                BepuSimulation.CollidableMaterials[SHandle] = mat;
+            else
+                BepuSimulation.CollidableMaterials[BHandle] = mat;
+
         }
 
         internal void RebuildContainer()
@@ -258,7 +276,7 @@ namespace Stride.BepuPhysics.Processors
                 _shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
 
 #warning check why it is not needed
-                //Looks like it is not needed for both, static was working because it doesn't update stride position.
+                //Looks like it is not needed for both, static was working because it doesn't update stride position. By default both bepu & stride handle mesh position by 'centerOfMass'.
                 //if (_containerComponent is BodyMeshContainerComponent _b)
                 //{
                 //    _containerComponent.CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();
@@ -323,13 +341,12 @@ namespace Stride.BepuPhysics.Processors
                         BepuSimulation.Simulation.Bodies[BHandle].GetDescription(out var tmpDesc);
                         bDescription.Velocity = tmpDesc.Velocity; //Keep velocity when updating
                         BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, bDescription);
-                        BepuSimulation.CollidableMaterials[BHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, ColliderGroupMask = _c.ColliderGroupMask, Trigger = false, IgnoreGravity = _containerComponent.IgnoreGravity };
                     }
                     else
                     {
                         BHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
                         BepuSimulation.BodiesContainers.Add(BHandle, _c);
-                        BepuSimulation.CollidableMaterials.Allocate(BHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, ColliderGroupMask = _c.ColliderGroupMask, Trigger = false, IgnoreGravity = _containerComponent.IgnoreGravity };
+                        BepuSimulation.CollidableMaterials.Allocate(BHandle) = new();
                         _exist = true;
                     }
 
@@ -343,13 +360,12 @@ namespace Stride.BepuPhysics.Processors
                     if (SHandle.Value != -1)
                     {
                         BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, sDescription);
-                        BepuSimulation.CollidableMaterials[SHandle] = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, ColliderGroupMask = _c.ColliderGroupMask, Trigger = isTrigger, IgnoreGravity = _containerComponent.IgnoreGravity };
                     }
                     else
                     {
                         SHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
                         BepuSimulation.StaticsContainers.Add(SHandle, _c);
-                        BepuSimulation.CollidableMaterials.Allocate(SHandle) = new() { SpringSettings = new(_c.SpringFrequency, _c.SpringDampingRatio), FrictionCoefficient = _c.FrictionCoefficient, MaximumRecoveryVelocity = _c.MaximumRecoveryVelocity, ColliderGroupMask = _c.ColliderGroupMask, Trigger = isTrigger, IgnoreGravity = _containerComponent.IgnoreGravity };
+                        BepuSimulation.CollidableMaterials.Allocate(SHandle) = new();
                         _exist = true;
                     }
 
@@ -360,6 +376,8 @@ namespace Stride.BepuPhysics.Processors
 
             if (_containerComponent.ContactEventHandler != null && !IsRegistered())
                 RegisterContact();
+
+            UpdateMaterialProperties();
         }
 
         internal void DestroyContainer()
@@ -454,7 +472,6 @@ namespace Stride.BepuPhysics.Processors
                 }
             } while (stack.Count > 0);
         }
-
         static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractMeshDataSlow(Model model, IGame game, BufferPool pool)
         {
             int totalIndices = 0;

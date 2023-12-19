@@ -128,6 +128,9 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         }
         private Vector3 GetCameraRay()
         {
+            if (Camera == null)
+                return Vector3.Zero;
+
             var wrot = Camera.Entity.Transform.GetWorldRot();
             var res = Vector3.Transform(-Vector3.UnitZ, wrot);
             DebugText.Print(res.ToString(), new(20, 550));

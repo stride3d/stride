@@ -2,7 +2,7 @@
 using BepuPhysics;
 using BepuUtilities;
 
-#warning allow better Editor/runtime modifications of StridePoseIntegratorCallbacks
+#warning allow better Editor/runtime modifications of StridePoseIntegratorCallbacks (thinking of PerBodyGravity, ...)
 
 namespace Stride.BepuPhysics.Definitions
 {
@@ -110,7 +110,7 @@ namespace Stride.BepuPhysics.Definitions
                     if (bodyIndex >= 0 && bodyIndex < _bodies.ActiveSet.Count)
                     {
                         var bodyHandle = _bodies.ActiveSet.IndexToHandle[bodyIndex];
-                        ignoreGravitySpan[bundleSlotIndex] = CollidableMaterials[bodyHandle].IgnoreGravity ? 0f : 1f;
+                        ignoreGravitySpan[bundleSlotIndex] = CollidableMaterials[bodyHandle].IgnoreGlobalGravity ? 0f : 1f;
                     }
                     else if (bodyIndex >= 0)
                     {

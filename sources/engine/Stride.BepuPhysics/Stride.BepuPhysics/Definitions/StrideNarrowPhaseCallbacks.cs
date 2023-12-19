@@ -10,6 +10,7 @@ namespace Stride.BepuPhysics.Definitions
     {
 
         internal CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
+
         internal ContactEvents ContactEvents { get; set; }
 
         public void Initialize(Simulation simulation)
@@ -25,10 +26,10 @@ namespace Stride.BepuPhysics.Definitions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB)
         {
-            var a = CollidableMaterials[pair.A];
-            var b = CollidableMaterials[pair.B];
-            var com = a.ColliderGroupMask & b.ColliderGroupMask;
-            return com == a.ColliderGroupMask || com == b.ColliderGroupMask && com != 0;
+            var matA = CollidableMaterials[pair.A];
+            var matB = CollidableMaterials[pair.B];
+
+            return MaterialProperties.AllowContactGeneration(matA, matB);
         }
         //Table of thruth. If the number in the table is present on X/Y (inside '()') collision occur exept if result is "0".
         //! indicate no collision
@@ -52,10 +53,10 @@ namespace Stride.BepuPhysics.Definitions
             pairMaterial.MaximumRecoveryVelocity = MathF.Max(a.MaximumRecoveryVelocity, b.MaximumRecoveryVelocity);
             pairMaterial.SpringSettings = pairMaterial.MaximumRecoveryVelocity == a.MaximumRecoveryVelocity ? a.SpringSettings : b.SpringSettings;
             ContactEvents.HandleManifold(workerIndex, pair, ref manifold);
-           
-            if (a.Trigger || b.Trigger)
+
+            if (a.IsTrigger || b.IsTrigger)
             {
-                 return false;
+                return false;
             }
 
             return true;

@@ -106,11 +106,11 @@ public class CharacterComponent : SimulationUpdateComponent
             if (linVeloExceptYLen < 0.8f && linVeloExceptYLen > 0.000001f)
             {
 				CharacterBody.LinearVelocity = new Vector3(0, 0, 0);
-                CharacterBody.IgnoreGravity = true;
+                CharacterBody.IgnoreGlobalGravity = true;
             }
             return;
         }
-        CharacterBody.IgnoreGravity = false;
+        CharacterBody.IgnoreGlobalGravity = false;
     }
     private void CheckGrounded()
     {
