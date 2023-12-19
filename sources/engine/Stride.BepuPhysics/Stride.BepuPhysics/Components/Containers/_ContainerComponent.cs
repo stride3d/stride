@@ -368,9 +368,16 @@ namespace Stride.BepuPhysics.Components.Containers
 
 			return shapeData;
 		}
+		/// <summary>
+		/// Currently only works for static meshes. This definitely needs more work but is usable for navigation.
+		/// </summary>
+		/// <param name="mesh"></param>
+		/// <param name="objectTransform"></param>
+		/// <returns></returns>
 		private BodyShapeData GetMeshData(Mesh mesh, Matrix objectTransform)
 		{
 			var staticMesh = (StaticMeshContainerComponent)this;
+
 			var game = Services.GetService<IGame>();
 			BodyShapeData shapeData = GetMeshData(staticMesh.Model, game);
 
