@@ -64,22 +64,6 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 		}
 	}
 
-	private void ContainerEnter(object? sender, ContainerComponent e)
-	{
-		if (e is StaticContainerComponent)
-		{
-			_containerComponents.Add(e);
-		}
-	}
-
-	private void ContainerExit(object? sender, ContainerComponent e)
-	{
-		if (e is StaticContainerComponent && _containerComponents.Contains(e))
-		{
-			_containerComponents.Remove(e);
-		}
-	}
-
 	protected override void OnEntityComponentRemoved(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
 	{
 
@@ -107,7 +91,6 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 		// this may be able to be changed in the StrideGeomProvider class
 		foreach (var v in Points)
 		{
-			// dotrecast expects the x and y to be inverted or else the mesh is wrong.
 			verts.Add(v.X);
 			verts.Add(v.Y);
 			verts.Add(v.Z);
@@ -139,6 +122,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 		SpawPrefabAtVerts(strideVerts);
 	}
 
+	// TODO: this is just me debugging should remove later
 	private void SpawPrefabAtVerts(List<Vector3> verts)
 	{
 		// Make sure the cube is a root asset or else this wont load
@@ -150,6 +134,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 		}
 	}
 
+	// TODO: this is just me debugging should remove later
 	Entity AddMesh(GraphicsDevice graphicsDevice, Scene rootScene, Vector3 position, MeshDraw meshDraw)
 	{
 		var entity = new Entity { Scene = rootScene, Transform = { Position = position } };
