@@ -1,4 +1,7 @@
-﻿using Stride.Core.Mathematics;
+﻿using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions.Raycast;
+using Stride.BepuPhysics.Extensions;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
@@ -9,7 +12,7 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
     {
         private Entity? _firstPersonPivot;
         private Entity? _thirdPersonPivot;
-
+        private BepuConfiguration _simulationConfig;
         private Vector3 dynCameraOffset;
         private Vector2 maxCameraAnglesRadians;
         private Vector3 camRotation;
@@ -32,6 +35,7 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
 
             _firstPersonPivot = Entity.FindChild("FirstPersonPivot");
             _thirdPersonPivot = Entity.FindChild("ThirdPersonPivot");
+            _simulationConfig = Services.GetService<BepuConfiguration>();
 
             maxCameraAnglesRadians = new Vector2(MathUtil.DegreesToRadians(MaxLookUpAngle), MathUtil.DegreesToRadians(MaxLookDownAngle));
             camRotation = _firstPersonPivot.Transform.RotationEulerXYZ;
@@ -67,27 +71,31 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
                 _thirdPersonPivot.Transform.Position = dynCameraOffset;
                 _thirdPersonPivot.Transform.UpdateWorldMatrix();
 
-#warning Bepu raycast could be nice
                 // Raycast from first person pivot to third person pivot
-                //var raycastStart = firstPersonPivot.Transform.WorldMatrix.TranslationVector;
-                //var raycastEnd = thirdPersonPivot.Transform.WorldMatrix.TranslationVector;
+                var raycastStart = _firstPersonPivot.Transform.WorldMatrix.TranslationVector;
+                var raycastEnd = _thirdPersonPivot.Transform.WorldMatrix.TranslationVector;
+                var dir = raycastEnd - raycastStart;
+                var len = dir.Length();
+                dir.Normalize();
 
-                //if (simulation.Raycast(raycastStart, raycastEnd, out HitResult hitResult))
-                //{
-                //    // If we hit something along the way, calculate the distance
-                //    var hitDistance = Vector3.Distance(raycastStart, hitResult.Point);
 
-                //    if (hitDistance >= MinimumCameraDistance)
-                //    {
-                //        // If the distance is larger than the minimum distance, place the camera at the hitpoint
-                //        thirdPersonPivot.Transform.Position.Z = -(hitDistance - 0.1f);
-                //    }
-                //    else
-                //    {
-                //        // If the distance is lower than the minimum distance, place the camera at first person pivot
-                //        thirdPersonPivot.Transform.Position = new Vector3(0);
-                //    }
-                //}
+                if (_simulationConfig.BepuSimulations[0].RayCast(raycastStart, dir, len, out HitInfo hitResult, 252)) //collider group == 1 so it don't collide with car body
+                {
+                    // If we hit something along the way, calculate the distance
+                    var hitDistance = Vector3.Distance(raycastStart, hitResult.Point.ToStrideVector()); 
+                    #warning maybe change HitInfo.Point to stride vector instead of numeric.
+
+                    if (hitDistance >= MinimumCameraDistance)
+                    {
+                        // If the distance is larger than the minimum distance, place the camera at the hitpoint
+                        _thirdPersonPivot.Transform.Position.Z = (hitDistance - 0.1f);
+                    }
+                    else
+                    {
+                        // If the distance is lower than the minimum distance, place the camera at first person pivot
+                        _thirdPersonPivot.Transform.Position = new Vector3(0);
+                    }
+                }
             }
         }
     }

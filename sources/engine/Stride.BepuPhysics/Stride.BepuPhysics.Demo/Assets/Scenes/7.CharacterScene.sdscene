@@ -34,7 +34,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Mass: 1.0
                         Closed: true
                         Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
@@ -64,7 +68,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -94,7 +102,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -167,7 +179,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
         -   Entity:
                 Id: 79048271-9d2d-4c88-85d4-af918b1fc277
                 Name: Trig
@@ -195,7 +211,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
         -   Entity:
                 Id: 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                 Name: Camera
@@ -299,7 +319,11 @@ Hierarchy:
                         FrictionCoefficient: 0.1
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32

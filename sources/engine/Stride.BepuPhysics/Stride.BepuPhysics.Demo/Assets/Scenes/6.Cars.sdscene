@@ -1254,7 +1254,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 254
+                        ColliderGroupMask: 2
                         IgnoreGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01

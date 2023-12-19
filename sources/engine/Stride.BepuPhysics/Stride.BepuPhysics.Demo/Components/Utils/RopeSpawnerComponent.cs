@@ -8,7 +8,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
-#warning This should not be part of the base API, move it to demo/sample
+#warning This need rework/Rename and could be part of the API
 
 namespace Stride.BepuPhysics.Demo.Components.Utils
 {

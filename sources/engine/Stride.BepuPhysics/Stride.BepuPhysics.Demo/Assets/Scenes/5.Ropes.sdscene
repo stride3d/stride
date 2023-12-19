@@ -40,7 +40,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
         -   Entity:
                 Id: 0c92bced-319f-42ec-84b9-955742cd3448
                 Name: Directional light
@@ -118,7 +122,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -166,7 +174,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -276,6 +288,9 @@ Hierarchy:
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
+                    cf031b87ec109c15c3ee63d21d4444aa: !Stride.BepuPhysics.Demo.Components.Utils.GravityGunComponent,Stride.BepuPhysics.Demo
+                        Id: babfe66e-7347-4efb-a0c7-3008c1c563c6
+                        Camera: ref!! 9d38aee3-6cbe-4c4e-89d9-5849aabfb173
                     d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
                         Id: d7046345-ce4a-46bf-81e3-db4be19aff00
                         SimulationIndex: 0
@@ -305,7 +320,11 @@ Hierarchy:
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32

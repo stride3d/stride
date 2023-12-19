@@ -1,18 +1,46 @@
-﻿using BepuPhysics.Constraints;
+﻿using System;
+using BepuPhysics.Constraints;
+using BulletSharp;
 
 namespace Stride.BepuPhysics.Definitions
 {
-    public struct MaterialProperties
+    internal struct MaterialProperties
     {
-        //Narrow
+        private const int DEFAULT_DISTANCE = 1;
+
+        //__Narrow__Settings__
         public SpringSettings SpringSettings;
         public float FrictionCoefficient;
         public float MaximumRecoveryVelocity;
-        public byte ColliderGroupMask;
-        public bool Trigger;
+        public bool IsTrigger;
 
-        //Pose
-        public bool IgnoreGravity;
+        public byte ColliderGroupMask;
+        public ushort FilterByDistanceId; //0 => no check by distance
+        public ushort FilterByDistanceX;
+        public ushort FilterByDistanceY;
+        public ushort FilterByDistanceZ;
+
+        //__Pose__Settings__
+        public bool IgnoreGlobalGravity;
+
+        public static bool AllowContactGeneration(MaterialProperties a, MaterialProperties b)
+        {
+            byte colliderGroupAnd = (byte)(a.ColliderGroupMask & b.ColliderGroupMask);
+            bool result = colliderGroupAnd == a.ColliderGroupMask || colliderGroupAnd == b.ColliderGroupMask && colliderGroupAnd != 0;
+
+            if (result && a.FilterByDistanceId == b.FilterByDistanceId && a.FilterByDistanceId != 0)
+            {
+                var differenceX = a.FilterByDistanceX - b.FilterByDistanceX;
+                var differenceY = a.FilterByDistanceY - b.FilterByDistanceY;
+                var differenceZ = a.FilterByDistanceZ - b.FilterByDistanceZ;
+
+                if ((!(differenceX < -DEFAULT_DISTANCE || differenceX > DEFAULT_DISTANCE)) && (!(differenceY < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)) && (!(differenceZ < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)))
+                    result = false;
+            }
+
+            return result;
+        }
+
     }
 
 }

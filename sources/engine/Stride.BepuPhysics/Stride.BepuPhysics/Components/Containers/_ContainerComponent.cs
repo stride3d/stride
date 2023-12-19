@@ -31,8 +31,14 @@ namespace Stride.BepuPhysics.Components.Containers
         private float _springDampingRatio = 3;
         private float _frictionCoefficient = 1f;
         private float _maximumRecoveryVelocity = 1000;
+
         private byte _colliderGroupMask = byte.MaxValue; //1111 1111 => collide with everything
-        private bool _ignoreGravity = false;
+        private ushort _colliderFilterByDistanceId = 0; //0 => Feature not enabled
+        private ushort _colliderFilterByDistanceX = 0; //collision occur if deltaX > 1
+        private ushort _colliderFilterByDistanceY = 0; //collision occur if deltaY > 1
+        private ushort _colliderFilterByDistanceZ = 0; //collision occur if deltaZ > 1
+
+        private bool _ignoreGlobalGravity = false;
 
         private IContactEventHandler? _contactEventHandler = null;
 
@@ -47,6 +53,11 @@ namespace Stride.BepuPhysics.Components.Containers
 
 		public IServiceRegistry Services { get; set; }
 
+        [DataMemberIgnore]
+        public BepuSimulation? Simulation
+        {
+            get => ContainerData?.BepuSimulation;
+        }
 
         public int SimulationIndex
         {
@@ -60,12 +71,6 @@ namespace Stride.BepuPhysics.Components.Containers
                 _simulationIndex = value;
                 ContainerData?.RebuildContainer();
             }
-        }
-
-        [DataMemberIgnore]
-        public BepuSimulation? Simulation
-        {
-            get => ContainerData?.BepuSimulation;
         }
 
         public float SpringFrequency
@@ -110,6 +115,7 @@ namespace Stride.BepuPhysics.Components.Containers
                 ContainerData?.UpdateMaterialProperties();
             }
         }
+        
         public byte ColliderGroupMask
         {
             get => _colliderGroupMask;
@@ -119,15 +125,54 @@ namespace Stride.BepuPhysics.Components.Containers
                 ContainerData?.UpdateMaterialProperties();
             }
         }
-        public bool IgnoreGravity
+        public ushort ColliderFilterByDistanceId
         {
-            get => _ignoreGravity;
+            get => _colliderFilterByDistanceId;
             set
             {
-                if (_ignoreGravity == value)
+                _colliderFilterByDistanceId = value;
+                ContainerData?.UpdateMaterialProperties();
+            }
+        }
+        public ushort ColliderFilterByDistanceX
+        {
+            get => _colliderFilterByDistanceX;
+            set
+            {
+                _colliderFilterByDistanceX = value;
+                ContainerData?.UpdateMaterialProperties();
+            }
+        }
+        public ushort ColliderFilterByDistanceY
+        {
+            get => _colliderFilterByDistanceY;
+            set
+            {
+                _colliderFilterByDistanceY = value;
+                ContainerData?.UpdateMaterialProperties();
+            }
+        }
+        public ushort ColliderFilterByDistanceZ
+        {
+            get => _colliderFilterByDistanceZ;
+            set
+            {
+                _colliderFilterByDistanceX = value;
+                ContainerData?.UpdateMaterialProperties();
+            }
+        }
+
+
+
+        public bool IgnoreGlobalGravity
+        {
+            get => _ignoreGlobalGravity;
+            set
+            {
+                if (_ignoreGlobalGravity == value)
                     return;
 
-                _ignoreGravity = value;
+                _ignoreGlobalGravity = value;
                 ContainerData?.UpdateMaterialProperties();
             }
         }

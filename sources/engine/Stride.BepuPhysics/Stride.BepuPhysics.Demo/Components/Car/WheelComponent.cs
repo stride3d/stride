@@ -1,6 +1,6 @@
 ﻿using Stride.Engine;
 
-#warning I can see this being useful, but it would have to be far more flexible and probably its own project, so maybe move this to demo/sample for now
+#warning This need rework/Rename and could be part of the API
 
 namespace Stride.BepuPhysics.Demo.Components.Car
 {

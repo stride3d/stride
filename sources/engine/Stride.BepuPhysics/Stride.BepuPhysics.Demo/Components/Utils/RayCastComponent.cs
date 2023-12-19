@@ -1,10 +1,9 @@
 ﻿using System.Runtime;
 using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-
-#warning This should not be part of the base API, move it to demo/sample
 
 namespace Stride.BepuPhysics.Demo.Components.Utils
 {
@@ -33,20 +32,21 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             Entity.Transform.GetWorldTransformation(out var position, out var rotation, out var scale);
             var worldDir = Dir;
             rotation.Rotate(ref worldDir);
-            var result = _bepuConfig.BepuSimulations[SimulationIndex].RayCast(Entity.Transform.GetWorldPos() + Offset, worldDir, MaxT);
-            if (result.Hit)
+            var buffer = System.Buffers.ArrayPool<HitInfo>.Shared.Rent(16);
+            _bepuConfig.BepuSimulations[SimulationIndex].RaycastPenetrating(Entity.Transform.GetWorldPos() + Offset, worldDir, MaxT, buffer, out var hits);
+            if (hits.Length > 0)
             {
-                var i = 0;
-                foreach (var hitInfo in result.HitInformations)
+                for (int j = 0; j < hits.Length; j++)
                 {
-                    DebugText.Print($"T : {hitInfo.Distance}  |  normal : {hitInfo.Normal}  |  Entity : {hitInfo.Container?.Entity} (worldDir : {worldDir})", new((int)(Game.Window.PreferredWindowedSize.X - 500 / 1.3f), 830 + 25 * i));
-                    i++;
+                    var hitInfo = hits[j];
+                    DebugText.Print($"T : {hitInfo.Distance}  |  normal : {hitInfo.Normal}  |  Entity : {hitInfo.Container.Entity} (worldDir : {worldDir})", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 830 + 25 * j));
                 }
             }
             else
             {
-                DebugText.Print($"no raycast hit", new((int)(Game.Window.PreferredWindowedSize.X - 500 / 1.3f), 830));
+                DebugText.Print($"no raycast hit", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 830));
             }
+            System.Buffers.ArrayPool<HitInfo>.Shared.Return(buffer);
         }
     }
 

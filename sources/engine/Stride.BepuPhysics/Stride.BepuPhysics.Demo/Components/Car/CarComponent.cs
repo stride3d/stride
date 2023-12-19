@@ -4,7 +4,7 @@ using System.Linq;
 using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Components.Constraints;
 using Stride.BepuPhysics.Components.Containers;
-using Stride.BepuPhysics.Definitions.Car;
+using Stride.BepuPhysics.Demo.Car;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -13,6 +13,7 @@ using Stride.Input;
 namespace Stride.BepuPhysics.Demo.Components.Car
 {
 
+#warning This need rework/Rename and could be part of the API
     [ComponentCategory("BepuDemo - Car")]
     public class CarComponent : SimulationUpdateComponent
     {
@@ -163,7 +164,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
 
                 if (CurrentRPM > CarEngine.MinRPM + GEAR_UP_VALUE * deltaRPM)
                 {
-                    var notInMaxGear = CurrentGear < CarEngine.Gears.Count - 1;
+                    var notInMaxGear = CurrentGear < CarEngine.Gears.Count() - 1;
                     if (CurrentGear > 0 && notInMaxGear)
                         CurrentGear++;
                     else if (CurrentGear == -1 && accelerating && !reversing)
