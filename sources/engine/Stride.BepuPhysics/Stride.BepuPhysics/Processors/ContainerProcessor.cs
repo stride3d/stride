@@ -59,7 +59,7 @@ namespace Stride.BepuPhysics.Processors
 
             component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.RebuildContainer();
-
+            component.Services = Services;
             var parent = GetComponentsInParents<ContainerComponent>(entity).FirstOrDefault();
             if (parent != null)
             {

@@ -14,6 +14,9 @@ using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Components.Colliders;
 using BulletSharp;
+using Stride.Games;
+using Stride.Rendering;
+using Mesh = BepuPhysics.Collidables.Mesh;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
@@ -41,6 +44,8 @@ namespace Stride.BepuPhysics.Components.Containers
         /// </summary>
         [DataMemberIgnore]
         internal ContainerData? ContainerData { get; set; }
+
+		public IServiceRegistry Services { get; set; }
 
 
         public int SimulationIndex
@@ -339,11 +344,6 @@ namespace Stride.BepuPhysics.Components.Containers
 				shapeData.Points.Add(Vector3.Transform(shape.ConvexHulls[0][0][i], objectTransform).XYZ());
 			}
 
-			//for (int i = 0; i < shape.ConvexHullsIndices[0][0].Count; i++)
-			//{
-			//	shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i]);
-			//}
-
 			for (int i = 0; i < shape.ConvexHullsIndices[0][0].Count; i += 3)
 			{
 				shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i]);
@@ -370,21 +370,122 @@ namespace Stride.BepuPhysics.Components.Containers
 		}
 		private BodyShapeData GetMeshData(Mesh mesh, Matrix objectTransform)
 		{
-			BodyShapeData shapeData = new BodyShapeData();
+			var staticMesh = (StaticMeshContainerComponent)this;
+			var game = Services.GetService<IGame>();
+			BodyShapeData shapeData = GetMeshData(staticMesh.Model, game);
 
-			for(int i = 0; i < mesh.Triangles.Length; i++)
+			for(int i = 0; i < shapeData.Points.Count; i++)
 			{
-				var triangle = mesh.Triangles[i];
-				shapeData.Points.Add(Vector3.Transform(triangle.A.ToStrideVector(), objectTransform).XYZ());
-				shapeData.Points.Add(Vector3.Transform(triangle.B.ToStrideVector(), objectTransform).XYZ());
-				shapeData.Points.Add(Vector3.Transform(triangle.C.ToStrideVector(), objectTransform).XYZ());
+				shapeData.Points[i] = Vector3.Transform(shapeData.Points[i], objectTransform).XYZ();
+			}
 
-				shapeData.Indices.Add(i * 1);
-				shapeData.Indices.Add(i * 2);
-				shapeData.Indices.Add(i * 3);
+			for (int i = 0; i < shapeData.Indices.Count; i += 3)
+			{
+				// NOTE: Reversed winding to create left handed input
+				(shapeData.Indices[i + 1], shapeData.Indices[i + 2]) = (shapeData.Indices[i + 2], shapeData.Indices[i + 1]);
 			}
 
 			return shapeData;
+
+			//for(int i = 0; i < mesh.Triangles.Length; i++)
+			//{
+			//	var triangle = mesh.Triangles[i];
+			//	shapeData.Points.Add(triangle.A.ToStrideVector());
+			//	shapeData.Points.Add(triangle.B.ToStrideVector());
+			//	shapeData.Points.Add(triangle.C.ToStrideVector());
+			//
+			//	shapeData.Indices.Add(i * 1);
+			//	shapeData.Indices.Add(i * 2);
+			//	shapeData.Indices.Add(i * 3);
+			//}
+
+			//return MergeDuplicateVerts(shapeData, objectTransform);
+		}
+
+		private BodyShapeData MergeDuplicateVerts(BodyShapeData shapeData, Matrix objectTransform)
+		{
+			BodyShapeData newBodyShape = new BodyShapeData();
+
+			for(int i = 0; i < shapeData.Points.Count; i++)
+			{
+				if (!newBodyShape.Points.Contains(shapeData.Points[i]))
+				{
+					newBodyShape.Points.Add(shapeData.Points[i]);
+				}
+			}
+
+			for (int i = 0; i < shapeData.Indices.Count; i++)
+			{
+				newBodyShape.Indices.Add(newBodyShape.Points.IndexOf(shapeData.Points[shapeData.Indices[i]]));
+			}
+
+			for (int i = 0; i < shapeData.Indices.Count; i += 3)
+			{
+				// NOTE: Reversed winding to create left handed input
+				(shapeData.Indices[i + 1], shapeData.Indices[i + 2]) = (shapeData.Indices[i + 2], shapeData.Indices[i + 1]);
+			}
+
+			return newBodyShape;
+		}
+
+		private static unsafe BodyShapeData GetMeshData(Model model, IGame game)
+		{
+			BodyShapeData bodyData = new BodyShapeData();
+			int totalVertices = 0, totalIndices = 0;
+			foreach (var meshData in model.Meshes)
+			{
+				totalVertices += meshData.Draw.VertexBuffers[0].Count;
+				totalIndices += meshData.Draw.IndexBuffer.Count;
+			}
+
+			foreach (var meshData in model.Meshes)
+			{
+				var vBuffer = meshData.Draw.VertexBuffers[0].Buffer;
+				var iBuffer = meshData.Draw.IndexBuffer.Buffer;
+				byte[] verticesBytes = vBuffer.GetData<byte>(game.GraphicsContext.CommandList);
+				byte[] indicesBytes = iBuffer.GetData<byte>(game.GraphicsContext.CommandList);
+
+				if ((verticesBytes?.Length ?? 0) == 0 || (indicesBytes?.Length ?? 0) == 0)
+				{
+					// returns empty lists if there is an issue
+					return bodyData;
+				}
+
+				int vertMappingStart = bodyData.Points.Count;
+
+				fixed (byte* bytePtr = verticesBytes)
+				{
+					var vBindings = meshData.Draw.VertexBuffers[0];
+					int count = vBindings.Count;
+					int stride = vBindings.Declaration.VertexStride;
+					for (int i = 0, vHead = vBindings.Offset; i < count; i++, vHead += stride)
+					{
+						var pos = *(Vector3*)(bytePtr + vHead);
+
+						bodyData.Points.Add(pos);
+					}
+				}
+
+				fixed (byte* bytePtr = indicesBytes)
+				{
+					if (meshData.Draw.IndexBuffer.Is32Bit)
+					{
+						foreach (int i in new Span<int>(bytePtr + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+						{
+							bodyData.Indices.Add(vertMappingStart + i);
+						}
+					}
+					else
+					{
+						foreach (ushort i in new Span<ushort>(bytePtr + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+						{
+							bodyData.Indices.Add(vertMappingStart + i);
+						}
+					}
+				}
+			}
+
+			return bodyData;
 		}
 
 	}

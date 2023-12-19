@@ -161,6 +161,32 @@ Hierarchy:
                         ColliderGroupMask: 255
                         IgnoreGravity: false
         -   Entity:
+                Id: 8b35bb99-2d17-4174-9aa0-3d0ec2d84b59
+                Name: nav_test
+                Components:
+                    af401b3d88690b3fbcdce0bb99209750: !TransformComponent
+                        Id: 276d6c54-5967-447c-b848-63b055eabf76
+                        Position: {X: -68.21742, Y: 3.7451034, Z: 25.823706}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    3a319ec1044acae84d47a1b6cea4db3c: !ModelComponent
+                        Id: 6d1e337b-62f9-44c8-a18e-821d008c549b
+                        Model: b665474d-edd9-4825-ac73-1fd6f4c517f4:Models/nav_test
+                        Materials: {}
+                    fb2d2e34e4c3aacddea548d9b4995d27: !Stride.BepuPhysics.Components.Containers.StaticMeshContainerComponent,Stride.BepuPhysics
+                        Id: 56c4c2c0-bc66-4499-9b9a-1d1b6155d9bf
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Mass: 1.0
+                        Closed: true
+                        Model: b665474d-edd9-4825-ac73-1fd6f4c517f4:Models/nav_test
+        -   Entity:
                 Id: 8e9a65f6-8752-4216-947d-5f77602dd0c8
                 Name: Floor
                 Components:
@@ -241,6 +267,7 @@ Hierarchy:
                             cb69d06b949e4f4a27abf89335d9f215: ref!! b8025715-3247-401e-8edd-eeec7acef0df
                             ea8bbaa675d65b1e3442f759ae7f78ef: ref!! df1b1d9b-7b12-4f9c-bd44-fd4039d6d7ed
                             5a5eb858984c75a278869fe561ffe497: ref!! 923fa071-ae79-4363-a32e-12463ef3357c
+                            e477409f51de6f506569fa565fca8495: ref!! 276d6c54-5967-447c-b848-63b055eabf76
         -   Folder: null
             Entity:
                 Id: c7d5cb4a-8254-49de-8de0-b72b901759f5
