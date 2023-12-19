@@ -12,6 +12,8 @@ using Stride.Physics;
 using BepuPhysics;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
+using Stride.BepuPhysics.Components.Colliders;
+using BulletSharp;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
@@ -175,7 +177,7 @@ namespace Stride.BepuPhysics.Components.Containers
 					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 3:
-					var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
+					//var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
 					break;
 				case 4:
 					var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(index);
@@ -184,7 +186,7 @@ namespace Stride.BepuPhysics.Components.Containers
 					break;
 				case 5:
 					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(index);
-					shapeData = GetConvexData(convex);
+					shapeData = GetConvexData(convex, Entity.Transform.WorldMatrix);
 					break;
                 case 6:
                     var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
@@ -229,7 +231,7 @@ namespace Stride.BepuPhysics.Components.Containers
 					shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
 					break;
 				case 3:
-					var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
+					//var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
 					break;
 				case 4:
 					var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(index);
@@ -238,7 +240,7 @@ namespace Stride.BepuPhysics.Components.Containers
 					break;
 				case 5:
 					var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(index);
-					shapeData = GetConvexData(convex);
+					shapeData = GetConvexData(convex, Entity.Transform.WorldMatrix);
 					break;
 				case 6:
 					var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
@@ -324,15 +326,29 @@ namespace Stride.BepuPhysics.Components.Containers
 			};
 			return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
 		}
-		private BodyShapeData GetConvexData(ConvexHull convex)
+		private BodyShapeData GetConvexData(ConvexHull convex, Matrix objectTransform)
 		{
+			//use Strides shape data
+			var hullComponent = Entity.Get<ConvexHullColliderComponent>();
+			var shape = (ConvexHullColliderShapeDesc)hullComponent.Hull.Descriptions[0];
+
             BodyShapeData shapeData = new BodyShapeData();
 
-            for(int i = 0; i < convex.FaceToVertexIndicesStart.Length; i++)
-            {
-                // will need to get the points from the convex hull
-                convex.GetPoint(convex.FaceToVertexIndicesStart[i], out var point);
-                shapeData.Points.Add(point.ToStrideVector());
+			for(int i = 0; i < shape.ConvexHulls[0][0].Count; i++)
+			{
+				shapeData.Points.Add(Vector3.Transform(shape.ConvexHulls[0][0][i], objectTransform).XYZ());
+			}
+
+			//for (int i = 0; i < shape.ConvexHullsIndices[0][0].Count; i++)
+			//{
+			//	shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i]);
+			//}
+
+			for (int i = 0; i < shape.ConvexHullsIndices[0][0].Count; i += 3)
+			{
+				shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i]);
+				shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i + 2]); // NOTE: Reversed winding to create left handed input
+				shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i + 1]);
 			}
 
 			return shapeData;

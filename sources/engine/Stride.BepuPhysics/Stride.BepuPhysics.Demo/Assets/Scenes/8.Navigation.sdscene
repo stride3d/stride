@@ -33,6 +33,33 @@ Hierarchy:
                             Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
                         Intensity: 0.1
         -   Entity:
+                Id: 33f10382-7951-47d4-80f0-6a621bca55e4
+                Name: Hex
+                Components:
+                    c6b2174e894768b47f8d000f8f9d33da: !TransformComponent
+                        Id: 923fa071-ae79-4363-a32e-12463ef3357c
+                        Position: {X: -30.555504, Y: -38.161026, Z: -65.34163}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.3, Y: 0.3, Z: 0.3}
+                        Children: {}
+                    da77210aeeb3d1caa000293889e6b172: !ModelComponent
+                        Id: c495370b-1700-42af-975f-d820c504d429
+                        Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
+                        Materials: {}
+                    b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                        Id: 10692df4-3936-4ca3-8ef7-03a2b1b7b095
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                    b171d2e6e493338a963efedea55d0321: !Stride.BepuPhysics.Components.Colliders.ConvexHullColliderComponent,Stride.BepuPhysics
+                        Id: 8a632e05-9c6a-4662-befc-978514d46098
+                        Mass: 1.0
+                        Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
+        -   Entity:
                 Id: 6958ee95-2589-42b4-86f7-b95e75c06a30
                 Name: DefaultScripts
                 Components:
@@ -212,8 +239,8 @@ Hierarchy:
                             c846816d1b41b8b41c31a1d9c1951bb5: ref!! f3bd512c-b5a3-404d-bc25-f7470a4d63c7
                             921b141e654480024e131f875f508594: ref!! 501de015-083a-476f-9648-5b1889fd0a39
                             cb69d06b949e4f4a27abf89335d9f215: ref!! b8025715-3247-401e-8edd-eeec7acef0df
-                            d3169042ca09f51e91cf2067dbe8170c: ref!! b3b3fdf8-b359-4c28-aceb-b3e1695caf31
                             ea8bbaa675d65b1e3442f759ae7f78ef: ref!! df1b1d9b-7b12-4f9c-bd44-fd4039d6d7ed
+                            5a5eb858984c75a278869fe561ffe497: ref!! 923fa071-ae79-4363-a32e-12463ef3357c
         -   Folder: null
             Entity:
                 Id: c7d5cb4a-8254-49de-8de0-b72b901759f5
@@ -243,38 +270,12 @@ Hierarchy:
                         ColliderGroupMask: 255
                         IgnoreGravity: false
         -   Entity:
-                Id: e32d28bb-6ef9-4a74-aae6-28f4af89b0a8
-                Name: nav_test
-                Components:
-                    fbfaba023ea11a954f7d5e0f472283df: !TransformComponent
-                        Id: b3b3fdf8-b359-4c28-aceb-b3e1695caf31
-                        Position: {X: -88.61869, Y: 0.0, Z: 86.94679}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    15fe109657f7d16ef943f339cff7fc43: !ModelComponent
-                        Id: 4824e9ff-19ef-4936-9143-8c86159b45ee
-                        Model: b665474d-edd9-4825-ac73-1fd6f4c517f4:Models/nav_test
-                        Materials: {}
-                    131c9f568941101ab5db4979d472ceb4: !Stride.BepuPhysics.Components.Containers.StaticMeshContainerComponent,Stride.BepuPhysics
-                        Id: eae7f2af-d9e5-453b-8298-4e252fa0cbc8
-                        SimulationIndex: 0
-                        SpringFrequency: 30.0
-                        SpringDampingRatio: 3.0
-                        FrictionCoefficient: 1.0
-                        MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        IgnoreGravity: false
-                        Mass: 1.0
-                        Closed: true
-                        Model: b665474d-edd9-4825-ac73-1fd6f4c517f4:Models/nav_test
-        -   Entity:
                 Id: e468f4f4-7011-4e12-8710-3b42afcbfeae
                 Name: Cylinder
                 Components:
                     733dcb27dde943a7e387f00c5e064f66: !TransformComponent
                         Id: b8025715-3247-401e-8edd-eeec7acef0df
-                        Position: {X: -4.190502, Y: 0.0, Z: -19.763935}
+                        Position: {X: -35.7045, Y: -9.363897, Z: -68.55507}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 10.0, Y: 10.0, Z: 10.0}
                         Children: {}
