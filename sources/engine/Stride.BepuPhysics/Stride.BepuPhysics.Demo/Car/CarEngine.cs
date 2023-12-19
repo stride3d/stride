@@ -1,8 +1,9 @@
-﻿using Stride.Core;
+﻿using System.Collections.Generic;
+using Stride.Core;
 
 #warning I can see this being useful, but it would have to be far more flexible and probably its own project, so maybe move this to demo/sample for now
 
-namespace Stride.BepuPhysics.Definitions.Car
+namespace Stride.BepuPhysics.Demo.Car
 {
     [DataContract]
     public class CarEngine
@@ -17,9 +18,9 @@ namespace Stride.BepuPhysics.Definitions.Car
 
             new() { AccelerationForce = 0.0450f, GearRatio = 0.0012f },
             new() { AccelerationForce = 0.0800f, GearRatio = 0.003f },
-            new() { AccelerationForce = 0.0800f, GearRatio = 0.006f },
-            new() { AccelerationForce = 0.0750f, GearRatio = 0.012f },
-            new() { AccelerationForce = 0.0600f, GearRatio = 0.016f }
+            new() { AccelerationForce = 0.0900f, GearRatio = 0.006f },
+            new() { AccelerationForce = 0.0950f, GearRatio = 0.012f },
+            new() { AccelerationForce = 0.1000f, GearRatio = 0.016f }
         }; //0 => reverse, 1 => first, ..
 
     }
