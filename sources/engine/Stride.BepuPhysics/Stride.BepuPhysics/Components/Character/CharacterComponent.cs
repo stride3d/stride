@@ -41,7 +41,7 @@ public class CharacterComponent : SimulationUpdateComponent
             return;
 
         CharacterBody.FrictionCoefficient = 0f;
-        CharacterBody.BodyInertia = new BodyInertia { InverseMass = 1f };
+        CharacterBody.UpdateInertia(new BodyInertia { InverseMass = 1f });
 
         _collisionEvents = new(this);
         CharacterBody.ContactEventHandler = _collisionEvents;

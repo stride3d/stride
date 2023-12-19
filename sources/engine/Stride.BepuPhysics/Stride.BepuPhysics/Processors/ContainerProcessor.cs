@@ -7,6 +7,7 @@ using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
+using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
@@ -58,7 +59,7 @@ namespace Stride.BepuPhysics.Processors
 
             component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.RebuildContainer();
-
+            component.Services = Services;
             var parent = GetComponentsInParents<ContainerComponent>(entity).FirstOrDefault();
             if (parent != null)
             {
@@ -179,10 +180,12 @@ namespace Stride.BepuPhysics.Processors
     }
 
     public class ContainerData
-    {
-        private readonly IGame _game;
+	{
+        [DataMemberIgnore]
+		public TypedIndex ShapeIndex { get; private set; }
+
+		private readonly IGame _game;
         private readonly ContainerComponent _containerComponent;
-        private TypedIndex _shapeIndex;
         private BodyInertia _shapeInertia;
         private bool _isStatic;
         private bool _exist;
@@ -245,10 +248,10 @@ namespace Stride.BepuPhysics.Processors
 
         internal void RebuildContainer()
         {
-            if (_shapeIndex.Exists)
+            if (ShapeIndex.Exists)
             {
-                BepuSimulation.Simulation.Shapes.Remove(_shapeIndex);
-                _shapeIndex = default;
+                BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
+                ShapeIndex = default;
             }
 
             _containerComponent.Entity.Transform.UpdateWorldMatrix();
@@ -272,7 +275,7 @@ namespace Stride.BepuPhysics.Processors
                 var triangles = ExtractMeshDataSlow(meshContainer.Model, _game, pool);
                 var mesh = new Mesh(triangles, meshContainer.Entity.Transform.Scale.ToNumericVector(), pool);
 
-                _shapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
+                ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
                 _shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
 
 #warning check why it is not needed
@@ -314,7 +317,7 @@ namespace Stride.BepuPhysics.Processors
                     System.Numerics.Vector3 shapeCenter;
                     compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
 
-                    _shapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
+                    ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
                     _shapeInertia = shapeInertia;
                     _containerComponent.CenterOfMass = shapeCenter.ToStrideVector();
                 }
@@ -334,7 +337,7 @@ namespace Stride.BepuPhysics.Processors
                         _shapeInertia = new BodyInertia();
                     }
 
-                    var bDescription = BodyDescription.CreateDynamic(ContainerPose, _shapeInertia, _shapeIndex, new(_c.SleepThreshold, _c.MinimumTimestepCountUnderThreshold));
+                    var bDescription = BodyDescription.CreateDynamic(ContainerPose, _shapeInertia, ShapeIndex, new(_c.SleepThreshold, _c.MinimumTimestepCountUnderThreshold));
 
                     if (BHandle.Value != -1)
                     {
@@ -354,7 +357,7 @@ namespace Stride.BepuPhysics.Processors
                 case StaticContainerComponent _c:
                     _isStatic = true;
 
-                    var sDescription = new StaticDescription(ContainerPose, _shapeIndex);
+                    var sDescription = new StaticDescription(ContainerPose, ShapeIndex);
                     var isTrigger = _c is TriggerContainerComponent;
 
                     if (SHandle.Value != -1)
@@ -389,10 +392,10 @@ namespace Stride.BepuPhysics.Processors
                 UnregisterContact();
             }
 
-            if (_shapeIndex.Exists)
+            if (ShapeIndex.Exists)
             {
-                BepuSimulation.Simulation.Shapes.Remove(_shapeIndex);
-                _shapeIndex = default;
+                BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
+                ShapeIndex = default;
             }
 
             if (BHandle.Value != -1 && BepuSimulation.Simulation.Bodies.BodyExists(BHandle))

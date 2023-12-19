@@ -1,7 +1,7 @@
 !Package
 SerializedVersion: {Assets: 3.1.0.0}
 Meta:
-    Name: BepuPhysicIntegrationTest.Windows
+    Name: Stride.BepuPhysics.Demo.Windows
     Version: 1.0.0
     Authors: []
     Owners: []
@@ -14,4 +14,5 @@ OutputGroupDirectories: {}
 ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
-RootAssets: []
+RootAssets:
+    - 24e58e86-97ca-456b-80e2-ab306642689b:Cube

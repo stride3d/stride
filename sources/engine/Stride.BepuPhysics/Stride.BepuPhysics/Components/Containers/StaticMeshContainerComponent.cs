@@ -44,5 +44,10 @@ namespace Stride.BepuPhysics.Components.Containers
                 ContainerData?.TryUpdateContainer();
             }
         }
+
+        public void GetMeshData()
+        {
+            var test = Model.Meshes[0].Draw.VertexBuffers[0];
+        }
     }
 }

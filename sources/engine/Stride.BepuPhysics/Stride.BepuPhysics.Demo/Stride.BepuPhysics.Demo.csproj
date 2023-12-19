@@ -17,6 +17,7 @@
     <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Stride.BepuPhysics.Navigation\Stride.BepuPhysics.Navigation.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
   </ItemGroup>
 </Project>
