@@ -805,10 +805,10 @@ Hierarchy:
                         AutomaticStart: true
                     0b5ac15dc96b97d823db9bfe6a5a27bf: !Stride.BepuPhysics.Demo.Components.Utils.CollisionComponent,Stride.BepuPhysics.Demo
                         Id: c55e02d8-9dd0-4665-bcf0-9cc82a86985e
-                        Container1: null
-                        Container2: null
-                        Container3: null
-                        Container4: null
+                        Container1: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b013e2de-4def-42c8-9d3a-d9cd5d29e664
+                        Container2: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! c1d32a7a-610f-48d6-84d8-b68762b119b8
+                        Container3: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! 68c75021-31aa-43d1-9be2-be63b703ed83
+                        Container4: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! 59e4ebf6-14b1-4911-bc4b-66063fafa34a
         -   Entity:
                 Id: a0a6e0e3-71f9-4449-973c-eccc644440fd
                 Name: GeoSphere
@@ -823,6 +823,22 @@ Hierarchy:
                         Id: e27fb927-53ea-4883-9733-ddf6448ccdbe
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
                         Materials: {}
+                    ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 46a4bdd6-a592-4265-858b-9987937978ea
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    df3714f2c11c12dce7242a60368a7f26: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: da0ef8d8-40c8-43d8-8fe2-33497bfc3fa9
+                        Mass: 1.0
+                        Radius: 0.5
         -   Entity:
                 Id: a41abb91-43d7-46b3-908f-4f6ef69fc3ae
                 Name: BepuPhysics
@@ -853,45 +869,45 @@ Hierarchy:
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        AEntity: null
+                        A: ref!! bd4f161f-4e51-404b-9725-416b0cb068ad
                         APos: {X: 0.5, Y: 0.0, Z: 0.0}
-                        BEntity: null
+                        B: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: e93bbc26-9f0a-404e-bd82-855be9420ecf
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        AEntity: null
+                        A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
                         APos: {X: 10.0, Y: 0.5, Z: 10.0}
-                        BEntity: null
+                        B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     df8df1e9078962519bb2e906ff5bd744: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 1b2f6c2e-1961-4f3a-ab07-ba0a16d9b4e3
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        AEntity: null
+                        A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
                         APos: {X: 10.0, Y: 0.5, Z: -10.0}
-                        BEntity: null
+                        B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     f0b1089156066784aa5bb1948f7006de: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 1f48afb2-9108-4642-8805-3f48614415e3
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        AEntity: null
+                        A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
                         APos: {X: -10.0, Y: 0.5, Z: -10.0}
-                        BEntity: null
+                        B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 2969ea40-fe06-4fc1-aac2-b2fe7af56f42
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        AEntity: null
+                        A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
                         APos: {X: -10.0, Y: 0.5, Z: 10.0}
-                        BEntity: null
+                        B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
         -   Entity:
                 Id: a5421de9-c4ab-4d87-a517-201f1eef84ea
@@ -921,6 +937,22 @@ Hierarchy:
                         Id: 68e194e2-4ee8-429c-a580-20755e0b6382
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
                         Materials: {}
+                    ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 79fed295-fdff-41e2-84be-4730d07aed4c
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    df3714f2c11c12dce7242a60368a7f26: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: 12735571-372d-4853-9c1d-7a9d040b18d7
+                        Mass: 1.0
+                        Radius: 0.5
         -   Entity:
                 Id: a9bb2541-fe09-4f7e-8dcf-4452ac6c17ca
                 Name: Model
@@ -949,6 +981,18 @@ Hierarchy:
                         Id: ff4715b1-1ada-4874-a4dc-c0539009c02d
                         Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
                         Materials: {}
+                    fdb33429abeb21b86e7cf73c9ac840e9: !Stride.BepuPhysics.Components.Containers.StaticMeshContainerComponent,Stride.BepuPhysics
+                        Id: 828e0c4e-8a7a-4322-893e-1d75fdb9cda3
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Mass: 1.0
+                        Closed: true
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
         -   Entity:
                 Id: ae8f0dfd-98c0-465e-a0e3-2eb197227cf1
                 Name: GeoSphere
@@ -963,6 +1007,22 @@ Hierarchy:
                         Id: 00431c78-3d4f-4a47-ae04-2fca88ef5bd4
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
                         Materials: {}
+                    ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 86fbdc41-a4b8-4a08-8c85-84c209e20a2a
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    df3714f2c11c12dce7242a60368a7f26: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: 39fb978d-2023-4d91-8a6d-4546ebdf8123
+                        Mass: 1.0
+                        Radius: 0.5
         -   Entity:
                 Id: b27fbebd-9210-4f5a-9fa1-930d6c7c21cd
                 Name: Camera
@@ -994,6 +1054,22 @@ Hierarchy:
                         Id: c2a90ba5-3335-4005-b4b1-af26ca275b7b
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
                         Materials: {}
+                    ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: f2eb0d8d-87fd-49ed-b623-5d7800d009d6
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    df3714f2c11c12dce7242a60368a7f26: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: 3b9586fd-d89d-4e2c-b940-98523cae7efa
+                        Mass: 1.0
+                        Radius: 0.5
         -   Entity:
                 Id: cccc7630-3a3b-4c4d-a1f0-aba092fac2ef
                 Name: DefaultScripts
@@ -1219,6 +1295,22 @@ Hierarchy:
                         Id: 505baeff-f29e-47c0-b238-4922ba5ed5c8
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
                         Materials: {}
+                    ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 16dfe8dc-9ed9-48d3-8744-31466151fcaa
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    df3714f2c11c12dce7242a60368a7f26: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: 22e9e9ff-4ee1-4dcc-a38e-fb51c8bd8d5d
+                        Mass: 1.0
+                        Radius: 0.5
         -   Entity:
                 Id: f83aa416-419d-4781-94e5-ce0d059ae450
                 Name: GeoSphere
@@ -1233,6 +1325,22 @@ Hierarchy:
                         Id: 3dfa497e-9191-4751-bce7-c98bd89b58e5
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
                         Materials: {}
+                    ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 249ce1b7-5ba9-4f08-9bbb-5265e03f8331
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        IgnoreGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    df3714f2c11c12dce7242a60368a7f26: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
+                        Id: ba44e4c5-acc0-4cc7-b39f-2fd6793ce2f9
+                        Mass: 1.0
+                        Radius: 0.5
         -   Folder: null
             Entity:
                 Id: f84ae702-83f2-4e43-b3bf-64da64d3487d

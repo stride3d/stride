@@ -1,4 +1,3 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33723.286
@@ -10,6 +9,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Demo.Windows", "Stride.BepuPhysics.Demo.Windows\Stride.BepuPhysics.Demo.Windows.csproj", "{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics.Navigation", "Stride.BepuPhysics.Navigation\Stride.BepuPhysics.Navigation.csproj", "{B40B5174-1168-421E-AF88-18B32E82E96D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{14C709A0-3501-4B9E-8E1B-B818B1C76900}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo", "Demo", "{1B9A3C8D-B179-48DB-A4E5-783EA9B0096D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +39,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EDE3B1CA-4FAD-46A4-BEA5-A76F0693D405} = {14C709A0-3501-4B9E-8E1B-B818B1C76900}
+		{C72D80DB-B3A3-49F3-AB1A-A7FCF01959AF} = {1B9A3C8D-B179-48DB-A4E5-783EA9B0096D}
+		{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0} = {1B9A3C8D-B179-48DB-A4E5-783EA9B0096D}
+		{B40B5174-1168-421E-AF88-18B32E82E96D} = {14C709A0-3501-4B9E-8E1B-B818B1C76900}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {10B0CB5D-C84D-4802-A91A-7762CBCAE0BD}

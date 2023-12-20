@@ -193,14 +193,6 @@ namespace Stride.BepuPhysics.Components.Containers
             }
 		}
 
-		private BodyReference GetRef()
-		{
-			if (ContainerData == null)
-				throw new Exception("");
-
-			return ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
-		}
-
 		public BodyShapeData GetShapeData()
 		{
 			var shape = ContainerData.ShapeIndex.Type;

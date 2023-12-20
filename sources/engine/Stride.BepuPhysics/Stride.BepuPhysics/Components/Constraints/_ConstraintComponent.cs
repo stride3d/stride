@@ -44,9 +44,9 @@ namespace Stride.BepuPhysics.Components.Constraints
 
         internal abstract void RemoveDataRef();
 
-        internal abstract BaseConstraintData? UntypedConstraintData { get; }
+        internal abstract ConstraintDataBase? UntypedConstraintData { get; }
 
-        internal abstract BaseConstraintData CreateProcessorData(BepuConfiguration bepuConfiguration);
+        internal abstract ConstraintDataBase CreateProcessorData(BepuConfiguration bepuConfiguration);
 
        
     }
@@ -110,8 +110,8 @@ namespace Stride.BepuPhysics.Components.Constraints
             ConstraintData = null;
         }
 
-        internal override BaseConstraintData? UntypedConstraintData => ConstraintData;
+        internal override ConstraintDataBase? UntypedConstraintData => ConstraintData;
 
-        internal override BaseConstraintData CreateProcessorData(BepuConfiguration bepuConfiguration) => ConstraintData = new(this, bepuConfiguration);
+        internal override ConstraintDataBase CreateProcessorData(BepuConfiguration bepuConfiguration) => ConstraintData = new(this, bepuConfiguration);
     }
 }

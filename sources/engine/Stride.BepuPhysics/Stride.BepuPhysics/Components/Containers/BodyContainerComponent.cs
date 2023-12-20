@@ -6,9 +6,6 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
-using Stride.Graphics;
-using Stride.Graphics.GeometricPrimitives;
-using Stride.Physics;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
@@ -144,7 +141,7 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-		public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
+        public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
         {
             GetRef().ApplyImpulse(impulse.ToNumericVector(), impulseOffset.ToNumericVector());
         }
@@ -156,9 +153,6 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             GetRef().ApplyLinearImpulse(impulse.ToNumericVector());
         }
-        public void UpdateInertia(BodyInertia inertia)
-        {
-            GetRef().LocalInertia = inertia;
-		}
-	}
+
+    }
 }
