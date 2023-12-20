@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using BepuPhysics;
+﻿using BepuPhysics;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Extensions;

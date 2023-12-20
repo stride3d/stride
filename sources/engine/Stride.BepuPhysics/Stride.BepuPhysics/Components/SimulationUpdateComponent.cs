@@ -1,5 +1,4 @@
 ﻿using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Engine;
 

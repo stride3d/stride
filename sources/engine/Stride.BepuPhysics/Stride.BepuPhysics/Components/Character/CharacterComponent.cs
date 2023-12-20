@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using BepuPhysics;
+﻿using BepuPhysics;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions.Character;
 using Stride.BepuPhysics.Extensions;
@@ -78,18 +77,18 @@ public class CharacterComponent : SimulationUpdateComponent
     {
         CheckGrounded();
 
-        if(CharacterBody == null)
-			return;
+        if (CharacterBody == null)
+            return;
 
-		CharacterBody.Awake = true;
+        CharacterBody.Awake = true;
 
-		CharacterBody.Orientation = Orientation;
-		CharacterBody.LinearVelocity = new Vector3(Velocity.X, CharacterBody.LinearVelocity.Y, Velocity.Z);
+        CharacterBody.Orientation = Orientation;
+        CharacterBody.LinearVelocity = new Vector3(Velocity.X, CharacterBody.LinearVelocity.Y, Velocity.Z);
 
         if (_tryJump)
         {
             if (IsGrounded)
-				CharacterBody.ApplyLinearImpulse(Vector3.UnitY * JumpSpeed * 10);
+                CharacterBody.ApplyLinearImpulse(Vector3.UnitY * JumpSpeed * 10);
             _tryJump = false;
         }
     }
@@ -97,15 +96,15 @@ public class CharacterComponent : SimulationUpdateComponent
     {
         if (CharacterBody == null)
             return;
-        
+
         if (IsGrounded)
         {
             var linVeloExceptY = CharacterBody.LinearVelocity * new Vector3(1, 0, 1);
             var linVeloExceptYLen = linVeloExceptY.Length();
-        
+
             if (linVeloExceptYLen < 0.8f && linVeloExceptYLen > 0.000001f)
             {
-				CharacterBody.LinearVelocity = new Vector3(0, 0, 0);
+                CharacterBody.LinearVelocity = new Vector3(0, 0, 0);
                 CharacterBody.IgnoreGlobalGravity = true;
             }
             return;

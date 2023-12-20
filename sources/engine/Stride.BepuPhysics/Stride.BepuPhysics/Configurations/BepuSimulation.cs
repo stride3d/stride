@@ -10,7 +10,6 @@ using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using static Stride.BepuPhysics.Definitions.StrideNarrowPhaseCallbacks;
 
 namespace Stride.BepuPhysics.Configurations;
 

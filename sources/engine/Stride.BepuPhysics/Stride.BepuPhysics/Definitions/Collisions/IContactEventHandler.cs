@@ -1,6 +1,5 @@
 ﻿using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
-using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Collisions;
 /// <summary>

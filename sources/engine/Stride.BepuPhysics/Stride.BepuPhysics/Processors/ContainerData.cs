@@ -17,11 +17,11 @@ using Mesh = BepuPhysics.Collidables.Mesh;
 namespace Stride.BepuPhysics.Processors
 {
     public class ContainerData
-	{
+    {
         [DataMemberIgnore]
-		public TypedIndex ShapeIndex { get; private set; }
+        public TypedIndex ShapeIndex { get; private set; }
 
-		private readonly IGame _game;
+        private readonly IGame _game;
         private readonly ContainerComponent _containerComponent;
         private BodyInertia _shapeInertia;
         private bool _isStatic;

@@ -16,7 +16,7 @@ namespace Stride.BepuPhysics.Components.Colliders
     [ComponentCategory("Bepu - Colliders")]
     public sealed class ConvexHullColliderComponent : ColliderComponent
     {
-        #warning Replace with an explicit reference to hulls once the asset part for hulls is done
+#warning Replace with an explicit reference to hulls once the asset part for hulls is done
         public PhysicsColliderShape? Hull;
 
         public ConvexHullColliderComponent()
@@ -59,7 +59,7 @@ namespace Stride.BepuPhysics.Components.Colliders
                             var verts = hullDesc.ConvexHulls[mesh][hull];
                             foreach (uint u in hullDesc.ConvexHullsIndices[mesh][hull])
                             {
-                                #warning Scaling here means that changing entity scale after the fact doesn't affect the physical shape
+#warning Scaling here means that changing entity scale after the fact doesn't affect the physical shape
                                 output[outputIndex++] = verts[(int)u].ToNumericVector() * hullScaling * entityScaling;
                             }
                         }

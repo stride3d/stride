@@ -1,5 +1,4 @@
-﻿using SharpDX.D3DCompiler;
-using Stride.BepuPhysics.Components.Constraints;
+﻿using Stride.BepuPhysics.Components.Constraints;
 using Stride.BepuPhysics.Configurations;
 using Stride.Core.Annotations;
 using Stride.Engine;

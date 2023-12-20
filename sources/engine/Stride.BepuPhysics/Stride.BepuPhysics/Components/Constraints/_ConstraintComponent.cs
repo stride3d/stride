@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using BepuPhysics;
-using BepuPhysics.Constraints;
+﻿using BepuPhysics.Constraints;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Processors;
@@ -48,7 +46,7 @@ namespace Stride.BepuPhysics.Components.Constraints
 
         internal abstract ConstraintDataBase CreateProcessorData(BepuConfiguration bepuConfiguration);
 
-       
+
     }
 
 #warning maybe replace by stride impl

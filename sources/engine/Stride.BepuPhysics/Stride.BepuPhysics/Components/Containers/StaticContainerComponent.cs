@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Components.Containers
     [ComponentCategory("Bepu - Containers")]
     public class StaticContainerComponent : ContainerComponent
     {
-        #warning This will be deleted !!!
+#warning This will be deleted !!!
         StaticReference? GetPhysicStatic()
         {
             return ContainerData?.BepuSimulation.Simulation.Statics[ContainerData.SHandle];

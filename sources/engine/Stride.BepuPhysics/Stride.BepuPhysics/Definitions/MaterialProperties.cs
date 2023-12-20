@@ -1,6 +1,4 @@
-﻿using System;
-using BepuPhysics.Constraints;
-using BulletSharp;
+﻿using BepuPhysics.Constraints;
 
 namespace Stride.BepuPhysics.Definitions
 {
