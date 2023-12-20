@@ -13,7 +13,7 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 	public event CollectionChangedEventHandler ColliderRemoved;
 
 	/// <summary>
-	/// This is done based on the assumption that storing the data is cheaper than generating it.
+	/// This is done based on the assumption that storing the data is cheaper than generating it from Bepu.
 	/// More testing is needed to confirm this.
 	/// </summary>
 	public Dictionary<StaticContainerComponent, BodyShapeData> BodyShapes = new();

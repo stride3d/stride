@@ -1,6 +1,5 @@
 ﻿using DotRecast.Detour;
 using DotRecast.Recast.Toolset;
-using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Navigation.Components;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -27,7 +26,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 	private IGame _game;
 	private SceneSystem _sceneSystem;
 	private InputManager _input;
-	BepuStaticColliderProcessor _colliderProcessor = new();
+	private BepuStaticColliderProcessor _colliderProcessor = new();
 
 	public RecastMeshProcessor()
 	{
@@ -145,13 +144,10 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 		return entity;
 	}
 
-	public void AddContainerData(ContainerComponent containerData)
-	{
-		var shape = containerData.GetShapeData();
-		AppendArrays(shape.Points.ToArray(), shape.Indices.ToArray());
-	}
-
-	public void UpdateMeshData()
+	/// <summary>
+	/// Gets all the points and indices from the BepuStaticColliderProcessor and adds them to the mesh data.
+	/// </summary>
+	private void UpdateMeshData()
 	{
 		foreach(var shape in _colliderProcessor.BodyShapes)
 		{
