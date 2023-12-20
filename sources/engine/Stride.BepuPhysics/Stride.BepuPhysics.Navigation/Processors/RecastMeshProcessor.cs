@@ -1,6 +1,5 @@
 ﻿using DotRecast.Detour;
 using DotRecast.Recast.Toolset;
-using DotRecast.Recast.Toolset.Builder;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Navigation.Components;
 using Stride.Core.Annotations;
@@ -11,10 +10,8 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.Materials;
-using System.Xml.Linq;
 using Stride.Core;
 using Stride.Input;
-using DotRecast.Core.Numerics;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComponent>
@@ -30,12 +27,11 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 	private IGame _game;
 	private SceneSystem _sceneSystem;
 	private InputManager _input;
-
-	private List<ContainerComponent> _containerComponents = new List<ContainerComponent>();
-	private int _previousContainerCount = 0;
+	BepuStaticColliderProcessor _colliderProcessor = new();
 
 	public RecastMeshProcessor()
 	{
+		// this is done to ensure that this processor runs after the BepuPhysicsProcessors
 		Order = 20000;
 	}
 
@@ -45,28 +41,17 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 		_game = Services.GetService<IGame>();
 		_sceneSystem = Services.GetService<SceneSystem>();
 		_input = Services.GetSafeServiceAs<InputManager>();
+		_sceneSystem.SceneInstance.Processors.Add(_colliderProcessor);
 	}
 
 	protected override void OnEntityComponentAdding(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
 	{
 		_boundingBoxes.Add(data);
-		var test = entity.Scene.Entities;
-		foreach (var entityTest in test)
-		{
-			foreach(var child in entityTest.GetChildren())
-			{
-				var container = child.Get<StaticContainerComponent>();
-				if(container != null)
-				{
-					_containerComponents.Add(container);
-				}
-			}	
-		}
 	}
 
 	protected override void OnEntityComponentRemoved(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
 	{
-
+		_boundingBoxes.Remove(data);
 	}
 
 	public override void Update(GameTime time)
@@ -75,11 +60,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 		{
 			Points.Clear();
 			Indices.Clear();
-			foreach (var container in _containerComponents)
-			{
-				AddContainerData(container);
-			}
-			_previousContainerCount = _containerComponents.Count;
+			UpdateMeshData();
 			CreateNavMesh();
 		}
 	}
@@ -167,10 +148,18 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 	public void AddContainerData(ContainerComponent containerData)
 	{
 		var shape = containerData.GetShapeData();
-		AppendArrays(shape.Points.ToArray(), shape.Indices.ToArray(), containerData.Entity.Transform.WorldMatrix);
+		AppendArrays(shape.Points.ToArray(), shape.Indices.ToArray());
 	}
 
-	public void AppendArrays(Vector3[] vertices, int[] indices, Matrix objectTransform)
+	public void UpdateMeshData()
+	{
+		foreach(var shape in _colliderProcessor.BodyShapes)
+		{
+			AppendArrays(shape.Value.Points.ToArray(), shape.Value.Indices.ToArray());
+		}
+	}
+
+	public void AppendArrays(Vector3[] vertices, int[] indices)
 	{
 		// Copy vertices
 		int vbase = Points.Count;

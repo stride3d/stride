@@ -11,8 +11,8 @@ internal class StrideGeomProvider : IInputGeomProvider
 	public readonly int[] Faces;
 	public readonly float[] Normals;
 
-	private readonly RcVec3f _bmin;
-	private readonly RcVec3f _bmax;
+	private readonly RcVec3f _boundsmin;
+	private readonly RcVec3f _boundsmax;
 
 	private readonly List<RcConvexVolume> _convexVolumes = new List<RcConvexVolume>();
 	private readonly List<RcOffMeshConnection> _offMeshConnections = new List<RcOffMeshConnection>();
@@ -29,12 +29,12 @@ internal class StrideGeomProvider : IInputGeomProvider
 		Faces = faces;
 		Normals = new float[faces.Length];
 		CalculateNormals();
-		_bmin = RcVecUtils.Create(vertices);
-		_bmax = RcVecUtils.Create(vertices);
+		_boundsmin = RcVecUtils.Create(vertices);
+		_boundsmax = RcVecUtils.Create(vertices);
 		for (int i = 1; i < vertices.Length / 3; i++)
 		{
-			_bmin = RcVecUtils.Min(_bmin, vertices, i * 3);
-			_bmax = RcVecUtils.Max(_bmax, vertices, i * 3);
+			_boundsmin = RcVecUtils.Min(_boundsmin, vertices, i * 3);
+			_boundsmax = RcVecUtils.Max(_boundsmax, vertices, i * 3);
 		}
 
 		_mesh = new RcTriMesh(vertices, faces);
@@ -47,12 +47,12 @@ internal class StrideGeomProvider : IInputGeomProvider
 
 	public RcVec3f GetMeshBoundsMin()
 	{
-		return _bmin;
+		return _boundsmin;
 	}
 
 	public RcVec3f GetMeshBoundsMax()
 	{
-		return _bmax;
+		return _boundsmax;
 	}
 
 	public void CalculateNormals()
@@ -118,7 +118,7 @@ internal class StrideGeomProvider : IInputGeomProvider
 		tmin = 1.0f;
 
 		// Prune hit ray.
-		if (!RcIntersections.IsectSegAABB(src, dst, _bmin, _bmax, out var btmin, out var btmax))
+		if (!RcIntersections.IsectSegAABB(src, dst, _boundsmin, _boundsmax, out var btmin, out var btmax))
 		{
 			return false;
 		}
