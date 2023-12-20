@@ -9,7 +9,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
     [ComponentCategory("BepuDemo - Utils")]
     public class ConstraintToggleComponent : SyncScript
     {
-        public BaseConstraintComponent? Component { get; set; }
+        public ConstraintComponentBase? Component { get; set; }
 
 
         public override void Start()

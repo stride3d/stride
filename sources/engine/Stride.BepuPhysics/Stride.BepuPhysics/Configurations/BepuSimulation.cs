@@ -29,6 +29,9 @@ public class BepuSimulation
 
     internal float RemainingUpdateTime { get; set; } = 0;
 
+    /// <summary>
+    /// Get the bepu Simulation /!\
+    /// </summary>
     [DataMemberIgnore]
     public Simulation Simulation { get; private set; }
 

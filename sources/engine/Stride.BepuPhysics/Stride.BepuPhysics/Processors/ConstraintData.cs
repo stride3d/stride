@@ -37,7 +37,7 @@ namespace Stride.BepuPhysics.Processors
 
             foreach (var component in _constraintComponent.Bodies)
             {
-#warning maybe send a warning, like the missing camera notification in the engine, instead of exception
+#warning maybe send a warning, like the missing camera notification in the engine, instead of exception at runtime
                 if (component.SimulationIndex != simIndex)
                     throw new Exception("A constraint between object with different SimulationIndex is not possible");
 

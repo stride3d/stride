@@ -14,13 +14,17 @@ namespace Stride.BepuPhysics.Components.Containers
     [ComponentCategory("Bepu - Containers")]
     public class StaticContainerComponent : ContainerComponent
     {
-#warning This will be deleted !!!
-        StaticReference? GetPhysicStatic()
+
+        /// <summary>
+        /// Get the bepu StaticReference /!\
+        /// </summary>
+        /// <returns>A volatil ref to the bepu static associed with this bodyContainer</returns>
+        public StaticReference? GetPhysicStatic()
         {
             return ContainerData?.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
         }
 
-        private StaticReference GetRef()
+        private StaticReference GetPhysicStaticRef()
         {
             if (ContainerData == null)
                 throw new Exception("Container data is null");
@@ -31,30 +35,30 @@ namespace Stride.BepuPhysics.Components.Containers
         [DataMemberIgnore]
         public Vector3 Position
         {
-            get => GetRef().Pose.Position.ToStrideVector();
+            get => GetPhysicStaticRef().Pose.Position.ToStrideVector();
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicStaticRef();
                 bodyRef.Pose.Position = value.ToNumericVector();
             }
         }
         [DataMemberIgnore]
         public Quaternion Orientation
         {
-            get => GetRef().Pose.Orientation.ToStrideQuaternion();
+            get => GetPhysicStaticRef().Pose.Orientation.ToStrideQuaternion();
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicStaticRef();
                 bodyRef.Pose.Orientation = value.ToNumericQuaternion();
             }
         }
         [DataMemberIgnore]
         public ContinuousDetection ContinuousDetection
         {
-            get => GetRef().Continuity;
+            get => GetPhysicStaticRef().Continuity;
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicStaticRef();
                 bodyRef.Continuity = value;
             }
         }

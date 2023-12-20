@@ -32,13 +32,18 @@ Hierarchy:
                         Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     b042c04ebbd62706d8b5a6a31b88c02d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 13c2f612-7965-4953-825a-d0e5ca398e9c
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -62,13 +67,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 0508740f-381f-4538-8f6e-0ffe8bec42bd
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -106,13 +116,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: f44ac93b-443a-43a5-a197-702d90d5e20c
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -140,13 +155,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 5.0, Z: 1.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 2b0e4e2a-cdc1-47fc-b556-a2cd5338a644
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -166,13 +186,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 09a899f0-4389-47a9-8cd3-84f092fe7a4b
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -200,13 +225,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 5.0, Z: 1.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: f127d1fd-fcf2-4b74-b8bd-e0ce8d0e6f48
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -226,13 +256,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 90148587-b7b6-4408-a0f9-ad2c59d9ad7e
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -260,13 +295,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 7f93fcf2-c302-4170-ba8d-0948dd55475d
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -286,13 +326,18 @@ Hierarchy:
                         Materials: {}
                     0561d3d39ca07c1585c417e580432c12: !Stride.BepuPhysics.Components.Containers.BodyMeshContainerComponent,Stride.BepuPhysics
                         Id: 435fb189-26b9-48e0-b03b-4ff19c269c89
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -342,13 +387,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 1cf4a84e-bb17-4619-a676-eab97c27362a
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -376,13 +426,18 @@ Hierarchy:
                         Size: {X: 40.0, Y: 1.0, Z: 20.0}
                     b042c04ebbd62706d8b5a6a31b88c02d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: ce88c894-9648-4913-a22c-38c12b0c267f
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -406,13 +461,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 8b6aae43-734a-4185-ad4a-19cfa275a9c3
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -432,13 +492,18 @@ Hierarchy:
                         Materials: {}
                     0561d3d39ca07c1585c417e580432c12: !Stride.BepuPhysics.Components.Containers.BodyMeshContainerComponent,Stride.BepuPhysics
                         Id: 08f588cc-f948-4869-80a6-1e93d97d71cb
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -465,13 +530,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 5.0, Z: 1.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 5ebbe99d-d039-4dbf-99da-6987906b8028
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -495,13 +565,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 82811cd5-bcb4-47f8-83da-9eaa0ddefe27
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -525,13 +600,18 @@ Hierarchy:
                         Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: bd4f161f-4e51-404b-9725-416b0cb068ad
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -612,13 +692,18 @@ Hierarchy:
                         Size: {X: 2500.0, Y: 0.1, Z: 2500.0}
                     b18e400f6ef857c50bac5d706493e368: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
                         Id: 96752ac7-15be-4847-8c4d-d41d35b5990c
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
         -   Entity:
                 Id: 9372f2e7-5d24-4968-a90e-3e4c58b63eef
                 Name: Jump3
@@ -639,13 +724,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: a2986570-bc9f-4f0b-a468-df27b1ad03c7
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -669,13 +759,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: a2cfd5ef-a469-4432-b463-7c03426a402a
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -699,13 +794,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 638d77cf-5647-4ff6-84ff-3ced764109b5
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -729,13 +829,18 @@ Hierarchy:
                         Size: {X: 20.0, Y: 5.0, Z: 1.0}
                     51feea7bbdcad82ac4361ac7256d8d36: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: d56e54f0-929b-4bf1-bb0b-ff9cad72b65b
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -825,13 +930,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 46a4bdd6-a592-4265-858b-9987937978ea
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -869,45 +979,45 @@ Hierarchy:
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! bd4f161f-4e51-404b-9725-416b0cb068ad
+                        AEntity: ref!! 862254dd-2fde-4792-88ba-dfb054a28845
                         APos: {X: 0.5, Y: 0.0, Z: 0.0}
-                        B: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
+                        BEntity: ref!! 4f02d2d7-9a5f-4508-bdea-ec68de5f9f84
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: e93bbc26-9f0a-404e-bd82-855be9420ecf
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
+                        AEntity: ref!! 4f02d2d7-9a5f-4508-bdea-ec68de5f9f84
                         APos: {X: 10.0, Y: 0.5, Z: 10.0}
-                        B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
+                        BEntity: ref!! 00895c9b-e6b2-4bc9-8e45-1865bc887452
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     df8df1e9078962519bb2e906ff5bd744: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 1b2f6c2e-1961-4f3a-ab07-ba0a16d9b4e3
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
+                        AEntity: ref!! 4f02d2d7-9a5f-4508-bdea-ec68de5f9f84
                         APos: {X: 10.0, Y: 0.5, Z: -10.0}
-                        B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
+                        BEntity: ref!! 00895c9b-e6b2-4bc9-8e45-1865bc887452
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     f0b1089156066784aa5bb1948f7006de: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 1f48afb2-9108-4642-8805-3f48614415e3
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
+                        AEntity: ref!! 4f02d2d7-9a5f-4508-bdea-ec68de5f9f84
                         APos: {X: -10.0, Y: 0.5, Z: -10.0}
-                        B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
+                        BEntity: ref!! 00895c9b-e6b2-4bc9-8e45-1865bc887452
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 2969ea40-fe06-4fc1-aac2-b2fe7af56f42
                         SimulationIndex: 0
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
-                        A: ref!! ce88c894-9648-4913-a22c-38c12b0c267f
+                        AEntity: ref!! 4f02d2d7-9a5f-4508-bdea-ec68de5f9f84
                         APos: {X: -10.0, Y: 0.5, Z: 10.0}
-                        B: ref!! 13c2f612-7965-4953-825a-d0e5ca398e9c
+                        BEntity: ref!! 00895c9b-e6b2-4bc9-8e45-1865bc887452
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
         -   Entity:
                 Id: a5421de9-c4ab-4d87-a517-201f1eef84ea
@@ -939,13 +1049,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 79fed295-fdff-41e2-84be-4730d07aed4c
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -983,13 +1098,18 @@ Hierarchy:
                         Materials: {}
                     fdb33429abeb21b86e7cf73c9ac840e9: !Stride.BepuPhysics.Components.Containers.StaticMeshContainerComponent,Stride.BepuPhysics
                         Id: 828e0c4e-8a7a-4322-893e-1d75fdb9cda3
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Mass: 1.0
                         Closed: true
                         Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
@@ -1009,13 +1129,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 86fbdc41-a4b8-4a08-8c85-84c209e20a2a
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1056,13 +1181,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: f2eb0d8d-87fd-49ed-b623-5d7800d009d6
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1127,13 +1257,18 @@ Hierarchy:
                 Components:
                     aa244c743a3eb88f50917768b93d8f5b: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 59e4ebf6-14b1-4911-bc4b-66063fafa34a
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.5
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1177,13 +1312,18 @@ Hierarchy:
                 Components:
                     aa244c743a3eb88f50917768b93d8f5b: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: c1d32a7a-610f-48d6-84d8-b68762b119b8
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1214,13 +1354,18 @@ Hierarchy:
                 Components:
                     aa244c743a3eb88f50917768b93d8f5b: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 68c75021-31aa-43d1-9be2-be63b703ed83
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.5
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1261,13 +1406,18 @@ Hierarchy:
                         Materials: {}
                     ca8176b1058b680a9e92e817af47f8bf: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: b013e2de-4def-42c8-9d3a-d9cd5d29e664
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
                         ColliderGroupMask: 1
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1297,13 +1447,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 16dfe8dc-9ed9-48d3-8744-31466151fcaa
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1327,13 +1482,18 @@ Hierarchy:
                         Materials: {}
                     ff7db6ffe9ab82a725ba9ffecf360233: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 249ce1b7-5ba9-4f08-9bbb-5265e03f8331
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -1357,13 +1517,18 @@ Hierarchy:
                             392917acfae12231b81cafd754e41495: ref!! 416544b2-7078-4044-aca3-a9f9097d737a
                     e433217afc16eeb130d60437d39781ec: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 1571cbc7-6324-40cd-90a7-0b2d0fefcfe9
+                        Services: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 2
-                        IgnoreGravity: false
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32

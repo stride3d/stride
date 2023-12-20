@@ -5,7 +5,7 @@ using Stride.Engine;
 
 namespace Stride.BepuPhysics.Processors
 {
-    public class ConstraintProcessor : EntityProcessor<BaseConstraintComponent>
+    public class ConstraintProcessor : EntityProcessor<ConstraintComponentBase>
     {
         private BepuConfiguration _bepuConfiguration = new();
 
@@ -19,12 +19,12 @@ namespace Stride.BepuPhysics.Processors
             _bepuConfiguration = Services.GetService<BepuConfiguration>();
         }
 
-        protected override void OnEntityComponentAdding(Entity entity, [NotNull] BaseConstraintComponent component, [NotNull] BaseConstraintComponent data)
+        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponentBase component, [NotNull] ConstraintComponentBase data)
         {
             base.OnEntityComponentAdding(entity, component, data);
             component.CreateProcessorData(_bepuConfiguration).RebuildConstraint();
         }
-        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] BaseConstraintComponent component, [NotNull] BaseConstraintComponent data)
+        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponentBase component, [NotNull] ConstraintComponentBase data)
         {
             base.OnEntityComponentRemoved(entity, component, data);
             component.UntypedConstraintData?.DestroyConstraint();
