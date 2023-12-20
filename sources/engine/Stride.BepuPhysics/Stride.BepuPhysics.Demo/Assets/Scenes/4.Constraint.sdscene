@@ -109,7 +109,7 @@ Hierarchy:
                         SimulationIndex*: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
-                        FrictionCoefficient: 1.0
+                        FrictionCoefficient: 10.0
                         MaximumRecoveryVelocity: 1000.0
                         ColliderGroupMask: 255
                         ColliderFilterByDistanceId: 0
@@ -117,12 +117,12 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Kinematic: true
+                        Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                     ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: 61291a0a-5d91-434e-9c14-5c5ffe65d4db
-                        Mass: 10.0
+                        Mass: 20.0
                         Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: fbc8d441-0919-4d31-95e3-c82276702a6c
@@ -205,8 +205,8 @@ Hierarchy:
                         SpringDampingRatio: 5.0
                     392c6efc71d162019ec67003511fddbc: !TransformComponent
                         Id: ae65c5f7-bb2c-427b-943a-9cbaa9585d3d
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Position: {X: 0.0, Y: 5.2473316, Z: 0.0}
+                        Rotation: {X: 1.0, Y: -4.371139E-08, Z: -4.371139E-08, W: 1.9106855E-15}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             c4be3cde9267c1a84ebd34fce78c8e1e: ref!! c254cc22-a0d2-4bf0-b411-f31dafbd3d9c
