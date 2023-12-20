@@ -7,6 +7,8 @@ using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using System;
 using System.Collections.Concurrent;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Stride.Core.Threading
@@ -31,8 +33,8 @@ namespace Stride.Core.Threading
         private static readonly ProfilingKey ProcessWorkItemKey = new ProfilingKey($"{nameof(ThreadPool)}.ProcessWorkItem");
 
         private readonly ConcurrentQueue<Work> workItems = new ConcurrentQueue<Work>();
-        private readonly SemaphoreW semaphore;
-        
+        private readonly ISemaphore semaphore;
+
         private long completionCounter;
         private int workScheduled, threadsBusy;
         private int disposing;
@@ -49,8 +51,30 @@ namespace Stride.Core.Threading
 
         public ThreadPool(int? threadCount = null)
         {
-            semaphore = new SemaphoreW(spinCountParam:70);
-            
+            int spinCount = 70;
+
+            if(RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64)
+            {
+                // Dotnet:
+                // On systems with ARM processors, more spin-waiting seems to be necessary to avoid perf regressions from incurring
+                // the full wait when work becomes available soon enough. This is more noticeable after reducing the number of
+                // thread requests made to the thread pool because otherwise the extra thread requests cause threads to do more
+                // busy-waiting instead and adding to contention in trying to look for work items, which is less preferable.
+                spinCount *= 4;
+            }
+            try
+            {
+                semaphore = new DotnetLifoSemaphore(spinCount);
+            }
+            catch
+            {
+                // For net6+ this should not happen, logging instead of throwing as this is just a performance regression
+                if(Environment.Version.Major >= 6)
+                    Console.Out?.WriteLine($"{typeof(ThreadPool).FullName}: Falling back to suboptimal semaphore");
+
+                semaphore = new SemaphoreW(spinCountParam:70);
+            }
+
             WorkerThreadsCount = threadCount ?? (Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount - 1);
             leftToDispose = WorkerThreadsCount;
             for (int i = 0; i < WorkerThreadsCount; i++)
@@ -87,27 +111,25 @@ namespace Stride.Core.Threading
             }
 
             Interlocked.Add(ref workScheduled, amount);
+            var work = new Work { WorkHandler = &ActionHandler, Data = workItem };
             for (int i = 0; i < amount; i++)
             {
                 PooledDelegateHelper.AddReference(workItem);
-                workItems.Enqueue(new()
-                {
-                    WorkHandler = &Adapter,
-                    Action = workItem
-                });
+                workItems.Enqueue(work);
             }
             semaphore.Release(amount);
+        }
 
-            static void Adapter(in Work workItem)
+        static void ActionHandler(object param)
+        {
+            Action action = (Action)param;
+            try
             {
-                try
-                {
-                    workItem.Action();
-                }
-                finally
-                {
-                    PooledDelegateHelper.Release(workItem.Action);
-                }
+                action();
+            }
+            finally
+            {
+                PooledDelegateHelper.Release(action);
             }
         }
 
@@ -116,7 +138,7 @@ namespace Stride.Core.Threading
         /// it is strongly recommended that the action takes less than a millisecond.
         /// Additionally, the parameter provided must be fixed from this call onward until the action has finished executing
         /// </summary>
-        public unsafe void QueueUnsafeWorkItem<T>(T* parameter, int amount = 1) where T : IJob
+        public unsafe void QueueUnsafeWorkItem(object parameter, delegate*<object, void> obj, int amount = 1)
         {
             if (parameter == null)
             {
@@ -134,27 +156,12 @@ namespace Stride.Core.Threading
             }
 
             Interlocked.Add(ref workScheduled, amount);
+            var work = new Work { WorkHandler = obj, Data = parameter };
             for (int i = 0; i < amount; i++)
             {
-                workItems.Enqueue(new()
-                {
-                    DataPtr = parameter,
-                    WorkHandler = &WorkHandler<T>
-                });
+                workItems.Enqueue(work);
             }
             semaphore.Release(amount);
-        }
-
-        /// <summary>
-        /// We want generics for optimal performance and flexibility, but we would rather have one collection with all work items instead of one collection per generics -
-        /// we can use a typed generic function pointer to take care of casting the data to the right type and process it appropriately
-        /// </summary>
-        static unsafe void WorkHandler<T>(in Work workItem) where T : IJob
-        {
-            // Do not make this function local to 'QueueUnsafeWorkItem', its mangled name can make debugging confusing
-
-            // The IWork constraint should help the JIT inline the following call
-            ((T*)workItem.DataPtr)->Execute();
         }
 
         /// <summary>
@@ -171,7 +178,7 @@ namespace Stride.Core.Threading
                 try
                 {
                     using (Profiler.Begin(ProcessWorkItemKey))
-                        workItem.WorkHandler(workItem);
+                        workItem.WorkHandler(workItem.Data);
                 }
                 finally
                 {
@@ -237,12 +244,9 @@ namespace Stride.Core.Threading
             }
             
             semaphore.Release(WorkerThreadsCount);
+            semaphore.Dispose();
             while (Volatile.Read(ref leftToDispose) != 0)
             {
-                if (semaphore.SignalCount == 0)
-                {
-                    semaphore.Release(1);
-                }
                 Thread.Yield();
             }
 
@@ -253,19 +257,35 @@ namespace Stride.Core.Threading
             }
         }
 
-        public interface IJob
-        {
-            /// <summary>
-            /// This structure will be shared across all threads that have been scheduled for a given job; each threads read and write to the same region in memory
-            /// </summary>
-            void Execute();
-        }
-
         unsafe struct Work
         {
-            public void* DataPtr;
-            public delegate*<in Work, void> WorkHandler;
-            public Action Action;
+            public object Data;
+            public delegate*<object, void> WorkHandler;
+        }
+
+        private interface ISemaphore : IDisposable
+        {
+            public void Release( int Count );
+            public void Wait( int timeout = - 1 );
+        }
+
+        private sealed class DotnetLifoSemaphore : ISemaphore
+        {
+            private readonly IDisposable semaphore;
+            private readonly Func<int, bool, bool> wait;
+            private readonly Action<int> release;
+
+            public DotnetLifoSemaphore(int spinCount)
+            {
+                Type lifoType = Type.GetType("System.Threading.LowLevelLifoSemaphore");
+                semaphore = Activator.CreateInstance(lifoType, new object[]{ 0, short.MaxValue, spinCount, new Action( () => {} ) }) as IDisposable;
+                wait = lifoType.GetMethod("Wait", BindingFlags.Instance | BindingFlags.Public).CreateDelegate<Func<int, bool, bool>>(semaphore);
+                release = lifoType.GetMethod("Release", BindingFlags.Instance | BindingFlags.Public).CreateDelegate<Action<int>>(semaphore);
+            }
+
+            public void Dispose() => semaphore.Dispose();
+            public void Release(int count) => release(count);
+            public void Wait(int timeout = -1) => wait(timeout, true);
         }
     }
 }

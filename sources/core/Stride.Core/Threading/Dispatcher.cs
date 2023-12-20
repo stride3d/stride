@@ -29,11 +29,6 @@ namespace Stride.Core.Threading
 
         public delegate void ValueAction<T>(ref T obj);
 
-        static class Pool<T>
-        {
-            public static ConcurrentPool<T[]> Arrays = new(() => new T[1]);
-        }
-
         /// <summary>
         /// The call producing the least amount of overhead, other methods are built on top of this one.
         /// </summary>
@@ -43,96 +38,93 @@ namespace Stride.Core.Threading
         /// each batch runs <typeparamref name="TJob"/>.<see cref="IBatchJob.Process"/> with the range of items for that batch
         /// </param>
         /// <param name="batchJob">
-        /// An object shared across all threads running this job,
-        /// it is safe to use <see cref="Interlocked"/> operations on its fields.
-        /// Any modifications during the job will be assigned to <paramref name="batchJob"/> after the job completed.
+        /// An object shared across all threads running this job, if TJob is a struct each threads will work off of a unique copy of it
         /// </param>
         /// <exception cref="Exception">If any of the threads executing this job threw an exception, it will be re-thrown in the caller's scope</exception>
-        public static unsafe void ForBatched<TJob>(int items, ref TJob batchJob) where TJob : IBatchJob
+        public static unsafe void ForBatched<TJob>(int items, TJob batchJob) where TJob : IBatchJob
         {
-            using (Profiler.New(DispatcherBatched))
+            using var _ = Profiler.Begin(DispatcherBatched);
+
+            // This scope's JIT performance is VERY fragile, be careful when tweaking it
+
+            if (items == 0)
+                return;
+
+            if (MaxDegreeOfParallelism <= 1 || items == 1)
             {
-                if (items == 0)
-                    return;
+                batchJob.Process(0, items);
+                return;
+            }
 
-                if (MaxDegreeOfParallelism <= 1 || items == 1)
+            int batchCount = Math.Min(MaxDegreeOfParallelism, items);
+            uint itemsPerBatch = (uint)((items + (batchCount - 1)) / batchCount);
+
+            // Performs 1/8 to 1/4 better in most cases, performs up to 1/8 worse when the ratio between
+            // the duration each individual item takes and the amount of items per batch hits a very narrow sweet-spot.
+            // Not entirely sure why yet.
+#if FALSE
+            if (items / MaxDegreeOfParallelism > 8)
+                itemsPerBatch /= 4; // Batches of 2 instead of 8 to allow faster threads to steal more of the work
+            else if (items / MaxDegreeOfParallelism > 4)
+                itemsPerBatch /= 2; // Batches of 2 instead of 4 to allow faster threads to steal more of the work
+#endif
+
+            var batch = BatchState<TJob>.Borrow(itemsPerBatch: itemsPerBatch, endExclusive: (uint)items, references: batchCount, batchJob);
+            try
+            {
+                ThreadPool.Instance.QueueUnsafeWorkItem(batch, &TypeAdapter<TJob>, batchCount - 1);
+
+                ProcessBatch(batchJob, batch);
+
+                // Might as well steal some work instead of just waiting,
+                // also helps prevent potential deadlocks from badly threaded code
+                while (Volatile.Read(ref batch.ItemsDone) < batch.Total && batch.Finished.WaitOne(0) == false)
+                    ThreadPool.Instance.TryCooperate();
+
+                var ex = Interlocked.Exchange(ref batch.ExceptionThrown, null);
+                if (ex != null)
+                    throw ex;
+            }
+            finally
+            {
+                batch.Release();
+            }
+        }
+
+        private static void TypeAdapter<TJob>(object obj) where TJob : IBatchJob
+        {
+            var batch = (BatchState<TJob>)obj;
+            try
+            {
+                ProcessBatch(batch.Job, batch);
+            }
+            finally
+            {
+                batch.Release();
+            }
+        }
+
+        private static void ProcessBatch<TJob>(TJob job, [NotNull] BatchState<TJob> state) where TJob : IBatchJob
+        {
+            try
+            {
+                for (uint start; (start = Interlocked.Add(ref state.Index, state.ItemsPerBatch) - state.ItemsPerBatch) < state.Total;)
                 {
-                    batchJob.Process(0, items);
-                    return;
-                }
+                    uint end = Math.Min(start + state.ItemsPerBatch, state.Total);
 
-                var arr = Pool<BatchRunner<TJob>>.Arrays.Acquire();
-                try
-                {
-                    uint total = (uint)items;
-                    uint batches, itemPerBatch;
-                    if (items <= MaxDegreeOfParallelism)
+                    job.Process((int)start, (int)end);
+
+                    if (Interlocked.Add(ref state.ItemsDone, state.ItemsPerBatch) >= state.Total)
                     {
-                        batches = (uint)items;
-                        itemPerBatch = 1;
-                    }
-                    else
-                    {
-                        batches = (uint)MaxDegreeOfParallelism;
-                        if (MaxDegreeOfParallelism >= Environment.ProcessorCount)
-                        {
-                            // Make sure that slower cores have less impact by allowing faster cores to steal a portion of their work.
-                            // It shouldn't be too large otherwise inner loops are less efficient.
-                            // If we have at least 8 items per thread, split the job to process at most 2 items per job,
-                            // that way theoretically faster threads can take up to 3/4 of the slower thread's work.
-                            if (batches * 8 <= total)
-                                batches *= 8 / 2;
-                            else if (batches * 4 <= total)
-                                batches *= 4 / 2;
-                        }
-
-                        itemPerBatch = total / batches;
-                        uint itemsLeft = (total - itemPerBatch * batches);
-                        batches += itemsLeft / itemPerBatch + (itemsLeft % itemPerBatch != 0 ? 1u : 0);
-                    }
-
-                    fixed (BatchRunner<TJob>* ptr = arr)
-                    {
-                        *ptr = new()
-                        {
-                            Total = total,
-                            ItemsPerBatch = itemPerBatch,
-                            Index = 0,
-                            Scheduled = batches,
-                            BatchesDone = 0,
-                            Lock = arr,
-                            Job = batchJob,
-                        };
-
-                        ThreadPool.Instance.QueueUnsafeWorkItem(ptr, (int)batches);
-
-                        while (Volatile.Read(ref ptr->BatchesDone) != batches)
-                        {
-                            // Might as well steal some work instead of just waiting,
-                            // also helps prevent potential deadlocks from badly threaded code
-                            if (ThreadPool.Instance.TryCooperate() == false)
-                            {
-                                lock (arr)
-                                {
-                                    if (Volatile.Read(ref ptr->BatchesDone) == batches)
-                                        break;
-
-                                    Monitor.Wait(arr, 0);
-                                }
-                            }
-                        }
-
-                        batchJob = ptr->Job;
-
-                        var ex = Interlocked.Exchange(ref ptr->Exception, null);
-                        if (ex != null)
-                            throw ex;
+                        state.Finished.Set();
+                        break;
                     }
                 }
-                finally
-                {
-                    Pool<BatchRunner<TJob>>.Arrays.Release(arr);
-                }
+            }
+            catch (Exception e)
+            {
+                Interlocked.Exchange(ref state.ExceptionThrown, e);
+                throw;
             }
         }
 
@@ -143,7 +135,7 @@ namespace Stride.Core.Threading
                 Param = parameter,
                 Delegate = executeBatch,
             };
-            ForBatched(items, ref batchedDelegate);
+            ForBatched(items, batchedDelegate);
         }
 
         public static unsafe void ForBatched<T>(int items, ref T parameter, delegate*<ref T, int, int, void> executeBatch)
@@ -153,7 +145,7 @@ namespace Stride.Core.Threading
                 Param = parameter,
                 Delegate = executeBatch,
             };
-            ForBatched(items, ref batchedDelegate);
+            ForBatched(items, batchedDelegate);
         }
 
         public static unsafe void ForBatched(int items, [Pooled] Action<int, int> executeBatch)
@@ -163,7 +155,7 @@ namespace Stride.Core.Threading
                 Param = executeBatch,
                 Delegate = &ForBatchedAction,
             };
-            ForBatched(items, ref batchedDelegate);
+            ForBatched(items, batchedDelegate);
 
             static void ForBatchedAction(Action<int, int> parameter, int from, int toExclusive)
             {
@@ -510,6 +502,49 @@ namespace Stride.Core.Threading
             void Process(int start, int endExclusive);
         }
 
+        private class BatchState<TJob> where TJob : IBatchJob
+        {
+            private static readonly ConcurrentStack<BatchState<TJob>> Pool = new();
+
+            private int referenceCount;
+
+            public readonly ManualResetEvent Finished = new(false);
+
+            public uint Index, Total, ItemsPerBatch, ItemsDone;
+
+            public TJob Job;
+
+            public Exception ExceptionThrown;
+
+            [NotNull]
+            public static BatchState<TJob> Borrow(uint itemsPerBatch, uint endExclusive, int references, TJob job)
+            {
+                if (Pool.TryPop(out var state) == false)
+                    state = new();
+
+                state.Index = 0;
+                state.Total = endExclusive;
+                state.ItemsPerBatch = itemsPerBatch;
+                state.ItemsDone = 0;
+                state.ExceptionThrown = null;
+                state.referenceCount = references;
+                state.Job = job;
+                return state;
+            }
+
+            public void Release()
+            {
+                var refCount = Interlocked.Decrement(ref referenceCount);
+                if (refCount == 0)
+                {
+                    Job = default; // Clear any references it may hold onto
+                    Finished.Reset();
+                    Pool.Push(this);
+                }
+                Debug.Assert(refCount >= 0);
+            }
+        }
+
         struct BatchedDelegateRef<T> : IBatchJob
         {
             public T Param;
@@ -529,47 +564,6 @@ namespace Stride.Core.Threading
             public unsafe void Process(int start, int endExclusive)
             {
                 Delegate(Param, start, endExclusive);
-            }
-        }
-
-        struct BatchRunner<TJob> : ThreadPool.IJob where TJob : IBatchJob
-        {
-            public uint Total;
-            public uint ItemsPerBatch;
-            public uint Index;
-            public uint Scheduled;
-            public uint BatchesDone;
-            public Exception Exception;
-            public object Lock;
-            public TJob Job;
-
-            public void Execute()
-            {
-                // This structure will be shared across all threads that have been scheduled for a given job; each threads read and write to the same region in memory
-                try
-                {
-                    // Using uints to account for overflow
-                    uint end = Interlocked.Add(ref Index, ItemsPerBatch);
-                    uint start = end - ItemsPerBatch;
-                    if (end > Total || end < start/*when interlocked wrapped around*/)
-                        end = Total;
-
-                    Job.Process((int)start, (int)end);
-                }
-                catch (Exception e)
-                {
-                    Interlocked.CompareExchange(ref Exception, e, null);
-                }
-                finally
-                {
-                    if (Interlocked.Increment(ref BatchesDone) == Scheduled)
-                    {
-                        lock (Lock)
-                        {
-                            Monitor.Pulse(Lock);
-                        }
-                    }
-                }
             }
         }
 
