@@ -34,22 +34,14 @@ namespace Stride.BepuPhysics.Processors
             Services.AddService(_bepuConfiguration);
         }
 
-        //protected override ContainerData GenerateComponentData(Entity entity, ContainerComponent component)
-        //{
-        //    if (_game == null)
-        //        throw new NullReferenceException(nameof(_game));
-
-        //    return new(component, _bepuConfiguration, _game);
-        //}
-
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
             if (_game == null)
                 throw new NullReferenceException(nameof(_game));
 
             component.ContainerData = new(component, _bepuConfiguration, _game);
-            component.ContainerData.RebuildContainer();
             component.Services = Services;
+            component.ContainerData.RebuildContainer();
             var parent = GetComponentsInParents<ContainerComponent>(entity).FirstOrDefault();
             if (parent != null)
             {
@@ -133,9 +125,11 @@ namespace Stride.BepuPhysics.Processors
             entityTransform.Position = Vector3.Transform(localPosition, Quaternion.Invert(parentEntityRotation));
             entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion() * Quaternion.Invert(parentEntityRotation);
 
+            entityTransform.UpdateWorldMatrix(); //Warning this may cause threading-race issues (but i did large tests and never had issues)
+            bodyContainer.ContainerData?.UpdateDebugRender();
+
             if (bodyContainer.ChildsContainerComponent.Count > 0)
             {
-                entityTransform.UpdateWorldMatrix(); //Warning this may cause threading-race issues (but i did large tests and never had issues)
                 foreach (var item in bodyContainer.ChildsContainerComponent)
                 {
                     //We need to call 
@@ -155,7 +149,7 @@ namespace Stride.BepuPhysics.Processors
             while (parent != null)
             {
                 yield return parent;
-                parent = parent.GetParent(); //Here
+                parent = parent.GetParent();
             }
         }
         private static IEnumerable<T> GetComponentsInParents<T>(Entity entity, bool includeMyself = false) where T : EntityComponent
@@ -166,6 +160,5 @@ namespace Stride.BepuPhysics.Processors
                     yield return component;
             }
         }
-
     }
 }

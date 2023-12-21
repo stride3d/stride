@@ -3,6 +3,7 @@ using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Collisions;
+using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -187,62 +188,19 @@ namespace Stride.BepuPhysics.Components.Containers
 
         public Vector3 CenterOfMass { get; internal set; } = new Vector3();
 
- 
 
 
-        public BodyShapeData GetShapeData()
+
+        public BodyShapeData GetShapeData(bool toLeftHanded = true)
         {
-            var shape = ContainerData.ShapeIndex.Type;
-            var index = ContainerData.ShapeIndex.Index;
+            if (ContainerData == null)
+                return default;
 
-            GeometricMeshData<VertexPositionNormalTexture> meshData;
-            BodyShapeData shapeData = new BodyShapeData();
+            var index = ContainerData.ShapeIndex;
 
-            switch (shape)
-            {
-                case 0:
-                    var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(index);
-                    meshData = GetSphereVerts(sphere);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
-                    break;
-                case 1:
-                    var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(index);
-                    meshData = GetCapsuleVerts(capsule);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
-                    break;
-                case 2:
-                    var box = Simulation.Simulation.Shapes.GetShape<Box>(index);
-                    meshData = GetBoxVerts(box);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
-                    break;
-                case 3:
-                    //var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
-                    break;
-                case 4:
-                    var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(index);
-                    meshData = GetCylinderVerts(cyliner);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
-                    break;
-                case 5:
-                    var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(index);
-                    shapeData = GetConvexData(convex, Entity.Transform.WorldMatrix);
-                    break;
-                case 6:
-                    var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
-                    shapeData = GetCompoundData(compound);
-                    break;
-                case 7:
-                    throw new NotImplementedException("BigCompounds are not implemented.");
-                case 8:
-                    var mesh = Simulation.Simulation.Shapes.GetShape<Mesh>(index);
-                    shapeData = GetMeshData(mesh, Entity.Transform.WorldMatrix);
-                    break;
-
-            }
-
-            return shapeData;
+            return GetShapeData(index, toLeftHanded);
         }
-        public BodyShapeData GetShapeData(TypedIndex typeIndex)
+        public BodyShapeData GetShapeData(TypedIndex typeIndex, bool toLeftHanded = true)
         {
             var shape = typeIndex.Type;
             var index = typeIndex.Index;
@@ -254,47 +212,50 @@ namespace Stride.BepuPhysics.Components.Containers
             {
                 case 0:
                     var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(index);
-                    meshData = GetSphereVerts(sphere);
+                    meshData = GetSphereVerts(sphere, toLeftHanded);
                     shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
                     break;
                 case 1:
                     var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(index);
-                    meshData = GetCapsuleVerts(capsule);
+                    meshData = GetCapsuleVerts(capsule, toLeftHanded);
                     shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
                     break;
                 case 2:
                     var box = Simulation.Simulation.Shapes.GetShape<Box>(index);
-                    meshData = GetBoxVerts(box);
+                    meshData = GetBoxVerts(box, toLeftHanded);
                     shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
                     break;
                 case 3:
-                    //var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
+                    var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
+                    var a = Vector3.Transform(triangle.A.ToStrideVector(), Entity.Transform.WorldMatrix).XYZ();
+                    var b = Vector3.Transform(triangle.A.ToStrideVector(), Entity.Transform.WorldMatrix).XYZ();
+                    var c = Vector3.Transform(triangle.A.ToStrideVector(), Entity.Transform.WorldMatrix).XYZ();
+                    shapeData = new() { Points = new List<Vector3>() { a, b, c }, Indices = new List<int>() { 0, 1, 2 } };
                     break;
                 case 4:
                     var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(index);
-                    meshData = GetCylinderVerts(cyliner);
+                    meshData = GetCylinderVerts(cyliner, toLeftHanded);
                     shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
                     break;
                 case 5:
                     var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(index);
-                    shapeData = GetConvexData(convex, Entity.Transform.WorldMatrix);
+                    shapeData = GetConvexData(convex, Entity.Transform.WorldMatrix, toLeftHanded);
                     break;
                 case 6:
                     var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
-                    shapeData = GetCompoundData(compound);
+                    shapeData = GetCompoundData(compound, toLeftHanded);
                     break;
                 case 7:
                     throw new NotImplementedException("BigCompounds are not implemented.");
-                    break;
                 case 8:
                     var mesh = Simulation.Simulation.Shapes.GetShape<Mesh>(index);
-                    shapeData = GetMeshData(mesh, Entity.Transform.WorldMatrix);
+                    shapeData = GetMeshData(mesh, Entity.Transform.WorldMatrix, toLeftHanded);
                     break;
             }
 
             return shapeData;
         }
-        private BodyShapeData GetBodyShapeData(GeometricMeshData<VertexPositionNormalTexture> meshData, Matrix objectTransform)
+        private BodyShapeData GetBodyShapeData(GeometricMeshData<VertexPositionNormalTexture> meshData, Matrix objectTransform, bool toLeftHanded = true)
         {
             BodyShapeData shapeData = new BodyShapeData();
 
@@ -328,7 +289,7 @@ namespace Stride.BepuPhysics.Components.Containers
             return shapeData;
         }
 
-        private GeometricMeshData<VertexPositionNormalTexture> GetBoxVerts(Box box)
+        private GeometricMeshData<VertexPositionNormalTexture> GetBoxVerts(Box box, bool toLeftHanded = true)
         {
             var boxDescription = new BoxColliderShapeDesc()
             {
@@ -336,7 +297,7 @@ namespace Stride.BepuPhysics.Components.Containers
             };
             return GeometricPrimitive.Cube.New(boxDescription.Size, toLeftHanded: true);
         }
-        private GeometricMeshData<VertexPositionNormalTexture> GetCapsuleVerts(Capsule capsule)
+        private GeometricMeshData<VertexPositionNormalTexture> GetCapsuleVerts(Capsule capsule, bool toLeftHanded = true)
         {
             var capsuleDescription = new CapsuleColliderShapeDesc()
             {
@@ -345,7 +306,7 @@ namespace Stride.BepuPhysics.Components.Containers
             };
             return GeometricPrimitive.Capsule.New(capsuleDescription.Length, capsuleDescription.Radius, 8, toLeftHanded: true);
         }
-        private GeometricMeshData<VertexPositionNormalTexture> GetSphereVerts(Sphere sphere)
+        private GeometricMeshData<VertexPositionNormalTexture> GetSphereVerts(Sphere sphere, bool toLeftHanded = true)
         {
             var sphereDescription = new SphereColliderShapeDesc()
             {
@@ -353,7 +314,7 @@ namespace Stride.BepuPhysics.Components.Containers
             };
             return GeometricPrimitive.Sphere.New(sphereDescription.Radius, 16, toLeftHanded: true);
         }
-        private GeometricMeshData<VertexPositionNormalTexture> GetCylinderVerts(Cylinder cylinder)
+        private GeometricMeshData<VertexPositionNormalTexture> GetCylinderVerts(Cylinder cylinder, bool toLeftHanded = true)
         {
             var cylinderDescription = new CylinderColliderShapeDesc()
             {
@@ -362,10 +323,27 @@ namespace Stride.BepuPhysics.Components.Containers
             };
             return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
         }
-        private BodyShapeData GetConvexData(ConvexHull convex, Matrix objectTransform)
+        private BodyShapeData GetConvexData(ConvexHull convex, Matrix objectTransform, bool toLeftHanded = true)
         {
             //use Strides shape data
-            var hullComponent = Entity.Get<ConvexHullColliderComponent>();
+            var entities = new List<Entity>();
+            entities.Add(Entity);
+            ConvexHullColliderComponent hullComponent = null;
+            do
+            {
+                var ent = entities.First();
+                entities.RemoveAt(0);
+
+                hullComponent = ent.Get<ConvexHullColliderComponent>();
+                if (hullComponent != null)
+                    break;
+                entities.AddRange(ent.GetChildren());
+            }
+            while (entities.Count != 0);
+
+            if (hullComponent == null)
+                throw new Exception("A convex that doesn't have a convexHullCollider ?");
+
             var shape = (ConvexHullColliderShapeDesc)hullComponent.Hull.Descriptions[0];
 
             BodyShapeData shapeData = new BodyShapeData();
@@ -384,7 +362,7 @@ namespace Stride.BepuPhysics.Components.Containers
 
             return shapeData;
         }
-        private BodyShapeData GetCompoundData(Compound compound)
+        private BodyShapeData GetCompoundData(Compound compound, bool toLeftHanded = true)
         {
             BodyShapeData shapeData = new BodyShapeData();
 
@@ -405,7 +383,7 @@ namespace Stride.BepuPhysics.Components.Containers
         /// <param name="mesh"></param>
         /// <param name="objectTransform"></param>
         /// <returns></returns>
-        private BodyShapeData GetMeshData(Mesh mesh, Matrix objectTransform)
+        private BodyShapeData GetMeshData(Mesh mesh, Matrix objectTransform, bool toLeftHanded = true)
         {
             var staticMesh = (StaticMeshContainerComponent)this;
 
@@ -439,31 +417,34 @@ namespace Stride.BepuPhysics.Components.Containers
 
             //return MergeDuplicateVerts(shapeData, objectTransform);
         }
-        private BodyShapeData MergeDuplicateVerts(BodyShapeData shapeData, Matrix objectTransform)
-        {
-            BodyShapeData newBodyShape = new BodyShapeData();
 
-            for (int i = 0; i < shapeData.Points.Count; i++)
-            {
-                if (!newBodyShape.Points.Contains(shapeData.Points[i]))
-                {
-                    newBodyShape.Points.Add(shapeData.Points[i]);
-                }
-            }
+#warning @Doprez Is it needed ?
+        //private BodyShapeData MergeDuplicateVerts(BodyShapeData shapeData, Matrix objectTransform)
+        //{
+        //    BodyShapeData newBodyShape = new BodyShapeData();
 
-            for (int i = 0; i < shapeData.Indices.Count; i++)
-            {
-                newBodyShape.Indices.Add(newBodyShape.Points.IndexOf(shapeData.Points[shapeData.Indices[i]]));
-            }
+        //    for (int i = 0; i < shapeData.Points.Count; i++)
+        //    {
+        //        if (!newBodyShape.Points.Contains(shapeData.Points[i]))
+        //        {
+        //            newBodyShape.Points.Add(shapeData.Points[i]);
+        //        }
+        //    }
 
-            for (int i = 0; i < shapeData.Indices.Count; i += 3)
-            {
-                // NOTE: Reversed winding to create left handed input
-                (shapeData.Indices[i + 1], shapeData.Indices[i + 2]) = (shapeData.Indices[i + 2], shapeData.Indices[i + 1]);
-            }
+        //    for (int i = 0; i < shapeData.Indices.Count; i++)
+        //    {
+        //        newBodyShape.Indices.Add(newBodyShape.Points.IndexOf(shapeData.Points[shapeData.Indices[i]]));
+        //    }
 
-            return newBodyShape;
-        }
+        //    for (int i = 0; i < shapeData.Indices.Count; i += 3)
+        //    {
+        //        // NOTE: Reversed winding to create left handed input
+        //        (shapeData.Indices[i + 1], shapeData.Indices[i + 2]) = (shapeData.Indices[i + 2], shapeData.Indices[i + 1]);
+        //    }
+
+        //    return newBodyShape;
+        //}
+
         private static unsafe BodyShapeData GetMeshData(Model model, IGame game)
         {
             BodyShapeData bodyData = new BodyShapeData();

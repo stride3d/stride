@@ -1,9 +1,11 @@
-﻿using BepuPhysics;
+﻿using System.ComponentModel;
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Effects;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -28,6 +30,8 @@ namespace Stride.BepuPhysics.Processors
         private BodyInertia _shapeInertia;
         private bool _isStatic;
         private bool _exist;
+        private VisibilityGroup? _visibilityGroup;
+        private WireFrameRenderObject? _wireFrameRenderObject;
 
         internal BepuSimulation BepuSimulation => _config.BepuSimulations[_containerComponent.SimulationIndex];
 
@@ -42,6 +46,8 @@ namespace Stride.BepuPhysics.Processors
             _config = config;
             _containerComponent = containerComponent;
             _game = game;
+            var a = (SceneSystem?)_game.GameSystems.FirstOrDefault(e => e is SceneSystem);
+            _visibilityGroup = a.SceneInstance.VisibilityGroups.FirstOrDefault();
         }
 
         internal void TryUpdateContainer()
@@ -49,7 +55,6 @@ namespace Stride.BepuPhysics.Processors
             if (_exist)
                 RebuildContainer();
         }
-
         internal void UpdateMaterialProperties()
         {
             if (!_exist)
@@ -82,7 +87,6 @@ namespace Stride.BepuPhysics.Processors
                 BepuSimulation.CollidableMaterials[BHandle] = mat;
 
         }
-
         internal void RebuildContainer()
         {
             if (ShapeIndex.Exists)
@@ -218,8 +222,9 @@ namespace Stride.BepuPhysics.Processors
                 RegisterContact();
 
             UpdateMaterialProperties();
-        }
 
+            RebuildDebugRender();
+        }
         internal void DestroyContainer()
         {
             _containerComponent.CenterOfMass = new();
@@ -250,6 +255,8 @@ namespace Stride.BepuPhysics.Processors
                 SHandle = new(-1);
                 _exist = false;
             }
+
+            DestroyDebugRender();
         }
 
         internal void RegisterContact()
@@ -262,7 +269,6 @@ namespace Stride.BepuPhysics.Processors
             else
                 BepuSimulation.ContactEvents.Register(BHandle, _containerComponent.ContactEventHandler);
         }
-
         internal void UnregisterContact()
         {
             if (_exist == false)
@@ -273,7 +279,6 @@ namespace Stride.BepuPhysics.Processors
             else
                 BepuSimulation.ContactEvents.Unregister(BHandle);
         }
-
         internal bool IsRegistered()
         {
             if (_exist == false)
@@ -285,7 +290,41 @@ namespace Stride.BepuPhysics.Processors
                 return BepuSimulation.ContactEvents.IsListener(BHandle);
         }
 
-        static void CollectComponentsInHierarchy<T, T2>(Entity entity, ContainerComponent entityContainer, T2 collection) where T : EntityComponent where T2 : ICollection<T>
+        internal void UpdateDebugRender()
+        {
+            //if (_wireFrameRenderObject != null)
+            //    _wireFrameRenderObject.WorldMatrix = _containerComponent.Entity.Transform.WorldMatrix;
+        }
+        private void RebuildDebugRender()
+        {
+            var shape = _containerComponent.GetShapeData();
+
+            if (_wireFrameRenderObject == null)
+                _wireFrameRenderObject = new WireFrameRenderObject();
+
+            _wireFrameRenderObject.Prepare(_game.GraphicsDevice, shape.Indices.ToArray(), shape.Points.Select(e => new VertexPositionNormalTexture(e, Vector3.One, Vector2.Zero)).ToArray());
+            _wireFrameRenderObject.Color = Color.Red;
+            //_wireFrameRenderObject.WorldMatrix = _containerComponent.Entity.Transform.WorldMatrix;
+            _wireFrameRenderObject.RenderGroup = RenderGroup.Group1;
+
+            if (_visibilityGroup == null)
+                return;
+            _visibilityGroup.RenderObjects.Add(_wireFrameRenderObject);
+        }
+        private void DestroyDebugRender()
+        {
+            if (_visibilityGroup != null)
+                _visibilityGroup.RenderObjects.Remove(_wireFrameRenderObject);
+
+            if (_wireFrameRenderObject == null)
+                return;
+
+            _wireFrameRenderObject.VertexBuffer.Dispose();
+            _wireFrameRenderObject.IndiceBuffer.Dispose();
+            _wireFrameRenderObject = null;
+        }
+
+        private static void CollectComponentsInHierarchy<T, T2>(Entity entity, ContainerComponent entityContainer, T2 collection) where T : EntityComponent where T2 : ICollection<T>
         {
             entityContainer.ChildsContainerComponent.Clear();
             var stack = new Stack<Entity>();
@@ -312,7 +351,7 @@ namespace Stride.BepuPhysics.Processors
                 }
             } while (stack.Count > 0);
         }
-        static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractMeshDataSlow(Model model, IGame game, BufferPool pool)
+        private static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractMeshDataSlow(Model model, IGame game, BufferPool pool)
         {
             int totalIndices = 0;
             foreach (var meshData in model.Meshes)
