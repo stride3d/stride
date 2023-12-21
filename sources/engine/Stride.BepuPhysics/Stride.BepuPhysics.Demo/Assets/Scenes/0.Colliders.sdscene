@@ -13,6 +13,7 @@ Hierarchy:
         - ref!! 092a9aa5-9f0b-4df2-bc7f-1f6463fda293
         - ref!! b4f64e3c-27a7-4df5-a2b7-69752c15f37c
         - ref!! e5cbb37b-5ed6-42df-ad23-d56227c3e6f8
+        - ref!! c4783c09-5b15-4de1-995b-6388db6ba479
     Parts:
         -   Entity:
                 Id: 092a9aa5-9f0b-4df2-bc7f-1f6463fda293
@@ -331,6 +332,25 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
+        -   Entity:
+                Id: 4a459691-b7d8-4011-851f-b2a12d7e2fd7
+                Name: TestComplexShape
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: 5e04d993-6df7-4a06-b89e-26db1e77cf71
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: e1f5d096-d61d-4763-ba73-961f581b9514
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 2.0, Z: 1.0}
+                        Children: {}
+                    ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 83e600ec-a3a8-48a7-8007-af36469dfca8
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 2.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: 3.InChildrenWithYOffsetRed
             Entity:
                 Id: 535f52fa-0ed3-40fd-89e6-09485a875bc9
@@ -650,6 +670,36 @@ Hierarchy:
                             b3b1ecf8b3a49a1f88bce45804bb5ef7~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Entity:
+                Id: c4783c09-5b15-4de1-995b-6388db6ba479
+                Name: TestComplexShapeBody
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 285828d6-4b84-4f64-a6b3-dbd9309097cd
+                        Position: {X: -25.0, Y: 7.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            217e3299fe6f4338c0babc5b64483648: ref!! e1f5d096-d61d-4763-ba73-961f581b9514
+                            76dc2f554e4f7d8954ab055f0d0d35a3: ref!! 085619bf-2ef6-4ccd-83cf-e06abe88c96c
+                            d2a042245238346d58ad1d48a51168b5: ref!! aab90864-2ab3-426c-a9af-1bb776bcfbf1
+                    5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                        Id: 68e4b14a-0264-4fc0-8fb9-be9e1958b627
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: null
             Entity:
                 Id: c85f08a4-dea7-485c-8d52-ba3e6ddd199b
@@ -684,6 +734,25 @@ Hierarchy:
                         Type: !LightSkybox
                             Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
                         Intensity: 0.1
+        -   Entity:
+                Id: cf60be74-8cfe-47ec-a8bd-8b1636a8bb60
+                Name: TestComplexShape
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: 39136a75-9c7a-496e-a068-fdc9d2489754
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 085619bf-2ef6-4ccd-83cf-e06abe88c96c
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 2.0, Z: 1.0}
+                        Children: {}
+                    ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 18aa3a39-4c65-42ed-b83a-1f8db668e269
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 2.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Entity:
                 Id: d5e976ef-c377-48c4-820e-25d6b1560f51
                 Name: OffsetEntity
@@ -726,6 +795,25 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+        -   Entity:
+                Id: d7decb45-22ab-4925-866f-940dfed3d6a8
+                Name: TestComplexShape
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: 042e182d-5758-423a-883e-500362e0347d
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: aab90864-2ab3-426c-a9af-1bb776bcfbf1
+                        Position: {X: 1.5, Y: 1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 2.0, Z: 1.0}
+                        Children: {}
+                    ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 46e83dbe-8eec-432e-b1ba-1395f74dbf63
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 2.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: 1.InContainer
             Entity:
                 Id: d8093f19-b5de-4f21-b899-ef170e5bd4fd
