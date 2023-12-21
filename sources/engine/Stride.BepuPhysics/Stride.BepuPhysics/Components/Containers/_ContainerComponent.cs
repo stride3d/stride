@@ -1,4 +1,5 @@
-﻿using BepuPhysics.Collidables;
+﻿using System.Diagnostics;
+using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
@@ -14,6 +15,7 @@ using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Physics;
 using Stride.Rendering;
+using static BepuPhysics.Collidables.CompoundBuilder;
 using Mesh = BepuPhysics.Collidables.Mesh;
 
 namespace Stride.BepuPhysics.Components.Containers
@@ -190,8 +192,8 @@ namespace Stride.BepuPhysics.Components.Containers
 
 
 
-#warning If i got it correctly, you need LeftHanded coordinate, so i make it default with optional args since i will need RighHanded for rendering.
-#warning Also, you're applying the transform to the points : we will need to do that later because for the render, i need models located at origin.
+#warning toLeftHanded not implemented yet
+
         public BodyShapeData GetShapeData(bool toLeftHanded = true)
         {
             if (ContainerData == null)
@@ -201,7 +203,7 @@ namespace Stride.BepuPhysics.Components.Containers
 
             return GetShapeData(index, toLeftHanded);
         }
-        public BodyShapeData GetShapeData(TypedIndex typeIndex, bool toLeftHanded = true)
+        private BodyShapeData GetShapeData(TypedIndex typeIndex, bool toLeftHanded = true)
         {
             var shape = typeIndex.Type;
             var index = typeIndex.Index;
@@ -294,7 +296,7 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             var boxDescription = new BoxColliderShapeDesc()
             {
-                //Size = new Vector3(box.Width, box.Height, box.Length)
+                Size = new Vector3(box.Width, box.Height, box.Length)
             };
             return GeometricPrimitive.Cube.New(boxDescription.Size, toLeftHanded: true);
         }
@@ -302,8 +304,8 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             var capsuleDescription = new CapsuleColliderShapeDesc()
             {
-                //Length = capsule.Length,
-                //Radius = capsule.Radius
+                Length = capsule.Length,
+                Radius = capsule.Radius
             };
             return GeometricPrimitive.Capsule.New(capsuleDescription.Length, capsuleDescription.Radius, 8, toLeftHanded: true);
         }
@@ -311,7 +313,7 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             var sphereDescription = new SphereColliderShapeDesc()
             {
-                //Radius = sphere.Radius
+                Radius = sphere.Radius
             };
             return GeometricPrimitive.Sphere.New(sphereDescription.Radius, 16, toLeftHanded: true);
         }
@@ -319,11 +321,12 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             var cylinderDescription = new CylinderColliderShapeDesc()
             {
-                //Height = cylinder.Length,
-                //Radius = cylinder.Radius
+                Height = cylinder.Length,
+                Radius = cylinder.Radius
             };
             return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
         }
+
         private BodyShapeData GetConvexData(ConvexHull convex, bool toLeftHanded = true)
         {
             //use Strides shape data
@@ -371,8 +374,12 @@ namespace Stride.BepuPhysics.Components.Containers
             {
                 var child = compound.GetChild(i);
                 var childShapeData = GetShapeData(child.ShapeIndex);
-#warning we should apply to points child.Orientation & child.localPost here !
-                shapeData.Points.AddRange(childShapeData.Points);
+
+                //if (child.LocalPosition.Length() != 0)
+                //    Debugger.Break();
+#warning not sure if good or wrong
+
+                shapeData.Points.AddRange(childShapeData.Points.Select(e =>  Vector3.Transform(e, child.LocalOrientation.ToStrideQuaternion()) + child.LocalPosition.ToStrideVector()));
                 shapeData.Indices.AddRange(childShapeData.Indices);
             }
 

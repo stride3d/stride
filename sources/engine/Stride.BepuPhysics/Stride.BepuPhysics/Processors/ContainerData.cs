@@ -292,7 +292,6 @@ namespace Stride.BepuPhysics.Processors
 
         internal void UpdateDebugRender()
         {
-#warning Can't do that for now because it will apply 2 times the matrix on points.
             if (_wireFrameRenderObject != null)
                 _wireFrameRenderObject.WorldMatrix = _containerComponent.Entity.Transform.WorldMatrix;
         }
@@ -305,7 +304,6 @@ namespace Stride.BepuPhysics.Processors
 
             _wireFrameRenderObject.Prepare(_game.GraphicsDevice, shape.Indices.ToArray(), shape.Points.Select(e => new VertexPositionNormalTexture(e, Vector3.One, Vector2.Zero)).ToArray());
             _wireFrameRenderObject.Color = Color.Red;
-#warning Can't do that for now because it will apply 2 times the matrix on points.
             _wireFrameRenderObject.WorldMatrix = _containerComponent.Entity.Transform.WorldMatrix;
             _wireFrameRenderObject.RenderGroup = RenderGroup.Group1;
 
