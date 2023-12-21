@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Colliders;
@@ -31,7 +32,7 @@ namespace Stride.BepuPhysics.Processors
         private bool _isStatic;
         private bool _exist;
         private VisibilityGroup? _visibilityGroup;
-        private WireFrameRenderObject? _wireFrameRenderObject;
+        private List<WireFrameRenderObject> _wireFrameRenderObject = new();
 
         internal BepuSimulation BepuSimulation => _config.BepuSimulations[_containerComponent.SimulationIndex];
 
@@ -168,7 +169,7 @@ namespace Stride.BepuPhysics.Processors
                 }
             }
 
-            var ContainerPose = new RigidPose(containerWorldTranslation.ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
+            var ContainerPose = new RigidPose((containerWorldTranslation + _containerComponent.CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
             switch (_containerComponent)
             {
                 case BodyContainerComponent _c:
@@ -292,36 +293,51 @@ namespace Stride.BepuPhysics.Processors
 
         internal void UpdateDebugRender()
         {
-            if (_wireFrameRenderObject != null)
-                _wireFrameRenderObject.WorldMatrix = _containerComponent.Entity.Transform.WorldMatrix;
+            for (int i = 0; i < _wireFrameRenderObject.Count; i++)
+            {
+                var matrix = Matrix.AffineTransformation(1f, _containerComponent.Entity.Transform.GetWorldRot(), _containerComponent.Entity.Transform.GetWorldPos());
+                _wireFrameRenderObject[i].WorldMatrix = matrix * Matrix.Translation(_containerComponent.CenterOfMass);
+            }
         }
         private void RebuildDebugRender()
         {
-            var shape = _containerComponent.GetShapeData();
-
-            if (_wireFrameRenderObject == null)
-                _wireFrameRenderObject = new WireFrameRenderObject();
-
-            _wireFrameRenderObject.Prepare(_game.GraphicsDevice, shape.Indices.ToArray(), shape.Points.Select(e => new VertexPositionNormalTexture(e, Vector3.One, Vector2.Zero)).ToArray());
-            _wireFrameRenderObject.Color = Color.Red;
-            _wireFrameRenderObject.WorldMatrix = _containerComponent.Entity.Transform.WorldMatrix;
-            _wireFrameRenderObject.RenderGroup = RenderGroup.Group1;
-
             if (_visibilityGroup == null)
                 return;
-            _visibilityGroup.RenderObjects.Add(_wireFrameRenderObject);
+
+            var shapes = _containerComponent.GetShapeData();
+
+            if (_wireFrameRenderObject.Count != shapes.Count)
+            {
+                DestroyDebugRender();
+
+                for (int i = 0; i < shapes.Count; i++)
+                {
+                    _wireFrameRenderObject.Add(new());
+                    _visibilityGroup.RenderObjects.Add(_wireFrameRenderObject[i]);
+                }
+            }
+
+            for (int i = 0; i < _wireFrameRenderObject.Count; i++)
+            {
+                _wireFrameRenderObject[i].Prepare(_game.GraphicsDevice, shapes[i].Indices.ToArray(), shapes[i].Points.Select(e => new VertexPositionNormalTexture(e, Vector3.One, Vector2.Zero)).ToArray());
+                _wireFrameRenderObject[i].Color = Color.Red;
+                var matrix = Matrix.AffineTransformation(1f, _containerComponent.Entity.Transform.GetWorldRot(), _containerComponent.Entity.Transform.GetWorldPos() + _containerComponent.CenterOfMass);
+                _wireFrameRenderObject[i].WorldMatrix = matrix;
+                _wireFrameRenderObject[i].RenderGroup = RenderGroup.Group1;
+            }
         }
         private void DestroyDebugRender()
         {
             if (_visibilityGroup != null)
-                _visibilityGroup.RenderObjects.Remove(_wireFrameRenderObject);
-
-            if (_wireFrameRenderObject == null)
-                return;
-
-            _wireFrameRenderObject.VertexBuffer.Dispose();
-            _wireFrameRenderObject.IndiceBuffer.Dispose();
-            _wireFrameRenderObject = null;
+            {
+                for (int i = 0; i < _wireFrameRenderObject.Count; i++)
+                {
+                    _visibilityGroup.RenderObjects.Remove(_wireFrameRenderObject[i]);
+                    _wireFrameRenderObject[i].VertexBuffer.Dispose();
+                    _wireFrameRenderObject[i].IndiceBuffer.Dispose();
+                }
+                _wireFrameRenderObject.Clear();
+            }
         }
 
         private static void CollectComponentsInHierarchy<T, T2>(Entity entity, ContainerComponent entityContainer, T2 collection) where T : EntityComponent where T2 : ICollection<T>
