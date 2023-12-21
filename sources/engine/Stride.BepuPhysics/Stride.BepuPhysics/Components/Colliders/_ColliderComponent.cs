@@ -31,5 +31,7 @@ namespace Stride.BepuPhysics.Components.Colliders
         public ContainerComponent? Container { get; internal set; }
 
         internal abstract void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose);
+
+
     }
 }
