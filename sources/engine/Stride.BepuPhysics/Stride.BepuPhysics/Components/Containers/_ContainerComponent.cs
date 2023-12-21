@@ -190,7 +190,8 @@ namespace Stride.BepuPhysics.Components.Containers
 
 
 
-
+#warning If i got it correctly, you need LeftHanded coordinate, so i make it default with optional args since i will need RighHanded for rendering.
+#warning Also, you're applying the transform to the points : we will need to do that later because for the render, i need models located at origin.
         public BodyShapeData GetShapeData(bool toLeftHanded = true)
         {
             if (ContainerData == null)
@@ -230,6 +231,7 @@ namespace Stride.BepuPhysics.Components.Containers
                     var a = Vector3.Transform(triangle.A.ToStrideVector(), Entity.Transform.WorldMatrix).XYZ();
                     var b = Vector3.Transform(triangle.A.ToStrideVector(), Entity.Transform.WorldMatrix).XYZ();
                     var c = Vector3.Transform(triangle.A.ToStrideVector(), Entity.Transform.WorldMatrix).XYZ();
+#warning TODO : shapeData.Transform = objectTransform;
                     shapeData = new() { Points = new List<Vector3>() { a, b, c }, Indices = new List<int>() { 0, 1, 2 } };
                     break;
                 case 4:
@@ -237,6 +239,7 @@ namespace Stride.BepuPhysics.Components.Containers
                     meshData = GetCylinderVerts(cyliner, toLeftHanded);
                     shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
                     break;
+#warning Same for 5,6,8
                 case 5:
                     var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(index);
                     shapeData = GetConvexData(convex, Entity.Transform.WorldMatrix, toLeftHanded);
@@ -263,6 +266,7 @@ namespace Stride.BepuPhysics.Components.Containers
             for (int i = 0; i < meshData.Vertices.Length; i++)
             {
                 VertexPositionNormalTexture point = meshData.Vertices[i];
+#warning TODO : no transform & set shapeData.Transform = objectTransform;
                 point.Position = Vector3.Transform(point.Position, objectTransform).XYZ();
                 shapeData.Points.Add(point.Position);
             }
