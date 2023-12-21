@@ -167,6 +167,13 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 	public void AddContainerData(ContainerComponent containerData)
 	{
 		var shape = containerData.GetShapeData();
+
+		// transform the points to world space
+		for(int i = 0; i < shape.Points.Count; i++)
+		{
+			shape.Points[i] = Vector3.Transform(shape.Points[i], containerData.Entity.Transform.WorldMatrix).XYZ();
+		}
+
 		AppendArrays(shape.Points.ToArray(), shape.Indices.ToArray(), containerData.Entity.Transform.WorldMatrix);
 	}
 
