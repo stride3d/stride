@@ -381,18 +381,18 @@ namespace Stride.BepuPhysics.Components.Containers
 
             return shapeData;
         }
-        /// <summary>
-        /// Currently only works for static meshes. This definitely needs more work but is usable for navigation.
-        /// </summary>
-        /// <param name="mesh"></param>
-        /// <param name="objectTransform"></param>
-        /// <returns></returns>
         private BodyShapeData GetMeshData(Mesh mesh, Matrix objectTransform, bool toLeftHanded = true)
         {
-            var staticMesh = (StaticMeshContainerComponent)this;
+            var meshContainer = (IMeshContainerComponent)this;
+
+            if (meshContainer == null)
+                throw new Exception("a mesh must be inside a MeshContainer");
+
+            if (meshContainer.Model == null)
+                return default;
 
             var game = Services.GetService<IGame>();
-            BodyShapeData shapeData = GetMeshData(staticMesh.Model, game);
+            BodyShapeData shapeData = GetMeshData(meshContainer.Model, game);
 
             for (int i = 0; i < shapeData.Points.Count; i++)
             {
