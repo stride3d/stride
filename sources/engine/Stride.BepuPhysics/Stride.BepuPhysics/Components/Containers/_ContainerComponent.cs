@@ -3,6 +3,7 @@ using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Collisions;
+using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -187,62 +188,20 @@ namespace Stride.BepuPhysics.Components.Containers
 
         public Vector3 CenterOfMass { get; internal set; } = new Vector3();
 
- 
 
 
-        public BodyShapeData GetShapeData()
+#warning If i got it correctly, you need LeftHanded coordinate, so i make it default with optional args since i will need RighHanded for rendering.
+#warning Also, you're applying the transform to the points : we will need to do that later because for the render, i need models located at origin.
+        public BodyShapeData GetShapeData(bool toLeftHanded = true)
         {
-            var shape = ContainerData.ShapeIndex.Type;
-            var index = ContainerData.ShapeIndex.Index;
+            if (ContainerData == null)
+                return default;
 
-            GeometricMeshData<VertexPositionNormalTexture> meshData;
-            BodyShapeData shapeData = new BodyShapeData();
+            var index = ContainerData.ShapeIndex;
 
-            switch (shape)
-            {
-                case 0:
-                    var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(index);
-                    meshData = GetSphereVerts(sphere);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
-                    break;
-                case 1:
-                    var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(index);
-                    meshData = GetCapsuleVerts(capsule);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
-                    break;
-                case 2:
-                    var box = Simulation.Simulation.Shapes.GetShape<Box>(index);
-                    meshData = GetBoxVerts(box);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
-                    break;
-                case 3:
-                    //var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
-                    break;
-                case 4:
-                    var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(index);
-                    meshData = GetCylinderVerts(cyliner);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
-                    break;
-                case 5:
-                    var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(index);
-                    shapeData = GetConvexData(convex, Entity.Transform.WorldMatrix);
-                    break;
-                case 6:
-                    var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
-                    shapeData = GetCompoundData(compound);
-                    break;
-                case 7:
-                    throw new NotImplementedException("BigCompounds are not implemented.");
-                case 8:
-                    var mesh = Simulation.Simulation.Shapes.GetShape<Mesh>(index);
-                    shapeData = GetMeshData(mesh, Entity.Transform.WorldMatrix);
-                    break;
-
-            }
-
-            return shapeData;
+            return GetShapeData(index, toLeftHanded);
         }
-        public BodyShapeData GetShapeData(TypedIndex typeIndex)
+        public BodyShapeData GetShapeData(TypedIndex typeIndex, bool toLeftHanded = true)
         {
             var shape = typeIndex.Type;
             var index = typeIndex.Index;
@@ -254,56 +213,59 @@ namespace Stride.BepuPhysics.Components.Containers
             {
                 case 0:
                     var sphere = Simulation.Simulation.Shapes.GetShape<Sphere>(index);
-                    meshData = GetSphereVerts(sphere);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
+                    meshData = GetSphereVerts(sphere, toLeftHanded);
+                    shapeData = GetBodyShapeData(meshData);
                     break;
                 case 1:
                     var capsule = Simulation.Simulation.Shapes.GetShape<Capsule>(index);
-                    meshData = GetCapsuleVerts(capsule);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
+                    meshData = GetCapsuleVerts(capsule, toLeftHanded);
+                    shapeData = GetBodyShapeData(meshData);
                     break;
                 case 2:
                     var box = Simulation.Simulation.Shapes.GetShape<Box>(index);
-                    meshData = GetBoxVerts(box);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
+                    meshData = GetBoxVerts(box, toLeftHanded);
+                    shapeData = GetBodyShapeData(meshData);
                     break;
                 case 3:
-                    //var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
+                    var triangle = Simulation.Simulation.Shapes.GetShape<Triangle>(index);
+                    var a = Vector3.Transform(triangle.A.ToStrideVector(), Entity.Transform.WorldMatrix).XYZ();
+                    var b = Vector3.Transform(triangle.A.ToStrideVector(), Entity.Transform.WorldMatrix).XYZ();
+                    var c = Vector3.Transform(triangle.A.ToStrideVector(), Entity.Transform.WorldMatrix).XYZ();
+#warning TODO : shapeData.Transform = objectTransform;
+                    shapeData = new() { Points = new List<Vector3>() { a, b, c }, Indices = new List<int>() { 0, 1, 2 } };
                     break;
                 case 4:
                     var cyliner = Simulation.Simulation.Shapes.GetShape<Cylinder>(index);
-                    meshData = GetCylinderVerts(cyliner);
-                    shapeData = GetBodyShapeData(meshData, Entity.Transform.WorldMatrix);
+                    meshData = GetCylinderVerts(cyliner, toLeftHanded);
+                    shapeData = GetBodyShapeData(meshData);
                     break;
+#warning Same for 5,6,8
                 case 5:
                     var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(index);
-                    shapeData = GetConvexData(convex, Entity.Transform.WorldMatrix);
+                    shapeData = GetConvexData(convex, toLeftHanded);
                     break;
                 case 6:
                     var compound = Simulation.Simulation.Shapes.GetShape<Compound>(index);
-                    shapeData = GetCompoundData(compound);
+                    shapeData = GetCompoundData(compound, toLeftHanded);
                     break;
                 case 7:
                     throw new NotImplementedException("BigCompounds are not implemented.");
-                    break;
                 case 8:
                     var mesh = Simulation.Simulation.Shapes.GetShape<Mesh>(index);
-                    shapeData = GetMeshData(mesh, Entity.Transform.WorldMatrix);
+                    shapeData = GetMeshData(mesh, toLeftHanded);
                     break;
             }
 
             return shapeData;
         }
-        private BodyShapeData GetBodyShapeData(GeometricMeshData<VertexPositionNormalTexture> meshData, Matrix objectTransform)
+        private BodyShapeData GetBodyShapeData(GeometricMeshData<VertexPositionNormalTexture> meshData, bool toLeftHanded = true)
         {
             BodyShapeData shapeData = new BodyShapeData();
 
             // Transform box points
             for (int i = 0; i < meshData.Vertices.Length; i++)
             {
-                VertexPositionNormalTexture point = meshData.Vertices[i];
-                point.Position = Vector3.Transform(point.Position, objectTransform).XYZ();
-                shapeData.Points.Add(point.Position);
+                shapeData.Points.Add(meshData.Vertices[i].Position);
             }
 
             if (meshData.IsLeftHanded)
@@ -328,7 +290,7 @@ namespace Stride.BepuPhysics.Components.Containers
             return shapeData;
         }
 
-        private GeometricMeshData<VertexPositionNormalTexture> GetBoxVerts(Box box)
+        private GeometricMeshData<VertexPositionNormalTexture> GetBoxVerts(Box box, bool toLeftHanded = true)
         {
             var boxDescription = new BoxColliderShapeDesc()
             {
@@ -336,7 +298,7 @@ namespace Stride.BepuPhysics.Components.Containers
             };
             return GeometricPrimitive.Cube.New(boxDescription.Size, toLeftHanded: true);
         }
-        private GeometricMeshData<VertexPositionNormalTexture> GetCapsuleVerts(Capsule capsule)
+        private GeometricMeshData<VertexPositionNormalTexture> GetCapsuleVerts(Capsule capsule, bool toLeftHanded = true)
         {
             var capsuleDescription = new CapsuleColliderShapeDesc()
             {
@@ -345,7 +307,7 @@ namespace Stride.BepuPhysics.Components.Containers
             };
             return GeometricPrimitive.Capsule.New(capsuleDescription.Length, capsuleDescription.Radius, 8, toLeftHanded: true);
         }
-        private GeometricMeshData<VertexPositionNormalTexture> GetSphereVerts(Sphere sphere)
+        private GeometricMeshData<VertexPositionNormalTexture> GetSphereVerts(Sphere sphere, bool toLeftHanded = true)
         {
             var sphereDescription = new SphereColliderShapeDesc()
             {
@@ -353,7 +315,7 @@ namespace Stride.BepuPhysics.Components.Containers
             };
             return GeometricPrimitive.Sphere.New(sphereDescription.Radius, 16, toLeftHanded: true);
         }
-        private GeometricMeshData<VertexPositionNormalTexture> GetCylinderVerts(Cylinder cylinder)
+        private GeometricMeshData<VertexPositionNormalTexture> GetCylinderVerts(Cylinder cylinder, bool toLeftHanded = true)
         {
             var cylinderDescription = new CylinderColliderShapeDesc()
             {
@@ -362,17 +324,34 @@ namespace Stride.BepuPhysics.Components.Containers
             };
             return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
         }
-        private BodyShapeData GetConvexData(ConvexHull convex, Matrix objectTransform)
+        private BodyShapeData GetConvexData(ConvexHull convex, bool toLeftHanded = true)
         {
             //use Strides shape data
-            var hullComponent = Entity.Get<ConvexHullColliderComponent>();
+            var entities = new List<Entity>();
+            entities.Add(Entity);
+            ConvexHullColliderComponent hullComponent = null;
+            do
+            {
+                var ent = entities.First();
+                entities.RemoveAt(0);
+
+                hullComponent = ent.Get<ConvexHullColliderComponent>();
+                if (hullComponent != null)
+                    break;
+                entities.AddRange(ent.GetChildren());
+            }
+            while (entities.Count != 0);
+
+            if (hullComponent == null)
+                throw new Exception("A convex that doesn't have a convexHullCollider ?");
+
             var shape = (ConvexHullColliderShapeDesc)hullComponent.Hull.Descriptions[0];
 
             BodyShapeData shapeData = new BodyShapeData();
 
             for (int i = 0; i < shape.ConvexHulls[0][0].Count; i++)
             {
-                shapeData.Points.Add(Vector3.Transform(shape.ConvexHulls[0][0][i], objectTransform).XYZ());
+                shapeData.Points.Add(shape.ConvexHulls[0][0][i]);
             }
 
             for (int i = 0; i < shape.ConvexHullsIndices[0][0].Count; i += 3)
@@ -384,7 +363,7 @@ namespace Stride.BepuPhysics.Components.Containers
 
             return shapeData;
         }
-        private BodyShapeData GetCompoundData(Compound compound)
+        private BodyShapeData GetCompoundData(Compound compound, bool toLeftHanded = true)
         {
             BodyShapeData shapeData = new BodyShapeData();
 
@@ -392,30 +371,25 @@ namespace Stride.BepuPhysics.Components.Containers
             {
                 var child = compound.GetChild(i);
                 var childShapeData = GetShapeData(child.ShapeIndex);
-
+#warning we should apply to points child.Orientation & child.localPost here !
                 shapeData.Points.AddRange(childShapeData.Points);
                 shapeData.Indices.AddRange(childShapeData.Indices);
             }
 
             return shapeData;
         }
-        /// <summary>
-        /// Currently only works for static meshes. This definitely needs more work but is usable for navigation.
-        /// </summary>
-        /// <param name="mesh"></param>
-        /// <param name="objectTransform"></param>
-        /// <returns></returns>
-        private BodyShapeData GetMeshData(Mesh mesh, Matrix objectTransform)
+        private BodyShapeData GetMeshData(Mesh mesh, bool toLeftHanded = true)
         {
-            var staticMesh = (StaticMeshContainerComponent)this;
+            var meshContainer = (IMeshContainerComponent)this;
+
+            if (meshContainer == null)
+                throw new Exception("a mesh must be inside a MeshContainer");
+
+            if (meshContainer.Model == null)
+                return default;
 
             var game = Services.GetService<IGame>();
-            BodyShapeData shapeData = GetMeshData(staticMesh.Model, game);
-
-            for (int i = 0; i < shapeData.Points.Count; i++)
-            {
-                shapeData.Points[i] = Vector3.Transform(shapeData.Points[i], objectTransform).XYZ();
-            }
+            BodyShapeData shapeData = GetMeshData(meshContainer.Model, game);
 
             for (int i = 0; i < shapeData.Indices.Count; i += 3)
             {
@@ -424,46 +398,8 @@ namespace Stride.BepuPhysics.Components.Containers
             }
 
             return shapeData;
-
-            //for(int i = 0; i < mesh.Triangles.Length; i++)
-            //{
-            //	var triangle = mesh.Triangles[i];
-            //	shapeData.Points.Add(triangle.A.ToStrideVector());
-            //	shapeData.Points.Add(triangle.B.ToStrideVector());
-            //	shapeData.Points.Add(triangle.C.ToStrideVector());
-            //
-            //	shapeData.Indices.Add(i * 1);
-            //	shapeData.Indices.Add(i * 2);
-            //	shapeData.Indices.Add(i * 3);
-            //}
-
-            //return MergeDuplicateVerts(shapeData, objectTransform);
         }
-        private BodyShapeData MergeDuplicateVerts(BodyShapeData shapeData, Matrix objectTransform)
-        {
-            BodyShapeData newBodyShape = new BodyShapeData();
 
-            for (int i = 0; i < shapeData.Points.Count; i++)
-            {
-                if (!newBodyShape.Points.Contains(shapeData.Points[i]))
-                {
-                    newBodyShape.Points.Add(shapeData.Points[i]);
-                }
-            }
-
-            for (int i = 0; i < shapeData.Indices.Count; i++)
-            {
-                newBodyShape.Indices.Add(newBodyShape.Points.IndexOf(shapeData.Points[shapeData.Indices[i]]));
-            }
-
-            for (int i = 0; i < shapeData.Indices.Count; i += 3)
-            {
-                // NOTE: Reversed winding to create left handed input
-                (shapeData.Indices[i + 1], shapeData.Indices[i + 2]) = (shapeData.Indices[i + 2], shapeData.Indices[i + 1]);
-            }
-
-            return newBodyShape;
-        }
         private static unsafe BodyShapeData GetMeshData(Model model, IGame game)
         {
             BodyShapeData bodyData = new BodyShapeData();

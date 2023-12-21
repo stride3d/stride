@@ -1,6 +1,8 @@
 ﻿using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Processors;
 using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using static BepuPhysics.Collidables.CompoundBuilder;
 
@@ -39,7 +41,13 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 			var container = entity.Get<StaticContainerComponent>();
 			if (container != null)
 			{
-				BodyShapes.Add(container, container.GetShapeData());
+				var shape = container.GetShapeData();
+				// transform the points to world space
+				for (int i = 0; i < shape.Points.Count; i++)
+				{
+					shape.Points[i] = Vector3.Transform(shape.Points[i], container.Entity.Transform.WorldMatrix).XYZ();
+				}
+				BodyShapes.Add(container, shape);
 			}
 		}
 	}
