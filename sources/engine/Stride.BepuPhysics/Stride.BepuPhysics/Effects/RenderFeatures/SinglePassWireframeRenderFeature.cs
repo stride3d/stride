@@ -17,12 +17,15 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
     DynamicEffectInstance shader;
     MutablePipelineState pipelineState;
 
-    /// <summary>
-    /// Adjust scale a bit of wireframe model to prevent z-fighting
-    /// </summary>
-    [DataMember(10)]
+	[DataMember(0)]
+	public bool Enable = true;
+	/// <summary>
+	/// Adjust scale a bit of wireframe model to prevent z-fighting
+	/// </summary>
+	[DataMember(10)]
     [DataMemberRange(0.0f, 0.1f, 0.001f, 0.002f, 4)]
     public float ScaleAdjust = 0.01f;
+    
 
     public override Type SupportedRenderObjectType => typeof(WireFrameRenderObject);
 
@@ -68,6 +71,8 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 
     public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
     {
+        if (!Enable) return;
+
         shader.UpdateEffect(context.GraphicsDevice);
 
         foreach (var myRenderObject in _wireframes)
