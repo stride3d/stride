@@ -9,8 +9,8 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 {
 	public delegate void CollectionChangedEventHandler(StaticContainerComponent component);
 
-	public event CollectionChangedEventHandler ColliderAdded;
-	public event CollectionChangedEventHandler ColliderRemoved;
+	public event CollectionChangedEventHandler? ColliderAdded;
+	public event CollectionChangedEventHandler? ColliderRemoved;
 
 	/// <summary>
 	/// This is done based on the assumption that storing the data is cheaper than generating it from Bepu.
@@ -18,8 +18,8 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 	/// </summary>
 	public Dictionary<StaticContainerComponent, BodyShapeData> BodyShapes = new();
 
-	private SceneSystem _sceneSystem;
-	private EntityProcessor _entityProcessor;
+	private SceneSystem? _sceneSystem;
+	private EntityProcessor? _entityProcessor;
 
 	public BepuStaticColliderProcessor()
 	{
@@ -57,7 +57,7 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 			return true;
 		}
 
-		return true;
+		return component is not null;
 	}
 
 	protected override void OnEntityComponentAdding(Entity entity, [NotNull] StaticContainerComponent component, [NotNull] StaticContainerComponent data)

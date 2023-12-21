@@ -11,6 +11,7 @@ using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.Materials;
 using Stride.Core;
 using Stride.Input;
+using Stride.Engine.Processors;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComponent>
@@ -27,6 +28,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 	private SceneSystem _sceneSystem;
 	private InputManager _input;
 	private BepuStaticColliderProcessor _colliderProcessor = new();
+	private ScriptSystem _scriptSystem;
 
 	public RecastMeshProcessor()
 	{
@@ -41,6 +43,8 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 		_sceneSystem = Services.GetService<SceneSystem>();
 		_input = Services.GetSafeServiceAs<InputManager>();
 		_sceneSystem.SceneInstance.Processors.Add(_colliderProcessor);
+
+		_scriptSystem = Services.GetSafeServiceAs<ScriptSystem>();
 	}
 
 	protected override void OnEntityComponentAdding(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
@@ -60,6 +64,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 			Points.Clear();
 			Indices.Clear();
 			UpdateMeshData();
+			// This locks the game for a second and needs to be fixed if dynamic navmeshes are to be used.
 			CreateNavMesh();
 		}
 	}
@@ -90,16 +95,16 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 		List<Vector3> strideVerts = new List<Vector3>();
 		
 		// TODO: this is just me debugging should remove later
-		for (int i = 0; i < tiles.Count; i++)
-		{
-			for (int j = 0; j < tiles[i].data.verts.Count();)
-			{
-				strideVerts.Add(
-					new Vector3(tiles[i].data.verts[j++], tiles[i].data.verts[j++], tiles[i].data.verts[j++])
-					);
-			}
-		}
-		SpawPrefabAtVerts(strideVerts);
+		//for (int i = 0; i < tiles.Count; i++)
+		//{
+		//	for (int j = 0; j < tiles[i].data.verts.Count();)
+		//	{
+		//		strideVerts.Add(
+		//			new Vector3(tiles[i].data.verts[j++], tiles[i].data.verts[j++], tiles[i].data.verts[j++])
+		//			);
+		//	}
+		//}
+		//SpawPrefabAtVerts(strideVerts);
 	}
 
 	// TODO: this is just me debugging should remove later
@@ -151,15 +156,15 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 	{
 		foreach(var shape in _colliderProcessor.BodyShapes)
 		{
-			AppendArrays(shape.Value.Points.ToArray(), shape.Value.Indices.ToArray());
+			AppendArrays(shape.Value.Points, shape.Value.Indices);
 		}
 	}
 
-	public void AppendArrays(Vector3[] vertices, int[] indices)
+	public void AppendArrays(List<Vector3> vertices, List<int> indices)
 	{
 		// Copy vertices
 		int vbase = Points.Count;
-		for (int i = 0; i < vertices.Length; i++)
+		for (int i = 0; i < vertices.Count; i++)
 		{
 			Points.Add(vertices[i]);
 		}
