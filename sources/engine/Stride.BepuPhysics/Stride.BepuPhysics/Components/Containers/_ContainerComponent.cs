@@ -374,7 +374,7 @@ namespace Stride.BepuPhysics.Components.Containers
             {
                 var child = compound.GetChild(i);
                 var childShapeData = GetShapeData(child.ShapeIndex);
-
+#warning we should apply to points child.Orientation & child.localPost here !
                 shapeData.Points.AddRange(childShapeData.Points);
                 shapeData.Indices.AddRange(childShapeData.Indices);
             }
