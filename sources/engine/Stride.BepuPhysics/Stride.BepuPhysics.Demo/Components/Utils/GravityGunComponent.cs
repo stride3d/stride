@@ -23,8 +23,18 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         private float _distance = 0f;
         private Vector3 _localGrabPoint = new Vector3();
         private Quaternion _targetOrientation = Quaternion.Identity;
-        public CameraComponent? Camera { get; set; }
+        private int simIndex = 0;
+        private BepuConfiguration? _config;
 
+        public CameraComponent? Camera { get; set; }
+        public int SimIndex
+        {
+            get => simIndex; set
+            {
+                UnsetActive();
+                simIndex = value;
+            }
+        }
         public void SetActive(HitInfo info)
         {
             if (_body != null)
@@ -67,7 +77,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             _oblscc.Target = targetPoint;
             _oblscc.Enabled = true;
 
-            _obascc.TargetOrientation = _targetOrientation;
+            _obascc.TargetOrientation = _targetOrientation; //Would like to change that with an offset for camera rotation
             _obascc.Enabled = true;
         }
         public void UnsetActive()
@@ -83,16 +93,22 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             _body = null;
         }
 
+        public override void Start()
+        {
+            base.Start();
+            _config = Services.GetService<BepuConfiguration>();
+        }
+
         public override void Update()
         {
-            if (Camera == null)
+            if (Camera == null || _config == null)
                 return;
 
             if (_body == null)
             {
                 if (Input.IsMouseButtonDown(MouseButton.Left))
                 {
-                    if (Services.GetService<BepuConfiguration>().BepuSimulations[0].RayCast(Camera.Entity.Transform.WorldMatrix.TranslationVector, GetCameraRay(), 25, out var info))
+                    if (_config.BepuSimulations[SimIndex].RayCast(Camera.Entity.Transform.WorldMatrix.TranslationVector, GetCameraRay(), 25, out var info))
                     {
                         SetActive(info);
                         DebugText.Print(info.ToString(), new(20, 500));
@@ -122,11 +138,11 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 {
                     UnsetActive();
                 }
-                
+
 
             }
         }
-        private Vector3 GetCameraRay()
+        private Vector3 GetCameraRay() //There is porbably a better way, but it's ok for now.
         {
             if (Camera == null)
                 return Vector3.Zero;

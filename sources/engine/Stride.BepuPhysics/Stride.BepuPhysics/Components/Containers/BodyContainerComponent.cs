@@ -46,13 +46,16 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-#warning This will be deleted !!!
+        /// <summary>
+        /// Get the bepu BodyReference /!\
+        /// </summary>
+        /// <returns>A volatil ref to the bepu body associed with this bodyContainer</returns>
         public BodyReference? GetPhysicBody()
         {
             return ContainerData?.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
         }
 
-        private BodyReference GetRef()
+        private BodyReference GetPhysicBodyRef()
         {
             if (ContainerData == null)
                 throw new Exception("Container data is null");
@@ -63,95 +66,95 @@ namespace Stride.BepuPhysics.Components.Containers
         [DataMemberIgnore]
         public bool Awake
         {
-            get => GetRef().Awake;
+            get => GetPhysicBodyRef().Awake;
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicBodyRef();
                 bodyRef.Awake = value;
             }
         }
         [DataMemberIgnore]
         public Vector3 LinearVelocity
         {
-            get => GetRef().Velocity.Linear.ToStrideVector();
+            get => GetPhysicBodyRef().Velocity.Linear.ToStrideVector();
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicBodyRef();
                 bodyRef.Velocity.Linear = value.ToNumericVector();
             }
         }
         [DataMemberIgnore]
         public Vector3 AngularVelocity
         {
-            get => GetRef().Velocity.Angular.ToStrideVector();
+            get => GetPhysicBodyRef().Velocity.Angular.ToStrideVector();
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicBodyRef();
                 bodyRef.Velocity.Angular = value.ToNumericVector();
             }
         }
         [DataMemberIgnore]
         public Vector3 Position
         {
-            get => GetRef().Pose.Position.ToStrideVector();
+            get => GetPhysicBodyRef().Pose.Position.ToStrideVector();
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicBodyRef();
                 bodyRef.Pose.Position = value.ToNumericVector();
             }
         }
         [DataMemberIgnore]
         public Quaternion Orientation
         {
-            get => GetRef().Pose.Orientation.ToStrideQuaternion();
+            get => GetPhysicBodyRef().Pose.Orientation.ToStrideQuaternion();
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicBodyRef();
                 bodyRef.Pose.Orientation = value.ToNumericQuaternion();
             }
         }
         [DataMemberIgnore]
         public BodyInertia BodyInertia
         {
-            get => GetRef().LocalInertia;
+            get => GetPhysicBodyRef().LocalInertia;
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicBodyRef();
                 bodyRef.LocalInertia = value;
             }
         }
         [DataMemberIgnore]
         public float SpeculativeMargin
         {
-            get => GetRef().Collidable.SpeculativeMargin;
+            get => GetPhysicBodyRef().Collidable.SpeculativeMargin;
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicBodyRef();
                 bodyRef.Collidable.SpeculativeMargin = value;
             }
         }
         [DataMemberIgnore]
         public ContinuousDetection ContinuousDetection
         {
-            get => GetRef().Collidable.Continuity;
+            get => GetPhysicBodyRef().Collidable.Continuity;
             set
             {
-                var bodyRef = GetRef();
+                var bodyRef = GetPhysicBodyRef();
                 bodyRef.Collidable.Continuity = value;
             }
         }
 
         public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
         {
-            GetRef().ApplyImpulse(impulse.ToNumericVector(), impulseOffset.ToNumericVector());
+            GetPhysicBodyRef().ApplyImpulse(impulse.ToNumericVector(), impulseOffset.ToNumericVector());
         }
         public void ApplyAngularImpulse(Vector3 impulse)
         {
-            GetRef().ApplyAngularImpulse(impulse.ToNumericVector());
+            GetPhysicBodyRef().ApplyAngularImpulse(impulse.ToNumericVector());
         }
         public void ApplyLinearImpulse(Vector3 impulse)
         {
-            GetRef().ApplyLinearImpulse(impulse.ToNumericVector());
+            GetPhysicBodyRef().ApplyLinearImpulse(impulse.ToNumericVector());
         }
 
     }

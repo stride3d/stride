@@ -51,7 +51,7 @@ public class CharacterContactEventHandler : IContactEventHandler
 
         contactManifold.GetContact(contactIndex, out var contact);
 #warning likely need to transform contact from local to world instead of this 
-        //Nicogo : It is a world pos, just did it the easy and bad way
+        //Nicogo : It is a world pos, Offset is a "worldPosOffset" from the world pos of Pair.A
         contact.Offset = contact.Offset + containerA.Entity.Transform.GetWorldPos().ToNumericVector() + containerA.CenterOfMass.ToNumericVector();
         Contacts.Add((otherContainer, contact));
     }

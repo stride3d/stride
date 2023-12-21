@@ -10,7 +10,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
     [ComponentCategory("BepuDemo - Utils")]
     public class ConstraintEditorComponent : SyncScript
     {
-        public BaseConstraintComponent? Component { get; set; }
+        public ConstraintComponentBase? Component { get; set; }
 
 
         public override void Start()

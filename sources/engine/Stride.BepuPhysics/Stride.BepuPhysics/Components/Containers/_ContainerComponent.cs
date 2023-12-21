@@ -40,6 +40,7 @@ namespace Stride.BepuPhysics.Components.Containers
         private IContactEventHandler? _contactEventHandler = null;
 
         internal List<ContainerComponent> ChildsContainerComponent { get; } = new();
+        internal IServiceRegistry Services { get; set; }
 
         /// <summary>
         /// ContainerData is the bridge to Bepu.
@@ -48,7 +49,19 @@ namespace Stride.BepuPhysics.Components.Containers
         [DataMemberIgnore]
         internal ContainerData? ContainerData { get; set; }
 
-        public IServiceRegistry Services { get; set; }
+        [DataMemberIgnore]
+        public IContactEventHandler? ContactEventHandler
+        {
+            get => _contactEventHandler;
+            set
+            {
+                if (ContainerData?.IsRegistered() == true)
+                    ContainerData?.UnregisterContact();
+
+                _contactEventHandler = value;
+                ContainerData?.RegisterContact();
+            }
+        }
 
         [DataMemberIgnore]
         public BepuSimulation? Simulation
@@ -159,8 +172,6 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-
-
         public bool IgnoreGlobalGravity
         {
             get => _ignoreGlobalGravity;
@@ -176,19 +187,8 @@ namespace Stride.BepuPhysics.Components.Containers
 
         public Vector3 CenterOfMass { get; internal set; } = new Vector3();
 
-        [DataMemberIgnore]
-        public IContactEventHandler? ContactEventHandler
-        {
-            get => _contactEventHandler;
-            set
-            {
-                if (ContainerData?.IsRegistered() == true)
-                    ContainerData?.UnregisterContact();
+ 
 
-                _contactEventHandler = value;
-                ContainerData?.RegisterContact();
-            }
-        }
 
         public BodyShapeData GetShapeData()
         {
@@ -233,7 +233,6 @@ namespace Stride.BepuPhysics.Components.Containers
                     break;
                 case 7:
                     throw new NotImplementedException("BigCompounds are not implemented.");
-                    break;
                 case 8:
                     var mesh = Simulation.Simulation.Shapes.GetShape<Mesh>(index);
                     shapeData = GetMeshData(mesh, Entity.Transform.WorldMatrix);
@@ -243,7 +242,6 @@ namespace Stride.BepuPhysics.Components.Containers
 
             return shapeData;
         }
-
         public BodyShapeData GetShapeData(TypedIndex typeIndex)
         {
             var shape = typeIndex.Type;
@@ -296,7 +294,6 @@ namespace Stride.BepuPhysics.Components.Containers
 
             return shapeData;
         }
-
         private BodyShapeData GetBodyShapeData(GeometricMeshData<VertexPositionNormalTexture> meshData, Matrix objectTransform)
         {
             BodyShapeData shapeData = new BodyShapeData();
@@ -442,7 +439,6 @@ namespace Stride.BepuPhysics.Components.Containers
 
             //return MergeDuplicateVerts(shapeData, objectTransform);
         }
-
         private BodyShapeData MergeDuplicateVerts(BodyShapeData shapeData, Matrix objectTransform)
         {
             BodyShapeData newBodyShape = new BodyShapeData();
@@ -468,7 +464,6 @@ namespace Stride.BepuPhysics.Components.Containers
 
             return newBodyShape;
         }
-
         private static unsafe BodyShapeData GetMeshData(Model model, IGame game)
         {
             BodyShapeData bodyData = new BodyShapeData();

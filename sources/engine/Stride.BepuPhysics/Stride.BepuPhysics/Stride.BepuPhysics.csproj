@@ -33,4 +33,10 @@
     <PackageReference Include="Stride.Physics" Version="4.2.0.2043" /><!--For precomputed hulls-->
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Effects\SinglePassWireframeShader.sdsl">
+      <Generator>StrideShaderKeyGenerator</Generator>
+    </None>
+  </ItemGroup>
+
 </Project>

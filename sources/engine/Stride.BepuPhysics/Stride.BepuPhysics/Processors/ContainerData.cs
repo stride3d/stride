@@ -21,13 +21,13 @@ namespace Stride.BepuPhysics.Processors
         [DataMemberIgnore]
         public TypedIndex ShapeIndex { get; private set; }
 
-        private readonly IGame _game;
         private readonly ContainerComponent _containerComponent;
+        private readonly BepuConfiguration _config;
+        private readonly IGame _game;
+
         private BodyInertia _shapeInertia;
         private bool _isStatic;
         private bool _exist;
-
-        private BepuConfiguration _config;
 
         internal BepuSimulation BepuSimulation => _config.BepuSimulations[_containerComponent.SimulationIndex];
 

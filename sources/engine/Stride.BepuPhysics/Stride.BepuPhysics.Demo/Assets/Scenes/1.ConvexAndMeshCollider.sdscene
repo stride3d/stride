@@ -58,6 +58,7 @@ Hierarchy:
                     d92d664d9d90a8c37ed08828945411ac: !Stride.BepuPhysics.Demo.Components.Utils.GravityGunComponent,Stride.BepuPhysics.Demo
                         Id: 404111af-4927-42e3-9c6e-14f396d26a10
                         Camera: ref!! 53ad83c0-6a48-4f6b-9abe-89ff173a34ec
+                        SimIndex: 0
                     d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
                         Id: f476d986-b3ba-4581-9a37-6984ba1f7d9f
                         SimulationIndex: 0
