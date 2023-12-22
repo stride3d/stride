@@ -34,7 +34,17 @@ namespace Stride.BepuPhysics.Processors
             }
 
             Services.AddService(_bepuConfiguration);
-            _wireframeRenderFeature = _game.GameSystems.OfType<SceneSystem>().First().GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().First();
+
+            var wireFramRender = _game.GameSystems.OfType<SceneSystem>().First().GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault();
+            if(wireFramRender != null)
+            {
+				_wireframeRenderFeature = wireFramRender;
+			}
+			else
+            {
+				_wireframeRenderFeature = new SinglePassWireframeRenderFeature();
+				_game.GameSystems.OfType<SceneSystem>().First().GraphicsCompositor.RenderFeatures.Add(_wireframeRenderFeature);
+			}
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)

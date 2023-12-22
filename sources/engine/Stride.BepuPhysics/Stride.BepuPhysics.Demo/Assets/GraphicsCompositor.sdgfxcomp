@@ -116,10 +116,6 @@ RenderFeatures:
                 TransparentRenderStage: ref!! 6cf18b51-9fa9-4d81-8974-e34a12f76b24
                 EffectName: null
         PipelineProcessors: {}
-    8b8c1eec71b780e639f8d35b5f0dde8c*: !Stride.BepuPhysics.Effects.RenderFeatures.SinglePassWireframeRenderFeature,Stride.BepuPhysics
-        Enable: false
-        LineWidth: 2.0
-        RenderStageSelectors: {}
 SharedRenderers:
     60459475d3a3adaf2d1ba5d99913ca75: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine
         Id: a656f77f-cb7d-42b8-921b-5549647c507b
