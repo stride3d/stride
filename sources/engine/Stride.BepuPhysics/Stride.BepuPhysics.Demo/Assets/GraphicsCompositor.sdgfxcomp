@@ -117,8 +117,7 @@ RenderFeatures:
                 EffectName: null
         PipelineProcessors: {}
     8b8c1eec71b780e639f8d35b5f0dde8c*: !Stride.BepuPhysics.Effects.RenderFeatures.SinglePassWireframeRenderFeature,Stride.BepuPhysics
-        Enable: true
-        ScaleAdjust: 0.001
+        Enable: false
         LineWidth: 2.0
         RenderStageSelectors: {}
 SharedRenderers:

@@ -340,7 +340,15 @@ namespace Stride.BepuPhysics.Processors
 
             for (int i = 0; i < _wireFrameRenderObject.Count; i++)
             {
-                _wireFrameRenderObject[i].Prepare(_game.GraphicsDevice, shapes[i].Indices.ToArray(), shapes[i].Points.Select(e => new VertexPositionNormalTexture(e + _containerComponent.CenterOfMass, Vector3.One, Vector2.Zero)).ToArray());
+                var vertextData = new VertexPositionNormalTexture[shapes[i].Points.Count];
+
+                for (int ii = 0; ii < shapes[i].Points.Count; ii++)
+                {
+                    vertextData[ii] = new(shapes[i].Points[ii] + _containerComponent.CenterOfMass, shapes[i].Normals[ii], Vector2.Zero);
+                }
+
+                //shapes[i].Points.Select(e => new VertexPositionNormalTexture(e + _containerComponent.CenterOfMass, Vector3.One, Vector2.Zero)).ToArray();
+                _wireFrameRenderObject[i].Prepare(_game.GraphicsDevice, shapes[i].Indices.ToArray(), vertextData);
                 _wireFrameRenderObject[i].Color = Color.Red;
                 _wireFrameRenderObject[i].RenderGroup = RenderGroup.Group1;
             }

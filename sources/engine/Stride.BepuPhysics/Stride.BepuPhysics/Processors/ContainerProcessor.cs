@@ -1,6 +1,7 @@
 ﻿using BepuPhysics;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Effects.RenderFeatures;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -15,6 +16,7 @@ namespace Stride.BepuPhysics.Processors
     {
         private BepuConfiguration _bepuConfiguration = new();
         private IGame? _game = null;
+        private SinglePassWireframeRenderFeature _wireframeRenderFeature;
 
         public ContainerProcessor()
         {
@@ -32,6 +34,7 @@ namespace Stride.BepuPhysics.Processors
             }
 
             Services.AddService(_bepuConfiguration);
+            _wireframeRenderFeature = _game.GameSystems.OfType<SceneSystem>().First().GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().First();
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
@@ -95,18 +98,18 @@ namespace Stride.BepuPhysics.Processors
                 //Nicogo : a performance test on a smallScene would be nice to be sure
                 if (bepuSim.ParallelUpdate)
                 {
-                    Dispatcher.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) => UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim));
+                    Dispatcher.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) => UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim, _wireframeRenderFeature.Enable));
                 }
                 else
                 {
                     for (int i = 0; i < bepuSim.Simulation.Bodies.ActiveSet.Count; i++)
                     {
-                        UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim);
+                        UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim, _wireframeRenderFeature.Enable);
                     }
                 }
             }
         }
-        private static void UpdateBodiesPositionFunction(BodyHandle handle, BepuSimulation bepuSim)
+        private static void UpdateBodiesPositionFunction(BodyHandle handle, BepuSimulation bepuSim, bool updateDebugRender)
         {
             var bodyContainer = bepuSim.BodiesContainers[handle];
             var body = bepuSim.Simulation.Bodies[handle];
@@ -126,6 +129,8 @@ namespace Stride.BepuPhysics.Processors
             entityTransform.Position = Vector3.Transform(localPosition, Quaternion.Invert(parentEntityRotation)) - Vector3.Transform(bodyContainer.CenterOfMass, entityTransform.Rotation);
 
             entityTransform.UpdateWorldMatrix(); //Warning this may cause threading-race issues (but i did large tests and never had issues)
+#warning it cost almost 0, not sure it's needed to not update it. Also, not updating it may causes issue when bodies are sleeping.
+            //if (updateDebugRender)
             bodyContainer.ContainerData?.UpdateDebugRender();
 
             if (bodyContainer.ChildsContainerComponent.Count > 0)
@@ -134,7 +139,7 @@ namespace Stride.BepuPhysics.Processors
                 {
                     //We need to call 
                     if (item.ContainerData != null && !item.ContainerData.IsStatic)
-                        UpdateBodiesPositionFunction(item.ContainerData.BHandle, bepuSim);
+                        UpdateBodiesPositionFunction(item.ContainerData.BHandle, bepuSim, updateDebugRender);
                 }
             }
 

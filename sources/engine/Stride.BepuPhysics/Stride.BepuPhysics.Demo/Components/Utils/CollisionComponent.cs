@@ -18,10 +18,10 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         private MyCustomContactEventHandler MyCustomContactEventHandler3 = new();
         private MyCustomContactEventHandler MyCustomContactEventHandler4 = new();
 
-        public ContainerComponent? Container1 { get; set; }
-        public ContainerComponent? Container2 { get; set; }
-        public ContainerComponent? Container3 { get; set; }
-        public ContainerComponent? Container4 { get; set; }
+        public BodyContainerComponent? Container1 { get; set; }
+        public BodyContainerComponent? Container2 { get; set; }
+        public BodyContainerComponent? Container3 { get; set; }
+        public BodyContainerComponent? Container4 { get; set; }
 
         public override void Start()
         {

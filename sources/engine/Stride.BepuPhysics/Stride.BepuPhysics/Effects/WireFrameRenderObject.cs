@@ -17,7 +17,7 @@ namespace Stride.BepuPhysics.Effects
         public Buffer VertexBuffer;
         public Buffer IndiceBuffer;
 
-        public void Prepare(GraphicsDevice graphicsDevice, int[] indices, VertexPositionNormalTexture[] vertexts)
+        public void Prepare(GraphicsDevice graphicsDevice, int[] indices, VertexPositionNormalTexture[] vertextData)
         {
             if (VertexBuffer != null)
                 return;
@@ -25,7 +25,7 @@ namespace Stride.BepuPhysics.Effects
             var normal = new Vector3(0, 0, 1);
             var texturePos = new Vector2(0, 0);
             IndiceBuffer = Graphics.Buffer.Index.New(graphicsDevice, indices);
-            VertexBuffer = Graphics.Buffer.Vertex.New(graphicsDevice, vertexts, GraphicsResourceUsage.Dynamic);//Buffer.New<VertexPositionColorTexture>(context.GraphicsDevice, shapeData.Value.Points.Count, BufferFlags.ShaderResource | BufferFlags.VertexBuffer);
+            VertexBuffer = Graphics.Buffer.Vertex.New(graphicsDevice, vertextData, GraphicsResourceUsage.Dynamic);//Buffer.New<VertexPositionColorTexture>(context.GraphicsDevice, shapeData.Value.Points.Count, BufferFlags.ShaderResource | BufferFlags.VertexBuffer);
         }
     }
 }

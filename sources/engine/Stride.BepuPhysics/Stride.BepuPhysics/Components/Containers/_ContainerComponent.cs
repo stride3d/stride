@@ -262,6 +262,7 @@ namespace Stride.BepuPhysics.Components.Containers
             for (int i = 0; i < meshData.Vertices.Length; i++)
             {
                 shapeData.Points.Add(meshData.Vertices[i].Position);
+                shapeData.Normals.Add(meshData.Vertices[i].Normal);
             }
 
             if (meshData.IsLeftHanded)
@@ -333,8 +334,9 @@ namespace Stride.BepuPhysics.Components.Containers
 
             for (int i = 0; i < shape.ConvexHulls[0][0].Count; i++)
             {
-#warning scale
                 shapeData.Points.Add(shape.ConvexHulls[0][0][i] * scale);
+                shapeData.Normals.Add(Vector3.Zero);//Edit code to get normals
+#warning scaling & normals
             }
 
             for (int i = 0; i < shape.ConvexHullsIndices[0][0].Count; i += 3)
@@ -440,7 +442,8 @@ namespace Stride.BepuPhysics.Components.Containers
                         var pos = *(Vector3*)(bytePtr + vHead);
 
                         bodyData.Points.Add(pos * scale);
-#warning scaling 
+                        bodyData.Normals.Add(Vector3.Zero);//Edit code to get normals
+#warning scaling & normals
                     }
                 }
 

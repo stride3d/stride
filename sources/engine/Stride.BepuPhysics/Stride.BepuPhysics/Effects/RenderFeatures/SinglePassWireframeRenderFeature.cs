@@ -19,15 +19,10 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 
 	[DataMember(0)]
 	public bool Enable = true;
-	/// <summary>
-	/// Adjust scale a bit of wireframe model to prevent z-fighting
-	/// </summary>
-	[DataMember(10)]
-    [DataMemberRange(0.0f, 0.1f, 0.001f, 0.002f, 4)]
-    public float ScaleAdjust = 0.01f;
-    [DataMember(11)]
+
+    [DataMember(10)]
 	[DataMemberRange(0.0f, 10.0f, 0.001f, 0.002f, 4)]
-	public float LineWidth = 2f;
+	public float LineWidth = 3f;
     
 
     public override Type SupportedRenderObjectType => typeof(WireFrameRenderObject);
@@ -82,14 +77,14 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         if (!Enable) return;
 
         shader.UpdateEffect(context.GraphicsDevice);
+        shader.Parameters.Set(TransformationKeys.WorldScale, new Vector3(1.002f));
+        shader.Parameters.Set(SinglePassWireframeShaderKeys.Viewport, new Vector4(context.RenderContext.RenderView.ViewSize, 0, 0));
+        shader.Parameters.Set(SinglePassWireframeShaderKeys.LineWidth, LineWidth);
 
         foreach (var myRenderObject in _wireframes)
         {
             // set shader parameters
             shader.Parameters.Set(TransformationKeys.WorldViewProjection, myRenderObject.WorldMatrix * renderView.ViewProjection); // matrix
-            shader.Parameters.Set(TransformationKeys.WorldScale, new Vector3(ScaleAdjust + 1.0f)); // increase size to avoid z-fight
-            shader.Parameters.Set(SinglePassWireframeShaderKeys.Viewport, new Vector4(context.RenderContext.RenderView.ViewSize, 0, 0));
-            shader.Parameters.Set(SinglePassWireframeShaderKeys.LineWidth, LineWidth);
             shader.Parameters.Set(SinglePassWireframeShaderKeys.LineColor, (Vector3)myRenderObject.Color);
 
             // prepare pipeline state
