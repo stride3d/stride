@@ -1,9 +1,11 @@
-﻿using Stride.BepuPhysics.Components.Containers;
+﻿using SharpFont;
+using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Collections.Generic;
 using static BepuPhysics.Collidables.CompoundBuilder;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
@@ -41,13 +43,16 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 			var container = entity.Get<StaticContainerComponent>();
 			if (container != null)
 			{
-				var shape = container.GetShapeData();
-				// transform the points to world space
-				for (int i = 0; i < shape.Points.Count; i++)
+				foreach (var shape in container.GetShapeData())
 				{
-					shape.Points[i] = Vector3.Transform(shape.Points[i], container.Entity.Transform.WorldMatrix).XYZ();
+					BodyShapes.TryAdd(container, shape);
+					// transform the points to world space
+					for (int i = 0; i < shape.Points.Count; i++)
+					{
+						shape.Points[i] = Vector3.Transform(shape.Points[i], container.Orientation);
+						shape.Points[i] = shape.Points[i] + container.Entity.Transform.WorldMatrix.TranslationVector;
+					}
 				}
-				BodyShapes.Add(container, shape);
 			}
 		}
 	}
@@ -70,7 +75,10 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 
 	protected override void OnEntityComponentAdding(Entity entity, [NotNull] StaticContainerComponent component, [NotNull] StaticContainerComponent data)
 	{
-		BodyShapes.TryAdd(data, data.GetShapeData());
+		foreach(var shape in data.GetShapeData())
+		{
+			BodyShapes.TryAdd(data, shape);
+		}
 		ColliderAdded?.Invoke(data);
 	}
 
