@@ -193,7 +193,7 @@ namespace Stride.BepuPhysics.Components.Containers
 
 
 
-#warning toLeftHanded not implemented yet
+#warning toLeftHanded not implemented yet and doesn't need to ?
 
         public List<BodyShapeData> GetShapeData(bool toLeftHanded = true)
         {

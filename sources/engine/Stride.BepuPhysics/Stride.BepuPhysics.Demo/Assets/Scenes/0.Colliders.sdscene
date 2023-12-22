@@ -617,6 +617,25 @@ Hierarchy:
                         Id: 8679aa9b-1aa9-479e-be27-01ed703bfb58
                         Camera: ref!! 12cd454b-7e0a-4fdc-930f-91d88692dfa2
                         SimIndex: 0
+        -   Entity:
+                Id: 8dde995a-eba9-47bf-b3fa-ac02fd2dc2dd
+                Name: TestComplexShape
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: 8d5d3e09-4eb2-423a-9fc3-39bb61cadef4
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: dd3bb131-6df2-40c0-a932-29b9c0f6982c
+                        Position: {X: -1.5, Y: 1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 2.0, Z: 1.0}
+                        Children: {}
+                    ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 7e12fb19-cae3-4fd4-bbc8-4d439cd6e9d5
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 2.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: null
             Entity:
                 Id: 9e73e77d-498e-4792-a56e-959204b76a4f
@@ -797,6 +816,7 @@ Hierarchy:
                             217e3299fe6f4338c0babc5b64483648: ref!! e1f5d096-d61d-4763-ba73-961f581b9514
                             76dc2f554e4f7d8954ab055f0d0d35a3: ref!! 085619bf-2ef6-4ccd-83cf-e06abe88c96c
                             d2a042245238346d58ad1d48a51168b5: ref!! aab90864-2ab3-426c-a9af-1bb776bcfbf1
+                            6b8708376305e3c45dafa77e22fad6ad: ref!! dd3bb131-6df2-40c0-a932-29b9c0f6982c
                     5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 68e4b14a-0264-4fc0-8fb9-be9e1958b627
                         SimulationIndex: 0
@@ -920,7 +940,7 @@ Hierarchy:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: aab90864-2ab3-426c-a9af-1bb776bcfbf1
                         Position: {X: 1.5, Y: 1.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 2.0, Z: 1.0}
                         Children: {}
                     ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics

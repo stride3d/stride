@@ -293,10 +293,31 @@ namespace Stride.BepuPhysics.Processors
 
         internal void UpdateDebugRender()
         {
+            Vector3 location;
+            Quaternion rotation;
+
+            if (_isStatic)
+            {
+                var a = ((StaticContainerComponent)_containerComponent).GetPhysicStatic();
+                if (a == null)
+                    return;
+                location = a.Value.Pose.Position.ToStrideVector();
+                rotation = a.Value.Pose.Orientation.ToStrideQuaternion();
+
+            }
+            else
+            {
+                var a = ((BodyContainerComponent)_containerComponent).GetPhysicBody();
+                if (a == null)
+                    return;
+                location = a.Value.Pose.Position.ToStrideVector();
+                rotation = a.Value.Pose.Orientation.ToStrideQuaternion();
+            }
+
             for (int i = 0; i < _wireFrameRenderObject.Count; i++)
             {
-                var matrix = Matrix.AffineTransformation(1f, _containerComponent.Entity.Transform.GetWorldRot(), _containerComponent.Entity.Transform.GetWorldPos());
-                _wireFrameRenderObject[i].WorldMatrix = matrix * Matrix.Translation(_containerComponent.CenterOfMass);
+                var matrix = Matrix.AffineTransformation(1f, rotation, location);
+                _wireFrameRenderObject[i].WorldMatrix = matrix * Matrix.Translation(Vector3.Transform(-_containerComponent.CenterOfMass, rotation));
             }
         }
         private void RebuildDebugRender()
@@ -319,12 +340,11 @@ namespace Stride.BepuPhysics.Processors
 
             for (int i = 0; i < _wireFrameRenderObject.Count; i++)
             {
-                _wireFrameRenderObject[i].Prepare(_game.GraphicsDevice, shapes[i].Indices.ToArray(), shapes[i].Points.Select(e => new VertexPositionNormalTexture(e, Vector3.One, Vector2.Zero)).ToArray());
+                _wireFrameRenderObject[i].Prepare(_game.GraphicsDevice, shapes[i].Indices.ToArray(), shapes[i].Points.Select(e => new VertexPositionNormalTexture(e + _containerComponent.CenterOfMass, Vector3.One, Vector2.Zero)).ToArray());
                 _wireFrameRenderObject[i].Color = Color.Red;
-                var matrix = Matrix.AffineTransformation(1f, _containerComponent.Entity.Transform.GetWorldRot(), _containerComponent.Entity.Transform.GetWorldPos() + _containerComponent.CenterOfMass);
-                _wireFrameRenderObject[i].WorldMatrix = matrix;
                 _wireFrameRenderObject[i].RenderGroup = RenderGroup.Group1;
             }
+            UpdateDebugRender();
         }
         private void DestroyDebugRender()
         {
