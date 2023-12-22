@@ -121,9 +121,9 @@ namespace Stride.BepuPhysics.Processors
 
             var entityTransform = bodyContainer.Entity.Transform;
 
-            Vector3 localPosition = (body.Pose.Position.ToStrideVector() - bodyContainer.CenterOfMass - parentEntityPosition);
-            entityTransform.Position = Vector3.Transform(localPosition, Quaternion.Invert(parentEntityRotation));
+            Vector3 localPosition = (body.Pose.Position.ToStrideVector() - parentEntityPosition);
             entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion() * Quaternion.Invert(parentEntityRotation);
+            entityTransform.Position = Vector3.Transform(localPosition, Quaternion.Invert(parentEntityRotation)) - Vector3.Transform(bodyContainer.CenterOfMass, entityTransform.Rotation);
 
             entityTransform.UpdateWorldMatrix(); //Warning this may cause threading-race issues (but i did large tests and never had issues)
             bodyContainer.ContainerData?.UpdateDebugRender();
