@@ -91,6 +91,25 @@ Hierarchy:
                                 ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 0.2
+        -   Entity:
+                Id: 24dfb9e1-27c9-4ccf-b7f6-519b1991e451
+                Name: TestComplexShape
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: 5f2dcf9e-58df-4d53-b102-289488009ef8
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 0ba8dbf9-81cb-4a09-aac1-019bf2e189e6
+                        Position: {X: 2.1351929, Y: 6.363371E-08, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 2.0, Z: 1.0}
+                        Children: {}
+                    ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: dbb069c7-fa50-41a1-aec4-ca300e6b832a
+                        Mass: 1.0
+                        Size: {X: 2.0, Y: 2.0, Z: 1.0}
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: 1.InContainer
             Entity:
                 Id: 2c7bf134-cef6-464d-8ec3-4635e10b6295
@@ -817,6 +836,7 @@ Hierarchy:
                             76dc2f554e4f7d8954ab055f0d0d35a3: ref!! 085619bf-2ef6-4ccd-83cf-e06abe88c96c
                             d2a042245238346d58ad1d48a51168b5: ref!! aab90864-2ab3-426c-a9af-1bb776bcfbf1
                             6b8708376305e3c45dafa77e22fad6ad: ref!! dd3bb131-6df2-40c0-a932-29b9c0f6982c
+                            8399cb5e03b314f656b9f2285732db31: ref!! 52e1c084-ed3b-4af8-88c0-05eb2f4e9401
                     5007941de1ed758cfd0fa6a52de92e5c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 68e4b14a-0264-4fc0-8fb9-be9e1958b627
                         SimulationIndex: 0
@@ -1185,4 +1205,24 @@ Hierarchy:
                         Materials:
                             3603ef7f0b093ca218de8c3b4848acb5~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
+                    fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Entity:
+                Id: fcf91c7d-4533-4dd7-aa33-4a4c84158b3f
+                Name: TestComplexShape
+                Components:
+                    b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
+                        Id: add2e050-c20c-4dd4-80a6-8a097f2600dd
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 52e1c084-ed3b-4af8-88c0-05eb2f4e9401
+                        Position: {X: -3.0, Y: 2.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 2.0, Z: 1.0}
+                        Children:
+                            d1bdc99c484f8a8ee2577d8580ab0023: ref!! 0ba8dbf9-81cb-4a09-aac1-019bf2e189e6
+                    ee265d38d262240aee035149906d46c5: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                        Id: 6e792ab8-760c-4610-928b-14e0dffb62d2
+                        Mass: 1.0
+                        Size: {X: 1.0, Y: 2.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)

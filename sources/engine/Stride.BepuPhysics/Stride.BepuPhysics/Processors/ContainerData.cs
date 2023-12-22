@@ -121,7 +121,7 @@ namespace Stride.BepuPhysics.Processors
                 _shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
 
 #warning check why it is not needed
-                //Looks like it is not needed for both, static was working because it doesn't update stride position. By default both bepu & stride handle mesh position by 'centerOfMass'.
+                //Looks like it is not needed for both, static was working because it doesn't update stride position. As meshCollider is not in a compound, bepu don't move origin to center, it would have with a compound.
                 //if (_containerComponent is BodyMeshContainerComponent _b)
                 //{
                 //    _containerComponent.CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();
@@ -146,7 +146,7 @@ namespace Stride.BepuPhysics.Processors
                         collider.Entity.Transform.UpdateWorldMatrix();
                         collider.Entity.Transform.WorldMatrix.Decompose(out Vector3 colliderWorldScale, out Quaternion colliderWorldRotation, out Vector3 colliderWorldTranslation);
 
-                        var localTra = Vector3.Transform(colliderWorldTranslation - containerWorldTranslation, Quaternion.Invert(colliderWorldRotation));
+                        var localTra = colliderWorldTranslation - containerWorldTranslation; // Vector3.Transform(colliderWorldTranslation - containerWorldTranslation, Quaternion.Invert(colliderWorldRotation));
                         var localRot = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation;
                         var localPose = new RigidPose(localTra.ToNumericVector(), localRot.ToNumericQuaternion());
 
