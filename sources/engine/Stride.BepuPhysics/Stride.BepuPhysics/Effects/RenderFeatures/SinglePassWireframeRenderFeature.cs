@@ -72,6 +72,11 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         base.Prepare(context); //shapeData.Value.Points.Select(e => new VertexPositionNormalTexture(e, normal, texturePos)).ToArray()
     }
 
+    public void IsEnabled(bool enable)
+    {
+		Enable = enable;
+	}
+
     public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
     {
         if (!Enable) return;
