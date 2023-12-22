@@ -40,7 +40,7 @@ Hierarchy:
                         Id: 923fa071-ae79-4363-a32e-12463ef3357c
                         Position: {X: -30.555504, Y: -38.161026, Z: -65.34163}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 0.3, Y: 0.3, Z: 0.3}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
                         Children: {}
                     da77210aeeb3d1caa000293889e6b172: !ModelComponent
                         Id: c495370b-1700-42af-975f-d820c504d429
@@ -284,6 +284,35 @@ Hierarchy:
                             ea8bbaa675d65b1e3442f759ae7f78ef: ref!! df1b1d9b-7b12-4f9c-bd44-fd4039d6d7ed
                             5a5eb858984c75a278869fe561ffe497: ref!! 923fa071-ae79-4363-a32e-12463ef3357c
                             e477409f51de6f506569fa565fca8495: ref!! 276d6c54-5967-447c-b848-63b055eabf76
+                            76be3a32490a441bbf1eb66a9e36a555: ref!! a8a69d8e-9116-44a7-aef6-5c69eecfb7e8
+        -   Entity:
+                Id: c3bb90a8-1489-40f9-90cd-95f5518327b6
+                Name: HexOf
+                Components:
+                    c6b2174e894768b47f8d000f8f9d33da: !TransformComponent
+                        Id: a8a69d8e-9116-44a7-aef6-5c69eecfb7e8
+                        Position: {X: -53.750786, Y: -38.161026, Z: -32.407425}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children:
+                            2711d6aeef1680fb60137f83e229f794: ref!! c4666a51-1b1e-46d6-a26e-128ceaf3a06a
+                    da77210aeeb3d1caa000293889e6b172: !ModelComponent
+                        Id: cf629dae-efba-4e02-9aae-0825f06f7891
+                        Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
+                        Materials: {}
+                    b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                        Id: dcb56223-0de0-4abb-b4c6-a5b6cf5637e9
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
         -   Folder: null
             Entity:
                 Id: c7d5cb4a-8254-49de-8de0-b72b901759f5
@@ -317,6 +346,20 @@ Hierarchy:
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
         -   Entity:
+                Id: ddba9a9d-9ea6-424c-bd59-6a075410828b
+                Name: Entity
+                Components:
+                    5ac9ecf1a999050b14758bf802f2728c: !TransformComponent
+                        Id: c4666a51-1b1e-46d6-a26e-128ceaf3a06a
+                        Position: {X: 0.0, Y: 50.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    aaf96cb706880a1051023c28e41971df: !Stride.BepuPhysics.Components.Colliders.ConvexHullColliderComponent,Stride.BepuPhysics
+                        Id: 42e04f14-419b-401d-a13a-cdcde57a7a32
+                        Mass: 1.0
+                        Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
+        -   Entity:
                 Id: e468f4f4-7011-4e12-8710-3b42afcbfeae
                 Name: Cylinder
                 Components:
@@ -346,5 +389,5 @@ Hierarchy:
                     b010605f48e1ac9981dd90e1a4b810b0: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
                         Id: d403373e-2485-48aa-bdb8-cce68cf304ac
                         Mass: 1.0
-                        Radius: 10.0
+                        Radius: 5.0
                         Length: 10.0

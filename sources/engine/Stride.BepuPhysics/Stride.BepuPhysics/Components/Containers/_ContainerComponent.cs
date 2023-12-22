@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using BepuPhysics.Collidables;
-using Silk.NET.OpenGL;
 using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
@@ -199,7 +198,7 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             var shapes = new List<BodyShapeData>();
             if (ContainerData == null)
-                return default;
+                return new();
 
             AddShapeData(shapes, ContainerData.ShapeIndex, toLeftHanded);
 
@@ -240,7 +239,7 @@ namespace Stride.BepuPhysics.Components.Containers
 #warning Same for 5,6,8
                 case 5:
                     var convex = Simulation.Simulation.Shapes.GetShape<ConvexHull>(shapeIndex);
-                    shapes.Add(GetConvexData(convex, toLeftHanded));
+                    shapes.Add(GetConvexHullData(convex, toLeftHanded));
                     break;
                 case 6:
                     var compound = Simulation.Simulation.Shapes.GetShape<Compound>(shapeIndex);
@@ -286,45 +285,6 @@ namespace Stride.BepuPhysics.Components.Containers
 
             return shapeData;
         }
-        private BodyShapeData GetConvexData(ConvexHull convex, bool toLeftHanded = true)
-        {
-            //use Strides shape data
-            var entities = new List<Entity>();
-            entities.Add(Entity);
-            ConvexHullColliderComponent hullComponent = null;
-            do
-            {
-                var ent = entities.First();
-                entities.RemoveAt(0);
-
-                hullComponent = ent.Get<ConvexHullColliderComponent>();
-                if (hullComponent != null)
-                    break;
-                entities.AddRange(ent.GetChildren());
-            }
-            while (entities.Count != 0);
-
-            if (hullComponent == null)
-                throw new Exception("A convex that doesn't have a convexHullCollider ?");
-
-            var shape = (ConvexHullColliderShapeDesc)hullComponent.Hull.Descriptions[0];
-
-            BodyShapeData shapeData = new BodyShapeData();
-
-            for (int i = 0; i < shape.ConvexHulls[0][0].Count; i++)
-            {
-                shapeData.Points.Add(shape.ConvexHulls[0][0][i]);
-            }
-
-            for (int i = 0; i < shape.ConvexHullsIndices[0][0].Count; i += 3)
-            {
-                shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i]);
-                shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i + 2]); // NOTE: Reversed winding to create left handed input
-                shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i + 1]);
-            }
-
-            return shapeData;
-        }
         private List<BodyShapeData> GetCompoundData(Compound compound, bool toLeftHanded = true)
         {
             var shapeData = new List<BodyShapeData>();
@@ -344,6 +304,48 @@ namespace Stride.BepuPhysics.Components.Containers
             }
             return shapeData;
         }
+        private BodyShapeData GetConvexHullData(ConvexHull convex, bool toLeftHanded = true)
+        {
+            Vector3 scale = Vector3.One;
+            //use Strides shape data
+            var entities = new List<Entity>();
+            entities.Add(Entity);
+            ConvexHullColliderComponent hullComponent = null;
+            do
+            {
+                var ent = entities.First();
+                entities.RemoveAt(0);
+
+                hullComponent = ent.Get<ConvexHullColliderComponent>();
+                if (hullComponent == null)
+                    entities.AddRange(ent.GetChildren());
+                else
+                    scale = ent.Transform.Scale;
+            }
+            while (entities.Count != 0);
+
+            if (hullComponent == null)
+                throw new Exception("A convex that doesn't have a convexHullCollider ?");
+
+            var shape = (ConvexHullColliderShapeDesc)hullComponent.Hull.Descriptions[0];
+            var test = shape.LocalOffset;
+            BodyShapeData shapeData = new BodyShapeData();
+
+            for (int i = 0; i < shape.ConvexHulls[0][0].Count; i++)
+            {
+#warning scale
+                shapeData.Points.Add(shape.ConvexHulls[0][0][i] * scale);
+            }
+
+            for (int i = 0; i < shape.ConvexHullsIndices[0][0].Count; i += 3)
+            {
+                shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i]);
+                shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i + 2]); // NOTE: Reversed winding to create left handed input
+                shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i + 1]);
+            }
+
+            return shapeData;
+        }
         private BodyShapeData GetMeshData(Mesh mesh, bool toLeftHanded = true)
         {
             var meshContainer = (IMeshContainerComponent)this;
@@ -355,7 +357,7 @@ namespace Stride.BepuPhysics.Components.Containers
                 return default;
 
             var game = Services.GetService<IGame>();
-            BodyShapeData shapeData = GetMeshData(meshContainer.Model, game);
+            BodyShapeData shapeData = GetMeshData(meshContainer.Model, game, meshContainer.Entity.Transform.Scale);
 
             for (int i = 0; i < shapeData.Indices.Count; i += 3)
             {
@@ -403,7 +405,7 @@ namespace Stride.BepuPhysics.Components.Containers
         }
 
 
-        private static unsafe BodyShapeData GetMeshData(Model model, IGame game)
+        private static unsafe BodyShapeData GetMeshData(Model model, IGame game, Vector3 scale)
         {
             BodyShapeData bodyData = new BodyShapeData();
             int totalVertices = 0, totalIndices = 0;
@@ -437,7 +439,8 @@ namespace Stride.BepuPhysics.Components.Containers
                     {
                         var pos = *(Vector3*)(bytePtr + vHead);
 
-                        bodyData.Points.Add(pos);
+                        bodyData.Points.Add(pos * scale);
+#warning scaling 
                     }
                 }
 
