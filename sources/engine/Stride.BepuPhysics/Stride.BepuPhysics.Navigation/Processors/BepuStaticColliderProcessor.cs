@@ -50,7 +50,7 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 					for (int i = 0; i < shape.Points.Count; i++)
 					{
 						shape.Points[i] = Vector3.Transform(shape.Points[i], container.Orientation);
-						shape.Points[i] = shape.Points[i] + container.Entity.Transform.WorldMatrix.TranslationVector;
+						shape.Points[i] = (shape.Points[i] + container.Entity.Transform.WorldMatrix.TranslationVector) + container.CenterOfMass;
 					}
 				}
 			}
