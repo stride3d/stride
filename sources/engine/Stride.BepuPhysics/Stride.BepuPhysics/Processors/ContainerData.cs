@@ -47,9 +47,10 @@ namespace Stride.BepuPhysics.Processors
             _config = config;
             _containerComponent = containerComponent;
             _game = game;
-            var a = (SceneSystem?)_game.GameSystems.FirstOrDefault(e => e is SceneSystem);
-            _visibilityGroup = a.SceneInstance.VisibilityGroups.FirstOrDefault();
-        }
+            var a = _game.Services.GetService<SceneSystem>();
+            if(a.SceneInstance != null)
+				_visibilityGroup = a.SceneInstance.VisibilityGroups.FirstOrDefault();
+		}
 
         internal void TryUpdateContainer()
         {
