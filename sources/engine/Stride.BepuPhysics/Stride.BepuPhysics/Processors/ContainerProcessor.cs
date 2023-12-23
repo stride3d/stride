@@ -40,11 +40,6 @@ namespace Stride.BepuPhysics.Processors
             {
 				_wireframeRenderFeature = wireFramRender;
 			}
-			else
-            {
-				_wireframeRenderFeature = new SinglePassWireframeRenderFeature();
-				_game.GameSystems.OfType<SceneSystem>().First().GraphicsCompositor.RenderFeatures.Add(_wireframeRenderFeature);
-			}
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
@@ -75,11 +70,17 @@ namespace Stride.BepuPhysics.Processors
 
         public override void Update(GameTime time)
         {
-            base.Update(time);
-
             var dt = (float)time.Elapsed.TotalMilliseconds;
             if (dt == 0f)
                 return;
+
+            bool updateDebugRender = false;
+
+            if(_wireframeRenderFeature != null)
+            {
+				updateDebugRender = _wireframeRenderFeature.Enable;
+
+			}
 
             foreach (var bepuSim in _bepuConfiguration.BepuSimulations)
             {
@@ -108,13 +109,13 @@ namespace Stride.BepuPhysics.Processors
                 //Nicogo : a performance test on a smallScene would be nice to be sure
                 if (bepuSim.ParallelUpdate)
                 {
-                    Dispatcher.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) => UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim, _wireframeRenderFeature.Enable));
+                    Dispatcher.For(0, bepuSim.Simulation.Bodies.ActiveSet.Count, (i) => UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim, updateDebugRender));
                 }
                 else
                 {
                     for (int i = 0; i < bepuSim.Simulation.Bodies.ActiveSet.Count; i++)
                     {
-                        UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim, _wireframeRenderFeature.Enable);
+                        UpdateBodiesPositionFunction(bepuSim.Simulation.Bodies.ActiveSet.IndexToHandle[i], bepuSim, updateDebugRender);
                     }
                 }
             }
