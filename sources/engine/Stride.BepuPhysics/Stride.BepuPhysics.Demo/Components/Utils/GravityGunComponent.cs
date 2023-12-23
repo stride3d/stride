@@ -37,7 +37,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         }
         public void SetActive(HitInfo info)
         {
-            if (_body != null)
+            if (_body != null || Camera == null)
                 return;
 
             if (info.Container is not BodyContainerComponent body)
@@ -63,7 +63,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             _body = body;
             _distance = info.Distance;
             _localGrabPoint = Vector3.Transform(info.Point.ToStrideVector() - _body.Position, Quaternion.Invert(_body.Orientation));
-            _targetOrientation = body.Entity.Transform.GetWorldRot();
+            _targetOrientation = body.Entity.Transform.GetWorldRot() * Quaternion.Invert(Camera.Entity.Transform.GetWorldRot());
         }
         public void UpdateConstraints()
         {
@@ -77,7 +77,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             _oblscc.Target = targetPoint;
             _oblscc.Enabled = true;
 
-            _obascc.TargetOrientation = _targetOrientation; //Would like to change that with an offset for camera rotation
+            _obascc.TargetOrientation = _targetOrientation * Camera.Entity.Transform.GetWorldRot();
             _obascc.Enabled = true;
         }
         public void UnsetActive()
@@ -117,6 +117,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             }
             else
             {
+                _distance += Input.MouseWheelDelta;
                 var rayDirection = GetCameraRay();
                 var targetPoint = Camera.Entity.Transform.WorldMatrix.TranslationVector + rayDirection * _distance;
 
