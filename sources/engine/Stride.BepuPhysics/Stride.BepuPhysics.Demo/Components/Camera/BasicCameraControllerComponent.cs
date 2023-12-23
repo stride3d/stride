@@ -66,8 +66,10 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
 
         private void UpdateDebugShapes()
         {
-            if(Input.IsKeyPressed(Keys.F))
-				wireframeRenderFeature.IsEnabled(!wireframeRenderFeature.Enable);
+            if (Input.IsKeyPressed(Keys.F) && wireframeRenderFeature != null)
+            {
+                wireframeRenderFeature.IsEnabled(!wireframeRenderFeature.Enable);
+            }
         }
 
         private void ProcessInput()
