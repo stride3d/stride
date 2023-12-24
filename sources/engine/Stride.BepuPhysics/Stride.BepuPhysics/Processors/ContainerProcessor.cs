@@ -139,7 +139,6 @@ namespace Stride.BepuPhysics.Processors
             entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion() * Quaternion.Invert(parentEntityRotation);
             entityTransform.Position = Vector3.Transform(localPosition, Quaternion.Invert(parentEntityRotation)) - Vector3.Transform(bodyContainer.CenterOfMass, entityTransform.Rotation);
 
-            entityTransform.UpdateWorldMatrix(); //Warning this may cause threading-race issues (but i did large tests and never had issues)
 #warning it cost almost 0, not sure it's needed to not update it. Also, not updating it may causes issue when bodies are sleeping.
             //if (updateDebugRender)
             bodyContainer.ContainerData?.UpdateDebugRender();
