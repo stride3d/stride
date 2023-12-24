@@ -94,15 +94,13 @@ namespace Stride.BepuPhysics.Processors
                 while (bepuSim.RemainingUpdateTime >= bepuSim.SimulationFixedStep & stepCount < bepuSim.MaxStepPerFrame)
                 {
                     var simTimeStepInSec = bepuSim.SimulationFixedStep / 1000f;
-                    bepuSim.CallSimulationUpdate(simTimeStepInSec);//cal the SimulationUpdate with the real step time of the sim in secs
+                    bepuSim.CallSimulationUpdate(simTimeStepInSec);//call the SimulationUpdate with the real step time of the sim in secs
                     bepuSim.Simulation.Timestep(simTimeStepInSec, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
-                    bepuSim.ContactEvents.Flush(); //Fire events handlers stuffs.
+                    bepuSim.ContactEvents.Flush(); //Fire event handler stuff.
                     bepuSim.RemainingUpdateTime -= bepuSim.SimulationFixedStep; //in millisec
                     stepCount++;
                     bepuSim.CallAfterSimulationUpdate(simTimeStepInSec);//cal the AfterSimulationUpdate with the real step time of the sim in secs
                 }
-
-
 
 #warning I don't think this should be user-controllable ? We don't provide control over the other parts of the engine when they run through the dispatcher and having it on or of doesn't (or rather shouldn't) actually change the result, just how fast it resolves
                 // I guess it could make sense when running on a low power device, but at that point might as well make the change to Dispatcher itself
