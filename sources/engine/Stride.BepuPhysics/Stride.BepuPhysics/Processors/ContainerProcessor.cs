@@ -147,7 +147,10 @@ namespace Stride.BepuPhysics.Processors
                 {
                     //We need to call 
                     if (item.ContainerData != null && !item.ContainerData.IsStatic)
-                        UpdateBodiesPositionFunction(item.ContainerData.BHandle, bepuSim, updateDebugRender);
+                    {
+                        entityTransform.UpdateWorldMatrix();
+						UpdateBodiesPositionFunction(item.ContainerData.BHandle, bepuSim, updateDebugRender);
+                    }
                 }
             }
 
