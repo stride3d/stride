@@ -16,6 +16,6 @@ Check out the Docs in the [wiki](https://github.com/Nicogo1705/Stride.BepuPhysic
 4. Constraints: All *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details.)*.
 5. Collision Handler by body, Trigger, RayCast & SweepCast.
 6. CharacterBuilder/Controller & CarBuilder/Controller.
-7. Navigation (Work in Progress).
-8. Numerous utility scripts & scenes to aid understanding and usage of this Bepu implementation in Stride.
-9. 
+7. Navigation (WIP).
+8. Numerous of samples utility scripts & scenes to aid understanding how to use.
+9. INSANE performances :heart:
