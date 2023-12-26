@@ -31,7 +31,11 @@ public class CharacterContactEventHandler : IContactEventHandler
 
         var containerA = GetContainerFromCollidable(pair.A, sim);
         var containerB = GetContainerFromCollidable(pair.B, sim);
-        var otherContainer = _characterComponent.CharacterBody == containerA ? containerB : containerA;
+		if (containerA == null || containerB == null)
+		{
+			return;
+		}
+		var otherContainer = _characterComponent.CharacterBody == containerA ? containerB : containerA;
         for (int i = Contacts.Count - 1; i >= 0; i--)
         {
             if (Contacts[i].Source == otherContainer)
@@ -47,6 +51,10 @@ public class CharacterContactEventHandler : IContactEventHandler
 
         var containerA = GetContainerFromCollidable(pair.A, sim);
         var containerB = GetContainerFromCollidable(pair.B, sim);
+        if(containerA == null || containerB == null)
+        {
+            return;
+        }
         var otherContainer = _characterComponent.CharacterBody == containerA ? containerB : containerA;
 
         contactManifold.GetContact(contactIndex, out var contact);
@@ -56,7 +64,7 @@ public class CharacterContactEventHandler : IContactEventHandler
         Contacts.Add((otherContainer, contact));
     }
 
-    private ContainerComponent GetContainerFromCollidable(CollidableReference collidable, BepuSimulation sim)
+    private ContainerComponent? GetContainerFromCollidable(CollidableReference collidable, BepuSimulation sim)
     {
         if (collidable.Mobility == CollidableMobility.Static && sim.StaticsContainers.TryGetValue(collidable.StaticHandle, out StaticContainerComponent? staticsContainer))
         {
@@ -66,7 +74,7 @@ public class CharacterContactEventHandler : IContactEventHandler
         {
             return bodiesContainer;
         }
-        throw new InvalidOperationException("Received new contacts with a container that's not part of the simulation");
+        return null;
     }
 
 }
