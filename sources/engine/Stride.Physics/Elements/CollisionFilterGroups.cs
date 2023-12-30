@@ -81,7 +81,7 @@ namespace Stride.Physics
     }
 
     /// <summary>
-    /// Flags that control how ray tests are performed
+    /// Flags that allows to modify default execution and performance of ray tests algorithms.
     /// </summary>
     [Flags]
     public enum EFlags : uint
