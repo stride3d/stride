@@ -73,6 +73,7 @@ namespace Stride.Engine.Splines.Models
                 }
                 else
                 {
+                    spline.OnSplineUpdated += EnqueueSplineTraverserUpdate;
                     EnqueueSplineTraverserUpdate();
                 }
             }

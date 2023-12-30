@@ -33,10 +33,7 @@ namespace Stride.Engine.Splines.Processors
             {
                 TransformOperation = new SplineViewHierarchyTransformOperation(component),
             };
-
-            // Assign the SplineProcessor property
-            transformationInfo.SplineProcessor = this;
-
+            
             return transformationInfo;
         }
 
@@ -47,37 +44,23 @@ namespace Stride.Engine.Splines.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, SplineComponent component, SplineTransformationInfo data)
         {
-            // Subscribe to the event using the Update method with the component as a delegate
-            component.Spline.OnSplineDirty += () => data.Update(component);
-
-            // Add the component to the list
+            component.Spline.OnSplineDirty += () => data.Update(this, component);
             splineComponentsToUpdate.Add(component);
-
-            // Add the transformation operation to the entity
             entity.Transform.PostOperations.Add(data.TransformOperation);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, SplineComponent component, SplineTransformationInfo data)
         {
-            // Unsubscribe from the event using the Update method
-
-            //TODO: this does not work properly atm
-            component.Spline.OnSplineDirty -= () => data.Update(component);
-
-            // Remove the transformation operation from the entity
+            component.Spline.OnSplineDirty -= () => data.Update(this, component);
             entity.Transform.PostOperations.Remove(data.TransformOperation);
         }
 
         public class SplineTransformationInfo
         {
             public SplineViewHierarchyTransformOperation TransformOperation;
-            public SplineTransformProcessor SplineProcessor;
-            
-
-            //TODO wip
-            public void Update(SplineComponent component)
+            public void Update(SplineTransformProcessor processor, SplineComponent component)
             {
-                SplineProcessor.splineComponentsToUpdate.Add(component);
+                processor.splineComponentsToUpdate.Add(component);
             }
         }
 

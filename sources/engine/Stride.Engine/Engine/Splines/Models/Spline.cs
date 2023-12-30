@@ -153,5 +153,47 @@ namespace Stride.Engine.Splines.Models
 
             return currentClosestPoint;
         }
+        
+        /// <summary>
+        /// Retrieve information of the spline position at give percentage
+        /// </summary>
+        /// <param name="percentage"></param>
+        /// <returns>Various details on the specific part of the spline</returns>
+        public SplinePositionInfo GetPositionOnSpline(float percentage)
+        {
+            var splinePositionInfo = new SplinePositionInfo();
+            if (TotalSplineDistance <= 0)
+                return splinePositionInfo;
+
+            var requiredDistance = TotalSplineDistance * (percentage / 100);
+            var nextNodeDistance = 0.0f;
+            var prevNodeDistance = 0.0f;
+
+            for (var i = 0; i < SplineNodes.Count; i++)
+            {
+                var currentSplineNode = SplineNodes[i];
+                splinePositionInfo.SplineNodeA = currentSplineNode;
+
+                nextNodeDistance += currentSplineNode.Length;
+
+                if (requiredDistance < nextNodeDistance)
+                {
+                    var targetIndex = i == SplineNodes.Count - 1 ? 0 : i;
+                    splinePositionInfo.SplineNodeB = SplineNodes[targetIndex];
+
+                    // Inverse lerp(betweenValue - minHeight) / (maxHeight - minHeight);
+                    var percentageInCurve = (requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance) * 100;
+
+                    splinePositionInfo.Position = currentSplineNode.GetPositionOnBezierCurve(percentageInCurve);
+                    return splinePositionInfo;
+                }
+
+                prevNodeDistance = nextNodeDistance;
+            }
+
+            splinePositionInfo.Position = SplineNodes[SplineNodes.Count - 2].TargetWorldPosition;
+
+            return splinePositionInfo;
+        }
     }
 }

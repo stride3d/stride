@@ -12,7 +12,7 @@ using Stride.Engine.Splines.Models;
 namespace Stride.Engine.Splines.Components
 {
     /// <summary>
-    /// Component representing an Spline.
+    /// Component representing an Spline
     /// </summary>
     [DataContract("SplineComponent")]
     [Display("Spline", Expand = ExpandRule.Once)]

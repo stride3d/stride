@@ -92,49 +92,6 @@ namespace Stride.Engine.Splines
 
             return distance;
         }
-
-        /// <summary>
-        /// Retrieve information of the spline position at give percentage
-        /// </summary>
-        /// <param name="percentage"></param>
-        /// <returns>Various details on the specific part of the spline</returns>
-        public SplinePositionInfo GetPositionOnSpline(Spline spline, float percentage)
-        {
-            var splinePositionInfo = new SplinePositionInfo();
-            var totalSplineDistance = GetTotalSplineLength(spline);
-            if (totalSplineDistance <= 0)
-                return splinePositionInfo;
-
-            var requiredDistance = totalSplineDistance * (percentage / 100);
-            var nextNodeDistance = 0.0f;
-            var prevNodeDistance = 0.0f;
-
-            for (var i = 0; i <  spline.SplineNodes.Count; i++)
-            {
-                var currentSplineNode =  spline.SplineNodes[i];
-                splinePositionInfo.SplineNodeA = currentSplineNode;
-
-                nextNodeDistance += currentSplineNode.Length;
-
-                if (requiredDistance < nextNodeDistance)
-                {
-                    var targetIndex = i ==  spline.SplineNodes.Count - 1 ? 0 : i;
-                    splinePositionInfo.SplineNodeB =  spline.SplineNodes[targetIndex];
-
-                    // Inverse lerp(betweenValue - minHeight) / (maxHeight - minHeight);
-                    var percentageInCurve = (requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance) * 100;
-
-                    splinePositionInfo.Position = currentSplineNode.GetPositionOnBezierCurve(percentageInCurve);
-                    return splinePositionInfo;
-                }
-
-                prevNodeDistance = nextNodeDistance;
-            }
-
-            splinePositionInfo.Position =  spline.SplineNodes[spline.SplineNodes.Count - 2].TargetWorldPosition;
-
-            return splinePositionInfo;
-        }
         
         private void UpdateBoundingBox(Spline spline)
         {
