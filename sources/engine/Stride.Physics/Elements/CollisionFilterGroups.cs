@@ -109,7 +109,7 @@ namespace Stride.Physics
         /// </summary>
         UseGjkConvexCastRaytest = 1 << 3,
         /// <summary>
-        /// Don't use the heightfield raycast accelerator. See https://github.com/bulletphysics/bullet3/pull/2062
+        /// Switch convex cast algorithm from sub-simplex to slower, but more precise and complete Gilbert-Johnson-Keerthi variant.
         /// </summary>
         DisableHeightfieldAccelerator  = 1 << 4
     }
