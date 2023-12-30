@@ -188,7 +188,7 @@ namespace Stride.VisualStudio.Commands
                 }
                 if (!success)
                 {
-                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it. To fix this you can either build {packageName} or pull the right version from nugget manually");
+                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it. To fix this you can either build {packageName} or pull the right version from NuGet manually");
                 }
             }
 
