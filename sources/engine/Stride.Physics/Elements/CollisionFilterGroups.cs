@@ -112,5 +112,8 @@ namespace Stride.Physics
         /// Switch convex cast algorithm from sub-simplex to slower, but more precise and complete Gilbert-Johnson-Keerthi variant.
         /// </summary>
         DisableHeightfieldAccelerator  = 1 << 4
+        /// <summary>
+        /// Don't use the heightfield raycast accelerator. This option reduces additional memory allocation at the expense of increased. CPU cycles.
+        /// </summary>
     }
 }
