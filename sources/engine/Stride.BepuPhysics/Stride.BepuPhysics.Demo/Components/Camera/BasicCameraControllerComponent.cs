@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Stride.BepuPhysics.Effects.RenderFeatures;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -25,7 +24,7 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
         private Vector3 translation;
         private float yaw;
         private float pitch;
-        private SinglePassWireframeRenderFeature wireframeRenderFeature;
+        //private SinglePassWireframeRenderFeature wireframeRenderFeature;
 
         public bool Gamepad { get; set; } = false;
 
@@ -54,7 +53,7 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
                 Input.Gestures.Add(new GestureConfigComposite());
             }
 
-			wireframeRenderFeature = (SinglePassWireframeRenderFeature)SceneSystem.GraphicsCompositor.RenderFeatures.FirstOrDefault(x => x.Name == "SinglePassWireframeRenderFeature");
+			//wireframeRenderFeature = (SinglePassWireframeRenderFeature)SceneSystem.GraphicsCompositor.RenderFeatures.FirstOrDefault(x => x.Name == "SinglePassWireframeRenderFeature");
 		}
 
 		public override void Update()
@@ -66,10 +65,10 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
 
         private void UpdateDebugShapes()
         {
-            if (Input.IsKeyPressed(Keys.F) && wireframeRenderFeature != null)
-            {
-                wireframeRenderFeature.IsEnabled(!wireframeRenderFeature.Enable);
-            }
+            //if (Input.IsKeyPressed(Keys.F) && wireframeRenderFeature != null)
+            //{
+            //    wireframeRenderFeature.IsEnabled(!wireframeRenderFeature.Enable);
+            //}
         }
 
         private void ProcessInput()

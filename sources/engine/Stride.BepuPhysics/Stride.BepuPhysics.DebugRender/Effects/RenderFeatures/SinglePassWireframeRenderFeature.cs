@@ -10,24 +10,24 @@ using Stride.Rendering;
 using Stride.Streaming;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace Stride.BepuPhysics.Effects.RenderFeatures;
+namespace Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 
 public class SinglePassWireframeRenderFeature : RootRenderFeature
 {
     DynamicEffectInstance shader;
     MutablePipelineState pipelineState;
 
-	[DataMember(0)]
-	public bool Enable = true;
+    [DataMember(0)]
+    public bool Enable = true;
 
     [DataMember(10)]
-	[DataMemberRange(0.0f, 10.0f, 0.001f, 0.002f, 4)]
-	public float LineWidth = 3f;
-    
+    [DataMemberRange(0.0f, 10.0f, 0.001f, 0.002f, 4)]
+    public float LineWidth = 3f;
+
 
     public override Type SupportedRenderObjectType => typeof(WireFrameRenderObject);
 
-    private List<WireFrameRenderObject> _wireframes = new(); 
+    private List<WireFrameRenderObject> _wireframes = new();
 
     public SinglePassWireframeRenderFeature()
     {
@@ -69,8 +69,8 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 
     public void IsEnabled(bool enable)
     {
-		Enable = enable;
-	}
+        Enable = enable;
+    }
 
     public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
     {

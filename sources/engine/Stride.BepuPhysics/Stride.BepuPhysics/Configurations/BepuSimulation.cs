@@ -10,6 +10,11 @@ using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Graphics.GeometricPrimitives;
+
+using GeoMeshData = Stride.Graphics.GeometricMeshData<Stride.Graphics.VertexPositionNormalTexture>;
 
 namespace Stride.BepuPhysics.Configurations;
 
@@ -226,7 +231,7 @@ public class BepuSimulation
         ContactEvents.Initialize(Simulation);
         //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
     }
-    internal void Clear()
+    private void Clear()
     {
         //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
         BufferPool.Clear();
@@ -258,6 +263,273 @@ public class BepuSimulation
     internal void Unregister(SimulationUpdateComponent simulationUpdateComponent)
     {
         _simulationUpdateComponents.Remove(simulationUpdateComponent);
+    }
+
+    public List<BodyShapeData> GetShapeData(TypedIndex shapeIndex, bool toLeftHanded = true)
+    {
+        var shapes = new List<BodyShapeData>();
+        AddShapeData(shapes, shapeIndex, toLeftHanded);
+        return shapes;
+    }
+    private void AddShapeData(List<BodyShapeData> shapes, TypedIndex typeIndex, bool toLeftHanded = true)
+    {
+        var shapeType = typeIndex.Type;
+        var shapeIndex = typeIndex.Index;
+
+        switch (shapeType)
+        {
+            case 0:
+                var sphere = Simulation.Shapes.GetShape<Sphere>(shapeIndex);
+                shapes.Add(GetBodyShapeData(GetSphereVerts(sphere, toLeftHanded)));
+                break;
+            case 1:
+                var capsule = Simulation.Shapes.GetShape<Capsule>(shapeIndex);
+                shapes.Add(GetBodyShapeData(GetCapsuleVerts(capsule, toLeftHanded)));
+                break;
+            case 2:
+                var box = Simulation.Shapes.GetShape<Box>(shapeIndex);
+                shapes.Add(GetBodyShapeData(GetBoxVerts(box, toLeftHanded)));
+                break;
+            case 3:
+                var triangle = Simulation.Shapes.GetShape<Triangle>(shapeIndex);
+                var a = triangle.A.ToStrideVector();
+                var b = triangle.B.ToStrideVector();
+                var c = triangle.C.ToStrideVector();
+                var shapeData = new BodyShapeData() { Points = new List<Vector3>() { a, b, c }, Indices = new List<int>() { 0, 1, 2 } };
+                shapes.Add(shapeData);
+                break;
+            case 4:
+                var cyliner = Simulation.Shapes.GetShape<Cylinder>(shapeIndex);
+                shapes.Add(GetBodyShapeData(GetCylinderVerts(cyliner, toLeftHanded)));
+                break;
+            case 5:
+                var convex = Simulation.Shapes.GetShape<ConvexHull>(shapeIndex);
+                shapes.Add(GetConvexHullData(convex, toLeftHanded));
+                break;
+            case 6:
+                var compound = Simulation.Shapes.GetShape<Compound>(shapeIndex);
+                shapes.AddRange(GetCompoundData(compound, toLeftHanded));
+                break;
+            case 7:
+                throw new NotImplementedException("BigCompounds are not implemented.");
+            case 8:
+                var mesh = Simulation.Shapes.GetShape<Mesh>(shapeIndex);
+                shapes.Add(GetMeshData(mesh, toLeftHanded));
+                break;
+        }
+    }
+
+    private BodyShapeData GetBodyShapeData(GeoMeshData meshData, bool toLeftHanded = true)
+    {
+        BodyShapeData shapeData = new BodyShapeData();
+
+        // Transform box points
+        for (int i = 0; i < meshData.Vertices.Length; i++)
+        {
+            shapeData.Points.Add(meshData.Vertices[i].Position);
+            shapeData.Normals.Add(meshData.Vertices[i].Normal);
+        }
+
+        if (meshData.IsLeftHanded)
+        {
+            // Copy indices with offset applied
+            for (int i = 0; i < meshData.Indices.Length; i += 3)
+            {
+                shapeData.Indices.Add(meshData.Indices[i]);
+                shapeData.Indices.Add(meshData.Indices[i + 2]);
+                shapeData.Indices.Add(meshData.Indices[i + 1]);
+            }
+        }
+        else
+        {
+            // Copy indices with offset applied
+            for (int i = 0; i < meshData.Indices.Length; i++)
+            {
+                shapeData.Indices.Add(meshData.Indices[i]);
+            }
+        }
+
+        return shapeData;
+    }
+    private List<BodyShapeData> GetCompoundData(Compound compound, bool toLeftHanded = true)
+    {
+        var shapeData = new List<BodyShapeData>();
+
+        for (int i = 0; i < compound.ChildCount; i++)
+        {
+            var child = compound.GetChild(i);
+            var startI = shapeData.Count;
+            AddShapeData(shapeData, child.ShapeIndex);
+
+            for (int ii = startI; ii < shapeData.Count; ii++)
+            {
+                var translatedData = shapeData[ii].Points.Select(e => Vector3.Transform(e, child.LocalOrientation.ToStrideQuaternion()) + child.LocalPosition.ToStrideVector()).ToArray();
+                shapeData[ii].Points.Clear();
+                shapeData[ii].Points.AddRange(translatedData);
+            }
+        }
+        return shapeData;
+    }
+    private BodyShapeData GetConvexHullData(ConvexHull convex, bool toLeftHanded = true)
+    {
+        //Vector3 scale = Vector3.One;
+        ////use Strides shape data
+        //var entities = new List<Entity>();
+        //entities.Add(Entity);
+        //ConvexHullColliderComponent hullComponent = null;
+        //do
+        //{
+        //    var ent = entities.First();
+        //    entities.RemoveAt(0);
+
+        //    hullComponent = ent.Get<ConvexHullColliderComponent>();
+        //    if (hullComponent == null)
+        //        entities.AddRange(ent.GetChildren());
+        //    else
+        //        scale = ent.Transform.Scale;
+        //}
+        //while (entities.Count != 0);
+
+        //if (hullComponent == null)
+        //    throw new Exception("A convex that doesn't have a convexHullCollider ?");
+
+        //var shape = (ConvexHullColliderShapeDesc)hullComponent.Hull.Descriptions[0];
+        //var test = shape.LocalOffset;
+        BodyShapeData shapeData = new BodyShapeData();
+
+//        for (int i = 0; i < shape.ConvexHulls[0][0].Count; i++)
+//        {
+//            shapeData.Points.Add(shape.ConvexHulls[0][0][i] * scale);
+//            shapeData.Normals.Add(Vector3.Zero);//Edit code to get normals
+//#warning scaling & normals!!
+//        }
+
+//        for (int i = 0; i < shape.ConvexHullsIndices[0][0].Count; i += 3)
+//        {
+//            shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i]);
+//            shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i + 2]); // NOTE: Reversed winding to create left handed input
+//            shapeData.Indices.Add((int)shape.ConvexHullsIndices[0][0][i + 1]);
+//        }
+
+        return shapeData;
+    }
+    private BodyShapeData GetMeshData(Mesh mesh, bool toLeftHanded = true)
+    {
+        var meshContainer = (IMeshContainerComponent)this;
+
+        if (meshContainer == null)
+            throw new Exception("a mesh must be inside a MeshContainer");
+
+        if (meshContainer.Model == null)
+            return default;
+
+        //var game = Services.GetService<IGame>();
+        BodyShapeData shapeData = new(); // = GetMeshData(meshContainer.Model, game, meshContainer.Entity.Transform.Scale);
+
+        //if (toLeftHanded)
+        //    for (int i = 0; i < shapeData.Indices.Count; i += 3)
+        //    {
+        //        // NOTE: Reversed winding to create left handed input
+        //        (shapeData.Indices[i + 1], shapeData.Indices[i + 2]) = (shapeData.Indices[i + 2], shapeData.Indices[i + 1]);
+        //    }
+
+        return shapeData;
+    }
+
+    private GeoMeshData GetBoxVerts(Box box, bool toLeftHanded = true)
+    {
+        var boxDescription = new Physics.BoxColliderShapeDesc()
+        {
+            Size = new Vector3(box.Width, box.Height, box.Length)
+        };
+        return GeometricPrimitive.Cube.New(boxDescription.Size, toLeftHanded: toLeftHanded);
+    }
+    private GeoMeshData GetCapsuleVerts(Capsule capsule, bool toLeftHanded = true)
+    {
+        var capsuleDescription = new Physics.CapsuleColliderShapeDesc()
+        {
+            Length = capsule.Length,
+            Radius = capsule.Radius
+        };
+        return GeometricPrimitive.Capsule.New(capsuleDescription.Length, capsuleDescription.Radius, 8, toLeftHanded: toLeftHanded);
+    }
+    private GeoMeshData GetSphereVerts(Sphere sphere, bool toLeftHanded = true)
+    {
+        var sphereDescription = new Physics.SphereColliderShapeDesc()
+        {
+            Radius = sphere.Radius
+        };
+        return GeometricPrimitive.Sphere.New(sphereDescription.Radius, 16, toLeftHanded: toLeftHanded);
+    }
+    private GeoMeshData GetCylinderVerts(Cylinder cylinder, bool toLeftHanded = true)
+    {
+        var cylinderDescription = new Physics.CylinderColliderShapeDesc()
+        {
+            Height = cylinder.Length,
+            Radius = cylinder.Radius
+        };
+        return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: toLeftHanded);
+    }
+
+    private static unsafe BodyShapeData GetStrideMeshData(Rendering.Model model, IGame game, Vector3 scale)
+    {
+        BodyShapeData bodyData = new BodyShapeData();
+        int totalVertices = 0, totalIndices = 0;
+        foreach (var meshData in model.Meshes)
+        {
+            totalVertices += meshData.Draw.VertexBuffers[0].Count;
+            totalIndices += meshData.Draw.IndexBuffer.Count;
+        }
+
+        foreach (var meshData in model.Meshes)
+        {
+            var vBuffer = meshData.Draw.VertexBuffers[0].Buffer;
+            var iBuffer = meshData.Draw.IndexBuffer.Buffer;
+            byte[] verticesBytes = vBuffer.GetData<byte>(game.GraphicsContext.CommandList);
+            byte[] indicesBytes = iBuffer.GetData<byte>(game.GraphicsContext.CommandList);
+
+            if ((verticesBytes?.Length ?? 0) == 0 || (indicesBytes?.Length ?? 0) == 0)
+            {
+                // returns empty lists if there is an issue
+                return bodyData;
+            }
+
+            int vertMappingStart = bodyData.Points.Count;
+
+            fixed (byte* bytePtr = verticesBytes)
+            {
+                var vBindings = meshData.Draw.VertexBuffers[0];
+                int count = vBindings.Count;
+                int stride = vBindings.Declaration.VertexStride;
+                for (int i = 0, vHead = vBindings.Offset; i < count; i++, vHead += stride)
+                {
+                    var point = *(Vector3*)(bytePtr + vHead);
+                    bodyData.Points.Add(point * scale);
+                    bodyData.Normals.Add(Vector3.Zero);//Edit code to get normals
+#warning scaling & normals
+                }
+            }
+
+            fixed (byte* bytePtr = indicesBytes)
+            {
+                if (meshData.Draw.IndexBuffer.Is32Bit)
+                {
+                    foreach (int i in new Span<int>(bytePtr + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+                    {
+                        bodyData.Indices.Add(vertMappingStart + i);
+                    }
+                }
+                else
+                {
+                    foreach (ushort i in new Span<ushort>(bytePtr + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+                    {
+                        bodyData.Indices.Add(vertMappingStart + i);
+                    }
+                }
+            }
+        }
+
+        return bodyData;
     }
 
 }

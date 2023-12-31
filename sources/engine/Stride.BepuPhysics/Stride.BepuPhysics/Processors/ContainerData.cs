@@ -6,7 +6,6 @@ using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
-using Stride.BepuPhysics.Effects;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -32,7 +31,6 @@ namespace Stride.BepuPhysics.Processors
         private bool _isStatic;
         private bool _exist;
         private VisibilityGroup? _visibilityGroup;
-        private List<WireFrameRenderObject> _wireFrameRenderObject = new();
 
         internal BepuSimulation BepuSimulation => _config.BepuSimulations[_containerComponent.SimulationIndex];
 
@@ -48,9 +46,9 @@ namespace Stride.BepuPhysics.Processors
             _containerComponent = containerComponent;
             _game = game;
             var a = _game.Services.GetService<SceneSystem>();
-            if(a.SceneInstance != null)
-				_visibilityGroup = a.SceneInstance.VisibilityGroups.FirstOrDefault();
-		}
+            if (a.SceneInstance != null)
+                _visibilityGroup = a.SceneInstance.VisibilityGroups.FirstOrDefault();
+        }
 
         internal void TryUpdateContainer()
         {
@@ -147,8 +145,12 @@ namespace Stride.BepuPhysics.Processors
                         collider.Entity.Transform.UpdateWorldMatrix();
                         collider.Entity.Transform.WorldMatrix.Decompose(out Vector3 colliderWorldScale, out Quaternion colliderWorldRotation, out Vector3 colliderWorldTranslation);
 
-                        var localTra = colliderWorldTranslation - containerWorldTranslation; // Vector3.Transform(colliderWorldTranslation - containerWorldTranslation, Quaternion.Invert(colliderWorldRotation));
-                        var localRot = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation;
+                        var localTra =  Vector3.Transform(colliderWorldTranslation - containerWorldTranslation, Quaternion.Invert(containerWorldRotation));
+                        
+                        var calcul = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation; 
+                        var shouldHave = collider.Entity.Transform.Rotation;
+                        var localRot = shouldHave;
+
                         var localPose = new RigidPose(localTra.ToNumericVector(), localRot.ToNumericQuaternion());
 
                         collider.AddToCompoundBuilder(_game, ref compoundBuilder, localPose);
@@ -224,8 +226,6 @@ namespace Stride.BepuPhysics.Processors
                 RegisterContact();
 
             UpdateMaterialProperties();
-
-            RebuildDebugRender();
         }
         internal void DestroyContainer()
         {
@@ -257,8 +257,6 @@ namespace Stride.BepuPhysics.Processors
                 SHandle = new(-1);
                 _exist = false;
             }
-
-            DestroyDebugRender();
         }
 
         internal void RegisterContact()
@@ -292,82 +290,7 @@ namespace Stride.BepuPhysics.Processors
                 return BepuSimulation.ContactEvents.IsListener(BHandle);
         }
 
-        internal void UpdateDebugRender()
-        {
-            Vector3 location;
-            Quaternion rotation;
-
-            if (_isStatic)
-            {
-                var a = ((StaticContainerComponent)_containerComponent).GetPhysicStatic();
-                if (a == null)
-                    return;
-                location = a.Value.Pose.Position.ToStrideVector();
-                rotation = a.Value.Pose.Orientation.ToStrideQuaternion();
-
-            }
-            else
-            {
-                var a = ((BodyContainerComponent)_containerComponent).GetPhysicBody();
-                if (a == null)
-                    return;
-                location = a.Value.Pose.Position.ToStrideVector();
-                rotation = a.Value.Pose.Orientation.ToStrideQuaternion();
-            }
-
-            for (int i = 0; i < _wireFrameRenderObject.Count; i++)
-            {
-                var matrix = Matrix.AffineTransformation(1f, rotation, location);
-                _wireFrameRenderObject[i].WorldMatrix = matrix * Matrix.Translation(Vector3.Transform(-_containerComponent.CenterOfMass, rotation));
-            }
-        }
-        private void RebuildDebugRender()
-        {
-            if (_visibilityGroup == null)
-                return;
-
-            var shapes = _containerComponent.GetShapeData();
-
-            if (_wireFrameRenderObject.Count != shapes.Count)
-            {
-                DestroyDebugRender();
-
-                for (int i = 0; i < shapes.Count; i++)
-                {
-                    _wireFrameRenderObject.Add(new());
-                    _visibilityGroup.RenderObjects.Add(_wireFrameRenderObject[i]);
-                }
-            }
-
-            for (int i = 0; i < _wireFrameRenderObject.Count; i++)
-            {
-                var vertextData = new VertexPositionNormalTexture[shapes[i].Points.Count];
-
-                for (int ii = 0; ii < shapes[i].Points.Count; ii++)
-                {
-                    vertextData[ii] = new(shapes[i].Points[ii] + _containerComponent.CenterOfMass, shapes[i].Normals[ii], Vector2.Zero);
-                }
-
-                //shapes[i].Points.Select(e => new VertexPositionNormalTexture(e + _containerComponent.CenterOfMass, Vector3.One, Vector2.Zero)).ToArray();
-                _wireFrameRenderObject[i].Prepare(_game.GraphicsDevice, shapes[i].Indices.ToArray(), vertextData);
-                _wireFrameRenderObject[i].Color = Color.Red;
-                _wireFrameRenderObject[i].RenderGroup = RenderGroup.Group1;
-            }
-            UpdateDebugRender();
-        }
-        private void DestroyDebugRender()
-        {
-            if (_visibilityGroup != null)
-            {
-                for (int i = 0; i < _wireFrameRenderObject.Count; i++)
-                {
-                    _visibilityGroup.RenderObjects.Remove(_wireFrameRenderObject[i]);
-                    _wireFrameRenderObject[i].VertexBuffer.Dispose();
-                    _wireFrameRenderObject[i].IndiceBuffer.Dispose();
-                }
-                _wireFrameRenderObject.Clear();
-            }
-        }
+    
 
         private static void CollectComponentsInHierarchy<T, T2>(Entity entity, ContainerComponent entityContainer, T2 collection) where T : EntityComponent where T2 : ICollection<T>
         {
