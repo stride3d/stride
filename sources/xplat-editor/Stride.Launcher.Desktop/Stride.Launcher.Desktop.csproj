@@ -1,0 +1,25 @@
+<Project>
+  <Import Project="..\..\targets\Stride.props" />
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Launcher\Stride.Launcher.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Directory.Packages.props" Link="Directory.Packages.props" />
+    <None Include="..\Directory.Build.props" Link="Directory.Build.props" />
+  </ItemGroup>
+
+  <Import Project="$(StrideSdkTargets)" />
+</Project>
