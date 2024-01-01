@@ -1,10 +1,12 @@
 //// Copyright (c) Stride contributors (https://Stride.com)
 //// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine.Splines.Components;
 using Stride.Engine.Splines.HierarchyTransformOperations;
+using Stride.Engine.Splines.Models;
 using Stride.Graphics;
 using Stride.Rendering;
 
@@ -31,7 +33,7 @@ namespace Stride.Engine.Splines.Processors
 
         protected override SplineTransformationInfo GenerateComponentData(Entity entity, SplineComponent component)
         {
-            var transformationInfo = new SplineTransformationInfo { TransformOperation = new SplineViewHierarchyTransformOperation(component), };
+            var transformationInfo = new SplineTransformationInfo(this, component) { TransformOperation = new SplineViewHierarchyTransformOperation(component) };
 
             return transformationInfo;
         }
@@ -43,22 +45,30 @@ namespace Stride.Engine.Splines.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, SplineComponent component, SplineTransformationInfo data)
         {
-            component.Spline.OnSplineDirty += () => data.Update(this, component);
+            component.Spline.OnSplineDirty += data.OnSplineDirtyAction;
             splineComponentsToUpdate.Add(component);
             entity.Transform.PostOperations.Add(data.TransformOperation);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, SplineComponent component, SplineTransformationInfo data)
         {
-            component.Spline.OnSplineDirty -= () => data.Update(this, component);
+            //When an spline component is removed, we still need to destroy the Spline renderer
+            DestroySplineRenderer(null, entity);
+            component.Spline.OnSplineDirty -= data.OnSplineDirtyAction;
             entity.Transform.PostOperations.Remove(data.TransformOperation);
         }
 
         public class SplineTransformationInfo
         {
             public SplineViewHierarchyTransformOperation TransformOperation;
+            public Spline.DirtySplineHandler OnSplineDirtyAction;
 
-            public void Update(SplineProcessor processor, SplineComponent component)
+            public SplineTransformationInfo(SplineProcessor processor, SplineComponent component)
+            {
+                OnSplineDirtyAction = () => Update(processor, component);
+            }
+
+            private void Update(SplineProcessor processor, SplineComponent component)
             {
                 processor.splineComponentsToUpdate.Add(component);
             }
@@ -71,7 +81,9 @@ namespace Stride.Engine.Splines.Processors
                 if (splineComponent.RenderSettings.SegmentsMaterial == null || splineComponent.RenderSettings.SegmentsMaterial.Passes.Count == 0)
                     return;
 
-
+                // Always perform cleanup
+                DestroySplineRenderer(context, splineComponent.Entity);
+                
                 var totalNodesCount = splineComponent.Nodes.Count;
 
                 if (totalNodesCount > 1)
@@ -108,7 +120,6 @@ namespace Stride.Engine.Splines.Processors
                 }
 
                 // Update spline renderer
-
                 var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
                 var existingRendererEntity = splineComponent.Entity.FindChild("SplineRenderer");
                 var splineMeshEntity = SplineRenderer.Create(existingRendererEntity, splineComponent.Spline, splineComponent.RenderSettings, graphicsDeviceService?.GraphicsDevice,
@@ -122,6 +133,19 @@ namespace Stride.Engine.Splines.Processors
 
             //Now that dirty splines are updated, clear the collection
             splineComponentsToUpdate.Clear();
+        }
+
+
+        private static void DestroySplineRenderer(RenderContext context, Entity entity)
+        {
+            var existingRenderer = entity.FindChild("SplineRenderer");
+            if (existingRenderer == null)
+            {
+                return;
+            }
+
+            entity.RemoveChild(existingRenderer);
+            existingRenderer.Scene = null;
         }
     }
 }

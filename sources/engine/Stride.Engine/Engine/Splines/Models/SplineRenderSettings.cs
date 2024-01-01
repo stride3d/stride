@@ -11,7 +11,10 @@ namespace Stride.Engine.Splines.Models
         private bool showSegments;
         private bool showBoundingBox;
         private bool showNodes;
-
+        private Material segmentsMaterial;
+        private Material boundingBoxMaterial;
+        private Material nodesMaterial;
+        
         public delegate void SplineRendererSettingsUpdatedHandler();
 
         public event SplineRendererSettingsUpdatedHandler OnRendererSettingsUpdated;
@@ -38,7 +41,19 @@ namespace Stride.Engine.Splines.Models
         /// The material used by the spline mesh
         /// </summary>
         [Display(20, "Segments material")] 
-        public Material SegmentsMaterial;
+        public Material SegmentsMaterial
+        {
+            get
+            {
+                return segmentsMaterial;
+            }
+            set
+            {
+                segmentsMaterial = value;
+
+                OnRendererSettingsUpdated?.Invoke();
+            }
+        }
 
         /// <summary>
         /// Display Spline nodes
@@ -62,7 +77,19 @@ namespace Stride.Engine.Splines.Models
         /// The material used by the spline nodes mesh
         /// </summary>
         [Display(26, "Nodes material")] 
-        public Material NodesMaterial;
+        public Material NodesMaterial
+        {
+            get
+            {
+                return nodesMaterial;
+            }
+            set
+            {
+                nodesMaterial = value;
+
+                OnRendererSettingsUpdated?.Invoke();
+            }
+        }
 
         /// <summary>
         /// Display the bounding boxes of each node and the entire spline
@@ -83,6 +110,18 @@ namespace Stride.Engine.Splines.Models
         /// The material used by the spline boundingboxes
         /// </summary>
         [Display(40, "Boundingbox material")] 
-        public Material BoundingBoxMaterial;
+        public Material BoundingBoxMaterial
+        {
+            get
+            {
+                return boundingBoxMaterial;
+            }
+            set
+            {
+                boundingBoxMaterial = value;
+
+                OnRendererSettingsUpdated?.Invoke();
+            }
+        }
     }
 }
