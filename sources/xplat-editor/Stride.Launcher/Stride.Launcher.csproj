@@ -17,5 +17,31 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <AvaloniaResource Remove="Assets\Localization\**" />
+    <EmbeddedResource Update="Assets\Localization\Strings.ja-JP.resx" />
+    <EmbeddedResource Update="Assets\Localization\Strings.resx">
+      <SubType>Designer</SubType>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Assets\Localization\Urls.ja-JP.resx" />
+    <EmbeddedResource Update="Assets\Localization\Urls.resx">
+      <SubType>Designer</SubType>
+      <LastGenOutput>Urls.Designer.cs</LastGenOutput>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <Compile Update="Assets\Localization\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Assets\Localization\Urls.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Urls.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
   <Import Project="$(StrideSdkTargets)" />
 </Project>

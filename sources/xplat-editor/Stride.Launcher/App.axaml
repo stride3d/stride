@@ -2,6 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Stride.Launcher.App"
              RequestedThemeVariant="Dark">
+  <Application.Resources>
+    <ResourceDictionary>
+      <Image x:Key="ImageFacebook"
+             Height="24" Width="24"
+             Source="/Assets/Images/facebook.png" />
+      <Image x:Key="ImageOpenCollective"
+             Height="24" Width="24"
+             Source="/Assets/Images/opencollective.png" />
+      <Image x:Key="ImageReddit"
+             Height="24" Width="24"
+             Source="/Assets/Images/reddit.png" />
+      <Image x:Key="ImageTwitter"
+             Height="24" Width="24"
+             Source="/Assets/Images/twitter.png" />
+    </ResourceDictionary>
+  </Application.Resources>
+
   <Application.Styles>
     <FluentTheme />
   </Application.Styles>
