@@ -223,12 +223,13 @@ namespace Stride.Core.Assets
                         if (tryCount == 1)
                             throw;
 
-                        foreach (var process in new[] { "Stride.ConnectionRouter" }.SelectMany(Process.GetProcessesByName))
+                        foreach (var process in new[] { "Stride.ConnectionRouter", "Stride.VisualStudio.Commands" }.SelectMany(Process.GetProcessesByName))
                         {
                             try
                             {
                                 if (process.Id != Process.GetCurrentProcess().Id)
                                 {
+                                    logger.LogWarning($"Failed to restore NuGet, killing '{process.ProcessName}' to hopefully release locks held by it - VS extension will break");
                                     process.Kill();
                                     process.WaitForExit();
                                 }
