@@ -13,7 +13,7 @@ namespace Stride.Engine.Splines.Components
     /// </summary>
     [DataContract("SplineTraverserComponent")]
     [Display("Spline Traverser", Expand = ExpandRule.Once)]
-    [DefaultEntityComponentProcessor(typeof(SplineTraverserTransformProcessor), ExecutionMode = ExecutionMode.Runtime)]
+    [DefaultEntityComponentProcessor(typeof(SplineTraverserProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Splines")]
     public sealed class SplineTraverserComponent : EntityComponent
     {

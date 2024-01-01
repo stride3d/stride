@@ -13,27 +13,26 @@ namespace Stride.Engine.Splines.Processors
     /// <summary>
     /// The processor for <see cref="SplineComponent"/>.
     /// </summary>
-    public class SplineTransformProcessor : EntityProcessor<SplineComponent, SplineTransformProcessor.SplineTransformationInfo>
+    public class SplineProcessor : EntityProcessor<SplineComponent, SplineProcessor.SplineTransformationInfo>
     {
         private HashSet<SplineComponent> splineComponentsToUpdate = new();
         private SplineBuilder splineBuilder;
+        private SplineRenderer SplineRenderer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SplineTransformProcessor"/> class.
+        /// Initializes a new instance of the <see cref="SplineProcessor"/> class.
         /// </summary>
-        public SplineTransformProcessor()
+        public SplineProcessor()
             : base(typeof(TransformComponent))
         {
             splineBuilder = new SplineBuilder();
+            SplineRenderer = new SplineRenderer();
         }
 
         protected override SplineTransformationInfo GenerateComponentData(Entity entity, SplineComponent component)
         {
-            var transformationInfo = new SplineTransformationInfo
-            {
-                TransformOperation = new SplineViewHierarchyTransformOperation(component),
-            };
-            
+            var transformationInfo = new SplineTransformationInfo { TransformOperation = new SplineViewHierarchyTransformOperation(component), };
+
             return transformationInfo;
         }
 
@@ -58,7 +57,8 @@ namespace Stride.Engine.Splines.Processors
         public class SplineTransformationInfo
         {
             public SplineViewHierarchyTransformOperation TransformOperation;
-            public void Update(SplineTransformProcessor processor, SplineComponent component)
+
+            public void Update(SplineProcessor processor, SplineComponent component)
             {
                 processor.splineComponentsToUpdate.Add(component);
             }
@@ -68,16 +68,9 @@ namespace Stride.Engine.Splines.Processors
         {
             foreach (var splineComponent in splineComponentsToUpdate)
             {
-                if (splineComponent.SplineRenderer.SegmentsMaterial == null || splineComponent.SplineRenderer.SegmentsMaterial.Passes.Count == 0)
+                if (splineComponent.RenderSettings.SegmentsMaterial == null || splineComponent.RenderSettings.SegmentsMaterial.Passes.Count == 0)
                     return;
 
-                // Always perform cleanup
-                var existingRenderer = splineComponent.Entity.FindChild("SplineRenderer");
-                if (existingRenderer != null)
-                {
-                    splineComponent.Entity.RemoveChild(existingRenderer);
-                    SceneInstance.GetCurrent(context)?.Remove(existingRenderer);
-                }
 
                 var totalNodesCount = splineComponent.Nodes.Count;
 
@@ -109,18 +102,21 @@ namespace Stride.Engine.Splines.Processors
 
                 splineBuilder.CalculateSpline(splineComponent.Spline);
 
-                if (!splineComponent.SplineRenderer.Segments && !splineComponent.SplineRenderer.BoundingBox)
+                if (!splineComponent.RenderSettings.ShowSegments && !splineComponent.RenderSettings.ShowBoundingBox)
                 {
                     continue;
                 }
 
                 // Update spline renderer
-                var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
-                var splineDebugEntity = splineComponent.SplineRenderer.Create(splineComponent.Spline, graphicsDeviceService?.GraphicsDevice, splineComponent.Entity);
 
-                if (splineDebugEntity != null)
+                var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
+                var existingRendererEntity = splineComponent.Entity.FindChild("SplineRenderer");
+                var splineMeshEntity = SplineRenderer.Create(existingRendererEntity, splineComponent.Spline, splineComponent.RenderSettings, graphicsDeviceService?.GraphicsDevice,
+                    splineComponent.Entity);
+
+                if (splineMeshEntity != null && existingRendererEntity == null)
                 {
-                    splineComponent.Entity.AddChild(splineDebugEntity);
+                    splineComponent.Entity.AddChild(splineMeshEntity);
                 }
             }
 

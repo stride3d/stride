@@ -16,13 +16,13 @@ namespace Stride.Engine.Splines.Components
     /// </summary>
     [DataContract("SplineComponent")]
     [Display("Spline", Expand = ExpandRule.Once)]
-    [DefaultEntityComponentProcessor(typeof(SplineTransformProcessor))]
+    [DefaultEntityComponentProcessor(typeof(SplineProcessor))]
     [ComponentCategory("Splines")]
     public sealed class SplineComponent : EntityComponent
     {
         private List<SplineNodeComponent> splineNodesComponents;
         private Vector3 previousPosition;
-        private SplineRenderer splineRenderer;
+        private SplineRenderSettings renderSettings;
         private Spline spline;
         private SplineBuilder splineBuilder;
 
@@ -85,21 +85,21 @@ namespace Stride.Engine.Splines.Components
         /// A spline renderer is used to visualise the spline
         /// </summary>
         [Display(50, "Spline renderer")]
-        public SplineRenderer SplineRenderer
+        public SplineRenderSettings RenderSettings
         {
             get
             {
-                if (splineRenderer == null)
+                if (renderSettings == null)
                 {
-                    splineRenderer = new SplineRenderer();
-                    splineRenderer.OnSplineRendererSettingsUpdated += SplineRenderer_OnSplineRendererSettingsUpdated;
+                    renderSettings = new SplineRenderSettings();
+                    renderSettings.OnRendererSettingsUpdated += OnRenderSettingsSettingsUpdated;
                 }
 
-                return splineRenderer;
+                return renderSettings;
             }
             set
             {
-                splineRenderer = value;
+                renderSettings = value;
             }
         }
 
@@ -132,7 +132,7 @@ namespace Stride.Engine.Splines.Components
             previousPosition = Entity.Transform.Position;
         }
 
-        private void SplineRenderer_OnSplineRendererSettingsUpdated()
+        private void OnRenderSettingsSettingsUpdated()
         {
             Spline.EnqueueSplineUpdate();
         }

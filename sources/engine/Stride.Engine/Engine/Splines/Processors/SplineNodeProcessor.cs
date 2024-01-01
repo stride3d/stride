@@ -9,12 +9,12 @@ namespace Stride.Engine.Splines.Processors
     /// <summary>
     /// The processor for <see cref="SplineNodeComponent"/>.
     /// </summary>
-    public class SplineNodeTransformProcessor : EntityProcessor<SplineNodeComponent, SplineNodeTransformProcessor.SplineNodeTransformationInfo>
+    public class SplineNodeProcessor : EntityProcessor<SplineNodeComponent, SplineNodeProcessor.SplineNodeTransformationInfo>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SplineTransformProcessor"/> class.
+        /// Initializes a new instance of the <see cref="SplineProcessor"/> class.
         /// </summary>
-        public SplineNodeTransformProcessor()
+        public SplineNodeProcessor()
             : base(typeof(TransformComponent))
         {
         }

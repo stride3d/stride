@@ -13,14 +13,14 @@ namespace Stride.Engine.Splines.Processors
     /// <summary>
     /// The processor for <see cref="SplineTraverserComponent"/>.
     /// </summary>
-    public class SplineTraverserTransformProcessor : EntityProcessor<SplineTraverserComponent, SplineTraverserTransformProcessor.SplineTraverserTransformationInfo>
+    public class SplineTraverserProcessor : EntityProcessor<SplineTraverserComponent, SplineTraverserProcessor.SplineTraverserTransformationInfo>
     {
         private HashSet<SplineTraverserComponent> splineTraverserComponents = new();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SplineTransformProcessor"/> class.
+        /// Initializes a new instance of the <see cref="SplineProcessor"/> class.
         /// </summary>
-        public SplineTraverserTransformProcessor()
+        public SplineTraverserProcessor()
             : base(typeof(TransformComponent))
         {
         }

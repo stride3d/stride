@@ -11,6 +11,7 @@ namespace Stride.Engine.Splines
     public class SplineBuilder
     {
         private BezierCurveBuilder bezierCurveBuilder;
+        
         /// <summary>
         /// Calculates the spline curves using its splines nodes
         /// Update the bounding box of the <see cref="Spline"/>
@@ -66,7 +67,8 @@ namespace Stride.Engine.Splines
 
             spline.TotalSplineDistance = GetTotalSplineLength(spline);
             UpdateBoundingBox(spline);
-
+            
+            
             //Trigger the Spline Updated event
             spline.SplineUpdated();
         }

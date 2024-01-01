@@ -60,11 +60,9 @@ namespace Stride.Engine.Splines.Models
 
                     uvY = totalDistance / 1;
                 }
-
-                // Calculate color
+                
                 var color = Color.White;
-
-                // Alpha fades out at edges
+                
                 if (i == 0 || i == points.Length - 1)
                     color.A = 0;
 
@@ -112,8 +110,7 @@ namespace Stride.Engine.Splines.Models
                 IndexBuffer = new IndexBufferBinding(indexBuffer, true, indices.Count),
                 VertexBuffers = new[] { new VertexBufferBinding(buffer, VertexPositionNormalTexture.Layout, buffer.ElementCount) }
             };
-
-
+            
             return meshDraw;
         }
         
