@@ -16,10 +16,19 @@
       <Image x:Key="ImageTwitter"
              Height="24" Width="24"
              Source="/Assets/Images/twitter.png" />
+
+      <SolidColorBrush x:Key="BackgroundEmphasis" Color="#900520"/>
     </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
     <FluentTheme />
+
+    <Style Selector="Button.MediaButton:pointerover">
+      <Setter Property="Opacity" Value="0.6"/>
+    </Style>
+    <Style Selector="Button.TransparentButton">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
   </Application.Styles>
 </Application>

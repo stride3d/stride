@@ -2,11 +2,184 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:l="using:Stride.Launcher.Assets.Localization"
+             xmlns:srv="using:Stride.Launcher.Services"
              xmlns:vm="using:Stride.Launcher.ViewModels"
+             xmlns:vw="using:Stride.Launcher.Views"
              mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
              x:Class="Stride.Launcher.Views.MainView"
              x:DataType="vm:MainViewModel">
   <UserControl.Background>
     <ImageBrush Source="/Assets/Images/robot.png" Stretch="UniformToFill"/>
   </UserControl.Background>
+
+  <Grid>
+    <DockPanel>
+      <!-- Status -->
+      <Border DockPanel.Dock="Bottom"
+              Background="{StaticResource BackgroundEmphasis}"
+              Padding="8,4">
+        <Grid ColumnDefinitions="3*, *, Auto">
+          <TextBlock Grid.Column="0"
+                     HorizontalAlignment="Left" VerticalAlignment="Center"
+                     Text="{Binding CurrentToolTip}"/>
+          <Button Grid.Column="1"
+                  Classes="TransparentButton"
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  ToolTip.Tip="Click to reconnect…"
+                  IsVisible="{Binding IsOffline}"
+                  Command="{Binding ReconnectCommand}">
+            <TextBlock FontWeight="ExtraBold" Foreground="Gold" Text="Offline" />
+          </Button>
+          <TextBlock Grid.Column="2"
+                     HorizontalAlignment="Right" VerticalAlignment="Center"
+                     Text="{Binding Source={x:Static srv:SelfUpdater.Version}, StringFormat=Launcher v{0}}"/>
+        </Grid>
+      </Border>
+      <Border>
+        <Grid ColumnDefinitions="Auto, *">
+          <!-- FIRST COLUMN -->
+          <DockPanel Grid.Column="0">
+            <Border DockPanel.Dock="Bottom">
+              <DockPanel>
+                <!-- Media buttons -->
+                <StackPanel DockPanel.Dock="Bottom"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Twitter}"
+                          Content="{StaticResource ImageTwitter}" />
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Facebook}"
+                          Content="{StaticResource ImageFacebook}" />
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Reddit}"
+                          Content="{StaticResource ImageReddit}" />
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.OpenCollective}"
+                          Content="{StaticResource ImageOpenCollective}" />
+                </StackPanel>
+                <!-- Community links -->
+                <UniformGrid Columns="2">
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Issues}">
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/issues.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonIssues}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Forums}">
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/chat.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonForums}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Discord}">
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/discord.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonDiscord}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.GitHub}">
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/github.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonGitHub}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Roadmap}">
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/roadmap.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonRoadmap}" />
+                    </StackPanel>
+                  </Button>
+                </UniformGrid>
+              </DockPanel>
+            </Border>
+            <DockPanel>
+              <Border>
+                <StackPanel>
+                  <Grid>
+                    <!-- Launch game studio -->
+                    <Button Command="{Binding StartStudioCommand}"
+                            Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.StartVersion}}"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            Background="{StaticResource BackgroundEmphasis}"
+                            IsEnabled="{sd:MultiBinding {Binding ActiveVersion.IsProcessing}
+                                                        {Binding StartStudioCommand.IsEnabled}
+                                                        Converter={sd:AndMulti}}"
+                            IsVisible="{Binding ActiveVersion.CanStart}" />
+                    <!-- Install specific version -->
+                    <Button />
+                    <!-- Install latest version (nothing installed) -->
+                    <Button />
+                  </Grid>
+                </StackPanel>
+              </Border>
+            </DockPanel>
+          </DockPanel>
+          <Grid Grid.Column="1">
+            <!-- SECOND COLUMN -->
+            <Border>
+              <!-- Recent projects  -->
+              <DockPanel>
+
+              </DockPanel>
+            </Border>
+            <!-- THIRD COLUMN -->
+            <Border>
+              <TabControl>
+                <!-- Getting started -->
+                <TabItem>
+
+                </TabItem>
+                <!-- News -->
+                <TabItem>
+
+                </TabItem>
+              </TabControl>
+            </Border>
+          </Grid>
+          <Grid Grid.Column="1">
+            <!-- Release notes -->
+            <DockPanel>
+
+            </DockPanel>
+          </Grid>
+        </Grid>
+      </Border>
+    </DockPanel>
+    <!-- Announcements -->
+    <Border IsVisible="{Binding Announcement, Converter={sd:ObjectToBool}}">
+      <vw:Announcement DataContext="{Binding Announcement}" />
+    </Border>
+  </Grid>
 </UserControl>
