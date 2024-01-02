@@ -1,5 +1,10 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using Stride.Core.Reflection;
+
+[assembly: InternalsVisibleTo("Stride.BepuPhysics.DebugRender")]
+[assembly: InternalsVisibleTo("Stride.BepuPhysics.Navigation")]
+[assembly: InternalsVisibleTo("Stride.BepuPhysics.Soft")]
 
 namespace Stride.BepuPhysics
 {

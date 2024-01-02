@@ -18,11 +18,8 @@ using Mesh = BepuPhysics.Collidables.Mesh;
 
 namespace Stride.BepuPhysics.Processors
 {
-    public class ContainerData
+    internal class ContainerData
     {
-        [DataMemberIgnore]
-        public TypedIndex ShapeIndex { get; private set; }
-
         private readonly ContainerComponent _containerComponent;
         private readonly BepuConfiguration _config;
         private readonly IGame _game;
@@ -30,24 +27,21 @@ namespace Stride.BepuPhysics.Processors
         private BodyInertia _shapeInertia;
         private bool _isStatic;
         private bool _exist;
-        private VisibilityGroup? _visibilityGroup;
 
         internal BepuSimulation BepuSimulation => _config.BepuSimulations[_containerComponent.SimulationIndex];
 
-        internal BodyHandle BHandle { get; set; } = new(-1);
-        internal StaticHandle SHandle { get; set; } = new(-1);
+        internal BodyHandle BHandle { get; private set; } = new(-1);
+        internal StaticHandle SHandle { get; private set; } = new(-1);
+        internal TypedIndex ShapeIndex { get; private set; }// = new(-1, -1);
 
         internal bool Exist => _exist;
         internal bool IsStatic => _isStatic;
 
-        public ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game)
+        internal ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game)
         {
-            _config = config;
             _containerComponent = containerComponent;
+            _config = config;
             _game = game;
-            var a = _game.Services.GetService<SceneSystem>();
-            if (a.SceneInstance != null)
-                _visibilityGroup = a.SceneInstance.VisibilityGroups.FirstOrDefault();
         }
 
         internal void TryUpdateContainer()
@@ -85,7 +79,6 @@ namespace Stride.BepuPhysics.Processors
                 BepuSimulation.CollidableMaterials[SHandle] = mat;
             else
                 BepuSimulation.CollidableMaterials[BHandle] = mat;
-
         }
         internal void RebuildContainer()
         {
@@ -145,9 +138,9 @@ namespace Stride.BepuPhysics.Processors
                         collider.Entity.Transform.UpdateWorldMatrix();
                         collider.Entity.Transform.WorldMatrix.Decompose(out Vector3 colliderWorldScale, out Quaternion colliderWorldRotation, out Vector3 colliderWorldTranslation);
 
-                        var localTra =  Vector3.Transform(colliderWorldTranslation - containerWorldTranslation, Quaternion.Invert(containerWorldRotation));
-                        
-                        var calcul = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation; 
+                        var localTra = Vector3.Transform(colliderWorldTranslation - containerWorldTranslation, Quaternion.Invert(containerWorldRotation));
+
+                        var calcul = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation;
                         var shouldHave = collider.Entity.Transform.Rotation;
                         var localRot = shouldHave;
 
@@ -289,8 +282,6 @@ namespace Stride.BepuPhysics.Processors
             else
                 return BepuSimulation.ContactEvents.IsListener(BHandle);
         }
-
-    
 
         private static void CollectComponentsInHierarchy<T, T2>(Entity entity, ContainerComponent entityContainer, T2 collection) where T : EntityComponent where T2 : ICollection<T>
         {

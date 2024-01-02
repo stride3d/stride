@@ -32,7 +32,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
             var configService = Services.GetService<IGameSettingsService>();
             _bepuConfiguration = configService.Settings.Configurations.Get<BepuConfiguration>();
             _game = Services.GetService<IGame>();
-            _wireframeRenderFeature = _game.GameSystems.OfType<SceneSystem>().First().GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault(); ;
+            _wireframeRenderFeature = _game.GameSystems.OfType<SceneSystem>().First().GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault();//We should add the RenderFeature if missing
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] DebugRenderComponent component, [NotNull] DebugRenderComponent data)
@@ -41,6 +41,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         }
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] DebugRenderComponent component, [NotNull] DebugRenderComponent data)
         {
+
         }
 
         //internal void UpdateDebugRender()
