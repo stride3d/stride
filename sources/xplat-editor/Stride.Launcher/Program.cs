@@ -3,7 +3,7 @@
 
 using Avalonia;
 
-namespace Stride.Launcher.Desktop;
+namespace Stride.Launcher;
 
 internal sealed class Program
 {
