@@ -180,11 +180,15 @@
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
 
   <!-- Generate localization satellite assemblies -->
+  <PropertyGroup>
+    <!-- Unless explicitly requested, only build them for packages to save dev time -->
+    <StrideBuildLocalization Condition="'$(StrideBuildLocalization)' == '' And '$(StridePackageBuild)' == 'true'">true</StrideBuildLocalization>
+  </PropertyGroup>
   <Target Name="StrideGenerateLocalizationSatelliteDlls"
           BeforeTargets="SatelliteDllsProjectOutputGroup"
           AfterTargets="Build"
           Returns="@(SatelliteDllsProjectOutputGroupOutput)"
-          Condition="'$(StrideLocalized)' == 'true'">
+          Condition="'$(StrideLocalized)' == 'true' And '$(StrideBuildLocalization)' == 'true'">
 
     <ItemGroup>
       <!-- Current list of languages to try to generate -->
