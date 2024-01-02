@@ -25,14 +25,14 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         public DebugRenderProcessor()
         {
-            Order = 10000;
+            Order = 10200;
         }
         protected override void OnSystemAdd()
         {
-            var configService = Services.GetService<IGameSettingsService>();
-            _bepuConfiguration = configService.Settings.Configurations.Get<BepuConfiguration>();
-            _game = Services.GetService<IGame>();
-            _wireframeRenderFeature = _game.GameSystems.OfType<SceneSystem>().First().GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault();//We should add the RenderFeature if missing
+            //var configService = Services.GetService<IGameSettingsService>();
+            //_bepuConfiguration = configService.Settings.Configurations.Get<BepuConfiguration>();
+            //_game = Services.GetService<IGame>();
+            //_wireframeRenderFeature = _game.GameSystems.OfType<SceneSystem>().First().GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault();//We should add the RenderFeature if missing
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] DebugRenderComponent component, [NotNull] DebugRenderComponent data)

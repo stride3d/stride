@@ -8,15 +8,10 @@ using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
 
-#warning I don't think this would have any actual use, you can keep this internal if you want to keep it for debugging purposes
-//Nicogo : i'm mostly ok with that statement, but it's here & free, i think someone will find an use case ;)
-
-namespace Stride.BepuPhysics.Components.Colliders
+namespace Stride.BepuPhysics.Definitions.Colliders
 {
     [DataContract]
-    [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Colliders")]
-    public sealed class TriangleColliderComponent : ColliderComponent
+    public sealed class TriangleCollider : ColliderBase
     {
         private Vector3 _a = new(1, 1, 1);
         private Vector3 _b = new(1, 1, 1);

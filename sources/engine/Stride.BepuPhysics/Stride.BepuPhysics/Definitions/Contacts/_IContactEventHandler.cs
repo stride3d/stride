@@ -1,7 +1,8 @@
 ﻿using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 
-namespace Stride.BepuPhysics.Definitions.Collisions;
+namespace Stride.BepuPhysics.Definitions.Contacts
+{
 /// <summary>
 /// Implements handlers for various collision events.
 /// </summary>
@@ -104,4 +105,5 @@ public interface IContactEventHandler
     void OnPairEnded(CollidableReference eventSource, CollidablePair pair)
     {
     }
+}
 }

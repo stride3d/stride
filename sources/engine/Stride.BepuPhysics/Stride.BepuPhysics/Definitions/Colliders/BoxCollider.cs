@@ -2,32 +2,31 @@
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
 
-namespace Stride.BepuPhysics.Components.Colliders
+namespace Stride.BepuPhysics.Definitions.Colliders
 {
     [DataContract]
-    [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Colliders")]
-    public sealed class SphereColliderComponent : ColliderComponent
+    public sealed class BoxCollider : ColliderBase
     {
-        private float _radius = 1f;
+        private Vector3 _size = new(1, 1, 1);
 
-        public float Radius
+        public Vector3 Size
         {
-            get => _radius;
+            get => _size;
             set
             {
-                _radius = value;
+                _size = value;
                 Container?.ContainerData?.TryUpdateContainer();
             }
         }
 
         internal override void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose)
         {
-            builder.Add(new Sphere(Radius), localPose, Mass);
+            builder.Add(new Box(Size.X, Size.Y, Size.Z), localPose, Mass);
         }
     }
 }

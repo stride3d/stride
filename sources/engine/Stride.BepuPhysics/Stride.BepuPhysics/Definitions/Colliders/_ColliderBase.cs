@@ -3,19 +3,19 @@ using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
 
-namespace Stride.BepuPhysics.Components.Colliders
+namespace Stride.BepuPhysics.Definitions.Colliders
 {
     [DataContract(Inherited = true)]
-    [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Colliders")]
-    [AllowMultipleComponents]
-    public abstract class ColliderComponent : EntityComponent
+    public abstract class ColliderBase
     {
         private float _mass = 1f;
+        private Vector3 _linearOffset = Vector3.Zero;
+        private Vector3 _rotationOffset = Vector3.Zero;
 
         public float Mass
         {
@@ -23,6 +23,24 @@ namespace Stride.BepuPhysics.Components.Colliders
             set
             {
                 _mass = value;
+                Container?.ContainerData?.TryUpdateContainer();
+            }
+        }
+        public Vector3 LinearOffset
+        {
+            get => _linearOffset;
+            set
+            {
+                _linearOffset = value;
+                Container?.ContainerData?.TryUpdateContainer();
+            }
+        }
+        public Vector3 RotationOffset
+        {
+            get => _rotationOffset;
+            set
+            {
+                _rotationOffset = value;
                 Container?.ContainerData?.TryUpdateContainer();
             }
         }

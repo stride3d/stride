@@ -2,10 +2,10 @@
 using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
-using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -91,8 +91,8 @@ namespace Stride.BepuPhysics.Processors
             _containerComponent.Entity.Transform.UpdateWorldMatrix();
             _containerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
 
-            var colliders = new List<ColliderComponent>();
-            CollectComponentsInHierarchy<ColliderComponent, List<ColliderComponent>>(_containerComponent.Entity, _containerComponent, colliders);
+            var colliders = _containerComponent.Colliders;
+            //CollectComponentsInHierarchy<ColliderBase, List<ColliderBase>>(_containerComponent.Entity, _containerComponent, colliders);
 
             if (_containerComponent is IMeshContainerComponent meshContainer)
             {
@@ -125,6 +125,7 @@ namespace Stride.BepuPhysics.Processors
             }
             else if (colliders.Count == 0)
             {
+#warning : maybe we should allow without colliders containers.
                 DestroyContainer();
                 return;
             }
@@ -135,18 +136,11 @@ namespace Stride.BepuPhysics.Processors
                 {
                     foreach (var collider in colliders)
                     {
-                        collider.Entity.Transform.UpdateWorldMatrix();
-                        collider.Entity.Transform.WorldMatrix.Decompose(out Vector3 colliderWorldScale, out Quaternion colliderWorldRotation, out Vector3 colliderWorldTranslation);
+                        var localTranslation = collider.LinearOffset;
+                        var localRotation = collider.RotationOffset;
 
-                        var localTra = Vector3.Transform(colliderWorldTranslation - containerWorldTranslation, Quaternion.Invert(containerWorldRotation));
-
-                        var calcul = Quaternion.Invert(containerWorldRotation) * colliderWorldRotation;
-                        var shouldHave = collider.Entity.Transform.Rotation;
-                        var localRot = shouldHave;
-
-                        var localPose = new RigidPose(localTra.ToNumericVector(), localRot.ToNumericQuaternion());
-
-                        collider.AddToCompoundBuilder(_game, ref compoundBuilder, localPose);
+                        var compoundChildLocalPose = new RigidPose(localTranslation.ToNumericVector(), Quaternion.RotationYawPitchRoll(MathUtil.DegreesToRadians(localRotation.Y), MathUtil.DegreesToRadians(localRotation.X), MathUtil.DegreesToRadians(localRotation.Z)).ToNumericQuaternion());
+                        collider.AddToCompoundBuilder(_game, ref compoundBuilder, compoundChildLocalPose);
                         collider.Container = _containerComponent;
                     }
 
@@ -282,34 +276,7 @@ namespace Stride.BepuPhysics.Processors
             else
                 return BepuSimulation.ContactEvents.IsListener(BHandle);
         }
-
-        private static void CollectComponentsInHierarchy<T, T2>(Entity entity, ContainerComponent entityContainer, T2 collection) where T : EntityComponent where T2 : ICollection<T>
-        {
-            entityContainer.ChildsContainerComponent.Clear();
-            var stack = new Stack<Entity>();
-            stack.Push(entity);
-            do
-            {
-                var descendant = stack.Pop();
-                foreach (var child in descendant.Transform.Children)
-                    stack.Push(child.Entity);
-
-                if (entity != descendant) //if a child entity that is not the main Entity has a container, we don't Add it's colliders and we register it as a child.
-                {
-                    var childContainerComponent = descendant.Get<ContainerComponent>();
-                    if (childContainerComponent != null)
-                    {
-                        entityContainer.ChildsContainerComponent.Add(childContainerComponent);
-                        continue;
-                    }
-                }
-
-                foreach (var component in descendant.GetAll<T>())
-                {
-                    collection.Add(component);
-                }
-            } while (stack.Count > 0);
-        }
+       
         private static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractMeshDataSlow(Model model, IGame game, BufferPool pool)
         {
             int totalIndices = 0;

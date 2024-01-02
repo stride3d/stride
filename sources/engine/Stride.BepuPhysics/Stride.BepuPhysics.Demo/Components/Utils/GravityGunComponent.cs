@@ -47,14 +47,14 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             _oblscc.ServoMaximumSpeed = float.MaxValue;
             _oblscc.ServoBaseSpeed = 0;
             _oblscc.ServoMaximumForce = 1000;
-            _oblscc.Bodies.Add(body);
+            _oblscc.BodyContainers.Add(body);
             _oblscc.Enabled = false;
 
             _obascc = new OneBodyAngularServoConstraintComponent();
             _obascc.ServoMaximumSpeed = float.MaxValue;
             _obascc.ServoBaseSpeed = 0;
             _obascc.ServoMaximumForce = 1000;
-            _obascc.Bodies.Add(body);
+            _obascc.BodyContainers.Add(body);
             _obascc.Enabled = false;
 
             body.Entity.Add(_oblscc);

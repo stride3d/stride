@@ -1,4 +1,6 @@
-﻿using Stride.BepuPhysics.Configurations;
+﻿using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Engine;
@@ -25,11 +27,11 @@ namespace Stride.BepuPhysics.Components.Constraints
                 UntypedConstraintData?.RebuildConstraint();
             }
         }
-        public BodyContainerList Bodies { get; set; } = new();
+        public ListOfContainer BodyContainers { get; set; } = new();
 
         public ConstraintComponentBase()
         {
-            Bodies.OnEditCallBack = () => UntypedConstraintData?.RebuildConstraint();
+            BodyContainers.OnEditCallBack = () => UntypedConstraintData?.RebuildConstraint();
         }
 
         public override void Update()

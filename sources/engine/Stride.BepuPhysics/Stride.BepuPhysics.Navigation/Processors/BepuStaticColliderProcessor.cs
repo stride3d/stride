@@ -38,23 +38,23 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 		_sceneSystem = Services.GetService<SceneSystem>();
 		_entityProcessor = _sceneSystem.SceneInstance.GetProcessor<EntityProcessor>();
 		
-		foreach(var entity in _entityProcessor.EntityManager)
-		{
-			var container = entity.Get<StaticContainerComponent>();
-			if (container != null)
-			{
-				foreach (var shape in container.GetShapeData())
-				{
-					BodyShapes.TryAdd(container, shape);
-					// transform the points to world space
-					for (int i = 0; i < shape.Points.Count; i++)
-					{
-						shape.Points[i] = Vector3.Transform(shape.Points[i], container.Orientation);
-						shape.Points[i] = (shape.Points[i] + container.Entity.Transform.WorldMatrix.TranslationVector) + container.CenterOfMass;
-					}
-				}
-			}
-		}
+		//foreach(var entity in _entityProcessor.EntityManager)
+		//{
+		//	var container = entity.Get<StaticContainerComponent>();
+		//	if (container != null)
+		//	{
+		//		foreach (var shape in container.GetShapeData())
+		//		{
+		//			BodyShapes.TryAdd(container, shape);
+		//			// transform the points to world space
+		//			for (int i = 0; i < shape.Points.Count; i++)
+		//			{
+		//				shape.Points[i] = Vector3.Transform(shape.Points[i], container.Orientation);
+		//				shape.Points[i] = (shape.Points[i] + container.Entity.Transform.WorldMatrix.TranslationVector) + container.CenterOfMass;
+		//			}
+		//		}
+		//	}
+		//}
 	}
 
 	protected override StaticContainerComponent GenerateComponentData(Entity entity, StaticContainerComponent component)
@@ -75,11 +75,11 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 
 	protected override void OnEntityComponentAdding(Entity entity, [NotNull] StaticContainerComponent component, [NotNull] StaticContainerComponent data)
 	{
-		foreach(var shape in data.GetShapeData())
-		{
-			BodyShapes.TryAdd(data, shape);
-		}
-		ColliderAdded?.Invoke(data);
+		//foreach(var shape in data.GetShapeData())
+		//{
+		//	BodyShapes.TryAdd(data, shape);
+		//}
+		//ColliderAdded?.Invoke(data);
 	}
 
 	protected override void OnEntityComponentRemoved(Entity entity, [NotNull] StaticContainerComponent component, [NotNull] StaticContainerComponent data)

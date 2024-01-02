@@ -21,7 +21,7 @@ Hierarchy:
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials:
                             8c7bfae1b9a84573d57aa32bd2ec9ca5~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
-                    a614268d090f2df7f7053a581ad1e0f5: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    89fb3d7a9871c157e7a99fcdbf441f82: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 891929fc-576c-4c15-8220-f5c882753275
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -34,10 +34,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                    50f122037dba0c6c910099247886094c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
-                        Id: 7b82ee31-22b1-41a7-bd23-d00f4c102e07
-                        Mass: 0.02
-                        Size: {X: 0.05, Y: 0.05, Z: 0.3}

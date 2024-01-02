@@ -3,19 +3,19 @@ using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Components.Character;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions.Collisions;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Extensions;
 
-namespace Stride.BepuPhysics.Definitions.Character;
+namespace Stride.BepuPhysics.Definitions.Contacts
+{
 public class CharacterContactEventHandler : IContactEventHandler
 {
-    private readonly CharacterComponent _characterComponent;
+    private readonly BepuCharacterComponent _characterComponent;
 
     /// <summary> Order is not guaranteed and may change at any moment </summary>
     public List<(ContainerComponent Source, Contact Contact)> Contacts { get; } = new();
 
-    public CharacterContactEventHandler(CharacterComponent characterComponent)
+    public CharacterContactEventHandler(BepuCharacterComponent characterComponent)
     {
         _characterComponent = characterComponent;
     }
@@ -31,11 +31,11 @@ public class CharacterContactEventHandler : IContactEventHandler
 
         var containerA = GetContainerFromCollidable(pair.A, sim);
         var containerB = GetContainerFromCollidable(pair.B, sim);
-		if (containerA == null || containerB == null)
-		{
-			return;
-		}
-		var otherContainer = _characterComponent.CharacterBody == containerA ? containerB : containerA;
+        if (containerA == null || containerB == null)
+        {
+            return;
+        }
+        var otherContainer = _characterComponent.CharacterBody == containerA ? containerB : containerA;
         for (int i = Contacts.Count - 1; i >= 0; i--)
         {
             if (Contacts[i].Source == otherContainer)
@@ -51,7 +51,7 @@ public class CharacterContactEventHandler : IContactEventHandler
 
         var containerA = GetContainerFromCollidable(pair.A, sim);
         var containerB = GetContainerFromCollidable(pair.B, sim);
-        if(containerA == null || containerB == null)
+        if (containerA == null || containerB == null)
         {
             return;
         }
@@ -77,4 +77,5 @@ public class CharacterContactEventHandler : IContactEventHandler
         return null;
     }
 
+}
 }

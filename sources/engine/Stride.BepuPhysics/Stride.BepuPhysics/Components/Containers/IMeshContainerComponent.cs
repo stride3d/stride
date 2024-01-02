@@ -3,6 +3,7 @@ using Stride.Rendering;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
+#warning We need to make a new type to remove the colliderList for mesh
     public interface IMeshContainerComponent
     {
         public Entity Entity { get; }

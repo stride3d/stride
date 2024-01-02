@@ -8,7 +8,8 @@ using BepuUtilities;
 using BepuUtilities.Collections;
 using BepuUtilities.Memory;
 
-namespace Stride.BepuPhysics.Definitions.Collisions;
+namespace Stride.BepuPhysics.Definitions.Contacts
+{
 /// <summary>
 /// Watches a set of bodies and statics for contact changes and reports events.
 /// </summary>
@@ -321,7 +322,7 @@ public class ContactEvents : IDisposable
                         //At least one contact that used to exist no longer does.
                         for (int previousContactIndex = 0; previousContactIndex < collision.ContactCount; ++previousContactIndex)
                         {
-                            if ((previousContactsStillExist & (1 << previousContactIndex)) == 0)
+                            if ((previousContactsStillExist & 1 << previousContactIndex) == 0)
                             {
                                 listener.Handler.OnContactRemoved(source, pair, ref manifold, Unsafe.Add(ref collision.FeatureId0, previousContactIndex), workerIndex);
                             }
@@ -471,4 +472,5 @@ public class ContactEvents : IDisposable
         listenerIndices.Dispose();
         simulation.Timestepper.BeforeCollisionDetection -= SetFreshnessForCurrentActivityStatus;
     }
+}
 }

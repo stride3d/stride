@@ -12,7 +12,7 @@ public class CharacterControllerComponent : SyncScript
     public Entity? CameraPivot { get; set; }
     public Entity? CharacterEntity { get; set; }
     [DataMemberIgnore]
-    public CharacterComponent? Character { get; set; }
+    public BepuCharacterComponent? Character { get; set; }
 
     public float MinCameraAngle { get; set; } = -90;
     public float MaxCameraAngle { get; set; } = 90;
@@ -21,7 +21,7 @@ public class CharacterControllerComponent : SyncScript
 
     public override void Start()
     {
-        Character = CharacterEntity?.Get<CharacterComponent>();
+        Character = CharacterEntity?.Get<BepuCharacterComponent>();
         Input.LockMousePosition(true);
         Game.IsMouseVisible = false;
 

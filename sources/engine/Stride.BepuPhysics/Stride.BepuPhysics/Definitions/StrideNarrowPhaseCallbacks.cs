@@ -2,7 +2,7 @@
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
-using Stride.BepuPhysics.Definitions.Collisions;
+using Stride.BepuPhysics.Definitions.Contacts;
 
 namespace Stride.BepuPhysics.Definitions
 {

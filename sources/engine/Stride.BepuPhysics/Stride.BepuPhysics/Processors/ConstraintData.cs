@@ -26,16 +26,16 @@ namespace Stride.BepuPhysics.Processors
             DestroyConstraint();
 
 #warning check that the body count == Constraint.BodyCount (some need 1, 2 or more bodies)
-            if (_constraintComponent.Bodies.Count == 0 || !_constraintComponent.Enabled)
+            if (_constraintComponent.BodyContainers.Count == 0 || !_constraintComponent.Enabled)
                 return;
 
-            var simIndex = _constraintComponent.Bodies[0].SimulationIndex;
-            Span<BodyHandle> bodies = stackalloc BodyHandle[_constraintComponent.Bodies.Count];
+            var simIndex = _constraintComponent.BodyContainers[0].SimulationIndex;
+            Span<BodyHandle> bodies = stackalloc BodyHandle[_constraintComponent.BodyContainers.Count];
             int count = 0;
 
             _bepuSimulation = _bepuConfig.BepuSimulations[simIndex];
 
-            foreach (var component in _constraintComponent.Bodies)
+            foreach (var component in _constraintComponent.BodyContainers)
             {
 #warning maybe send a warning, like the missing camera notification in the engine, instead of exception at runtime
                 if (component.SimulationIndex != simIndex)

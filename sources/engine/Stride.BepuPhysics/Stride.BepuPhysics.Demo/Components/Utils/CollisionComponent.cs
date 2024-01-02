@@ -1,7 +1,7 @@
 ﻿using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Components.Containers;
-using Stride.BepuPhysics.Definitions.Collisions;
+using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Extensions;
 using Stride.Engine;
 

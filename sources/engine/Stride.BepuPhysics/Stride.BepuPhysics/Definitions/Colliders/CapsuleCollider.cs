@@ -6,15 +6,13 @@ using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
 
-namespace Stride.BepuPhysics.Components.Colliders
+namespace Stride.BepuPhysics.Definitions.Colliders
 {
     [DataContract]
-    [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Colliders")]
-    public sealed class CylinderColliderComponent : ColliderComponent
+    public sealed class CapsuleCollider : ColliderBase
     {
-        private float _radius = 1f;
-        private float _length = 1f;
+        private float _radius = 0.35f;
+        private float _length = 0.5f;
 
         public float Radius
         {
@@ -38,7 +36,7 @@ namespace Stride.BepuPhysics.Components.Colliders
 
         internal override void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose)
         {
-            builder.Add(new Cylinder(Radius, Length), localPose, Mass);
+            builder.Add(new Capsule(Radius, Length), localPose, Mass);
         }
     }
 }

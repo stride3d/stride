@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
 using BepuPhysics.Collidables;
-using Stride.BepuPhysics.Components.Colliders;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
-using Stride.BepuPhysics.Definitions.Collisions;
+using Stride.BepuPhysics.Definitions.Colliders;
+using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
@@ -42,14 +42,10 @@ namespace Stride.BepuPhysics.Components.Containers
 
         private IContactEventHandler? _contactEventHandler = null;
 
-        internal List<ContainerComponent> ChildsContainerComponent { get; } = new();
 
-        /// <summary>
-        /// ContainerData is the bridge to Bepu.
-        /// Automatically set by processor.
-        /// </summary>
-        [DataMemberIgnore]
+        internal List<ContainerComponent> ChildsContainerComponent { get; } = new();
         internal ContainerData? ContainerData { get; set; }
+
 
         [DataMemberIgnore]
         public IContactEventHandler? ContactEventHandler
@@ -66,10 +62,7 @@ namespace Stride.BepuPhysics.Components.Containers
         }
 
         [DataMemberIgnore]
-        public BepuSimulation? Simulation
-        {
-            get => ContainerData?.BepuSimulation;
-        }
+        public BepuSimulation? Simulation => ContainerData?.BepuSimulation;
 
         public int SimulationIndex
         {
@@ -187,7 +180,18 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        public Vector3 CenterOfMass { get; internal set; } = new Vector3();       
+        public Vector3 CenterOfMass { get; internal set; } = new Vector3();
 
+        public ListOfColliders Colliders { get; set; } = new();
+        //public ListWithOnEditCallback<ColliderBase> CollidersGen { get; set; } = new();
+
+        public ContainerComponent()
+        {
+            Colliders.OnEditCallBack =
+                () =>
+                {
+                    ContainerData?.TryUpdateContainer();
+                };
+        }
     }
 }

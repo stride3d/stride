@@ -5,7 +5,7 @@ using BepuUtilities.Memory;
 using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions;
-using Stride.BepuPhysics.Definitions.Collisions;
+using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;

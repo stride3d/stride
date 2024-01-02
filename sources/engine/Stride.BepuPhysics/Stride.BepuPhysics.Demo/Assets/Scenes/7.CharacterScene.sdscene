@@ -26,7 +26,7 @@ Hierarchy:
                         Id: 4af700c8-d47b-4baf-bc04-9843b70c1518
                         Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
                         Materials: {}
-                    fb3724dbdb6f98a022857cad704f28c1: !Stride.BepuPhysics.Components.Containers.StaticMeshContainerComponent,Stride.BepuPhysics
+                    2892030a3c27bfa024cb81244fc1473a: !Stride.BepuPhysics.Components.Containers.StaticMeshContainerComponent,Stride.BepuPhysics
                         Id: 5e47ca2b-f546-496b-a2d8-777a5c01e2b9
                         SimulationIndex: 1
                         SpringFrequency: 30.0
@@ -39,6 +39,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
                         Mass: 1.0
                         Closed: true
                         Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
@@ -56,11 +57,11 @@ Hierarchy:
                         Id: a6800149-06e4-4a29-beef-db3555f976c5
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    cfe6ca477f4cc95536e596656bac380c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                    cca89af1cde9270c908213a4e3f900a9: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: 3cf1e53c-8417-4063-9221-a87b91de3ef1
                         Mass: 1.0
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
-                    196a2828e44889ac96cd71a74b149182: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    12a5fcba99a3b12926ae3c9148039449: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: b5908f7f-9770-4192-baba-007762533031
                         SimulationIndex: 1
                         SpringFrequency: 30.0
@@ -73,6 +74,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -90,11 +92,11 @@ Hierarchy:
                         Id: c9961867-8cd6-4403-8d07-7d09a77d986a
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    cfe6ca477f4cc95536e596656bac380c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                    3b924ff30403dd6e473ac77485df178a: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: aeea15f8-8379-4ed5-80ab-25910ba08d6d
                         Mass: 1.0
                         Size: {X: 20.0, Y: 1.0, Z: 20.0}
-                    196a2828e44889ac96cd71a74b149182: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    08af4686c5711a95ad4ed36ee98f610d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: 1fc0f90b-0284-4821-b4d5-9ba3a5090237
                         SimulationIndex: 1
                         SpringFrequency: 30.0
@@ -107,6 +109,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -167,11 +170,11 @@ Hierarchy:
                         Id: 093547a1-c196-47ba-8a17-e29c4962de44
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    bdbc7f545c2343e10feb20e6c047b62a: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                    11fd4d33f3dbd116c87941450e6f6721: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: 68c0ae71-0e42-4a88-98ee-a59084a0b558
                         Mass: 1.0
                         Size: {X: 75.0, Y: 0.5, Z: 75.0}
-                    667a6d677839dc9b735795df85f9e0d7: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                    fbcee747e91ecbcf7f565a3180e62221: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
                         Id: 96752ac7-15be-4847-8c4d-d41d35b5990c
                         SimulationIndex: 1
                         SpringFrequency: 30.0
@@ -184,6 +187,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
         -   Entity:
                 Id: 79048271-9d2d-4c88-85d4-af918b1fc277
                 Name: Trig
@@ -199,11 +203,11 @@ Hierarchy:
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials:
                             109b39960c5fe62d147a976f17c859e0~0: cc61e97a-203f-46ef-b432-966557e2ca14:Materials/QRTransMat
-                    cfe6ca477f4cc95536e596656bac380c: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
+                    1b70001d759db612a51a2b03c523dac2: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: 1ee747ba-d2b3-45b9-8133-f9232d2eea5f
                         Mass: 1.0
                         Size: {X: 10.0, Y: 5.0, Z: 10.0}
-                    131b29d1bfa5788de12bb234fb91afd5: !Stride.BepuPhysics.Components.Containers.TriggerContainerComponent,Stride.BepuPhysics
+                    fd93b2cee857b1b57e4782c043e32e85: !Stride.BepuPhysics.Components.Containers.TriggerContainerComponent,Stride.BepuPhysics
                         Id: 4f3dc2aa-51ed-4b02-8fe2-da628f85faaf
                         SimulationIndex: 1
                         SpringFrequency: 30.0
@@ -216,6 +220,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
         -   Entity:
                 Id: 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                 Name: Camera
@@ -306,12 +311,12 @@ Hierarchy:
                         Children:
                             9c043aa05eeeb48303292605df5d47a7: ref!! 208628ad-d844-4b8f-85da-051838e7a82d
                             d598fb00d865cb8c873573206ac94e9f: ref!! c7eaa95d-05cc-4032-84cf-e78be01fb256
-                    0bc21671e675022db8706abb28542933: !Stride.BepuPhysics.Components.Colliders.CapsuleColliderComponent,Stride.BepuPhysics
+                    c36597828e6cd65f971994860f44759f: !Stride.BepuPhysics.Components.Colliders.CapsuleColliderComponent,Stride.BepuPhysics
                         Id: 985dc8b0-37af-465f-ab06-bfd602779684
                         Mass: 1.0
                         Radius: 0.35
                         Length: 0.5
-                    672f629e832394ac3bf7be464b178ae3: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    f50f00721249c3d43505ab33909003e0: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: f6ebac31-2bed-4a87-ba4f-34b56c9a2153
                         SimulationIndex: 1
                         SpringFrequency: 120.0
@@ -324,10 +329,11 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                    b1ce2a2824d6553ad40641980dc23fd3: !Stride.BepuPhysics.Components.Character.CharacterComponent,Stride.BepuPhysics
+                    b072f3fbfb49b24054246e3c15a54b81: !Stride.BepuPhysics.Components.Character.CharacterComponent,Stride.BepuPhysics
                         Id: d2d1354c-76b6-42d4-9515-6ce00e95bf99
                         SimulationIndex: 1
                         Speed: 10.0

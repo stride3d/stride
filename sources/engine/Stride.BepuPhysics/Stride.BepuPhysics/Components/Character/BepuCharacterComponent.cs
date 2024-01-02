@@ -1,6 +1,6 @@
 ﻿using BepuPhysics;
 using Stride.BepuPhysics.Components.Containers;
-using Stride.BepuPhysics.Definitions.Character;
+using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -10,7 +10,7 @@ using NVector3 = System.Numerics.Vector3;
 namespace Stride.BepuPhysics.Components.Character;
 
 [ComponentCategory("Bepu - Character")]
-public class CharacterComponent : SimulationUpdateComponent
+public class BepuCharacterComponent : SimulationUpdateComponent
 {
     private CharacterContactEventHandler? _collisionEvents;
     private bool _tryJump { get; set; }

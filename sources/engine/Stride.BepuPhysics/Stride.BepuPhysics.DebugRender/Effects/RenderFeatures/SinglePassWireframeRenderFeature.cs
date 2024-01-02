@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using Silk.NET.OpenGL;
-using Stride.BepuPhysics.Components.Colliders;
-using Stride.Core;
+﻿using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;

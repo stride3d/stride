@@ -4,6 +4,8 @@ using Stride.Engine;
 
 namespace Stride.BepuPhysics.Components
 {
+
+#warning may be nice to use Interface and Register it to Sim using a processsor.
     public abstract class SimulationUpdateComponent : SyncScript
     {
         private bool _started = false;

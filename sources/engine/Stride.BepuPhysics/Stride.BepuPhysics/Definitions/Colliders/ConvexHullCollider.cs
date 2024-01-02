@@ -4,23 +4,28 @@ using BepuUtilities.Memory;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Physics;
 
-namespace Stride.BepuPhysics.Components.Colliders
+namespace Stride.BepuPhysics.Definitions.Colliders
 {
     [DataContract]
-    [DefaultEntityComponentProcessor(typeof(ColliderProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Colliders")]
-    public sealed class ConvexHullColliderComponent : ColliderComponent
+    public sealed class ConvexHullCollider : ColliderBase
     {
-#warning Replace with an explicit reference to hulls once the asset part for hulls is done
-        public PhysicsColliderShape? Hull;
+        private Vector3 _scale = new(1, 1, 1);
+        public PhysicsColliderShape? Hull { get; set; }
 
-        public ConvexHullColliderComponent()
+        public Vector3 Scale
         {
+            get => _scale;
+            set
+            {
+                _scale = value;
+                Container?.ContainerData?.TryUpdateContainer();
+            }
         }
 
         internal override void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose)
@@ -46,7 +51,7 @@ namespace Stride.BepuPhysics.Components.Colliders
 
             int outputIndex = 0;
             System.Numerics.Vector3[] output = new System.Numerics.Vector3[vertCount];
-            System.Numerics.Vector3 entityScaling = Entity.Transform.Scale.ToNumericVector();
+            System.Numerics.Vector3 colliderScaling = Scale.ToNumericVector();
             foreach (var colliderShapeDesc in Hull.Descriptions)
             {
                 if (colliderShapeDesc is ConvexHullColliderShapeDesc hullDesc)
@@ -60,7 +65,7 @@ namespace Stride.BepuPhysics.Components.Colliders
                             foreach (uint u in hullDesc.ConvexHullsIndices[mesh][hull])
                             {
 #warning Scaling here means that changing entity scale after the fact doesn't affect the physical shape
-                                output[outputIndex++] = verts[(int)u].ToNumericVector() * hullScaling * entityScaling;
+                                output[outputIndex++] = verts[(int)u].ToNumericVector() * hullScaling * colliderScaling;
                             }
                         }
                     }
