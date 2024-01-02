@@ -47,15 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Av
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Launcher", "..\sources\xplat-editor\Stride.Launcher\Stride.Launcher.csproj", "{78695DE1-E621-45DF-975D-CFD407081E23}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Launcher.Desktop", "..\sources\xplat-editor\Stride.Launcher.Desktop\Stride.Launcher.Desktop.csproj", "{923223B7-AB38-45A3-BF41-16E0EDB4A54F}"
-EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -133,10 +125,6 @@ Global
 		{78695DE1-E621-45DF-975D-CFD407081E23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78695DE1-E621-45DF-975D-CFD407081E23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78695DE1-E621-45DF-975D-CFD407081E23}.Release|Any CPU.Build.0 = Release|Any CPU
-		{923223B7-AB38-45A3-BF41-16E0EDB4A54F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{923223B7-AB38-45A3-BF41-16E0EDB4A54F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{923223B7-AB38-45A3-BF41-16E0EDB4A54F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{923223B7-AB38-45A3-BF41-16E0EDB4A54F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -158,9 +146,14 @@ Global
 		{ADE0E241-CBDD-48C3-8F50-98FFE76C03C8} = {706260A8-86D4-432D-9FE0-F312863288F5}
 		{3B613E66-671E-4049-8EF5-43CDAA549210} = {94310FCE-2439-459F-A90E-47AC0F8F6581}
 		{78695DE1-E621-45DF-975D-CFD407081E23} = {94310FCE-2439-459F-A90E-47AC0F8F6581}
-		{923223B7-AB38-45A3-BF41-16E0EDB4A54F} = {94310FCE-2439-459F-A90E-47AC0F8F6581}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {04241BED-1662-4690-BA56-15C99A840CFE}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
+		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
+		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
+		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

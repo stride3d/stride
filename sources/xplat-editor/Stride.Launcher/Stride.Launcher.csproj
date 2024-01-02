@@ -1,16 +1,28 @@
 <Project>
   <Import Project="..\..\targets\Stride.props" />
 
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationIcon>Assets\Launcher.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
-
-    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Directory.Packages.props" Link="Build\Directory.Packages.props" />
+    <None Include="..\Directory.Build.props" Link="Build\Directory.Build.props" />
   </ItemGroup>
 
   <ItemGroup>
