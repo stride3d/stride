@@ -60,7 +60,7 @@ namespace Stride.Core.Threading
 
             public void Wait(int timeout = -1) => internals.Wait(spinCount, lifoSemaphore, timeout);
 
-            public void Release(int releaseCount) => internals.Release(releaseCount, lifoSemaphore);
+            public void Release(int count) => internals.Release(count, lifoSemaphore);
 
             public void Dispose() => lifoSemaphore?.Dispose();
 

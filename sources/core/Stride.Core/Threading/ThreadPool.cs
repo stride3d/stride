@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#pragma warning disable CS8500 // Pointer not constrained to managed type
-
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using System;
@@ -19,6 +17,8 @@ namespace Stride.Core.Threading
     /// </summary>
     public sealed partial class ThreadPool : IDisposable
     {
+        private static readonly Logger Logger = GlobalLogger.GetLogger(nameof(ThreadPool));
+
         /// <summary>
         /// The default instance that the whole process shares, use this one to avoid wasting process memory.
         /// </summary>
@@ -66,11 +66,11 @@ namespace Stride.Core.Threading
             {
                 semaphore = new DotnetLifoSemaphore(spinCount);
             }
-            catch
+            catch(Exception e)
             {
                 // For net6+ this should not happen, logging instead of throwing as this is just a performance regression
                 if(Environment.Version.Major >= 6)
-                    Console.Out?.WriteLine($"{typeof(ThreadPool).FullName}: Falling back to suboptimal semaphore");
+                    Logger.Warning($"Could not bind to dotnet's Lifo Semaphore, falling back to suboptimal semaphore:\n{e}");
 
                 semaphore = new SemaphoreW(spinCountParam:70);
             }
@@ -242,7 +242,7 @@ namespace Stride.Core.Threading
             {
                 return;
             }
-            
+
             semaphore.Release(WorkerThreadsCount);
             semaphore.Dispose();
             while (Volatile.Read(ref leftToDispose) != 0)
@@ -265,8 +265,8 @@ namespace Stride.Core.Threading
 
         private interface ISemaphore : IDisposable
         {
-            public void Release( int Count );
-            public void Wait( int timeout = - 1 );
+            public void Release(int count);
+            public void Wait(int timeout = -1);
         }
 
         private sealed class DotnetLifoSemaphore : ISemaphore
@@ -277,6 +277,8 @@ namespace Stride.Core.Threading
 
             public DotnetLifoSemaphore(int spinCount)
             {
+                // The semaphore Dotnet uses for its own threadpool is more efficient than what's publicly available,
+                // but sadly it is internal - we'll hijack it through reflection
                 Type lifoType = Type.GetType("System.Threading.LowLevelLifoSemaphore");
                 semaphore = Activator.CreateInstance(lifoType, new object[]{ 0, short.MaxValue, spinCount, new Action( () => {} ) }) as IDisposable;
                 wait = lifoType.GetMethod("Wait", BindingFlags.Instance | BindingFlags.Public).CreateDelegate<Func<int, bool, bool>>(semaphore);

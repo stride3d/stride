@@ -93,7 +93,8 @@ namespace Stride.Core.Threading
 
         private static void TypeAdapter<TJob>(object obj) where TJob : IBatchJob
         {
-            var batch = (BatchState<TJob>)obj;
+            var batch = obj as BatchState<TJob>; // 'as' and assert instead of direct cast to improve performance
+            Debug.Assert(batch is not null);
             try
             {
                 ProcessBatch(batch.Job, batch);
@@ -488,9 +489,9 @@ namespace Stride.Core.Threading
 
         /// <summary>
         /// An implementation of a job running in batches.
-        /// This object is shared across all threads scheduled for the job;
-        /// Making changes to it in one thread will be reflected in others.
-        /// Prefer implementing this over struct if possible to inline the call appropriately.
+        /// Implementing this as a struct improves performance as the JIT would have an easier time inlining the call.
+        /// Implementing this as a class would provide more utility as this object would be shared across all threads,
+        /// allowing for interlocked operations and other communication between threads.
         /// </summary>
         public interface IBatchJob
         {
@@ -502,7 +503,7 @@ namespace Stride.Core.Threading
             void Process(int start, int endExclusive);
         }
 
-        private class BatchState<TJob> where TJob : IBatchJob
+        private sealed class BatchState<TJob> where TJob : IBatchJob
         {
             private static readonly ConcurrentStack<BatchState<TJob>> Pool = new();
 
