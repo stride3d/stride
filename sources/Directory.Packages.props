@@ -8,7 +8,7 @@
     <PackageVersion Include="K4os.Compression.LZ4.Legacy" Version="1.2.16" />
     <PackageVersion Include="Microsoft.Management.Infrastructure" Version="3.0.0-preview.4" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="6.0.2" />
-    <PackageVersion Include="ServiceWire" Version="5.3.4" />
+    <PackageVersion Include="ServiceWire" Version="5.5.4" />
     <PackageVersion Include="SharpDX" Version="4.2.0" />
     <PackageVersion Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageVersion Include="SharpDX.Direct2D1" Version="4.2.0" />
