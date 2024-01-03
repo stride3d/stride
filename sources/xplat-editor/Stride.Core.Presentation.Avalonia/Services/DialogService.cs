@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Avalonia.Windows;
 
 namespace Stride.Core.Presentation.Avalonia.Services;
 
@@ -17,6 +18,8 @@ public class DialogService : IDialogService
     {
         Dispatcher = dispatcher;
     }
+
+    public string ApplicationName { get; init; } = string.Empty;
 
     public bool HasMainWindow => MainWindow != null;
 
@@ -106,8 +109,8 @@ public class DialogService : IDialogService
         });
     }
 
-    Task<MessageBoxResult> IDialogService.MessageBoxAsync(string message, MessageBoxButton buttons, MessageBoxImage image)
+    public async Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons, MessageBoxImage image)
     {
-        throw new NotImplementedException();
+        return await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, buttons, image, MainWindow));
     }
 }
