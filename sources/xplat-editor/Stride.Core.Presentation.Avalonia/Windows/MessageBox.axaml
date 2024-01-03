@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+        xmlns:local="using:Stride.Core.Presentation.Avalonia.Windows"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        MinHeight="120" MinWidth="320" MaxHeight="768"
+        SizeToContent="WidthAndHeight" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Padding="8,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
+        x:Class="Stride.Core.Presentation.Avalonia.Windows.MessageBox">
+  <Window.Styles>
+    <FluentTheme />
+  </Window.Styles>
+  <Window.Resources>
+    <ResourceDictionary>
+      <ImageBrush x:Key="ImageErrorDialog" Source="/Assets/Images/error-32.png" />
+      <ImageBrush x:Key="ImageInformationDialog" Source="/Assets/Images/info-32.png" />
+      <ImageBrush x:Key="ImageQuestionDialog" Source="/Assets/Images/question-32.png" />
+      <ImageBrush x:Key="ImageWarningDialog" Source="/Assets/Images/warning-32.png" />
+    </ResourceDictionary>
+  </Window.Resources>
+  <Window.ContentTemplate>
+    <DataTemplate>
+      <DockPanel LastChildFill="True" Margin="8">
+        <!--  buttons -->
+        <ItemsControl DockPanel.Dock="Bottom"
+                      HorizontalAlignment="Right"
+                      ItemsSource="{Binding $parent[Window].ButtonsSource}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type local:DialogButtonInfo}">
+              <Button Margin="4,0" Padding="16,4" MinWidth="80"
+                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                      Command="{Binding $parent[Window].ButtonCommand}"
+                      CommandParameter="{Binding Result}"
+                      Content="{Binding Content}"
+                      IsCancel="{Binding IsCancel}" IsDefault="{Binding IsDefault}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <!-- content -->
+        <ContentPresenter Content="{Binding}">
+          <ContentPresenter.ContentTemplate>
+            <DataTemplate>
+              <DockPanel LastChildFill="True">
+                <Image DockPanel.Dock="Left"
+                       Source="{Binding $parent[Window].Image}"
+                       HorizontalAlignment="Left" VerticalAlignment="Top"
+                       Height="32" Width="32" Margin="4" />
+                <md:MarkdownScrollViewer Markdown="{Binding}" VerticalAlignment="Center" />
+              </DockPanel>
+            </DataTemplate>
+          </ContentPresenter.ContentTemplate>
+        </ContentPresenter>
+      </DockPanel>
+    </DataTemplate>
+  </Window.ContentTemplate>
+</Window>
