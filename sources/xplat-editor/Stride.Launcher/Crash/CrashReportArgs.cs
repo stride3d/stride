@@ -3,11 +3,4 @@
 
 namespace Stride.Launcher;
 
-internal sealed class Program
-{
-    [STAThread]
-    private static int Main(string[] args)
-    {
-        return (int)Launcher.Main(args);
-    }
-}
+internal record CrashReportArgs(Exception Exception, string? ThreadName);
