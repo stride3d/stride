@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationIcon>Assets\Launcher.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
