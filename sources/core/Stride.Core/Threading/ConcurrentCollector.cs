@@ -84,6 +84,9 @@ namespace Stride.Core.Threading
             tail = head = new Segment { Items = new T[capacity] };
         }
 
+        /// <summary>
+        /// Gets the underlying array. It is an error to access Items after adding elements, but before closing.
+        /// </summary>
         public T[] Items
         {
             get
@@ -200,6 +203,10 @@ namespace Stride.Core.Threading
             }
         }
 
+        /// <summary>
+        /// Clears the collection. If <paramref name="fastClear"/> is true, the underlying array is not cleared.
+        /// </summary>
+        /// <param name="fastClear"></param>
         public void Clear(bool fastClear)
         {
             Close();
