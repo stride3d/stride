@@ -59,7 +59,7 @@ namespace Stride.Core.Threading
     }
 
     /// <summary>
-    /// A collector that allows for concurrent adding of items, as well as non-thread-safe clearing and accessing of the underlying colletion.
+    /// A collector that allows for concurrent adding of items, as well as non-thread-safe clearing and accessing of the underlying collection.
     /// </summary>
     /// <typeparam name="T">The element type in the collection.</typeparam>
     public class ConcurrentCollector<T> : IReadOnlyList<T>
