@@ -37,6 +37,9 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             e3413d9b5d9528dccd1105cd924031e2: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -44,9 +47,6 @@ Hierarchy:
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.35
                                 Length: 0.5
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 2459b71a-2116-42a1-8ed5-f63b2479f44c
                         Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
@@ -83,15 +83,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             238d2873abaa97aba063fc70bdd87c29: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: MasksGreen
             Entity:
@@ -117,6 +117,9 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             d0a2987f447bd6553bd5c8ecb9c50009: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -124,9 +127,6 @@ Hierarchy:
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.35
                                 Length: 0.5
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 65d4152c-783a-4b27-8d5b-4c5c6f8d2abf
                         Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
@@ -197,15 +197,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             a9f00db663b1a9a6b23535302bcc9ca4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: MasksGreen
             Entity:
@@ -231,15 +231,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             bea02dcde4eeaf0c41c7c00cd376c916: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.5
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: 7897b4da-b58c-4435-80ed-c9991f3e7e2c
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
@@ -329,6 +329,9 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             a56c2631c79b606e4ed2b0b6346bf741: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -336,9 +339,6 @@ Hierarchy:
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.35
                                 Length: 0.5
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 0b5157e6-a92f-49b0-b53c-d10c646c253c
                         Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
@@ -370,6 +370,9 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             ae244369f97dd0bef4020b41ad63e8ff: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -377,9 +380,6 @@ Hierarchy:
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.5
                                 Length: 1.0
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
                         Id: b243d047-cc50-4e22-84bf-87ea636dd1bb
                         Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
@@ -456,15 +456,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             d73e0b03f776d8a9d1deb7b03a9a2c85: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.5
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: 5bbca541-8566-4c10-9e42-f231957d8410
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
@@ -495,15 +495,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             b8c1a8074820b79e1d4d7783d357af94: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.5
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: cdf55051-a94c-4962-a489-795ae5697a18
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
@@ -540,15 +540,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             18faca4c9737fd737be79a23dc553823: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Entity:
                 Id: ae58dd58-6997-4484-807e-df62eab4c527
@@ -600,6 +600,9 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             b39ec3beacf3467ba72036ec031579b3: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -607,9 +610,6 @@ Hierarchy:
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.35
                                 Length: 0.5
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 7af5dd1e-092f-423e-bee5-cbdccdfdd141
                         Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
@@ -640,6 +640,9 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             5d6fcfd55e991043baa94fe14dc9d5a2: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -647,9 +650,6 @@ Hierarchy:
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.5
                                 Length: 1.0
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
                         Id: 0d794cd9-0a15-4812-beb0-434918cc397c
                         Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
@@ -681,6 +681,9 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             5e4b295fedad639e73a4c27a6d382d27: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -688,9 +691,6 @@ Hierarchy:
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.5
                                 Length: 1.0
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
                         Id: e3373374-c7d7-4bd4-936c-6328fdc44488
                         Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
@@ -727,15 +727,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             241a2d9e10eb4d6573e9ce2b00b3a6cb: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: MasksGreen
             Entity:
@@ -761,6 +761,9 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             aadd7de69474a8ec8894cfef09a3eef6: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -768,9 +771,6 @@ Hierarchy:
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.5
                                 Length: 1.0
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
                         Id: ad0b9c93-f035-423f-9f35-c528a0e0d926
                         Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
@@ -802,15 +802,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             f07d8e4186ee3b40bfc8db3d0ec9281f: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Radius: 0.5
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: f09c8e7f-9659-43ba-ba52-fc94b98c1be1
                         Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere

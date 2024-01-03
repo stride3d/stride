@@ -59,6 +59,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
                     b171d2e6e493338a963efedea55d0321: !Stride.BepuPhysics.Components.Colliders.ConvexHullColliderComponent,Stride.BepuPhysics
                         Id: 8a632e05-9c6a-4662-befc-978514d46098
                         Mass: 1.0
@@ -168,6 +169,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
         -   Entity:
                 Id: 8b35bb99-2d17-4174-9aa0-3d0ec2d84b59
                 Name: nav_test
@@ -229,6 +231,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
         -   Entity:
                 Id: 9208687a-dcaf-4386-816a-ee2ebece32d0
                 Name: BoundingBox
@@ -313,6 +316,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
         -   Folder: null
             Entity:
                 Id: c7d5cb4a-8254-49de-8de0-b72b901759f5
@@ -345,6 +349,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
         -   Entity:
                 Id: ddba9a9d-9ea6-424c-bd59-6a075410828b
                 Name: Entity
@@ -386,6 +391,7 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Colliders: {}
                     b010605f48e1ac9981dd90e1a4b810b0: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
                         Id: d403373e-2485-48aa-bdb8-cce68cf304ac
                         Mass: 1.0

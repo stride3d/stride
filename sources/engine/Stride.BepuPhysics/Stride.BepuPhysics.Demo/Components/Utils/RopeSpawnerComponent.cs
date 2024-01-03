@@ -20,13 +20,14 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         public Prefab? RopePart { get; set; } //The rope part must be long in Z
         public float RopePartSize { get; set; } = 1.0f; //the z size of the rope part
 
+
+        private BodyContainerComponent? A { get; set; }
         public Entity? AEntity { get; set; }
-        [DataMemberIgnore]
-        public BodyContainerComponent? A { get; set; }
         public Vector3 APos { get; set; } = new(0.5f, 0, 0);
+
+
+		private BodyContainerComponent? B { get; set; }
         public Entity? BEntity { get; set; }
-		[DataMemberIgnore]
-		public BodyContainerComponent? B { get; set; }
         public Vector3 BPos { get; set; } = new(-0.5f, 0, 0);
 
 
@@ -53,10 +54,11 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 var entity = RopePart.Instantiate().First();
                 entity.Transform.Position = start + dir * RopePartSize * i;
                 entity.Transform.Rotation = Quaternion.LookRotation(dir, Vector3.UnitY);
-                entity.SetParent(Entity);
                 var body = entity.Get<BodyContainerComponent>();
                 body.SimulationIndex = SimulationIndex;
+                
                 bodiesContainers.Add(body);
+                entity.SetParent(Entity);
             }
 
             for (int i = 1; i < bodiesContainers.Count; i++)

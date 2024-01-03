@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Definitions
 
         internal CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
 
-        internal ContactEvents ContactEvents { get; set; }
+        internal ContactEventsManager ContactEvents { get; set; }
 
         public void Initialize(Simulation simulation)
         {

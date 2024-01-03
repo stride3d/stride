@@ -43,10 +43,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 0715b09d-da88-480a-a504-44620c099c35
                 Name: Jump7
@@ -78,10 +78,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 0d2e38de-beac-4d90-8c1e-fb774d425bb0
                 Name: CubeInstancing
@@ -127,10 +127,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     040084178f089d1dc61cc84732fee7fb: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
                         Id: 80826692-883c-4fbe-99db-477c11288b6a
                         Mass: 1.0
@@ -166,10 +166,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 205ba9ce-aed2-4688-8742-318162acbd1d
                 Name: GeoSphere
@@ -197,10 +197,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     700f777eff8509a7ed3936a93236576c: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
                         Id: 4402975e-6254-4525-bcf9-d6bf1a06c8dc
                         Mass: 1.0
@@ -236,10 +236,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 2a29c2d7-45f8-4e35-9ab6-98147a789c65
                 Name: GeoSphere
@@ -267,10 +267,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     56707c92db3c8ae5fbfb3eb369d6e4c5: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
                         Id: 0bd6d611-2a18-420c-9fd3-c59b75f48f68
                         Mass: 1.0
@@ -306,10 +306,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 3156dd1b-4b3d-4de6-9d15-02766a536f18
                 Name: FatBodyBridge
@@ -337,7 +337,6 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -398,10 +397,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     d71a649f0e9d05505faefcaeb6393305: !Stride.BepuPhysics.Components.Colliders.SphereColliderComponent,Stride.BepuPhysics
                         Id: 58649ece-042b-443b-89b5-54e704c5d316
                         Mass: 1.0
@@ -437,10 +436,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 6495df80-ec4c-4fbd-b2d1-ba3fa8b46896
                 Name: Jump6
@@ -472,10 +471,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 6a967106-41ca-4f22-87bb-4c5d155bd58c
                 Name: BodyBridge
@@ -503,7 +502,6 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
@@ -541,10 +539,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 81515b44-d6b2-4f52-b49e-ac44c4472471
                 Name: Jump1
@@ -576,10 +574,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 862254dd-2fde-4792-88ba-dfb054a28845
                 Name: A
@@ -611,10 +609,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 88d4f114-4d3b-46fc-8430-8c2f56b4fd75
                 Name: Directional light
@@ -729,10 +727,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 950454f1-70b5-4301-b3cc-245cea2ebbe3
                 Name: Jump4
@@ -764,10 +762,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 9ab59b3e-b542-4cd4-896a-aa1252f44e65
                 Name: Jump5
@@ -799,10 +797,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 9eefaa3c-8d8f-4a6e-a9b2-7bfebe2c04bc
                 Name: Wall
@@ -834,10 +832,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 9fa49e88-3c7f-445f-a550-58d7b2d81da6
                 Name: SuperCar
@@ -1105,10 +1103,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     9730c1b0d4f0b547d5ee1c43edcc2f80: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
                         Id: 2522e291-9a42-44d4-9d71-2f11eae64c29
                         Mass: 0.5
@@ -1160,10 +1158,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     8f87b2426c14343edb9d16721298de0e: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
                         Id: c0b78f7b-9ccf-4c1a-9931-c99a2d95e6c0
                         Mass: 0.5
@@ -1202,10 +1200,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     a8152decd816a6dcf38880957d9d5a38: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
                         Id: 9be36c8f-a59b-46f4-81fc-1776d2f086c5
                         Mass: 0.5
@@ -1254,10 +1252,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     02c85baa999e1185db960fef9ddcddc4: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
                         Id: 0e6eb99b-9146-4211-877b-e9d77879de48
                         Mass: 0.5
@@ -1295,10 +1293,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     afa09bf326b96981c9ac25f0064a3d26: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
                         Id: 9aac8776-b0c3-4bb0-a2bf-ae6787ee3cfe
                         Mass: 3.0

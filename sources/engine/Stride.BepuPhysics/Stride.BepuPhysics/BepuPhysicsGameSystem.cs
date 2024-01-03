@@ -21,7 +21,7 @@ namespace Stride.BepuPhysics
         public BepuPhysicsGameSystem(IServiceRegistry registry) : base(registry)
         {
             var gameSettings = Services.GetSafeServiceAs<IGameSettingsService>();
-            
+
             _bepuConfiguration = gameSettings.Settings.Configurations.Get<BepuConfiguration>();
 
             if (_bepuConfiguration.BepuSimulations.Count == 0)
@@ -40,6 +40,8 @@ namespace Stride.BepuPhysics
             var dt = (float)time.Elapsed.TotalMilliseconds;
             if (dt == 0f)
                 return;
+
+            //GC.Collect(); //looks like to prevent crash (but RIP FPS)
 
             foreach (var bepuSim in _bepuConfiguration.BepuSimulations)
             {

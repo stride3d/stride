@@ -1,5 +1,7 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
@@ -12,17 +14,10 @@ namespace Stride.BepuPhysics.Components.Containers
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Containers")]
-    public class StaticContainerComponent : ContainerComponent
+    public class StaticContainerComponent : ContainerComponent, IStaticContainer, IContainerWithColliders
     {
 
-        /// <summary>
-        /// Get the bepu StaticReference /!\
-        /// </summary>
-        /// <returns>A volatil ref to the bepu static associed with this bodyContainer</returns>
-        public StaticReference? GetPhysicStatic()
-        {
-            return ContainerData?.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
-        }
+        #region Static
 
         private StaticReference GetPhysicStaticRef()
         {
@@ -32,6 +27,12 @@ namespace Stride.BepuPhysics.Components.Containers
             return ContainerData.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
         }
 
+        /// <summary>
+        /// Get the bepu StaticReference /!\
+        /// </summary>
+        /// <returns>A volatil ref to the bepu static associed with this bodyContainer</returns>
+        [DataMemberIgnore]
+        public StaticReference? GetPhysicStatic => ContainerData?.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
         [DataMemberIgnore]
         public Vector3 Position
         {
@@ -62,5 +63,19 @@ namespace Stride.BepuPhysics.Components.Containers
                 bodyRef.Continuity = value;
             }
         }
+
+        #endregion
+
+        #region WithCollider
+
+        public ListOfColliders Colliders { get; set; } = new();
+
+        public StaticContainerComponent()
+        {
+            Colliders.OnEditCallBack = () => ContainerData?.TryUpdateContainer();
+        }
+
+        #endregion
+
     }
 }

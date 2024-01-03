@@ -11,24 +11,23 @@ namespace Stride.BepuPhysics.Components.Containers
     [ComponentCategory("Bepu - Containers")]
     public class TriggerContainerComponent : StaticContainerComponent
     {
+        public new IContactEventHandler? ContactEventHandler => base.ContactEventHandler; //Make it readonly.
 
-        public event EventHandler<ContainerComponent?>? ContainerEnter;
-        public event EventHandler<ContainerComponent?>? ContainerLeave;
+        public event EventHandler<IContainer?>? ContainerEnter;
+        public event EventHandler<IContainer?>? ContainerLeave;
 
         public TriggerContainerComponent()
         {
-            ContactEventHandler = new TriggerContactEventHandler(() => Simulation, RaiseEnterEvent, RaiseLeaveEvent);
+            base.ContactEventHandler = new TriggerContactEventHandler(() => Simulation, RaiseEnterEvent, RaiseLeaveEvent);
         }
 
-        public void RaiseEnterEvent(ContainerComponent? e)
+        public void RaiseEnterEvent(IContainer? e)
         {
             ContainerEnter?.Invoke(this, e);
-            Console.WriteLine("e");
         }
-        public void RaiseLeaveEvent(ContainerComponent? e)
+        public void RaiseLeaveEvent(IContainer? e)
         {
             ContainerLeave?.Invoke(this, e);
-            Console.WriteLine("l");
         }
 
     }

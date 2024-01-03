@@ -3,6 +3,7 @@ using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
@@ -91,14 +92,8 @@ namespace Stride.BepuPhysics.Processors
             _containerComponent.Entity.Transform.UpdateWorldMatrix();
             _containerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
 
-            var colliders = _containerComponent.Colliders;
-            //CollectComponentsInHierarchy<ColliderBase, List<ColliderBase>>(_containerComponent.Entity, _containerComponent, colliders);
-
-            if (_containerComponent is IMeshContainerComponent meshContainer)
+            if (_containerComponent is IContainerWithMesh meshContainer)
             {
-                if (colliders.Count > 0)
-                    throw new Exception("MeshContainer cannot have compound colliders.");
-
                 if (meshContainer.Model == null)
                 {
                     DestroyContainer();
@@ -107,13 +102,12 @@ namespace Stride.BepuPhysics.Processors
 
                 var pool = new BufferPool();
                 var triangles = ExtractMeshDataSlow(meshContainer.Model, _game, pool);
-                var mesh = new Mesh(triangles, meshContainer.Entity.Transform.Scale.ToNumericVector(), pool);
+                var mesh = new Mesh(triangles, _containerComponent.Entity.Transform.Scale.ToNumericVector(), pool);
 
                 ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
                 _shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
 
-#warning check why it is not needed
-                //Looks like it is not needed for both, static was working because it doesn't update stride position. As meshCollider is not in a compound, bepu don't move origin to center, it would have with a compound.
+#warning Shouldn't this be uncommented ?
                 //if (_containerComponent is BodyMeshContainerComponent _b)
                 //{
                 //    _containerComponent.CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();
@@ -123,46 +117,48 @@ namespace Stride.BepuPhysics.Processors
                 //    _containerComponent.CenterOfMass = (_s.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();
                 //}
             }
-            else if (colliders.Count == 0)
+            else if (_containerComponent is IContainerWithColliders collidersContainer)
             {
-#warning : maybe we should allow without colliders containers.
-                DestroyContainer();
-                return;
-            }
-            else
-            {
-                var compoundBuilder = new CompoundBuilder(BepuSimulation.BufferPool, BepuSimulation.Simulation.Shapes, colliders.Count);
-                try
+                if (collidersContainer.Colliders.Count == 0)
                 {
-                    foreach (var collider in colliders)
-                    {
-                        var localTranslation = collider.LinearOffset;
-                        var localRotation = collider.RotationOffset;
-
-                        var compoundChildLocalPose = new RigidPose(localTranslation.ToNumericVector(), Quaternion.RotationYawPitchRoll(MathUtil.DegreesToRadians(localRotation.Y), MathUtil.DegreesToRadians(localRotation.X), MathUtil.DegreesToRadians(localRotation.Z)).ToNumericQuaternion());
-                        collider.AddToCompoundBuilder(_game, ref compoundBuilder, compoundChildLocalPose);
-                        collider.Container = _containerComponent;
-                    }
-
-                    BepuUtilities.Memory.Buffer<CompoundChild> compoundChildren;
-                    BodyInertia shapeInertia;
-                    System.Numerics.Vector3 shapeCenter;
-                    compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
-
-                    ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
-                    _shapeInertia = shapeInertia;
-                    _containerComponent.CenterOfMass = shapeCenter.ToStrideVector();
+                    DestroyContainer();
+                    return;
                 }
-                finally
+                else
                 {
-                    compoundBuilder.Dispose();
+                    var compoundBuilder = new CompoundBuilder(BepuSimulation.BufferPool, BepuSimulation.Simulation.Shapes, collidersContainer.Colliders.Count);
+                    try
+                    {
+                        foreach (var collider in collidersContainer.Colliders)
+                        {
+                            var localTranslation = collider.LinearOffset;
+                            var localRotation = collider.RotationOffset;
+
+                            var compoundChildLocalPose = new RigidPose(localTranslation.ToNumericVector(), Quaternion.RotationYawPitchRoll(MathUtil.DegreesToRadians(localRotation.Y), MathUtil.DegreesToRadians(localRotation.X), MathUtil.DegreesToRadians(localRotation.Z)).ToNumericQuaternion());
+                            collider.AddToCompoundBuilder(_game, ref compoundBuilder, compoundChildLocalPose);
+                            collider.Container = _containerComponent;
+                        }
+
+                        BepuUtilities.Memory.Buffer<CompoundChild> compoundChildren;
+                        BodyInertia shapeInertia;
+                        System.Numerics.Vector3 shapeCenter;
+                        compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
+
+                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
+                        _shapeInertia = shapeInertia;
+                        _containerComponent.CenterOfMass = shapeCenter.ToStrideVector();
+                    }
+                    finally
+                    {
+                        compoundBuilder.Dispose();
+                    }
                 }
             }
 
             var ContainerPose = new RigidPose((containerWorldTranslation + _containerComponent.CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
             switch (_containerComponent)
             {
-                case BodyContainerComponent _c:
+                case IBodyContainer _c:
                     _isStatic = false;
                     if (_c.Kinematic)
                     {
@@ -186,7 +182,7 @@ namespace Stride.BepuPhysics.Processors
                     }
 
                     break;
-                case StaticContainerComponent _c:
+                case IStaticContainer _c:
                     _isStatic = true;
 
                     var sDescription = new StaticDescription(ContainerPose, ShapeIndex);
@@ -276,7 +272,7 @@ namespace Stride.BepuPhysics.Processors
             else
                 return BepuSimulation.ContactEvents.IsListener(BHandle);
         }
-       
+
         private static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractMeshDataSlow(Model model, IGame game, BufferPool pool)
         {
             int totalIndices = 0;

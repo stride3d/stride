@@ -10,7 +10,7 @@ namespace Stride.BepuPhysics.Definitions.Raycast
     /// <param name="Normal">The direction of the surface hit</param>
     /// <param name="Distance">The distance along the ray where the hit occured</param>
     /// <param name="Container">The container hit</param>
-    public readonly record struct HitInfo(Vector3 Point, Vector3 Normal, float Distance, ContainerComponent Container) : IComparable<HitInfo>
+    public readonly record struct HitInfo(Vector3 Point, Vector3 Normal, float Distance, IContainer Container) : IComparable<HitInfo>
     {
         public int CompareTo(HitInfo other)
         {

@@ -10,13 +10,16 @@ namespace Stride.BepuPhysics.Extensions
 {
     public static class BepuAndStrideExtensions
     {
-        public static ContainerComponent? GetContainerFromCollidable(this CollidableReference collidable, BepuSimulation sim)
+        public static IContainer? GetContainerFromCollidable(this CollidableReference collidable, BepuSimulation? sim)
         {
-            if (collidable.Mobility == CollidableMobility.Static && sim.StaticsContainers.TryGetValue(collidable.StaticHandle, out StaticContainerComponent? staticsContainer))
+            if (sim == null)
+                return null;
+
+            if (collidable.Mobility == CollidableMobility.Static && sim.StaticsContainers.TryGetValue(collidable.StaticHandle, out IStaticContainer? staticsContainer))
             {
                 return staticsContainer;
             }
-            else if (collidable.Mobility != CollidableMobility.Static && sim.BodiesContainers.TryGetValue(collidable.BodyHandle, out BodyContainerComponent? bodiesContainer))
+            else if (collidable.Mobility != CollidableMobility.Static && sim.BodiesContainers.TryGetValue(collidable.BodyHandle, out IBodyContainer? bodiesContainer))
             {
                 return bodiesContainer;
             }

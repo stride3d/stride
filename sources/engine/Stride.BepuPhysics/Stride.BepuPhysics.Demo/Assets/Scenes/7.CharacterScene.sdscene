@@ -39,7 +39,6 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Mass: 1.0
                         Closed: true
                         Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
@@ -74,10 +73,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 104f8ef5-ef01-4361-8f1b-f68d5614bc43
                 Name: Jump1
@@ -109,10 +108,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
         -   Entity:
                 Id: 68a236eb-82e6-4b17-b8aa-49499ada47f9
                 Name: CubeInstancing
@@ -329,10 +328,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Colliders: {}
                     b072f3fbfb49b24054246e3c15a54b81: !Stride.BepuPhysics.Components.Character.CharacterComponent,Stride.BepuPhysics
                         Id: d2d1354c-76b6-42d4-9515-6ce00e95bf99
                         SimulationIndex: 1

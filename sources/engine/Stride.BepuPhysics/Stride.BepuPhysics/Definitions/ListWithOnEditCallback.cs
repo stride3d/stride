@@ -4,65 +4,65 @@ using Stride.Core;
 
 namespace Stride.BepuPhysics.Definitions
 {
-    [DataContract(Inherited = true)]
-    public class ListWithOnEditCallback<T> : List<T>
-    {
-        public Action? OnEditCallBack { get; internal set; }
+    //Not working :(
+    //[DataContract(Inherited = true)]
+    //public class ListWithOnEditCallback<T> : List<T>
+    //{
+    //    public Action? OnEditCallBack { get; internal set; }
 
-        public new void Add(T item)
-        {
-            base.Add(item);
-            OnEditCallBack?.Invoke();
-        }
-        public new void Remove(T item)
-        {
-            base.Remove(item);
-            OnEditCallBack?.Invoke();
-        }
-        public new void RemoveAll(Predicate<T> match)
-        {
-            base.RemoveAll(match);
-            OnEditCallBack?.Invoke();
-        }
-        public new void RemoveAt(int index)
-        {
-            base.RemoveAt(index);
-            OnEditCallBack?.Invoke();
-        }
-        public new void RemoveRange(int index, int count)
-        {
-            base.RemoveRange(index, count);
-            OnEditCallBack?.Invoke();
-        }
-        public new void AddRange(IEnumerable<T> collection)
-        {
-            base.AddRange(collection);
-            OnEditCallBack?.Invoke();
-        }
-        public new void Clear()
-        {
-            base.Clear();
-            OnEditCallBack?.Invoke();
-        }
-    }
+    //    public new void Add(T item)
+    //    {
+    //        base.Add(item);
+    //        OnEditCallBack?.Invoke();
+    //    }
+    //    public new void Remove(T item)
+    //    {
+    //        base.Remove(item);
+    //        OnEditCallBack?.Invoke();
+    //    }
+    //    public new void RemoveAll(Predicate<T> match)
+    //    {
+    //        base.RemoveAll(match);
+    //        OnEditCallBack?.Invoke();
+    //    }
+    //    public new void RemoveAt(int index)
+    //    {
+    //        base.RemoveAt(index);
+    //        OnEditCallBack?.Invoke();
+    //    }
+    //    public new void RemoveRange(int index, int count)
+    //    {
+    //        base.RemoveRange(index, count);
+    //        OnEditCallBack?.Invoke();
+    //    }
+    //    public new void AddRange(IEnumerable<T> collection)
+    //    {
+    //        base.AddRange(collection);
+    //        OnEditCallBack?.Invoke();
+    //    }
+    //    public new void Clear()
+    //    {
+    //        base.Clear();
+    //        OnEditCallBack?.Invoke();
+    //    }
+    //}
 
     [DataContract]
-    public sealed class ListOfContainer : List<BodyContainerComponent>
+    public sealed class ListOfContainer : List<IBodyContainer>
     {
-        //i'm working
         public Action? OnEditCallBack { get; internal set; }
 
-        public new void Add(BodyContainerComponent item)
+        public new void Add(IBodyContainer item)
         {
             base.Add(item);
             OnEditCallBack?.Invoke();
         }
-        public new void Remove(BodyContainerComponent item)
+        public new void Remove(IBodyContainer item)
         {
             base.Remove(item);
             OnEditCallBack?.Invoke();
         }
-        public new void RemoveAll(Predicate<BodyContainerComponent> match)
+        public new void RemoveAll(Predicate<IBodyContainer> match)
         {
             base.RemoveAll(match);
             OnEditCallBack?.Invoke();
@@ -77,7 +77,7 @@ namespace Stride.BepuPhysics.Definitions
             base.RemoveRange(index, count);
             OnEditCallBack?.Invoke();
         }
-        public new void AddRange(IEnumerable<BodyContainerComponent> collection)
+        public new void AddRange(IEnumerable<IBodyContainer> collection)
         {
             base.AddRange(collection);
             OnEditCallBack?.Invoke();

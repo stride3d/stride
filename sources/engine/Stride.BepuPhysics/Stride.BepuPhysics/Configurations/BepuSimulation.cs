@@ -4,6 +4,7 @@ using BepuUtilities;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Definitions.Raycast;
@@ -27,10 +28,10 @@ public class BepuSimulation
     internal BufferPool BufferPool { get; private set; }
 
     internal CollidableProperty<MaterialProperties> CollidableMaterials { get; private set; } = new CollidableProperty<MaterialProperties>();
-    internal ContactEvents ContactEvents { get; private set; }
+    internal ContactEventsManager ContactEvents { get; private set; }
 
-    internal Dictionary<BodyHandle, BodyContainerComponent> BodiesContainers { get; } = new();
-    internal Dictionary<StaticHandle, StaticContainerComponent> StaticsContainers { get; } = new();
+    internal Dictionary<BodyHandle, IBodyContainer> BodiesContainers { get; } = new();
+    internal Dictionary<StaticHandle, IStaticContainer> StaticsContainers { get; } = new();
 
     internal float RemainingUpdateTime { get; set; } = 0;
 
@@ -219,7 +220,7 @@ public class BepuSimulation
 
         ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
         BufferPool = new BufferPool();
-        ContactEvents = new ContactEvents(ThreadDispatcher, BufferPool);
+        ContactEvents = new ContactEventsManager(ThreadDispatcher, BufferPool);
 
         var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials, ContactEvents = ContactEvents };
         var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks() { CollidableMaterials = CollidableMaterials };
@@ -415,7 +416,7 @@ public class BepuSimulation
     }
     private BodyShapeData GetMeshData(Mesh mesh, bool toLeftHanded = true)
     {
-        var meshContainer = (IMeshContainerComponent)this;
+        var meshContainer = (IContainerWithMesh)this;
 
         if (meshContainer == null)
             throw new Exception("a mesh must be inside a MeshContainer");

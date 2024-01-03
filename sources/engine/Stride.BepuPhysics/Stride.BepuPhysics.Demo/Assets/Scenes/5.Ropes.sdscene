@@ -100,7 +100,7 @@ Hierarchy:
                         TouchRotationSpeed: {X: 1.0, Y: 0.7}
         -   Entity:
                 Id: 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
-                Name: D
+                Name: Cent
                 Components:
                     6961414337769221283ce59319f70fa8: !TransformComponent
                         Id: d850c579-bcf4-4ddd-89c5-585ae581c07f
@@ -125,15 +125,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             db1448f5bbeece34a6ba37b359b31842: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Size: {X: 5.0, Y: 1.0, Z: 5.0}
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: 846c345d-1504-4fb4-bc4c-83c793937ff2
                 Name: CubeInstancing
@@ -154,7 +154,7 @@ Hierarchy:
                         Type: !InstancingEntityTransform {}
         -   Entity:
                 Id: 9da4a590-4d5f-4025-a7d8-d1af645dfa72
-                Name: A
+                Name: Bot
                 Components:
                     6961414337769221283ce59319f70fa8: !TransformComponent
                         Id: 3c87d441-a070-48e3-896c-9150c0390233
@@ -179,15 +179,15 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             68fca51abfe3709b90cec0bd580a5fb2: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Kinematic: false
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: a8119626-e4db-4aa9-ad54-06e435bd1f85
                 Name: BepuPhysics
@@ -199,9 +199,9 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a5869266007b42af6b5ba5e5468a5478: ref!! e562a7c4-ef30-4603-b130-5705ef59ac81
+                            8c02caf6baab9cfd36a2b078274f34f3: ref!! e18239da-9446-41ef-9086-4d2a9f3a0dd5
+                            2a52b4d8d655b1d4ec38c08fa4784092: ref!! d850c579-bcf4-4ddd-89c5-585ae581c07f
                             5269cf169a130c56006c102a6c920d8d: ref!! 3c87d441-a070-48e3-896c-9150c0390233
-                            81b834375ce67f634f002011130f3280: ref!! e18239da-9446-41ef-9086-4d2a9f3a0dd5
-                            59ca4021a8fef9ff4f220346f836846c: ref!! d850c579-bcf4-4ddd-89c5-585ae581c07f
                     807fd6f1bfea6cedc2abc9907e906240: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
                         Id: 34bb7756-98bc-4d96-bdb0-7a7e81675b29
                         SimulationIndex: 0
@@ -303,7 +303,7 @@ Hierarchy:
                         SimulationIndex: 0
         -   Entity:
                 Id: fc3864a2-35be-443a-88ba-a14633caf048
-                Name: B
+                Name: Top
                 Components:
                     6961414337769221283ce59319f70fa8: !TransformComponent
                         Id: e18239da-9446-41ef-9086-4d2a9f3a0dd5
@@ -328,12 +328,12 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
+                        Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
                         Colliders:
                             d3f4b467d6f222274ffcb0065cf70cdd: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Kinematic: true
-                        SleepThreshold: 0.01
-                        MinimumTimestepCountUnderThreshold: 32

@@ -64,11 +64,11 @@ public class BepuStaticColliderProcessor : EntityProcessor<StaticContainerCompon
 
 	protected override bool IsAssociatedDataValid(Entity entity, StaticContainerComponent component, StaticContainerComponent associatedData)
 	{
-		// need to check for both StaticColliderComponent and StaticMeshContainerComponent
-		if((StaticMeshContainerComponent)component is not null)
-		{
-			return true;
-		}
+		//// need to check for both StaticColliderComponent and StaticMeshContainerComponent
+		//if((StaticMeshContainerComponent)component is not null)
+		//{
+		//	return true;
+		//}
 
 		return component is not null;
 	}

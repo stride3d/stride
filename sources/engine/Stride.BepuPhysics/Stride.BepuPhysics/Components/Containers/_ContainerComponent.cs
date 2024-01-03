@@ -24,8 +24,11 @@ namespace Stride.BepuPhysics.Components.Containers
     [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Containers")]
 
-    public abstract class ContainerComponent : EntityComponent
+    public abstract class ContainerComponent : EntityComponent, IContainer
     {
+        List<ContainerComponent> IContainer.ChildsContainerComponent => ChildsContainerComponent;
+        ContainerData IContainer.ContainerData => ContainerData;
+
         private int _simulationIndex = 0;
         private float _springFrequency = 30;
         private float _springDampingRatio = 3;
@@ -182,16 +185,5 @@ namespace Stride.BepuPhysics.Components.Containers
 
         public Vector3 CenterOfMass { get; internal set; } = new Vector3();
 
-        public ListOfColliders Colliders { get; set; } = new();
-        //public ListWithOnEditCallback<ColliderBase> CollidersGen { get; set; } = new();
-
-        public ContainerComponent()
-        {
-            Colliders.OnEditCallBack =
-                () =>
-                {
-                    ContainerData?.TryUpdateContainer();
-                };
-        }
     }
 }

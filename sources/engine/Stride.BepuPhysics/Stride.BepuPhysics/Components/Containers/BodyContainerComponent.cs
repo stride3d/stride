@@ -1,5 +1,7 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
@@ -12,8 +14,11 @@ namespace Stride.BepuPhysics.Components.Containers
     [DataContract(Inherited = true)]
     [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Containers")]
-    public class BodyContainerComponent : ContainerComponent
+    public class BodyContainerComponent : ContainerComponent, IBodyContainer, IContainerWithColliders
     {
+
+        #region Body
+
         private bool _kinematic = false;
         private float _sleepThreshold = 0.01f;
         private byte _minimumTimestepCountUnderThreshold = 32;
@@ -46,15 +51,6 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        /// <summary>
-        /// Get the bepu BodyReference /!\
-        /// </summary>
-        /// <returns>A volatil ref to the bepu body associed with this bodyContainer</returns>
-        public BodyReference? GetPhysicBody()
-        {
-            return ContainerData?.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
-        }
-
         private BodyReference GetPhysicBodyRef()
         {
             if (ContainerData == null)
@@ -62,7 +58,12 @@ namespace Stride.BepuPhysics.Components.Containers
 
             return ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
         }
-
+        /// <summary>
+        /// Get the bepu BodyReference /!\
+        /// </summary>
+        /// <returns>A volatil ref to the bepu body associed with this bodyContainer</returns>
+        [DataMemberIgnore]
+        public BodyReference? GetPhysicBody => ContainerData?.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
         [DataMemberIgnore]
         public bool Awake
         {
@@ -156,6 +157,20 @@ namespace Stride.BepuPhysics.Components.Containers
         {
             GetPhysicBodyRef().ApplyLinearImpulse(impulse.ToNumericVector());
         }
+
+        #endregion
+
+        #region WithCollider
+
+        public ListOfColliders Colliders { get; set; } = new();
+
+
+        public BodyContainerComponent()
+        {
+            Colliders.OnEditCallBack = () => ContainerData?.TryUpdateContainer();
+        }
+
+        #endregion
 
     }
 }

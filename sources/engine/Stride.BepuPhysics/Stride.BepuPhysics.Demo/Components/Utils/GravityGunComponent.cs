@@ -19,7 +19,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         private OneBodyLinearServoConstraintComponent? _oblscc;
         private OneBodyAngularServoConstraintComponent? _obascc;
 
-        private BodyContainerComponent? _body;
+        private IBodyContainer? _body;
         private float _distance = 0f;
         private Vector3 _localGrabPoint = new Vector3();
         private Quaternion _targetOrientation = Quaternion.Identity;
@@ -40,7 +40,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             if (_body != null || Camera == null)
                 return;
 
-            if (info.Container is not BodyContainerComponent body)
+            if (info.Container is not IBodyContainer body)
                 return;
 
             _oblscc = new OneBodyLinearServoConstraintComponent();
