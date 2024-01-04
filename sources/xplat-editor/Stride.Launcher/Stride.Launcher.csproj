@@ -1,16 +1,20 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
     <DebugType>embedded</DebugType>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationIcon>Assets\Launcher.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <StartupObject>Stride.Launcher.Program</StartupObject>
     <DefineConstants>$(DefineConstants);STRIDE_LAUNCHER</DefineConstants>
+    <!-- Get version directly from nuspec file, so that there's only one place to bump -->
+    <_StrideLauncherNuSpecLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Stride.Launcher.nuspec'))</_StrideLauncherNuSpecLines>
+    <Version>$([System.Text.RegularExpressions.Regex]::Match($(_StrideLauncherNuSpecLines), `<version>(.*)</version>`).Groups[1].Value)</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="..\..\shared\SharedAssemblyInfo.cs" />
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs" Link="Packages\PackageSessionHelper.Solution.cs" />
     <Compile Include="..\..\editor\Stride.Core.Assets.Editor\EditorPath.cs" Link="Editor\EditorPath.cs" />
   </ItemGroup>
@@ -67,5 +72,4 @@
   </ItemGroup>
 
   <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
 </Project>
