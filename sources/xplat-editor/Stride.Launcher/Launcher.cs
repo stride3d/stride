@@ -2,11 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Globalization;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Presentation.Avalonia.Windows;
 using Stride.Core.Presentation.Services;
@@ -89,7 +86,7 @@ internal static partial class Launcher
             Directory.CreateDirectory(EditorPath.DefaultTempPath);
             using (Mutex = FileLock.TryLock(Path.Combine(EditorPath.DefaultTempPath, "launcher.lock")))
             {
-                if (Mutex != null)
+                if (Mutex is not null)
                 {
                     return (LauncherErrorCode)Program.BuildAvaloniaApp()
                         .StartWithClassicDesktopLifetime(args);
@@ -113,35 +110,13 @@ internal static partial class Launcher
 
     private static void DisplayError(string message, MessageBoxImage image)
     {
-        // Note: we need a new app because the main one may be already shutting down
-        var appBuilder = AppBuilder.Configure<Application>()
-            .UsePlatformDetect();
-        if (Application.Current == null)
-        {
-            appBuilder = appBuilder
-                .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime());
-            AppMain(appBuilder.Instance!, message, image);
-        }
-        else
-        {
-            Dispatcher.UIThread.Invoke(() =>
-            {
-                // First hide the main window
-                ((IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime)?.MainWindow?.Hide();
+        Program.RunNewApp<Application>(AppMain);
 
-                // Then setup the new application
-                // HACK: SetupUnsafe is internal and we can't call Setup mutiple times
-                typeof(AppBuilder).GetMethod("SetupUnsafe", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(appBuilder, null);
-
-                AppMain(appBuilder.Instance!, message, image);
-            });
-        }
-
-        static void AppMain(Application app, string message, MessageBoxImage image)
+        CancellationToken AppMain(Application app)
         {
             var cts = new CancellationTokenSource();
-            _ = MessageBox.ShowAsync(null, "Stride Launcher", message, MessageBoxButton.OK, image).ContinueWith(_ => cts.Cancel());
-            app.Run(cts.Token);
+            _ = MessageBox.ShowAsync("Stride Launcher", message, MessageBoxButton.OK, image).ContinueWith(_ => cts.Cancel());
+            return cts.Token;
         }
     }
 
@@ -149,31 +124,9 @@ internal static partial class Launcher
 
     private static void CrashReport(CrashReportArgs args)
     {
-        // Note: we need a new app because the main one may be already shutting down
-        var appBuilder = AppBuilder.Configure<Application>()
-            .UsePlatformDetect();
-        if (Application.Current == null)
-        {
-            appBuilder = appBuilder
-                .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime());
-            AppMain(appBuilder.Instance!, args);
-        }
-        else
-        {
-            Dispatcher.UIThread.Invoke(() =>
-            {
-                // First hide the main window
-                ((IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime)?.MainWindow?.Hide();
+        Program.RunNewApp<Application>(AppMain);
 
-                // Then setup the new application
-                // HACK: SetupUnsafe is internal and we can't call Setup mutiple times
-                typeof(AppBuilder).GetMethod("SetupUnsafe", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(appBuilder, null);
-
-                AppMain(appBuilder.Instance!, args);
-            });
-        }
-
-        static void AppMain(Application app, CrashReportArgs args)
+        CancellationToken AppMain(Application app)
         {
             var cts = new CancellationTokenSource();
             var window = new CrashReportWindow { Topmost = true };
@@ -183,7 +136,7 @@ internal static partial class Launcher
             {
                 window.Show();
             }
-            app.Run(cts.Token);
+            return cts.Token;
         }
     }
 
@@ -197,7 +150,7 @@ internal static partial class Launcher
 
     private static void HandleException(Exception? exception)
     {
-        if (exception == null) return;
+        if (exception is null) return;
 
         // prevent multiple crash reports
         if (Interlocked.CompareExchange(ref terminating, 1, 0) == 1) return;
@@ -209,4 +162,5 @@ internal static partial class Launcher
     }
 
     #endregion // Crash
+
 }

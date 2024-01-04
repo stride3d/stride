@@ -1,7 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Reflection;
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 
 namespace Stride.Launcher;
 
@@ -19,4 +23,43 @@ internal sealed class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+
+    /// <summary>
+    /// Returns path of Launcher (we can't use Assembly.GetEntryAssembly().Location in .NET Core, especially with self-publish).
+    /// </summary>
+    /// <returns></returns>
+    internal static string? GetExecutablePath() => Environment.ProcessPath;
+
+    internal static void RunNewApp<TApp>(Func<TApp, CancellationToken> appMain, string[]? args = null)
+        where TApp : Application, new()
+    {
+        // Note: we need a new app because the main one may be already shutting down
+        var appBuilder = AppBuilder.Configure<TApp>()
+            .UsePlatformDetect()
+            .WithInterFont()
+            .LogToTrace();
+
+        if (Application.Current is null)
+        {
+            appBuilder = appBuilder
+                .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime { Args = args, ShutdownMode = ShutdownMode.OnExplicitShutdown });
+            var app = appBuilder.Instance!;
+            app.Run(appMain((TApp)app));
+        }
+        else
+        {
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                // First hide the main window
+                ((IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime)?.MainWindow?.Hide();
+
+                // Then setup the new application
+                // HACK: SetupUnsafe is internal and we can't call Setup mutiple times
+                typeof(AppBuilder).GetMethod("SetupUnsafe", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(appBuilder, null);
+                                
+                var app = appBuilder.Instance!;
+                app.Run(appMain((TApp)app));
+            });
+        }
+    }
 }
