@@ -4,6 +4,7 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Presentation.Avalonia.Windows;
 using Stride.Core.Presentation.Services;
@@ -36,24 +37,58 @@ internal static partial class Launcher
     private static LauncherErrorCode ProcessAction(LauncherArguments args)
     {
         var result = LauncherErrorCode.UnknownError;
-        foreach (var action in args.Actions)
+
+        try
         {
-            switch (action)
+            // Ensure to create parent of lock directory.
+            Directory.CreateDirectory(EditorPath.DefaultTempPath);
+            using (Mutex = FileLock.TryLock(Path.Combine(EditorPath.DefaultTempPath, "launcher.lock")))
             {
-                case LauncherArguments.ActionType.Run:
-                    result = TryRun(args.Args);
-                    break;
-                case LauncherArguments.ActionType.Uninstall:
-                    result = Uninstall();
-                    break;
-                default:
-                    // Unknown action
-                    return LauncherErrorCode.UnknownError;
+                if (Mutex is not null)
+                {
+                    Program.RunNewApp<App>(AppMain);
+                }
+                else
+                {
+                    DisplayError("An instance of Stride Launcher is already running.", MessageBoxImage.Warning);
+                    result = LauncherErrorCode.ServerAlreadyRunning;
+                }
             }
-            if (result < LauncherErrorCode.Success)
-                return result;
         }
+        catch (Exception e)
+        {
+            DisplayError($"Cannot start the instance of the Stride Launcher due to the following exception:\n{e.Message}", MessageBoxImage.Error);
+            result = LauncherErrorCode.UnknownError;
+        }
+
         return result;
+
+        CancellationToken AppMain(App app)
+        {
+            _ = AppMainAsync(app.cts);
+            return app.cts.Token;
+        }
+
+        async Task AppMainAsync(CancellationTokenSource cts)
+        {
+            if (!await PrerequisitesValidator.Validate(args.Args))
+            {
+                cts.Cancel();
+                return;
+            }
+
+            foreach (var action in args.Actions)
+            {
+                result = action switch
+                {
+                    LauncherArguments.ActionType.Run => TryRun(),
+                    LauncherArguments.ActionType.Uninstall => Uninstall(),
+                    _ => LauncherErrorCode.UnknownError,// Unknown action
+                };
+                if (result < LauncherErrorCode.Success)
+                    break;
+            }
+        }
     }
 
     private static LauncherArguments ProcessArguments(string[] args)
@@ -78,29 +113,10 @@ internal static partial class Launcher
         return result;
     }
 
-    private static LauncherErrorCode TryRun(string[] args)
+    private static LauncherErrorCode TryRun()
     {
-        try
-        {
-            // Ensure to create parent of lock directory.
-            Directory.CreateDirectory(EditorPath.DefaultTempPath);
-            using (Mutex = FileLock.TryLock(Path.Combine(EditorPath.DefaultTempPath, "launcher.lock")))
-            {
-                if (Mutex is not null)
-                {
-                    return (LauncherErrorCode)Program.BuildAvaloniaApp()
-                        .StartWithClassicDesktopLifetime(args);
-                }
-
-                DisplayError("An instance of Stride Launcher is already running.", MessageBoxImage.Warning);
-                return LauncherErrorCode.ServerAlreadyRunning;
-            }
-        }
-        catch (Exception e)
-        {
-            DisplayError($"Cannot start the instance of the Stride Launcher due to the following exception:\n{e.Message}", MessageBoxImage.Error);
-            return LauncherErrorCode.UnknownError;
-        }
+        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Show();
+        return LauncherErrorCode.Success;
     }
 
     private static LauncherErrorCode Uninstall()

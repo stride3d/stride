@@ -14,6 +14,8 @@ namespace Stride.Launcher;
 
 public partial class App : Application
 {
+    internal readonly CancellationTokenSource cts = new();
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -31,9 +33,11 @@ public partial class App : Application
             {
                 DataContext = InitializeMainViewModel()
             };
+            desktop.MainWindow.Closed += (_, __) => cts.Cancel();
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
+            // don't remove; also used by visual designer.
             singleViewPlatform.MainView = new MainView
             {
                 DataContext = InitializeMainViewModel()
