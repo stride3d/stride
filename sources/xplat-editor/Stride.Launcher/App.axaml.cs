@@ -33,7 +33,6 @@ public partial class App : Application
             {
                 DataContext = InitializeMainViewModel()
             };
-            desktop.MainWindow.Closed += (_, __) => cts.Cancel();
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {

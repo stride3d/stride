@@ -2,14 +2,18 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Globalization;
+using System.Reflection;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Stride.Core.Assets.Editor;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Packages;
 using Stride.Core.Presentation.Avalonia.Windows;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Windows;
 using Stride.Launcher.Crash;
+using Stride.Launcher.Services;
 
 namespace Stride.Launcher;
 
@@ -17,6 +21,8 @@ internal static partial class Launcher
 {
     private static int terminating;
     internal static FileLock? Mutex;
+
+    public const string ApplicationName = "Stride Launcher";
 
     [STAThread]
     public static LauncherErrorCode Main(string[] args)
@@ -81,12 +87,25 @@ internal static partial class Launcher
             {
                 result = action switch
                 {
-                    LauncherArguments.ActionType.Run => TryRun(),
-                    LauncherArguments.ActionType.Uninstall => Uninstall(),
+                    LauncherArguments.ActionType.Run => TryRun(cts),
+                    LauncherArguments.ActionType.Uninstall => await UninstallAsync(cts),
                     _ => LauncherErrorCode.UnknownError,// Unknown action
                 };
                 if (result < LauncherErrorCode.Success)
                     break;
+            }
+        }
+
+        static void DisplayError(string message, MessageBoxImage image)
+        {
+            // Note: because we are not running from the main loop, we have to start a new app
+            Program.RunNewApp<Application>(AppMain);
+
+            CancellationToken AppMain(Application app)
+            {
+                var cts = new CancellationTokenSource();
+                _ = MessageBox.ShowAsync(ApplicationName, message, MessageBoxButton.OK, image).ContinueWith(_ => cts.Cancel());
+                return cts.Token;
             }
         }
     }
@@ -113,26 +132,59 @@ internal static partial class Launcher
         return result;
     }
 
-    private static LauncherErrorCode TryRun()
+    private static LauncherErrorCode TryRun(CancellationTokenSource cts)
     {
-        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Show();
+        var mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!;
+        mainWindow.Closed += (_, __) => cts.Cancel();
+        mainWindow.Show();
         return LauncherErrorCode.Success;
     }
 
-    private static LauncherErrorCode Uninstall()
+    private static async Task<LauncherErrorCode> UninstallAsync(CancellationTokenSource cts)
     {
-        return LauncherErrorCode.Success;
-    }
-
-    private static void DisplayError(string message, MessageBoxImage image)
-    {
-        Program.RunNewApp<Application>(AppMain);
-
-        CancellationToken AppMain(Application app)
+        try
         {
-            var cts = new CancellationTokenSource();
-            _ = MessageBox.ShowAsync("Stride Launcher", message, MessageBoxButton.OK, image).ContinueWith(_ => cts.Cancel());
-            return cts.Token;
+            // Kill all running processes
+            var path = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToWindowsPath();
+            if (!await UninstallHelper.CloseProcessesInPathAsync(DisplayMessageAsync, "Stride", path))
+                return LauncherErrorCode.UninstallCancelled; // User cancelled
+
+            // Uninstall packages (they might have uninstall actions)
+            var store = new NugetStore(path);
+            foreach (var package in store.MainPackageIds.SelectMany(store.GetLocalPackages).FilterStrideMainPackages().ToList())
+            {
+                await store.UninstallPackage(package, null);
+            }
+
+            foreach (var remainingFiles in Directory.GetFiles(path, "*.lock").Concat(Directory.GetFiles(path, "*.old")))
+            {
+                try
+                {
+                    File.Delete(remainingFiles);
+                }
+                catch (Exception e)
+                {
+                    e.Ignore();
+                }
+            }
+
+            //PrivacyPolicyHelper.RevokeAllPrivacyPolicy(); // FIXME: xplat-launcher
+
+            return LauncherErrorCode.Success;
+        }
+        catch (Exception)
+        {
+            return LauncherErrorCode.ErrorWhileUninstalling;
+        }
+        finally
+        {
+            cts.Cancel();
+        }
+
+        static async Task<bool> DisplayMessageAsync(string message)
+        {
+            var result = await MessageBox.ShowAsync(ApplicationName, message, MessageBoxButton.YesNo, MessageBoxImage.Information);
+            return result == MessageBoxResult.Yes;
         }
     }
 
