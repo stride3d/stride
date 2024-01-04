@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Stride.Core.Assets;
+
 public static class StridePackagesToUpgrade
 {
     public static HashSet<string> PackageNames =
