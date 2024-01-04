@@ -146,7 +146,10 @@ namespace Stride.Assets
                     var project = VSProjectHelper.LoadProject(projectFullPath.ToWindowsPath());
                     var isProjectDirty = false;
 
-                    var packageReferences = project.GetItems("PackageReference").ToList();
+                    // Update Stride package references that are meant to upgrade
+                    var packageReferences = project.GetItems("PackageReference")
+                        .Where(x => StridePackagesToUpgrade.PackageNames.Contains(x.EvaluatedInclude))
+                        .ToList();
 
                     // Remove Stride reference for older executable projects (it was necessary in the past due to runtime.json)
                     if (dependency.Version.MinVersion < new PackageVersion("4.1.0.0")
