@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
     <PackageReference Include="Stride.CrashReport" />
@@ -26,6 +25,10 @@
   <ItemGroup>
     <None Include="..\..\Directory.Packages.props" Link="Build\Directory.Packages.props" />
     <None Include="..\Directory.Build.props" Link="Build\Directory.Build.props" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\editor\Stride.Core.Assets.Editor\EditorPath.cs" Link="Editor\EditorPath.cs" />
   </ItemGroup>
 
   <ItemGroup>

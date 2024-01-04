@@ -7,6 +7,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Stride.Core.Assets.Editor;
+using Stride.Core.Presentation.Avalonia.Windows;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Windows;
 using Stride.Launcher.Crash;
 
 namespace Stride.Launcher;
@@ -14,6 +18,7 @@ namespace Stride.Launcher;
 internal static partial class Launcher
 {
     private static int terminating;
+    internal static FileLock? Mutex;
 
     [STAThread]
     public static LauncherErrorCode Main(string[] args)
@@ -21,8 +26,8 @@ internal static partial class Launcher
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         try
         {
-            return (LauncherErrorCode)BuildAvaloniaApp()
-                .StartWithClassicDesktopLifetime(args);
+            var arguments = ProcessArguments(args);
+            return ProcessAction(arguments);
         }
         catch (Exception ex)
         {
@@ -30,13 +35,117 @@ internal static partial class Launcher
             return LauncherErrorCode.ErrorWhileRunningServer;
         }
     }
-    
-    // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-            .WithInterFont()
-            .LogToTrace();
+
+    private static LauncherErrorCode ProcessAction(LauncherArguments args)
+    {
+        var result = LauncherErrorCode.UnknownError;
+        foreach (var action in args.Actions)
+        {
+            switch (action)
+            {
+                case LauncherArguments.ActionType.Run:
+                    result = TryRun(args.Args);
+                    break;
+                case LauncherArguments.ActionType.Uninstall:
+                    result = Uninstall();
+                    break;
+                default:
+                    // Unknown action
+                    return LauncherErrorCode.UnknownError;
+            }
+            if (result < LauncherErrorCode.Success)
+                return result;
+        }
+        return result;
+    }
+
+    private static LauncherArguments ProcessArguments(string[] args)
+    {
+        var result = new LauncherArguments
+        {
+            // Default action is to run the server
+            Actions = [LauncherArguments.ActionType.Run],
+            Args = args,
+        };
+
+        foreach (var arg in args)
+        {
+            if (string.Equals(arg, "/Uninstall", StringComparison.InvariantCultureIgnoreCase))
+            {
+                // No other action possible when uninstalling.
+                result.Actions.Clear();
+                result.Actions.Add(LauncherArguments.ActionType.Uninstall);
+            }
+        }
+
+        return result;
+    }
+
+    private static LauncherErrorCode TryRun(string[] args)
+    {
+        try
+        {
+            // Ensure to create parent of lock directory.
+            Directory.CreateDirectory(EditorPath.DefaultTempPath);
+            using (Mutex = FileLock.TryLock(Path.Combine(EditorPath.DefaultTempPath, "launcher.lock")))
+            {
+                if (Mutex != null)
+                {
+                    return (LauncherErrorCode)Program.BuildAvaloniaApp()
+                        .StartWithClassicDesktopLifetime(args);
+                }
+
+                DisplayError("An instance of Stride Launcher is already running.", MessageBoxImage.Warning);
+                return LauncherErrorCode.ServerAlreadyRunning;
+            }
+        }
+        catch (Exception e)
+        {
+            DisplayError($"Cannot start the instance of the Stride Launcher due to the following exception:\n{e.Message}", MessageBoxImage.Error);
+            return LauncherErrorCode.UnknownError;
+        }
+    }
+
+    private static LauncherErrorCode Uninstall()
+    {
+        return LauncherErrorCode.Success;
+    }
+
+    private static void DisplayError(string message, MessageBoxImage image)
+    {
+        // Note: we need a new app because the main one may be already shutting down
+        var appBuilder = AppBuilder.Configure<Application>()
+            .UsePlatformDetect();
+        if (Application.Current == null)
+        {
+            appBuilder = appBuilder
+                .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime());
+            AppMain(appBuilder.Instance!, message, image);
+        }
+        else
+        {
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                // First hide the main window
+                ((IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime)?.MainWindow?.Hide();
+
+                // Then setup the new application
+                // HACK: SetupUnsafe is internal and we can't call Setup mutiple times
+                typeof(AppBuilder).GetMethod("SetupUnsafe", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(appBuilder, null);
+
+                AppMain(appBuilder.Instance!, message, image);
+            });
+        }
+
+        static void AppMain(Application app, string message, MessageBoxImage image)
+        {
+            var cts = new CancellationTokenSource();
+            _ = MessageBox.ShowAsync(null, "Stride Launcher", message, MessageBoxButton.OK, image).ContinueWith(_ => cts.Cancel());
+            app.Run(cts.Token);
+        }
+    }
+
+    #region Crash
 
     private static void CrashReport(CrashReportArgs args)
     {
@@ -98,4 +207,6 @@ internal static partial class Launcher
         var reportArgs = new CrashReportArgs(exception, Thread.CurrentThread.Name);
         CrashReport(reportArgs);
     }
+
+    #endregion // Crash
 }
