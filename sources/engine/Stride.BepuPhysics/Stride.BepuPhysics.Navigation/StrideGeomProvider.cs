@@ -7,37 +7,34 @@ using DotRecast.Recast;
 namespace Stride.BepuPhysics.Navigation;
 internal class StrideGeomProvider : IInputGeomProvider
 {
+	/// <summary> Object does not expect this array to mutate </summary>
 	public readonly float[] Vertices;
+	/// <summary> Object does not expect this array to mutate </summary>
 	public readonly int[] Faces;
-	public readonly float[] Normals;
 
-	private readonly RcVec3f _boundsmin;
-	private readonly RcVec3f _boundsmax;
+	private readonly RcVec3f _bmin;
+	private readonly RcVec3f _bmax;
 
 	private readonly List<RcConvexVolume> _convexVolumes = new List<RcConvexVolume>();
 	private readonly List<RcOffMeshConnection> _offMeshConnections = new List<RcOffMeshConnection>();
 	private readonly RcTriMesh _mesh;
 
-	public StrideGeomProvider(List<float> vertexPositions, List<int> meshFaces) :
-		this(MapVertices(vertexPositions), MapFaces(meshFaces))
-	{
-	}
-
+	/// <summary>
+	/// Do note that this object expects ownership over the arrays provided, do not write to them
+	/// </summary>
 	public StrideGeomProvider(float[] vertices, int[] faces)
 	{
 		Vertices = vertices;
 		Faces = faces;
-		Normals = new float[faces.Length];
-		CalculateNormals();
-		_boundsmin = RcVecUtils.Create(vertices);
-		_boundsmax = RcVecUtils.Create(vertices);
+		_bmin = RcVecUtils.Create(Vertices);
+		_bmax = RcVecUtils.Create(Vertices);
 		for (int i = 1; i < vertices.Length / 3; i++)
 		{
-			_boundsmin = RcVecUtils.Min(_boundsmin, vertices, i * 3);
-			_boundsmax = RcVecUtils.Max(_boundsmax, vertices, i * 3);
+			_bmin = RcVecUtils.Min(_bmin, Vertices, i * 3);
+			_bmax = RcVecUtils.Max(_bmax, Vertices, i * 3);
 		}
 
-		_mesh = new RcTriMesh(vertices, faces);
+		_mesh = new RcTriMesh(Vertices, Faces);
 	}
 
 	public RcTriMesh GetMesh()
@@ -47,44 +44,12 @@ internal class StrideGeomProvider : IInputGeomProvider
 
 	public RcVec3f GetMeshBoundsMin()
 	{
-		return _boundsmin;
+		return _bmin;
 	}
 
 	public RcVec3f GetMeshBoundsMax()
 	{
-		return _boundsmax;
-	}
-
-	public void CalculateNormals()
-	{
-		for (int i = 0; i < Faces.Length; i += 3)
-		{
-			int v0 = Faces[i] * 3;
-			int v1 = Faces[i + 1] * 3;
-			int v2 = Faces[i + 2] * 3;
-
-			var e0 = new RcVec3f();
-			var e1 = new RcVec3f();
-			e0.X = Vertices[v1 + 0] - Vertices[v0 + 0];
-			e0.Y = Vertices[v1 + 1] - Vertices[v0 + 1];
-			e0.Z = Vertices[v1 + 2] - Vertices[v0 + 2];
-
-			e1.X = Vertices[v2 + 0] - Vertices[v0 + 0];
-			e1.Y = Vertices[v2 + 1] - Vertices[v0 + 1];
-			e1.Z = Vertices[v2 + 2] - Vertices[v0 + 2];
-
-			Normals[i] = e0.Y * e1.Z - e0.Z * e1.Y;
-			Normals[i + 1] = e0.Z * e1.X - e0.X * e1.Z;
-			Normals[i + 2] = e0.X * e1.Y - e0.Y * e1.X;
-			float d = MathF.Sqrt(Normals[i] * Normals[i] + Normals[i + 1] * Normals[i + 1] + Normals[i + 2] * Normals[i + 2]);
-			if (d > 0)
-			{
-				d = 1.0f / d;
-				Normals[i] *= d;
-				Normals[i + 1] *= d;
-				Normals[i + 2] *= d;
-			}
-		}
+		return _bmax;
 	}
 
 	public IList<RcConvexVolume> ConvexVolumes()
@@ -94,7 +59,7 @@ internal class StrideGeomProvider : IInputGeomProvider
 
 	public IEnumerable<RcTriMesh> Meshes()
 	{
-		return RcImmutableArray.Create(_mesh);
+		yield return _mesh;
 	}
 
 	public List<RcOffMeshConnection> GetOffMeshConnections()
@@ -110,17 +75,19 @@ internal class StrideGeomProvider : IInputGeomProvider
 	public void RemoveOffMeshConnections(Predicate<RcOffMeshConnection> filter)
 	{
 		//offMeshConnections.RetainAll(offMeshConnections.Stream().Filter(c -> !filter.Test(c)).Collect(ToList()));
-		_offMeshConnections.RemoveAll(filter); // TODO : 확인 필요
+		_offMeshConnections.RemoveAll(filter); // TODO : 확인 필요 <- "Need to be confirmed"
 	}
 
+	/// <summary>
+	/// This method is unoptimized, avoid frequent calls or rewrite it
+	/// </summary>
 	public bool RaycastMesh(RcVec3f src, RcVec3f dst, out float tmin)
 	{
 		tmin = 1.0f;
 
-		// Prune hit ray.
-		if (!RcIntersections.IsectSegAABB(src, dst, _boundsmin, _boundsmax, out var btmin, out var btmax))
+		if (!RcIntersections.IsectSegAABB(src, dst, _bmin, _bmax, out var btmin, out var btmax)) // This ray-box intersection could be accelerated through SIMD
 		{
-			return false;
+			return false; // Exit if this ray doesn't intersect with the bounding box
 		}
 
 		var p = new RcVec2f();
@@ -130,7 +97,7 @@ internal class StrideGeomProvider : IInputGeomProvider
 		q.X = src.X + (dst.X - src.X) * btmax;
 		q.Y = src.Z + (dst.Z - src.Z) * btmax;
 
-		List<RcChunkyTriMeshNode> chunks = _mesh.chunkyTriMesh.GetChunksOverlappingSegment(p, q);
+		List<RcChunkyTriMeshNode> chunks = _mesh.chunkyTriMesh.GetChunksOverlappingSegment(p, q); // Inline this method to avoid the list allocation
 		if (0 == chunks.Count)
 		{
 			return false;
@@ -158,7 +125,7 @@ internal class StrideGeomProvider : IInputGeomProvider
 					Vertices[tris[j + 2] * 3 + 1],
 					Vertices[tris[j + 2] * 3 + 2]
 				);
-				if (RcIntersections.IntersectSegmentTriangle(src, dst, v1, v2, v3, out var t))
+				if (RcIntersections.IntersectSegmentTriangle(src, dst, v1, v2, v3, out var t)) // This ray-box intersection could be accelerated through SIMD
 				{
 					if (t < tmin)
 					{
@@ -192,27 +159,5 @@ internal class StrideGeomProvider : IInputGeomProvider
 	public void ClearConvexVolumes()
 	{
 		_convexVolumes.Clear();
-	}
-
-	private static int[] MapFaces(List<int> meshFaces)
-	{
-		int[] faces = new int[meshFaces.Count];
-		for (int i = 0; i < faces.Length; i++)
-		{
-			faces[i] = meshFaces[i];
-		}
-
-		return faces;
-	}
-
-	private static float[] MapVertices(List<float> vertexPositions)
-	{
-		float[] vertices = new float[vertexPositions.Count];
-		for (int i = 0; i < vertices.Length; i++)
-		{
-			vertices[i] = vertexPositions[i];
-		}
-
-		return vertices;
 	}
 }
