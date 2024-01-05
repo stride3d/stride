@@ -62,8 +62,7 @@ namespace Stride.BepuPhysics
             {
                 foreach (var collider in withColliders.Colliders)
                 {
-#warning rotationOffset = collider.RotationOffset '.ToQuaternion"; TODO
-                    var rotationOffset = Quaternion.Identity;
+                    var rotationOffset = Quaternion.RotationYawPitchRoll(MathUtil.DegreesToRadians(collider.RotationOffset.Y), MathUtil.DegreesToRadians(collider.RotationOffset.X), MathUtil.DegreesToRadians(collider.RotationOffset.Z));
                     if (collider is BoxCollider box)
                     {
                         result.Add(new(_boxShapeData, new() { LinearOffset = collider.LinearOffset, RotationOffset = rotationOffset, Scale = box.Size }));
