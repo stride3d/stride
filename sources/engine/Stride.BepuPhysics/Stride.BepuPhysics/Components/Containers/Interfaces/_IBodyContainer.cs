@@ -1,12 +1,10 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.Core.Mathematics;
-using Stride.Engine;
-using Stride.Rendering;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
-    public interface IBodyContainer  : IContainer
+    public interface IBodyContainer : IContainer
     {
         public bool Kinematic { get; set; }
         public float SleepThreshold { get; set; }

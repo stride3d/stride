@@ -1,22 +1,10 @@
-﻿using System.Diagnostics;
-using BepuPhysics.Collidables;
-using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions;
-using Stride.BepuPhysics.Definitions.Colliders;
+﻿using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions.Contacts;
-using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
-using Stride.Games;
-using Stride.Graphics;
-using Stride.Graphics.GeometricPrimitives;
-using Stride.Physics;
-using Stride.Rendering;
-using static BepuPhysics.Collidables.CompoundBuilder;
-using Mesh = BepuPhysics.Collidables.Mesh;
 
 namespace Stride.BepuPhysics.Components.Containers
 {

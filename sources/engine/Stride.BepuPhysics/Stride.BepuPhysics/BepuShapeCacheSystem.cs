@@ -1,24 +1,14 @@
-﻿using BepuPhysics;
-using BepuPhysics.Collidables;
-using Microsoft.Win32;
-using Silk.NET.OpenGL;
-using Stride.BepuPhysics.Components.Containers;
+﻿using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
-using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
-using Stride.Core.Threading;
-using Stride.Engine;
-using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
-using GeoMeshData = Stride.Graphics.GeometricMeshData<Stride.Graphics.VertexPositionNormalTexture>;
 
 namespace Stride.BepuPhysics
 {

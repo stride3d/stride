@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BepuPhysics;
+﻿using BepuPhysics;
 using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -36,7 +30,7 @@ namespace Stride.BepuPhysics
             UpdateOrder = -1000; //make sure physics runs before everything
             Enabled = true; //enabled by default
         }
-       
+
         public override void Update(GameTime time)
         {
             var dt = (float)time.Elapsed.TotalMilliseconds;

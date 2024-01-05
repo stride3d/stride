@@ -1,9 +1,6 @@
-﻿using BepuPhysics;
-using BepuPhysics.Collidables;
-using Stride.BepuPhysics.Processors;
+﻿using Stride.BepuPhysics.Processors;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Rendering;
 
 namespace Stride.BepuPhysics.Components.Containers
 {

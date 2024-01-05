@@ -1,17 +1,9 @@
-﻿using BepuPhysics;
-using Microsoft.Win32;
-using Stride.BepuPhysics.Components.Containers;
+﻿using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions;
-using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Annotations;
-using Stride.Core.Mathematics;
-using Stride.Core.Threading;
 using Stride.Engine;
-using Stride.Engine.Design;
 using Stride.Games;
-using Stride.Physics;
 
 namespace Stride.BepuPhysics.Processors
 {
@@ -19,7 +11,7 @@ namespace Stride.BepuPhysics.Processors
     {
         private BepuConfiguration? _bepuConfiguration = default;
         private IGame? _game = null;
-      
+
         public ContainerProcessor()
         {
             Order = 10000;
@@ -28,7 +20,7 @@ namespace Stride.BepuPhysics.Processors
         {
             //Make sure we register our GameSystem.
             var gameSystems = Services.GetSafeServiceAs<IGameSystemCollection>();
-            if (!gameSystems.Any(e=> e is BepuPhysicsGameSystem))
+            if (!gameSystems.Any(e => e is BepuPhysicsGameSystem))
             {
                 gameSystems.Add(new BepuPhysicsGameSystem(Services));
             }

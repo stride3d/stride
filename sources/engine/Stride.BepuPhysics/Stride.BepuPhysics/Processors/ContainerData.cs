@@ -1,16 +1,11 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using BepuPhysics;
+﻿using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions;
-using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Extensions;
-using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Rendering;

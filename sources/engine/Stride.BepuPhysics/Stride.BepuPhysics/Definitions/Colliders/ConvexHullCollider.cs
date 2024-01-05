@@ -2,11 +2,8 @@
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Extensions;
-using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine;
-using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Physics;
 

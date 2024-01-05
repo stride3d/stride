@@ -2,7 +2,6 @@
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Components.Character;
 using Stride.BepuPhysics.Components.Containers;
-using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Extensions;
 
