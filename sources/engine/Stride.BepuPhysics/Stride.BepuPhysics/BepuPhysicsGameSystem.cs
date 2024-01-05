@@ -15,9 +15,15 @@ namespace Stride.BepuPhysics
 
         public BepuPhysicsGameSystem(IServiceRegistry registry) : base(registry)
         {
-            var gameSettings = Services.GetSafeServiceAs<IGameSettingsService>();
-
-            _bepuConfiguration = gameSettings.Settings.Configurations.Get<BepuConfiguration>();
+            var gameSettings = Services.GetService<IGameSettingsService>();
+            if (gameSettings != null)
+            {
+                _bepuConfiguration = gameSettings.Settings.Configurations.Get<BepuConfiguration>();
+            }
+            else
+            {
+                _bepuConfiguration = new();
+            }
 
             if (_bepuConfiguration.BepuSimulations.Count == 0)
             {

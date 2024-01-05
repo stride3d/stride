@@ -222,6 +222,8 @@ Hierarchy:
                         Id: 8679aa9b-1aa9-479e-be27-01ed703bfb58
                         Camera: ref!! 12cd454b-7e0a-4fdc-930f-91d88692dfa2
                         SimIndex: 0
+                    0dd0b6eaedc8d07223bfc0e1c205a22a: !Stride.BepuPhysics.DebugRender.Components.DebugRenderComponent,Stride.BepuPhysics.DebugRender
+                        Id: 0b65d376-5a92-4624-9b4f-694812db34b6
         -   Folder: null
             Entity:
                 Id: 96dca3f1-a757-48a1-ac94-6a16043632e8

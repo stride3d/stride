@@ -25,10 +25,15 @@ namespace Stride.BepuPhysics
 
         public BepuShapeCacheSystem(IServiceRegistry Services)
         {
-            _boxShapeData = new() { Vertex = GeometricPrimitive.Cube.New(new Vector3(1, 1, 1)).Vertices };
-            _capsuleShapeData = new() { Vertex = GeometricPrimitive.Capsule.New(1, 1, 4).Vertices };
-            _cylinderShapeData = new() { Vertex = GeometricPrimitive.Cylinder.New(1, 1, 16).Vertices };
-            _sphereShapeData = new() { Vertex = GeometricPrimitive.Sphere.New(1, 8).Vertices };
+            var box = GeometricPrimitive.Cube.New(new Vector3(1, 1, 1));
+            var capsule = GeometricPrimitive.Capsule.New(1, 1, 4);
+            var cylinder = GeometricPrimitive.Cylinder.New(1, 1, 16);
+            var sphere = GeometricPrimitive.Sphere.New(1, 8);
+
+            _boxShapeData = new() { Vertex = box.Vertices, Indices = box.Indices };
+            _capsuleShapeData = new() { Vertex = capsule.Vertices, Indices = capsule.Indices };
+            _cylinderShapeData = new() { Vertex = cylinder.Vertices, Indices = cylinder.Indices };
+            _sphereShapeData = new() { Vertex = sphere.Vertices, Indices = sphere.Indices };
 
             _game = Services.GetService<IGame>();
         }
