@@ -73,9 +73,9 @@ public class DeclareAssign : Declaration, IStaticCheck, IStreamCheck
     {
         return Enumerable.Empty<string>();
     }
-    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? _)
     {
-        Value.TypeCheck(symbols, expected);
+        Value.TypeCheck(symbols, TypeName);
     }
 }
 

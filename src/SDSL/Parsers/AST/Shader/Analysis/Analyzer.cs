@@ -4,21 +4,6 @@ using SoftTouch.Spirv;
 
 namespace SDSL.Parsing.AST.Shader.Analysis;
 
-public struct Machin
-{
-    public int Value { get; set; }
-}
-
-public static class MachinExtensions
-{
-    public static ref Machin AddOne(this ref Machin machin)
-    {
-        machin.Value += 1;
-        return ref machin;
-    }
-}
-
-
 public class Analyzer
 {
     SymbolTable Table;
@@ -28,7 +13,6 @@ public class Analyzer
 
     public Analyzer()
     {
-        Table = new();
         Table = new();
         Errors = [];
         Mixins = [];
@@ -43,18 +27,31 @@ public class Analyzer
     public void TypeCheck(ShaderProgram program)
     {
         foreach (var func in program.Body.OfType<ShaderMethod>())
+        {
+            Table.Variables.PushScope();
             foreach (var statement in func.Statements)
             {
                 TypeCheck(statement);
             }
+            Table.Variables.PopScope();
+        }
     }
     public void TypeCheck(Statement statement)
     {
         if (statement is BlockStatement block)
+        {
+            Table.Variables.PushScope();
             foreach (var s in block.Statements)
                 TypeCheck(s);
+            Table.Variables.PopScope();
+        }
         else
-            throw new NotImplementedException();
+        {
+            statement.TypeCheck(Table, null);
+            if (statement is Declaration da)
+                Table.Variables.Push(new VariableSymbol(da.VariableName, da.TypeName ?? SymbolType.Void));
+
+        }
     }
 
 }

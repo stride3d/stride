@@ -175,6 +175,7 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
             if(!(variable.Type == expected))
                 throw new Exception("Type is not matching");
         }
+        else throw new Exception($"Use of undeclared variable \"{Name}\"");
     }
 
     public void CheckVariables(SymbolTable s)
