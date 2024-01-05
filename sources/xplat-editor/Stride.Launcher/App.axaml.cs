@@ -16,6 +16,8 @@ public partial class App : Application
 {
     internal readonly CancellationTokenSource cts = new();
 
+    internal MainWindow? MainWindow { get; private set; }
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -29,7 +31,7 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
+            desktop.MainWindow = MainWindow = new MainWindow
             {
                 DataContext = InitializeMainViewModel()
             };
