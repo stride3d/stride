@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -18,7 +19,7 @@ namespace Stride.BepuPhysics.Processors
     {
         private BepuConfiguration? _bepuConfiguration = default;
         private IGame? _game = null;
-
+      
         public ContainerProcessor()
         {
             Order = 10000;

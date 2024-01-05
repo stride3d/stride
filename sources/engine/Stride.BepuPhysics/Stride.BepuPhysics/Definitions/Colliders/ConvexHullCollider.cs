@@ -33,7 +33,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders
             builder.Add(new ConvexHull(GetMeshPoints(), new BufferPool(), out _), localPose, Mass);
         }
 
-        Span<System.Numerics.Vector3> GetMeshPoints()
+        internal Span<System.Numerics.Vector3> GetMeshPoints()
         {
             if (Hull == null)
                 return new();
@@ -64,8 +64,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders
                             var verts = hullDesc.ConvexHulls[mesh][hull];
                             foreach (uint u in hullDesc.ConvexHullsIndices[mesh][hull])
                             {
-#warning Scaling here means that changing entity scale after the fact doesn't affect the physical shape
-                                output[outputIndex++] = verts[(int)u].ToNumericVector() * hullScaling * colliderScaling;
+                                output[outputIndex++] = verts[(int)u].ToNumericVector() * hullScaling * colliderScaling; //We aply scale here because if scale change we rebuilt the container.
                             }
                         }
                     }
