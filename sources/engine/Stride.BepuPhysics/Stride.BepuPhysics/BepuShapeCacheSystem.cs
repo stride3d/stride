@@ -20,7 +20,6 @@ namespace Stride.BepuPhysics
         private IGame? _game = null;
 
         private readonly BodyShapeData _boxShapeData;
-        private readonly BodyShapeData _capsuleShapeData;
         private readonly BodyShapeData _cylinderShapeData;
         private readonly BodyShapeData _sphereShapeData;
         private readonly ConditionalWeakTable<Model, ModelShapeCache> _modelsShapeData = new();
@@ -31,12 +30,10 @@ namespace Stride.BepuPhysics
         public BepuShapeCacheSystem(IServiceRegistry Services)
         {
             var box = GeometricPrimitive.Cube.New(new Vector3(1, 1, 1));
-            var capsule = GeometricPrimitive.Capsule.New(1, 1, 4);
-            var cylinder = GeometricPrimitive.Cylinder.New(1, 1, 16);
+            var cylinder = GeometricPrimitive.Cylinder.New(1, 1, 8);
             var sphere = GeometricPrimitive.Sphere.New(1, 8);
 
             _boxShapeData = new() { Vertices = box.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = box.Indices };
-            _capsuleShapeData = new() { Vertices = capsule.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = capsule.Indices };
             _cylinderShapeData = new() { Vertices = cylinder.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = cylinder.Indices };
             _sphereShapeData = new() { Vertices = sphere.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = sphere.Indices };
 
@@ -47,20 +44,7 @@ namespace Stride.BepuPhysics
         {
             if (containerCompo is IContainerWithMesh meshContainer)
             {
-                if (meshContainer.Model == null)
-                {
-                    return;
-                }
-
-                if (_modelsShapeData.TryGetValue(meshContainer.Model, out ModelShapeCache? shapeCache) == false)
-                {
-                    ExtractMesh(meshContainer.Model, _game.GraphicsContext.CommandList, out VertexPosition3[] vertices, out int[] indices);
-                    shapeCache = new(new() { Vertices = vertices, Indices = indices });
-                    _modelsShapeData.Add(meshContainer.Model, shapeCache);
-                }
-
-#warning maybe allow mesh transform ? (by adding Scale, Orientation & Offset to IContainerWithMesh)
-                shapes.Add((shapeCache.BodyShapeData, new() { PositionLocal = Vector3.Zero, RotationLocal = Quaternion.Identity, Scale = containerCompo.Entity.Transform.Scale }));
+                shapes.Add(BorrowMesh(meshContainer));
             }
             else if (containerCompo is IContainerWithColliders withColliders)
             {
@@ -69,11 +53,12 @@ namespace Stride.BepuPhysics
                     shapes.Add(collider switch
                     {
                         BoxCollider box => new(_boxShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = box.Size }),
-                        CapsuleCollider cap => new(_capsuleShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(cap.Radius, cap.Length, cap.Radius) }),
+#warning Capsule can't be scaled for now (see lower)
+                        CapsuleCollider cap => new(buildCapsule(cap), new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(1, 1, 1) }),
                         CylinderCollider cyl => new(_cylinderShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(cyl.Radius, cyl.Length, cyl.Radius) }),
                         SphereCollider sph => new(_sphereShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(sph.Radius, sph.Radius, sph.Radius) }),
-#warning La flemme n'est pas une raison valable pour balancer une exception
-                        TriangleCollider tri => throw new NotImplementedException("Flemme"), // We can't cache these I don't think
+#warning Triangle can't be scaled
+                        TriangleCollider tri => new(buildTriangle(tri), new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(1, 1, 1) }),
                         ConvexHullCollider con => BorrowHull(con),
                         _ => throw new NotImplementedException($"collider type {collider.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it"),
                     });
@@ -85,6 +70,19 @@ namespace Stride.BepuPhysics
             }
         }
 
+
+#warning that's slow, we could consider build a dictionary<float LenRadRatio, BodyShapeData>.
+        private BodyShapeData buildCapsule(CapsuleCollider cap)
+        {
+            var capGeo = GeometricPrimitive.Capsule.New(cap.Length, cap.Radius, 8);
+            return new BodyShapeData() { Vertices = capGeo.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = capGeo.Indices };
+        }
+        private BodyShapeData buildTriangle(TriangleCollider tri)
+        {
+            return new BodyShapeData() { Vertices = new[] { tri.A, tri.B, tri.C }.Select(x => new VertexPosition3(x)).ToArray(), Indices = Enumerable.Range(0, 3).ToArray() };
+        }
+
+#warning returning empty data or null ?
         public (BodyShapeData data, BodyShapeTransform transform) BorrowHull(ConvexHullCollider convex)
         {
             if (convex.Hull == null)
@@ -100,6 +98,23 @@ namespace Stride.BepuPhysics
             }
 
             return new(hull, new() { PositionLocal = convex.PositionLocal, RotationLocal = convex.RotationLocal, Scale = convex.Scale });
+        }
+        public (BodyShapeData data, BodyShapeTransform transform) BorrowMesh(IContainerWithMesh meshContainer)
+        {
+            if (meshContainer.Model == null)
+            {
+                return new(new(), new());
+            }
+
+            if (_modelsShapeData.TryGetValue(meshContainer.Model, out ModelShapeCache? shapeCache) == false)
+            {
+                ExtractMesh(meshContainer.Model, _game.GraphicsContext.CommandList, out VertexPosition3[] vertices, out int[] indices);
+                shapeCache = new(new() { Vertices = vertices, Indices = indices });
+                _modelsShapeData.Add(meshContainer.Model, shapeCache);
+            }
+
+#warning maybe allow mesh transform ? (by adding Scale, Orientation & Offset to IContainerWithMesh)
+            return ((shapeCache.BodyShapeData, new() { PositionLocal = Vector3.Zero, RotationLocal = Quaternion.Identity, Scale = ((IContainer)meshContainer).Entity.Transform.Scale }));
         }
 
         private static void ExtractHull(PhysicsColliderShape Hull, out VertexPosition3[] outPoints, out int[] outIndices)
@@ -150,28 +165,6 @@ namespace Stride.BepuPhysics
                 }
             }
         }
-
-        internal void ClearShape(ContainerComponent component)
-        {
-            if (component is IContainerWithMesh withMesh)
-            {
-                if (withMesh.Model != null)
-                {
-                    _modelsShapeData.Remove(withMesh.Model);
-                }
-            }
-            else if (component is IContainerWithColliders withColliders)
-            {
-                foreach (var collider in withColliders.Colliders)
-                {
-                    if (collider is ConvexHullCollider con && con.Hull != null)
-                    {
-                        _hullShapeData.Remove(con.Hull);
-                    }
-                }
-            }
-        }
-
         private static unsafe void ExtractMesh(Model model, CommandList commandList, out VertexPosition3[] vertices, out int[] indices)
         {
             int totalVertices = 0, totalIndices = 0;
@@ -237,6 +230,27 @@ namespace Stride.BepuPhysics
                 }
             }
         }
+
+        //internal void ClearShape(ContainerComponent component)
+        //{
+        //    if (component is IContainerWithMesh withMesh)
+        //    {
+        //        if (withMesh.Model != null)
+        //        {
+        //            _modelsShapeData.Remove(withMesh.Model);
+        //        }
+        //    }
+        //    else if (component is IContainerWithColliders withColliders)
+        //    {
+        //        foreach (var collider in withColliders.Colliders)
+        //        {
+        //            if (collider is ConvexHullCollider con && con.Hull != null)
+        //            {
+        //                _hullShapeData.Remove(con.Hull);
+        //            }
+        //        }
+        //    }
+        //}
 
     }
 }

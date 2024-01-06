@@ -247,7 +247,7 @@ Hierarchy:
                         Children: {}
                     5ae917ac24a68c3a380400a6c8e2bfa6: !ModelComponent
                         Id: 92240795-6d15-49da-ae41-7a3c06b12903
-                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule_05_035
                         Materials: {}
         -   Entity:
                 Id: a9aba88b-eb7c-4390-956b-d9a38dcf452b

@@ -5,6 +5,7 @@ using Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;

@@ -220,7 +220,7 @@
     { 
         streams.ShadingPosition = projToWorld(streams.Position);
         // Our wireframe likely sits on top of the same model so fragments will z-fight, this line reduces flickering by pulling vertices forward slightly
-        streams.ShadingPosition.z -= 0.00001;
+        streams.ShadingPosition.z -= 0.00005;
     }
 
     // pixel shader

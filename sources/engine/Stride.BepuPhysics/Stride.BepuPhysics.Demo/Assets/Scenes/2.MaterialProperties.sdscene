@@ -49,7 +49,7 @@ Hierarchy:
                                 Length: 0.5
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 2459b71a-2116-42a1-8ed5-f63b2479f44c
-                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule_05_035
                         Materials:
                             99f00747999587f6986df091de16c466~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
@@ -129,7 +129,7 @@ Hierarchy:
                                 Length: 0.5
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 65d4152c-783a-4b27-8d5b-4c5c6f8d2abf
-                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule_05_035
                         Materials:
                             3f228c9529ee2898c9808f28134f3138~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
@@ -341,7 +341,7 @@ Hierarchy:
                                 Length: 0.5
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 0b5157e6-a92f-49b0-b53c-d10c646c253c
-                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule_05_035
                         Materials:
                             9ad5a2dddc489f2c6d840f99da177742~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
@@ -612,7 +612,7 @@ Hierarchy:
                                 Length: 0.5
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 7af5dd1e-092f-423e-bee5-cbdccdfdd141
-                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule
+                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule_05_035
                         Materials: {}
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
