@@ -28,13 +28,6 @@ namespace Stride.Core
         Content,
 
         /// <summary>
-        ///  Only valid for a property / field that has an array type of
-        ///  some value type. The content of the array is stored in a binary
-        ///  format encoded in base64 style.
-        /// </summary>
-        Binary,
-
-        /// <summary>
         /// The property / field will not be stored.
         /// </summary>
         Never,
