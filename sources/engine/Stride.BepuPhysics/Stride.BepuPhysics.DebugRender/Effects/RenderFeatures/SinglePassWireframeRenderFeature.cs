@@ -1,4 +1,5 @@
-﻿using Stride.Core;
+﻿using Stride.BepuPhysics.Definitions;
+using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -39,7 +40,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         // create the pipeline state and set properties that won't change
         pipelineState = new MutablePipelineState(Context.GraphicsDevice);
         pipelineState.State.SetDefaults();
-        pipelineState.State.InputElements = VertexPositionNormalTexture.Layout.CreateInputElements();
+        pipelineState.State.InputElements = VertexPosition3.Layout.CreateInputElements();
         pipelineState.State.BlendState = BlendStates.AlphaBlend;
         pipelineState.State.RasterizerState.CullMode = CullMode.None;
     }
