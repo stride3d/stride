@@ -116,7 +116,7 @@ public static class SelfUpdater
 
         var version = new PackageVersion(Version);
         var productAttribute = (typeof(SelfUpdater).Assembly).GetCustomAttribute<AssemblyProductAttribute>();
-        var packageId = productAttribute.Product;
+        var packageId = productAttribute!.Product;
         var packages = (await store.GetUpdates(new PackageName(packageId, version), true, true, cancellationToken)).OrderBy(x => x.Version);
 
         try
@@ -124,7 +124,7 @@ public static class SelfUpdater
             // First, check if there is a package forcing us to download new installer
             const string ReinstallUrlPattern = @"force-reinstall:\s*(\S+)\s*(\S+)";
             var reinstallPackage = packages.LastOrDefault(x => x.Version > version && Regex.IsMatch(x.Description, ReinstallUrlPattern));
-            if (reinstallPackage != null)
+            if (reinstallPackage is not null)
             {
                 var regexMatch = Regex.Match(reinstallPackage.Description, ReinstallUrlPattern);
                 var minimumVersion = PackageVersion.Parse(regexMatch.Groups[1].Value);
@@ -145,7 +145,7 @@ public static class SelfUpdater
         var package = (packages.FirstOrDefault(x => x.Version > version && x.Version.SpecialVersion == "req") ?? packages.LastOrDefault());
 
         // Check to see if an update is needed
-        if (package == null || version >= new PackageVersion(package.Version.Version, package.Version.SpecialVersion))
+        if (package is null || version >= new PackageVersion(package.Version.Version, package.Version.SpecialVersion))
         {
             return;
         }

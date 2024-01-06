@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <DebugType>embedded</DebugType>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationIcon>Assets\Launcher.ico</ApplicationIcon>
@@ -17,6 +18,7 @@
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
     <PackageReference Include="Stride.CrashReport" />
+    <PackageReference Include="Stride.Metrics" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs" Link="Packages\PackageSessionHelper.Solution.cs" />
     <Compile Include="..\..\editor\Stride.Core.Assets.Editor\EditorPath.cs" Link="Editor\EditorPath.cs" />
   </ItemGroup>
 
@@ -63,5 +66,6 @@
     </Compile>
   </ItemGroup>
 
+  <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
 </Project>
