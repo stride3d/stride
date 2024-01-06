@@ -59,7 +59,13 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
+                        Colliders:
+                            a2657354665f8d0e0bfb0c15ca6b75f7: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
+                                Scale: {X: 0.3, Y: 0.3, Z: 0.3}
         -   Entity:
                 Id: 6958ee95-2589-42b4-86f7-b95e75c06a30
                 Name: DefaultScripts
@@ -161,7 +167,12 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
+                        Colliders:
+                            ec021a68e3874f78309aea134bfe69f3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 50.0, Y: 0.5, Z: 50.0}
         -   Entity:
                 Id: 8b35bb99-2d17-4174-9aa0-3d0ec2d84b59
                 Name: nav_test
@@ -219,7 +230,12 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
+                        Colliders:
+                            25da08fad8f8c9c6c6b61f78bd9e991b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 50.0, Y: 0.5, Z: 50.0}
         -   Entity:
                 Id: 9208687a-dcaf-4386-816a-ee2ebece32d0
                 Name: BoundingBox
@@ -268,13 +284,13 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
+                            d7669fe30cb49ca09a9c56e4a8ea4126: ref!! df1b1d9b-7b12-4f9c-bd44-fd4039d6d7ed
                             9732fe286d70b4dee2d3598d7a29238c: ref!! 3ca31b15-4d32-4710-aa0d-55baf6051f5c
                             c846816d1b41b8b41c31a1d9c1951bb5: ref!! f3bd512c-b5a3-404d-bc25-f7470a4d63c7
                             921b141e654480024e131f875f508594: ref!! 501de015-083a-476f-9648-5b1889fd0a39
                             cb69d06b949e4f4a27abf89335d9f215: ref!! b8025715-3247-401e-8edd-eeec7acef0df
-                            ea8bbaa675d65b1e3442f759ae7f78ef: ref!! df1b1d9b-7b12-4f9c-bd44-fd4039d6d7ed
-                            5a5eb858984c75a278869fe561ffe497: ref!! 923fa071-ae79-4363-a32e-12463ef3357c
                             e477409f51de6f506569fa565fca8495: ref!! 276d6c54-5967-447c-b848-63b055eabf76
+                            4fe1b87f4f5e444d9ee843fb98d97fdd: ref!! 923fa071-ae79-4363-a32e-12463ef3357c
                             76be3a32490a441bbf1eb66a9e36a555: ref!! a8a69d8e-9116-44a7-aef6-5c69eecfb7e8
         -   Entity:
                 Id: c3bb90a8-1489-40f9-90cd-95f5518327b6
@@ -285,8 +301,7 @@ Hierarchy:
                         Position: {X: -35.935482, Y: -40.09095, Z: -68.20989}
                         Rotation: {X: 0.0, Y: -0.117925026, Z: 0.0, W: 0.9930225}
                         Scale: {X: 0.3, Y: 0.3, Z: 0.3}
-                        Children:
-                            2711d6aeef1680fb60137f83e229f794: ref!! c4666a51-1b1e-46d6-a26e-128ceaf3a06a
+                        Children: {}
                     da77210aeeb3d1caa000293889e6b172: !ModelComponent
                         Id: cf629dae-efba-4e02-9aae-0825f06f7891
                         Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
@@ -304,7 +319,13 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
+                        Colliders:
+                            dca234d69636add3aa7f7af08439df56: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
+                                Scale: {X: 0.3, Y: 0.3, Z: 0.3}
         -   Folder: null
             Entity:
                 Id: c7d5cb4a-8254-49de-8de0-b72b901759f5
@@ -333,17 +354,12 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
-        -   Entity:
-                Id: ddba9a9d-9ea6-424c-bd59-6a075410828b
-                Name: Entity
-                Components:
-                    5ac9ecf1a999050b14758bf802f2728c: !TransformComponent
-                        Id: c4666a51-1b1e-46d6-a26e-128ceaf3a06a
-                        Position: {X: 0.0, Y: 50.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 0.3, Y: 0.3, Z: 0.3}
-                        Children: {}
+                        Colliders:
+                            d6903f279e5337699353a1172e5474ea: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 50.0, Y: 0.5, Z: 50.0}
         -   Entity:
                 Id: e468f4f4-7011-4e12-8710-3b42afcbfeae
                 Name: Cylinder
@@ -371,4 +387,10 @@ Hierarchy:
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
-                        Colliders: {}
+                        Colliders:
+                            f0e9e9b3ffbe101f71cef34b286a661f: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Radius: 5.0
+                                Length: 10.0

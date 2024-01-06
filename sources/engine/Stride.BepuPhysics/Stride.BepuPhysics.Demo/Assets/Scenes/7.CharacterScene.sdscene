@@ -226,9 +226,9 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 5.0, Z: 10.0}
                     f9a37efd54d23446ba6b5e0cd9f3a2f3: !Stride.BepuPhysics.Demo.Components.Utils.TriggerUsageComponent,Stride.BepuPhysics.Demo
                         Id: d50f67c5-8ccd-4785-a628-36012c6c6c0d
-                        Trigger: null
-                        MatRed: null
-                        MatBase: null
+                        Trigger: ref!! 4f3dc2aa-51ed-4b02-8fe2-da628f85faaf
+                        MatRed: 90098d7c-e768-47ba-950a-43ac840ee2d6:Materials/QRTransMatR
+                        MatBase: cc61e97a-203f-46ef-b432-966557e2ca14:Materials/QRTransMat
         -   Entity:
                 Id: 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                 Name: Camera
@@ -350,7 +350,7 @@ Hierarchy:
                         MaxCameraAngle: 90.0
                     ae2e89b5cbf890341249bbff30f4cff7: !Stride.BepuPhysics.Components.Character.BepuCharacterComponent,Stride.BepuPhysics
                         Id: 87ee6edd-89ca-44e3-aae2-774f6806c6ac
-                        SimulationIndex: 0
+                        SimulationIndex: 1
                         Speed: 10.0
                         JumpSpeed: 1.0
                         CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153

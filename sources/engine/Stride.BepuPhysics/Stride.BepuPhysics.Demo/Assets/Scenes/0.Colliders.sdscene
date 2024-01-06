@@ -923,7 +923,7 @@ Hierarchy:
                         Id: a8b58fb3-df07-4c1d-9496-45ba9d6c5fad
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 100.0, Y: 0.1, Z: 100.0}
+                        Scale: {X: 150.0, Y: 0.1, Z: 150.0}
                         Children: {}
                     13f3af2c4ea391eb3010e218853e2b2c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
                         Id: b94ea803-7534-447f-b4e1-1c8ed2d79fc2
@@ -946,7 +946,7 @@ Hierarchy:
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 100.0, Y: 0.1, Z: 100.0}
+                                Size: {X: 150.0, Y: 0.1, Z: 150.0}
                     c642a0a0f57335ddcb9cdfdb673cd60f: !InstanceComponent
                         Id: ba32c29b-e5df-4dfe-a8d9-e1c1b88a585b
                         Master: ref!! 1c9d86d7-bb42-4183-bf0f-9ec8fa5cf41b
