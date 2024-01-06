@@ -96,6 +96,7 @@ namespace Stride.BepuPhysics.Processors
                 }
 
                 var pool = new BufferPool();
+                #warning maybe recycle mesh shapes themselves if possible ?
                 var triangles = ExtractMeshDataSlow(meshContainer.Model, _game, pool);
                 var mesh = new Mesh(triangles, _containerComponent.Entity.Transform.Scale.ToNumericVector(), pool);
 
@@ -126,8 +127,8 @@ namespace Stride.BepuPhysics.Processors
                     {
                         foreach (var collider in collidersContainer.Colliders)
                         {
-                            var localTranslation = collider.LinearOffset;
-                            var localRotation = collider.RotationOffset;
+                            var localTranslation = collider.PositionLocal;
+                            var localRotation = collider.RotationLocal;
 
                             var compoundChildLocalPose = new RigidPose(localTranslation.ToNumericVector(), Quaternion.RotationYawPitchRoll(MathUtil.DegreesToRadians(localRotation.Y), MathUtil.DegreesToRadians(localRotation.X), MathUtil.DegreesToRadians(localRotation.Z)).ToNumericQuaternion());
                             collider.AddToCompoundBuilder(_game, ref compoundBuilder, compoundChildLocalPose);

@@ -1,31 +1,39 @@
-﻿using Stride.Core.Mathematics;
+﻿using Stride.BepuPhysics.Definitions;
+using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.BepuPhysics.DebugRender.Effects
 {
-    public class WireFrameRenderObject : RenderObject
+    public class WireFrameRenderObject : RenderObject, IDisposable
     {
         // Shader properties
         public Color Color = Color.Red;
         public Matrix WorldMatrix = Matrix.Identity;
 
         // Vertex buffer setup
-        public PrimitiveType PrimitiveType = PrimitiveType.TriangleList;
-        public Buffer VertexBuffer;
-        public Buffer IndiceBuffer;
+        public readonly int VertexStride;
+        public readonly Buffer VertexBuffer;
+        public readonly Buffer IndiceBuffer;
+        public PrimitiveType PrimitiveType => PrimitiveType.TriangleList;
 
-        public void Prepare(GraphicsDevice graphicsDevice, int[] indices, VertexPositionNormalTexture[] vertextData)
+        private WireFrameRenderObject(int vertexStride, Buffer vertexBuffer, Buffer indiceBuffer)
         {
-            if (VertexBuffer != null)
-            {
-                VertexBuffer.Dispose();
-                IndiceBuffer.Dispose();
-            }
+            VertexStride = vertexStride;
+            VertexBuffer = vertexBuffer;
+            IndiceBuffer = indiceBuffer;
+        }
 
-            VertexBuffer = Graphics.Buffer.Vertex.New(graphicsDevice, vertextData, GraphicsResourceUsage.Dynamic);//Buffer.New<VertexPositionColorTexture>(context.GraphicsDevice, shapeData.Value.Points.Count, BufferFlags.ShaderResource | BufferFlags.VertexBuffer);
-            IndiceBuffer = Graphics.Buffer.Index.New(graphicsDevice, indices);
+        public static WireFrameRenderObject New<T>(GraphicsDevice graphicsDevice, int[] indices, T[] vertices) where T : unmanaged, IVertexStructure
+        {
+            return new(T.Declaration().VertexStride, Buffer.Vertex.New(graphicsDevice, vertices, GraphicsResourceUsage.Dynamic), Buffer.Index.New(graphicsDevice, indices));
+        }
+
+        public void Dispose()
+        {
+            VertexBuffer.Dispose();
+            IndiceBuffer.Dispose();
         }
     }
 }

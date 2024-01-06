@@ -5,9 +5,9 @@ using DotRecast.Recast.Geom;
 using DotRecast.Recast.Toolset;
 using DotRecast.Recast.Toolset.Builder;
 using DotRecast.Recast.Toolset.Geom;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Navigation.Components;
 using Stride.Core.Annotations;
-using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Core;
@@ -73,16 +73,16 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         // Fetch mesh data from the scene - this may be too slow
         // There are a couple of avenues we could go down into to fix this but none of them are easy
         // Something we'll have to investigate later.
-        var points = new List<Vector3>();
+        var points = new List<VertexPosition3>();
         var indices = new List<int>();
         foreach (var shape in _colliderProcessor.BodyShapes)
         {
             // Copy vertices
             int vBase = points.Count;
-            points.AddRange(shape.Value.Vertex.Select(e => e.Position));
+            points.AddRange(shape.Value.Vertices);
 
             // Copy indices with offset applied
-            indices.Capacity += shape.Value.Indices.Count();
+            indices.Capacity += shape.Value.Indices.Length;
             foreach (int index in shape.Value.Indices)
             {
                 indices.Add(index + vBase);
@@ -119,13 +119,13 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         return task;
     }
 
-    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, List<Vector3> Points, List<int> Indices, CancellationToken cancelToken)
+    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, List<VertexPosition3> Points, List<int> Indices, CancellationToken cancelToken)
     {
         // Get the backing array of this list,
         // get a span to that backing array,
         var spanToPoints = CollectionsMarshal.AsSpan(Points);
         // cast the type of span to read it as if it was a series of contiguous floats instead of contiguous vectors
-        var reinterpretedPoints = MemoryMarshal.Cast<Vector3, float>(spanToPoints);
+        var reinterpretedPoints = MemoryMarshal.Cast<VertexPosition3, float>(spanToPoints);
         StrideGeomProvider geom = new StrideGeomProvider(reinterpretedPoints.ToArray(), Indices.ToArray());
 
         cancelToken.ThrowIfCancellationRequested();

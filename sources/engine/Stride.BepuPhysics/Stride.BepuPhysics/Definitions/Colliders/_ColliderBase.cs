@@ -11,8 +11,8 @@ namespace Stride.BepuPhysics.Definitions.Colliders
     public abstract class ColliderBase
     {
         private float _mass = 1f;
-        private Vector3 _linearOffset = Vector3.Zero;
-        private Vector3 _rotationOffset = Vector3.Zero;
+        private Vector3 _positionLocal = Vector3.Zero;
+        private Quaternion _rotationLocal = Quaternion.Identity;
 
         public float Mass
         {
@@ -23,21 +23,30 @@ namespace Stride.BepuPhysics.Definitions.Colliders
                 Container?.ContainerData?.TryUpdateContainer();
             }
         }
-        public Vector3 LinearOffset
+
+        /// <summary>
+        /// Local position of this collider relative to its parent
+        /// </summary>
+        [DataAlias("LinearOffset")]
+        public Vector3 PositionLocal
         {
-            get => _linearOffset;
+            get => _positionLocal;
             set
             {
-                _linearOffset = value;
+                _positionLocal = value;
                 Container?.ContainerData?.TryUpdateContainer();
             }
         }
-        public Vector3 RotationOffset
+
+        /// <summary>
+        /// Local rotation of this collider relative to its parent
+        /// </summary>
+        public Quaternion RotationLocal
         {
-            get => _rotationOffset;
+            get => _rotationLocal;
             set
             {
-                _rotationOffset = value;
+                _rotationLocal = value;
                 Container?.ContainerData?.TryUpdateContainer();
             }
         }
@@ -46,7 +55,5 @@ namespace Stride.BepuPhysics.Definitions.Colliders
         public ContainerComponent? Container { get; internal set; }
 
         internal abstract void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose);
-
-
     }
 }

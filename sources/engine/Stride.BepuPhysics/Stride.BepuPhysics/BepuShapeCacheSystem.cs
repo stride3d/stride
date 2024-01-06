@@ -1,4 +1,6 @@
-﻿using Stride.BepuPhysics.Components.Containers;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
@@ -8,20 +10,23 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
+using Stride.Physics;
 using Stride.Rendering;
 
 namespace Stride.BepuPhysics
 {
-    public class BepuShapeCacheSystem
+    internal class BepuShapeCacheSystem
     {
         private IGame? _game = null;
 
-        private BodyShapeData _boxShapeData;
-        private BodyShapeData _capsuleShapeData;
-        private BodyShapeData _cylinderShapeData;
-        private BodyShapeData _sphereShapeData;
-        private Dictionary<Model, BodyShapeData> _modelsShapeData = new();
-        private Dictionary<Physics.PhysicsColliderShape, BodyShapeData> _hullShapeData = new();
+        private readonly BodyShapeData _boxShapeData;
+        private readonly BodyShapeData _capsuleShapeData;
+        private readonly BodyShapeData _cylinderShapeData;
+        private readonly BodyShapeData _sphereShapeData;
+        private readonly ConditionalWeakTable<Model, ModelShapeCache> _modelsShapeData = new();
+        private readonly Dictionary<PhysicsColliderShape, BodyShapeData> _hullShapeData = new();
+
+        record ModelShapeCache(BodyShapeData BodyShapeData); // Weak table doesn't support structures as values, wrap around our structure in a class
 
         public BepuShapeCacheSystem(IServiceRegistry Services)
         {
@@ -30,98 +35,127 @@ namespace Stride.BepuPhysics
             var cylinder = GeometricPrimitive.Cylinder.New(1, 1, 16);
             var sphere = GeometricPrimitive.Sphere.New(1, 8);
 
-            _boxShapeData = new() { Vertex = box.Vertices, Indices = box.Indices };
-            _capsuleShapeData = new() { Vertex = capsule.Vertices, Indices = capsule.Indices };
-            _cylinderShapeData = new() { Vertex = cylinder.Vertices, Indices = cylinder.Indices };
-            _sphereShapeData = new() { Vertex = sphere.Vertices, Indices = sphere.Indices };
+            _boxShapeData = new() { Vertices = box.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = box.Indices };
+            _capsuleShapeData = new() { Vertices = capsule.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = capsule.Indices };
+            _cylinderShapeData = new() { Vertices = cylinder.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = cylinder.Indices };
+            _sphereShapeData = new() { Vertices = sphere.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = sphere.Indices };
 
             _game = Services.GetService<IGame>();
         }
 
-        public (BodyShapeData data, BodyShapeTransform transform)[] GetShapeAndOffsets(ContainerComponent component)
+        public void AppendCachedShapesFor(ContainerComponent containerCompo, List<(BodyShapeData data, BodyShapeTransform transform)> shapes)
         {
-            var result = new List<(BodyShapeData data, BodyShapeTransform transform)>();
-
-            if (_game == null)
-                return result.ToArray();
-
-            if (component is IContainerWithMesh withMesh)
+            if (containerCompo is IContainerWithMesh meshContainer)
             {
-                if (withMesh.Model == null)
-                    return result.ToArray();
-
-                if (!_modelsShapeData.ContainsKey(withMesh.Model))
+                if (meshContainer.Model == null)
                 {
-                    _modelsShapeData.Add(withMesh.Model, GetStrideMeshData(withMesh.Model, _game, new Vector3(1)));
+                    return;
+                }
+
+                if (_modelsShapeData.TryGetValue(meshContainer.Model, out ModelShapeCache? shapeCache) == false)
+                {
+                    ExtractMesh(meshContainer.Model, _game.GraphicsContext.CommandList, out VertexPosition3[] vertices, out int[] indices);
+                    shapeCache = new(new() { Vertices = vertices, Indices = indices });
+                    _modelsShapeData.Add(meshContainer.Model, shapeCache);
                 }
 
 #warning maybe allow mesh transform ? (by adding Scale, Orientation & Offset to IContainerWithMesh)
-                result.Add(new(_modelsShapeData[withMesh.Model], new() { LinearOffset = Vector3.Zero, RotationOffset = Quaternion.Identity, Scale = component.Entity.Transform.Scale }));
+                shapes.Add((shapeCache.BodyShapeData, new() { PositionLocal = Vector3.Zero, RotationLocal = Quaternion.Identity, Scale = containerCompo.Entity.Transform.Scale }));
             }
-            else if (component is IContainerWithColliders withColliders)
+            else if (containerCompo is IContainerWithColliders withColliders)
             {
                 foreach (var collider in withColliders.Colliders)
                 {
-                    var rotationOffset = Quaternion.RotationYawPitchRoll(MathUtil.DegreesToRadians(collider.RotationOffset.Y), MathUtil.DegreesToRadians(collider.RotationOffset.X), MathUtil.DegreesToRadians(collider.RotationOffset.Z));
-                    if (collider is BoxCollider box)
+                    shapes.Add(collider switch
                     {
-                        result.Add(new(_boxShapeData, new() { LinearOffset = collider.LinearOffset, RotationOffset = rotationOffset, Scale = box.Size }));
-                    }
-                    else if (collider is CapsuleCollider cap)
-                    {
-                        result.Add(new(_capsuleShapeData, new() { LinearOffset = collider.LinearOffset, RotationOffset = rotationOffset, Scale = new Vector3(cap.Radius, cap.Length, cap.Radius) }));
-                    }
-                    else if (collider is CylinderCollider cyl)
-                    {
-                        result.Add(new(_cylinderShapeData, new() { LinearOffset = collider.LinearOffset, RotationOffset = rotationOffset, Scale = new Vector3(cyl.Radius, cyl.Length, cyl.Radius) }));
-                    }
-                    else if (collider is SphereCollider sph)
-                    {
-                        result.Add(new(_sphereShapeData, new() { LinearOffset = collider.LinearOffset, RotationOffset = rotationOffset, Scale = new Vector3(sph.Radius, sph.Radius, sph.Radius) }));
-                    }
-                    else if (collider is TriangleCollider tri)
-                    {
+                        BoxCollider box => new(_boxShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = box.Size }),
+                        CapsuleCollider cap => new(_capsuleShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(cap.Radius, cap.Length, cap.Radius) }),
+                        CylinderCollider cyl => new(_cylinderShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(cyl.Radius, cyl.Length, cyl.Radius) }),
+                        SphereCollider sph => new(_sphereShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(sph.Radius, sph.Radius, sph.Radius) }),
 #warning La flemme n'est pas une raison valable pour balancer une exception
-                        throw new Exception("Flemme");
-                    }
-                    else if (collider is ConvexHullCollider con)
-                    {
-                        if (con.Hull != null)
-                        {
-                            if (!_hullShapeData.ContainsKey(con.Hull))
-                            {
-                                var points = con.GetMeshPoints(false);
-                                var pointTransformed = new VertexPositionNormalTexture[points.Length];
-
-                                for (int i = 0; i < points.Length; i++)
-                                {
-                                    pointTransformed[i] = new(points[i].ToStrideVector(), Vector3.Zero, Vector2.One);
-#warning normals
-                                }
-
-                                _hullShapeData.Add(con.Hull, new() { Vertex = pointTransformed, Indices = Enumerable.Range(0, pointTransformed.Length).ToArray() });
-                            }
-
-                            result.Add(new(_hullShapeData[con.Hull], new() { LinearOffset = collider.LinearOffset, RotationOffset = rotationOffset, Scale = con.Scale }));
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception($"collider type {collider.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it");
-                    }
+                        TriangleCollider tri => throw new NotImplementedException("Flemme"), // We can't cache these I don't think
+                        ConvexHullCollider con => BorrowHull(con),
+                        _ => throw new NotImplementedException($"collider type {collider.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it"),
+                    });
                 }
             }
             else
             {
-                throw new Exception($"Container type {component.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it");
+                throw new NotImplementedException($"Container type {containerCompo.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it");
             }
-            return result.ToArray();
         }
+
+        public (BodyShapeData data, BodyShapeTransform transform) BorrowHull(ConvexHullCollider convex)
+        {
+            if (convex.Hull == null)
+            {
+                return new(new(), new());
+            }
+
+            if (_hullShapeData.TryGetValue(convex.Hull, out var hull) == false)
+            {
+                ExtractHull(convex.Hull, out var points, out var indices);
+                hull = new() { Vertices = points, Indices = indices };
+                _hullShapeData.Add(convex.Hull, hull);
+            }
+
+            return new(hull, new() { PositionLocal = convex.PositionLocal, RotationLocal = convex.RotationLocal, Scale = convex.Scale });
+        }
+
+        private static void ExtractHull(PhysicsColliderShape Hull, out VertexPosition3[] outPoints, out int[] outIndices)
+        {
+            int vertexCount = 0;
+            int indexCount = 0;
+            foreach (var colliderShapeDesc in Hull.Descriptions)
+            {
+                if (colliderShapeDesc is not ConvexHullColliderShapeDesc hullDesc) // This casting nonsense should be replaced once we have a proper asset to host convex shapes
+                    continue;
+
+                for (int mesh = 0; mesh < hullDesc.ConvexHulls.Count; mesh++)
+                {
+                    for (var hull = 0; hull < hullDesc.ConvexHulls[mesh].Count; hull++)
+                    {
+                        vertexCount += hullDesc.ConvexHulls[mesh][hull].Count;
+                        indexCount += hullDesc.ConvexHullsIndices[mesh][hull].Count;
+                    }
+                }
+            }
+
+            outPoints = new VertexPosition3[vertexCount];
+            var outPointsWithAutoCast = MemoryMarshal.Cast<VertexPosition3, System.Numerics.Vector3>(outPoints.AsSpan());
+            outIndices = new int[indexCount];
+            int vertexWriteHead = 0;
+            int indexWriteHead = 0;
+
+            foreach (var colliderShapeDesc in Hull.Descriptions)
+            {
+                if (colliderShapeDesc is not ConvexHullColliderShapeDesc hullDesc)
+                    continue;
+
+                System.Numerics.Vector3 hullScaling = hullDesc.Scaling.ToNumericVector();
+                for (int mesh = 0; mesh < hullDesc.ConvexHulls.Count; mesh++)
+                {
+                    for (var hull = 0; hull < hullDesc.ConvexHulls[mesh].Count; hull++)
+                    {
+                        var hullVerts = hullDesc.ConvexHulls[mesh][hull];
+                        var hullIndices = hullDesc.ConvexHullsIndices[mesh][hull];
+
+                        int vertMappingStart = vertexWriteHead;
+                        for (int i = 0; i < hullVerts.Count; i++)
+                            outPointsWithAutoCast[vertexWriteHead++] = hullVerts[i].ToNumericVector() * hullScaling;
+
+                        for (int i = 0; i < hullIndices.Count; i++)
+                            outIndices[indexWriteHead++] = vertMappingStart + (int)hullIndices[i];
+                    }
+                }
+            }
+        }
+
         internal void ClearShape(ContainerComponent component)
         {
             if (component is IContainerWithMesh withMesh)
             {
-                if (withMesh.Model != null && _modelsShapeData.ContainsKey(withMesh.Model))
+                if (withMesh.Model != null)
                 {
                     _modelsShapeData.Remove(withMesh.Model);
                 }
@@ -130,20 +164,16 @@ namespace Stride.BepuPhysics
             {
                 foreach (var collider in withColliders.Colliders)
                 {
-                    if (collider is ConvexHullCollider con)
+                    if (collider is ConvexHullCollider con && con.Hull != null)
                     {
-                        if (con.Hull != null && _hullShapeData.ContainsKey(con.Hull))
-                        {
-                            _hullShapeData.Remove(con.Hull);
-                        }
+                        _hullShapeData.Remove(con.Hull);
                     }
                 }
             }
         }
 
-        private static unsafe BodyShapeData GetStrideMeshData(Model model, IGame game, Vector3 scale)
+        private static unsafe void ExtractMesh(Model model, CommandList commandList, out VertexPosition3[] vertices, out int[] indices)
         {
-            BodyShapeData bodyData = new BodyShapeData();
             int totalVertices = 0, totalIndices = 0;
             foreach (var meshData in model.Meshes)
             {
@@ -151,66 +181,61 @@ namespace Stride.BepuPhysics
                 totalIndices += meshData.Draw.IndexBuffer.Count;
             }
 
+            vertices = new VertexPosition3[totalVertices];
+            indices = new int[totalIndices];
+
+            int vertexWriteHead = 0;
+            int indexWriteHead = 0;
             foreach (var meshData in model.Meshes)
             {
                 var vBuffer = meshData.Draw.VertexBuffers[0].Buffer;
                 var iBuffer = meshData.Draw.IndexBuffer.Buffer;
-                byte[] verticesBytes = vBuffer.GetData<byte>(game.GraphicsContext.CommandList);
-                byte[] indicesBytes = iBuffer.GetData<byte>(game.GraphicsContext.CommandList);
+                byte[] verticesBytes = vBuffer.GetData<byte>(commandList);
+                byte[] indicesBytes = iBuffer.GetData<byte>(commandList);
 
-                if ((verticesBytes?.Length ?? 0) == 0 || (indicesBytes?.Length ?? 0) == 0)
+                if (verticesBytes == null || indicesBytes == null)
+                    throw new InvalidOperationException($"Could not extract data from gpu for '{model}', maybe this model isn't uploaded to the gpu yet ?");
+
+                if (verticesBytes.Length == 0 || indicesBytes.Length == 0)
                 {
-                    // returns empty lists if there is an issue
-                    return bodyData;
+                    vertices = Array.Empty<VertexPosition3>();
+                    indices = Array.Empty<int>();
+                    return;
                 }
 
-
-                int vertMappingStart = bodyData.Vertex.Length;
-
+                int vertMappingStart = vertexWriteHead;
                 fixed (byte* bytePtr = verticesBytes)
                 {
                     var vBindings = meshData.Draw.VertexBuffers[0];
                     int count = vBindings.Count;
                     int stride = vBindings.Declaration.VertexStride;
 
-                    Array.Resize(ref bodyData.Vertex, vertMappingStart + count);
-
                     for (int i = 0, vHead = vBindings.Offset; i < count; i++, vHead += stride)
                     {
-                        var point = *(Vector3*)(bytePtr + vHead);
-                        bodyData.Vertex[vertMappingStart + i] = new VertexPositionNormalTexture(point * scale, Vector3.Zero, new Vector2());
-#warning normals
+                        vertices[vertexWriteHead++].Position = *(Vector3*)(bytePtr + vHead);
                     }
                 }
 
                 fixed (byte* bytePtr = indicesBytes)
                 {
-                    var index = 0;
-
-                    var indiceMappingStart = bodyData.Indices.Length;
                     var count = meshData.Draw.IndexBuffer.Count;
-
-                    Array.Resize(ref bodyData.Indices, indiceMappingStart + count);
-
 
                     if (meshData.Draw.IndexBuffer.Is32Bit)
                     {
-                        foreach (int i in new Span<int>(bytePtr + meshData.Draw.IndexBuffer.Offset, count))
+                        foreach (int indexBufferValue in new Span<int>(bytePtr + meshData.Draw.IndexBuffer.Offset, count))
                         {
-                            bodyData.Indices[indiceMappingStart + index++] = vertMappingStart + i;
+                            indices[indexWriteHead++] = vertMappingStart + indexBufferValue;
                         }
                     }
                     else
                     {
-                        foreach (ushort i in new Span<ushort>(bytePtr + meshData.Draw.IndexBuffer.Offset, count))
+                        foreach (ushort indexBufferValue in new Span<ushort>(bytePtr + meshData.Draw.IndexBuffer.Offset, count))
                         {
-                            bodyData.Indices[indiceMappingStart + index++] = vertMappingStart + i;
+                            indices[indexWriteHead++] = vertMappingStart + indexBufferValue;
                         }
                     }
                 }
             }
-
-            return bodyData;
         }
 
     }

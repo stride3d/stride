@@ -19,10 +19,9 @@
         stage float4 Viewport;
     }
 
-    float4 projToWorld(in float4 pos, in float3 normal)
+    float4 projToWorld(in float4 pos)
     {
-        float3 scaling = normal * (WorldScale - 1);
-        return mul(pos + float4(scaling.x, scaling.y, scaling.z, 0), WorldViewProjection);
+        return mul(pos, WorldViewProjection);
     }
 
     float2 projToWindow(in float4 pos)
@@ -78,9 +77,9 @@
     {
         // project to world
         float4 positionWS[3];
-        positionWS[0] = projToWorld(input[0].Position, input[0].Normal);
-        positionWS[1] = projToWorld(input[1].Position, input[1].Normal);
-        positionWS[2] = projToWorld(input[2].Position, input[2].Normal);
+        positionWS[0] = projToWorld(input[0].Position);
+        positionWS[1] = projToWorld(input[1].Position);
+        positionWS[2] = projToWorld(input[2].Position);
 
         // Compute the case from the positions of point in space.
 
@@ -159,7 +158,6 @@
             // vertex 0
             streams = input[0];
             streams.Case = vertexCase;
-            streams.Position = input[0].Position;
             streams.EdgeA[0] = vertExclude.x * excludeEdgeLength;
             streams.EdgeA[1] = heights[0];
             streams.EdgeA[2] = vertExclude.z * excludeEdgeLength;
@@ -171,7 +169,6 @@
             // vertex 1
             streams = input[1];
             streams.Case = vertexCase;
-            streams.Position = input[1].Position;
             streams.EdgeA[0] = vertExclude.x * excludeEdgeLength;
             streams.EdgeA[1] = vertExclude.y * excludeEdgeLength;
             streams.EdgeA[2] = heights[1];
@@ -183,7 +180,6 @@
             // vertex 2
             streams = input[2];
             streams.Case = vertexCase;
-            streams.Position = input[2].Position;
             streams.EdgeA[0] = heights[2];
             streams.EdgeA[1] = vertExclude.y * excludeEdgeLength;
             streams.EdgeA[2] = vertExclude.z * excludeEdgeLength;
@@ -222,7 +218,9 @@
     // vertex shader
     stage override void VSMain()
     { 
-        streams.ShadingPosition = projToWorld(streams.Position, streams.Normal);
+        streams.ShadingPosition = projToWorld(streams.Position);
+        // Our wireframe likely sits on top of the same model so fragments will z-fight, this line reduces flickering by pulling vertices forward slightly
+        streams.ShadingPosition.z -= 0.00001;
     }
 
     // pixel shader

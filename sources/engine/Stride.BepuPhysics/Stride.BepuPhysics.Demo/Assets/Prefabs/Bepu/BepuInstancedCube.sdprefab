@@ -35,8 +35,8 @@ Hierarchy:
                         Colliders:
                             416a7a979c5a4b5f9d6fdc9ff3b03bb6: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: ebfeb59d-26e2-4b18-9116-11795be2fd10
