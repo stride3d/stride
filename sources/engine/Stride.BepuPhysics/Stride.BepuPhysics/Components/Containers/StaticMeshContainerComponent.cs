@@ -11,9 +11,6 @@ using Stride.Rendering;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
-    [DataContract]
-    [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Containers")]
     public class StaticMeshContainerComponent : ContainerComponent, IStaticContainer, IContainerWithMesh
     {
 

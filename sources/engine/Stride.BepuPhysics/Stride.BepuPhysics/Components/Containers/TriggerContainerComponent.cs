@@ -6,9 +6,6 @@ using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
-    [DataContract]
-    [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Containers")]
     public class TriggerContainerComponent : StaticContainerComponent
     {
         public new IContactEventHandler? ContactEventHandler => base.ContactEventHandler; //Make it readonly.

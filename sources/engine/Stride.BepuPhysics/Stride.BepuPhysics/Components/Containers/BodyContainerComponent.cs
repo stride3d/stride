@@ -11,9 +11,6 @@ using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
-    [DataContract(Inherited = true)]
-    [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
-    [ComponentCategory("Bepu - Containers")]
     public class BodyContainerComponent : ContainerComponent, IBodyContainer, IContainerWithColliders
     {
 

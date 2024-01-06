@@ -9,9 +9,8 @@ using Stride.Engine.Design;
 namespace Stride.BepuPhysics.Components.Containers
 {
     [DataContract(Inherited = true)]
-    [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
+    [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)] //ExecutionMode.Editor | ExecutionMode.Runtime //Lol, don't do that
     [ComponentCategory("Bepu - Containers")]
-
     public abstract class ContainerComponent : EntityComponent, IContainer
     {
         List<ContainerComponent> IContainer.ChildsContainerComponent => ChildsContainerComponent;
