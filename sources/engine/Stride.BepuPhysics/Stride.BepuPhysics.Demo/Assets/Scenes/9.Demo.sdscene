@@ -58,8 +58,8 @@ Hierarchy:
                         Colliders:
                             5575fa76dc17f39fb0dbcf46c4375ffe: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 97861c59-6c5d-471e-aa7e-5a316ec6a40b
@@ -176,8 +176,8 @@ Hierarchy:
                         Colliders:
                             22a474a76098940221e1d65e930ef451: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 250.0, Y: 100.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 4297943c-1da0-485c-8713-79f21e9a3234
@@ -239,8 +239,8 @@ Hierarchy:
                         Colliders:
                             c43b1a72b6b1f22ffb4c05234ed4ba54: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 250.0, Y: 0.1, Z: 250.0}
         -   Entity:
                 Id: 7c104225-5201-4138-ba90-464279854d43
@@ -353,8 +353,8 @@ Hierarchy:
                         Colliders:
                             a893530c8d1c67dca8c13a0aafe370f1: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 250.0, Y: 100.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 253911d6-1013-4e72-9018-7808ad3739a5
@@ -453,8 +453,8 @@ Hierarchy:
                         Colliders:
                             39d3e16fa2dea3f65f1f24f16835e99d: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 250.0, Y: 100.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 8e3800c1-864b-421d-828c-7dd9137e16a4
@@ -488,8 +488,8 @@ Hierarchy:
                         Colliders:
                             48b3a5b354116db1b3b7089b62bf9ca3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 250.0, Y: 100.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: 80b31454-a3f9-4993-96b6-42d43ed9d88a
@@ -523,8 +523,8 @@ Hierarchy:
                         Colliders:
                             187754f230078e03fd3d17622966ce5b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 255.0, Y: 4.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: c4fedc49-7d9f-401f-a837-6bfe1dc45941

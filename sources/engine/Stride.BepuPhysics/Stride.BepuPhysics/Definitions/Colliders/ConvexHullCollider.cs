@@ -1,4 +1,5 @@
-﻿using BepuPhysics;
+﻿using System.Runtime.InteropServices;
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Extensions;
@@ -27,49 +28,23 @@ namespace Stride.BepuPhysics.Definitions.Colliders
 
         internal override void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose)
         {
-            builder.Add(new ConvexHull(GetMeshPoints(), new BufferPool(), out _), localPose, Mass);
-        }
+            #warning maybe don't rely on cache actually, instead cache the convexhull struct itself ? See if that can be reused
+            var data = game.Services.GetService<BepuShapeCacheSystem>().BorrowHull(this);
+            var points = MemoryMarshal.Cast<VertexPosition3, System.Numerics.Vector3>(data.data.Vertices);
 
-        internal Span<System.Numerics.Vector3> GetMeshPoints(bool scale = true)
-        {
-            if (Hull == null)
-                return new();
-
-            int vertCount = 0;
-            foreach (var colliderShapeDesc in Hull.Descriptions)
+            if (_scale != Vector3.One) // Bepu doesn't support scaling on the collider itself, we have to create a temporary array and scale the points before passing it on
             {
-                if (colliderShapeDesc is ConvexHullColliderShapeDesc hullDesc) // This casting nonsense should be replaced once we have a proper asset to host convex shapes
+                var copy = points.ToArray();
+                var scaleAsNumerics = _scale.ToNumericVector();
+                for (int i = 0; i < copy.Length; i++)
                 {
-                    for (int mesh = 0; mesh < hullDesc.ConvexHulls.Count; mesh++)
-                        for (int hull = 0; hull < hullDesc.ConvexHulls[mesh].Count; hull++)
-                            vertCount += hullDesc.ConvexHullsIndices[mesh][hull].Count;
+                    copy[i] *= scaleAsNumerics;
                 }
+
+                points = copy;
             }
 
-            int outputIndex = 0;
-            System.Numerics.Vector3[] output = new System.Numerics.Vector3[vertCount];
-            System.Numerics.Vector3 colliderScaling = scale ? Scale.ToNumericVector() : System.Numerics.Vector3.One;
-            foreach (var colliderShapeDesc in Hull.Descriptions)
-            {
-                if (colliderShapeDesc is ConvexHullColliderShapeDesc hullDesc)
-                {
-                    System.Numerics.Vector3 hullScaling = hullDesc.Scaling.ToNumericVector();
-                    for (int mesh = 0; mesh < hullDesc.ConvexHulls.Count; mesh++)
-                    {
-                        for (var hull = 0; hull < hullDesc.ConvexHulls[mesh].Count; hull++)
-                        {
-                            var verts = hullDesc.ConvexHulls[mesh][hull];
-                            foreach (uint u in hullDesc.ConvexHullsIndices[mesh][hull])
-                            {
-                                output[outputIndex++] = verts[(int)u].ToNumericVector() * hullScaling * colliderScaling; //We aply scale here because if scale change we rebuilt the container.
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            return output;
+            builder.Add(new ConvexHull(points, new BufferPool(), out _), localPose, Mass);
         }
     }
 }

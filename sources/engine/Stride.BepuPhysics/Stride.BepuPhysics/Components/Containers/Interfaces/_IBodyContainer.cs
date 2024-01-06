@@ -11,7 +11,6 @@ namespace Stride.BepuPhysics.Components.Containers
         public byte MinimumTimestepCountUnderThreshold { get; set; }
 
 
-        public BodyReference? GetPhysicBody { get; }
         public bool Awake { get; set; }
         public Vector3 LinearVelocity { get; set; }
         public Vector3 AngularVelocity { get; set; }
