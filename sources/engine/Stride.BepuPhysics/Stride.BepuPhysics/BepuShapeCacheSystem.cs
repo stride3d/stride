@@ -91,7 +91,7 @@ namespace Stride.BepuPhysics
                         {
                             if (!_hullShapeData.ContainsKey(con.Hull))
                             {
-                                var points = con.GetMeshPoints();
+                                var points = con.GetMeshPoints(false);
                                 var pointTransformed = new VertexPositionNormalTexture[points.Length];
 
                                 for (int i = 0; i < points.Length; i++)
@@ -100,7 +100,7 @@ namespace Stride.BepuPhysics
                                     #warning normals
                                 }
 
-                                _hullShapeData.Add(con.Hull, new() { Vertex = pointTransformed, Indices = new int[0] });
+                                _hullShapeData.Add(con.Hull, new() { Vertex = pointTransformed, Indices = Enumerable.Range(0, pointTransformed.Length).ToArray() });
                             }
 
                             result.Add(new(_hullShapeData[con.Hull], new() { LinearOffset = collider.LinearOffset, RotationOffset = rotationOffset, Scale = con.Scale }));

@@ -30,7 +30,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders
             builder.Add(new ConvexHull(GetMeshPoints(), new BufferPool(), out _), localPose, Mass);
         }
 
-        internal Span<System.Numerics.Vector3> GetMeshPoints()
+        internal Span<System.Numerics.Vector3> GetMeshPoints(bool scale = true)
         {
             if (Hull == null)
                 return new();
@@ -48,7 +48,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders
 
             int outputIndex = 0;
             System.Numerics.Vector3[] output = new System.Numerics.Vector3[vertCount];
-            System.Numerics.Vector3 colliderScaling = Scale.ToNumericVector();
+            System.Numerics.Vector3 colliderScaling = scale ? Scale.ToNumericVector() : System.Numerics.Vector3.One;
             foreach (var colliderShapeDesc in Hull.Descriptions)
             {
                 if (colliderShapeDesc is ConvexHullColliderShapeDesc hullDesc)
