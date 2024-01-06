@@ -1,11 +1,12 @@
-﻿using Stride.Core.Mathematics;
+﻿using System.Runtime.InteropServices;
+using Stride.Core.Mathematics;
 using Stride.Graphics;
 
 namespace Stride.BepuPhysics.Definitions;
 public struct BodyShapeData
 {
-    public VertexPositionNormalTexture[] Vertex = new VertexPositionNormalTexture[0];
-    public int[] Indices = new int[0];
+    public VertexPosition3[] Vertices = Array.Empty<VertexPosition3>();
+    public int[] Indices = Array.Empty<int>();
 
     public BodyShapeData()
     {
@@ -13,11 +14,87 @@ public struct BodyShapeData
 }
 public struct BodyShapeTransform
 {
-    public Vector3 LinearOffset = Vector3.Zero;
-    public Quaternion RotationOffset = Quaternion.Identity;
+    public Vector3 PositionLocal = Vector3.Zero;
+    public Quaternion RotationLocal = Quaternion.Identity;
     public Vector3 Scale = Vector3.One;
 
     public BodyShapeTransform()
+    {
+    }
+}
+
+public interface IVertexStructure : IVertex
+{
+    static abstract VertexDeclaration Declaration();
+}
+
+/// <summary>
+/// Describes a custom vertex format structure that only contains a Vector3 position.
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+public struct VertexPosition3 : IEquatable<VertexPosition3>, IVertexStructure
+{
+    /// <summary>
+    /// Initializes a new <see cref="VertexPositionTexture"/> instance.
+    /// </summary>
+    /// <param name="position">The position of this vertex.</param>
+    public VertexPosition3(Vector3 position)
+        : this()
+    {
+        Position = position;
+    }
+
+    /// <summary>
+    /// XYZ position.
+    /// </summary>
+    public Vector3 Position;
+
+    /// <summary>
+    /// The vertex layout of this struct.
+    /// </summary>
+    public static readonly VertexDeclaration Layout = new VertexDeclaration(VertexElement.Position<Vector3>());
+
+    public static VertexDeclaration Declaration() => Layout;
+
+    public bool Equals(VertexPosition3 other)
+    {
+        return Position.Equals(other.Position);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is VertexPosition3 position3 && Equals(position3);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            return Position.GetHashCode();
+        }
+    }
+
+    public static bool operator ==(VertexPosition3 left, VertexPosition3 right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(VertexPosition3 left, VertexPosition3 right)
+    {
+        return !left.Equals(right);
+    }
+
+    public override string ToString()
+    {
+        return $"Position: {Position}";
+    }
+
+    public VertexDeclaration GetLayout()
+    {
+        return Layout;
+    }
+
+    public void FlipWinding()
     {
     }
 }

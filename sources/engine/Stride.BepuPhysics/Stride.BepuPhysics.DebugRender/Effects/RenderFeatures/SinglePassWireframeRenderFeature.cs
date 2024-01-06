@@ -89,7 +89,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
             pipelineState.State.Output.CaptureState(context.CommandList);
             pipelineState.Update();
 
-            context.CommandList.SetVertexBuffer(0, myRenderObject.VertexBuffer, 0, VertexPositionNormalTexture.Layout.VertexStride);
+            context.CommandList.SetVertexBuffer(0, myRenderObject.VertexBuffer, 0, myRenderObject.VertexStride);
             context.CommandList.SetIndexBuffer(myRenderObject.IndiceBuffer, 0, true);
             context.CommandList.SetPipelineState(pipelineState.CurrentState);
 

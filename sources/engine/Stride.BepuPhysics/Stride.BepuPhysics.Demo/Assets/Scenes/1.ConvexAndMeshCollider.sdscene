@@ -79,8 +79,8 @@ Hierarchy:
                         Colliders:
                             291a1c1fe7c742a10850bba92e1c01a3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 250.0, Y: 0.1, Z: 250.0}
         -   Entity:
                 Id: 653a8a5f-3a25-494f-9335-b38f1d853f59
@@ -231,8 +231,8 @@ Hierarchy:
                         Colliders:
                             2ce2366b442bef89e46281e4be3476e0: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 5.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 5.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
                                 Scale: {X: 0.1, Y: 0.1, Z: 0.1}
         -   Entity:

@@ -49,16 +49,11 @@ namespace Stride.BepuPhysics.Components.Containers
         private BodyReference GetPhysicBodyRef()
         {
             if (ContainerData == null)
-                throw new Exception("Container data is null");
+                throw new NullReferenceException(nameof(ContainerData));
 
             return ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
         }
-        /// <summary>
-        /// Get the bepu BodyReference /!\
-        /// </summary>
-        /// <returns>A volatil ref to the bepu body associed with this bodyContainer</returns>
-        [DataMemberIgnore]
-        public BodyReference? GetPhysicBody => ContainerData?.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
+
         [DataMemberIgnore]
         public bool Awake
         {

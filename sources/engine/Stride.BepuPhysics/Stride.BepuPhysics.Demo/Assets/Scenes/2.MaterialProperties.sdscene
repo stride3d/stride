@@ -43,8 +43,8 @@ Hierarchy:
                         Colliders:
                             e3413d9b5d9528dccd1105cd924031e2: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.35
                                 Length: 0.5
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
@@ -89,8 +89,8 @@ Hierarchy:
                         Colliders:
                             238d2873abaa97aba063fc70bdd87c29: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: MasksGreen
@@ -123,8 +123,8 @@ Hierarchy:
                         Colliders:
                             d0a2987f447bd6553bd5c8ecb9c50009: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.35
                                 Length: 0.5
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
@@ -203,8 +203,8 @@ Hierarchy:
                         Colliders:
                             a9f00db663b1a9a6b23535302bcc9ca4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: MasksGreen
@@ -237,8 +237,8 @@ Hierarchy:
                         Colliders:
                             bea02dcde4eeaf0c41c7c00cd376c916: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.5
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: 7897b4da-b58c-4435-80ed-c9991f3e7e2c
@@ -302,8 +302,8 @@ Hierarchy:
                         Colliders:
                             55900683606203288d0f5fade46f32be: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 250.0, Y: 0.1, Z: 250.0}
         -   Folder: LowRecoveryBlue
             Entity:
@@ -335,8 +335,8 @@ Hierarchy:
                         Colliders:
                             a56c2631c79b606e4ed2b0b6346bf741: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.35
                                 Length: 0.5
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
@@ -376,8 +376,8 @@ Hierarchy:
                         Colliders:
                             ae244369f97dd0bef4020b41ad63e8ff: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.5
                                 Length: 1.0
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
@@ -462,8 +462,8 @@ Hierarchy:
                         Colliders:
                             d73e0b03f776d8a9d1deb7b03a9a2c85: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.5
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: 5bbca541-8566-4c10-9e42-f231957d8410
@@ -501,8 +501,8 @@ Hierarchy:
                         Colliders:
                             b8c1a8074820b79e1d4d7783d357af94: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.5
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: cdf55051-a94c-4962-a489-795ae5697a18
@@ -546,8 +546,8 @@ Hierarchy:
                         Colliders:
                             18faca4c9737fd737be79a23dc553823: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Entity:
@@ -606,8 +606,8 @@ Hierarchy:
                         Colliders:
                             b39ec3beacf3467ba72036ec031579b3: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.35
                                 Length: 0.5
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
@@ -646,8 +646,8 @@ Hierarchy:
                         Colliders:
                             5d6fcfd55e991043baa94fe14dc9d5a2: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.5
                                 Length: 1.0
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
@@ -687,8 +687,8 @@ Hierarchy:
                         Colliders:
                             5e4b295fedad639e73a4c27a6d382d27: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.5
                                 Length: 1.0
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
@@ -733,8 +733,8 @@ Hierarchy:
                         Colliders:
                             241a2d9e10eb4d6573e9ce2b00b3a6cb: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
         -   Folder: MasksGreen
@@ -767,8 +767,8 @@ Hierarchy:
                         Colliders:
                             aadd7de69474a8ec8894cfef09a3eef6: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.5
                                 Length: 1.0
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
@@ -808,8 +808,8 @@ Hierarchy:
                         Colliders:
                             f07d8e4186ee3b40bfc8db3d0ec9281f: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.5
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: f09c8e7f-9659-43ba-ba52-fc94b98c1be1

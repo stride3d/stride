@@ -40,6 +40,6 @@ Hierarchy:
                         Colliders:
                             95dd079d4f24e8f815bb14bd4975d6fe: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 0.01
-                                LinearOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 0.05, Y: 0.05, Z: 0.3}
