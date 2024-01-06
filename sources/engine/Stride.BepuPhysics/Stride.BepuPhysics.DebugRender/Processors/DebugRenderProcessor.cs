@@ -4,6 +4,7 @@ using Stride.BepuPhysics.DebugRender.Components;
 using Stride.BepuPhysics.DebugRender.Effects;
 using Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 using Stride.BepuPhysics.Extensions;
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
@@ -21,6 +22,8 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         private SinglePassWireframeRenderFeature? _wireframeRenderFeature;
         private VisibilityGroup _visibilityGroup;
         private List<WireFrameRenderObject> _wireFrameRenderObject = new();
+
+        private bool _alwaysOn = false;
 
         public DebugRenderProcessor()
         {
@@ -46,9 +49,17 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
             _visibilityGroup = _sceneSystem.SceneInstance.VisibilityGroups.First();
         }
+
+        protected override void OnEntityComponentAdding(Entity entity, [NotNull] DebugRenderComponent component, [NotNull] DebugRenderComponent data)
+        {
+            _alwaysOn = component.AlwaysRender;
+            component.SetFunc = (e) => _alwaysOn = e;
+            base.OnEntityComponentAdding(entity, component, data);
+        }
+
         public override void Update(GameTime time)
         {
-            if (_input.IsKeyDown(Keys.F10))
+            if (_alwaysOn || _input.IsKeyDown(Keys.F10))
                 UpdateRender();
             if (_input.IsKeyDown(Keys.F11))
                 Clear();

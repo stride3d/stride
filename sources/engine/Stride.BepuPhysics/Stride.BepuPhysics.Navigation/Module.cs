@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Stride.Core.Reflection;
 
-namespace Stride.BepuPhysics
+namespace Stride.BepuPhysics.Navigation
 {
     internal class Module
     {
