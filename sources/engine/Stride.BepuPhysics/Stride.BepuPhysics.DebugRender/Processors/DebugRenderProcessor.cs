@@ -101,8 +101,6 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                         containerMatrix *= Matrix.RotationQuaternion(containerCompo.Entity.Transform.GetWorldRot());
                         containerMatrix *= Matrix.Translation(containerCompo.Entity.Transform.GetWorldPos());
 
-
-
                         var wfro = new WireFrameRenderObject() { Color = color, WorldMatrix = containerMatrix };
                         wfro.Prepare(_game.GraphicsDevice, shapeAndOffset.data.Indices, shapeAndOffset.data.Vertex);
                         _wireFrameRenderObject.Add(wfro);

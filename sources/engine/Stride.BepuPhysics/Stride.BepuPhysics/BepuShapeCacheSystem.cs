@@ -9,6 +9,7 @@ using Stride.Games;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using static BulletSharp.Dbvt;
 
 namespace Stride.BepuPhysics
 {
@@ -56,7 +57,7 @@ namespace Stride.BepuPhysics
                 }
 
 #warning maybe allow mesh transform ? (by adding Scale, Orientation & Offset to IContainerWithMesh)
-                result.Add(new(_modelsShapeData[withMesh.Model], new() { }));
+                result.Add(new(_modelsShapeData[withMesh.Model], new() { LinearOffset = Vector3.Zero, RotationOffset = Quaternion.Identity, Scale = component.Entity.Transform.Scale }));
             }
             else if (component is IContainerWithColliders withColliders)
             {
@@ -96,11 +97,13 @@ namespace Stride.BepuPhysics
                                 for (int i = 0; i < points.Length; i++)
                                 {
                                     pointTransformed[i] = new(points[i].ToStrideVector(), Vector3.Zero, Vector2.One);
-#warning normals
+                                    #warning normals
                                 }
 
                                 _hullShapeData.Add(con.Hull, new() { Vertex = pointTransformed, Indices = new int[0] });
                             }
+
+                            result.Add(new(_hullShapeData[con.Hull], new() { LinearOffset = collider.LinearOffset, RotationOffset = rotationOffset, Scale = con.Scale }));
                         }
                     }
                     else
@@ -166,7 +169,7 @@ namespace Stride.BepuPhysics
                     var indiceMappingStart = bodyData.Indices.Length;
                     var count = meshData.Draw.IndexBuffer.Count;
 
-                    Array.Resize(ref bodyData.Vertex, indiceMappingStart + count);
+                    Array.Resize(ref bodyData.Indices, indiceMappingStart + count);
 
 
                     if (meshData.Draw.IndexBuffer.Is32Bit)
