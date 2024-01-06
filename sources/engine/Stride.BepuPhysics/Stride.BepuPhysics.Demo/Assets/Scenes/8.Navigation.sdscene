@@ -60,10 +60,6 @@ Hierarchy:
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
                         Colliders: {}
-                    b171d2e6e493338a963efedea55d0321: !Stride.BepuPhysics.Components.Colliders.ConvexHullColliderComponent,Stride.BepuPhysics
-                        Id: 8a632e05-9c6a-4662-befc-978514d46098
-                        Mass: 1.0
-                        Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
         -   Entity:
                 Id: 6958ee95-2589-42b4-86f7-b95e75c06a30
                 Name: DefaultScripts
@@ -152,10 +148,6 @@ Hierarchy:
                         Id: 26aca8fb-0044-4c2d-ba6c-80664c49f0c0
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    50025014b1133fd36662d4f49582ab9d: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
-                        Id: 460f0507-42ba-4143-ae41-602e155d592f
-                        Mass: 1.0
-                        Size: {X: 50.0, Y: 0.5, Z: 50.0}
                     f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
                         Id: 520a04b6-4ebc-4c09-b763-e5dce0d8eb3c
                         SimulationIndex: 0
@@ -214,10 +206,6 @@ Hierarchy:
                         Id: 8e461c8b-1cea-46d1-b18a-65f6cb7a8df1
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    50025014b1133fd36662d4f49582ab9d: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
-                        Id: 312acd41-2f03-4b54-8f70-2ea82c211447
-                        Mass: 1.0
-                        Size: {X: 50.0, Y: 0.5, Z: 50.0}
                     f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
                         Id: 609db8c1-7dfb-4c6f-a810-3f92e913a046
                         SimulationIndex: 0
@@ -332,10 +320,6 @@ Hierarchy:
                         Id: 8d3b51c2-fc93-4687-9b90-3522555c52f7
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    50025014b1133fd36662d4f49582ab9d: !Stride.BepuPhysics.Components.Colliders.BoxColliderComponent,Stride.BepuPhysics
-                        Id: a0865734-95e1-4f3f-ab74-e85294773748
-                        Mass: 1.0
-                        Size: {X: 50.0, Y: 0.5, Z: 50.0}
                     f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
                         Id: 5bf45a5b-2077-4d26-be7e-14b32b7428bf
                         SimulationIndex: 0
@@ -360,10 +344,6 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 0.3, Y: 0.3, Z: 0.3}
                         Children: {}
-                    aaf96cb706880a1051023c28e41971df: !Stride.BepuPhysics.Components.Colliders.ConvexHullColliderComponent,Stride.BepuPhysics
-                        Id: 42e04f14-419b-401d-a13a-cdcde57a7a32
-                        Mass: 1.0
-                        Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
         -   Entity:
                 Id: e468f4f4-7011-4e12-8710-3b42afcbfeae
                 Name: Cylinder
@@ -392,8 +372,3 @@ Hierarchy:
                         ColliderFilterByDistanceZ: 0
                         IgnoreGlobalGravity: false
                         Colliders: {}
-                    b010605f48e1ac9981dd90e1a4b810b0: !Stride.BepuPhysics.Components.Colliders.CylinderColliderComponent,Stride.BepuPhysics
-                        Id: d403373e-2485-48aa-bdb8-cce68cf304ac
-                        Mass: 1.0
-                        Radius: 5.0
-                        Length: 10.0
