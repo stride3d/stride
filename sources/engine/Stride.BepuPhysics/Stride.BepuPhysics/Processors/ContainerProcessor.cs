@@ -1,6 +1,5 @@
 ﻿using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Engine;
 using Stride.Games;
@@ -9,8 +8,8 @@ namespace Stride.BepuPhysics.Processors
 {
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
-        private BepuConfiguration? _bepuConfiguration = default;
         private IGame? _game = null;
+        private BepuConfiguration? _bepuConfiguration = default;
 
         public ContainerProcessor()
         {
@@ -18,15 +17,9 @@ namespace Stride.BepuPhysics.Processors
         }
         protected override void OnSystemAdd()
         {
-            //Make sure we register our GameSystem.
-            var gameSystems = Services.GetSafeServiceAs<IGameSystemCollection>();
-            if (!gameSystems.Any(e => e is BepuPhysicsGameSystem))
-            {
-                gameSystems.Add(new BepuPhysicsGameSystem(Services));
-            }
-
-            _bepuConfiguration = Services.GetService<BepuConfiguration>();
+            BepuServicesHelper.LoadBepuServices(Services);
             _game = Services.GetService<IGame>();
+            _bepuConfiguration = Services.GetService<BepuConfiguration>();
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)

@@ -1,11 +1,8 @@
 ﻿using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
-using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
-using Stride.Streaming;
-using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 
@@ -61,7 +58,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 
     public override void Prepare(RenderDrawContext context)
     {
-        base.Prepare(context); //shapeData.Value.Points.Select(e => new VertexPositionNormalTexture(e, normal, texturePos)).ToArray()
+        base.Prepare(context);
     }
 
     public void IsEnabled(bool enable)

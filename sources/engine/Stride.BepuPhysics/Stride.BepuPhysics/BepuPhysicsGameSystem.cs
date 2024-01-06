@@ -4,7 +4,6 @@ using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
-using Stride.Engine.Design;
 using Stride.Games;
 
 namespace Stride.BepuPhysics
@@ -15,24 +14,7 @@ namespace Stride.BepuPhysics
 
         public BepuPhysicsGameSystem(IServiceRegistry registry) : base(registry)
         {
-            var gameSettings = Services.GetService<IGameSettingsService>();
-            if (gameSettings != null)
-            {
-                _bepuConfiguration = gameSettings.Settings.Configurations.Get<BepuConfiguration>();
-            }
-            else
-            {
-                _bepuConfiguration = new();
-            }
-
-            if (_bepuConfiguration.BepuSimulations.Count == 0)
-            {
-                _bepuConfiguration.BepuSimulations.Add(new BepuSimulation());
-            }
-
-            Services.AddService(_bepuConfiguration);
-            Services.AddService(new BepuShapeCacheSystem(registry)); //Debug rendering & Navigation
-
+            _bepuConfiguration = registry.GetService<BepuConfiguration>();
             UpdateOrder = -1000; //make sure physics runs before everything
             Enabled = true; //enabled by default
         }

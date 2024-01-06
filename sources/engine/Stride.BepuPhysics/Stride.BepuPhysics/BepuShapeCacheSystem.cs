@@ -9,7 +9,6 @@ using Stride.Games;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
-using static BulletSharp.Dbvt;
 
 namespace Stride.BepuPhysics
 {
@@ -97,7 +96,7 @@ namespace Stride.BepuPhysics
                                 for (int i = 0; i < points.Length; i++)
                                 {
                                     pointTransformed[i] = new(points[i].ToStrideVector(), Vector3.Zero, Vector2.One);
-                                    #warning normals
+#warning normals
                                 }
 
                                 _hullShapeData.Add(con.Hull, new() { Vertex = pointTransformed, Indices = Enumerable.Range(0, pointTransformed.Length).ToArray() });
@@ -118,8 +117,30 @@ namespace Stride.BepuPhysics
             }
             return result.ToArray();
         }
+        internal void ClearShape(ContainerComponent component)
+        {
+            if (component is IContainerWithMesh withMesh)
+            {
+                if (withMesh.Model != null && _modelsShapeData.ContainsKey(withMesh.Model))
+                {
+                    _modelsShapeData.Remove(withMesh.Model);
+                }
+            }
+            else if (component is IContainerWithColliders withColliders)
+            {
+                foreach (var collider in withColliders.Colliders)
+                {
+                    if (collider is ConvexHullCollider con)
+                    {
+                        if (con.Hull != null && _hullShapeData.ContainsKey(con.Hull))
+                        {
+                            _hullShapeData.Remove(con.Hull);
+                        }
+                    }
+                }
+            }
+        }
 
-#warning need testing (:
         private static unsafe BodyShapeData GetStrideMeshData(Model model, IGame game, Vector3 scale)
         {
             BodyShapeData bodyData = new BodyShapeData();

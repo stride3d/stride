@@ -1,19 +1,12 @@
-﻿using BepuPhysics;
-using Stride.BepuPhysics.Components.Containers;
+﻿using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
-using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.DebugRender.Components;
 using Stride.BepuPhysics.DebugRender.Effects;
 using Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 using Stride.BepuPhysics.Extensions;
-using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
-using Stride.Core.Threading;
 using Stride.Engine;
-using Stride.Engine.Design;
 using Stride.Games;
-using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 
@@ -35,44 +28,38 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         }
         protected override void OnSystemAdd()
         {
+            BepuServicesHelper.LoadBepuServices(Services);
             _game = Services.GetService<IGame>();
-            _sceneSystem = Services.GetService<SceneSystem>(); //_game.GameSystems.OfType<SceneSystem>().First()
-            _bepuShapeCacheSystem = Services.GetService<BepuShapeCacheSystem>() ?? new BepuShapeCacheSystem(Services);
-#warning THIS SHOULD CHANGE, cacheSystem should be added automatically
+            _sceneSystem = Services.GetService<SceneSystem>();
+            _bepuShapeCacheSystem = Services.GetService<BepuShapeCacheSystem>();
             _input = Services.GetService<InputManager>();
 
             if (!_sceneSystem.GraphicsCompositor.RenderFeatures.Any(e => e is SinglePassWireframeRenderFeature))
             {
+                _wireframeRenderFeature = new SinglePassWireframeRenderFeature();
                 _sceneSystem.GraphicsCompositor.RenderFeatures.Add(new SinglePassWireframeRenderFeature());
             }
-            _wireframeRenderFeature = _sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault();//We should add the RenderFeature if missing
+            else
+            {
+                _wireframeRenderFeature = _sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault();//We should add the RenderFeature if missing
+            }
+
             _visibilityGroup = _sceneSystem.SceneInstance.VisibilityGroups.First();
         }
-
-        protected override void OnEntityComponentAdding(Entity entity, [NotNull] DebugRenderComponent component, [NotNull] DebugRenderComponent data)
-        {
-            UpdateRender();
-            base.OnEntityComponentAdding(entity, component, data);
-        }
-
         public override void Update(GameTime time)
         {
             if (_input.IsKeyDown(Keys.F10))
                 UpdateRender();
+            if (_input.IsKeyDown(Keys.F11))
+                Clear();
 
             base.Update(time);
         }
 
-        public void UpdateRender()
-        {
-            while (_wireFrameRenderObject.Any())
-            {
-                _visibilityGroup.RenderObjects.Remove(_wireFrameRenderObject[0]);
-                _wireFrameRenderObject[0].VertexBuffer.Dispose();
-                _wireFrameRenderObject[0].IndiceBuffer.Dispose();
-                _wireFrameRenderObject.RemoveAt(0);
-            }
 
+        private void UpdateRender()
+        {
+            Clear();
             foreach (var entityformScene in _sceneSystem.SceneInstance.First().EntityManager)
             {
                 var containerCompo = entityformScene.Get<ContainerComponent>();
@@ -109,6 +96,16 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
 
                 }
+            }
+        }
+        private void Clear()
+        {
+            while (_wireFrameRenderObject.Any())
+            {
+                _visibilityGroup.RenderObjects.Remove(_wireFrameRenderObject[0]);
+                _wireFrameRenderObject[0].VertexBuffer.Dispose();
+                _wireFrameRenderObject[0].IndiceBuffer.Dispose();
+                _wireFrameRenderObject.RemoveAt(0);
             }
         }
 

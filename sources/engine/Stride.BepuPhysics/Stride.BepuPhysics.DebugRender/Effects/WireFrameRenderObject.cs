@@ -1,7 +1,6 @@
 ﻿using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
-using static Stride.Rendering.Shadows.LightDirectionalShadowMapRenderer;
 using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.BepuPhysics.DebugRender.Effects

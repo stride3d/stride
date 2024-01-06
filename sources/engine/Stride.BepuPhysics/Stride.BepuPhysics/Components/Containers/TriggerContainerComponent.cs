@@ -1,8 +1,4 @@
 ﻿using Stride.BepuPhysics.Definitions.Contacts;
-using Stride.BepuPhysics.Processors;
-using Stride.Core;
-using Stride.Engine;
-using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Components.Containers
 {

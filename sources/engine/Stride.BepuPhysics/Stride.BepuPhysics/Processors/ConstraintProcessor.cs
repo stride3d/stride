@@ -16,6 +16,7 @@ namespace Stride.BepuPhysics.Processors
 
         protected override void OnSystemAdd()
         {
+            BepuServicesHelper.LoadBepuServices(Services);
             _bepuConfiguration = Services.GetService<BepuConfiguration>();
         }
 

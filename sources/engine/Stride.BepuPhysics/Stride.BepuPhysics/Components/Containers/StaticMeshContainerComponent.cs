@@ -5,8 +5,6 @@ using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine;
-using Stride.Engine.Design;
 using Stride.Rendering;
 
 namespace Stride.BepuPhysics.Components.Containers
