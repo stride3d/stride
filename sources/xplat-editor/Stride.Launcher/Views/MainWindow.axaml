@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:l="using:Stride.Launcher.Assets.Localization"
         xmlns:vw="using:Stride.Launcher.Views"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
         Width="1024" Height="768" WindowStartupLocation="CenterScreen"
         x:Class="Stride.Launcher.Views.MainWindow"
         Icon="/Assets/Launcher.ico"

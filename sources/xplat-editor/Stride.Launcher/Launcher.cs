@@ -14,12 +14,14 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Windows;
 using Stride.Launcher.Crash;
 using Stride.Launcher.Services;
+using Stride.Metrics;
 
 namespace Stride.Launcher;
 
 internal static partial class Launcher
 {
     private static int terminating;
+    internal static MetricsClient? Metrics;
     internal static FileLock? Mutex;
 
     public const string ApplicationName = "Stride Launcher";
@@ -40,6 +42,13 @@ internal static partial class Launcher
         }
     }
 
+    internal static NugetStore InitializeNugetStore()
+    {
+        var thisExeDirectory = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToWindowsPath();
+        var store = new NugetStore(thisExeDirectory);
+        return store;
+    }
+
     private static LauncherErrorCode ProcessAction(LauncherArguments args)
     {
         var result = LauncherErrorCode.UnknownError;
@@ -52,7 +61,20 @@ internal static partial class Launcher
             {
                 if (Mutex is not null)
                 {
-                    Program.RunNewApp<App>(AppMain);
+                    // Only needed for Stride up to 2.x (and possibly 3.0): setup the StrideDir to make sure that it is passed to the underlying process (msbuild...etc.)
+                    Environment.SetEnvironmentVariable("SiliconStudioStrideDir", AppDomain.CurrentDomain.BaseDirectory);
+                    Environment.SetEnvironmentVariable("StrideDir", AppDomain.CurrentDomain.BaseDirectory);
+
+                    // We need to do that before starting recording metrics
+                    // TODO: we do not display Privacy Policy anymore from launcher, because it's either accepted from installer or shown again when a new version of GS with new Privacy Policy starts. Might want to reconsider that after the 2.0 free period
+                    PrivacyPolicyHelper.RestartApplication = SelfUpdater.RestartApplication;
+                    PrivacyPolicyHelper.EnsurePrivacyPolicyStride40();
+
+                    // Install Metrics for the launcher
+                    using (Metrics = new MetricsClient(CommonApps.StrideLauncherAppId))
+                    {
+                        Program.RunNewApp<App>(AppMain);
+                    }
                 }
                 else
                 {

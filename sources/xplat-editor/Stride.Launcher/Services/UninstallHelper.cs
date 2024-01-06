@@ -51,7 +51,7 @@ internal class UninstallHelper : IDisposable
                 {
                     if (process.MainWindowHandle != IntPtr.Zero)
                     {
-                        processesWithWindow.Add(Tuple.Create(process.MainModule.ModuleName, process));
+                        processesWithWindow.Add(Tuple.Create(process.MainModule!.ModuleName, process));
                     }
                 }
                 catch (Exception exception)
@@ -114,7 +114,7 @@ internal class UninstallHelper : IDisposable
         {
             try
             {
-                var filename = process.MainModule.FileName;
+                var filename = process.MainModule!.FileName;
 
                 // Check if filename is inside install path
                 if (!IsPathInside(installPath, filename))

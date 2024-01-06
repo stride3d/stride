@@ -155,5 +155,6 @@ Global
 		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
 		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
 		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
+		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{78695de1-e621-45df-975d-cfd407081e23}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
