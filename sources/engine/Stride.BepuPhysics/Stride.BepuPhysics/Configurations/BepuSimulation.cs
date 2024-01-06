@@ -74,12 +74,26 @@ public class BepuSimulation
     [Display(16, "SolveSubStep")]
     public int SolveSubStep { get => Simulation.Solver.SubstepCount; init => Simulation.Solver.SubstepCount = value; }
 
-    [Display(30, "Parallel update")]
-    public bool ParallelUpdate { get; set; } = true;
-    [Display(31, "Simulation fixed step")]
-    public float SimulationFixedStep { get; set; } = 1000f / 60;
-    [Display(32, "Max steps/frame")]
+    [Display(30, "Simulation fixed step")]
+    public int SimulationFixedStep { get; set; } = 1000 / 60;
+    [Display(31, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
+
+
+    [Display(35, "Parallel update")]
+    public bool ParallelUpdate { get; set; } = true;
+
+
+    [Display(36, "SoftStart duration (ms)")]
+    public int SoftStartDuration { get; set; } = 1000;
+    [Display(37, "SoftStart softness")]
+    public int SoftStartSoftness { get; set; } = 4;
+    internal int SoftStartRemainingDurationMs = -1;
+    public void ResetSoftStart()
+    {
+        if (SoftStartDuration > 0)
+            SoftStartRemainingDurationMs = SoftStartDuration;
+    }
 
 
 #pragma warning disable CS8618 //Done in setup to avoid 2 times the samecode.

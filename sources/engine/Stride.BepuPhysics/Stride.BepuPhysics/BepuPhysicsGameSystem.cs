@@ -17,6 +17,12 @@ namespace Stride.BepuPhysics
             _bepuConfiguration = registry.GetService<BepuConfiguration>();
             UpdateOrder = -1000; //make sure physics runs before everything
             Enabled = true; //enabled by default
+
+
+            foreach (var bepuSim in _bepuConfiguration.BepuSimulations)
+            {
+                bepuSim.ResetSoftStart();
+            }
         }
 
         public override void Update(GameTime time)
@@ -38,6 +44,22 @@ namespace Stride.BepuPhysics
                 int stepCount = 0;
                 while (bepuSim.RemainingUpdateTime >= bepuSim.SimulationFixedStep & (stepCount < bepuSim.MaxStepPerFrame || bepuSim.MaxStepPerFrame == -1))
                 {
+                    if (bepuSim.SoftStartDuration != 0 && bepuSim.SoftStartRemainingDurationMs == bepuSim.SoftStartDuration)
+                    {
+                        bepuSim.Simulation.Solver.SubstepCount = bepuSim.SolveSubStep * bepuSim.SoftStartSoftness;
+                        bepuSim.SoftStartRemainingDurationMs--;
+                    }
+                    else if (bepuSim.SoftStartRemainingDurationMs == 0)
+                    {
+                        bepuSim.Simulation.Solver.SubstepCount = bepuSim.SolveSubStep / bepuSim.SoftStartSoftness;
+                        bepuSim.SoftStartRemainingDurationMs = -1;
+                    }
+
+                    if (bepuSim.SoftStartRemainingDurationMs > 0)
+                    {
+                        bepuSim.SoftStartRemainingDurationMs = Math.Max(0, bepuSim.SoftStartRemainingDurationMs - bepuSim.SimulationFixedStep);
+                    }
+
                     var simTimeStepInSec = bepuSim.SimulationFixedStep / 1000f;
                     bepuSim.CallSimulationUpdate(simTimeStepInSec);//call the SimulationUpdate with the real step time of the sim in secs
                     bepuSim.Simulation.Timestep(simTimeStepInSec, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
@@ -94,6 +116,8 @@ namespace Stride.BepuPhysics
             }
 
         }
+
+
 
     }
 }
