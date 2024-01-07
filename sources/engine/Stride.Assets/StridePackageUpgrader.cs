@@ -148,7 +148,7 @@ namespace Stride.Assets
 
                     // Update Stride package references that are meant to upgrade
                     var packageReferences = project.GetItems("PackageReference")
-                        .Where(x => StridePackagesToUpgrade.PackageNames.Contains(x.EvaluatedInclude))
+                        .Where(x => !StridePackagesToSkipUpgrade.PackageNames.Contains(x.EvaluatedInclude))
                         .ToList();
 
                     // Remove Stride reference for older executable projects (it was necessary in the past due to runtime.json)

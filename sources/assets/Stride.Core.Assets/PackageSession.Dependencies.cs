@@ -124,11 +124,6 @@ namespace Stride.Core.Assets
 
             foreach (var packageReference in packageReferences)
             {
-                // Check if this package is an upgradable Stride package
-                if(!StridePackagesToUpgrade.PackageNames.Contains(packageReference.Key))
-                {
-                    continue;
-                }
                 var dependencyName = packageReference.Key;
                 var dependencyVersion = packageReference.Value;
 
