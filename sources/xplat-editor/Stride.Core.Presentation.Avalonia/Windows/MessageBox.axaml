@@ -3,7 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
-        xmlns:local="using:Stride.Core.Presentation.Avalonia.Windows"
+        xmlns:local="using:Stride.Core.Presentation.Windows"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         MinHeight="120" MinWidth="320" MaxHeight="768"
         SizeToContent="WidthAndHeight" CanResize="False"

@@ -20,6 +20,7 @@
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:interactivity="clr-namespace:Stride.Core.Presentation.Interactivity"
                     xmlns:commands="clr-namespace:Stride.Core.Presentation.Controls.Commands"
+                    xmlns:diag="clr-namespace:Stride.Core.Presentation.Windows;assembly=Stride.Core.Presentation"
                     xmlns:wnd="clr-namespace:Stride.Core.Presentation.Windows"
                     xmlns:local="clr-namespace:Stride.Core.Presentation"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
@@ -225,8 +226,8 @@
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
-                <ItemContainerTemplate DataType="{x:Type wnd:DialogButtonInfo}">
-                  <Button d:DataContext="{d:DesignInstance wnd:DialogButtonInfo}"
+                <ItemContainerTemplate DataType="{x:Type diag:DialogButtonInfo}">
+                  <Button d:DataContext="{d:DesignInstance diag:DialogButtonInfo}"
                             Margin="5,0" Padding="20,6" MinWidth="80"
                             Command="{Binding ButtonCommand, RelativeSource={RelativeSource AncestorType={x:Type wnd:MessageDialogBase}}}"
                             CommandParameter="{Binding Result}"
