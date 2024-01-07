@@ -5,6 +5,8 @@ using Avalonia.Metadata;
 
 [assembly: XmlnsPrefix("http://schemas.stride3d.net/xaml/presentation", "sd")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia")]
+[assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia.Behaviors")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia.Controls")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia.Converters")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia.MarkupExtensions")]
+[assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia.Themes")]
