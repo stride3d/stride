@@ -1,6 +1,7 @@
 ﻿using Eto.Parse;
-using SDSL.Parsing.AST.Shader.Analysis;
+using SDSL.Analysis;
 using SDSL.Parsing.AST.Shader.Symbols;
+using SDSL.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Linq;

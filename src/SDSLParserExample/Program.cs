@@ -1,8 +1,9 @@
 ﻿using SDSL.Parsing;
 using SDSL.Parsing.AST.Shader;
-using SDSL.Parsing.AST.Shader.Analysis;
+using SDSL.Analysis;
 using SDSL.Parsing.AST.Shader.Symbols;
 using SDSL.Parsing.Grammars.SDSL;
+using SDSL.Symbols;
 using SDSLParserExample;
 using SoftTouch.Spirv;
 using SoftTouch.Spirv.Core;
@@ -281,10 +282,18 @@ static void CheckOrderedEnumerator()
 
 static void ParseSDSL()
 {
-    var shader = File.ReadAllText(@"C:\Users\youness_kafia\Documents\dotnetProjs\SDSLParser\src\SDSLParserExample\SDSL\MixinSamples\MyShader.sdsl");
+    var shader = File.ReadAllText(@"C:\Users\kafia\source\repos\SDSLParser\src\SDSLParserExample\SDSL\MixinSamples\MyShader.sdsl");
     var program = ShaderMixinParser.ParseShader(shader);
-    var analyzer = new Analyzer();
-    analyzer.Analyze(program);
+
+    var ir = new SDSL.TAC.IR();
+    ir.Add(new(SDSL.TAC.Operator.Plus,new("5",SDSL.TAC.Kind.Constant), new("5", SDSL.TAC.Kind.Constant), new("a",SDSL.TAC.Kind.Variable)));
+    ref var f = ref ir[0];
+
+    f = SDSL.TAC.Quadruple.Nop;
+
+    Console.WriteLine(ir[0]);
+    //var analyzer = new Analyzer();
+    //analyzer.Analyze(program);
     
     // var grammar = new SDSLGrammar();
     

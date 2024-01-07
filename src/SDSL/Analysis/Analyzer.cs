@@ -1,8 +1,10 @@
 using CommunityToolkit.HighPerformance;
+using SDSL.Parsing.AST.Shader;
 using SDSL.Parsing.AST.Shader.Symbols;
+using SDSL.Symbols;
 using SoftTouch.Spirv;
 
-namespace SDSL.Parsing.AST.Shader.Analysis;
+namespace SDSL.Analysis;
 
 public class Analyzer
 {

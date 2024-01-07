@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
+using SDSL.Parsing.AST.Shader.Symbols;
 
-namespace SDSL.Parsing.AST.Shader.Symbols;
+namespace SDSL.Symbols;
 
 
 
-public class VariableScope 
+public class VariableScope
 {
     SymbolTable Table;
-    Stack<SortedList<string,VariableSymbol>> Scopes;
+    Stack<SortedList<string, VariableSymbol>> Scopes;
 
     public VariableScope(SymbolTable table)
     {
@@ -18,8 +19,8 @@ public class VariableScope
 
     public void Push(VariableSymbol variable)
     {
-        if(!IsDeclared(variable.Name))
-            Scopes.Peek().Add(variable.Name,variable);
+        if (!IsDeclared(variable.Name))
+            Scopes.Peek().Add(variable.Name, variable);
         else
             throw new Exception($"Variable {variable.Name} already declared");
     }
@@ -29,8 +30,8 @@ public class VariableScope
 
     public bool IsDeclared(string name)
     {
-        foreach(var scope in Scopes)
-            if(scope.ContainsKey(name)) return true;
+        foreach (var scope in Scopes)
+            if (scope.ContainsKey(name)) return true;
         return false;
     }
     public bool TryGetVariable(string name, out VariableSymbol variable)
@@ -38,7 +39,7 @@ public class VariableScope
         variable = VariableSymbol.None;
         foreach (var scope in Scopes)
         {
-            if (scope.TryGetValue(name, out variable)) 
+            if (scope.TryGetValue(name, out variable))
                 return true;
         }
         return false;

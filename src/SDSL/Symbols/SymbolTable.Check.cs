@@ -1,5 +1,6 @@
 using Eto.Parse;
-using SDSL.Parsing.AST.Shader.Analysis;
+using SDSL.Analysis;
+using SDSL.Symbols;
 
 namespace SDSL.Parsing.AST.Shader.Symbols;
 

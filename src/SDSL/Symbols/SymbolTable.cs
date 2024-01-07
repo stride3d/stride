@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Eto.Parse;
+using SDSL.Symbols;
 
 namespace SDSL.Parsing.AST.Shader.Symbols;
 
@@ -36,50 +37,50 @@ public partial class SymbolTable
         Types[name] = symb;
         return symb;
     }
-    public Vector Vector(string name)
+    public VectorSymbol Vector(string name)
     {
         if (Types.TryGetValue(name, out var t))
-            return (Vector)t;
+            return (VectorSymbol)t;
         var symb = SymbolType.Vector(Scalar(name[..^1]), name[^1] - '0');
         Types[name] = symb;
         return symb;
     }
-    public Vector Vector(string baseType, int size)
+    public VectorSymbol Vector(string baseType, int size)
     {
         if (Types.TryGetValue(baseType + size, out var t))
-            return (Vector)t;
+            return (VectorSymbol)t;
         var symb = SymbolType.Vector(Scalar(baseType),size);
         Types[baseType + size] = symb;
         return symb;
     }
-    public Vector Vector(Scalar scalar, int size)
+    public VectorSymbol Vector(Scalar scalar, int size)
     {
         if (Types.TryGetValue(scalar.Name + size, out var t))
-            return (Vector)t;
+            return (VectorSymbol)t;
         var symb = SymbolType.Vector(scalar, size);
         Types[scalar.Name + size] = symb;
         return symb;
     }
-    public Matrix Matrix(string name)
+    public MatrixSymbol Matrix(string name)
     {
         if (Types.TryGetValue(name, out var t))
-            return (Matrix)t;
+            return (MatrixSymbol)t;
         var symb = SymbolType.Matrix(Vector(name[..^2]), name[^1] - '0');
         Types[name] = symb;
         return symb;
     }
-    public Array Array(string name)
+    public ArraySymbol Array(string name)
     {
         if (Types.TryGetValue(name, out var t))
-            return (Array)t;
+            return (ArraySymbol)t;
         var symb = SymbolType.Array(Scalar(name[..^2]), null);
         Types[name] = symb;
         return symb;
     }
-    public Struct Struct(string name, Dictionary<string, SymbolType>? fields = null)
+    public StructSymbol Struct(string name, Dictionary<string, SymbolType>? fields = null)
     {
         if (Types.TryGetValue(name, out var t))
-            return (Struct)t;
+            return (StructSymbol)t;
         var symb = SymbolType.Struct(name, fields ?? []);
         Types[name] = symb;
         return symb;

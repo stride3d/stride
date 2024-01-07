@@ -1,12 +1,12 @@
-namespace SDSL.Parsing.AST.Shader.Analysis;
+namespace SDSL.Analysis;
 
 using Eto.Parse;
 
 
-public struct ErrorInfo 
+public struct ErrorInfo
 {
-    public Match Match {get;set;}
-    public string Message {get;set;}
+    public Match Match { get; set; }
+    public string Message { get; set; }
 
     public ErrorInfo(Match mtc, string msg)
     {
@@ -17,5 +17,5 @@ public struct ErrorInfo
 
 public class ErrorList : List<ErrorInfo>
 {
-    
+
 }

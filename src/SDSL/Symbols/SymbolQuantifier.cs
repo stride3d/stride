@@ -1,4 +1,4 @@
-namespace SDSL.Parsing.AST.Shader.Symbols;
+namespace SDSL.Symbols;
 
 public enum SymbolQuantifier
 {

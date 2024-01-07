@@ -1,8 +1,8 @@
 ﻿using Eto.Parse;
+using SDSL.Analysis;
 using SDSL.Parsing.AST.Shader;
-using SDSL.Parsing.AST.Shader.Analysis;
 using SDSL.Parsing.AST.Shader.Symbols;
-using SDSL.ThreeAddress;
+using SDSL.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Linq;
