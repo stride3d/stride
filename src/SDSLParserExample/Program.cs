@@ -13,6 +13,7 @@ using SoftTouch.Spirv.PostProcessing;
 using System.Diagnostics;
 using System.Numerics;
 using static Spv.Specification;
+using Eto.Parse;
 
 static void ThreeAddress()
 {
@@ -282,23 +283,16 @@ static void CheckOrderedEnumerator()
 
 static void ParseSDSL()
 {
+    var grammar = new Grammar(new SDSLGrammar().ParameterList);
+    var match = grammar.Match("(int a, int b)");
     var shader = File.ReadAllText(@"C:\Users\kafia\source\repos\SDSLParser\src\SDSLParserExample\SDSL\MixinSamples\MyShader.sdsl");
     var program = ShaderMixinParser.ParseShader(shader);
-
+    new Analyzer().Analyze(program);
     var ir = new SDSL.TAC.IR();
-    ir.Add(new(SDSL.TAC.Operator.Plus,new("5",SDSL.TAC.Kind.Constant), new("5", SDSL.TAC.Kind.Constant), new("a",SDSL.TAC.Kind.Variable)));
-    ref var f = ref ir[0];
+    ir.Convert(program.Body.OfType<ShaderMethod>().First());
 
-    f = SDSL.TAC.Quadruple.Nop;
-
-    Console.WriteLine(ir[0]);
-    //var analyzer = new Analyzer();
-    //analyzer.Analyze(program);
-    
-    // var grammar = new SDSLGrammar();
-    
-    // Console.WriteLine(grammar.Match(shader).Success);
-    // Console.WriteLine(grammar.Match(shader).ErrorMessage);
+    foreach (var e in ir)
+        Console.WriteLine(e);
     var x = 0;
 
 }

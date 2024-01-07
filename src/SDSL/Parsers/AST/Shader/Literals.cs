@@ -14,10 +14,15 @@ namespace SDSL.Parsing.AST.Shader;
 public class ShaderLiteral : Expression
 {
     public override SymbolType? InferredType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public object Value { get; set; }
+
 }
 
-public class NumberLiteral : ShaderLiteral
+public class ShaderLiteral<T> : ShaderLiteral
+{
+    public T Value { get; set; }
+}
+
+public class NumberLiteral : ShaderLiteral<double>
 {
     public bool Negative { get; set; } = false;
     public string? Suffix { get; set; }
@@ -34,15 +39,13 @@ public class NumberLiteral : ShaderLiteral
         Match = match;
         if (!match.HasMatches)
         {
-            Value = match.Value;
-            InferredType = Value switch
+            Value = match.Value switch
             {
-                int => s.Scalar("int"),
-                long => s.Scalar("int"),
-                float => s.Scalar("float"),
-                double => s.Scalar("float"),
+                long l => Convert.ToDouble(l),
+                double d => d,
                 _ => throw new NotImplementedException()
             };
+            InferredType = s.Scalar("int");
         }
         else
         {
@@ -52,7 +55,7 @@ public class NumberLiteral : ShaderLiteral
             }
             else
             {
-                Value = match.Matches[0].Value;
+                Value = (double)match.Matches[0].Value;
                 Suffix = match["Suffix"].StringValue;
                 InferredType = Suffix switch
                 {
@@ -116,7 +119,7 @@ public class HexLiteral : NumberLiteral
         Value = Convert.ToUInt64(match.StringValue, 16);
     }
 }
-public class StringLiteral : ShaderLiteral
+public class StringLiteral : ShaderLiteral<string>
 {
     public override SymbolType? InferredType { get => SymbolType.String(); set => throw new NotImplementedException(); }
 
@@ -129,7 +132,7 @@ public class StringLiteral : ShaderLiteral
     }
 }
 
-public class BoolLiteral : ShaderLiteral
+public class BoolLiteral : ShaderLiteral<bool>
 {
     public override SymbolType? InferredType { get => SymbolType.Scalar("bool"); set => throw new NotImplementedException(); }
 
@@ -157,7 +160,7 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
 {
     public string Name { get; set; }
 
-    public override SymbolType? InferredType { get => inferredType ?? throw new NotImplementedException(); set => inferredType = value; }
+    public override SymbolType? InferredType { get => inferredType; set => inferredType = value; }
 
     public VariableNameLiteral(string name)
     {

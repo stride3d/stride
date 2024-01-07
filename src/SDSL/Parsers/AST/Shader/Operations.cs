@@ -126,7 +126,7 @@ public class MulExpression : Operation
         };
 
         MulExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new MulExpression
             {
@@ -153,7 +153,7 @@ public class SumExpression : Operation
         };
 
         SumExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new SumExpression
             {
@@ -180,7 +180,7 @@ public class ShiftExpression : Operation
         };
 
         ShiftExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new ShiftExpression
             {
@@ -207,7 +207,7 @@ public class AndExpression : Operation
         };
 
         AndExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new AndExpression
             {
@@ -233,7 +233,7 @@ public class XorExpression : Operation
         };
 
         XorExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new XorExpression
             {
@@ -259,7 +259,7 @@ public class OrExpression : Operation
         };
 
         OrExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new OrExpression
             {
@@ -286,7 +286,7 @@ public class TestExpression : Operation
         };
 
         TestExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new TestExpression
             {
@@ -313,7 +313,7 @@ public class EqualsExpression : Operation
         };
 
         EqualsExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new EqualsExpression
             {
@@ -340,7 +340,7 @@ public class LogicalAndExpression : Operation
         };
 
         LogicalAndExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new LogicalAndExpression
             {
@@ -367,7 +367,7 @@ public class LogicalOrExpression : Operation
         };
 
         LogicalOrExpression tmp = first;
-        for (int i = 3; i < m.Matches.Count - 2; i += 2)
+        for (int i = 3; i < m.Matches.Count - 1; i += 2)
         {
             tmp = new LogicalOrExpression
             {

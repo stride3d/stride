@@ -151,9 +151,8 @@ public class ReturnStatement : Statement, IStreamCheck, IStaticCheck
     public ReturnStatement(Match m, SymbolTable s)
     {
         Match = m;
-        throw new NotImplementedException();
-        // if (m.HasMatches)
-        //     ReturnValue = (ShaderTokenTyped)GetToken(m["PrimaryExpression"]);
+        if (m.HasMatches)
+            ReturnValue = (ShaderTokenTyped)GetToken(m["PrimaryExpression"], s);
     }
 
     public bool CheckStream(SymbolTable s)

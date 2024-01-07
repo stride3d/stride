@@ -7,7 +7,7 @@ namespace SDSL.Parsing.AST.Shader;
 
 
 
-public class ShaderMethod : ShaderToken
+public abstract class ShaderMethod : ShaderToken
 {
     public bool IsStatic { get; set; }
     public bool IsOverride { get; set; }
@@ -16,7 +16,7 @@ public class ShaderMethod : ShaderToken
 
     public string Name { get; set; }
     public SymbolType ReturnType { get; set; }
-    public List<ShaderToken>? ParameterList { get; set; }
+    public List<MethodParameter>? ParameterList { get; set; }
     public List<Statement> Statements { get; set; }
 
     public ShaderMethod(Match m, SymbolTable symbols)
@@ -28,6 +28,7 @@ public class ShaderMethod : ShaderToken
         Name = m["MethodName"].StringValue;
         ReturnType = symbols.ParseType(m["ReturnType"].StringValue);
         Statements = m["Statements"].Matches.Select(x => GetToken(x, symbols)).Cast<Statement>().ToList();
+        ParameterList = m["ParameterList"].Matches.Select(x => GetToken(x, symbols)).Cast<MethodParameter>().ToList();
     }
 
     public static ShaderMethod Create(Match m, SymbolTable s)
@@ -40,10 +41,24 @@ public class ShaderMethod : ShaderToken
             "GSMain" => new GSMainMethod(m, s),
             "DSMain" => new DSMainMethod(m, s),
             "HSMain" => new HSMainMethod(m, s),
-            _ => new ShaderMethod(m, s)
+            _ => new ModuleMethod(m, s)
         };
     }
 }
+
+public class MethodParameter : ShaderToken
+{
+    public SymbolType Type { get; set; }
+    public string Name { get; set; }
+
+    public MethodParameter(Match m, SymbolTable s)
+    {
+        Match = m;
+        Name = m["Identifier"].StringValue;
+        Type = s.ParseType(m["ValueOrGeneric"].StringValue);
+    }
+}
+public class ModuleMethod(Match m, SymbolTable symbols) : ShaderMethod(m,symbols);
 
 public abstract class MainMethod : ShaderMethod, IStreamCheck
 {

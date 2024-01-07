@@ -51,14 +51,14 @@ public partial class SDSLGrammar : Grammar
         var parameter = new SequenceParser(
             ValueOrGeneric,
             ws1,
-            Identifier & ws & arraySpecifier
-            | Identifier,
-            (Equal & PrimaryExpression).SeparatedBy(ws).Optional()
+            (Identifier & ws & arraySpecifier) | Identifier,
+            (Equal & ws & PrimaryExpression).Optional()
         );
         var parameterWithStorage = new AlternativeParser(
             StorageFlag & ws1 & parameter,
             parameter
-        );
+        )
+        { Name = "MethodParameter" };
 
 
         ParameterList.Add(

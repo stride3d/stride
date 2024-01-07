@@ -23,6 +23,8 @@ public class Analyzer
     public void Analyze(ShaderProgram program)
     {
         // Recover all mixins and add variables and types to the symbol table
+        foreach (var m in program.Body.OfType<ModuleMethod>())
+            Table.Methods.Add(m.Name, new(Table, m));
         TypeCheck(program);
     }
 

@@ -15,6 +15,8 @@ public sealed partial class IR()
 
     public int Count => values.Count;
 
+    public List<Quadruple>.Enumerator GetEnumerator() => values.GetEnumerator(); 
+
     public void Add(Quadruple item) => values.Add(item);
     public void Clear() => values.Clear();
     public bool Contains(Quadruple item) => values.Contains(item);

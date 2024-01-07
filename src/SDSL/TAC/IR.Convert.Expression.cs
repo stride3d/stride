@@ -4,64 +4,64 @@ using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance.Buffers;
 using SDSL.Parsing.AST.Shader;
 using SDSL.Symbols;
+using shortid;
 
 namespace SDSL.TAC;
 
 public sealed partial class IR
 {
-    int Convert(Expression expr)
+    Operand? Convert(Expression expr)
     {
         if (expr is NumberLiteral nl)
         {
-            Add(
+            return 
                 new(
-                    Operator.Declare,
-                    Result: new(
-                        "constant" + nl.Value,
-                        Kind.Constant,
-                        nl.InferredType
-                    )
-                )
-            );
-            return Count;
+                    nl.Value.ToString(),
+                    Kind.Constant,
+                    nl.InferredType
+                );
+            
         }
         else if (expr is BoolLiteral bl)
         {
-            Add(
+            return 
                 new(
-                    Operator.Declare,
-                    Result: new(
-                        "constant" + bl.Value,
-                        Kind.Constant,
-                        SymbolType.Scalar("bool")
-                    )
-                )
-            );
-            return Count;
+                    bl.Value.ToString(),
+                    Kind.Constant,
+                    SymbolType.Scalar("bool")
+                );
+        }
+        else if (expr is VariableNameLiteral vnl)
+        {
+            return
+                new(
+                    vnl.Name,
+                    Kind.Variable,
+                    vnl.InferredType
+                );
         }
         else if (expr is UnaryExpression ue)
             return Convert(ue);
         else if (expr is Operation op)
         {
-            var indexLeft = Convert(op.Left as Expression ?? throw new NotImplementedException());
-            var indexRight = Convert(op.Left as Expression ?? throw new NotImplementedException());
-            var resultLeft = this[indexLeft].Result;
-            var resultRight = this[indexRight].Result;
+            var resultL = Convert(op.Left as Expression ?? throw new NotImplementedException());
+            var resultR = Convert(op.Right as Expression ?? throw new NotImplementedException());
+           
             Add(
                 new(
                     op.Op.Convert(),
-                    resultLeft,
-                    resultRight,
-                    new($"t_{resultLeft?.Value}{op.Op}{resultRight?.Value}", Kind.Variable)
+                    resultL,
+                    resultR,
+                    new(ShortId.Generate(), Kind.Variable)
                 )
             );
-            return Count;
+            return this[Count - 1].Result;
         }
         else
             throw new NotImplementedException();
     }
 
-    int Convert(UnaryExpression ue)
+    Operand? Convert(UnaryExpression ue)
     {
         throw new NotImplementedException();
     }

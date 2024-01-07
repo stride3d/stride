@@ -29,7 +29,7 @@ public sealed partial class IR
     }
     void Convert(DeclareAssign da)
     {
-        Convert(da.Value as Expression ?? throw new NotImplementedException());
-        Add(new(Operator.Declare, Result: new(da.VariableName, Kind.Variable, da.TypeName)));
+        var vId = Convert(da.Value as Expression ?? throw new NotImplementedException());
+        Add(new(Operator.Declare, vId, Result: new(da.VariableName, Kind.Variable, da.TypeName)));
     }
 }

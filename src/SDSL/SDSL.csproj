@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="shortid" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CppNet\CppNet.csproj" />
     <ProjectReference Include="..\Eto.Parse\Eto.Parse\Eto.Parse.csproj" />
     <ProjectReference Include="..\SoftTouch.Spirv\src\SoftTouch.Spirv\SoftTouch.Spirv.csproj" />

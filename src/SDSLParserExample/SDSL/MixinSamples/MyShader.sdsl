@@ -4,8 +4,17 @@ namespace MyNamespace
     {
         void VSMain()
         {
-            int a = 0;
+            int a = 5 + 8 + 3;
             int b = a;
+        }
+
+        int Add(int a, int b)
+        {
+            return a + b;
+        }
+        float3 Multiply(float3 a, float3 b)
+        {
+            return a * b;
         }
     }
 }
