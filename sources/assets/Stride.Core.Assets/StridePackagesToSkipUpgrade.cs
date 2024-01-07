@@ -17,6 +17,5 @@ public static class StridePackagesToSkipUpgrade
         "Stride.OpenTK",
         "Stride.Metrics",
         "Stride.BepuPhysics",
-        "Stride.Particles",
     ];
 }
