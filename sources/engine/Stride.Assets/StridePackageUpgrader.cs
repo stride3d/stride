@@ -147,9 +147,26 @@ namespace Stride.Assets
                     var isProjectDirty = false;
 
                     // Update Stride package references that are meant to upgrade
-                    var packageReferences = project.GetItems("PackageReference")
-                        .Where(x => !StridePackagesToSkipUpgrade.PackageNames.Contains(x.EvaluatedInclude))
-                        .ToList();
+                    //var packageReferences = project.GetItems("PackageReference")
+                    //    .Where(x => !StridePackagesToSkipUpgrade.PackageNames.Contains(x.EvaluatedInclude))
+                    //    .ToList();
+                    
+                    List<Microsoft.Build.Evaluation.ProjectItem> packageReferences = new();
+                    foreach(var package in project.GetItems("PackageReference"))
+                    {
+                        for (int i = 0; i < StridePackagesToSkipUpgrade.PackageNames.Count; i++)
+                        {
+                            if (package.EvaluatedInclude.StartsWith(StridePackagesToSkipUpgrade.PackageNames.ElementAt(i))
+                                || StridePackagesToSkipUpgrade.PackageNames.Contains(package.EvaluatedInclude))
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                packageReferences.Add(package);
+                            }
+                        }
+                    }
 
                     // Remove Stride reference for older executable projects (it was necessary in the past due to runtime.json)
                     if (dependency.Version.MinVersion < new PackageVersion("4.1.0.0")
