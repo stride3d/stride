@@ -3,7 +3,7 @@
 
 using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.Core.Presentation.Avalonia.Windows;
+namespace Stride.Core.Presentation.Windows;
 
 /// <summary>
 /// Represents a button in a <see cref="MessageDialogBase"/>.

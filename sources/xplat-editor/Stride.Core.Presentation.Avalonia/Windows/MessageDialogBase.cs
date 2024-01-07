@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Presentation.Windows;
 
 namespace Stride.Core.Presentation.Avalonia.Windows;
 

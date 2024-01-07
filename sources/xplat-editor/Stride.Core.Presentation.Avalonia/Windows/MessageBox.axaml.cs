@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 
 namespace Stride.Core.Presentation.Avalonia.Windows;
