@@ -100,6 +100,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
                         Matrix.Transformation(ref local.transform.Scale, ref local.transform.RotationLocal, ref local.transform.PositionLocal, out var containerMatrix);
 
+                        containerCompo.Entity.Transform.UpdateWorldMatrix();
                         containerMatrix *= Matrix.RotationQuaternion(containerCompo.Entity.Transform.GetWorldRot());
                         containerMatrix *= Matrix.Translation(containerCompo.Entity.Transform.GetWorldPos());
 

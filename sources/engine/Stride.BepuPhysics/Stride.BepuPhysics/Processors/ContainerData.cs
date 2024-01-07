@@ -96,7 +96,7 @@ namespace Stride.BepuPhysics.Processors
                 }
 
                 var pool = new BufferPool();
-                #warning maybe recycle mesh shapes themselves if possible ?
+#warning maybe recycle mesh shapes themselves if possible ?
                 var triangles = ExtractMeshDataSlow(meshContainer.Model, _game, pool);
                 var mesh = new Mesh(triangles, _containerComponent.Entity.Transform.Scale.ToNumericVector(), pool);
 

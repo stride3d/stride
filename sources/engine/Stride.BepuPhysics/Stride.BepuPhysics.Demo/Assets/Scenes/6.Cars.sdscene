@@ -1237,5 +1237,5 @@ Hierarchy:
                         MouseSpeed: {X: 1.5, Y: 1.5}
                         MaxLookUpAngle: -360.0
                         MaxLookDownAngle: 360.0
-                        MinimumCameraDistance: 1.5
+                        MinimumCameraDistance: 5.0
                         CameraOffset: {X: 0.0, Y: 0.0, Z: 5.0}

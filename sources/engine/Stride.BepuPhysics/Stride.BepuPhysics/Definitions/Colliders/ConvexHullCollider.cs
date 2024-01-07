@@ -28,7 +28,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders
 
         internal override void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose)
         {
-            #warning maybe don't rely on cache actually, instead cache the convexhull struct itself ? See if that can be reused
+#warning maybe don't rely on cache actually, instead cache the convexhull struct itself ? See if that can be reused
             var data = game.Services.GetService<BepuShapeCacheSystem>().BorrowHull(this);
             var points = MemoryMarshal.Cast<VertexPosition3, System.Numerics.Vector3>(data.data.Vertices);
 

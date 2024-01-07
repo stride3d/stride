@@ -24,7 +24,7 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
         public float MaxLookUpAngle = -360;
         public float MaxLookDownAngle = 360;
 
-        public float MinimumCameraDistance = 1.5f;
+        public float MinimumCameraDistance = 5f;
         public Vector3 CameraOffset = new Vector3(0, 0, 5);
 
 
