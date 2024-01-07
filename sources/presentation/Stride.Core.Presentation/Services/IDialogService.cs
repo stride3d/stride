@@ -10,8 +10,21 @@ namespace Stride.Core.Presentation.Services;
 /// </summary>
 public interface IDialogService
 {
+    /// <summary>
+    /// Indicates whether the current application has a main window.
+    /// </summary>
+    /// <remarks>>
+    /// Modal windows usually require to be owned by the main window.
+    /// </remarks>
+    /// <returns><c>true if a main window exists (which can be hidden); otherwise, <c>false</c>.</returns>
     bool HasMainWindow { get; }
 
+    /// <summary>
+    /// Gracefully exits the current application.
+    /// </summary>
+    /// <remarks>
+    /// This usualy terminates the process.
+    /// </remarks>
     void Exit(int exitCode = 0);
 
     /// <summary>
@@ -20,7 +33,7 @@ public interface IDialogService
     /// <param name="message">The text to display as message in the message box.</param>
     /// <param name="buttons">The buttons to display in the message box.</param>
     /// <param name="image">The image to display in the message box.</param>
-    /// <returns>A <see cref="MessageBoxResult"/> value indicating which button the user pressed to close the window.</returns>        
+    /// <returns>A <see cref="MessageBoxResult"/> value indicating which button the user pressed to close the window.</returns>
     Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None);
 
     /// <summary>
