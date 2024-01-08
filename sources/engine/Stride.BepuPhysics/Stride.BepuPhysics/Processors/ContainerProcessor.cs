@@ -35,16 +35,49 @@ namespace Stride.BepuPhysics.Processors
             if (_bepuConfiguration == null)
                 throw new NullReferenceException(nameof(_bepuConfiguration));
 
+#warning will not work if we add 2 entities, add a Container to the child Then add a container to the parent. Need rework
+            var parent = GetComponentsInParents<ContainerComponent>(entity).FirstOrDefault();
+            if (parent != null)
+                parent.ChildsContainerComponent.Add(component);
+
             component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.RebuildContainer();
+
             OnPostAdd?.Invoke(component);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
             OnPreRemove?.Invoke(component);
+
             component.ContainerData?.DestroyContainer();
             component.ContainerData = null;
+
+            var parent = GetComponentsInParents<ContainerComponent>(entity).FirstOrDefault();
+            if (parent != null)
+                parent.ChildsContainerComponent.Remove(component);
         }
+
+        private static IEnumerable<Entity> GetParents(Entity entity, bool includeMyself = false)
+        {
+            if (includeMyself)
+                yield return entity;
+
+            var parent = entity.GetParent();
+            while (parent != null)
+            {
+                yield return parent;
+                parent = parent.GetParent();
+            }
+        }
+        private static IEnumerable<T> GetComponentsInParents<T>(Entity entity, bool includeMyself = false) where T : EntityComponent
+        {
+            foreach (var parent in GetParents(entity, includeMyself))
+            {
+                if (parent.Get<T>() is T component)
+                    yield return component;
+            }
+        }
+
     }
 }
