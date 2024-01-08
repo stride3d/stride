@@ -14,6 +14,9 @@ using System.Diagnostics;
 using System.Numerics;
 using static Spv.Specification;
 using Eto.Parse;
+using SDSL.TAC;
+using System.Reflection;
+using SDSL.Mixing;
 
 static void ThreeAddress()
 {
@@ -283,16 +286,14 @@ static void CheckOrderedEnumerator()
 
 static void ParseSDSL()
 {
-    var grammar = new Grammar(new SDSLGrammar().ParameterList);
-    var match = grammar.Match("(int a, int b)");
-    var shader = File.ReadAllText(@"C:\Users\kafia\source\repos\SDSLParser\src\SDSLParserExample\SDSL\MixinSamples\MyShader.sdsl");
+    
+    var shader = File.ReadAllText(@"C:\Users\youness_kafia\Documents\dotnetProjs\SDSLParser\src\SDSLParserExample\SDSL\MixinSamples\MyShader.sdsl");
     var program = ShaderMixinParser.ParseShader(shader);
     new Analyzer().Analyze(program);
-    var ir = new SDSL.TAC.IR();
-    ir.Convert(program.Body.OfType<ShaderMethod>().First());
+    ShaderMixer.Compile(program);
 
-    foreach (var e in ir)
-        Console.WriteLine(e);
+    Console.WriteLine(MixinSourceProvider.Get("Something"));
+
     var x = 0;
 
 }

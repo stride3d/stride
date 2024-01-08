@@ -2,6 +2,7 @@ using Eto.Parse;
 using SDSL.Analysis;
 using SDSL.Parsing.AST.Shader.Symbols;
 using SDSL.Symbols;
+using SDSL.TAC;
 
 namespace SDSL.Parsing.AST.Shader;
 
@@ -12,8 +13,7 @@ public abstract class ShaderMethod : ShaderToken
     public bool IsStatic { get; set; }
     public bool IsOverride { get; set; }
     public bool IsStaged { get; set; }
-
-
+    public IR IRCode { get; set; }
     public string Name { get; set; }
     public SymbolType ReturnType { get; set; }
     public List<MethodParameter>? ParameterList { get; set; }
@@ -58,7 +58,7 @@ public class MethodParameter : ShaderToken
         Type = s.ParseType(m["ValueOrGeneric"].StringValue);
     }
 }
-public class ModuleMethod(Match m, SymbolTable symbols) : ShaderMethod(m,symbols);
+public class ModuleMethod(Match m, SymbolTable symbols) : ShaderMethod(m, symbols);
 
 public abstract class MainMethod : ShaderMethod, IStreamCheck
 {

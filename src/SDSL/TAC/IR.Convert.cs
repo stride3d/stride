@@ -9,18 +9,19 @@ namespace SDSL.TAC;
 
 public sealed partial class IR
 {
-    public void Convert(ShaderMethod method)
+    public static IR Convert(ShaderMethod method)
     {
-        
+        var ir = new IR();
         if(method is MainMethod m)
         {
             // TODO: Depending the main method generate variables
         }
         foreach (var statement in method.Statements)
             if (statement is SimpleDeclare sd)
-                Convert(sd);
+                ir.Convert(sd);
             else if (statement is DeclareAssign da)
-                Convert(da);
+                ir.Convert(da);
+        return ir;
                 
     }
     void Convert(SimpleDeclare sd)

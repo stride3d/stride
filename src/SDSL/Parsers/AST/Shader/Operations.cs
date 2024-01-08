@@ -33,37 +33,19 @@ public class Operation : Expression, IStreamCheck, IStaticCheck, IVariableCheck
 
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        var inferredType = (Left, Right) switch
-        {
-            (NumberLiteral left, NumberLiteral right) => 
-                (left.InferredType, right.InferredType) switch
-                {
-                    // SymbolType
-                    _ => throw new Exception()
-                },
-            (NumberLiteral left, Operation operation) => SymbolType.Void,
-            _ => SymbolType.Void
-        };
-        // if (expected != null)
-        // {
-        //     Left.TypeCheck(symbols, expected);
-        //     Right.TypeCheck(symbols, expected);
-        //     if (Left.InferredType.Equals(Right.InferredType) && Left.InferredType.Equals(expected))
-        //         InferredType = Left.InferredType;
-        //     else
-        //         throw new NotImplementedException();
-        // }
-        // else
-        // {
-        //     Left.TypeCheck(symbols,expected);
-        //     Right.TypeCheck(symbols,expected);
-        //     if (Left.InferredType != Right.InferredType)
-        //     {
-        //         // CheckImplicitCasting(Left, Right, expected);
-        //     }
-        //     else
-        //         InferredType = Left.InferredType;
-        // }
+        SymbolType? ltype = SymbolType.Void;
+        SymbolType? rtype = SymbolType.Void;
+        
+        Left.TypeCheck(symbols, expected);
+        ltype = Left.InferredType;
+        Right.TypeCheck(symbols, expected);
+        rtype = Right.InferredType;
+        
+
+        if(rtype == ltype && rtype == expected)
+            inferredType = rtype;
+        else
+            throw new Exception($"Cannot apply operation between types {Right.InferredType} and {Left.InferredType} when {expected} is expected");
     }
 
     public IEnumerable<string> GetUsedStream()

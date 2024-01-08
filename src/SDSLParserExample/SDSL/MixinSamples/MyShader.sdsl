@@ -8,13 +8,11 @@ namespace MyNamespace
             int b = a;
         }
 
-        int Add(int a, int b)
+        void Add(int a, int b)
         {
-            return a + b;
         }
-        float3 Multiply(float3 a, float3 b)
+        void Multiply(float3 a, float3 b)
         {
-            return a * b;
         }
     }
 }

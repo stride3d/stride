@@ -45,7 +45,7 @@ public class NumberLiteral : ShaderLiteral<double>
                 double d => d,
                 _ => throw new NotImplementedException()
             };
-            InferredType = s.Scalar("int");
+            InferredType = Value % 1 == 0 ? s.Scalar("int") : s.Scalar("float"); 
         }
         else
         {
@@ -74,15 +74,20 @@ public class NumberLiteral : ShaderLiteral<double>
     }
     public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
     {
-        if (!expected.Equals(InferredType))
+        if(Suffix == null)
         {
             inferredType = (InferredType, expected) switch
             {
-                (Scalar s, Scalar { Name : "void"}) => s,
+                (Scalar s, null) => s,
                 (Scalar { Name: "float" }, Scalar { Name: "int" or "half" or "double" }) => expected,
-                (Scalar { Name: "int" }, Scalar { Name: "byte" or "sbyte" or "short" or "ushort" or "uint" or "long" or "ulong" or "float" or "double" }) => expected,
+                (Scalar { Name: "int" }, Scalar { Name: "byte" or "sbyte" or "short" or "ushort" or "uint" or "int" or "long" or "ulong" or "float" or "double" }) => expected,
                 _ => throw new Exception($"cannot implictely cast {inferredType} to {expected}")
             };
+        }
+        else
+        {
+            if(InferredType != expected)
+                throw new Exception($"Cannot convert {InferredType} to {expected ?? SymbolType.Void}");
         }
     }
     public override string ToString()
@@ -176,7 +181,9 @@ public class VariableNameLiteral : ShaderLiteral, IVariableCheck
     {
         if(symbols.Variables.TryGetVariable(Name, out var variable))
         {
-            if(!(variable.Type == expected))
+            if(variable.Type == expected)
+                inferredType = expected;
+            else
                 throw new Exception("Type is not matching");
         }
         else throw new Exception($"Use of undeclared variable \"{Name}\"");

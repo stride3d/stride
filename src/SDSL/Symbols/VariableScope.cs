@@ -34,6 +34,17 @@ public class VariableScope
             if (scope.ContainsKey(name)) return true;
         return false;
     }
+
+    public VariableSymbol? GetVariable(string name)
+    {
+        foreach (var scope in Scopes)
+        {
+            if (scope.TryGetValue(name, out var variable))
+                return variable;
+        }
+        return null;
+    }
+
     public bool TryGetVariable(string name, out VariableSymbol variable)
     {
         variable = VariableSymbol.None;

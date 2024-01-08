@@ -152,7 +152,9 @@ public class ReturnStatement : Statement, IStreamCheck, IStaticCheck
     {
         Match = m;
         if (m.HasMatches)
+        {
             ReturnValue = (ShaderTokenTyped)GetToken(m["PrimaryExpression"], s);
+        }
     }
 
     public bool CheckStream(SymbolTable s)
@@ -174,6 +176,14 @@ public class ReturnStatement : Statement, IStreamCheck, IStaticCheck
     public bool CheckStatic(SymbolTable s)
     {
         return ReturnValue is IStaticCheck sc && sc.CheckStatic(s);
+    }
+
+    public override void TypeCheck(SymbolTable symbols, in SymbolType? expected)
+    {
+        ReturnValue?.TypeCheck(symbols, expected);
+        if(ReturnValue?.InferredType != expected)
+            throw new Exception($"Type not matching, expected return type {expected?.ToString() ?? "void"}, and returned {ReturnValue?.InferredType}");
+
     }
 }
 
