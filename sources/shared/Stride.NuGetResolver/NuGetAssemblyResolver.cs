@@ -22,7 +22,7 @@ namespace Stride.Core.Assets
 
         static bool assembliesResolved;
         static readonly object assembliesLock = new object();
-        static List<string> assemblies;
+        static Dictionary<string, string> assemblyNameToPath;
 
         public static void DisableAssemblyResolve()
         {
@@ -59,12 +59,6 @@ namespace Stride.Core.Assets
             // Note: we perform nuget restore inside the assembly resolver rather than top level module ctor (otherwise it freezes)
             AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) =>
             {
-                // Check if already loaded.
-                // Somehow it happens for Microsoft.NET.Build.Tasks -> NuGet.ProjectModel, probably due to the specific way it's loaded.
-                var matchingAssembly = Array.Find(AppDomain.CurrentDomain.GetAssemblies(), x => x.FullName == eventArgs.Name);
-                if (matchingAssembly != null)
-                    return matchingAssembly;
-
                 if (!assembliesResolved)
                 {
                     lock (assembliesLock)
@@ -132,11 +126,31 @@ namespace Stride.Core.Assets
                                 throw new InvalidOperationException($"Could not restore NuGet packages");
                             }
 
-                            assemblies = RestoreHelper.ListAssemblies(result.LockFile);
+                            // Build list of assemblies
+                            var assemblies = RestoreHelper.ListAssemblies(result.LockFile);
+
+                            // Create a dictionary by assembly name
+                            // note: we ignore case as filename might not be properly matching assembly name casing
+                            assemblyNameToPath = new(StringComparer.OrdinalIgnoreCase);
+                            foreach (var assembly in assemblies)
+                            {
+                                var extension = Path.GetExtension(assembly).ToLowerInvariant();
+                                if (extension != ".dll")
+                                    continue;
+                                var assemblyName = Path.GetFileNameWithoutExtension(assembly);
+                                // Ignore duplicates (however, make sure it's the same version otherwise display a warning)
+                                if (assemblyNameToPath.TryGetValue(assemblyName, out var otherAssembly))
+                                {
+                                    if (!FileContentIsSame(new FileInfo(otherAssembly), new FileInfo(assembly)))
+                                        logger.LogWarning($"Assembly {assemblyName} found in two locations with different content: {assembly} and {otherAssembly}");
+                                    continue;
+                                }
+                                assemblyNameToPath.Add(assemblyName, assembly);
+                            }
 
                             // Register the native libraries
                             var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
-                            RegisterNativeDependencies(assemblies, nativeLibs);
+                            RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
                         }
                         catch (Exception e)
                         {
@@ -169,19 +183,40 @@ namespace Stride.Core.Assets
                     }
                 }
 
-                if (assemblies != null)
+                if (assemblyNameToPath != null)
                 {
                     var aname = new AssemblyName(eventArgs.Name);
                     if (aname.Name.StartsWith("Microsoft.Build", StringComparison.Ordinal) && aname.Name != "Microsoft.Build.Locator")
                         return null;
-                    var assemblyPath = assemblies.Find(x => Path.GetFileNameWithoutExtension(x) == aname.Name);
-                    if (assemblyPath != null)
+                    if (assemblyNameToPath.TryGetValue(aname.Name, out var assemblyPath))
                     {
                         return Assembly.LoadFrom(assemblyPath);
                     }
                 }
                 return null;
             };
+        }
+
+        static bool FileContentIsSame(FileInfo file1, FileInfo file2)
+        {
+            if (file1.Length != file2.Length)
+                return false;
+
+            // Assume same size and same modified time means it's the same file
+            if (file1.LastWriteTimeUtc == file2.LastWriteTimeUtc)
+                return true;
+
+            // Otherwise, full file compare
+            using (var fs1 = file1.OpenRead())
+            using (var fs2 = file2.OpenRead())
+            {
+                for (int i = 0; i < file1.Length; i++)
+                {
+                    if (fs1.ReadByte() != fs2.ReadByte())
+                        return false;
+                }
+            }
+            return true;
         }
 
         private static void RemoveSources(ISettings settings, string prefixName)
@@ -208,9 +243,9 @@ namespace Stride.Core.Assets
         /// <summary>
         /// Registers the listed native libs in Stride.Core.NativeLibraryHelper using reflection to avoid a compile time dependency on Stride.Core
         /// </summary>
-        private static void RegisterNativeDependencies(List<string> assemblies, List<string> nativeLibs)
+        private static void RegisterNativeDependencies(Dictionary<string, string> assemblyNameToPath, List<string> nativeLibs)
         {
-            var strideCoreAssembly = Assembly.LoadFrom(assemblies.Find(a => Path.GetFileNameWithoutExtension(a) == "Stride.Core"));
+            var strideCoreAssembly = Assembly.LoadFrom(assemblyNameToPath["Stride.Core"]);
             if (strideCoreAssembly is null)
                 throw new InvalidOperationException($"Couldn't find assembly 'Stride.Core' in restored packages");
 

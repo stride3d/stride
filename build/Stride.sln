@@ -10,7 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-StrideRuntime", "20-Stri
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
-		..\Directory.Packages.props = ..\Directory.Packages.props
+		..\sources\Directory.Packages.props = ..\sources\Directory.Packages.props
+		..\nuget.config = ..\nuget.config
 		..\sources\targets\Stride.Core.CompilerServices.props = ..\sources\targets\Stride.Core.CompilerServices.props
 		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
 		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
