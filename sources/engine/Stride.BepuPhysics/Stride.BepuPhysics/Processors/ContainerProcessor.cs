@@ -13,6 +13,9 @@ namespace Stride.BepuPhysics.Processors
 
         internal Dictionary<ContainerComponent, ContainerComponent>.Enumerator ComponentDatas => base.ComponentDatas.GetEnumerator();
 
+        public event Action<ContainerComponent>? OnPostAdd;
+        public event Action<ContainerComponent>? OnPreRemove;
+
         public ContainerProcessor()
         {
             Order = 10000;
@@ -34,10 +37,12 @@ namespace Stride.BepuPhysics.Processors
 
             component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.RebuildContainer();
+            OnPostAdd?.Invoke(component);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
+            OnPreRemove?.Invoke(component);
             component.ContainerData?.DestroyContainer();
             component.ContainerData = null;
         }

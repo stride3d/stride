@@ -11,6 +11,7 @@ namespace Stride.BepuPhysics.DebugRender.Effects
         // Shader properties
         public Color Color = Color.Red;
         public Matrix WorldMatrix = Matrix.Identity;
+        public Matrix ContainerBaseMatrix = Matrix.Identity;
 
         // Vertex buffer setup
         public readonly int VertexStride;

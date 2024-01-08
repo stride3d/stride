@@ -1,4 +1,5 @@
-﻿using Stride.BepuPhysics.Components.Containers.Interfaces;
+﻿using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.DebugRender.Components;
 using Stride.BepuPhysics.DebugRender.Effects;
 using Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
@@ -22,9 +23,10 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         private InputManager _input;
         private SinglePassWireframeRenderFeature _wireframeRenderFeature;
         private VisibilityGroup _visibilityGroup;
-        private List<WireFrameRenderObject> _wireFrameRenderObject = new();
+        private Dictionary<ContainerComponent, WireFrameRenderObject[]> _wireFrameRenderObject = new();
 
         private bool _alwaysOn = false;
+        private bool _isOn = false;
 
         public DebugRenderProcessor()
         {
@@ -61,68 +63,124 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         public override void Update(GameTime time)
         {
-            if (_alwaysOn || _input.IsKeyDown(Keys.F10))
-                UpdateRender();
-            if (_input.IsKeyDown(Keys.F11))
-                Clear();
-
             base.Update(time);
-        }
 
-        private void UpdateRender()
-        {
-            Clear();
-            #warning update debug shape matrices and subscribe to append and remove of containers from the processor
-            if (_sceneSystem.SceneInstance.GetProcessor<ContainerProcessor>() is { } proc)
+            bool shouldBeOn = _alwaysOn || _input.IsKeyDown(Keys.F10);
+            if (_isOn != shouldBeOn) // Changed state
             {
-                var shapeAndOffsets = new List<(BodyShapeData data, BodyShapeTransform transform)>();
-                for (var containers = proc.ComponentDatas; containers.MoveNext();)
+                if (_sceneSystem.SceneInstance.GetProcessor<ContainerProcessor>() is { } proc)
                 {
-                    var containerCompo = containers.Current.Key;
-
-                    var color = Color.Black;
-
-                    if (containerCompo is IContainerWithColliders)
+                    if (shouldBeOn)
                     {
-                        color = Color.Red;
+                        _isOn = true;
+                        proc.OnPostAdd += StartTrackingContainer;
+                        proc.OnPreRemove += ClearTrackingForContainer;
+                        StartTracking(proc);
                     }
-                    else if (containerCompo is IContainerWithMesh)
+                    else
                     {
-                        color = Color.Blue;
-                    }
-
-                    shapeAndOffsets.Clear();
-                    _bepuShapeCacheSystem.AppendCachedShapesFor(containerCompo, shapeAndOffsets);
-
-                    foreach (var shapeAndOffset in shapeAndOffsets)
-                    {
-                        var local = shapeAndOffset;
-
-                        Matrix.Transformation(ref local.transform.Scale, ref local.transform.RotationLocal, ref local.transform.PositionLocal, out var containerMatrix);
-
-                        containerCompo.Entity.Transform.UpdateWorldMatrix();
-                        containerMatrix *= Matrix.RotationQuaternion(containerCompo.Entity.Transform.GetWorldRot());
-                        containerMatrix *= Matrix.Translation(containerCompo.Entity.Transform.GetWorldPos());
-
-                        var wfro = WireFrameRenderObject.New(_game.GraphicsDevice, shapeAndOffset.data.Indices, shapeAndOffset.data.Vertices);
-                        wfro.Color = color;
-                        wfro.WorldMatrix = containerMatrix;
-                        _wireFrameRenderObject.Add(wfro);
-                        _visibilityGroup.RenderObjects.Add(wfro);
+                        _isOn = false;
+                        proc.OnPostAdd -= StartTrackingContainer;
+                        proc.OnPreRemove -= ClearTrackingForContainer;
+                        Clear();
                     }
                 }
+                else
+                {
+                    _isOn = false;
+                    Clear();
+                }
+            }
+
+            if (_isOn) // Update gizmos transform
+            {
+                foreach (var kvp in _wireFrameRenderObject)
+                {
+                    var container = kvp.Key;
+                    container.Entity.Transform.UpdateWorldMatrix();
+                    container.Entity.Transform.WorldMatrix.Decompose(out _, out Matrix rotMatrix, out var transformPos);
+                    var transMatrix = Matrix.Translation(transformPos);
+                    foreach (var wireframe in kvp.Value)
+                    {
+                        wireframe.WorldMatrix = wireframe.ContainerBaseMatrix;
+                        wireframe.WorldMatrix *= rotMatrix;
+                        wireframe.WorldMatrix *= transMatrix;
+                    }
+                }
+            }
+
+            if (_input.IsKeyPressed(Keys.F11))
+                _alwaysOn = !_alwaysOn;
+        }
+
+        private void StartTracking(ContainerProcessor proc)
+        {
+            var shapeAndOffsets = new List<(BodyShapeData data, BodyShapeTransform transform)>();
+            for (var containers = proc.ComponentDatas; containers.MoveNext();)
+            {
+                StartTrackingContainer(containers.Current.Key, shapeAndOffsets);
+            }
+        }
+
+        private void StartTrackingContainer(ContainerComponent container) => StartTrackingContainer(container, new());
+
+        private void StartTrackingContainer(ContainerComponent container, List<(BodyShapeData data, BodyShapeTransform transform)> shapeAndOffsets)
+        {
+            var color = Color.Black;
+
+            if (container is IContainerWithColliders)
+            {
+                color = Color.Red;
+            }
+            else if (container is IContainerWithMesh)
+            {
+                color = Color.Blue;
+            }
+
+            shapeAndOffsets.Clear();
+            _bepuShapeCacheSystem.AppendCachedShapesFor(container, shapeAndOffsets);
+
+            WireFrameRenderObject[] wireframes = new WireFrameRenderObject[shapeAndOffsets.Count];
+            for (int i = 0; i < shapeAndOffsets.Count; i++)
+            {
+                var shapeAndOffset = shapeAndOffsets[i];
+                var local = shapeAndOffset;
+
+                Matrix.Transformation(ref local.transform.Scale, ref local.transform.RotationLocal, ref local.transform.PositionLocal, out var containerMatrix);
+
+                var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, shapeAndOffset.data.Indices, shapeAndOffset.data.Vertices);
+                wireframe.Color = color;
+                wireframe.ContainerBaseMatrix = containerMatrix;
+                _visibilityGroup.RenderObjects.Add(wireframe);
+                wireframes[i] = wireframe;
+            }
+            _wireFrameRenderObject.Add(container, wireframes);
+        }
+
+        private void ClearTrackingForContainer(ContainerComponent container)
+        {
+            if (_wireFrameRenderObject.TryGetValue(container, out var wfros))
+            {
+                foreach (var wireframe in wfros)
+                {
+                    wireframe.Dispose();
+                    _visibilityGroup.RenderObjects.Remove(wireframe);
+                }
+                _wireFrameRenderObject.Remove(container);
             }
         }
 
         private void Clear()
         {
-            for (int i = _wireFrameRenderObject.Count - 1; i >= 0; i--)
+            foreach (var kvp in _wireFrameRenderObject)
             {
-                var renderObject = _wireFrameRenderObject[i];
-                renderObject.Dispose();
-                _visibilityGroup.RenderObjects.Remove(renderObject);
-                _wireFrameRenderObject.RemoveAt(i);
+                foreach (var wireframe in kvp.Value)
+                {
+                    wireframe.Dispose();
+                    _visibilityGroup.RenderObjects.Remove(wireframe);
+                }
             }
+            _wireFrameRenderObject.Clear();
         }
     }
 }
