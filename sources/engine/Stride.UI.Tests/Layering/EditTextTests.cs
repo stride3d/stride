@@ -17,7 +17,7 @@ namespace Stride.UI.Tests.Layering
     [System.ComponentModel.Description("Tests for EditText layering")]
     public class EditTextTests
     {
-        class DummyFont : SpriteFont { }
+        public class DummyFont : SpriteFont { }
 
         /// <summary>
         /// Test the invalidations generated object property changes.
