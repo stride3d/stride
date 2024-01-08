@@ -80,7 +80,7 @@ namespace Stride.BepuPhysics.Processors
         {
             if (ShapeIndex.Exists)
             {
-                BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
+                BepuSimulation.Simulation.Shapes.RemoveAndDispose(ShapeIndex, BepuSimulation.BufferPool);
                 ShapeIndex = default;
             }
 
@@ -95,10 +95,9 @@ namespace Stride.BepuPhysics.Processors
                     return;
                 }
 
-                var pool = new BufferPool();
 #warning maybe recycle mesh shapes themselves if possible ?
-                var triangles = ExtractMeshDataSlow(meshContainer.Model, _game, pool);
-                var mesh = new Mesh(triangles, _containerComponent.Entity.Transform.Scale.ToNumericVector(), pool);
+                var triangles = ExtractMeshDataSlow(meshContainer.Model, _game, BepuSimulation.BufferPool);
+                var mesh = new Mesh(triangles, _containerComponent.Entity.Transform.Scale.ToNumericVector(), BepuSimulation.BufferPool);
 
                 ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
                 _shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
@@ -120,34 +119,32 @@ namespace Stride.BepuPhysics.Processors
                     DestroyContainer();
                     return;
                 }
-                else
+
+                var compoundBuilder = new CompoundBuilder(BepuSimulation.BufferPool, BepuSimulation.Simulation.Shapes, collidersContainer.Colliders.Count);
+                try
                 {
-                    var compoundBuilder = new CompoundBuilder(BepuSimulation.BufferPool, BepuSimulation.Simulation.Shapes, collidersContainer.Colliders.Count);
-                    try
+                    foreach (var collider in collidersContainer.Colliders)
                     {
-                        foreach (var collider in collidersContainer.Colliders)
-                        {
-                            var localTranslation = collider.PositionLocal;
-                            var localRotation = collider.RotationLocal;
+                        var localTranslation = collider.PositionLocal;
+                        var localRotation = collider.RotationLocal;
 
-                            var compoundChildLocalPose = new RigidPose(localTranslation.ToNumericVector(), Quaternion.RotationYawPitchRoll(MathUtil.DegreesToRadians(localRotation.Y), MathUtil.DegreesToRadians(localRotation.X), MathUtil.DegreesToRadians(localRotation.Z)).ToNumericQuaternion());
-                            collider.AddToCompoundBuilder(_game, ref compoundBuilder, compoundChildLocalPose);
-                            collider.Container = _containerComponent;
-                        }
-
-                        BepuUtilities.Memory.Buffer<CompoundChild> compoundChildren;
-                        BodyInertia shapeInertia;
-                        System.Numerics.Vector3 shapeCenter;
-                        compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
-
-                        ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
-                        _shapeInertia = shapeInertia;
-                        _containerComponent.CenterOfMass = shapeCenter.ToStrideVector();
+                        var compoundChildLocalPose = new RigidPose(localTranslation.ToNumericVector(), localRotation.ToNumericQuaternion());
+                        collider.AddToCompoundBuilder(_game, BepuSimulation, ref compoundBuilder, compoundChildLocalPose);
+                        collider.Container = _containerComponent;
                     }
-                    finally
-                    {
-                        compoundBuilder.Dispose();
-                    }
+
+                    BepuUtilities.Memory.Buffer<CompoundChild> compoundChildren;
+                    BodyInertia shapeInertia;
+                    System.Numerics.Vector3 shapeCenter;
+                    compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
+
+                    ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
+                    _shapeInertia = shapeInertia;
+                    _containerComponent.CenterOfMass = shapeCenter.ToStrideVector();
+                }
+                finally
+                {
+                    compoundBuilder.Dispose();
                 }
             }
 
@@ -217,7 +214,7 @@ namespace Stride.BepuPhysics.Processors
 
             if (ShapeIndex.Exists)
             {
-                BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
+                BepuSimulation.Simulation.Shapes.RemoveAndDispose(ShapeIndex, BepuSimulation.BufferPool);
                 ShapeIndex = default;
             }
 

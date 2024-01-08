@@ -1,6 +1,7 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Configurations;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Games;
@@ -54,6 +55,6 @@ namespace Stride.BepuPhysics.Definitions.Colliders
         [DataMemberIgnore]
         public ContainerComponent? Container { get; internal set; }
 
-        internal abstract void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose);
+        internal abstract void AddToCompoundBuilder(IGame game, BepuSimulation simulation, ref CompoundBuilder builder, RigidPose localPose);
     }
 }

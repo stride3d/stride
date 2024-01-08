@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using BepuPhysics;
 using BepuPhysics.Collidables;
-using BepuUtilities.Memory;
+using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -26,7 +26,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders
             }
         }
 
-        internal override void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose)
+        internal override void AddToCompoundBuilder(IGame game, BepuSimulation simulation, ref CompoundBuilder builder, RigidPose localPose)
         {
 #warning maybe don't rely on cache actually, instead cache the convexhull struct itself ? See if that can be reused
             var data = game.Services.GetService<BepuShapeCacheSystem>().BorrowHull(this);
@@ -44,7 +44,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders
                 points = copy;
             }
 
-            builder.Add(new ConvexHull(points, new BufferPool(), out _), localPose, Mass);
+            builder.Add(new ConvexHull(points, simulation.BufferPool, out _), localPose, Mass);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Configurations;
 using Stride.Core;
 using Stride.Games;
 
@@ -31,7 +32,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders
             }
         }
 
-        internal override void AddToCompoundBuilder(IGame game, ref CompoundBuilder builder, RigidPose localPose)
+        internal override void AddToCompoundBuilder(IGame game, BepuSimulation simulation, ref CompoundBuilder builder, RigidPose localPose)
         {
             builder.Add(new Capsule(Radius, Length), localPose, Mass);
         }
