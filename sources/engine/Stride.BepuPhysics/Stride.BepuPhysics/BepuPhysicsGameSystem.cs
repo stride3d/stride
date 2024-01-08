@@ -87,19 +87,18 @@ namespace Stride.BepuPhysics
             var bodyContainer = bepuSim.BodiesContainers[handle];
             var body = bepuSim.Simulation.Bodies[handle];
 
-            var parentEntityPosition = new Vector3();
-            var parentEntityRotation = Quaternion.Identity;
-            var parent = bodyContainer.Entity.Transform.Parent;
-            if (parent != null)
+            var entityTransform = bodyContainer.Entity.Transform;
+            var localPosition = body.Pose.Position.ToStrideVector();
+            var localRotation = body.Pose.Orientation.ToStrideQuaternion();
+            if (bodyContainer.Entity.Transform.Parent is { } parent)
             {
-                parent.WorldMatrix.Decompose(out Vector3 _, out parentEntityRotation, out parentEntityPosition);
+                parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
+                localRotation = localRotation * Quaternion.Invert(parentEntityRotation);
+                localPosition = Vector3.Transform(localPosition - parentEntityPosition, Quaternion.Invert(parentEntityRotation));
             }
 
-            var entityTransform = bodyContainer.Entity.Transform;
-
-            Vector3 localPosition = (body.Pose.Position.ToStrideVector() - parentEntityPosition);
-            entityTransform.Rotation = body.Pose.Orientation.ToStrideQuaternion() * Quaternion.Invert(parentEntityRotation);
-            entityTransform.Position = Vector3.Transform(localPosition, Quaternion.Invert(parentEntityRotation)) - Vector3.Transform(bodyContainer.CenterOfMass, entityTransform.Rotation);
+            entityTransform.Rotation = localRotation;
+            entityTransform.Position = localPosition - Vector3.Transform(bodyContainer.CenterOfMass, entityTransform.Rotation);
 
             if (bodyContainer.ChildsContainerComponent.Count > 0)
             {
