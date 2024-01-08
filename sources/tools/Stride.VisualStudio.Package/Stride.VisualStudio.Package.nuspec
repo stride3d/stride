@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Stride.VisualStudio.Package</id>
-    <version>4.1.0</version>
+    <version>4.2.0</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
     <license type="expression">MIT</license>

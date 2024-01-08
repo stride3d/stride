@@ -41,7 +41,7 @@ namespace Stride.Graphics
         /// <dd> <p>Texture width (in texels). The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture1DSize"/> (16384). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
         /// </summary>
         /// <remarks>
-        /// This field is valid for all textures: <see cref="Texture1D"/>, <see cref="Texture2D"/>, <see cref="Texture3D"/> and <see cref="TextureCube"/>.
+        /// This field is valid for all textures: <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/>, <see cref="TextureDimension.Texture3D"/> and <see cref="TextureDimension.TextureCube"/>.
         /// </remarks>
         public int Width;
 
@@ -49,7 +49,7 @@ namespace Stride.Graphics
         /// <dd> <p>Texture height (in texels). The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture3DSize"/> (2048). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
         /// </summary>
         /// <remarks>
-        /// This field is only valid for <see cref="Texture2D"/>, <see cref="Texture3D"/> and <see cref="TextureCube"/>.
+        /// This field is only valid for <see cref="TextureDimension.Texture2D"/>, <see cref="TextureDimension.Texture3D"/> and <see cref="TextureDimension.TextureCube"/>.
         /// </remarks>
         public int Height;
 
@@ -57,7 +57,7 @@ namespace Stride.Graphics
         /// <dd> <p>Texture depth (in texels). The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture3DSize"/> (2048). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
         /// </summary>
         /// <remarks>
-        /// This field is only valid for <see cref="Texture3D"/>.
+        /// This field is only valid for <see cref="TextureDimension.Texture3D"/>.
         /// </remarks>
         public int Depth;
 
@@ -65,10 +65,10 @@ namespace Stride.Graphics
         /// <dd> <p>Number of textures in the array. The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture1DArraySize"/> (2048). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
         /// </summary>
         /// <remarks>
-        /// This field is only valid for <see cref="Texture1D"/>, <see cref="Texture2D"/> and <see cref="TextureCube"/>
+        /// This field is only valid for <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/> and <see cref="TextureDimension.TextureCube"/>
         /// </remarks>
         /// <remarks>
-        /// This field is only valid for textures: <see cref="Texture1D"/>, <see cref="Texture2D"/> and <see cref="TextureCube"/>.
+        /// This field is only valid for textures: <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/> and <see cref="TextureDimension.TextureCube"/>.
         /// </remarks>
         public int ArraySize;
 

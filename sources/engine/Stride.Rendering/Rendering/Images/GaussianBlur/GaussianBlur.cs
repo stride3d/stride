@@ -14,8 +14,10 @@ namespace Stride.Rendering.Images
     /// </summary>
     /// <remarks>
     /// To improve performance of this gaussian blur is using:
-    /// - a separable 1D horizontal and vertical blur
-    /// - linear filtering to reduce the number of taps
+    /// <list type="bullet">
+    /// <item>a separable 1D horizontal and vertical blur</item>
+    /// <item>linear filtering to reduce the number of taps</item>
+    /// </list>
     /// </remarks>
     [DataContract("GaussianBlur")]
     [Display("Gaussian Blur")]

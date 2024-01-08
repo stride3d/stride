@@ -5,7 +5,6 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Markdown.Avalonia;
 
 namespace Stride.GameStudio.Avalonia.Views;
@@ -15,14 +14,6 @@ public partial class AboutWindow : Window
     public AboutWindow()
     {
         InitializeComponent();
-    }
-
-    public void InitializeComponent(bool loadXaml = true)
-    {
-        if (loadXaml)
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
     }
 
     protected override async void OnLoaded(RoutedEventArgs e)

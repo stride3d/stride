@@ -186,7 +186,16 @@ namespace Stride.Core.Mathematics
         /// </remarks>
         public int Length()
         {
-            return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+            return (int)MathF.Sqrt((X * X) + (Y * Y) + (Z * Z));
+        }
+
+        /// <summary>
+        /// Calculates the untruncated length of the vector.
+        /// </summary>
+        /// <returns>The length of the vector untruncated.</returns>
+        public float LengthUntruncated() 
+        {
+            return (float)MathF.Sqrt((X * X) + (Y * Y) + (Z * Z));
         }
 
         /// <summary>
@@ -228,7 +237,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first vector to add.</param>
         /// <param name="right">The second vector to add.</param>
         /// <param name="result">When the method completes, contains the sum of the two vectors.</param>
-        public static void Add(ref Int3 left, ref Int3 right, out Int3 result)
+        public static void Add(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
         {
             result = new Int3(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
         }
@@ -250,7 +259,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first vector to subtract.</param>
         /// <param name="right">The second vector to subtract.</param>
         /// <param name="result">When the method completes, contains the difference of the two vectors.</param>
-        public static void Subtract(ref Int3 left, ref Int3 right, out Int3 result)
+        public static void Subtract(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
         {
             result = new Int3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
         }
@@ -272,7 +281,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The vector to scale.</param>
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
-        public static void Multiply(ref Int3 value, int scale, out Int3 result)
+        public static void Multiply(ref readonly Int3 value, int scale, out Int3 result)
         {
             result = new Int3(value.X * scale, value.Y * scale, value.Z * scale);
         }
@@ -294,7 +303,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first vector to modulate.</param>
         /// <param name="right">The second vector to modulate.</param>
         /// <param name="result">When the method completes, contains the modulated vector.</param>
-        public static void Modulate(ref Int3 left, ref Int3 right, out Int3 result)
+        public static void Modulate(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
         {
             result = new Int3(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
         }
@@ -316,7 +325,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The vector to scale.</param>
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
-        public static void Divide(ref Int3 value, int scale, out Int3 result)
+        public static void Divide(ref readonly Int3 value, int scale, out Int3 result)
         {
             result = new Int3(value.X / scale, value.Y / scale, value.Z / scale);
         }
@@ -337,7 +346,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The vector to negate.</param>
         /// <param name="result">When the method completes, contains a vector facing in the opposite direction.</param>
-        public static void Negate(ref Int3 value, out Int3 result)
+        public static void Negate(ref readonly Int3 value, out Int3 result)
         {
             result = new Int3(-value.X, -value.Y, -value.Z);
         }
@@ -359,7 +368,7 @@ namespace Stride.Core.Mathematics
         /// <param name="min">The minimum value.</param>
         /// <param name="max">The maximum value.</param>
         /// <param name="result">When the method completes, contains the clamped value.</param>
-        public static void Clamp(ref Int3 value, ref Int3 min, ref Int3 max, out Int3 result)
+        public static void Clamp(ref readonly Int3 value, ref readonly Int3 min, ref readonly Int3 max, out Int3 result)
         {
             int x = value.X;
             x = (x > max.X) ? max.X : x;
@@ -396,7 +405,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">First source vector.</param>
         /// <param name="right">Second source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of the two vectors.</param>
-        public static void Dot(ref Int3 left, ref Int3 right, out int result)
+        public static void Dot(ref readonly Int3 left, ref readonly Int3 right, out int result)
         {
             result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z);
         }
@@ -424,7 +433,7 @@ namespace Stride.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static void Lerp(ref Int3 start, ref Int3 end, float amount, out Int3 result)
+        public static void Lerp(ref readonly Int3 start, ref readonly Int3 end, float amount, out Int3 result)
         {
             result.X = (int)(start.X + ((end.X - start.X) * amount));
             result.Y = (int)(start.Y + ((end.Y - start.Y) * amount));
@@ -457,7 +466,7 @@ namespace Stride.Core.Mathematics
         /// <param name="end">End vector.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <param name="result">When the method completes, contains the cubic interpolation of the two vectors.</param>
-        public static void SmoothStep(ref Int3 start, ref Int3 end, float amount, out Int3 result)
+        public static void SmoothStep(ref readonly Int3 start, ref readonly Int3 end, float amount, out Int3 result)
         {
             amount = (amount > 1) ? 1 : ((amount < 0) ? 0 : amount);
             amount = (amount * amount) * (3 - (2 * amount));
@@ -487,7 +496,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first source vector.</param>
         /// <param name="right">The second source vector.</param>
         /// <param name="result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
-        public static void Max(ref Int3 left, ref Int3 right, out Int3 result)
+        public static void Max(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
         {
             result.X = (left.X > right.X) ? left.X : right.X;
             result.Y = (left.Y > right.Y) ? left.Y : right.Y;
@@ -513,7 +522,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first source vector.</param>
         /// <param name="right">The second source vector.</param>
         /// <param name="result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
-        public static void Min(ref Int3 left, ref Int3 right, out Int3 result)
+        public static void Min(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
         {
             result.X = (left.X < right.X) ? left.X : right.X;
             result.Y = (left.Y < right.Y) ? left.Y : right.Y;
@@ -532,7 +541,32 @@ namespace Stride.Core.Mathematics
             Min(ref left, ref right, out result);
             return result;
         }
-   
+
+        /// <summary>
+        /// Returns a vector containing the rounded values of the specified vector.
+        /// </summary>
+        /// <param name="value">The source vector.</param>
+        /// <param name="result">When the method completes, contains an new vector composed of the rounded values of the specified vector.</param>
+        /// <param name="rounding">The rounding strategy to use.</param>
+        public static void Round(in Vector3 value, out Int3 result, MidpointRounding rounding = default)
+        {
+            result.X = (int)MathF.Round(value.X, rounding);
+            result.Y = (int)MathF.Round(value.Y, rounding);
+            result.Z = (int)MathF.Round(value.Z, rounding);
+        }
+
+        /// <summary>
+        /// Returns a vector containing the rounded values of the specified vector.
+        /// </summary>
+        /// <param name="value">The source vector.</param>
+        /// <param name="rounding">The rounding strategy to use.</param>
+        /// <returns>A vector containing the rounded values of the source vector.</returns>
+        public static Int3 Round(in Vector3 value, MidpointRounding rounding = default)
+        {
+            Round(in value, out var result, rounding);
+            return result;
+        }
+
         /// <summary>
         /// Adds two vectors.
         /// </summary>
@@ -771,7 +805,7 @@ namespace Stride.Core.Mathematics
             y = Y;
             z = Z;
         }
-
+        
 #if WPFInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="System.Windows.Media.Media3D.Int3D"/>.

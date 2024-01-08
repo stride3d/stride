@@ -93,6 +93,10 @@ namespace Stride.Core.Assets
                 {
                     foreach (var n in lib.NativeLibraries)
                     {
+                        if (!IsValidNativeLibraryFile(n.Path))
+                        {
+                            continue;
+                        }
                         var assemblyFile = Path.Combine(libPath, n.Path.Replace('/', Path.DirectorySeparatorChar));
                         libs.Add(assemblyFile);
                     }
@@ -100,6 +104,18 @@ namespace Stride.Core.Assets
             }
 
             return libs;
+
+            static bool IsValidNativeLibraryFile(string path)
+            {
+                if (path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".so", StringComparison.OrdinalIgnoreCase)
+                    || path.IndexOf(".so.", StringComparison.OrdinalIgnoreCase) >= 0    // Linux allows for files like 'libnativedep.so.6'
+                    || path.EndsWith(".dylib", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+                return false;
+            }
         }
 
         private static Dictionary<(string, NuGetVersion), string> GetLibPaths(LockFile lockFile)
@@ -207,12 +223,13 @@ namespace Stride.Core.Assets
                         if (tryCount == 1)
                             throw;
 
-                        foreach (var process in new[] { "Stride.ConnectionRouter" }.SelectMany(Process.GetProcessesByName))
+                        foreach (var process in new[] { "Stride.ConnectionRouter", "Stride.VisualStudio.Commands" }.SelectMany(Process.GetProcessesByName))
                         {
                             try
                             {
                                 if (process.Id != Process.GetCurrentProcess().Id)
                                 {
+                                    logger.LogWarning($"Failed to restore NuGet, killing '{process.ProcessName}' to hopefully release locks held by it - VS extension will break");
                                     process.Kill();
                                     process.WaitForExit();
                                 }

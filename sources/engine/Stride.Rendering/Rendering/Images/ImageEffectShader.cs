@@ -20,6 +20,7 @@ namespace Stride.Rendering.Images
         private bool pipelineStateDirty = true;
         private BlendStateDescription blendState = BlendStateDescription.Default;
         private DepthStencilStateDescription depthStencilState = DepthStencilStateDescription.Default;
+        private RasterizerStateDescription rasterizerState = RasterizerStateDescription.Default;
         private EffectBytecode previousBytecode;
         private bool delaySetRenderTargets;
 
@@ -35,6 +36,13 @@ namespace Stride.Rendering.Images
         {
             get { return depthStencilState; }
             set { depthStencilState = value; pipelineStateDirty = true; }
+        }
+
+        [DataMemberIgnore]
+        public RasterizerStateDescription RasterizerState
+        {
+            get { return rasterizerState; }
+            set { rasterizerState = value; pipelineStateDirty = true; }
         }
 
         /// <summary>
@@ -145,6 +153,7 @@ namespace Stride.Rendering.Images
                 pipelineState.State.EffectBytecode = EffectInstance.Effect.Bytecode;
                 pipelineState.State.BlendState = blendState;
                 pipelineState.State.DepthStencilState = depthStencilState;
+                pipelineState.State.RasterizerState = rasterizerState;
 
                 var renderTargetCount = OutputCount;
                 if (renderTargetCount > 0)

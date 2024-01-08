@@ -90,7 +90,7 @@ namespace Stride.Core
             : throw new ArgumentException("Alignment is not a power of 2.", nameof(align));
 
         /// <summary>
-        /// Allocate an aligned memory buffer.
+        /// Free an aligned memory buffer.
         /// </summary>
         /// <remarks>
         /// The buffer must have been allocated with <see cref="AllocateMemory"/>

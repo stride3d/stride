@@ -144,7 +144,7 @@ namespace Stride.Graphics
                 || this.Height != pixelBuffer.Height
                 || this.Format != pixelBuffer.Format)
             {
-                throw new ArgumentException("Invalid destination pixelBufferArray. Mush have same Width, Height and Format", "pixelBuffer");
+                throw new ArgumentException("Invalid destination pixelBufferArray. Must have the same Width, Height and Format.", "pixelBuffer");
             }
 
             // If buffers have same size, than we can copy it directly

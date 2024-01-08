@@ -13,7 +13,7 @@ namespace Stride.Engine
     /// <remarks>
     /// <para>Associate this component to an <see cref="Entity"/> to simulate a physical listener listening to the <see cref="AudioEmitterComponent"/>s of the scene,
     /// placed at the entity's center and oriented along the entity's Oz (forward) and Oy (up) vectors.</para>
-    /// <para>Use the AudioSytem's <see cref="AudioSystem.AddListener"/> and <see cref="AudioSystem.RemoveListener"/> functions 
+    /// <para>Use the AudioSystem's `AudioSystem.AddListener` and `AudioSystem.RemoveListener` functions
     /// to activate/deactivate the listeners that are actually listening at a given time.</para>
     /// <para>The entity needs to be added to the Entity System so that the associated AudioListenerComponent can be processed.</para></remarks>
     [Display("Audio listener", Expand = ExpandRule.Once)]

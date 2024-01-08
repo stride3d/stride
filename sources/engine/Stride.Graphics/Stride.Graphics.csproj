@@ -5,8 +5,6 @@
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePlatformDependent>true</StridePlatformDependent>
     <StrideBuildTags>*</StrideBuildTags>
@@ -43,20 +41,19 @@
       <GlobalPropertiesToRemove>TargetFramework;StrideGraphicsApi</GlobalPropertiesToRemove>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
     <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
-    <PackageReference Include="System.Memory" Version="4.5.4" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
-    <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
-    <PackageReference Include="Vortice.Vulkan" Version="1.2.167" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <PackageReference Include="Silk.NET.OpenGL" Version="2.15.0" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <PackageReference Include="Silk.NET.OpenGLES" Version="2.15.0" />
-    <PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.15.0" />
-    <PackageReference Include="Silk.NET.Sdl" Version="2.15.0" />
-    <PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.15.0" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
-    <PackageReference Include="Stride.SharpFont" Version="1.0.0" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="SharpDX.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="SharpDX.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    <PackageReference Include="SharpDX.D3DCompiler" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="Vortice.Vulkan" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    <PackageReference Include="Silk.NET.OpenGL" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    <PackageReference Include="Silk.NET.OpenGLES" />
+    <PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" />
+    <PackageReference Include="Silk.NET.Sdl" />
+    <PackageReference Include="Silk.NET.Windowing.Sdl" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
+    <PackageReference Include="Stride.SharpFont" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="FrameworkResources.resx">

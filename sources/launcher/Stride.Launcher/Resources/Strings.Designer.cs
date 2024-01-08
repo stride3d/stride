@@ -744,6 +744,15 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An installed Visual Studio is required, which can be found here.
+        /// </summary>
+        public static string VisualStudioDownloadPage {
+            get {
+                return ResourceManager.GetString("VisualStudioDownloadPage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Visual Studio extension.
         /// </summary>
         public static string VisualStudioExtension {

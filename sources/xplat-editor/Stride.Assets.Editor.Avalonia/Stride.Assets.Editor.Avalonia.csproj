@@ -8,8 +8,8 @@
 
   <ItemGroup>
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Xaml.Interactions" Version="11.0.2" />
+    <!--<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />-->
+    <PackageReference Include="Avalonia.Xaml.Interactions" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-        xmlns:gameStudio="clr-namespace:Stride.GameStudio"
+        xmlns:gameStudio="clr-namespace:Stride.GameStudio.Helpers"
         xmlns:crashReport="clr-namespace:Stride.Editor.CrashReport"
         mc:Ignorable="d" 
         Title="{sd:Localize About Stride, Context=About}"

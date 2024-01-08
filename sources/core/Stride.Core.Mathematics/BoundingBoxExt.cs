@@ -109,7 +109,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value2">The second box to merge.</param>
         /// <param name="result">When the method completes, contains the newly constructed bounding box.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Merge(ref BoundingBoxExt value1, ref BoundingBoxExt value2, out BoundingBoxExt result)
+        public static void Merge(ref readonly BoundingBoxExt value1, ref readonly BoundingBoxExt value2, out BoundingBoxExt result)
         {
             var maximum = Vector3.Max(value1.Maximum, value2.Maximum);
             var minimum = Vector3.Min(value1.Minimum, value2.Minimum);

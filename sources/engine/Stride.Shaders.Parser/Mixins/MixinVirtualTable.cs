@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
-
 using Stride.Core.Shaders.Ast.Stride;
 using Stride.Shaders.Parser.Utility;
 using Stride.Core.Shaders.Ast;
@@ -18,34 +17,22 @@ namespace Stride.Shaders.Parser.Mixins
         /// <summary>
         /// List of all declared methods
         /// </summary>
-        public HashSet<MethodDeclarationShaderCouple> Methods { get; private set; }
+        public HashSet<MethodDeclarationShaderCouple> Methods { get; } = new();
 
         /// <summary>
         /// List of all declared Variables
         /// </summary>
-        public HashSet<VariableShaderCouple> Variables { get; private set; }
+        public HashSet<VariableShaderCouple> Variables { get; } = new();
 
         /// <summary>
         /// List of all the structure definitions
         /// </summary>
-        public List<StructType> StructureTypes { get; private set; } // list instead of hashset because order can be important
+        public List<StructType> StructureTypes { get; } = new(); // list instead of hashset because order can be important
 
         /// <summary>
         /// List of all the Typedefs
         /// </summary>
-        public List<Typedef> Typedefs { get; private set; } // list instead of hashset because order can be important
-
-        #endregion
-
-        #region Constructor
-
-        public MixinVirtualTable()
-        {
-            Methods = new HashSet<MethodDeclarationShaderCouple>();
-            Variables = new HashSet<VariableShaderCouple>();
-            StructureTypes = new List<StructType>();
-            Typedefs = new List<Typedef>();
-        }
+        public List<Typedef> Typedefs { get; } = new(); // list instead of hashset because order can be important
 
         #endregion
 

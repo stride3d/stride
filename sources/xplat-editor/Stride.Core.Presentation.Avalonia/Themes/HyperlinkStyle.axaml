@@ -1,0 +1,30 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Stride.Core.Presentation.Avalonia.Controls"
+        x:Class="Stride.Core.Presentation.Avalonia.Themes.HyperlinkStyle">
+  <Style Selector="controls|Hyperlink:pointerover">
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Foreground" Value="#00A0FF" />
+  </Style>
+  <Style Selector="controls|Hyperlink:pointerover > TextBlock">
+    <Setter Property="TextDecorations" Value="Underline" />
+  </Style>
+
+  <Style Selector="controls|Hyperlink">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ContentPresenter x:Name="PART_ContentPresenter"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          Padding="{TemplateBinding Padding}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                          TextElement.Foreground="{TemplateBinding Foreground}" />
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

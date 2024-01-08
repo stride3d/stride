@@ -1,4 +1,3 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
@@ -26,10 +25,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="StrideNative.h" />
-    <None Include="LinuxAllocator.cpp" />
-	<None Include="FastTextRenderer\FastTextRenderer.c" />
-    <None Include="Sprite\SpriteBatchNative.c" />
-    <None Include="DirectInput\XInputChecker.cpp" />
+    <None Include="StrideNative.cpp" />
     <None Include="Lightprobes\predicates.c" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />

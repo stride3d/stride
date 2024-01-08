@@ -12,7 +12,7 @@ namespace Stride.Graphics
     public partial class CommandList : GraphicsResourceBase
     {
         private const int MaxRenderTargetCount = 8;
-        private const int MaxViewportAndScissorRectangleCount = 16;
+        internal const int MaxViewportAndScissorRectangleCount = 16;
         private bool viewportDirty = false;
 
         private int boundViewportCount;

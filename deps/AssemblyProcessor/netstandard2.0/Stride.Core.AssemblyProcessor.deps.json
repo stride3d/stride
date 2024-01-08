@@ -9,7 +9,6 @@
     ".NETStandard,Version=v2.0/": {
       "Stride.Core.AssemblyProcessor/1.0.0": {
         "dependencies": {
-          "ILRepack": "2.0.18",
           "Microsoft.Build.Utilities.Core": "17.3.2",
           "Mono.Cecil": "0.11.5",
           "Mono.Options": "6.12.0.148",
@@ -19,7 +18,6 @@
           "Stride.Core.AssemblyProcessor.dll": {}
         }
       },
-      "ILRepack/2.0.18": {},
       "Microsoft.Build.Framework/17.3.2": {
         "dependencies": {
           "System.Security.Permissions": "6.0.0"
@@ -135,13 +133,6 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
-    },
-    "ILRepack/2.0.18": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-sR5Aj3JLDbA8JwESfWYfigSz5k1oNSHPN434W1LX8sboWJYEOSQP/KkvZGmJKPgajzSUKkl2jDar3LPZiMFU4Q==",
-      "path": "ilrepack/2.0.18",
-      "hashPath": "ilrepack.2.0.18.nupkg.sha512"
     },
     "Microsoft.Build.Framework/17.3.2": {
       "type": "package",

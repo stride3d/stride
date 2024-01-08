@@ -3,9 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
@@ -14,7 +17,7 @@ using MessageBoxResult = Stride.Core.Presentation.Services.MessageBoxResult;
 
 namespace Stride.Core.Presentation.Dialogs
 {
-    public class DialogService : IDialogService
+    public class DialogService : IDialogService2
     {
         private Action onClosedAction;
 
@@ -45,7 +48,7 @@ namespace Stride.Core.Presentation.Dialogs
             return new FileSaveModalDialog(Dispatcher);
         }
 
-        public Task<MessageBoxResult> MessageBox(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
+        public Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
             return DialogHelper.MessageBox(Dispatcher, message, ApplicationName, buttons, image);
         }
@@ -97,11 +100,9 @@ namespace Stride.Core.Presentation.Dialogs
 
         public async Task CloseMainWindow(Action onClosed)
         {
-            var window = Application.Current.MainWindow;
-            if (window != null)
+            if (Application.Current.MainWindow is { } window)
             {
-                var asyncClosable = window as IAsyncClosableWindow;
-                if (asyncClosable != null)
+                if (window is IAsyncClosableWindow asyncClosable)
                 {
                     var closed = await asyncClosable.TryClose();
                     if (closed)
@@ -134,6 +135,57 @@ namespace Stride.Core.Presentation.Dialogs
         {
             ((Window)sender).Closed -= MainWindowClosed;
             onClosedAction?.Invoke();
+        }
+
+        bool IDialogService.HasMainWindow => Application.Current.MainWindow is not null;
+
+        void IDialogService.Exit(int exitCode)
+        {
+            if (Application.Current is { } app)
+            {
+                app.Shutdown(exitCode);
+            }
+            else
+            {
+                Environment.Exit(exitCode);
+            }
+        }
+
+        async Task<UFile> IDialogService.OpenFilePickerAsync(UDirectory initialPath, IReadOnlyList<FilePickerFilter> filters)
+        {
+            var dialog = CreateFileOpenModalDialog();
+            dialog.AllowMultiSelection = false;
+            dialog.InitialDirectory = initialPath;
+            if (filters is not null)
+                dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
+
+            var result = await dialog.ShowModal();
+            return result == DialogResult.Ok
+                ? dialog.FilePaths.First()
+                : null;
+        }
+
+        async Task<IReadOnlyList<UFile>> IDialogService.OpenMultipleFilesPickerAsync(UDirectory initialPath, IReadOnlyList<FilePickerFilter> filters)
+        {
+            var dialog = CreateFileOpenModalDialog();
+            dialog.AllowMultiSelection = true;
+            dialog.InitialDirectory = initialPath;
+            if (filters is not null)
+                dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
+
+            var result = await dialog.ShowModal();
+            return dialog.FilePaths.Select(x => (UFile)x).ToList();
+        }
+
+        async Task<UDirectory> IDialogService.OpenFolderPickerAsync(UDirectory initialPath)
+        {
+            var dialog = CreateFolderOpenModalDialog();
+            dialog.InitialDirectory = initialPath;
+
+            var result = await dialog.ShowModal();
+            return result == DialogResult.Ok
+                ? dialog.Directory
+                : null;
         }
     }
 }

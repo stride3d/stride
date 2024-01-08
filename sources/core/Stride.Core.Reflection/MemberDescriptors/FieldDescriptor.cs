@@ -30,7 +30,7 @@ namespace Stride.Core.Reflection
 
         public override bool IsPublic => FieldInfo.IsPublic;
 
-        public override bool HasSet => true;
+        public override bool HasSet => !FieldInfo.IsInitOnly;
 
         public override object Get(object thisObject)
         {

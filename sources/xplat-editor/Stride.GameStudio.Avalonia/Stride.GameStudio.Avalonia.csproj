@@ -16,15 +16,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Xaml.Interactions" Version="11.0.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.Xaml.Interactions" />
 
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Markdown.Avalonia.Tight" Version="11.0.2" />
-    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
-    <PackageReference Include="Stride.QuickGraph" Version="3.7.0" />
+    <!--<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />-->
+    <PackageReference Include="Markdown.Avalonia.Tight" />
+    <PackageReference Include="Mono.Cecil" />
+    <PackageReference Include="Stride.QuickGraph" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,7 +40,7 @@
 
   <ItemGroup>
     <Reference Include="Stride.Core.AssemblyProcessor">
-      <HintPath Condition="$(TargetFramework.StartsWith('net6'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
+      <HintPath Condition="$(TargetFramework.StartsWith('net8'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>
   </ItemGroup>
 

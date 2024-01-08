@@ -68,7 +68,7 @@ namespace Stride.Core.Mathematics
         /// <param name="vertex2">The second vertex to test.</param>
         /// <param name="vertex3">The third vertex to test.</param>
         /// <param name="result">When the method completes, contains the closest point between the two objects.</param>
-        public static void ClosestPointPointTriangle(ref Vector3 point, ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out Vector3 result)
+        public static void ClosestPointPointTriangle(ref readonly Vector3 point, ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3, out Vector3 result)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 136
@@ -146,13 +146,13 @@ namespace Stride.Core.Mathematics
         /// <param name="plane">The plane to test.</param>
         /// <param name="point">The point to test.</param>
         /// <param name="result">When the method completes, contains the closest point between the two objects.</param>
-        public static void ClosestPointPlanePoint(ref Plane plane, ref Vector3 point, out Vector3 result)
+        public static void ClosestPointPlanePoint(ref readonly Plane plane, ref readonly Vector3 point, out Vector3 result)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 126
 
             float dot;
-            Vector3.Dot(ref plane.Normal, ref point, out dot);
+            Vector3.Dot(in plane.Normal, in point, out dot);
             float t = dot - plane.D;
 
             result = point - (t * plane.Normal);
@@ -164,14 +164,14 @@ namespace Stride.Core.Mathematics
         /// <param name="box">The box to test.</param>
         /// <param name="point">The point to test.</param>
         /// <param name="result">When the method completes, contains the closest point between the two objects.</param>
-        public static void ClosestPointBoxPoint(ref BoundingBox box, ref Vector3 point, out Vector3 result)
+        public static void ClosestPointBoxPoint(ref readonly BoundingBox box, ref readonly Vector3 point, out Vector3 result)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 130
 
             Vector3 temp;
-            Vector3.Max(ref point, ref box.Minimum, out temp);
-            Vector3.Min(ref temp, ref box.Maximum, out result);
+            Vector3.Max(in point, in box.Minimum, out temp);
+            Vector3.Min(ref temp, in box.Maximum, out result);
         }
 
         /// <summary>
@@ -181,13 +181,13 @@ namespace Stride.Core.Mathematics
         /// <param name="point">The point to test.</param>
         /// <param name="result">When the method completes, contains the closest point between the two objects;
         /// or, if the point is directly in the center of the sphere, contains <see cref="Stride.Core.Mathematics.Vector3.Zero"/>.</param>
-        public static void ClosestPointSpherePoint(ref BoundingSphere sphere, ref Vector3 point, out Vector3 result)
+        public static void ClosestPointSpherePoint(ref readonly BoundingSphere sphere, ref readonly Vector3 point, out Vector3 result)
         {
             //Source: Jorgy343
             //Reference: None
 
             //Get the unit direction from the sphere's center to the point.
-            Vector3.Subtract(ref point, ref sphere.Center, out result);
+            Vector3.Subtract(in point, in sphere.Center, out result);
             result.Normalize();
 
             //Multiply the unit direction by the sphere's radius to get a vector
@@ -210,13 +210,13 @@ namespace Stride.Core.Mathematics
         /// is the 'closest' point of intersection. This can also be considered is the deepest point of
         /// intersection.
         /// </remarks>
-        public static void ClosestPointSphereSphere(ref BoundingSphere sphere1, ref BoundingSphere sphere2, out Vector3 result)
+        public static void ClosestPointSphereSphere(ref readonly BoundingSphere sphere1, ref readonly BoundingSphere sphere2, out Vector3 result)
         {
             //Source: Jorgy343
             //Reference: None
 
             //Get the unit direction from the first sphere's center to the second sphere's center.
-            Vector3.Subtract(ref sphere2.Center, ref sphere1.Center, out result);
+            Vector3.Subtract(in sphere2.Center, in sphere1.Center, out result);
             result.Normalize();
 
             //Multiply the unit direction by the first sphere's radius to get a vector
@@ -233,13 +233,13 @@ namespace Stride.Core.Mathematics
         /// <param name="plane">The plane to test.</param>
         /// <param name="point">The point to test.</param>
         /// <returns>The distance between the two objects.</returns>
-        public static float DistancePlanePoint(ref Plane plane, ref Vector3 point)
+        public static float DistancePlanePoint(ref readonly Plane plane, ref readonly Vector3 point)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 127
 
             float dot;
-            Vector3.Dot(ref plane.Normal, ref point, out dot);
+            Vector3.Dot(in plane.Normal, in point, out dot);
             return dot - plane.D;
         }
 
@@ -249,7 +249,7 @@ namespace Stride.Core.Mathematics
         /// <param name="box">The box to test.</param>
         /// <param name="point">The point to test.</param>
         /// <returns>The distance between the two objects.</returns>
-        public static float DistanceBoxPoint(ref BoundingBox box, ref Vector3 point)
+        public static float DistanceBoxPoint(ref readonly BoundingBox box, ref readonly Vector3 point)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 131
@@ -280,7 +280,7 @@ namespace Stride.Core.Mathematics
         /// <param name="box1">The first box to test.</param>
         /// <param name="box2">The second box to test.</param>
         /// <returns>The distance between the two objects.</returns>
-        public static float DistanceBoxBox(ref BoundingBox box1, ref BoundingBox box2)
+        public static float DistanceBoxBox(ref readonly BoundingBox box1, ref readonly BoundingBox box2)
         {
             //Source:
             //Reference:
@@ -332,13 +332,13 @@ namespace Stride.Core.Mathematics
         /// <param name="sphere">The sphere to test.</param>
         /// <param name="point">The point to test.</param>
         /// <returns>The distance between the two objects.</returns>
-        public static float DistanceSpherePoint(ref BoundingSphere sphere, ref Vector3 point)
+        public static float DistanceSpherePoint(ref readonly BoundingSphere sphere, ref readonly Vector3 point)
         {
             //Source: Jorgy343
             //Reference: None
 
             float distance;
-            Vector3.Distance(ref sphere.Center, ref point, out distance);
+            Vector3.Distance(in sphere.Center, in point, out distance);
             distance -= sphere.Radius;
 
             return MathF.Max(distance, 0f);
@@ -350,13 +350,13 @@ namespace Stride.Core.Mathematics
         /// <param name="sphere1">The first sphere to test.</param>
         /// <param name="sphere2">The second sphere to test.</param>
         /// <returns>The distance between the two objects.</returns>
-        public static float DistanceSphereSphere(ref BoundingSphere sphere1, ref BoundingSphere sphere2)
+        public static float DistanceSphereSphere(ref readonly BoundingSphere sphere1, ref readonly BoundingSphere sphere2)
         {
             //Source: Jorgy343
             //Reference: None
 
             float distance;
-            Vector3.Distance(ref sphere1.Center, ref sphere2.Center, out distance);
+            Vector3.Distance(in sphere1.Center, in sphere2.Center, out distance);
             distance -= sphere1.Radius + sphere2.Radius;
 
             return MathF.Max(distance, 0f);
@@ -368,13 +368,13 @@ namespace Stride.Core.Mathematics
         /// <param name="ray">The ray to test.</param>
         /// <param name="point">The point to test.</param>
         /// <returns>Whether the two objects intersect.</returns>
-        public static bool RayIntersectsPoint(ref Ray ray, ref Vector3 point)
+        public static bool RayIntersectsPoint(ref readonly Ray ray, ref readonly Vector3 point)
         {
             //Source: RayIntersectsSphere
             //Reference: None
 
             Vector3 m;
-            Vector3.Subtract(ref ray.Position, ref point, out m);
+            Vector3.Subtract(in ray.Position, in point, out m);
 
             //Same thing as RayIntersectsSphere except that the radius of the sphere (point)
             //is the epsilon for zero.
@@ -410,14 +410,14 @@ namespace Stride.Core.Mathematics
         /// of the second ray, det denotes the determinant of a matrix, x denotes the cross
         /// product, [ ] denotes a matrix, and || || denotes the length or magnitude of a vector.
         /// </remarks>
-        public static bool RayIntersectsRay(ref Ray ray1, ref Ray ray2, out Vector3 point)
+        public static bool RayIntersectsRay(ref readonly Ray ray1, ref readonly Ray ray2, out Vector3 point)
         {
             //Source: Real-Time Rendering, Third Edition
             //Reference: Page 780
 
             Vector3 cross;
 
-            Vector3.Cross(ref ray1.Direction, ref ray2.Direction, out cross);
+            Vector3.Cross(in ray1.Direction, in ray2.Direction, out cross);
             float denominator = cross.Length();
 
             //Lines are parallel.
@@ -498,13 +498,13 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersect.</returns>
-        public static bool RayIntersectsPlane(ref Ray ray, ref Plane plane, out float distance)
+        public static bool RayIntersectsPlane(ref readonly Ray ray, ref readonly Plane plane, out float distance)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 175
 
             float direction;
-            Vector3.Dot(ref plane.Normal, ref ray.Direction, out direction);
+            Vector3.Dot(in plane.Normal, in ray.Direction, out direction);
 
             if (MathF.Abs(direction) < MathUtil.ZeroTolerance)
             {
@@ -513,7 +513,7 @@ namespace Stride.Core.Mathematics
             }
 
             float position;
-            Vector3.Dot(ref plane.Normal, ref ray.Position, out position);
+            Vector3.Dot(in plane.Normal, in ray.Position, out position);
             distance = (-plane.D - position) / direction;
 
             if (distance < 0f)
@@ -538,13 +538,13 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool RayIntersectsPlane(ref Ray ray, ref Plane plane, out Vector3 point)
+        public static bool RayIntersectsPlane(ref readonly Ray ray, ref readonly Plane plane, out Vector3 point)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 175
 
             float distance;
-            if (!RayIntersectsPlane(ref ray, ref plane, out distance))
+            if (!RayIntersectsPlane(in ray, in plane, out distance))
             {
                 point = Vector3.Zero;
                 return false;
@@ -571,7 +571,7 @@ namespace Stride.Core.Mathematics
         /// the ray, no intersection is assumed to have happened. In both cases of assumptions,
         /// this method returns false.
         /// </remarks>
-        public static bool RayIntersectsTriangle(ref Ray ray, ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out float distance)
+        public static bool RayIntersectsTriangle(ref readonly Ray ray, ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3, out float distance)
         {
             //Source: Fast Minimum Storage Ray / Triangle Intersection
             //Reference: http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
@@ -671,10 +671,10 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool RayIntersectsTriangle(ref Ray ray, ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out Vector3 point)
+        public static bool RayIntersectsTriangle(ref readonly Ray ray, ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3, out Vector3 point)
         {
             float distance;
-            if (!RayIntersectsTriangle(ref ray, ref vertex1, ref vertex2, ref vertex3, out distance))
+            if (!RayIntersectsTriangle(in ray, in vertex1, in vertex2, in vertex3, out distance))
             {
                 point = Vector3.Zero;
                 return false;
@@ -693,7 +693,7 @@ namespace Stride.Core.Mathematics
         /// <param name="normalAxis">The index of axis defining the normal of the rectangle in the world. This value should be 0, 1 or 2</param>
         /// <param name="intersectionPoint">The position of the intersection point in the world</param>
         /// <returns><value>true</value> if the ray and rectangle intersects.</returns>
-        public static bool RayIntersectsRectangle(ref Ray ray, ref Matrix rectangleWorldMatrix, ref Vector3 rectangleSize, int normalAxis, out Vector3 intersectionPoint)
+        public static bool RayIntersectsRectangle(ref readonly Ray ray, ref readonly Matrix rectangleWorldMatrix, ref readonly Vector3 rectangleSize, int normalAxis, out Vector3 intersectionPoint)
         {
             bool intersects;
 
@@ -723,7 +723,7 @@ namespace Stride.Core.Mathematics
             var plane = new Plane(rectanglePosition, new Vector3(rectangleWorldMatrix[normalRowStart], rectangleWorldMatrix[normalRowStart + 1], rectangleWorldMatrix[normalRowStart + 2]));
 
             // early exist the planes were parallels 
-            if (!plane.Intersects(ref ray, out intersectionPoint))
+            if (!plane.Intersects(in ray, out intersectionPoint))
                 return false;
 
             // the position of the intersection point with respect to the rectangle center
@@ -790,7 +790,7 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool RayIntersectsBox(ref Ray ray, ref BoundingBox box, out float distance)
+        public static bool RayIntersectsBox(ref readonly Ray ray, ref readonly BoundingBox box, out float distance)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 179
@@ -902,10 +902,10 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool RayIntersectsBox(ref Ray ray, ref BoundingBox box, out Vector3 point)
+        public static bool RayIntersectsBox(ref readonly Ray ray, ref readonly BoundingBox box, out Vector3 point)
         {
             float distance;
-            if (!RayIntersectsBox(ref ray, ref box, out distance))
+            if (!RayIntersectsBox(in ray, in box, out distance))
             {
                 point = Vector3.Zero;
                 return false;
@@ -923,13 +923,13 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool RayIntersectsSphere(ref Ray ray, ref BoundingSphere sphere, out float distance)
+        public static bool RayIntersectsSphere(ref readonly Ray ray, ref readonly BoundingSphere sphere, out float distance)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 177
 
             Vector3 m;
-            Vector3.Subtract(ref ray.Position, ref sphere.Center, out m);
+            Vector3.Subtract(in ray.Position, in sphere.Center, out m);
 
             float b = Vector3.Dot(m, ray.Direction);
             float c = Vector3.Dot(m, m) - (sphere.Radius * sphere.Radius);
@@ -964,10 +964,10 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool RayIntersectsSphere(ref Ray ray, ref BoundingSphere sphere, out Vector3 point)
+        public static bool RayIntersectsSphere(ref readonly Ray ray, ref readonly BoundingSphere sphere, out Vector3 point)
         {
             float distance;
-            if (!RayIntersectsSphere(ref ray, ref sphere, out distance))
+            if (!RayIntersectsSphere(in ray, in sphere, out distance))
             {
                 point = Vector3.Zero;
                 return false;
@@ -983,10 +983,10 @@ namespace Stride.Core.Mathematics
         /// <param name="plane">The plane to test.</param>
         /// <param name="point">The point to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static PlaneIntersectionType PlaneIntersectsPoint(ref Plane plane, ref Vector3 point)
+        public static PlaneIntersectionType PlaneIntersectsPoint(ref readonly Plane plane, ref readonly Vector3 point)
         {
             float distance;
-            Vector3.Dot(ref plane.Normal, ref point, out distance);
+            Vector3.Dot(in plane.Normal, in point, out distance);
             distance += plane.D;
 
             if (distance > 0f)
@@ -1004,10 +1004,10 @@ namespace Stride.Core.Mathematics
         /// <param name="plane1">The first plane to test.</param>
         /// <param name="plane2">The second plane to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool PlaneIntersectsPlane(ref Plane plane1, ref Plane plane2)
+        public static bool PlaneIntersectsPlane(ref readonly Plane plane1, ref readonly Plane plane2)
         {
             Vector3 direction;
-            Vector3.Cross(ref plane1.Normal, ref plane2.Normal, out direction);
+            Vector3.Cross(in plane1.Normal, in plane2.Normal, out direction);
 
             //If direction is the zero vector, the planes are parallel and possibly
             //coincident. It is not an intersection. The dot product will tell us.
@@ -1033,13 +1033,13 @@ namespace Stride.Core.Mathematics
         /// a line in three dimensions which has no real origin. The ray is considered valid when
         /// both the positive direction is used and when the negative direction is used.
         /// </remarks>
-        public static bool PlaneIntersectsPlane(ref Plane plane1, ref Plane plane2, out Ray line)
+        public static bool PlaneIntersectsPlane(ref readonly Plane plane1, ref readonly Plane plane2, out Ray line)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 207
 
             Vector3 direction;
-            Vector3.Cross(ref plane1.Normal, ref plane2.Normal, out direction);
+            Vector3.Cross(in plane1.Normal, in plane2.Normal, out direction);
 
             //If direction is the zero vector, the planes are parallel and possibly
             //coincident. It is not an intersection. The dot product will tell us.
@@ -1074,14 +1074,14 @@ namespace Stride.Core.Mathematics
         /// <param name="vertex2">The second vertex of the triagnle to test.</param>
         /// <param name="vertex3">The third vertex of the triangle to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static PlaneIntersectionType PlaneIntersectsTriangle(ref Plane plane, ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
+        public static PlaneIntersectionType PlaneIntersectsTriangle(ref readonly Plane plane, ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 207
 
-            PlaneIntersectionType test1 = PlaneIntersectsPoint(ref plane, ref vertex1);
-            PlaneIntersectionType test2 = PlaneIntersectsPoint(ref plane, ref vertex2);
-            PlaneIntersectionType test3 = PlaneIntersectsPoint(ref plane, ref vertex3);
+            PlaneIntersectionType test1 = PlaneIntersectsPoint(in plane, in vertex1);
+            PlaneIntersectionType test2 = PlaneIntersectsPoint(in plane, in vertex2);
+            PlaneIntersectionType test3 = PlaneIntersectsPoint(in plane, in vertex3);
 
             if (test1 == PlaneIntersectionType.Front && test2 == PlaneIntersectionType.Front && test3 == PlaneIntersectionType.Front)
                 return PlaneIntersectionType.Front;
@@ -1098,7 +1098,7 @@ namespace Stride.Core.Mathematics
         /// <param name="plane">The plane to test.</param>
         /// <param name="box">The box to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static PlaneIntersectionType PlaneIntersectsBox(ref Plane plane, ref BoundingBox box)
+        public static PlaneIntersectionType PlaneIntersectsBox(ref readonly Plane plane, ref readonly BoundingBox box)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 161
@@ -1114,7 +1114,7 @@ namespace Stride.Core.Mathematics
             min.Z = (plane.Normal.Z >= 0.0f) ? box.Maximum.Z : box.Minimum.Z;
 
             float distance;
-            Vector3.Dot(ref plane.Normal, ref max, out distance);
+            Vector3.Dot(in plane.Normal, ref max, out distance);
 
             if (distance + plane.D > 0.0f)
                 return PlaneIntersectionType.Front;
@@ -1133,13 +1133,13 @@ namespace Stride.Core.Mathematics
         /// <param name="plane">The plane to test.</param>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static PlaneIntersectionType PlaneIntersectsSphere(ref Plane plane, ref BoundingSphere sphere)
+        public static PlaneIntersectionType PlaneIntersectsSphere(ref readonly Plane plane, ref readonly BoundingSphere sphere)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 160
 
             float distance;
-            Vector3.Dot(ref plane.Normal, ref sphere.Center, out distance);
+            Vector3.Dot(in plane.Normal, in sphere.Center, out distance);
             distance += plane.D;
 
             if (distance > sphere.Radius)
@@ -1181,7 +1181,7 @@ namespace Stride.Core.Mathematics
         /// <param name="box1">The first box to test.</param>
         /// <param name="box2">The second box to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool BoxIntersectsBox(ref BoundingBox box1, ref BoundingBox box2)
+        public static bool BoxIntersectsBox(ref readonly BoundingBox box1, ref readonly BoundingBox box2)
         {
             if (box1.Minimum.X > box2.Maximum.X || box2.Minimum.X > box1.Maximum.X)
                 return false;
@@ -1201,13 +1201,13 @@ namespace Stride.Core.Mathematics
         /// <param name="box">The box to test.</param>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool BoxIntersectsSphere(ref BoundingBox box, ref BoundingSphere sphere)
+        public static bool BoxIntersectsSphere(ref readonly BoundingBox box, ref readonly BoundingSphere sphere)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 166
 
             Vector3 vector;
-            Vector3.Clamp(ref sphere.Center, ref box.Minimum, ref box.Maximum, out vector);
+            Vector3.Clamp(in sphere.Center, in box.Minimum, in box.Maximum, out vector);
             float distance = Vector3.DistanceSquared(sphere.Center, vector);
 
             return distance <= sphere.Radius * sphere.Radius;
@@ -1221,13 +1221,13 @@ namespace Stride.Core.Mathematics
         /// <param name="vertex2">The second vertex of the triagnle to test.</param>
         /// <param name="vertex3">The third vertex of the triangle to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool SphereIntersectsTriangle(ref BoundingSphere sphere, ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
+        public static bool SphereIntersectsTriangle(ref readonly BoundingSphere sphere, ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3)
         {
             //Source: Real-Time Collision Detection by Christer Ericson
             //Reference: Page 167
 
             Vector3 point;
-            ClosestPointPointTriangle(ref sphere.Center, ref vertex1, ref vertex2, ref vertex3, out point);
+            ClosestPointPointTriangle(in sphere.Center, in vertex1, in vertex2, in vertex3, out point);
             Vector3 v = point - sphere.Center;
 
             float dot;
@@ -1242,7 +1242,7 @@ namespace Stride.Core.Mathematics
         /// <param name="sphere1">First sphere to test.</param>
         /// <param name="sphere2">Second sphere to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public static bool SphereIntersectsSphere(ref BoundingSphere sphere1, ref BoundingSphere sphere2)
+        public static bool SphereIntersectsSphere(ref readonly BoundingSphere sphere1, ref readonly BoundingSphere sphere2)
         {
             float radiisum = sphere1.Radius + sphere2.Radius;
             return Vector3.DistanceSquared(sphere1.Center, sphere2.Center) <= radiisum * radiisum;
@@ -1254,7 +1254,7 @@ namespace Stride.Core.Mathematics
         /// <param name="box">The box to test.</param>
         /// <param name="point">The point to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public static ContainmentType BoxContainsPoint(ref BoundingBox box, ref Vector3 point)
+        public static ContainmentType BoxContainsPoint(ref readonly BoundingBox box, ref readonly Vector3 point)
         {
             if (box.Minimum.X <= point.X && box.Maximum.X >= point.X &&
                 box.Minimum.Y <= point.Y && box.Maximum.Y >= point.Y &&
@@ -1297,7 +1297,7 @@ namespace Stride.Core.Mathematics
         /// <param name="box1">The first box to test.</param>
         /// <param name="box2">The second box to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public static ContainmentType BoxContainsBox(ref BoundingBox box1, ref BoundingBox box2)
+        public static ContainmentType BoxContainsBox(ref readonly BoundingBox box1, ref readonly BoundingBox box2)
         {
             if (box1.Maximum.X < box2.Minimum.X || box1.Minimum.X > box2.Maximum.X)
                 return ContainmentType.Disjoint;
@@ -1324,10 +1324,10 @@ namespace Stride.Core.Mathematics
         /// <param name="box">The box to test.</param>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public static ContainmentType BoxContainsSphere(ref BoundingBox box, ref BoundingSphere sphere)
+        public static ContainmentType BoxContainsSphere(ref readonly BoundingBox box, ref readonly BoundingSphere sphere)
         {
             Vector3 vector;
-            Vector3.Clamp(ref sphere.Center, ref box.Minimum, ref box.Maximum, out vector);
+            Vector3.Clamp(in sphere.Center, in box.Minimum, in box.Maximum, out vector);
             float distance = Vector3.DistanceSquared(sphere.Center, vector);
 
             if (distance > sphere.Radius * sphere.Radius)
@@ -1349,7 +1349,7 @@ namespace Stride.Core.Mathematics
         /// <param name="sphere">The sphere to test.</param>
         /// <param name="point">The point to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public static ContainmentType SphereContainsPoint(ref BoundingSphere sphere, ref Vector3 point)
+        public static ContainmentType SphereContainsPoint(ref readonly BoundingSphere sphere, ref readonly Vector3 point)
         {
             if (Vector3.DistanceSquared(point, sphere.Center) <= sphere.Radius * sphere.Radius)
                 return ContainmentType.Contains;
@@ -1365,19 +1365,19 @@ namespace Stride.Core.Mathematics
         /// <param name="vertex2">The second vertex of the triagnle to test.</param>
         /// <param name="vertex3">The third vertex of the triangle to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public static ContainmentType SphereContainsTriangle(ref BoundingSphere sphere, ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
+        public static ContainmentType SphereContainsTriangle(ref readonly BoundingSphere sphere, ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3)
         {
             //Source: Jorgy343
             //Reference: None
 
-            ContainmentType test1 = SphereContainsPoint(ref sphere, ref vertex1);
-            ContainmentType test2 = SphereContainsPoint(ref sphere, ref vertex2);
-            ContainmentType test3 = SphereContainsPoint(ref sphere, ref vertex3);
+            ContainmentType test1 = SphereContainsPoint(in sphere, in vertex1);
+            ContainmentType test2 = SphereContainsPoint(in sphere, in vertex2);
+            ContainmentType test3 = SphereContainsPoint(in sphere, in vertex3);
 
             if (test1 == ContainmentType.Contains && test2 == ContainmentType.Contains && test3 == ContainmentType.Contains)
                 return ContainmentType.Contains;
 
-            if (SphereIntersectsTriangle(ref sphere, ref vertex1, ref vertex2, ref vertex3))
+            if (SphereIntersectsTriangle(in sphere, in vertex1, in vertex2, in vertex3))
                 return ContainmentType.Intersects;
 
             return ContainmentType.Disjoint;
@@ -1389,11 +1389,11 @@ namespace Stride.Core.Mathematics
         /// <param name="sphere">The sphere to test.</param>
         /// <param name="box">The box to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public static ContainmentType SphereContainsBox(ref BoundingSphere sphere, ref BoundingBox box)
+        public static ContainmentType SphereContainsBox(ref readonly BoundingSphere sphere, ref readonly BoundingBox box)
         {
             Vector3 vector;
 
-            if (!BoxIntersectsSphere(ref box, ref sphere))
+            if (!BoxIntersectsSphere(in box, in sphere))
                 return ContainmentType.Disjoint;
 
             float radiussquared = sphere.Radius * sphere.Radius;
@@ -1462,7 +1462,7 @@ namespace Stride.Core.Mathematics
         /// <param name="sphere1">The first sphere to test.</param>
         /// <param name="sphere2">The second sphere to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public static ContainmentType SphereContainsSphere(ref BoundingSphere sphere1, ref BoundingSphere sphere2)
+        public static ContainmentType SphereContainsSphere(ref readonly BoundingSphere sphere1, ref readonly BoundingSphere sphere2)
         {
             float distance = Vector3.Distance(sphere1.Center, sphere2.Center);
 
@@ -1482,7 +1482,7 @@ namespace Stride.Core.Mathematics
         /// <param name="frustum">The frustum.</param>
         /// <param name="boundingBoxExt">The bounding box ext.</param>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
-        public static bool FrustumContainsBox(ref BoundingFrustum frustum, ref BoundingBoxExt boundingBoxExt)
+        public static bool FrustumContainsBox(ref readonly BoundingFrustum frustum, ref readonly BoundingBoxExt boundingBoxExt)
         {
             unsafe
             {
@@ -1559,7 +1559,7 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">The distance from the start of the ray.</param>
         /// <param name="point">The position of the collision.</param>
         /// <returns>Whether there was a hit.</returns>
-        public static bool GetNearestHit<T>(IEnumerable<T> objects, ref Ray ray, out T hitObject, out float distance, out Vector3 point)
+        public static bool GetNearestHit<T>(IEnumerable<T> objects, ref readonly Ray ray, out T hitObject, out float distance, out Vector3 point)
             where T : IIntersectableWithRay
         {
             bool hit = false;
@@ -1568,7 +1568,7 @@ namespace Stride.Core.Mathematics
 
             foreach (var o in objects)
             {
-                if (o.Intersects(ref ray, out float d) && (d < distance))
+                if (o.Intersects(in ray, out float d) && (d < distance))
                 {
                     distance = d;
                     hitObject = o;
@@ -1577,7 +1577,7 @@ namespace Stride.Core.Mathematics
             }
 
             if (hit)
-                hitObject.Intersects(ref ray, out point);
+                hitObject.Intersects(in ray, out point);
             else
                 point = default;
 

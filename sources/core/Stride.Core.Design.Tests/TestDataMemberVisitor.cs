@@ -80,7 +80,9 @@ namespace Stride.Core.Design.Tests
             public List<object> Collection { get; set; }
 
             [DataMember(6)]
+#pragma warning disable STRDIAG009 // Invalid Dictionary Key - Is valid for this test
             public Dictionary<object, object> Dictionary { get; set; }
+#pragma warning restore STRDIAG009 // Invalid Dictionary Key
 
             public SimpleObject SubObject { get; set; }
         }

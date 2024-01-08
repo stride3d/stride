@@ -5,6 +5,8 @@ using Stride.Core.IO;
 using Stride.Core.Settings;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Translation;
+using Stride.GameStudio.Remote;
+using Stride.GameStudio.Helpers;
 
 namespace Stride.GameStudio
 {

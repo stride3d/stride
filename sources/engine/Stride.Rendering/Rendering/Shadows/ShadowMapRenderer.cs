@@ -26,12 +26,13 @@ namespace Stride.Rendering.Shadows
         private readonly int maximumTextureSize = (int)(ReferenceShadowSize * ComputeSizeFactor(LightShadowMapSize.XLarge) * 2.0f);
         private const float ReferenceShadowSize = 1024;
 
-        private readonly List<RenderStage> shadowMapRenderStages;
-
         private FastListStruct<ShadowMapAtlasTexture> atlases;
 
         private readonly List<LightShadowMapTexture> shadowMaps = new List<LightShadowMapTexture>();
         
+        private static readonly ProfilingKey CollectKey = new ProfilingKey("ShadowMapRenderer.Collect");
+        private static readonly ProfilingKey DrawKey = new ProfilingKey("ShadowMapRenderer.Draw");
+
         public ShadowMapRenderer()
         {
             atlases = new FastListStruct<ShadowMapAtlasTexture>(16);
@@ -44,8 +45,10 @@ namespace Stride.Rendering.Shadows
 
         public HashSet<RenderView> RenderViewsWithShadows { get; } = new HashSet<RenderView>();
 
-        // TODO
-        public IReadOnlyList<RenderStage> ShadowMapRenderStages => shadowMapRenderStages;
+        /// <summary>
+        /// TODO
+        /// </summary>
+        public IReadOnlyList<RenderStage> ShadowMapRenderStages { get; }
 
         public ILightShadowMapRenderer FindRenderer(IDirectLight light)
         {
@@ -71,6 +74,7 @@ namespace Stride.Rendering.Shadows
 
         public void Collect(RenderContext context, Dictionary<RenderView, ForwardLightingRenderFeature.RenderViewLightData> renderViewLightDatas)
         {
+            using var _ = Profiler.Begin(CollectKey);
             // Reset the state of renderers
             foreach (var renderer in Renderers)
             {
@@ -152,6 +156,7 @@ namespace Stride.Rendering.Shadows
 
         public void Draw(RenderDrawContext drawContext)
         {
+            using var _ = Profiler.Begin(DrawKey);
             var renderSystem = drawContext.RenderContext.RenderSystem;
 
             // Clear atlases

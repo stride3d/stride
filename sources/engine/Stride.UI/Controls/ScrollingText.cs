@@ -38,8 +38,11 @@ namespace Stride.UI.Controls
         public float ScrollingOffset { get; private set; }
 
         /// <summary>
-        /// The total accumulated width of the scrolling text since the last call the <see cref="ResetDisplayingText"/>
+        /// The total accumulated width of the scrolling text since the last display text reset.
         /// </summary>
+        /// <remarks>
+        /// The text display is reset internally under certain conditions, which affects the accumulated width.
+        /// </remarks>
         public float AccumulatedWidth { get; private set; }
 
         public ScrollingText()

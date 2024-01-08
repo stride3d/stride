@@ -8,7 +8,7 @@
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
-    <StrideNuGetResolverUX>true</StrideNuGetResolverUX>
+    <StrideNuGetResolverUI>true</StrideNuGetResolverUI>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -20,13 +20,13 @@
     <ApplicationIcon>Resources\ConnectionRouter.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Options" Version="5.3.0.1" />
-    <PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.6.0" />
-    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
-    <PackageReference Include="System.Runtime" Version="4.3.1" />
-    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+    <PackageReference Include="Mono.Options" />
+    <PackageReference Include="System.Resources.Extensions" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" />
+    <PackageReference Include="System.IO.Compression" />
+    <PackageReference Include="System.Runtime" />
+    <PackageReference Include="System.Runtime.InteropServices" />
+    <PackageReference Include="System.Threading.Thread" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -67,6 +67,6 @@
     </None>
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
+  <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
   </Project>

@@ -15,8 +15,8 @@
   <!-- List dependency files from .ssdeps -->
   <Target Name="_StrideListDepsFiles" DependsOnTargets="ResolveAssemblyReferences">
     <ItemGroup>
-      <_StrideDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
-      <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(ReferencePath.CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(ReferenceDependencyPaths.CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <None Include="@(_StrideDepsFile)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>

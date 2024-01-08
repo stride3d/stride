@@ -37,8 +37,7 @@ namespace Stride.GameStudio.Debugging
         public async Task<UpdateResult> Recompile(Project gameProject, LoggerResult logger)
         {
             var result = new UpdateResult(logger);
-            if (solution == null)
-                solution = gameProject.Solution;
+            solution ??= gameProject.Solution;
 
             // Detect new groups
             var gameProjectCompilation = await gameProject.GetCompilationAsync();
@@ -76,8 +75,7 @@ namespace Stride.GameStudio.Debugging
             foreach (var sourceGroup in previousSortedConnectedGroups.Reverse())
             {
                 // Does this group needs reload?
-                SourceGroup newSourceGroup;
-                if (connectedGroups.TryGetValue(sourceGroup, out newSourceGroup))
+                if (connectedGroups.TryGetValue(sourceGroup, out var newSourceGroup))
                 {
                     // Transfer project, as it can be reused
                     newSourceGroup.Project = sourceGroup.Project;
@@ -144,125 +142,122 @@ namespace Stride.GameStudio.Debugging
 
                     var compilation = await project.GetCompilationAsync();
 
-                    using (var peStream = new MemoryStream())
-                    using (var pdbStream = new MemoryStream())
-                    {
-                        var emitResult = compilation.Emit(peStream, pdbStream);
-                        result.Info($"Compiling assembly containing {sourceGroup}");
+                    using var peStream = new MemoryStream();
+                    using var pdbStream = new MemoryStream();
+                    var emitResult = compilation.Emit(peStream, pdbStream);
+                    result.Info($"Compiling assembly containing {sourceGroup}");
 
-                        foreach (var diagnostic in emitResult.Diagnostics)
+                    foreach (var diagnostic in emitResult.Diagnostics)
+                    {
+                        switch (diagnostic.Severity)
                         {
-                            switch (diagnostic.Severity)
+                            case DiagnosticSeverity.Error:
+                                result.Error(diagnostic.GetMessage());
+                                break;
+                            case DiagnosticSeverity.Warning:
+                                result.Warning(diagnostic.GetMessage());
+                                break;
+                            case DiagnosticSeverity.Info:
+                                result.Info(diagnostic.GetMessage());
+                                break;
+                        }
+                    }
+
+                    if (!emitResult.Success)
+                    {
+                        result.Error($"Error compiling assembly containing {sourceGroup}");
+                        break;
+                    }
+
+                    // Load csproj to evaluate assembly processor parameters
+                    var msbuildProject = await Task.Run(() => VSProjectHelper.LoadProject(gameProject.FilePath));
+                    if (msbuildProject.GetPropertyValue("StrideAssemblyProcessor") == "true")
+                    {
+                        var referenceBuild = await Task.Run(() => VSProjectHelper.CompileProjectAssemblyAsync(null, gameProject.FilePath, result, "ResolveReferences", flags: Microsoft.Build.Execution.BuildRequestDataFlags.ProvideProjectStateAfterBuild));
+                        if (referenceBuild == null)
+                        {
+                            result.Error("Could not properly run ResolveAssemblyReferences");
+                            break;
+                        }
+                        var referenceBuildResult = await referenceBuild.BuildTask;
+                        if (referenceBuild.IsCanceled || result.HasErrors)
+                            break;
+
+                        var assemblyProcessorParameters = "--parameter-key --auto-module-initializer --serialization";
+                        var assemblyProcessorApp = AssemblyProcessorProgram.CreateAssemblyProcessorApp(SplitCommandLine(assemblyProcessorParameters).ToArray(), new LoggerAssemblyProcessorWrapper(result));
+
+                        foreach (var referencePath in referenceBuildResult.ProjectStateAfterBuild.Items.Where(x => x.ItemType == "ReferencePath"))
+                        {
+                            assemblyProcessorApp.References.Add(referencePath.EvaluatedInclude);
+                            if (referencePath.EvaluatedInclude.EndsWith("Stride.SpriteStudio.Runtime.dll")) //todo hard-coded! needs to go when plug in system is in
                             {
-                                case DiagnosticSeverity.Error:
-                                    result.Error(diagnostic.GetMessage());
-                                    break;
-                                case DiagnosticSeverity.Warning:
-                                    result.Warning(diagnostic.GetMessage());
-                                    break;
-                                case DiagnosticSeverity.Info:
-                                    result.Info(diagnostic.GetMessage());
-                                    break;
+                                assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
+                            }
+                            else if (referencePath.EvaluatedInclude.EndsWith("Stride.Physics.dll")) //todo hard-coded! needs to go when plug in system is in
+                            {
+                                assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
+                            }
+                            else if (referencePath.EvaluatedInclude.EndsWith("Stride.Particles.dll")) //todo hard-coded! needs to go when plug in system is in
+                            {
+                                assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
+                            }
+                            else if (referencePath.EvaluatedInclude.EndsWith("Stride.Native.dll")) //todo hard-coded! needs to go when plug in system is in
+                            {
+                                assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
+                            }
+                            else if (referencePath.EvaluatedInclude.EndsWith("Stride.UI.dll")) //todo hard-coded! needs to go when plug in system is in
+                            {
+                                assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
+                            }
+                            else if (referencePath.EvaluatedInclude.EndsWith("Stride.Video.dll")) //todo hard-coded! needs to go when plug in system is in
+                            {
+                                assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                             }
                         }
 
-                        if (!emitResult.Success)
+                        var assemblyResolver = assemblyProcessorApp.CreateAssemblyResolver();
+
+                        // Add dependencies to assembly resolver
+                        var recursiveDependencies = stronglyConnected.OutEdges(sourceGroup).SelectDeep(edge => stronglyConnected.OutEdges(edge.Target));
+                        foreach (var dependencySourceGroup in recursiveDependencies)
                         {
-                            result.Error($"Error compiling assembly containing {sourceGroup}");
+                            assemblyResolver.Register(dependencySourceGroup.Target.Assembly, dependencySourceGroup.Target.PE);
+                            assemblyProcessorApp.MemoryReferences.Add(dependencySourceGroup.Target.Assembly);
+                        }
+
+                        // Rewind streams
+                        peStream.Position = 0;
+                        pdbStream.Position = 0;
+
+                        var assemblyDefinition = AssemblyDefinition.ReadAssembly(peStream,
+                            new ReaderParameters { AssemblyResolver = assemblyResolver, ReadSymbols = true, SymbolStream = pdbStream });
+
+                        // Run assembly processor
+                        bool readWriteSymbols = true;
+                        assemblyProcessorApp.SerializationAssembly = true;
+                        if (!assemblyProcessorApp.Run(ref assemblyDefinition, ref readWriteSymbols, out var modified, out var _))
+                        {
+                            result.Error("Error running assembly processor");
                             break;
                         }
 
-                        // Load csproj to evaluate assembly processor parameters
-                        var msbuildProject = await Task.Run(() => VSProjectHelper.LoadProject(gameProject.FilePath));
-                        if (msbuildProject.GetPropertyValue("StrideAssemblyProcessor") == "true")
-                        {
-                            var referenceBuild = await Task.Run(() => VSProjectHelper.CompileProjectAssemblyAsync(null, gameProject.FilePath, result, "ResolveReferences", flags: Microsoft.Build.Execution.BuildRequestDataFlags.ProvideProjectStateAfterBuild));
-                            if (referenceBuild == null)
-                            {
-                                result.Error("Could not properly run ResolveAssemblyReferences");
-                                break;
-                            }
-                            var referenceBuildResult = await referenceBuild.BuildTask;
-                            if (referenceBuild.IsCanceled || result.HasErrors)
-                                break;
+                        sourceGroup.Assembly = assemblyDefinition;
 
-                            var assemblyProcessorParameters = "--parameter-key --auto-module-initializer --serialization";
-                            var assemblyProcessorApp = AssemblyProcessorProgram.CreateAssemblyProcessorApp(SplitCommandLine(assemblyProcessorParameters).ToArray(), new LoggerAssemblyProcessorWrapper(result));
+                        // Write to file for now, since Cecil does not use the SymbolStream
+                        var peFileName = Path.ChangeExtension(Path.GetTempFileName(), ".dll");
+                        var pdbFileName = Path.ChangeExtension(peFileName, ".pdb");
+                        assemblyDefinition.Write(peFileName, new WriterParameters { WriteSymbols = true });
 
-                            foreach (var referencePath in referenceBuildResult.ProjectStateAfterBuild.Items.Where(x => x.ItemType == "ReferencePath"))
-                            {
-                                assemblyProcessorApp.References.Add(referencePath.EvaluatedInclude);
-                                if (referencePath.EvaluatedInclude.EndsWith("Stride.SpriteStudio.Runtime.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
-                                {
-                                    assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
-                                }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Physics.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
-                                {
-                                    assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
-                                }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Particles.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
-                                {
-                                    assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
-                                }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Native.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
-                                {
-                                    assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
-                                }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.UI.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
-                                {
-                                    assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
-                                }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Video.dll", StringComparison.OrdinalIgnoreCase)) //todo hard-coded! needs to go when plug in system is in
-                                {
-                                    assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
-                                }
-                            }
+                        sourceGroup.PE = File.ReadAllBytes(peFileName);
+                        sourceGroup.PDB = File.ReadAllBytes(pdbFileName);
 
-                            var assemblyResolver = assemblyProcessorApp.CreateAssemblyResolver();
-
-                            // Add dependencies to assembly resolver
-                            var recursiveDependencies = stronglyConnected.OutEdges(sourceGroup).SelectDeep(edge => stronglyConnected.OutEdges(edge.Target));
-                            foreach (var dependencySourceGroup in recursiveDependencies)
-                            {
-                                assemblyResolver.Register(dependencySourceGroup.Target.Assembly, dependencySourceGroup.Target.PE);
-                                assemblyProcessorApp.MemoryReferences.Add(dependencySourceGroup.Target.Assembly);
-                            }
-
-                            // Rewind streams
-                            peStream.Position = 0;
-                            pdbStream.Position = 0;
-
-                            var assemblyDefinition = AssemblyDefinition.ReadAssembly(peStream,
-                                new ReaderParameters { AssemblyResolver = assemblyResolver, ReadSymbols = true, SymbolStream = pdbStream });
-
-                            // Run assembly processor
-                            bool readWriteSymbols = true;
-                            bool modified;
-                            assemblyProcessorApp.SerializationAssembly = true;
-                            if (!assemblyProcessorApp.Run(ref assemblyDefinition, ref readWriteSymbols, out modified, out var _))
-                            {
-                                result.Error("Error running assembly processor");
-                                break;
-                            }
-
-                            sourceGroup.Assembly = assemblyDefinition;
-
-                            // Write to file for now, since Cecil does not use the SymbolStream
-                            var peFileName = Path.ChangeExtension(Path.GetTempFileName(), ".dll");
-                            var pdbFileName = Path.ChangeExtension(peFileName, ".pdb");
-                            assemblyDefinition.Write(peFileName, new WriterParameters { WriteSymbols = true });
-
-                            sourceGroup.PE = File.ReadAllBytes(peFileName);
-                            sourceGroup.PDB = File.ReadAllBytes(pdbFileName);
-
-                            File.Delete(peFileName);
-                            File.Delete(pdbFileName);
-                        }
-                        else
-                        {
-                            sourceGroup.PE = peStream.ToArray();
-                            sourceGroup.PDB = pdbStream.ToArray();
-                        }
+                        File.Delete(peFileName);
+                        File.Delete(pdbFileName);
+                    }
+                    else
+                    {
+                        sourceGroup.PE = peStream.ToArray();
+                        sourceGroup.PDB = pdbStream.ToArray();
                     }
                 }
             }
@@ -318,7 +313,7 @@ namespace Stride.GameStudio.Debugging
         public static string TrimMatchingQuotes(string input, char quote)
         {
             if ((input.Length >= 2) && 
-                (input[0] == quote) && (input[input.Length - 1] == quote))
+                (input[0] == quote) && (input[^1] == quote))
                 return input.Substring(1, input.Length - 2);
 
             return input;

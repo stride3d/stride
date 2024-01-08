@@ -41,7 +41,7 @@ namespace Stride.Assets.Models
         public override void GetAnimationDuration(UFile localPath, Logger logger, AssetImporterParameters importParameters, out TimeSpan startTime, out TimeSpan endTime)
         {
             var meshConverter = new Importer.Assimp.MeshConverter(logger);
-            var sceneData = meshConverter.ConvertAnimation(localPath.FullPath, "");
+            var sceneData = meshConverter.ConvertAnimation(localPath.FullPath, "", 0);
 
             startTime = CompressedTimeSpan.MaxValue; // This will go down, so we start from positive infinity
             endTime = CompressedTimeSpan.MinValue;   // This will go up, so we start from negative infinity

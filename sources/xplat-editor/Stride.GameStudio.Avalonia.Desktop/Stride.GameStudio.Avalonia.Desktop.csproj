@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Stride.CrashReport" />
   </ItemGroup>
 
   <ItemGroup>

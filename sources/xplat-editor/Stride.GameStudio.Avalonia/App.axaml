@@ -1,7 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:avalonia="using:Stride.Core.Assets.Editor.Avalonia.Themes"
-             xmlns:ctrl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
+             xmlns:avalonia="using:Stride.Core.Presentation.Avalonia.Themes"
+             xmlns:ctrl="using:Stride.Core.Presentation.Avalonia.Controls"
              x:Class="Stride.GameStudio.Avalonia.App"
              RequestedThemeVariant="Default">
   <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->

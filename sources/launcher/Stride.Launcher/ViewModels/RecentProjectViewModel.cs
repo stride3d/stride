@@ -10,7 +10,7 @@ using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.LauncherApp.Resources;
 using Stride.LauncherApp.Services;
 
@@ -107,19 +107,19 @@ namespace Stride.LauncherApp.ViewModels
             if (version == null)
             {
                 message = string.Format(Strings.ErrorDoNotFindVersion, StrideVersion);
-                await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             if (version.IsProcessing)
             {
                 message = string.Format(Strings.ErrorVersionBeingUpdated, StrideVersion);
-                await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             if (!version.CanDelete)
             {
                 message = string.Format(Strings.ErrorVersionNotInstalled, StrideVersion);
-                var result = await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.YesNoCancel, MessageBoxImage.Information);
+                var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.YesNoCancel, MessageBoxImage.Information);
                 if (result == MessageBoxResult.Yes)
                 {
                     version.DownloadCommand.Execute();

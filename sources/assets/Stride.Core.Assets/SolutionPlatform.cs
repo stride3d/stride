@@ -17,20 +17,11 @@ namespace Stride.Core.Assets
     public class SolutionPlatform : SolutionPlatformPart
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SolutionPlatform"/> class.
-        /// </summary>
-        public SolutionPlatform()
-        {
-            PlatformsPart = new SolutionPlatformPartCollection();
-            DefineConstants = new List<string>();
-        }
-
-        /// <summary>
         /// Gets the alternative names that will appear in the .sln file equivalent to this platform.
         /// </summary>
         /// <value>The alternative names.</value>
         [DataMember(20)]
-        public SolutionPlatformPartCollection PlatformsPart { get; private set; }
+        public SolutionPlatformPartCollection PlatformsPart { get; } = new SolutionPlatformPartCollection();
 
         /// <summary>
         /// Gets or sets the type of the platform.
@@ -58,7 +49,7 @@ namespace Stride.Core.Assets
         /// </summary>
         /// <value>The define constants.</value>
         [DataMember(40)]
-        public List<string> DefineConstants { get; private set; }
+        public List<string> DefineConstants { get; } = new List<string>();
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="SolutionPlatform"/> is available on this machine.
@@ -274,16 +265,15 @@ namespace Stride.Core.Assets
         /// </summary>
         public SolutionConfiguration(string name)
         {
-            if (name == null) throw new ArgumentNullException("name");
+            if (name == null) throw new ArgumentNullException(nameof(name));
             Name = name;
-            Properties = new List<string>();
         }
 
         /// <summary>
         /// Gets or sets the configuration name (e.g. Debug, Release)
         /// </summary>
         /// <value>The name.</value>
-        public string Name { get; private set; }
+        public string Name { get; init; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is a debug configuration.
@@ -295,6 +285,6 @@ namespace Stride.Core.Assets
         /// Gets the additional msbuild properties for a specific configuration (Debug or Release)
         /// </summary>
         /// <value>The msbuild configuration properties.</value>
-        public List<string> Properties { get; private set; }
+        public List<string> Properties { get; } = new List<string>();
     }
 }

@@ -15,15 +15,6 @@ namespace Stride.Core.Assets
     public sealed class Bundle
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Bundle"/> class.
-        /// </summary>
-        public Bundle()
-        {
-            Selectors = new List<AssetSelector>();
-            Dependencies = new List<string>();
-        }
-
-        /// <summary>
         /// Gets or sets the name of this bundle.
         /// </summary>
         /// <value>The name.</value>
@@ -33,13 +24,13 @@ namespace Stride.Core.Assets
         /// Gets the selectors used by this bundle.
         /// </summary>
         /// <value>The selectors.</value>
-        public List<AssetSelector> Selectors { get; private set; }
+        public List<AssetSelector> Selectors { get; } = new List<AssetSelector>();
 
         /// <summary>
         /// Gets the bundle dependencies.
         /// </summary>
         /// <value>The dependencies.</value>
-        public List<string> Dependencies { get; private set; }
+        public List<string> Dependencies { get; } = new List<string>();
 
         /// <summary>
         /// Gets the output group (used in conjonction with <see cref="ProjectBuildProfile.OutputGroupDirectories"/> to control where file will be put).

@@ -1,29 +1,25 @@
-<Project Sdk="MSBuild.Sdk.Extras/3.0.22" ToolsVersion="Current">
-  <Import Project="..\..\targets\Stride.Core.TargetFrameworks.Editor.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+
   <ItemGroup>
-    <Compile Update="**\*.xaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
-    <AvaloniaResource Include="**\*.xaml">
-      <SubType>Designer</SubType>
-    </AvaloniaResource>
-    <AvaloniaResource Include="Assets\*" />
+    <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.11" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.11" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.11" />
-    <PackageReference Include="xunit" Version="2.4.2-pre.12" />
-    <PackageReference Include="xunit.runner.utility" Version="2.4.2-pre.12" />
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.utility" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
+
   <Import Project="..\..\targets\Stride.PackageVersion.targets" />
   <Import Project="..\..\targets\Stride.AutoPack.targets" />
 </Project>

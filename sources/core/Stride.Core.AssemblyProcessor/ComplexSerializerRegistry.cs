@@ -10,7 +10,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Mono.Cecil;
-using Stride.Core;
 
 namespace Stride.Core.AssemblyProcessor
 {
@@ -282,25 +281,33 @@ namespace Stride.Core.AssemblyProcessor
             var fields = new List<FieldDefinition>();
             var properties = new List<PropertyDefinition>();
 
-            var fieldEnum = type.Fields.Where(x => (x.IsPublic || (x.IsAssembly && x.CustomAttributes.Any(a => a.AttributeType.FullName == "Stride.Core.DataMemberAttribute"))) && !x.IsStatic && !ignoredMembers.Contains(x));
+            foreach (var field in type.Fields)
+            {
+                if (field.IsStatic)
+                    continue;
+
+                if (ignoredMembers.Contains(field))
+                    continue;
+
+                if (field.IsPublic || (field.IsAssembly && field.CustomAttributes.Any(a => a.AttributeType.FullName == "Stride.Core.DataMemberAttribute")))
+                    fields.Add(field);
+            }
 
             // If there is a explicit or sequential layout, sort by offset
             if (type.IsSequentialLayout || type.IsExplicitLayout)
-                fieldEnum = fieldEnum.OrderBy(x => x.Offset);
-
-            foreach (var field in fieldEnum)
-            {
-                fields.Add(field);
-            }
+                fields.Sort((x,y) => x.Offset.CompareTo(y.Offset));
 
             foreach (var property in type.Properties)
             {
-                // Need a non-static public get method
-                if (property.GetMethod == null || !property.GetMethod.IsPublic || property.GetMethod.IsStatic)
+                if (IsAccessibleThroughAccessModifiers(property) == false)
                     continue;
 
-                // If it's a struct (!IsValueType), we need a public set method as well
-                if (property.PropertyType.IsValueType && (property.SetMethod == null || !(property.SetMethod.IsAssembly || property.SetMethod.IsPublic)))
+                // Need a non-static public get method
+                if (property.GetMethod.IsStatic)
+                    continue;
+
+                // If it's a struct (!IsValueType), we need a set method as well
+                if (property.PropertyType.IsValueType && property.SetMethod == null)
                     continue;
 
                 // Only take virtual properties (override ones will be handled by parent serializers)
@@ -380,6 +387,27 @@ namespace Stride.Core.AssemblyProcessor
                     yield return new SerializableItem { MemberInfo = property, Type = property.PropertyType, Name = property.Name, Attributes = attributes, AssignBack = assignBack, NeedReference = !type.IsClass || type.IsValueType };
                 }
             }
+        }
+
+        static bool IsAccessibleThroughAccessModifiers(PropertyDefinition property)
+        {
+            var get = property.GetMethod;
+            var set = property.SetMethod;
+
+            if (get == null)
+                return false;
+
+            bool forced = property.CustomAttributes.Any(a => a.AttributeType.FullName == "Stride.Core.DataMemberAttribute");
+
+            if (forced && (get.IsPublic || get.IsAssembly))
+                return true;
+
+            // By default, allow access for get-only auto-property, i.e.: { get; } but not { get => }
+            // as the later may create side effects, and without a setter, we can't 'set' as a fallback for those exceptional cases.
+            if (get.IsPublic)
+                return set?.IsPublic == true || set == null && property.DeclaringType.Fields.Any(x => x.Name == $"<{property.Name}>k__BackingField");
+
+            return false;
         }
 
         internal static bool IsMemberIgnored(ICollection<CustomAttribute> customAttributes, ComplexTypeSerializerFlags flags, DataMemberMode dataMemberMode)

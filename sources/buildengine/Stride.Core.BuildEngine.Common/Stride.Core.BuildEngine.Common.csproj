@@ -9,7 +9,7 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ServiceWire" Version="5.3.4" />
+    <PackageReference Include="ServiceWire" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

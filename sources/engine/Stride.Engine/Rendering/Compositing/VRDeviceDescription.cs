@@ -14,6 +14,14 @@ namespace Stride.Rendering.Compositing
         [DataMember(10)]
         public VRApi Api { get; set; }
 
+        /// <summary>
+        /// Scales the render resolution,
+        /// note that this compounds with the user-specified resolution multiplier
+        /// </summary>
+        /// <userdoc>
+        /// Scales the render resolution,
+        /// note that this compounds with the user-specified resolution multiplier
+        /// </userdoc>
         [DataMember(20)]
         public float ResolutionScale { get; set; } = 1.0f;
     }

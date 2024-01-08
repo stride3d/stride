@@ -277,7 +277,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to add.</param>
         /// <param name="result">When the method completes, contains the sum of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Add(ref Double4 left, ref Double4 right, out Double4 result)
+        public static void Add(ref readonly Double4 left, ref readonly Double4 right, out Double4 result)
         {
             result = new Double4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
         }
@@ -301,7 +301,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to subtract.</param>
         /// <param name="result">When the method completes, contains the difference of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Subtract(ref Double4 left, ref Double4 right, out Double4 result)
+        public static void Subtract(ref readonly Double4 left, ref readonly Double4 right, out Double4 result)
         {
             result = new Double4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
         }
@@ -325,7 +325,7 @@ namespace Stride.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Multiply(ref Double4 value, double scale, out Double4 result)
+        public static void Multiply(ref readonly Double4 value, double scale, out Double4 result)
         {
             result = new Double4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
@@ -349,7 +349,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to modulate.</param>
         /// <param name="result">When the method completes, contains the modulated vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Modulate(ref Double4 left, ref Double4 right, out Double4 result)
+        public static void Modulate(ref readonly Double4 left, ref readonly Double4 right, out Double4 result)
         {
             result = new Double4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
         }
@@ -373,7 +373,7 @@ namespace Stride.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Divide(ref Double4 value, double scale, out Double4 result)
+        public static void Divide(ref readonly Double4 value, double scale, out Double4 result)
         {
             result = new Double4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
         }
@@ -397,7 +397,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to demodulate.</param>
         /// <param name="result">When the method completes, contains the demodulated vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Demodulate(ref Double4 left, ref Double4 right, out Double4 result)
+        public static void Demodulate(ref readonly Double4 left, ref readonly Double4 right, out Double4 result)
         {
             result = new Double4(left.X / right.X, left.Y / right.Y, left.Z / right.Z, left.W / right.W);
         }
@@ -420,7 +420,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The vector to negate.</param>
         /// <param name="result">When the method completes, contains a vector facing in the opposite direction.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Negate(ref Double4 value, out Double4 result)
+        public static void Negate(ref readonly Double4 value, out Double4 result)
         {
             result = new Double4(-value.X, -value.Y, -value.Z, -value.W);
         }
@@ -445,7 +445,7 @@ namespace Stride.Core.Mathematics
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
         /// <param name="result">When the method completes, contains the 4D Cartesian coordinates of the specified point.</param>
-        public static void Barycentric(ref Double4 value1, ref Double4 value2, ref Double4 value3, double amount1, double amount2, out Double4 result)
+        public static void Barycentric(ref readonly Double4 value1, ref readonly Double4 value2, ref readonly Double4 value3, double amount1, double amount2, out Double4 result)
         {
             result = new Double4((value1.X + (amount1 * (value2.X - value1.X))) + (amount2 * (value3.X - value1.X)),
                 (value1.Y + (amount1 * (value2.Y - value1.Y))) + (amount2 * (value3.Y - value1.Y)),
@@ -476,7 +476,7 @@ namespace Stride.Core.Mathematics
         /// <param name="min">The minimum value.</param>
         /// <param name="max">The maximum value.</param>
         /// <param name="result">When the method completes, contains the clamped value.</param>
-        public static void Clamp(ref Double4 value, ref Double4 min, ref Double4 max, out Double4 result)
+        public static void Clamp(ref readonly Double4 value, ref readonly Double4 min, ref readonly Double4 max, out Double4 result)
         {
             double x = value.X;
             x = (x > max.X) ? max.X : x;
@@ -518,10 +518,10 @@ namespace Stride.Core.Mathematics
         /// <param name="value2">The second vector.</param>
         /// <param name="result">When the method completes, contains the distance between the two vectors.</param>
         /// <remarks>
-        /// <see cref="Stride.Core.Mathematics.Double4.DistanceSquared(ref Double4, ref Double4, out double)"/> may be preferred when only the relative distance is needed
+        /// <see cref="Stride.Core.Mathematics.Double4.DistanceSquared(ref readonly Double4, ref readonly Double4, out double)"/> may be preferred when only the relative distance is needed
         /// and speed is of the essence.
         /// </remarks>
-        public static void Distance(ref Double4 value1, ref Double4 value2, out double result)
+        public static void Distance(ref readonly Double4 value1, ref readonly Double4 value2, out double result)
         {
             double x = value1.X - value2.X;
             double y = value1.Y - value2.Y;
@@ -564,7 +564,7 @@ namespace Stride.Core.Mathematics
         /// involves two square roots, which are computationally expensive. However, using distance squared 
         /// provides the same information and avoids calculating two square roots.
         /// </remarks>
-        public static void DistanceSquared(ref Double4 value1, ref Double4 value2, out double result)
+        public static void DistanceSquared(ref readonly Double4 value1, ref readonly Double4 value2, out double result)
         {
             double x = value1.X - value2.X;
             double y = value1.Y - value2.Y;
@@ -604,7 +604,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">Second source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Dot(ref Double4 left, ref Double4 right, out double result)
+        public static void Dot(ref readonly Double4 left, ref readonly Double4 right, out double result)
         {
             result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
         }
@@ -627,7 +627,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The vector to normalize.</param>
         /// <param name="result">When the method completes, contains the normalized vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Normalize(ref Double4 value, out Double4 result)
+        public static void Normalize(ref readonly Double4 value, out Double4 result)
         {
             Double4 temp = value;
             result = temp;
@@ -658,7 +658,7 @@ namespace Stride.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static void Lerp(ref Double4 start, ref Double4 end, double amount, out Double4 result)
+        public static void Lerp(ref readonly Double4 start, ref readonly Double4 end, double amount, out Double4 result)
         {
             result.X = start.X + ((end.X - start.X) * amount);
             result.Y = start.Y + ((end.Y - start.Y) * amount);
@@ -692,7 +692,7 @@ namespace Stride.Core.Mathematics
         /// <param name="end">End vector.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <param name="result">When the method completes, contains the cubic interpolation of the two vectors.</param>
-        public static void SmoothStep(ref Double4 start, ref Double4 end, double amount, out Double4 result)
+        public static void SmoothStep(ref readonly Double4 start, ref readonly Double4 end, double amount, out Double4 result)
         {
             amount = (amount > 1.0) ? 1.0 : ((amount < 0.0) ? 0.0 : amount);
             amount = (amount * amount) * (3.0f - (2.0f * amount));
@@ -726,7 +726,7 @@ namespace Stride.Core.Mathematics
         /// <param name="tangent2">Second source tangent vector.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <param name="result">When the method completes, contains the result of the Hermite spline interpolation.</param>
-        public static void Hermite(ref Double4 value1, ref Double4 tangent1, ref Double4 value2, ref Double4 tangent2, double amount, out Double4 result)
+        public static void Hermite(ref readonly Double4 value1, ref readonly Double4 tangent1, ref readonly Double4 value2, ref readonly Double4 tangent2, double amount, out Double4 result)
         {
             double squared = amount * amount;
             double cubed = amount * squared;
@@ -766,7 +766,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value4">The fourth position in the interpolation.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <param name="result">When the method completes, contains the result of the Catmull-Rom interpolation.</param>
-        public static void CatmullRom(ref Double4 value1, ref Double4 value2, ref Double4 value3, ref Double4 value4, double amount, out Double4 result)
+        public static void CatmullRom(ref readonly Double4 value1, ref readonly Double4 value2, ref readonly Double4 value3, ref readonly Double4 value4, double amount, out Double4 result)
         {
             double squared = amount * amount;
             double cubed = amount * squared;
@@ -800,7 +800,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second source vector.</param>
         /// <param name="result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Max(ref Double4 left, ref Double4 right, out Double4 result)
+        public static void Max(ref readonly Double4 left, ref readonly Double4 right, out Double4 result)
         {
             result.X = (left.X > right.X) ? left.X : right.X;
             result.Y = (left.Y > right.Y) ? left.Y : right.Y;
@@ -829,7 +829,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second source vector.</param>
         /// <param name="result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Min(ref Double4 left, ref Double4 right, out Double4 result)
+        public static void Min(ref readonly Double4 left, ref readonly Double4 right, out Double4 result)
         {
             result.X = (left.X < right.X) ? left.X : right.X;
             result.Y = (left.Y < right.Y) ? left.Y : right.Y;
@@ -950,7 +950,7 @@ namespace Stride.Core.Mathematics
         /// <param name="vector">The vector to rotate.</param>
         /// <param name="rotation">The <see cref="Stride.Core.Mathematics.Quaternion"/> rotation to apply.</param>
         /// <param name="result">When the method completes, contains the transformed <see cref="Stride.Core.Mathematics.Double4"/>.</param>
-        public static void Transform(ref Double4 vector, ref Quaternion rotation, out Double4 result)
+        public static void Transform(ref readonly Double4 vector, ref readonly Quaternion rotation, out Double4 result)
         {
             double x = rotation.X + rotation.X;
             double y = rotation.Y + rotation.Y;
@@ -994,7 +994,7 @@ namespace Stride.Core.Mathematics
         /// This array may be the same array as <paramref name="source"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-        public static void Transform(Double4[] source, ref Quaternion rotation, Double4[] destination)
+        public static void Transform(Double4[] source, ref readonly Quaternion rotation, Double4[] destination)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -1042,7 +1042,7 @@ namespace Stride.Core.Mathematics
         /// <param name="vector">The source vector.</param>
         /// <param name="transform">The transformation <see cref="Stride.Core.Mathematics.Matrix"/>.</param>
         /// <param name="result">When the method completes, contains the transformed <see cref="Stride.Core.Mathematics.Double4"/>.</param>
-        public static void Transform(ref Double4 vector, ref Matrix transform, out Double4 result)
+        public static void Transform(ref readonly Double4 vector, ref readonly Matrix transform, out Double4 result)
         {
             result = new Double4(
                 (vector.X * transform.M11) + (vector.Y * transform.M21) + (vector.Z * transform.M31) + (vector.W * transform.M41),
@@ -1073,7 +1073,7 @@ namespace Stride.Core.Mathematics
         /// This array may be the same array as <paramref name="source"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-        public static void Transform(Double4[] source, ref Matrix transform, Double4[] destination)
+        public static void Transform(Double4[] source, ref readonly Matrix transform, Double4[] destination)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -1084,7 +1084,7 @@ namespace Stride.Core.Mathematics
 
             for (int i = 0; i < source.Length; ++i)
             {
-                Transform(ref source[i], ref transform, out destination[i]);
+                Transform(ref source[i], in transform, out destination[i]);
             }
         }
 

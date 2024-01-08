@@ -577,10 +577,14 @@ namespace Stride.Graphics.SDL
         }
 
         /// <summary>
-        /// Platform specific handle for Window:
-        /// - On Windows: the HWND of the window
-        /// - On Unix: the Window ID (XID). Note that on Unix, the value is 32-bit (See X11/X.h for the typedef of XID).
+        /// Platform specific handle for Window.
         /// </summary>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>On Windows: the HWND of the window</item>
+        /// <item>On Unix: the Window ID (XID). Note that on Unix, the value is 32-bit (See X11/X.h for the typedef of XID).</item>
+        /// </list>
+        /// </remarks>
         public IntPtr Handle { get; private set; }
 
         /// <summary>

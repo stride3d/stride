@@ -2,13 +2,13 @@
   <Import Project="..\..\targets\Stride.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks>net8.0-windows7.0;net472</TargetFrameworks>
     <RootNamespace>Stride.VisualStudio.Commands</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="ServiceWire" Version="5.3.4" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="ServiceWire" />
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />

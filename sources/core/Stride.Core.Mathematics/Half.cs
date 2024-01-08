@@ -219,7 +219,7 @@ namespace Stride.Core.Mathematics
         /// <returns>
         ///   <c>true</c> if <paramref name = "value1" /> is the same instance as <paramref name = "value2" /> or 
         ///   if both are <c>null</c> references or if <c>value1.Equals(value2)</c> returns <c>true</c>; otherwise, <c>false</c>.</returns>
-        public static bool Equals(ref Half value1, ref Half value2)
+        public static bool Equals(ref readonly Half value1, ref readonly Half value2)
         {
             return value1.value == value2.value;
         }

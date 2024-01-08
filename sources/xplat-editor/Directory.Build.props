@@ -6,8 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AvaloniaVersion>11.0.4</AvaloniaVersion> 
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

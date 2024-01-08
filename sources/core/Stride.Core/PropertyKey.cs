@@ -19,6 +19,7 @@ namespace Stride.Core
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     public abstract class PropertyKey : IComparable
     {
+        protected string name;
         private DefaultValueMetadata defaultValueMetadata;
 
         /// <summary>
@@ -42,7 +43,7 @@ namespace Stride.Core
         /// <summary>
         /// Gets the name of this key.
         /// </summary>
-        public string Name { get; protected set; }
+        public string Name { get => name; init => name = value; }
 
         /// <summary>
         /// Gets the default value metadata.

@@ -25,6 +25,8 @@ namespace Stride.VirtualReality
         private Vector3 currentHeadLinearVelocity;
         private Vector3 currentHeadAngularVelocity;
         private Quaternion currentHeadRot;
+        private (uint x, uint y) recommendedSize;
+        private GraphicsDevice device;
 
         public override bool CanInitialize => OpenVR.InitDone || OpenVR.Init();
 
@@ -32,27 +34,17 @@ namespace Stride.VirtualReality
         {
             VRApi = VRApi.OpenVR;
             SupportsOverlays = true;
+            recommendedSize = (2160, 1200);
         }
 
         public override void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
         {
-            var width = (int)(OptimalRenderFrameSize.Width * RenderFrameScaling);
-            width += width % 2;
-            var height = (int)(OptimalRenderFrameSize.Height * RenderFrameScaling);
-            height += height % 2;
-
-            ActualRenderFrameSize = new Size2(width, height);
-
+            this.device = device;
             needsMirror = requireMirror;
-
-            if (needsMirror)
-            {
-                bothEyesMirror = Texture.New2D(device, width, height, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
-            }
-
+            OpenVR.GetRecommendedRenderTargetSize(out recommendedSize);
+            RebuildRenderTargets();
             leftEyeMirror = OpenVR.GetMirrorTexture(device, 0);
             rightEyeMirror = OpenVR.GetMirrorTexture(device, 1);
-            MirrorTexture = bothEyesMirror;
 
             leftHandController = new OpenVRTouchController(TouchControllerHand.Left);
             rightHandController = new OpenVRTouchController(TouchControllerHand.Right);
@@ -60,6 +52,28 @@ namespace Stride.VirtualReality
             trackedDevices = new OpenVRTrackedDevice[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];
             for (int i=0; i<trackedDevices.Length; i++) 
                 trackedDevices[i] = new OpenVRTrackedDevice(i);
+        }
+
+        private void RebuildRenderTargets()
+        {
+            var width = (int)(recommendedSize.x * RenderFrameScaling);
+            width += width % 2;
+            var height = (int)(recommendedSize.y * RenderFrameScaling);
+            height += height % 2;
+
+            ActualRenderFrameSize = new Size2(width, height);
+
+            bothEyesMirror?.Dispose();
+            if (needsMirror)
+            {
+                bothEyesMirror = Texture.New2D(device, width, height, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
+            }
+            else
+            {
+                bothEyesMirror = null;
+            }
+
+            MirrorTexture = bothEyesMirror;
         }
 
         public override VROverlay CreateOverlay(int width, int height, int mipLevels, int sampleCount)
@@ -70,6 +84,13 @@ namespace Stride.VirtualReality
 
         public override void Draw(GameTime gameTime)
         {
+            OpenVR.GetRecommendedRenderTargetSize(out var newSize);
+            if (recommendedSize != newSize)
+            {
+                recommendedSize = newSize;
+                RebuildRenderTargets();
+            }
+
             OpenVR.UpdatePoses();
             state = OpenVR.GetHeadPose(out currentHead, out currentHeadLinearVelocity, out currentHeadAngularVelocity);
             Vector3 scale;
@@ -152,11 +173,11 @@ namespace Stride.VirtualReality
 
         public override Texture MirrorTexture { get; protected set; }
 
-        public override float RenderFrameScaling { get; set; } = 1.4f;
+        public override float RenderFrameScaling { get; set; } = 1f;
 
         public override Size2 ActualRenderFrameSize { get; protected set; }
 
-        public override Size2 OptimalRenderFrameSize => new Size2(2160, 1200);
+        public override Size2 OptimalRenderFrameSize => new Size2((int)recommendedSize.x, (int)recommendedSize.y);
 
         public override void Dispose()
         {

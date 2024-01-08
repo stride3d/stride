@@ -3,6 +3,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Rendering.Compositing
 {
@@ -25,7 +26,9 @@ namespace Stride.Rendering.Compositing
         protected override void DrawCore(RenderContext context, RenderDrawContext drawContext)
         {
             foreach (var child in Children)
+            {
                 child.Draw(drawContext);
+            }
         }
 
         public void Add(ISceneRenderer child)

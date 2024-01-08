@@ -76,7 +76,7 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
         if (targetNode == null)
             return;
 
-        var actionService = asset.ActionService;
+        var actionService = asset.UndoRedoService;
         using var transaction = actionService.CreateTransaction();
 
         // FIXME: for now we only handle one result item

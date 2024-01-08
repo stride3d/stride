@@ -97,20 +97,6 @@ namespace Stride.VirtualReality
 #endif
                             break;
                         }
-                        //case VRApi.Fove:
-                        //{
-                        //#if STRIDE_GRAPHICS_API_DIRECT3D11
-                        //    Device = new FoveHmd();
-                        //#endif
-                        //break;
-                        //}
-                        //case VRApi.Google:
-                        //{
-                        //#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
-                        //    VRDevice = new GoogleVrHmd();
-                        //#endif
-                        //    break;
-                        //}
                         default:
                             throw new ArgumentOutOfRangeException();
                     }

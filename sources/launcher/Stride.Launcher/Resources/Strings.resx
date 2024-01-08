@@ -321,6 +321,10 @@
     <value>Visual Studio extension</value>
     <comment>Title of this category</comment>
   </data>
+  <data name="VisualStudioDownloadPage" xml:space="preserve">
+    <value>An installed Visual Studio is required, which can be found here</value>
+    <comment>Subtitle of VisualStudioExtension category</comment>
+  </data>
   <data name="VSIXInstallSucessful" xml:space="preserve">
     <value>Visual Studio plugin has been successfully installed. Please restart running instances of Visual Studio.</value>
     <comment>Messagebox text indicating that the installation of the VSIX is successful</comment>

@@ -199,7 +199,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first vector to add.</param>
         /// <param name = "right">The second vector to add.</param>
         /// <param name = "result">When the method completes, contains the sum of the two vectors.</param>
-        public static void Add(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Add(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result = new UInt4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
         }
@@ -221,7 +221,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first vector to subtract.</param>
         /// <param name = "right">The second vector to subtract.</param>
         /// <param name = "result">When the method completes, contains the difference of the two vectors.</param>
-        public static void Subtract(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Subtract(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result = new UInt4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
         }
@@ -243,7 +243,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "value">The vector to scale.</param>
         /// <param name = "scale">The amount by which to scale the vector.</param>
         /// <param name = "result">When the method completes, contains the scaled vector.</param>
-        public static void Multiply(ref UInt4 value, uint scale, out UInt4 result)
+        public static void Multiply(ref readonly UInt4 value, uint scale, out UInt4 result)
         {
             result = new UInt4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
@@ -265,7 +265,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first vector to modulate.</param>
         /// <param name = "right">The second vector to modulate.</param>
         /// <param name = "result">When the method completes, contains the modulated vector.</param>
-        public static void Modulate(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Modulate(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result = new UInt4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
         }
@@ -287,7 +287,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "value">The vector to scale.</param>
         /// <param name = "scale">The amount by which to scale the vector.</param>
         /// <param name = "result">When the method completes, contains the scaled vector.</param>
-        public static void Divide(ref UInt4 value, uint scale, out UInt4 result)
+        public static void Divide(ref readonly UInt4 value, uint scale, out UInt4 result)
         {
             result = new UInt4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
         }
@@ -310,7 +310,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "min">The minimum value.</param>
         /// <param name = "max">The maximum value.</param>
         /// <param name = "result">When the method completes, contains the clamped value.</param>
-        public static void Clamp(ref UInt4 value, ref UInt4 min, ref UInt4 max, out UInt4 result)
+        public static void Clamp(ref readonly UInt4 value, ref readonly UInt4 min, ref readonly UInt4 max, out UInt4 result)
         {
             uint x = value.X;
             x = (x > max.X) ? max.X : x;
@@ -351,7 +351,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first source vector.</param>
         /// <param name = "right">The second source vector.</param>
         /// <param name = "result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
-        public static void Max(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Max(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result.X = (left.X > right.X) ? left.X : right.X;
             result.Y = (left.Y > right.Y) ? left.Y : right.Y;
@@ -378,7 +378,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first source vector.</param>
         /// <param name = "right">The second source vector.</param>
         /// <param name = "result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
-        public static void Min(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Min(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result.X = (left.X < right.X) ? left.X : right.X;
             result.Y = (left.Y < right.Y) ? left.Y : right.Y;

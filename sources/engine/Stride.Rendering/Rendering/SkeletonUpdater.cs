@@ -21,15 +21,11 @@ namespace Stride.Rendering
 
         private int matrixCounter;
 
-        public ModelNodeDefinition[] Nodes
-        {
-            get { return nodes; }
-        }
+        [DataMember]
+        public ModelNodeDefinition[] Nodes => nodes;
 
-        public ModelNodeTransformation[] NodeTransformations
-        {
-            get { return nodeTransformations; }
-        }
+        [DataMember]
+        public ModelNodeTransformation[] NodeTransformations => nodeTransformations;
 
         private static ModelNodeDefinition[] GetDefaultNodeDefinitions()
         {

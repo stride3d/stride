@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Threading;
 using Stride.Extensions;
 using Stride.Graphics;
@@ -28,6 +29,8 @@ namespace Stride.Rendering.Materials
 
         // Material instantiated
         private readonly Dictionary<MaterialPass, MaterialInfo> allMaterialInfos = new Dictionary<MaterialPass, MaterialInfo>();
+        
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("MaterialRenderFeature.PrepareEffectPermutations");
 
         public class MaterialInfoBase
         {
@@ -106,6 +109,7 @@ namespace Stride.Rendering.Materials
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareEffectPermutationsKey);
             var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
             var tessellationStates = RootRenderFeature.RenderData.GetData(tessellationStateKey);
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;

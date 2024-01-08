@@ -9,7 +9,5 @@ namespace Stride.VirtualReality
         WindowsMixedReality = 2,
         OpenXR = 3,
         Dummy = 100,
-        //Fove,
-        //Google,
     }
 }

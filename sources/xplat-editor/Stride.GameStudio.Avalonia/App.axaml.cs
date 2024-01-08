@@ -7,6 +7,7 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.IO;
+using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.ViewModels;

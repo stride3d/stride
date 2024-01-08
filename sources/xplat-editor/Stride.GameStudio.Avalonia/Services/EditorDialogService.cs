@@ -4,6 +4,7 @@
 using Avalonia.Controls;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Views;

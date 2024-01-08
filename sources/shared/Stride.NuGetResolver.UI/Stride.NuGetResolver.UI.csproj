@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StrideBuildTags>WindowsTools</StrideBuildTags>
+    <UseWPF>true</UseWPF>
+    <DefineConstants>STRIDE_NUGET_RESOLVER_UI;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Stride.NuGetResolver\NuGetAssemblyResolver.cs" Link="NuGetAssemblyResolver.cs" />
+    <Compile Include="..\Stride.NuGetResolver\RestoreHelper.cs" Link="RestoreHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NuGet.Protocol" />
+    <PackageReference Include="NuGet.PackageManagement" />
+    <PackageReference Include="NuGet.Resolver" />
+    <PackageReference Include="NuGet.Commands" />
+  </ItemGroup>
+
+</Project>

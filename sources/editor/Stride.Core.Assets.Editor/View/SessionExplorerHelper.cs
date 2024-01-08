@@ -6,9 +6,9 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
-using Stride.Core.Presentation.ViewModel;
 using TreeView = Stride.Core.Presentation.Controls.TreeView;
 using TreeViewItem = Stride.Core.Presentation.Controls.TreeViewItem;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {

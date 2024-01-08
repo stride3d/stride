@@ -267,7 +267,7 @@ namespace Stride.Core.Mathematics
         /// <summary>Determines whether this rectangle contains a specified Point.</summary>
         /// <param name="value">The Point to evaluate.</param>
         /// <param name="result">[OutAttribute] true if the specified Point is contained within this rectangle; false otherwise.</param>
-        public void Contains(ref Vector2 value, out bool result)
+        public void Contains(ref readonly Vector2 value, out bool result)
         {
             result = value.X >= this.X && value.X <= Right && value.Y >= this.Y && value.Y <= Bottom;
         }
@@ -282,7 +282,7 @@ namespace Stride.Core.Mathematics
         /// <summary>Determines whether this rectangle entirely contains a specified rectangle.</summary>
         /// <param name="value">The rectangle to evaluate.</param>
         /// <param name="result">[OutAttribute] On exit, is true if this rectangle entirely contains the specified rectangle, or false if not.</param>
-        public void Contains(ref RectangleF value, out bool result)
+        public void Contains(ref readonly RectangleF value, out bool result)
         {
             result = (X <= value.X) && (value.Right <= Right) && (Y <= value.Y) && (value.Bottom <= Bottom);
         }
@@ -342,7 +342,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The rectangle to evaluate</param>
         /// <param name="result">[OutAttribute] true if the specified rectangle intersects with this one; false otherwise.</param>
-        public void Intersects(ref RectangleF value, out bool result)
+        public void Intersects(ref readonly RectangleF value, out bool result)
         {
             result = (value.X < Right) && (X < value.Right) && (value.Y < Bottom) && (Y < value.Bottom);
         }
@@ -364,7 +364,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value1">The first rectangle to compare.</param>
         /// <param name="value2">The second rectangle to compare.</param>
         /// <param name="result">[OutAttribute] The area where the two first parameters overlap.</param>
-        public static void Intersect(ref RectangleF value1, ref RectangleF value2, out RectangleF result)
+        public static void Intersect(ref readonly RectangleF value1, ref readonly RectangleF value2, out RectangleF result)
         {
             float newLeft = (value1.X > value2.X) ? value1.X : value2.X;
             float newTop = (value1.Y > value2.Y) ? value1.Y : value2.Y;
@@ -399,7 +399,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value1">The first rectangle to contain.</param>
         /// <param name="value2">The second rectangle to contain.</param>
         /// <param name="result">[OutAttribute] The rectangle that must be the union of the first two rectangles.</param>
-        public static void Union(ref RectangleF value1, ref RectangleF value2, out RectangleF result)
+        public static void Union(ref readonly RectangleF value1, ref readonly RectangleF value2, out RectangleF result)
         {
             var left = Math.Min(value1.Left, value2.Left);
             var right = Math.Max(value1.Right, value2.Right);

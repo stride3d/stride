@@ -72,10 +72,10 @@ namespace Stride.Core.Assets
         public AssetReference BasePartAsset { get; set; }
 
         [DataMember(20)]
-        public Guid BasePartId { get; }
+        public Guid BasePartId { get; init; }
 
         [DataMember(30)]
-        public Guid InstanceId { get; }
+        public Guid InstanceId { get; init; }
 
         [CanBeNull]
         public IIdentifiable ResolvePart(PackageSession session)

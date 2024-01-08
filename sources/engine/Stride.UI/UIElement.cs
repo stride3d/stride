@@ -99,7 +99,9 @@ namespace Stride.UI
         /// </summary>
         /// <userdoc>The list of the dependency properties attached to the UI element.</userdoc>
         [DataMember]
+#pragma warning disable STRDIAG009 // Invalid Dictionary Key - PropertyKey has the TypeConverter PropertyKeyNameResolver so it's valid.
         public PropertyContainerClass DependencyProperties { get; }
+#pragma warning restore STRDIAG009 // Invalid Dictionary Key
 
         /// <summary>
         /// Gets or sets the LocalMatrix of this element.

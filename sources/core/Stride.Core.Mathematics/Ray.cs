@@ -65,9 +65,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="point">The point to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Vector3 point)
+        public bool Intersects(ref readonly Vector3 point)
         {
-            return CollisionHelper.RayIntersectsPoint(ref this, ref point);
+            return CollisionHelper.RayIntersectsPoint(ref this, in point);
         }
 
         /// <summary>
@@ -75,10 +75,10 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray)
+        public bool Intersects(ref readonly Ray ray)
         {
             Vector3 point;
-            return CollisionHelper.RayIntersectsRay(ref this, ref ray, out point);
+            return CollisionHelper.RayIntersectsRay(ref this, in ray, out point);
         }
 
         /// <summary>
@@ -88,9 +88,9 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out Vector3 point)
+        public bool Intersects(ref readonly Ray ray, out Vector3 point)
         {
-            return CollisionHelper.RayIntersectsRay(ref this, ref ray, out point);
+            return CollisionHelper.RayIntersectsRay(ref this, in ray, out point);
         }
 
         /// <summary>
@@ -98,10 +98,10 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="plane">The plane to test</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Plane plane)
+        public bool Intersects(ref readonly Plane plane)
         {
             float distance;
-            return CollisionHelper.RayIntersectsPlane(ref this, ref plane, out distance);
+            return CollisionHelper.RayIntersectsPlane(ref this, in plane, out distance);
         }
 
         /// <summary>
@@ -111,9 +111,9 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Plane plane, out float distance)
+        public bool Intersects(ref readonly Plane plane, out float distance)
         {
-            return CollisionHelper.RayIntersectsPlane(ref this, ref plane, out distance);
+            return CollisionHelper.RayIntersectsPlane(ref this, in plane, out distance);
         }
 
         /// <summary>
@@ -123,9 +123,9 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Plane plane, out Vector3 point)
+        public bool Intersects(ref readonly Plane plane, out Vector3 point)
         {
-            return CollisionHelper.RayIntersectsPlane(ref this, ref plane, out point);
+            return CollisionHelper.RayIntersectsPlane(ref this, in plane, out point);
         }
 
         /// <summary>
@@ -135,10 +135,10 @@ namespace Stride.Core.Mathematics
         /// <param name="vertex2">The second vertex of the triangle to test.</param>
         /// <param name="vertex3">The third vertex of the triangle to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
+        public bool Intersects(ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3)
         {
             float distance;
-            return CollisionHelper.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out distance);
+            return CollisionHelper.RayIntersectsTriangle(ref this, in vertex1, in vertex2, in vertex3, out distance);
         }
 
         /// <summary>
@@ -150,9 +150,9 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out float distance)
+        public bool Intersects(ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3, out float distance)
         {
-            return CollisionHelper.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out distance);
+            return CollisionHelper.RayIntersectsTriangle(ref this, in vertex1, in vertex2, in vertex3, out distance);
         }
 
         /// <summary>
@@ -164,9 +164,9 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out Vector3 point)
+        public bool Intersects(ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3, out Vector3 point)
         {
-            return CollisionHelper.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out point);
+            return CollisionHelper.RayIntersectsTriangle(ref this, in vertex1, in vertex2, in vertex3, out point);
         }
 
         /// <summary>
@@ -174,10 +174,10 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingBox box)
+        public bool Intersects(ref readonly BoundingBox box)
         {
             float distance;
-            return CollisionHelper.RayIntersectsBox(ref this, ref box, out distance);
+            return CollisionHelper.RayIntersectsBox(ref this, in box, out distance);
         }
 
         /// <summary>
@@ -187,9 +187,9 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingBox box, out float distance)
+        public bool Intersects(ref readonly BoundingBox box, out float distance)
         {
-            return CollisionHelper.RayIntersectsBox(ref this, ref box, out distance);
+            return CollisionHelper.RayIntersectsBox(ref this, in box, out distance);
         }
 
         /// <summary>
@@ -199,9 +199,9 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingBox box, out Vector3 point)
+        public bool Intersects(ref readonly BoundingBox box, out Vector3 point)
         {
-            return CollisionHelper.RayIntersectsBox(ref this, ref box, out point);
+            return CollisionHelper.RayIntersectsBox(ref this, in box, out point);
         }
 
         /// <summary>
@@ -209,10 +209,10 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingSphere sphere)
+        public bool Intersects(ref readonly BoundingSphere sphere)
         {
             float distance;
-            return CollisionHelper.RayIntersectsSphere(ref this, ref sphere, out distance);
+            return CollisionHelper.RayIntersectsSphere(ref this, in sphere, out distance);
         }
 
         /// <summary>
@@ -222,9 +222,9 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingSphere sphere, out float distance)
+        public bool Intersects(ref readonly BoundingSphere sphere, out float distance)
         {
-            return CollisionHelper.RayIntersectsSphere(ref this, ref sphere, out distance);
+            return CollisionHelper.RayIntersectsSphere(ref this, in sphere, out distance);
         }
 
         /// <summary>
@@ -234,9 +234,9 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingSphere sphere, out Vector3 point)
+        public bool Intersects(ref readonly BoundingSphere sphere, out Vector3 point)
         {
-            return CollisionHelper.RayIntersectsSphere(ref this, ref sphere, out point);
+            return CollisionHelper.RayIntersectsSphere(ref this, in sphere, out point);
         }
 
         /// <summary>

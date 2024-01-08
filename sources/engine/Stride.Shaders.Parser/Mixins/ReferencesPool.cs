@@ -15,21 +15,20 @@ namespace Stride.Shaders.Parser.Mixins
     [DataContract]
     internal class ReferencesPool
     {
-        /// <summary>
-        /// List of all the variable references
-        /// </summary>
-        public Dictionary<Variable, HashSet<ExpressionNodeCouple>> VariablesReferences { get; private set; }
+        private Dictionary<Variable, HashSet<ExpressionNodeCouple>> variablesReferences = new();
+        private Dictionary<MethodDeclaration, HashSet<MethodInvocationExpression>> methodsReferences = new();
 
         /// <summary>
         /// List of all the variable references
         /// </summary>
-        public Dictionary<MethodDeclaration, HashSet<MethodInvocationExpression>> MethodsReferences { get; private set; }
+        [DataMember]
+        public Dictionary<Variable, HashSet<ExpressionNodeCouple>> VariablesReferences => variablesReferences;
 
-        public ReferencesPool()
-        {
-            VariablesReferences = new Dictionary<Variable, HashSet<ExpressionNodeCouple>>();
-            MethodsReferences = new Dictionary<MethodDeclaration, HashSet<MethodInvocationExpression>>();
-        }
+        /// <summary>
+        /// List of all the variable references
+        /// </summary>
+        [DataMember]
+        public Dictionary<MethodDeclaration, HashSet<MethodInvocationExpression>> MethodsReferences => methodsReferences;
 
         /// <summary>
         /// Merge the argument references into this one
@@ -56,12 +55,12 @@ namespace Stride.Shaders.Parser.Mixins
         }
 
         /// <summary>
-        /// Regen the keys bacause they could have been modified
+        /// Regen the keys because they could have been modified
         /// </summary>
         public void RegenKeys()
         {
-            VariablesReferences = VariablesReferences.ToDictionary(variable => variable.Key, variable => variable.Value);
-            MethodsReferences = MethodsReferences.ToDictionary(method => method.Key, variable => variable.Value);
+            variablesReferences = VariablesReferences.ToDictionary(variable => variable.Key, variable => variable.Value);
+            methodsReferences = MethodsReferences.ToDictionary(method => method.Key, variable => variable.Value);
         }
 
         /// <summary>

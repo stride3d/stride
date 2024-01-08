@@ -24,6 +24,8 @@ namespace Stride.Assets.Models
 
         public bool ImportCustomAttributes { get; set; }
 
+        public int AnimationStack { get; set; }
+
         private unsafe object ExportAnimation(ICommandContext commandContext, ContentManager contentManager, bool failOnEmptyAnimation)
         {
             // Read from model file

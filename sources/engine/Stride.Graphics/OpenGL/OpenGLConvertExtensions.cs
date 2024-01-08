@@ -466,6 +466,27 @@ namespace Stride.Graphics
                     pixelSize = 2;
                     type = PixelType.UnsignedByte;
                     break;
+                case PixelFormat.ETC2_RGB:
+                    internalFormat = InternalFormat.CompressedRgb8Etc2Oes;
+                    format = PixelFormatGl.Rgb;
+                    compressed = true;
+                    pixelSize = 2;
+                    type = PixelType.UnsignedByte;
+                    break;
+                case PixelFormat.ETC2_RGB_SRgb:
+                    internalFormat = InternalFormat.CompressedSrgb8Etc2Oes;
+                    format = PixelFormatGl.Rgb;
+                    compressed = true;
+                    pixelSize = 2;
+                    type = PixelType.UnsignedByte;
+                    break;
+                case PixelFormat.ETC2_RGB_A1:
+                    internalFormat = InternalFormat.CompressedRgb8PunchthroughAlpha1Etc2Oes;
+                    format = PixelFormatGl.Rgba;
+                    compressed = true;
+                    pixelSize = 2;
+                    type = PixelType.UnsignedByte;
+                    break;
                 case PixelFormat.ETC2_RGBA:
                     internalFormat = InternalFormat.CompressedRgba8Etc2Eac;
                     format = PixelFormatGl.Rgba;

@@ -23,39 +23,31 @@ namespace Stride.Core.ProjectTemplating
     [NonIdentifiableCollectionItems]
     public class ProjectTemplate
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ProjectTemplate"/> class.
-        /// </summary>
-        public ProjectTemplate()
-        {
-            Files = new List<ProjectTemplateItem>();
-            Assemblies = new List<UFile>();
-        }
-
+        private string filePath;
         /// <summary>
         /// Gets or sets the template file path.
         /// </summary>
         /// <value>The template path.</value>
-        public string FilePath { get; private set; }
+        public string FilePath { get => filePath; init => filePath = value; }
 
         /// <summary>
         /// Gets a value indicating whether this template description is dynamic (itself requiring T4 parsing before 
         /// generating content files)
         /// </summary>
         /// <value><c>true</c> if this instance is a dynamic template; otherwise, <c>false</c>.</value>
-        public bool IsDynamicTemplate { get; private set; }
+        public bool IsDynamicTemplate { get; init; }
 
         /// <summary>
         /// Gets or sets the files part of the template.
         /// </summary>
         /// <value>The files.</value>
-        public List<ProjectTemplateItem> Files { get; }
+        public List<ProjectTemplateItem> Files { get; } = new();
 
         /// <summary>
         /// Gets or sets the assemblies.
         /// </summary>
         /// <value>The assemblies.</value>
-        public List<UFile> Assemblies { get; }
+        public List<UFile> Assemblies { get; } = new();
 
         /// <summary>
         /// Generates this project template to the specified output directory.
@@ -311,7 +303,7 @@ namespace Stride.Core.ProjectTemplating
                 }
             }
 
-            template.FilePath = fullFilePath;
+            template.filePath = fullFilePath;
             return template;
         }
     }

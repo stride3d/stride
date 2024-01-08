@@ -12,12 +12,12 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.LightProbes;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {

@@ -43,7 +43,7 @@
       <BitmapImage x:Key="ImageBackground" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/Robot.jpg"/>
 
       <s:Double x:Key="ReleaseNotesMargin">20</s:Double>
-      <Thickness x:Key="TileBorderThickness">15</Thickness>
+      <Thickness x:Key="TileBorderThickness">12</Thickness>
       <Thickness x:Key="TileListBorderThickness">0,0,0,20</Thickness>
       <!-- 15 + 16 vertically -->
       <Thickness x:Key="TabHeaderMargin">0,15,0,31</Thickness>
@@ -499,19 +499,36 @@
                 </StackPanel>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Top">
-                <DockPanel Height="32" Margin="10,0">
+                <DockPanel Height="32" Margin="5,0">
                   <Image Source="{StaticResource ImageSwitchVersion}" Width="26" Height="26" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
                   <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.SwitchOrUpdateVersion}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                 </DockPanel>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
-                <UniformGrid Columns="2">
-                  <ContentControl Grid.Column="0" Margin="0,0,2,0" Content="{Binding VsixPackage2019}"/>
-                  <ContentControl Grid.Column="1" Margin="2,0,0,0" Content="{Binding VsixPackage2022}"/>
-                </UniformGrid>
+                <StackPanel >
+                  <ContentControl Grid.Column="0" Margin="2" Content="{Binding VsixPackage2019}"/>
+                  <ContentControl Grid.Column="1" Margin="2" Content="{Binding VsixPackage2022}"/>
+                </StackPanel>
               </Border>
-              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
-                <DockPanel Height="32" Margin="10,0">
+              <Border BorderBrush="{StaticResource TileBorderBrush}" DockPanel.Dock="Bottom">
+                <DockPanel Height="20" Margin="5,0">
+                  <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
+                        Command="{Binding OpenUrlCommand}"
+                        CommandParameter="{x:Static r:Urls.VisualStudio}"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
+                    <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
+                      <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioDownloadPage}" FontSize="12" TextAlignment="Left" VerticalAlignment="Center" Loaded="TextBlockVisualStudioDownloadPage_Loaded"/>
+                    </StackPanel>
+                  </Button>
+                </DockPanel>
+              </Border>
+              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="15,0,0,0" DockPanel.Dock="Bottom">
+                <DockPanel Height="32" Margin="5,0">
                   <Image Source="{StaticResource ImageVisualStudio}" Width="26" Height="26" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
                   <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioExtension}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                 </DockPanel>

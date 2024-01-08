@@ -6,10 +6,7 @@
   <Import Project="..\..\targets\Stride.Core.props" />
 
   <PropertyGroup>
-    <ProductVersion>9.0.30729</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <SignAssembly>false</SignAssembly>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <StrideBuildTags>*</StrideBuildTags>
     <AssemblyName>Stride.Irony</AssemblyName>

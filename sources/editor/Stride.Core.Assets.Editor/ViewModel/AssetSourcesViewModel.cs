@@ -12,7 +12,7 @@ using Stride.Core.IO;
 using Stride.Core.Storage;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dirtiables;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {

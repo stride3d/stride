@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
@@ -15,7 +16,7 @@ using Stride.Core.Packages;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.VisualStudio;
 using Stride.LauncherApp.Resources;
 using Stride.LauncherApp.Services;
@@ -74,7 +75,7 @@ namespace Stride.LauncherApp.ViewModels
                     return;
                 }
                 // Add Stride package store (still used for Xenko up to 3.0)
-                if (await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskAddNugetDeprecatedSource, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                if (await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.AskAddNugetDeprecatedSource, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
                     NugetStore.UpdatePackageSource(settings, "Stride", "https://packages.stride3d.net/nuget");
                     settings.SaveToDisk();
@@ -182,9 +183,10 @@ namespace Stride.LauncherApp.ViewModels
 ```
 {e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
 ```";
-                        await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                        await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                         // We do not want our users to use the old launcher when a new one is available.
-                        Environment.Exit(1);
+                        if (e is not HttpRequestException) // Prevent launcher closing when the user does not have internet access
+                            Environment.Exit(1);
                     }
                 });
                 // Run news task early so that it can run while we fetch package versions
@@ -293,7 +295,7 @@ namespace Stride.LauncherApp.ViewModels
 ```
 {e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
 ```";
-                        Task.WaitAll(ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Warning));
+                        Task.WaitAll(ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Warning));
                     }
 
                     // Retrieve all local packages
@@ -356,7 +358,7 @@ namespace Stride.LauncherApp.ViewModels
                     }
                     catch (Exception e)
                     {
-                        await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Strings.ErrorDevRedirect, e), MessageBoxButton.OK, MessageBoxImage.Information);
+                        await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.ErrorDevRedirect, e), MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
             }
@@ -423,7 +425,7 @@ namespace Stride.LauncherApp.ViewModels
 ```
 {LogMessages}
 ```";
-                    await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
                 // We are offline, let's stop here
@@ -503,7 +505,7 @@ namespace Stride.LauncherApp.ViewModels
             {
                 if (firstInstall)
                 {
-                    var result = await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskInstallVersion, MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.AskInstallVersion, MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (result == MessageBoxResult.Yes)
                     {
                         var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded);
@@ -512,7 +514,7 @@ namespace Stride.LauncherApp.ViewModels
                         // if VS2022 is installed (version 17.x)
                         if (!VsixPackage2022.IsLatestVersionInstalled && VsixPackage2022.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 17))
                         {
-                            result = await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Strings.AskInstallVSIX, "2022"), MessageBoxButton.YesNo, MessageBoxImage.Question);
+                            result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.AskInstallVSIX, "2022"), MessageBoxButton.YesNo, MessageBoxImage.Question);
                             if (result == MessageBoxResult.Yes)
                             {
                                 await VsixPackage2022.ExecuteAction();
@@ -522,7 +524,7 @@ namespace Stride.LauncherApp.ViewModels
                         // if VS2019 is installed (version 16.x)
                         if (!VsixPackage2019.IsLatestVersionInstalled && VsixPackage2019.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 16))
                         {
-                            result = await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Strings.AskInstallVSIX, "2019"), MessageBoxButton.YesNo, MessageBoxImage.Question);
+                            result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.AskInstallVSIX, "2019"), MessageBoxButton.YesNo, MessageBoxImage.Question);
                             if (result == MessageBoxResult.Yes)
                             {
                                 await VsixPackage2019.ExecuteAction();
@@ -584,7 +586,7 @@ namespace Stride.LauncherApp.ViewModels
             catch (Exception e)
             {
                 var message = string.Format(Strings.ErrorStartingProcess, e.FormatSummary(true));
-                await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -609,7 +611,7 @@ namespace Stride.LauncherApp.ViewModels
 
             if (latestVersion.IsProcessing)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Strings.InstallAlreadyInProgress, MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.InstallAlreadyInProgress, MessageBoxButton.OK, MessageBoxImage.Information);
                 InstallLatestVersionCommand.IsEnabled = false;
             }
 
@@ -625,7 +627,7 @@ namespace Stride.LauncherApp.ViewModels
             // FIXME: catch only specific exceptions?
             catch (Exception)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Strings.ErrorOpeningBrowser, MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.ErrorOpeningBrowser, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

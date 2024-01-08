@@ -45,11 +45,11 @@ namespace Stride.Rendering
 
         public abstract int Size { get; }
 
-        internal void SetName(string name)
+        internal void SetName(string nameParam)
         {
-            if (name == null) throw new ArgumentNullException("name");
+            if (nameParam == null) throw new ArgumentNullException(nameof(nameParam));
 
-            Name = string.Intern(name);
+            name = string.Intern(nameParam);
             UpdateName();
         }
 

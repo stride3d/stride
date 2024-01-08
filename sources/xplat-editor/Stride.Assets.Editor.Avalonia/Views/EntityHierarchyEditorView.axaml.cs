@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
@@ -15,13 +14,5 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     public EntityHierarchyEditorView()
     {
         InitializeComponent();
-    }
-
-    public void InitializeComponent(bool loadXaml = true)
-    {
-        if (loadXaml)
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
     }
 }

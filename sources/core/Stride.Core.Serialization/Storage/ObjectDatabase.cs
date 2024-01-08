@@ -37,8 +37,8 @@ namespace Stride.Core.Storage
             ContentIndexMap = new ObjectDatabaseContentIndexMap();
 
             // Try to open file backends
-            bool isReadOnly = Platform.Type != PlatformType.Windows;
-            var backend = new FileOdbBackend(vfsMainUrl, indexName, isReadOnly);
+            bool isDesktop = Platform.Type is PlatformType.Windows or PlatformType.Linux or PlatformType.macOS;
+            var backend = new FileOdbBackend(vfsMainUrl, indexName, !isDesktop);
 
             ContentIndexMap.Merge(backend.ContentIndexMap);
             if (backend.IsReadOnly)
@@ -146,7 +146,7 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Loads the specified bundle.
+        /// Unloads the specified bundle.
         /// </summary>
         /// <param name="bundleName">Name of the bundle.</param>
         public void UnloadBundle(string bundleName)

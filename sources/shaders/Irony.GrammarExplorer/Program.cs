@@ -12,38 +12,46 @@
 
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using System.Diagnostics;
+using System.Windows.Forms;
 
-namespace Irony.GrammarExplorer {
-  class Program {
-    /// <summary>
-    /// The main entry point for the application.
-    /// </summary>
-    [STAThread]
-    static void Main() {
-      Application.EnableVisualStyles();
-      Application.SetCompatibleTextRenderingDefault(false);
-      Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
-      AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-      Application.Run(new fmGrammarExplorer());
+namespace Irony.GrammarExplorer
+{
+    class Program
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            Application.Run(new fmGrammarExplorer());
+        }
+
+        static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
+        {
+            fmShowException.ShowException(e.Exception);
+            Debug.Write("Exception!: ############################################## \n" + e.Exception.ToString());
+        }
+
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = e.ExceptionObject as Exception;
+            string message = (ex == null ? e.ExceptionObject.ToString() : ex.Message);
+            if (ex == null)
+            {
+                Debug.Write("Exception!: ############################################## \n" + e.ExceptionObject.ToString());
+                MessageBox.Show(message, "Exception");
+            }
+            else
+            {
+                fmShowException.ShowException(ex);
+            }
+        }
+
     }
-
-    static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e) {
-      fmShowException.ShowException(e.Exception);
-      Debug.Write("Exception!: ############################################## \n" + e.Exception.ToString());
-    }
-
-    static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e) {
-      Exception ex = e.ExceptionObject as Exception;
-      string message = (ex == null ? e.ExceptionObject.ToString() : ex.Message);
-      if (ex == null) {
-        Debug.Write("Exception!: ############################################## \n" + e.ExceptionObject.ToString());
-        MessageBox.Show(message, "Exception");
-      } else {
-        fmShowException.ShowException(ex);
-      }
-    }
-
-  }
 }

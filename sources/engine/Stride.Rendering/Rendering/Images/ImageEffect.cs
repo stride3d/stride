@@ -2,8 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-
+using System.Runtime.InteropServices;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Graphics;
 
 namespace Stride.Rendering.Images
@@ -22,7 +23,11 @@ namespace Stride.Rendering.Images
         private Texture[] outputRenderTargetViews;
         private Texture[] createdOutputRenderTargetViews;
 
-        private Viewport? viewport;
+        private int boundViewportCount;
+        private readonly Viewport[] viewports = new Viewport[CommandList.MaxViewportAndScissorRectangleCount];
+
+        private int boundScissorCount;
+        private readonly Rectangle[] scissors = new Rectangle[CommandList.MaxViewportAndScissorRectangleCount];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageEffect" /> class.
@@ -142,13 +147,71 @@ namespace Stride.Rendering.Images
             outputRenderTargetViews = renderTargetViews;
         }
 
+
         /// <summary>
-        /// Sets the viewport to use .
+        /// Binds a single viewport to the rasterizer stage.
         /// </summary>
-        /// <param name="viewport">The viewport.</param>
-        public void SetViewport(Viewport? viewport)
+        /// <param name="value">The viewport.</param>
+        public void SetViewport(Viewport? value)
         {
-            this.viewport = viewport; // TODO: support multiple viewport?
+            if (value.HasValue)
+            {
+                var viewport = value.Value;
+                SetViewports(MemoryMarshal.CreateReadOnlySpan(ref viewport, 1));
+            }
+            else
+            {
+                SetViewports(ReadOnlySpan<Viewport>.Empty);
+            }
+        }
+
+        /// <summary>
+        /// Binds a set of viewports to the rasterizer stage.
+        /// </summary>
+        /// <param name="values">The set of viewports to bind.</param>
+        /// <remarks>Only <see cref="CommandList.MaxViewportAndScissorRectangleCount"/> scissors can be used simultaneously</remarks>
+        public void SetViewports(ReadOnlySpan<Viewport> values)
+        {
+            if (values.Length > CommandList.MaxViewportAndScissorRectangleCount)
+            {
+                throw new ArgumentException($"Can not use more than {CommandList.MaxViewportAndScissorRectangleCount} viewports simultaneously");
+            }
+
+            boundViewportCount = values.Length;
+            values.CopyTo(viewports);
+        }
+
+        /// <summary>
+        /// Binds a single scissor rectangle to the rasterizer stage.
+        /// </summary>
+        /// <param name="value">The scissor rectangle.</param>
+        public void SetScissorRectangle(Rectangle? value)
+        {
+            if (value.HasValue)
+            {
+                var scissor = value.Value;
+                SetScissorRectangles(MemoryMarshal.CreateReadOnlySpan(ref scissor, 1));
+            }
+            else
+            {
+                SetScissorRectangles(ReadOnlySpan<Rectangle>.Empty);
+            }
+        }
+
+        /// <summary>
+        /// Binds a set of scissor rectangles to the rasterizer stage.
+        /// </summary>
+        /// <param name="values">The set of scissor rectangles to bind.</param>
+        /// <remarks>Only <see cref="CommandList.MaxViewportAndScissorRectangleCount"/> viewports can be used simultaneously</remarks>
+        public void SetScissorRectangles(ReadOnlySpan<Rectangle> values)
+        {
+            if (values.Length > CommandList.MaxViewportAndScissorRectangleCount)
+            {
+                throw new ArgumentException($"Can not use more than {CommandList.MaxViewportAndScissorRectangleCount} scissors simultaneously");
+            }
+
+            boundScissorCount = values.Length;
+            values.CopyTo(scissors);
         }
 
         protected override void PreDrawCore(RenderDrawContext context)
@@ -167,7 +230,7 @@ namespace Stride.Rendering.Images
         /// <param name="context"></param>
         protected virtual void SetRenderTargets(RenderDrawContext context)
         {
-            // Transtion inputs to read sources
+            // Transition inputs to read sources
             for (int i = 0; i <= maxInputTextureIndex; ++i)
             {
                 if (inputTextures[i] != null)
@@ -210,9 +273,14 @@ namespace Stride.Rendering.Images
                 context.CommandList.SetRenderTargetsAndViewport(outputDepthStencilView, null);
             }
 
-            if (viewport.HasValue)
+            if (boundViewportCount > 0)
             {
-                context.CommandList.SetViewport(viewport.Value);
+                context.CommandList.SetViewports(boundViewportCount, viewports);
+            }
+
+            if (boundScissorCount > 0)
+            {
+                context.CommandList.SetScissorRectangles(boundScissorCount, scissors);
             }
         }
 

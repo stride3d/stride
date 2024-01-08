@@ -19,7 +19,6 @@ namespace Stride.Core.AssemblyProcessor
         private readonly Dictionary<AssemblyDefinition, byte[]> assemblyData = new Dictionary<AssemblyDefinition, byte[]>();
 
         private readonly List<string> references = new List<string>();
-        private readonly List<string> referencePaths = new List<string>();
 
         private HashSet<string> existingWindowsKitsReferenceAssemblies;
 
@@ -101,7 +100,6 @@ namespace Stride.Core.AssemblyProcessor
         public void RegisterReference(string path)
         {
             references.Add(path);
-            referencePaths.Add(Path.GetDirectoryName(path));
         }
 
         /// <summary>
@@ -137,65 +135,11 @@ namespace Stride.Core.AssemblyProcessor
                 }
             }
 
-            // Try list of reference paths
-            foreach (var referencePath in referencePaths)
-            {
-                foreach (var extension in new[] { ".dll", ".exe" })
-                {
-                    var assemblyFile = Path.Combine(referencePath, name.Name + extension);
-                    if (File.Exists(assemblyFile))
-                    {
-                        // Add it as a new reference
-                        references.Add(assemblyFile);
-
-                        return GetAssembly(assemblyFile, parameters);
-                    }
-                }
-            }
-
-            if (WindowsKitsReferenceDirectory != null)
-            {
-                if (existingWindowsKitsReferenceAssemblies == null)
-                {
-                    // First time, make list of existing assemblies in windows kits directory
-                    existingWindowsKitsReferenceAssemblies = new HashSet<string>();
-
-                    try
-                    {
-                        foreach (var directory in Directory.EnumerateDirectories(WindowsKitsReferenceDirectory))
-                        {
-                            existingWindowsKitsReferenceAssemblies.Add(Path.GetFileName(directory));
-                        }
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-
-                // Look for this assembly in the windows kits directory
-                if (existingWindowsKitsReferenceAssemblies.Contains(name.Name))
-                {
-                    var assemblyFile = Path.Combine(WindowsKitsReferenceDirectory, name.Name, name.Version.ToString(), name.Name + ".winmd");
-                    if (File.Exists(assemblyFile))
-                    {
-                        if (parameters.AssemblyResolver == null)
-                            parameters.AssemblyResolver = this;
-
-                        return ModuleDefinition.ReadModule(assemblyFile, parameters).Assembly;
-                    }
-                }
-            }
-
             if (parameters == null)
                 parameters = new ReaderParameters();
 
             try
             {
-                // Check .winmd files as well
-                var assembly = SearchDirectoryExtra(name, GetSearchDirectories(), parameters);
-                if (assembly != null)
-                    return assembly;
-
                 return base.Resolve(name, parameters);
             }
             catch (AssemblyResolutionException)
@@ -210,23 +154,6 @@ namespace Stride.Core.AssemblyProcessor
                 }
                 throw;
             }
-        }
-
-        // Copied from BaseAssemblyResolver
-        AssemblyDefinition SearchDirectoryExtra(AssemblyNameReference name, IEnumerable<string> directories, ReaderParameters parameters)
-        {
-            var extensions = new[] { ".winmd" };
-            foreach (var directory in directories)
-            {
-                foreach (var extension in extensions)
-                {
-                    string file = Path.Combine(directory, name.Name + extension);
-                    if (File.Exists(file))
-                        return GetAssembly(file, parameters);
-                }
-            }
-
-            return null;
         }
 
         // Copied from BaseAssemblyResolver

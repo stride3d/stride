@@ -1,7 +1,7 @@
 
 using System.Globalization;
 using Avalonia;
-using Stride.Core.Assets.Editor.Avalonia.Converters;
+using Stride.Core.Presentation.Avalonia.Converters;
 using Stride.Graphics;
 
 namespace Stride.GameStudio.Avalonia.Converters;

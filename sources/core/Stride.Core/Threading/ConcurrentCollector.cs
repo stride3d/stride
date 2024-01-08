@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Threading
 {
@@ -58,13 +59,13 @@ namespace Stride.Core.Threading
     }
 
     /// <summary>
-    /// A collector that allows for concurrent adding of items, as well as non-thread-safe clearing and accessing of the underlying colletion.
+    /// A collector that allows for concurrent adding of items, as well as non-thread-safe clearing and accessing of the underlying collection.
     /// </summary>
     /// <typeparam name="T">The element type in the collection.</typeparam>
     public class ConcurrentCollector<T> : IReadOnlyList<T>
     {
         private const int DefaultCapacity = 16;
-
+        private static readonly ProfilingKey CloseKey = new ProfilingKey($"ConcurrentCollector<{typeof(T).Name}>.Close");
         private class Segment
         {
             public T[] Items;
@@ -83,6 +84,9 @@ namespace Stride.Core.Threading
             tail = head = new Segment { Items = new T[capacity] };
         }
 
+        /// <summary>
+        /// Gets the underlying array. It is an error to access Items after adding elements, but before closing.
+        /// </summary>
         public T[] Items
         {
             get
@@ -99,6 +103,7 @@ namespace Stride.Core.Threading
         /// </summary>
         public void Close()
         {
+            using var _ = Profiler.Begin(CloseKey);
             if (head.Next != null)
             {
                 var newItems = new T[tail.Offset + tail.Items.Length];
@@ -198,6 +203,10 @@ namespace Stride.Core.Threading
             }
         }
 
+        /// <summary>
+        /// Clears the collection. If <paramref name="fastClear"/> is true, the underlying array is not cleared.
+        /// </summary>
+        /// <param name="fastClear"></param>
         public void Clear(bool fastClear)
         {
             Close();

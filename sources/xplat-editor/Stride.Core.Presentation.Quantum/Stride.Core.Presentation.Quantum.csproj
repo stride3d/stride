@@ -2,8 +2,8 @@
   <Import Project="..\..\targets\Stride.Core.props" />
 
   <ItemGroup>
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Quantum\Stride.Core.Quantum.csproj" />
-    <ProjectReference Include="..\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />

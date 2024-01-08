@@ -10,6 +10,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
+using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Buffer = Stride.Graphics.Buffer;
 
@@ -21,6 +22,11 @@ namespace Stride.Rendering
     public class MeshRenderFeature : RootEffectRenderFeature
     {
         private readonly ThreadLocal<DescriptorSet[]> descriptorSets = new ThreadLocal<DescriptorSet[]>();
+
+        private static readonly ProfilingKey ExtractKey = new ProfilingKey("MeshRenderFeature.Extract");
+        private static readonly ProfilingKey PreparePermutationsImplKey = new ProfilingKey("MeshRenderFeature.PreparePermutationsImpl");
+        private static readonly ProfilingKey PrepareKey = new ProfilingKey("MeshRenderFeature.Prepare");
+        private static readonly ProfilingKey DrawKey = new ProfilingKey("MeshRenderFeature.Draw");
 
         private Buffer emptyBuffer;
 
@@ -81,6 +87,7 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         public override void Extract()
         {
+            using var _ = Profiler.Begin(ExtractKey);
             foreach (var renderFeature in RenderFeatures)
             {
                 renderFeature.Extract();
@@ -90,6 +97,7 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         public override void PrepareEffectPermutationsImpl(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PreparePermutationsImplKey);
             // Setup ActiveMeshDraw
             Dispatcher.ForEach(RenderObjects, renderObject =>
             {
@@ -109,12 +117,15 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         public override void Prepare(RenderDrawContext context)
         {
-            base.Prepare(context);
-
-            // Prepare each sub render feature
-            foreach (var renderFeature in RenderFeatures)
+            using (Profiler.Begin(PrepareKey))
             {
-                renderFeature.Prepare(context);
+                base.Prepare(context);
+
+                // Prepare each sub render feature
+                foreach (var renderFeature in RenderFeatures)
+                {
+                    renderFeature.Prepare(context);
+                }
             }
         }
 
@@ -136,6 +147,7 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
         {
+            using var _ = Profiler.Begin(DrawKey);
             foreach (var renderFeature in RenderFeatures)
             {
                 renderFeature.Draw(context, renderView, renderViewStage);
@@ -145,6 +157,7 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
         {
+            using var _ = Profiler.Begin(DrawKey);
             var commandList = context.CommandList;
 
             foreach (var renderFeature in RenderFeatures)

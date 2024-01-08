@@ -12,7 +12,9 @@ namespace Stride
         /// </summary>
         /// <remarks>
         /// Impact on compilation on other components:
-        /// - Shaders are compiled in debug mode with debug information.
+        /// <list type="bullet">
+        /// <item>Shaders are compiled in debug mode with debug information.</item>
+        /// </list>
         /// </remarks>
         Debug,
 
@@ -21,7 +23,9 @@ namespace Stride
         /// </summary>
         /// <remarks>
         /// Impact on compilation on other components:
-        /// - Shaders are compiled in optimization level 1 with debug information.
+        /// <list type="bullet">
+        /// <item>Shaders are compiled in optimization level 1 with debug information.</item>
+        /// </list>
         /// </remarks>
         Release,
 
@@ -30,7 +34,9 @@ namespace Stride
         /// </summary>
         /// <remarks>
         /// Impact on compilation on other components:
-        /// - Shaders are compiled in optimization level 2 with <c>no debug</c> information.
+        /// <list type="bullet">
+        /// <item>Shaders are compiled in optimization level 2 with <c>no debug</c> information.</item>
+        /// </list>
         /// </remarks>
         AppStore,
 
@@ -39,7 +45,9 @@ namespace Stride
         /// </summary>
         /// <remarks>
         /// Impact on compilation on other components:
-        /// - Shaders are compiled in debug mode with debug information.
+        /// <list type="bullet">
+        /// <item>Shaders are compiled in debug mode with debug information.</item>
+        /// </list>
         /// </remarks>
         Testing,
     }

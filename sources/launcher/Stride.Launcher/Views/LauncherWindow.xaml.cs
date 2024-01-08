@@ -7,11 +7,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
+using System.Xml.Linq;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
+using Stride.Core.VisualStudio;
 using Stride.LauncherApp.Services;
 using Stride.LauncherApp.ViewModels;
 
@@ -79,6 +81,17 @@ namespace Stride.LauncherApp.Views
             LauncherSettings.Save();
             if (ExitOnUserClose)
                 Environment.Exit(1);
+        }
+
+        private void TextBlockVisualStudioDownloadPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            bool hasCompatibleVersion = VisualStudioVersions.AvailableVisualStudioInstances
+                .Any(ide => ide.InstallationVersion.Major == 16 || ide.InstallationVersion.Major == 17);
+
+            if (sender is TextBlock textBlockVisualStudioDownloadPage && hasCompatibleVersion)
+            {
+                textBlockVisualStudioDownloadPage.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void SelectedTabChanged(object sender, SelectionChangedEventArgs e)

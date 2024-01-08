@@ -22,7 +22,7 @@ namespace Stride.Graphics.Font
         internal readonly HashSet<SpriteFont> AllocatedSpriteFonts = new HashSet<SpriteFont>();
 
         /// <summary>
-        /// Create a new instance of <see cref="FontSystem" /> base on the provided <see cref="GraphicsDevice" />.
+        /// Create a new instance of <see cref="FontSystem" /> base on the provided <see cref="Stride.Graphics.GraphicsDevice" />.
         /// </summary>
         public FontSystem()
         {

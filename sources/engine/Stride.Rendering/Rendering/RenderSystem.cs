@@ -8,6 +8,7 @@ using System.Threading;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Threading;
+using Stride.Core.Diagnostics;
 using Stride.Graphics;
 
 namespace Stride.Rendering
@@ -27,6 +28,20 @@ namespace Stride.Rendering
         private Texture[] renderTargets;
 
         private readonly Dictionary<Type, List<RootRenderFeature>> renderFeaturesByType = new Dictionary<Type, List<RootRenderFeature>>();
+
+        private static readonly ProfilingKey CreateObjectNodesKey = new ProfilingKey($"{nameof(RenderSystem)}.CreateObjectNodes");
+        private static readonly ProfilingKey SortRenderObjectsKey = new ProfilingKey($"{nameof(RenderSystem)}.Sort Render Objects");
+        private static readonly ProfilingKey CollectObjectKey = new ProfilingKey($"{nameof(RenderSystem)}.CollectObject");
+        private static readonly ProfilingKey SortRenderNodesKey = new ProfilingKey($"{nameof(RenderSystem)}.SortRenderNodes");
+        private static readonly ProfilingKey RenderFeatureExtractKey = new ProfilingKey($"{nameof(RenderSystem)}.RenderFeature.Extract");
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey($"{nameof(RenderSystem)}.PrepareEffectPermutations");
+        private static readonly ProfilingKey PrepareSortKey = new ProfilingKey($"{nameof(RenderSystem)}.Prepare.Sort");
+        private static readonly ProfilingKey UpdateRenderViewsKey = new ProfilingKey($"{nameof(RenderSystem)}.UpdateRenderViews");
+        private static readonly ProfilingKey DrawRootRenderFeaturesKey = new ProfilingKey($"{nameof(RenderSystem)}.DrawRootRenderFeatures");
+        private static readonly ProfilingKey DrawRenderFeatureChunksKey = new ProfilingKey($"{nameof(RenderSystem)}.DrawRenderFeatureChunks");
+        private static readonly ProfilingKey DrawKey = new ProfilingKey($"{nameof(RenderSystem)}.Draw");
+        private static readonly ProfilingKey PrepareDataArraysKey = new ProfilingKey($"{nameof(RenderSystem)}.PrepareDataArrays");
+
         private IServiceRegistry registry;
 
         // TODO GRAPHICS REFACTOR should probably be controlled by graphics compositor?
@@ -127,9 +142,13 @@ namespace Stride.Rendering
             // Create nodes for objects to render
             Dispatcher.ForEach(Views, view =>
             {
+                using var _ = Profiler.Begin(CreateObjectNodesKey);
                 // Sort per render feature (used for later sorting)
                 // We'll be able to process data more efficiently for the next steps
-                Dispatcher.Sort(view.RenderObjects, RenderObjectFeatureComparer.Default);
+                using (Profiler.Begin(SortRenderObjectsKey, "Sorting {0} RenderObjects", view.RenderObjects.Count))
+                {
+                    Dispatcher.Sort(view.RenderObjects, RenderObjectFeatureComparer.Default);
+                }
 
                 Dispatcher.ForEach(view.RenderObjects, () => extractThreadLocals.Value, (renderObject, batch) =>
                 {
@@ -146,28 +165,31 @@ namespace Stride.Rendering
                     // Collect object
                     // TODO: Check which stage it belongs to (and skip everything if it doesn't belong to any stage)
                     // TODO: For now, we build list and then copy. Another way would be to count and then fill (might be worse, need to check)
-                    var activeRenderStages = renderObject.ActiveRenderStages;
-                    foreach (var renderViewStage in view.RenderStages)
+
+                    using (Profiler.Begin(CollectObjectKey))
                     {
-                        // Check if this RenderObject wants to be rendered for this render stage
-                        var renderStageIndex = renderViewStage.Index;
-                        if (!activeRenderStages[renderStageIndex].Active)
-                            continue;
+                        var activeRenderStages = renderObject.ActiveRenderStages;
+                        foreach (var renderViewStage in view.RenderStages)
+                        {
+                            // Check if this RenderObject wants to be rendered for this render stage
+                            var renderStageIndex = renderViewStage.Index;
+                            if (!activeRenderStages[renderStageIndex].Active)
+                                continue;
 
-                        var renderStage = RenderStages[renderStageIndex];
-                        if (renderStage.Filter != null && !renderStage.Filter.IsVisible(renderObject, view, renderViewStage))
-                            continue;
+                            var renderStage = RenderStages[renderStageIndex];
+                            if (renderStage.Filter != null && !renderStage.Filter.IsVisible(renderObject, view, renderViewStage))
+                                continue;
 
-                        var renderNode = renderFeature.CreateRenderNode(renderObject, view, renderViewNode, renderStage);
+                            var renderNode = renderFeature.CreateRenderNode(renderObject, view, renderViewNode, renderStage);
 
-                        // Note: Used mostly during updating
-                        viewFeature.RenderNodes.Add(renderNode, batch.ViewFeatureRenderNodeCache);
+                            // Note: Used mostly during updating
+                            viewFeature.RenderNodes.Add(renderNode, batch.ViewFeatureRenderNodeCache);
 
-                        // Note: Used mostly during rendering
-                        renderViewStage.RenderNodes.Add(new RenderNodeFeatureReference(renderFeature, renderNode, renderObject), batch.ViewStageRenderNodeCache);
+                            // Note: Used mostly during rendering
+                            renderViewStage.RenderNodes.Add(new RenderNodeFeatureReference(renderFeature, renderNode, renderObject), batch.ViewStageRenderNodeCache);
+                        }
                     }
-                }, batch => batch.Flush());
-
+                }, batch => batch.Flush());            
                 // Finish collectin of view feature nodes
                 foreach (var viewFeature in view.Features)
                 {
@@ -179,8 +201,10 @@ namespace Stride.Rendering
                 foreach (var renderViewStage in view.RenderStages)
                 {
                     renderViewStage.RenderNodes.Close();
-
-                    Dispatcher.Sort(renderViewStage.RenderNodes, RenderNodeFeatureReferenceComparer.Default);
+                    using (Profiler.Begin(SortRenderNodesKey))
+                    {
+                        Dispatcher.Sort(renderViewStage.RenderNodes, RenderNodeFeatureReferenceComparer.Default);
+                    }                    
                 }
             });
 
@@ -197,6 +221,7 @@ namespace Stride.Rendering
             foreach (var renderFeature in RenderFeatures)
             // We might be able to parallelize too as long as we resepect render feature dependency graph (probably very few dependencies in practice)
             {
+                using var _ = Profiler.Begin(RenderFeatureExtractKey);
                 // Divide into task chunks for parallelism
                 renderFeature.Extract();
             }
@@ -225,12 +250,15 @@ namespace Stride.Rendering
         {
             // Sync point: after extract, before prepare (game simulation could resume now)
 
-            // Generate and execute prepare effect jobs
-            foreach (var renderFeature in RenderFeatures)
-            // We might be able to parallelize too as long as we resepect render feature dependency graph (probably very few dependencies in practice)
+            using (Profiler.Begin(PrepareEffectPermutationsKey))
             {
-                // Divide into task chunks for parallelism
-                renderFeature.PrepareEffectPermutations(context);
+                // Generate and execute prepare effect jobs
+                foreach (var renderFeature in RenderFeatures)
+                // We might be able to parallelize too as long as we resepect render feature dependency graph (probably very few dependencies in practice)
+                {
+                    // Divide into task chunks for parallelism
+                    renderFeature.PrepareEffectPermutations(context);
+                }
             }
 
             // Generate and execute prepare jobs
@@ -241,51 +269,54 @@ namespace Stride.Rendering
                 renderFeature.Prepare(context);
             }
 
-            // Sort
-            Dispatcher.ForEach(Views, view =>
+            using (Profiler.Begin(PrepareSortKey))
             {
-                Dispatcher.For(0, view.RenderStages.Count, () => prepareThreadLocals.Acquire(), (index, local) =>
+                // Sort
+                Dispatcher.ForEach(Views, view =>
                 {
-                    var renderViewStage = view.RenderStages[index];
-
-                    var renderNodes = renderViewStage.RenderNodes;
-                    if (renderNodes.Count == 0)
-                        return;
-
-                    var renderStage = RenderStages[renderViewStage.Index];
-                    var sortedRenderNodes = renderViewStage.SortedRenderNodes;
-
-                    // Fast clear, since it's cleared properly in Reset()
-                    sortedRenderNodes.Resize(renderViewStage.RenderNodes.Count, true);
-
-                    if (renderStage.SortMode != null)
+                    Dispatcher.For(0, view.RenderStages.Count, () => prepareThreadLocals.Acquire(), (index, local) =>
                     {
-                        // Make sure sortKeys is big enough
-                        if (local.SortKeys == null || local.SortKeys.Length < renderNodes.Count)
-                            Array.Resize(ref local.SortKeys, renderNodes.Count);
+                        var renderViewStage = view.RenderStages[index];
 
-                        // renderNodes[start..end] belongs to the same render feature
-                        fixed (SortKey* sortKeysPtr = local.SortKeys)
-                            renderStage.SortMode.GenerateSortKey(view, renderViewStage, sortKeysPtr);
+                        var renderNodes = renderViewStage.RenderNodes;
+                        if (renderNodes.Count == 0)
+                            return;
 
-                        Dispatcher.Sort(local.SortKeys, 0, renderNodes.Count, Comparer<SortKey>.Default);
+                        var renderStage = RenderStages[renderViewStage.Index];
+                        var sortedRenderNodes = renderViewStage.SortedRenderNodes;
 
-                        // Reorder list
-                        for (int i = 0; i < renderNodes.Count; ++i)
+                        // Fast clear, since it's cleared properly in Reset()
+                        sortedRenderNodes.Resize(renderViewStage.RenderNodes.Count, true);                        
+
+                        if (renderStage.SortMode != null)
                         {
-                            sortedRenderNodes[i] = renderNodes[local.SortKeys[i].Index];
+                            // Make sure sortKeys is big enough
+                            if (local.SortKeys == null || local.SortKeys.Length < renderNodes.Count)
+                                Array.Resize(ref local.SortKeys, renderNodes.Count);
+
+                            // renderNodes[start..end] belongs to the same render feature
+                            fixed (SortKey* sortKeysPtr = local.SortKeys)
+                                renderStage.SortMode.GenerateSortKey(view, renderViewStage, sortKeysPtr);
+
+                            Dispatcher.Sort(local.SortKeys, 0, renderNodes.Count, Comparer<SortKey>.Default);
+
+                            // Reorder list
+                            for (int i = 0; i < renderNodes.Count; ++i)
+                            {
+                                sortedRenderNodes[i] = renderNodes[local.SortKeys[i].Index];
+                            }
                         }
-                    }
-                    else
-                    {
-                        // No sorting, copy as is
-                        for (int i = 0; i < renderNodes.Count; ++i)
+                        else
                         {
-                            sortedRenderNodes[i] = renderNodes[i];
+                            // No sorting, copy as is
+                            for (int i = 0; i < renderNodes.Count; ++i)
+                            {
+                                sortedRenderNodes[i] = renderNodes[i];
+                            }
                         }
-                    }
-                }, state => prepareThreadLocals.Release(state));
-            });
+                    }, state => prepareThreadLocals.Release(state));
+                });
+            }
 
             // Flush the resources uploaded during Prepare
             context.ResourceGroupAllocator.Flush();
@@ -294,6 +325,7 @@ namespace Stride.Rendering
 
         public void Draw(RenderDrawContext renderDrawContext, RenderView renderView, RenderStage renderStage)
         {
+            using var _ = Profiler.Begin(DrawKey);
             // Sync point: draw (from now, we should execute with a graphics device context to perform rendering)
 
             // Look for the RenderViewStage corresponding to this RenderView | RenderStage combination
@@ -312,10 +344,13 @@ namespace Stride.Rendering
                 throw new InvalidOperationException("Requested RenderView|RenderStage combination doesn't exist. Please add it to RenderView.RenderStages.");
             }
 
-            // Perform updates once per change of RenderView
-            foreach (var renderFeature in RenderFeatures)
+            using (Profiler.Begin(UpdateRenderViewsKey))
             {
-                renderFeature.Draw(renderDrawContext, renderView, renderViewStage);
+                // Perform updates once per change of RenderView
+                foreach (var renderFeature in RenderFeatures)
+                {
+                    renderFeature.Draw(renderDrawContext, renderView, renderViewStage);
+                }
             }
 
             // Generate and execute draw jobs
@@ -327,18 +362,21 @@ namespace Stride.Rendering
 
             if (!GraphicsDevice.IsDeferred)
             {
-                int currentStart, currentEnd;
-                for (currentStart = 0; currentStart < renderNodeCount; currentStart = currentEnd)
+                using (Profiler.Begin(DrawRootRenderFeaturesKey))
                 {
-                    var currentRenderFeature = renderNodes[currentStart].RootRenderFeature;
-                    currentEnd = currentStart + 1;
-                    while (currentEnd < renderNodeCount && renderNodes[currentEnd].RootRenderFeature == currentRenderFeature)
+                    int currentStart, currentEnd;
+                    for (currentStart = 0; currentStart < renderNodeCount; currentStart = currentEnd)
                     {
-                        currentEnd++;
-                    }
+                        var currentRenderFeature = renderNodes[currentStart].RootRenderFeature;
+                        currentEnd = currentStart + 1;
+                        while (currentEnd < renderNodeCount && renderNodes[currentEnd].RootRenderFeature == currentRenderFeature)
+                        {
+                            currentEnd++;
+                        }
 
-                    // Divide into task chunks for parallelism
-                    currentRenderFeature.Draw(renderDrawContext, renderView, renderViewStage, currentStart, currentEnd);
+                        // Divide into task chunks for parallelism
+                        currentRenderFeature.Draw(renderDrawContext, renderView, renderViewStage, currentStart, currentEnd);
+                    }
                 }
             }
             else
@@ -367,6 +405,7 @@ namespace Stride.Rendering
 
                 Dispatcher.For(0, batchCount, () => renderDrawContext.RenderContext.GetThreadContext(), (batchIndex, threadContext) =>
                 {
+                    using var _ = Profiler.Begin(DrawRenderFeatureChunksKey);
                     threadContext.CommandList.Reset();
                     threadContext.CommandList.ClearState();
 
@@ -534,6 +573,7 @@ namespace Stride.Rendering
 
         private void PrepareDataArrays()
         {
+            using var _ = Profiler.Begin(PrepareDataArraysKey);
             // Also do it for each render feature
             foreach (var renderFeature in RenderFeatures)
             {

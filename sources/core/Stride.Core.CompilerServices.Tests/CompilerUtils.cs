@@ -1,8 +1,12 @@
-using System.Reflection;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
+using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Stride.Core.CompilerServices.Analyzers;
 
 namespace Stride.Core.CompilerServices.Tests
 {
@@ -35,5 +39,27 @@ namespace Stride.Core.CompilerServices.Tests
                     MetadataReference.CreateFromFile($"{assembliesDirectory}/Stride.Core.dll"),
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        public static DiagnosticAnalyzer[] AllAnalyzers => typeof(DiagnosticsAnalyzerHelper).Assembly.GetTypes()
+            .Where(t => t.IsSubclassOf(typeof(DiagnosticAnalyzer)) && !t.IsAbstract)
+            .Select(type => (DiagnosticAnalyzer)Activator.CreateInstance(type)).ToArray();
+
+        public static Compilation CreateCompilation(string sourceCode) => CreateCompilation("TestAssembly", sourceCode);
+
+        public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics(
+            this Compilation compilation,
+            params DiagnosticAnalyzer[] analyzers)
+        {
+            // Analyze the compilation and get diagnostics
+            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzers));
+            var diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+
+            return diagnostics;
+        }
+
+        public static ImmutableArray<Diagnostic> CompileAndGetAnalyzerDiagnostics(string sourceCode, params DiagnosticAnalyzer[] analyzers)
+        {
+            Compilation compilation = CreateCompilation(sourceCode);
+            return GetAnalyzerDiagnostics(compilation, analyzers);
+        }
     }
 }

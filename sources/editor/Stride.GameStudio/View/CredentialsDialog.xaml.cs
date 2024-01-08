@@ -10,6 +10,7 @@ using Stride.GameStudio.Services;
 using Stride.Core.Translation;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
+using Stride.GameStudio.Remote;
 
 namespace Stride.GameStudio.View
 {
@@ -86,7 +87,7 @@ namespace Stride.GameStudio.View
                     message = Tr._p("Credentials", "An unknown error occurred.");
                     break;
             }
-            Service.MessageBox(message, MessageBoxButton.OK, messageBoxImage);
+            Service.MessageBoxAsync(message, MessageBoxButton.OK, messageBoxImage);
         }
 
         /// <summary>

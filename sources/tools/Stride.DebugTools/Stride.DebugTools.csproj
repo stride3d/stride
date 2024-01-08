@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -82,7 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Wpf\Stride.Core.Presentation.Wpf.csproj" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(StrideSdkTargets)" />

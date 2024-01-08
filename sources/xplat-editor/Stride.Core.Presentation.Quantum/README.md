@@ -9,10 +9,6 @@ This project adds capabilities to the `Stride.Core.Quantum` library to allow its
   In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) are allowed.
 * It will likely only reference `Stride.Core.Quantum` and `Stride.Core.Presentation`.
 
-## Implementations
-
-`ViewModelBase` is here as well as interfaces for services (but usually not their implementation).
-
 ## Notes
 
 * The goal is to be able to share that library with any application that wants to work with Stride core.

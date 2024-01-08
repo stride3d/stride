@@ -1,171 +1,118 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
+#if SUPPORT_RANGE_ACTION
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics.Contracts;
-using System.Linq;
+#endif
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Presentation.Collections
 {
-    public class ObservableList<T> : IObservableList<T>, IReadOnlyObservableList<T>
+    public class ObservableList<T> : ObservableCollection<T>, IObservableList<T>, IReadOnlyObservableList<T>
     {
-        private readonly List<T> list;
-
         [CollectionAccess(CollectionAccessType.None)]
         public ObservableList()
+            : base()
         {
-            list = new List<T>();
         }
 
         [CollectionAccess(CollectionAccessType.UpdatedContent)]
-        public ObservableList([NotNull] IEnumerable<T> collection)
+        public ObservableList(IEnumerable<T> collection)
+            : base(collection)
         {
-            list = new List<T>(collection);
         }
 
         [CollectionAccess(CollectionAccessType.None)]
         public ObservableList(int capacity)
+            : base(new List<T>(capacity))
         {
-            list = new List<T>(capacity);
-        }
-
-        public T this[int index]
-        {
-            [CollectionAccess(CollectionAccessType.Read)]
-            get { return list[index]; }
-            [CollectionAccess(CollectionAccessType.ModifyExistingContent)]
-            set
-            {
-                var oldItem = list[index];
-                list[index] = value;
-                var arg = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, value, oldItem, index);
-                OnCollectionChanged(arg);
-            }
-        }
-
-        [CollectionAccess(CollectionAccessType.None)]
-        public int Count => list.Count;
-
-        [CollectionAccess(CollectionAccessType.None)]
-        public bool IsReadOnly => false;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public event NotifyCollectionChangedEventHandler CollectionChanged;
-
-        [NotNull]
-        public IList ToIList()
-        {
-            return new NonGenericObservableListWrapper<T>(this);
-        }
-
-        [Pure]
-        public IEnumerator<T> GetEnumerator()
-        {
-            return list.GetEnumerator();
-        }
-        [Pure]
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        [CollectionAccess(CollectionAccessType.UpdatedContent)]
-        public void Add(T item)
-        {
-            Insert(Count, item);
         }
 
         public void AddRange(IEnumerable<T> items)
         {
+#if SUPPORT_RANGE_ACTION
+            // WPF doesn't support range change from within a ObservableCollection-derived class
+            // cf. System.Windows.Data.ListCollectionView vs MS.Internal.Data.EnumerableCollectionView (which is used as a wrapper for other non-derived ObservableCollection)
+            // However, we do need to derive from ObservableCollection for Avalonia or some features don't work well (e.g. in tree views)
             var itemList = items.ToList();
-            if (itemList.Count > 0)
+            if (Items is List<T> list)
             {
                 list.AddRange(itemList);
+            }
+            else
+            {
+                foreach (var item in itemList)
+                {
+                    Items.Add(item);
+                }
+            }
 
+            if (itemList.Count > 0)
+            {
+                OnCountPropertyChanged();
+                OnIndexerPropertyChanged();
                 var arg = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, itemList, Count - itemList.Count);
                 OnCollectionChanged(arg);
             }
-        }
-
-        [CollectionAccess(CollectionAccessType.ModifyExistingContent)]
-        public void Clear()
-        {
-            var raiseEvent = list.Count > 0;
-            list.Clear();
-            if (raiseEvent)
+#else
+            foreach (var item in items)
             {
-                var arg = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
-                OnCollectionChanged(arg);
+                Add(item);
             }
+#endif
         }
 
         [CollectionAccess(CollectionAccessType.Read)]
-        [Pure]
-        public bool Contains(T item)
+        public int FindIndex(Predicate<T> match)
         {
-            return list.Contains(item);
-        }
-
-        [CollectionAccess(CollectionAccessType.Read)]
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            list.CopyTo(array, arrayIndex);
-        }
-
-        [CollectionAccess(CollectionAccessType.Read)]
-        public int FindIndex([NotNull] Predicate<T> match)
-        {
-            return list.FindIndex(match);
-        }
-
-        [CollectionAccess(CollectionAccessType.ModifyExistingContent)]
-        public bool Remove(T item)
-        {
-            int index = list.IndexOf(item);
-            if (index != -1)
+            if (Items is List<T> list)
             {
-                RemoveAt(index);
+                return list.FindIndex(match);
             }
-            return index != -1;
+
+            for (int i = 0; i < Count; i++)
+            {
+                if (match(Items[i])) return i;
+            }
+            return -1;
         }
 
         [CollectionAccess(CollectionAccessType.ModifyExistingContent)]
         public void RemoveRange(int index, int count)
         {
-            var oldItems = list.Skip(index).Take(count).ToList();
-            list.RemoveRange(index, count);
-            var arg = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, oldItems, index);
-            OnCollectionChanged(arg);
-        }
+#if SUPPORT_RANGE_ACTION
+            // WPF doesn't support range change from within a ObservableCollection-derived class
+            // cf. System.Windows.Data.ListCollectionView vs MS.Internal.Data.EnumerableCollectionView (which is used as a wrapper for other non-derived ObservableCollection)
+            // However, we do need to derive from ObservableCollection for Avalonia or some features don't work well (e.g. in tree views)
+            var oldItems = Items.Skip(index).Take(count).ToList();
+            if (Items is List<T> list)
+            {
+                list.RemoveRange(index, count);
+            }
+            else
+            {
+                // slow algorithm, optimized from collection's end
+                for (int i = 1; i <= count; ++i)
+                {
+                    Items.RemoveAt(index + count - i);
+                }
+            }
 
-        [CollectionAccess(CollectionAccessType.Read)]
-        [Pure]
-        public int IndexOf(T item)
-        {
-            return list.IndexOf(item);
-        }
-
-        [CollectionAccess(CollectionAccessType.UpdatedContent)]
-        public void Insert(int index, T item)
-        {
-            list.Insert(index, item);
-            var arg = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index);
-            OnCollectionChanged(arg);
-        }
-
-        [CollectionAccess(CollectionAccessType.ModifyExistingContent)]
-        public void RemoveAt(int index)
-        {
-            var item = list[index];
-            list.RemoveAt(index);
-            var arg = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index);
-            OnCollectionChanged(arg);
+            if (oldItems.Count > 0)
+            {
+                OnCountPropertyChanged();
+                OnIndexerPropertyChanged();
+                var arg = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, oldItems, index);
+                OnCollectionChanged(arg);
+            }
+#else
+            for (int i = 1; i <= count; ++i)
+            {
+                RemoveAt(index + count - i);
+            }
+#endif
         }
 
         /// <inheritdoc/>
@@ -175,23 +122,16 @@ namespace Stride.Core.Presentation.Collections
             return $"{{ObservableList}} Count = {Count}";
         }
 
-        protected void OnCollectionChanged([NotNull] NotifyCollectionChangedEventArgs arg)
-        {
-            CollectionChanged?.Invoke(this, arg);
+#if SUPPORT_RANGE_ACTION
+        /// <summary>
+        /// Helper to raise a PropertyChanged event for the Count property
+        /// </summary>
+        private void OnCountPropertyChanged() => OnPropertyChanged(new PropertyChangedEventArgs("Count"));
 
-            switch (arg.Action)
-            {
-                case NotifyCollectionChangedAction.Add:
-                case NotifyCollectionChangedAction.Remove:
-                case NotifyCollectionChangedAction.Reset:
-                    OnPropertyChanged(new PropertyChangedEventArgs(nameof(Count)));
-                    break;
-            }
-        }
-
-        protected void OnPropertyChanged([NotNull] PropertyChangedEventArgs arg)
-        {
-            PropertyChanged?.Invoke(this, arg);
-        }
+        /// <summary>
+        /// Helper to raise a PropertyChanged event for the Indexer property
+        /// </summary>
+        private void OnIndexerPropertyChanged() => OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+#endif
     }
 }

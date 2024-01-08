@@ -89,6 +89,8 @@ namespace Stride.Core.Tests
             public int A { get; set; }
         }
 
+        // TODO change binary serialization due to microsoft security concerns.
+#pragma warning disable SYSLIB0011
         public byte[] SerializeDotNet<T>(T obj)
         {
             var bformatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();

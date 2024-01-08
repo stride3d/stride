@@ -6,6 +6,7 @@
 using System;
 using Android.Media;
 using Stride.Media;
+using Stride.Core.Extensions;
 
 namespace Stride.Audio
 {

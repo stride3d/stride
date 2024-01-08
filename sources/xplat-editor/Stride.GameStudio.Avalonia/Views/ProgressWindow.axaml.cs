@@ -4,7 +4,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
@@ -13,14 +12,6 @@ internal sealed partial class ProgressWindow : Window
     public ProgressWindow()
     {
         InitializeComponent();
-    }
-
-    public void InitializeComponent(bool loadXaml = true)
-    {
-        if (loadXaml)
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
     }
 
     protected override void OnKeyDown(KeyEventArgs e)

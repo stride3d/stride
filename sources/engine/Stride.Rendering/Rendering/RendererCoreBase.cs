@@ -21,7 +21,8 @@ namespace Stride.Rendering
     public abstract class RendererCoreBase : ComponentBase, IGraphicsRendererCore
     {
         private bool isInDrawCore;
-        private ProfilingKey profilingKey;
+        private ProfilingKey gpuProfilingKey;
+        private ProfilingKey cpuProfilingKey;
         private readonly List<GraphicsResource> scopedResources = new List<GraphicsResource>();
         private readonly List<IGraphicsRendererCore> subRenderersToUnload;
 
@@ -58,7 +59,10 @@ namespace Stride.Rendering
         public bool Profiling { get; set; }
 
         [DataMemberIgnore]
-        public ProfilingKey ProfilingKey => profilingKey ?? (profilingKey = new ProfilingKey(Name));
+        public ProfilingKey GPUProfilingKey => gpuProfilingKey ??= new ProfilingKey(Name);
+
+        [DataMemberIgnore]
+        public ProfilingKey CPUProfilingKey => cpuProfilingKey ??= new ProfilingKey($"{Name}.Draw");
 
         [DataMemberIgnore]
         protected RenderContext Context { get; private set; }
@@ -225,9 +229,9 @@ namespace Stride.Rendering
 
             EnsureContext(context.RenderContext);
 
-            if (ProfilingKey.Name != null && Profiling)
+            if (GPUProfilingKey.Name != null && Profiling)
             {
-                context.QueryManager.BeginProfile(Color.Green, ProfilingKey);
+                context.QueryManager.BeginProfile(Color.Green, GPUProfilingKey);
             }
 
             PreDrawCore(context);
@@ -257,9 +261,9 @@ namespace Stride.Rendering
 
             PostDrawCore(context);
 
-            if (ProfilingKey.Name != null && Profiling)
+            if (GPUProfilingKey.Name != null && Profiling)
             {
-                context.QueryManager.EndProfile(ProfilingKey);
+                context.QueryManager.EndProfile(GPUProfilingKey);
             }
         }
     }

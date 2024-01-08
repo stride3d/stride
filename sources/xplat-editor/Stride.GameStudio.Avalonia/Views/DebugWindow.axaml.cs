@@ -3,7 +3,6 @@
 
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 
@@ -17,14 +16,6 @@ internal sealed partial class DebugWindow : Window
     {
         DataContext = this.viewModel = viewModel;
         InitializeComponent();
-    }
-
-    public void InitializeComponent(bool loadXaml = true)
-    {
-        if (loadXaml)
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
     }
 
     protected override void OnInitialized()

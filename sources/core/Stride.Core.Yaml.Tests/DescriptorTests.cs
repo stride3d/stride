@@ -77,7 +77,7 @@ namespace Stride.Core.Yaml.Tests
 
             public ICollection<string> Collection { get; set; }
 
-            public ICollection<string> CollectionReadOnly { get; private set; }
+            public ICollection<string> CollectionReadOnly { get; }
 
             [DataMemberIgnore]
             public string DontSerialize { get; set; }

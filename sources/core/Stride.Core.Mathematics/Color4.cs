@@ -355,7 +355,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first color to add.</param>
         /// <param name="right">The second color to add.</param>
         /// <param name="result">When the method completes, completes the sum of the two colors.</param>
-        public static void Add(ref Color4 left, ref Color4 right, out Color4 result)
+        public static void Add(ref readonly Color4 left, ref readonly Color4 right, out Color4 result)
         {
             result.A = left.A + right.A;
             result.R = left.R + right.R;
@@ -380,7 +380,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first color to subtract.</param>
         /// <param name="right">The second color to subtract.</param>
         /// <param name="result">WHen the method completes, contains the difference of the two colors.</param>
-        public static void Subtract(ref Color4 left, ref Color4 right, out Color4 result)
+        public static void Subtract(ref readonly Color4 left, ref readonly Color4 right, out Color4 result)
         {
             result.A = left.A - right.A;
             result.R = left.R - right.R;
@@ -405,7 +405,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first color to modulate.</param>
         /// <param name="right">The second color to modulate.</param>
         /// <param name="result">When the method completes, contains the modulated color.</param>
-        public static void Modulate(ref Color4 left, ref Color4 right, out Color4 result)
+        public static void Modulate(ref readonly Color4 left, ref readonly Color4 right, out Color4 result)
         {
             result.A = left.A * right.A;
             result.R = left.R * right.R;
@@ -430,7 +430,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The color to scale.</param>
         /// <param name="scale">The amount by which to scale.</param>
         /// <param name="result">When the method completes, contains the scaled color.</param>
-        public static void Scale(ref Color4 value, float scale, out Color4 result)
+        public static void Scale(ref readonly Color4 value, float scale, out Color4 result)
         {
             result.A = value.A * scale;
             result.R = value.R * scale;
@@ -454,7 +454,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The color to negate.</param>
         /// <param name="result">When the method completes, contains the negated color.</param>
-        public static void Negate(ref Color4 value, out Color4 result)
+        public static void Negate(ref readonly Color4 value, out Color4 result)
         {
             result.A = 1.0f - value.A;
             result.R = 1.0f - value.R;
@@ -479,7 +479,7 @@ namespace Stride.Core.Mathematics
         /// <param name="min">The minimum value.</param>
         /// <param name="max">The maximum value.</param>
         /// <param name="result">When the method completes, contains the clamped value.</param>
-        public static void Clamp(ref Color4 value, ref Color4 min, ref Color4 max, out Color4 result)
+        public static void Clamp(ref readonly Color4 value, ref readonly Color4 min, ref readonly Color4 max, out Color4 result)
         {
             float alpha = value.A;
             alpha = (alpha > max.A) ? max.A : alpha;
@@ -524,7 +524,7 @@ namespace Stride.Core.Mathematics
         /// <remarks>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static void Lerp(ref Color4 start, ref Color4 end, float amount, out Color4 result)
+        public static void Lerp(ref readonly Color4 start, ref readonly Color4 end, float amount, out Color4 result)
         {
             result.R = MathUtil.Lerp(start.R, end.R, amount);
             result.G = MathUtil.Lerp(start.G, end.G, amount);
@@ -556,10 +556,10 @@ namespace Stride.Core.Mathematics
         /// <param name="end">End color.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <param name="result">When the method completes, contains the cubic interpolation of the two colors.</param>
-        public static void SmoothStep(ref Color4 start, ref Color4 end, float amount, out Color4 result)
+        public static void SmoothStep(ref readonly Color4 start, ref readonly Color4 end, float amount, out Color4 result)
         {
             amount = MathUtil.SmoothStep(amount);
-            Lerp(ref start, ref end, amount, out result);
+            Lerp(in start, in end, amount, out result);
         }
 
         /// <summary>
@@ -582,7 +582,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first source color.</param>
         /// <param name="right">The second source color.</param>
         /// <param name="result">When the method completes, contains an new color composed of the largest components of the source colors.</param>
-        public static void Max(ref Color4 left, ref Color4 right, out Color4 result)
+        public static void Max(ref readonly Color4 left, ref readonly Color4 right, out Color4 result)
         {
             result.A = (left.A > right.A) ? left.A : right.A;
             result.R = (left.R > right.R) ? left.R : right.R;
@@ -609,7 +609,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first source color.</param>
         /// <param name="right">The second source color.</param>
         /// <param name="result">When the method completes, contains an new color composed of the smallest components of the source colors.</param>
-        public static void Min(ref Color4 left, ref Color4 right, out Color4 result)
+        public static void Min(ref readonly Color4 left, ref readonly Color4 right, out Color4 result)
         {
             result.A = (left.A < right.A) ? left.A : right.A;
             result.R = (left.R < right.R) ? left.R : right.R;
@@ -636,7 +636,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The color whose contrast is to be adjusted.</param>
         /// <param name="contrast">The amount by which to adjust the contrast.</param>
         /// <param name="result">When the method completes, contains the adjusted color.</param>
-        public static void AdjustContrast(ref Color4 value, float contrast, out Color4 result)
+        public static void AdjustContrast(ref readonly Color4 value, float contrast, out Color4 result)
         {
             result.A = value.A;
             result.R = 0.5f + contrast * (value.R - 0.5f);
@@ -665,7 +665,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The color whose saturation is to be adjusted.</param>
         /// <param name="saturation">The amount by which to adjust the saturation.</param>
         /// <param name="result">When the method completes, contains the adjusted color.</param>
-        public static void AdjustSaturation(ref Color4 value, float saturation, out Color4 result)
+        public static void AdjustSaturation(ref readonly Color4 value, float saturation, out Color4 result)
         {
             float grey = value.R * 0.2125f + value.G * 0.7154f + value.B * 0.0721f;
 

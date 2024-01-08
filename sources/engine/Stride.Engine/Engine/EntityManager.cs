@@ -24,6 +24,7 @@ namespace Stride.Engine
     public abstract class EntityManager : ComponentBase, Core.Collections.IReadOnlySet<Entity>
     {
         // TODO: Make this class threadsafe (current locks aren't sufficients)
+        private static readonly ProfilingKey DrawKey = new ProfilingKey("EntityManager.Draw");
 
         public ExecutionMode ExecutionMode { get; protected set; } = ExecutionMode.Runtime;
 
@@ -186,6 +187,7 @@ namespace Stride.Engine
         /// <param name="context">The render context.</param>
         public virtual void Draw(RenderContext context)
         {
+            using var _ = Profiler.Begin(DrawKey);
             foreach (var processor in processors)
             {
                 if (processor.Enabled)

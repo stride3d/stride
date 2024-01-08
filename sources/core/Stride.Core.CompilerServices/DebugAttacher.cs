@@ -15,8 +15,8 @@ namespace System.Runtime.CompilerServices
 
 namespace Stride.Core.CompilerServices
 {
-    using System.Diagnostics;
     using System.Runtime.CompilerServices;
+    using System.Diagnostics;
 
     public class DebugAttacher
     {

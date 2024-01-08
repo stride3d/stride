@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Package
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.PackageInstall", "..\sources\tools\Stride.VisualStudio.PackageInstall\Stride.VisualStudio.PackageInstall.csproj", "{5A19D2C0-EA79-437A-AE19-8D82D6B93A34}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Commands", "..\sources\tools\Stride.VisualStudio.Commands\Stride.VisualStudio.Commands.csproj", "{42D8A705-3C78-44BC-95F3-00047BAF8837}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,8 +35,15 @@ Global
 		{5A19D2C0-EA79-437A-AE19-8D82D6B93A34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A19D2C0-EA79-437A-AE19-8D82D6B93A34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A19D2C0-EA79-437A-AE19-8D82D6B93A34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42D8A705-3C78-44BC-95F3-00047BAF8837}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42D8A705-3C78-44BC-95F3-00047BAF8837}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42D8A705-3C78-44BC-95F3-00047BAF8837}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42D8A705-3C78-44BC-95F3-00047BAF8837}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{42d8a705-3c78-44bc-95f3-00047baf8837}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

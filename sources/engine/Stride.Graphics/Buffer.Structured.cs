@@ -36,7 +36,7 @@ namespace Stride.Graphics
         public static class Structured
         {
             /// <summary>
-            /// Creates a new Structured buffer accessible as a <see cref="ShaderResourceView" /> and optionaly as a <see cref="UnorderedAccessView" />.
+            /// Creates a new Structured buffer accessible as a <see cref="Stride.Shaders.EffectParameterClass.ShaderResourceView" /> and optionally as a <see cref="Stride.Shaders.EffectParameterClass.UnorderedAccessView" />.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <param name="count">The number of element in this buffer.</param>
@@ -54,7 +54,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            /// Creates a new Structured buffer accessible as a <see cref="ShaderResourceView" /> and optionaly as a <see cref="UnorderedAccessView" />.
+            /// Creates a new Structured buffer accessible as a <see cref="Stride.Shaders.EffectParameterClass.ShaderResourceView" /> and optionally as a <see cref="Stride.Shaders.EffectParameterClass.UnorderedAccessView" />.
             /// </summary>
             /// <typeparam name="T">Type of the element in the structured buffer</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
@@ -72,7 +72,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            /// Creates a new Structured buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            /// Creates a new Structured buffer <see cref="GraphicsResourceUsage.Default" /> usage.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <typeparam name="T">Type of the Structured buffer to get the sizeof from</typeparam>
@@ -90,7 +90,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            /// Creates a new Structured buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            /// Creates a new Structured buffer <see cref="GraphicsResourceUsage.Default" /> usage.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <param name="value">The value to initialize the Structured buffer.</param>
@@ -117,7 +117,7 @@ namespace Stride.Graphics
         public static class StructuredAppend
         {
             /// <summary>
-            /// Creates a new StructuredAppend buffer accessible as a <see cref="ShaderResourceView" /> and as a <see cref="UnorderedAccessView" />.
+            /// Creates a new StructuredAppend buffer accessible as a <see cref="Stride.Shaders.EffectParameterClass.ShaderResourceView" /> and as a <see cref="Stride.Shaders.EffectParameterClass.UnorderedAccessView" />.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <param name="count">The number of element in this buffer.</param>
@@ -130,7 +130,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            /// Creates a new StructuredAppend buffer accessible as a <see cref="ShaderResourceView" /> and optionaly as a <see cref="UnorderedAccessView" />.
+            /// Creates a new StructuredAppend buffer accessible as a <see cref="Stride.Shaders.EffectParameterClass.ShaderResourceView" /> and optionally as a <see cref="Stride.Shaders.EffectParameterClass.UnorderedAccessView" />.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <typeparam name="T">Type of the element in the structured buffer</typeparam>
@@ -143,7 +143,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            /// Creates a new StructuredAppend buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            /// Creates a new StructuredAppend buffer <see cref="GraphicsResourceUsage.Default" /> usage.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <typeparam name="T">Type of the StructuredAppend buffer to get the sizeof from</typeparam>
@@ -156,7 +156,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            /// Creates a new StructuredAppend buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            /// Creates a new StructuredAppend buffer <see cref="GraphicsResourceUsage.Default" /> usage.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <param name="value">The value to initialize the StructuredAppend buffer.</param>
@@ -178,7 +178,7 @@ namespace Stride.Graphics
         public static class StructuredCounter
         {
             /// <summary>
-            /// Creates a new StructuredCounter buffer accessible as a <see cref="ShaderResourceView" /> and as a <see cref="UnorderedAccessView" />.
+            /// Creates a new StructuredCounter buffer accessible as a <see cref="Stride.Shaders.EffectParameterClass.ShaderResourceView" /> and as a <see cref="Stride.Shaders.EffectParameterClass.UnorderedAccessView" />.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <param name="count">The number of element in this buffer.</param>
@@ -191,7 +191,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            /// Creates a new StructuredCounter buffer accessible as a <see cref="ShaderResourceView" /> and optionaly as a <see cref="UnorderedAccessView" />.
+            /// Creates a new StructuredCounter buffer accessible as a <see cref="Stride.Shaders.EffectParameterClass.ShaderResourceView" /> and optionally as a <see cref="Stride.Shaders.EffectParameterClass.UnorderedAccessView" />.
             /// </summary>
             /// <typeparam name="T">Type of the element in the structured buffer</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
@@ -204,7 +204,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            /// Creates a new StructuredCounter buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            /// Creates a new StructuredCounter buffer <see cref="GraphicsResourceUsage.Default" /> usage.
             /// </summary>
             /// <typeparam name="T">Type of the StructuredCounter buffer to get the sizeof from</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
@@ -217,7 +217,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            /// Creates a new StructuredCounter buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            /// Creates a new StructuredCounter buffer <see cref="GraphicsResourceUsage.Default" /> usage.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <param name="value">The value to initialize the StructuredCounter buffer.</param>

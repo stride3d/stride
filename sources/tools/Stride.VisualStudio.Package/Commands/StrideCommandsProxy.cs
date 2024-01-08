@@ -171,9 +171,9 @@ namespace Stride.VisualStudio.Commands
             // Try to find the package with the expected version
             if (packageInfo.ExpectedVersion != null && packageInfo.ExpectedVersion >= MinimumVersion)
             {
-                // Try both net6.0 and net472
+                // Try both net8.0 and net472
                 var success = false;
-                foreach (var folder in new[] { "net6.0-windows7.0", "net472" })
+                foreach (var folder in new[] { "net8.0-windows7.0", "net472" })
                 {
                     var logger = new Logger();
                     var solutionRoot = Path.GetDirectoryName(solution);
@@ -188,7 +188,7 @@ namespace Stride.VisualStudio.Commands
                 }
                 if (!success)
                 {
-                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it. To fix this you can either build {packageName} or pull the right version from nugget manually");
+                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it. To fix this you can either build {packageName} or pull the right version from NuGet manually");
                 }
             }
 

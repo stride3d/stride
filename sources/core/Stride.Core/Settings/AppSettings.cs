@@ -13,8 +13,7 @@ namespace Stride.Core.Settings
         /// <summary>
         /// Application specific settings.
         /// </summary>
-        [DataMember]
-        private FastCollection<object> Settings { get; set; }
+        public FastCollection<object> Settings { get; } = new();
 
         /// <summary>
         /// Default constructor, used for deserialization.

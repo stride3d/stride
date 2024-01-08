@@ -64,10 +64,8 @@ namespace Stride.Graphics
         /// Gets the vertex elements.
         /// </summary>
         /// <value>The vertex elements.</value>
-        public VertexElement[] VertexElements
-        {
-            get { return elements; }
-        }
+        [DataMember]
+        public VertexElement[] VertexElements => elements;
 
         /// <summary>
         /// Gets the instance count.
