@@ -129,10 +129,18 @@
   </ItemGroup>
 
   <!-- Avalonia dependencies -->
+  <PropertyGroup>
+    <AvaloniaVersion>11.0.5</AvaloniaVersion>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Avalonia" Version="0.10.11" />
-    <PackageVersion Include="Avalonia.Desktop" Version="0.10.11" />
-    <PackageVersion Include="Avalonia.ReactiveUI" Version="0.10.11" />
+    <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Xaml.Interactions" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Markdown.Avalonia.Tight" Version="11.0.2" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
 
   <!-- Windows/WPF dependencies -->

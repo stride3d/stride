@@ -3,9 +3,9 @@
 using System.Collections.ObjectModel;
 using System.Windows.Media;
 using Stride.Core.Extensions;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
 using Stride.Assets.Scripts;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 {

@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:crash="using:Stride.Launcher.Crash"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
+        x:Class="Stride.Launcher.Views.PrivacyPolicyWindow"
+        Icon="/Assets/Launcher.ico"
+        Title="Privacy Policy">
+  <Window.Styles>
+    <FluentTheme />
+    <sd:HyperlinkStyle />
+  </Window.Styles>
+  <StackPanel>
+    <TextBlock Text="You must agree to the privacy policy to use Stride." Margin="20" />
+    <TextBlock Margin="20,10">
+      <sd:Hyperlink Click="Privacy_OnClick">
+        <TextBlock Text="{x:Static crash:CrashReportViewModel.PrivacyPolicyUrl}" />
+      </sd:Hyperlink>
+    </TextBlock>
+    <CheckBox DockPanel.Dock="Bottom" Margin="20,0"
+              IsChecked="{Binding $parent[Window].PrivacyPolicyAccepted}"
+              IsEnabled="{Binding $parent[Window].CanAccept, Mode=OneWay}"
+              Content="I agree to the Privacy Policy" />
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                Margin="20" HorizontalAlignment="Right">
+      <UniformGrid Rows="1">
+        <Button Content="I Accept" Padding="30, 8" Margin="20,0,0,0" Click="ButtonPrivacyPolicyAccepted"
+                IsEnabled="{Binding $parent[Window].PrivacyPolicyAccepted, Mode=OneWay}" />
+        <Button Content="I Decline" Padding="30, 8" Margin="20,0,0,0" Click="ButtonPrivacyPolicyDeclined" />
+      </UniformGrid>
+    </StackPanel>
+  </StackPanel>
+</Window>
