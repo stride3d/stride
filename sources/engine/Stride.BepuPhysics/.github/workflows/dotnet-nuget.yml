@@ -32,9 +32,12 @@ jobs:
         fi
         echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
       
-    - name: Build
+    - name: Build Stride.BepuPhysics
       run: dotnet build ./Stride.BepuPhysics/Stride.BepuPhysics.csproj -p:Version=${{ env.PACKAGE_VERSION }} --no-restore     
+
+    - name: Add github nuget source
+      run: dotnet nuget add source --username Nicogo1705 --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/Nicogo/index.json"
     
-    - name: Publish
-      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGETAPIKEY}}
-      #run: dotnet nuget push **\*.nupkg --api-key ${{secrets.NUGETAPIKEY}} --source "github"
+    - name: Publish github nuget
+      #run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGETAPIKEY}}
+      run: dotnet nuget push **\*.nupkg --api-key ${{secrets.NUGETAPIKEY}} --source "github"
