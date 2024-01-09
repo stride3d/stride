@@ -31,3 +31,13 @@ Hierarchy:
                         Scene7: b21cf271-4ad8-453a-8c8d-cf132e044a9c:Scenes/7.CharacterScene
                         Scene8: 8a83a722-d865-4dc3-87a3-00a509ea3988:Scenes/8.Navigation
                         Scene9: bef30700-cda8-4d43-b804-3da6717bea2c:Scenes/9.Demo
+                        ShiftScene0: e8b85b3b-0b26-4d4a-9989-af7f952e4446:Scenes/S0.Base
+                        ShiftScene1: null
+                        ShiftScene2: null
+                        ShiftScene3: null
+                        ShiftScene4: null
+                        ShiftScene5: null
+                        ShiftScene6: null
+                        ShiftScene7: null
+                        ShiftScene8: null
+                        ShiftScene9: null

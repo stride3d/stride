@@ -21,6 +21,17 @@ namespace Stride.BepuPhysics.Demo.Components
         public UrlReference<Scene>? Scene8 { get; set; }
         public UrlReference<Scene>? Scene9 { get; set; }
 
+        public UrlReference<Scene>? ShiftScene0 { get; set; }
+        public UrlReference<Scene>? ShiftScene1 { get; set; }
+        public UrlReference<Scene>? ShiftScene2 { get; set; }
+        public UrlReference<Scene>? ShiftScene3 { get; set; }
+        public UrlReference<Scene>? ShiftScene4 { get; set; }
+        public UrlReference<Scene>? ShiftScene5 { get; set; }
+        public UrlReference<Scene>? ShiftScene6 { get; set; }
+        public UrlReference<Scene>? ShiftScene7 { get; set; }
+        public UrlReference<Scene>? ShiftScene8 { get; set; }
+        public UrlReference<Scene>? ShiftScene9 { get; set; }
+
         private Scene? _last { get; set; } = null;
 
         public override void Start()
@@ -31,11 +42,12 @@ namespace Stride.BepuPhysics.Demo.Components
         }
         public override void Update()
         {
-            DebugText.Print("USE NUMPAD number :", new(800, 10));
+            DebugText.Print("USE NUMPAD number : (Hold 'n' for more)", new(800, 10));
+            var shift = Input.IsKeyDown(Keys.N);
 
             for (int i = 0; i < 10; i++)
             {
-                var sceneRef = GetSceneRef(i);
+                var sceneRef = shift ? GetShiftSceneRef(i) : GetSceneRef(i);
                 if (sceneRef == null)
                     continue;
 
@@ -90,6 +102,34 @@ namespace Stride.BepuPhysics.Demo.Components
                     return Scene8;
                 case 9:
                     return Scene9;
+                default:
+                    return null;
+            }
+        }
+        private UrlReference<Scene>? GetShiftSceneRef(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return ShiftScene0;
+                case 1:
+                    return ShiftScene1;
+                case 2:
+                    return ShiftScene2;
+                case 3:
+                    return ShiftScene3;
+                case 4:
+                    return ShiftScene4;
+                case 5:
+                    return ShiftScene5;
+                case 6:
+                    return ShiftScene6;
+                case 7:
+                    return ShiftScene7;
+                case 8:
+                    return ShiftScene8;
+                case 9:
+                    return ShiftScene9;
                 default:
                     return null;
             }

@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components.Containers
     [DataContract(Inherited = true)]
     [DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)] //ExecutionMode.Editor | ExecutionMode.Runtime //Lol, don't do that
     [ComponentCategory("Bepu - Containers")]
-    public abstract class ContainerComponent : EntityComponent, IContainer
+    public abstract class ContainerComponent : StartupScript, IContainer
     {
         List<ContainerComponent> IContainer.ChildsContainerComponent => ChildsContainerComponent;
         ContainerData IContainer.ContainerData => ContainerData;

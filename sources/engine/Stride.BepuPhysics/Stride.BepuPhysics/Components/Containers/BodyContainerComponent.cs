@@ -46,7 +46,7 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        private BodyReference GetPhysicBodyRef()
+        internal BodyReference GetPhysicBodyRef()
         {
             if (ContainerData == null)
                 throw new Exception("Container data is null");

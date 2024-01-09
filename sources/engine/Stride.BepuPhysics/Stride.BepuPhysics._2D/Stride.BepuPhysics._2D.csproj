@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Stride.BepuPhysics._2D</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -12,12 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Effects\SinglePassWireframeShader.sdsl">
-      <Generator>StrideShaderKeyGenerator</Generator>
-    </None>
   </ItemGroup>
 
 </Project>
