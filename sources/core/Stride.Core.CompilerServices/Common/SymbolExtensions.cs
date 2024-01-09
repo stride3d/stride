@@ -18,6 +18,19 @@ internal static class SymbolExtensions
     }
 
     /// <summary>
+    /// Tries to get <paramref name="attribute"/> on the <paramref name="symbol"/>
+    /// </summary>
+    /// <param name="symbol">The Symbol to search on</param>
+    /// <param name="attribute">The attribute looking for</param>
+    /// <param name="attributeData">The <see cref="AttributeData"/> of the Attribute if it is found</param>
+    /// <returns>true if the attribute is found, else false</returns>
+    public static bool TryGetAttribute(this ISymbol symbol, INamedTypeSymbol attribute, out AttributeData attributeData)
+    {
+        attributeData = symbol.GetAttributes().FirstOrDefault(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false)!;
+        return attributeData is not null;
+    }
+
+    /// <summary>
     /// An Immutable Type is treated if its a non Reference Type ie class
     /// A struct and a string are treated as Immutable as the Yaml Serializer can't handle value Types with it's reflection.
     /// </summary>
