@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Stride.BepuPhysics._2D\Stride.BepuPhysics._2D.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
   </ItemGroup>
 

@@ -20,10 +20,10 @@ namespace Stride.BepuPhysics.Components
                 body.Position *= new Vector3(1, 1, 0);//Fix Z = 0
                 body.LinearVelocity *= new Vector3(1, 1, 0);
 
-                var bodyRot = body.Orientation;
-                Quaternion.RotationYawPitchRoll(ref bodyRot, out var yaw, out var pitch, out var roll);
-                body.Orientation = Quaternion.RotationYawPitchRoll(0, 0, roll);
-                body.AngularVelocity *= new Vector3(0, 0, 1);
+                //var bodyRot = body.Orientation;
+                //Quaternion.RotationYawPitchRoll(ref bodyRot, out var yaw, out var pitch, out var roll);
+                //body.Orientation = Quaternion.RotationYawPitchRoll(0, 0, roll);
+                //body.AngularVelocity *= new Vector3(0, 0, 1);
             }
             base.AfterSimulationUpdate(simTimeStep);
         }

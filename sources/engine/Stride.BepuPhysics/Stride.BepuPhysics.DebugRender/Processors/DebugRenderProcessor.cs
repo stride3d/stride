@@ -1,4 +1,5 @@
-﻿using Stride.BepuPhysics.Components.Containers;
+﻿using Stride.BepuPhysics._2D.Components.Containers;
+using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.DebugRender.Components;
 using Stride.BepuPhysics.DebugRender.Effects;
@@ -128,7 +129,12 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         {
             var color = Color.Black;
 
-            if (container is IContainerWithColliders)
+#warning replace with I2DContainer
+            if (container is _2DBodyContainerComponent)
+            {
+                color = Color.Green;
+            }
+            else if (container is IContainerWithColliders)
             {
                 color = Color.Red;
             }
