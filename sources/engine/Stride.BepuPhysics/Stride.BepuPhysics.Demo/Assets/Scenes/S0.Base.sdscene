@@ -12,6 +12,7 @@ Hierarchy:
         - ref!! cb1fd7d2-c1c7-469a-93f0-577ff215ed3b
         - ref!! 08a1c431-0165-4c26-94bd-d6545cadcc3a
         - ref!! b1ecf2b4-8390-4cbf-bad8-8c1ca71fe7a0
+        - ref!! c06734b6-d768-4453-a181-9ae26b304976
     Parts:
         -   Entity:
                 Id: 08a1c431-0165-4c26-94bd-d6545cadcc3a
@@ -94,6 +95,16 @@ Hierarchy:
                     48c28325bdaa4214899215ffba403739: !Stride.BepuPhysics.Components._2DSimulationConfigurator,Stride.BepuPhysics._2D
                         Id: 62022625-a28a-4388-a745-6224c3db4955
                         SimulationIndex: 0
+                    c21ca5abe2bbd45eff772bd354505b9d: !Stride.BepuPhysics.Demo.Components.Utils.SpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: a2d714fa-431a-4d31-88ce-5c5cea8eeb8e
+                        SimulationIndex: 0
+                        SpawnPrefab: 57f69f98-4a88-4440-8f4d-708972727b78:Prefabs/Bepu/Bepu2DInstancedCube
+                        Instancing: ref!! a0d3246e-8622-43f9-9286-a31b16e0e35b
+                        SpawnPosition: ref!! c06734b6-d768-4453-a181-9ae26b304976
+                        Count: 1000
+                        SpawnRate: 5.0
+                        SpawnVelocity: {X: 0.0, Y: 20.0, Z: 0.0}
+                        SpawnVelocityRange: {X: 2.0, Y: 0.0, Z: 2.0}
         -   Entity:
                 Id: a62c8d3b-72d9-4feb-897d-28d64e863115
                 Name: Directional light
@@ -127,7 +138,7 @@ Hierarchy:
                         Id: 380c4f50-49ff-4c37-be06-f7da2c7b4622
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 5.0, Y: 0.1, Z: 1.0}
+                        Scale: {X: 50.0, Y: 0.1, Z: 1.0}
                         Children: {}
                     c56b73ea1d2c06cfbb81c201bc86051c: !ModelComponent
                         Id: 9fe99f9a-33eb-448e-87e6-095f6dd40705
@@ -145,8 +156,8 @@ Hierarchy:
                         ColliderFilterByDistanceX: 0
                         ColliderFilterByDistanceY: 0
                         ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: true
-                        Kinematic: false
+                        IgnoreGlobalGravity: false
+                        Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Colliders:
@@ -154,7 +165,17 @@ Hierarchy:
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 5.0, Y: 0.1, Z: 1.0}
+                                Size: {X: 50.0, Y: 0.1, Z: 1.0}
+        -   Entity:
+                Id: c06734b6-d768-4453-a181-9ae26b304976
+                Name: SpawnP
+                Components:
+                    45076fc0544aa708dddd8a32fba044b1: !TransformComponent
+                        Id: 87335a19-a6b5-4ce2-a3f0-04781bb62f11
+                        Position: {X: 0.0, Y: 10.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
         -   Entity:
                 Id: cb1fd7d2-c1c7-469a-93f0-577ff215ed3b
                 Name: Skybox

@@ -35,7 +35,8 @@ namespace Stride.BepuPhysics._2D.Components.Containers
 
         public override void Start()
         {
-            RotationLock = new Vector3(0, 0, 1);
+            if (!Kinematic)
+                RotationLock = new Vector3(0, 0, 1);
             base.Start();
         }
 
