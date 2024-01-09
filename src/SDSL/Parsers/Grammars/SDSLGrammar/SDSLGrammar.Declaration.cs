@@ -1,6 +1,7 @@
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
+using static SDSL.Parsing.Grammars.CommonParsers;
 
 namespace SDSL.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
@@ -71,9 +72,9 @@ public partial class SDSLGrammar : Grammar
         );
 
         var staging =
-            Stage.NotFollowedBy(ws1 & Stream).Named("Stage")
-            | Stage.Named("Stage") & ws1 & Stream.Named("Stream")
-            | Stream.Named("Stream");
+            Stage.NotFollowedBy(ws1 & CommonParsers.Stream).Named("Stage")
+            | Stage.Named("Stage") & ws1 & CommonParsers.Stream.Named("Stream")
+            | CommonParsers.Stream.Named("Stream");
 
         var valueDeclaration = new SequenceParser();
         valueDeclaration.Add(

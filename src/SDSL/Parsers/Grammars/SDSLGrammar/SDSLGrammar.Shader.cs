@@ -1,6 +1,7 @@
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
+using static SDSL.Parsing.Grammars.CommonParsers;
 
 
 
@@ -21,48 +22,46 @@ public partial class SDSLGrammar : Grammar
     }
     public virtual void CreateShader()
     {
-        var ws = WhiteSpace.Repeat(0);
-        var ws1 = WhiteSpace.Repeat(1);
 
 
         var typeDefinition = new SequenceParser(
             Literal("typedef") & " ",
             Identifier & " ",
-            ~("<" & (Identifier | PrimaryExpression).Repeat(1).SeparatedBy(ws & "," & ws).Until(">") & ">").Named("TypedefGenerics"),
+            ~("<" & (Identifier | PrimaryExpression).Repeat(1).SeparatedBy(Spaces & "," & Spaces).Until(">") & ">").Named("TypedefGenerics"),
             Identifier,
             Semi
         )
-        { Name = "TypeDef", Separator = ws};
+        { Name = "TypeDef", Separator = Spaces};
 
 
         ConstantBuffer.Add(
-            "cbuffer" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("GroupName"),
+            "cbuffer" & Spaces1 & Identifier.Repeat(1).SeparatedBy(Spaces & Dot & Spaces).Named("GroupName"),
             LeftBrace,
-            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws).Named("Variables"),
+            ShaderValueDeclaration.Repeat(0).SeparatedBy(Spaces).Named("Variables"),
             RightBrace
         );
-        ConstantBuffer.Separator = ws;
+        ConstantBuffer.Separator = Spaces;
         ResourceGroup.Add(
-            "rgroup" & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("GroupName"),
+            "rgroup" & Spaces1 & Identifier.Repeat(1).SeparatedBy(Spaces & Dot & Spaces).Named("GroupName"),
             LeftBrace,
-            ShaderValueDeclaration.Repeat(0).SeparatedBy(ws).Named("Variables"),
+            ShaderValueDeclaration.Repeat(0).SeparatedBy(Spaces).Named("Variables"),
             RightBrace
         );
-        ResourceGroup.Separator = ws;
+        ResourceGroup.Separator = Spaces;
 
 
         var shaderGenericValue = new AlternativeParser(
-            Literal("TypeName").Named("TypeName").Then(Identifier).SeparatedBy(ws1).Named("GenericType"),
-            Literal("Semantic").Named("Semantic").Then(Identifier).SeparatedBy(ws1).Named("Semantic"),
-            SimpleTypes.Then(Identifier).SeparatedBy(ws1).Named("GenericValue"),
+            Literal("TypeName").Named("TypeName").Then(Identifier).SeparatedBy(Spaces1).Named("GenericType"),
+            Literal("Semantic").Named("Semantic").Then(Identifier).SeparatedBy(Spaces1).Named("Semantic"),
+            SimpleTypes.Then(Identifier).SeparatedBy(Spaces1).Named("GenericValue"),
             SimpleTypes
         ){ Name = "ShaderGeneric" }; 
 
         var shaderGenerics = new SequenceParser(
             "<",
-            shaderGenericValue.Repeat(1).SeparatedBy(ws & Comma & ws),
+            shaderGenericValue.Repeat(1).SeparatedBy(Spaces & Comma & Spaces),
             ">"
-        ){ Name = "ShaderGenerics", Separator = ws };
+        ){ Name = "ShaderGenerics", Separator = Spaces };
 
         var inheritGenericsValues = new AlternativeParser(
             SimpleTypes,
@@ -72,17 +71,17 @@ public partial class SDSLGrammar : Grammar
 
         var inheritGenerics = new SequenceParser(
             "<",
-            inheritGenericsValues.Repeat(1).SeparatedBy(ws & Comma & ws),
+            inheritGenericsValues.Repeat(1).SeparatedBy(Spaces & Comma & Spaces),
             ">"
-        ){ Separator = ws, Name = "Generics"};
+        ){ Separator = Spaces, Name = "Generics"};
 
         var compositionDeclaration = new SequenceParser(
             Literal("compose"),
-            ws1,
+            Spaces1,
             Identifier.Named("MixinName"),
-            ws1,
+            Spaces1,
             Identifier.Named("Name"),
-            ws,
+            Spaces,
             Semi
         ){ Name = "CompositionDeclaration"};
 
@@ -101,41 +100,41 @@ public partial class SDSLGrammar : Grammar
 
         var shaderBody = new SequenceParser(
             LeftBrace,
-            ws,
-            shaderContentTypes.Repeat(0).SeparatedBy(ws).Until(ws & "}"),
+            Spaces,
+            shaderContentTypes.Repeat(0).SeparatedBy(Spaces).Until(Spaces & "}"),
             RightBrace
         )
-        {Name = "Body", Separator = ws};
+        {Name = "Body", Separator = Spaces};
 
         var inheritances = 
             Colon
             .Then(
-                Identifier.Named("Name").Then(inheritGenerics.Optional()).SeparatedBy(ws).Named("Mixin")
-                .Repeat(1).SeparatedBy(ws & Comma & ws)
+                Identifier.Named("Name").Then(inheritGenerics.Optional()).SeparatedBy(Spaces).Named("Mixin")
+                .Repeat(1).SeparatedBy(Spaces & Comma & Spaces)
             )
-            .SeparatedBy(ws)
+            .SeparatedBy(Spaces)
             .Named("Mixins");
 
 
 
         ShaderExpression.Add(
-            Literal("shader") & ws1 & Identifier.Named("ShaderName"),
+            Literal("shader") & Spaces1 & Identifier.Named("ShaderName"),
             shaderGenerics.Optional(),
             inheritances.Optional(),
             shaderBody
         );
-        ShaderExpression.Separator = ws;
+        ShaderExpression.Separator = Spaces;
         ShaderExpression.Name = "ShaderProgram";
 
         NamespaceExpression.Add(
-            ws,
-            Literal("namespace") & ws1 & Identifier.Repeat(1).SeparatedBy(ws & Dot & ws).Named("Namespace"),
+            Spaces,
+            Literal("namespace") & Spaces1 & Identifier.Repeat(1).SeparatedBy(Spaces & Dot & Spaces).Named("Namespace"),
             LeftBrace,
             ShaderExpression.Repeat(0),
             RightBrace,
-            ws
+            Spaces
         );
-        NamespaceExpression.Separator = ws;
+        NamespaceExpression.Separator = Spaces;
 
         ShaderFile.Add(
             ShaderExpression.Repeat(1),

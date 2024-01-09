@@ -1,6 +1,7 @@
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
+using static SDSL.Parsing.Grammars.CommonParsers;
 
 namespace SDSL.Parsing.Grammars.SDSL;
 
@@ -10,24 +11,21 @@ public partial class SDSLGrammar : Grammar
     public SequenceParser ForEachLoop = new() { Name = "ForEachLoop"};
     public SequenceParser ForLoop = new() { Name = "ForLoop"};
 
-    public void CreateLoopFlowStatements()
+    public void CreateLoopFloSpacestatements()
     {
-        var ws = WhiteSpace.Repeat(0);
-        var ws1 = WhiteSpace.Repeat(1);
-
         var valueDeclare = new SequenceParser(
-            ((SimpleTypes | Identifier) & Identifier).SeparatedBy(ws1).Named("NewVariable")
+            ((SimpleTypes | Identifier) & Identifier).SeparatedBy(Spaces1).Named("NewVariable")
             | UnaryExpression.Named("ExistingVariable"),
             AssignOperators.Named("Operator"),
             PrimaryExpression
         )
-        { Separator = ws, Name = "Initializer"};
+        { Separator = Spaces, Name = "Initializer"};
         var valueAssign = new SequenceParser(
             Identifier,
             AssignOperators.Named("Operator"),
             PrimaryExpression
         )
-        { Separator = ws };
+        { Separator = Spaces };
 
         ForLoop.Add(
             For,
@@ -42,7 +40,7 @@ public partial class SDSLGrammar : Grammar
             | Statement
 
         );
-        ForLoop.Separator = ws;
+        ForLoop.Separator = Spaces;
 
         WhileLoop.Add(
             While,
@@ -51,16 +49,16 @@ public partial class SDSLGrammar : Grammar
             RightParen,
             Statement
         );
-        WhileLoop.Separator = ws;
+        WhileLoop.Separator = Spaces;
 
         ForEachLoop.Add(
             Literal("foreach"),
             LeftParen,
-            ((SimpleTypes | Literal("var") | Identifier) & Identifier & In & PrimaryExpression).SeparatedBy(ws).Named("Declarator"),
+            ((SimpleTypes | Literal("var") | Identifier) & Identifier & In & PrimaryExpression).SeparatedBy(Spaces).Named("Declarator"),
             RightParen,
             Statement
         );
-        ForEachLoop.Separator = ws;
+        ForEachLoop.Separator = Spaces;
 
     }
 }

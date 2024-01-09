@@ -2,15 +2,12 @@ using System.Globalization;
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
+using static SDSL.Parsing.Grammars.CommonParsers;
 
 namespace SDSL.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
-{
-	AlternativeParser IntegerSuffix = new() { Name = "Suffix"};
-	AlternativeParser FloatSuffix = new() { Name = "Suffix"};
-    
+{    
 	public StringParser StringLiteral = new();
-	public SequenceParser Identifier = new() { Name = "Identifier"};
     public AlternativeParser UserDefinedId = new();
 
     public NumberParser IntegerLiteral = new();
@@ -29,29 +26,6 @@ public partial class SDSLGrammar : Grammar
 	}
 	public void CreateLiterals()
 	{
-		Identifier.Add(
-			Letter | "_",
-			(LetterOrDigit | "_").Repeat(0).Until(AnyChar.Except(LetterOrDigit | "_"))
-		);
-
-		//UserDefinedId.Add(
-  //          Identifier.Except(Keywords)
-  //      );
-
-		IntegerSuffix.Add(
-			"u",
-			"l",
-			"U",
-			"L"
-		);
-		
-		FloatSuffix.Add(
-			"f",
-			"d",
-			"F",
-			"D"
-		);
-		
 		
 		
 		StringLiteral = new StringParser().WithName("StringLiteral");
@@ -61,7 +35,7 @@ public partial class SDSLGrammar : Grammar
 		HexDigits = new();
 		HexaDecimalLiteral = Literal("0x").Or(Literal("0X")).Then(HexDigit.Repeat(1)).WithName("HexaLiteral");
 
-		BooleanTerm = new BooleanTerminal{CaseSensitive = true, TrueValues = new string[]{"true"},FalseValues = new string[]{"false"}, Name = "Boolean"};
+		BooleanTerm = new BooleanTerminal{CaseSensitive = true, TrueValues = ["true"],FalseValues = ["false"], Name = "Boolean"};
 
 		Literals.Add(
             IntegerLiteral.NotFollowedBy(Dot | IntegerSuffix | FloatSuffix | Set("xX")).Named("IntegerLiteral"),

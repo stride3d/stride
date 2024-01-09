@@ -1,6 +1,7 @@
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
+using static SDSL.Parsing.Grammars.CommonParsers;
 
 namespace SDSL.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
@@ -37,23 +38,20 @@ public partial class SDSLGrammar : Grammar
     public Parser Parenthesis(Parser p, bool notFollowedByUnary = true)
     {
         if (notFollowedByUnary)
-            return LeftParen.Then(p).Then(RightParen).SeparatedBy(WhiteSpace.Repeat(0)).NotFollowedBy(UnaryExpression);
+            return LeftParen.Then(p).Then(RightParen).SeparatedBy(Spaces).NotFollowedBy(UnaryExpression);
         else
-            return LeftParen.Then(p).Then(RightParen).SeparatedBy(WhiteSpace.Repeat(0));
+            return LeftParen.Then(p).Then(RightParen).SeparatedBy(Spaces);
     }
     public Parser Parenthesis(Parser p, Parser f, bool notFollowedByUnary = true)
     {
-        var ws = WhiteSpace.Repeat(0);
         if (notFollowedByUnary)
-            return LeftParen.Then(p).Then(RightParen).SeparatedBy(WhiteSpace.Repeat(0)).NotFollowedBy(UnaryExpression).FollowedBy(ws & f);
+            return LeftParen.Then(p).Then(RightParen).SeparatedBy(Spaces).NotFollowedBy(UnaryExpression).FollowedBy(Spaces & f);
         else
-            return LeftParen.Then(p).Then(RightParen).SeparatedBy(WhiteSpace.Repeat(0)).FollowedBy(ws & f);
+            return LeftParen.Then(p).Then(RightParen).SeparatedBy(Spaces).FollowedBy(Spaces & f);
     }
 
     public void CreateExpressions()
     {
-        var ws = WhiteSpace.Repeat(0);
-        var ls1 = WhiteSpace.Repeat(1);
 
 
         var incrementOp = new AlternativeParser();
@@ -65,14 +63,14 @@ public partial class SDSLGrammar : Grammar
         ValueTypesMethods.Add(
             ValueTypes,
             LeftParen,
-            PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws).Until(RightParen),
+            PrimaryExpression.Repeat(0).SeparatedBy(Spaces & Comma & Spaces).Until(RightParen),
             RightParen
         );
-        ValueTypesMethods.Separator = ws;
+        ValueTypesMethods.Separator = Spaces;
 
         TermExpression.Add(
             Literals,
-            Identifier.Named("VariableTerm").Except(Keywords | SimpleTypes).NotFollowedBy(ws & LeftParen).Named("VariableTerm"),
+            Identifier.Named("VariableTerm").Except(Keywords | SimpleTypes).NotFollowedBy(Spaces & LeftParen).Named("VariableTerm"),
             ValueTypesMethods.Named("ValueTypesMethod"),
             MethodCall,
             Parenthesis(PrimaryExpression)
@@ -85,23 +83,23 @@ public partial class SDSLGrammar : Grammar
 
         arrayAccess.Add(
             Identifier,
-            ws,
+            Spaces,
             (LeftBracket & PrimaryExpression & RightBracket)
-                .SeparatedBy(ws)
+                .SeparatedBy(Spaces)
                 .Repeat(1)
-                .SeparatedBy(ws)
+                .SeparatedBy(Spaces)
         );
         chain.Add(
-            (arrayAccess | MethodCall | Identifier).Repeat(1).SeparatedBy(ws & Dot & ws)
+            (arrayAccess | MethodCall | Identifier).Repeat(1).SeparatedBy(Spaces & Dot & Spaces)
         );
         postfixInc.Add(
             chain | arrayAccess | Identifier, 
-            ws,
+            Spaces,
             incrementOp.Named("Operator")
         );
 
         PostfixExpression.Add(
-            TermExpression.NotFollowedBy(ws & (Dot | LeftBracket | incrementOp)),
+            TermExpression.NotFollowedBy(Spaces & (Dot | LeftBracket | incrementOp)),
             postfixInc,
             chain,
             arrayAccess
@@ -109,8 +107,8 @@ public partial class SDSLGrammar : Grammar
 
         var prefixInc = new SequenceParser(
             incrementOp.Named("Operator"),
-            ws,
-            Identifier.NotFollowedBy(ws & (Dot | "["))
+            Spaces,
+            Identifier.NotFollowedBy(Spaces & (Dot | "["))
             | chain
             | arrayAccess
         )
@@ -118,7 +116,7 @@ public partial class SDSLGrammar : Grammar
 
         UnaryExpression.Add(
             PostfixExpression,
-            (Plus | Minus) & ws & PostfixExpression,
+            (Plus | Minus) & Spaces & PostfixExpression,
             prefixInc,
             Literal("sizeof").Then(LeftParen).Then(Identifier | UnaryExpression).Then(RightParen).Named("SizeOf")
         );
@@ -129,7 +127,7 @@ public partial class SDSLGrammar : Grammar
             RightParen,
             UnaryExpression
         )
-        { Name = "CastExpression", Separator = ws};
+        { Name = "CastExpression", Separator = Spaces};
 
         CastExpression.Add(
             UnaryExpression,
@@ -139,46 +137,46 @@ public partial class SDSLGrammar : Grammar
         
         var mulOp = Star | Div | Mod;  
         MulExpression.Add(
-            (Parenthesis(PrimaryExpression) | CastExpression).Repeat(0).SeparatedBy(ws & mulOp.Named("Operator") & ws)
+            (Parenthesis(PrimaryExpression) | CastExpression).Repeat(0).SeparatedBy(Spaces & mulOp.Named("Operator") & Spaces)
         );
         
         var sumOp = Plus | Minus;        
         
         SumExpression.Add(
-            MulExpression.Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws),
-            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & sumOp.Named("Operator") & ws)
+            MulExpression.Repeat(0).SeparatedBy(Spaces & sumOp.Named("Operator") & Spaces),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(Spaces & sumOp.Named("Operator") & Spaces)
         );
 
        
         var shiftOp = LeftShift | RightShift;
 
         ShiftExpression.Add(
-            SumExpression.Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws),
-            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & shiftOp.Named("Operator") & ws)
+            SumExpression.Repeat(0).SeparatedBy(Spaces & shiftOp.Named("Operator") & Spaces),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(Spaces & shiftOp.Named("Operator") & Spaces)
         );
         
 
         AndExpression.Add(
-            ShiftExpression.Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws),
-            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & And.Named("Operator") & ws)
+            ShiftExpression.Repeat(0).SeparatedBy(Spaces & And.Named("Operator") & Spaces),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(Spaces & And.Named("Operator") & Spaces)
         );
 
         XorExpression.Add(
-            AndExpression.Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws),
-            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & Literal("^").Named("Operator") & ws)
+            AndExpression.Repeat(0).SeparatedBy(Spaces & Literal("^").Named("Operator") & Spaces),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(Spaces & Literal("^").Named("Operator") & Spaces)
         );
 
 
         OrExpression.Add(
-            XorExpression.Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws),
-            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & Or.Named("Operator") & ws)
+            XorExpression.Repeat(0).SeparatedBy(Spaces & Or.Named("Operator") & Spaces),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(Spaces & Or.Named("Operator") & Spaces)
         );
 
         var testOp = LessEqual | Less | GreaterEqual | Greater ;
 
         TestExpression.Add(
-            OrExpression.Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws),
-            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & testOp.Named("Operator") & ws)
+            OrExpression.Repeat(0).SeparatedBy(Spaces & testOp.Named("Operator") & Spaces),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(Spaces & testOp.Named("Operator") & Spaces)
         );
 
         var eqOp =
@@ -186,17 +184,17 @@ public partial class SDSLGrammar : Grammar
             | Literal("!=");
 
         EqualsExpression.Add(
-            TestExpression.Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws),
-            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & eqOp.Named("Operator") & ws)
+            TestExpression.Repeat(0).SeparatedBy(Spaces & eqOp.Named("Operator") & Spaces),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(Spaces & eqOp.Named("Operator") & Spaces)
         );
 
         LogicalAndExpression.Add(
-            EqualsExpression.Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws),
-            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & AndAnd.Named("Operator") & ws)
+            EqualsExpression.Repeat(0).SeparatedBy(Spaces & AndAnd.Named("Operator") & Spaces),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(Spaces & AndAnd.Named("Operator") & Spaces)
         );
         LogicalOrExpression.Add(
-            LogicalAndExpression.Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws),
-            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(ws & OrOr.Named("Operator") & ws)
+            LogicalAndExpression.Repeat(0).SeparatedBy(Spaces & OrOr.Named("Operator") & Spaces),
+            Parenthesis(PrimaryExpression).Repeat(0).SeparatedBy(Spaces & OrOr.Named("Operator") & Spaces)
         );
 
         var ternary = new SequenceParser(
@@ -205,30 +203,30 @@ public partial class SDSLGrammar : Grammar
             Parenthesis(LogicalOrExpression) | LogicalOrExpression,
             Colon,
             Parenthesis(LogicalOrExpression) | LogicalOrExpression
-        ){ Separator = ws, Name = "Ternary"};
+        ){ Separator = Spaces, Name = "Ternary"};
 
 
         ConditionalExpression.Add(
-            LogicalOrExpression.NotFollowedBy(ws & "?"),
+            LogicalOrExpression.NotFollowedBy(Spaces & "?"),
             ternary
         );
         
         ParenExpression.Add(
-            LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(ws)
+            LeftParen.Then(PrimaryExpression).Then(RightParen).SeparatedBy(Spaces)
         );
         
 
         MethodCall.Add(
             Identifier,
             LeftParen,
-            PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws).Until(RightParen),
+            PrimaryExpression.Repeat(0).SeparatedBy(Spaces & Comma & Spaces).Until(RightParen),
             RightParen
         );
-        MethodCall.Separator = ws;
+        MethodCall.Separator = Spaces;
 
         var arrayDeclaration =
-            (LeftBrace & PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws) & RightBrace)
-            .SeparatedBy(ws);
+            (LeftBrace & PrimaryExpression.Repeat(0).SeparatedBy(Spaces & Comma & Spaces) & RightBrace)
+            .SeparatedBy(Spaces);
 
         PrimaryExpression.Add(
             arrayDeclaration,

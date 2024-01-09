@@ -1,6 +1,7 @@
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
+using static SDSL.Parsing.Grammars.CommonParsers;
 
 namespace SDSL.Parsing.Grammars.SDSL;
 
@@ -51,7 +52,7 @@ public partial class SDSLGrammar : Grammar
             And,
             OrOr,
             Or,
-            "^",
+            Caret,
             Equal,
             "==",
             NotEqual,
@@ -73,52 +74,9 @@ public partial class SDSLGrammar : Grammar
             OrAssign
         );
 
-        BoolTypes.Add(
-            Bool.NotFollowedBy(Set("1234")).Named("BoolScalar"),
-            BoolVec.NotFollowedBy("x").Named("BoolVec"),
-            BoolMat.Named("BoolMatrix")
-        );
-
-        HalfTypes.Add(
-            Half.NotFollowedBy(Set("1234")).Named("HalfScalar"),
-            HalfVec.NotFollowedBy("x").Named("HalfVec"),
-            HalfMat.Named("HalfMatrix")
-        );
-
-        FloatTypes.Add(
-            Float.NotFollowedBy(Set("1234")).Named("FloatScalar"),
-            FloatVec.NotFollowedBy("x").Named("FloatVec"),
-            FloatMat.Named("FloatMatrix")
-        );
-
-        DoubleTypes.Add(
-            Double.NotFollowedBy(Set("1234")).Named("DoubleScalar"),
-            DoubleVec.NotFollowedBy("x").Named("DoubleVec"),
-            DoubleMat.Named("DoubleMatrix")
-        );
-
-        IntTypes.Add(
-            Int.NotFollowedBy(Set("1234")).Named("IntScalar"),
-            IntVec.NotFollowedBy("x").Named("IntVec"),
-            IntMat.Named("IntMatrix")
-        );
-
-        UintTypes.Add(
-            Uint.NotFollowedBy(Set("1234")).Named("UintScalar"),
-            UintVec.NotFollowedBy("x").Named("UintVec"),
-            UintMat.Named("UintMatrix")
-        );
-
+        
         SimpleTypes.Add(
-            BoolTypes,
-            HalfTypes,
-            FloatTypes,
-            DoubleTypes,
-            IntTypes,
-            UintTypes,
-            BufferTypes,
-            TextureTypes,
-            Void,
+            BuiltinNumericTypes,
             Identifier.Named("UserDefined")
         );
 
@@ -137,7 +95,7 @@ public partial class SDSLGrammar : Grammar
 
         Keywords.Add(
             AppendStructuredBuffer,
-            Buffer,
+            CommonParsers.Buffer,
             ByteAddressBuffer,
             Break,
             Case,
@@ -160,7 +118,6 @@ public partial class SDSLGrammar : Grammar
             Inout,
             InputPatch,
             Interface,
-            Line_,
             LineAdj,
             Linear,
             LineStream,
@@ -185,7 +142,7 @@ public partial class SDSLGrammar : Grammar
             SamplerState,
             Shared,
             Stage,
-            Stream,
+            CommonParsers.Stream,
             StaticConst,
             Static,
             Struct,
@@ -198,8 +155,8 @@ public partial class SDSLGrammar : Grammar
             Uniform,
             SimpleTypes,
             Vector,
-            Volatile,
-            Void,
+            CommonParsers.Volatile,
+            CommonParsers.Void,
             While
         );
 
@@ -214,17 +171,16 @@ public partial class SDSLGrammar : Grammar
             StaticConst,
             Static,
             Uniform,
-            Volatile,
+            CommonParsers.Volatile,
             Linear,
             Centroid,
             Nointerpolation,
             Noperspective,
             Sample,
+            Inout,
             In.NotFollowedBy(WhiteSpace.Repeat(0) & Out),
             Out,
-            Inout,
             Point,
-            Line_,
             Triangle,
             LineAdj,
             TriangleAdj

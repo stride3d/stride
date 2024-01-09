@@ -1,6 +1,7 @@
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
+using static SDSL.Parsing.Grammars.CommonParsers;
 
 namespace SDSL.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
@@ -18,20 +19,19 @@ public partial class SDSLGrammar : Grammar
     }
     public void CreateMethodDeclaration()
     {
-        var ws = WhiteSpace.Repeat(0);
-        var ws1 = WhiteSpace.Repeat(1);
+        
 
-        var genericsList = new SequenceParser { Name = "ShaderGenerics", Separator = ws };
+        var genericsList = new SequenceParser { Name = "ShaderGenerics", Separator = Spaces };
 
         var parameterGenericsValues = new AlternativeParser(
             SimpleTypes,
-            Identifier.Then(genericsList.Optional()).SeparatedBy(ws)
+            Identifier.Then(genericsList.Optional()).SeparatedBy(Spaces)
         )
         { Name = "ParameterGenericValue" };
 
         genericsList.Add(
             "<",
-            parameterGenericsValues.Repeat(1).SeparatedBy(ws & Comma & ws),
+            parameterGenericsValues.Repeat(1).SeparatedBy(Spaces & Comma & Spaces),
             ">"
         );
 
@@ -41,21 +41,21 @@ public partial class SDSLGrammar : Grammar
         );
 
         var declarePost =
-            LeftBracket.Then(PrimaryExpression).Then(RightBracket).SeparatedBy(ws)
-            | Colon.Then(Identifier).SeparatedBy(ws);
+            LeftBracket.Then(PrimaryExpression).Then(RightBracket).SeparatedBy(Spaces)
+            | Colon.Then(Identifier).SeparatedBy(Spaces);
 
         var arraySpecifier =
             (LeftBracket & PrimaryExpression & RightBracket)
-            .SeparatedBy(ws);
+            .SeparatedBy(Spaces);
 
         var parameter = new SequenceParser(
             ValueOrGeneric,
-            ws1,
-            (Identifier & ws & arraySpecifier) | Identifier,
-            (Equal & ws & PrimaryExpression).Optional()
+            Spaces1,
+            (Identifier & Spaces & arraySpecifier) | Identifier,
+            (Equal & Spaces & PrimaryExpression).Optional()
         );
         var parameterWithStorage = new AlternativeParser(
-            StorageFlag & ws1 & parameter,
+            StorageFlag & Spaces1 & parameter,
             parameter
         )
         { Name = "MethodParameter" };
@@ -63,37 +63,37 @@ public partial class SDSLGrammar : Grammar
 
         ParameterList.Add(
             LeftParen,
-            parameterWithStorage.Repeat(0).SeparatedBy(ws & Comma & ws),
+            parameterWithStorage.Repeat(0).SeparatedBy(Spaces & Comma & Spaces),
             RightParen
         );
-        ParameterList.Separator = ws;
+        ParameterList.Separator = Spaces;
 
         var abstractMethod = new SequenceParser(
             Literal("abstract"),
-            ws1,
+            Spaces1,
             ~Literal("stage"),
-            ws1,
+            Spaces1,
             Identifier,
-            ws1,
+            Spaces1,
             Identifier,
-            ws,
+            Spaces,
             ParameterList,
-            ws,
+            Spaces,
             Semi
         )
         { Name = "AbstractMethod"};
 
         var method = new SequenceParser(
-            Attribute.Repeat(0).SeparatedBy(ws),
+            Attribute.Repeat(0).SeparatedBy(Spaces),
             ~(Stage.Named("Stage") & WhiteSpace),
-            ~((Literal("override").Named("Override") | Literal("static").Named("Static")) & ws1),
-            ValueTypes.Named("ReturnType") & ws1 & Identifier.Named("MethodName"),
+            ~((Literal("override").Named("Override") | Literal("static").Named("Static")) & Spaces1),
+            ValueTypes.Named("ReturnType") & Spaces1 & Identifier.Named("MethodName"),
             ParameterList,
             LeftBrace,
-            Statement.Repeat(0).SeparatedBy(ws).Until("}").Named("Statements"),
+            Statement.Repeat(0).SeparatedBy(Spaces).Until("}").Named("Statements"),
             RightBrace
         )
-        { Name = "Method", Separator = ws};
+        { Name = "Method", Separator = Spaces};
 
         MethodDeclaration.Add(
             abstractMethod,

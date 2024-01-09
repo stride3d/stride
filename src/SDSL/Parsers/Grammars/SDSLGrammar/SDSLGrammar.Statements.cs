@@ -1,6 +1,7 @@
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
+using static SDSL.Parsing.Grammars.CommonParsers;
 
 namespace SDSL.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
@@ -17,22 +18,19 @@ public partial class SDSLGrammar : Grammar
     }
     public void CreateStatements()
     {
-        var ws = WhiteSpace.Repeat(0);
-        var ws1 = WhiteSpace.Repeat(1);
-
 
         var returnStatement = new SequenceParser(
             Return,
-            (ws1 & PrimaryExpression & ws & Semi)
-            |(ws & Semi)
+            (Spaces1 & PrimaryExpression & Spaces & Semi)
+            |(Spaces & Semi)
         );
 
         var attrParams =
             (
                 LeftParen &
-                PrimaryExpression.Repeat(0).SeparatedBy(ws & Comma & ws) &
+                PrimaryExpression.Repeat(0).SeparatedBy(Spaces & Comma & Spaces) &
                 RightParen
-            ).SeparatedBy(ws);
+            ).SeparatedBy(Spaces);
 
         Attribute.Add(
             LeftBracket,
@@ -40,10 +38,10 @@ public partial class SDSLGrammar : Grammar
             ~attrParams,
             RightBracket
         );
-        Attribute.Separator = ws;
+        Attribute.Separator = Spaces;
 
         var arraySpecifier =
-            (LeftBracket & PrimaryExpression.Named("Count") & RightBracket).SeparatedBy(ws);
+            (LeftBracket & PrimaryExpression.Named("Count") & RightBracket).SeparatedBy(Spaces);
 
         arraySpecifier.Name = "ArraySpecifier";
         
@@ -54,24 +52,24 @@ public partial class SDSLGrammar : Grammar
             .Then(AssignOperators.Named("AssignOp"))
             .Then(PrimaryExpression.Named("Value"))
             .Then(Semi)
-            .SeparatedBy(ws);
+            .SeparatedBy(Spaces);
 
         var assignChain =
             Identifier.Then(Dot.Then(Identifier).Repeat(0))
             .Then(AssignOperators.Named("AssignOp"))
             .Then(PrimaryExpression)
             .Then(Semi)
-            .SeparatedBy(ws);
+            .SeparatedBy(Spaces);
 
 
         var declareAssign =
             ValueTypes
             .Then(assignVar)
-            .SeparatedBy(ws1);
+            .SeparatedBy(Spaces1);
 
         var simpleDeclare = 
-            ((SimpleTypes | Identifier) & Identifier.Named("Variable") & arraySpecifier).SeparatedBy(ws)
-            | ((SimpleTypes | Identifier) & Identifier.Named("Variable")).SeparatedBy(ws);
+            ((SimpleTypes | Identifier) & Identifier.Named("Variable") & arraySpecifier).SeparatedBy(Spaces)
+            | ((SimpleTypes | Identifier) & Identifier.Named("Variable")).SeparatedBy(Spaces);
 
         Statement.Add(
             Block,
@@ -82,15 +80,15 @@ public partial class SDSLGrammar : Grammar
             declareAssign.Named("DeclareAssign"),
             simpleDeclare.Named("SimpleDeclare"),
             assignVar.Named("Assign"),
-            PrimaryExpression.Then(Semi).SeparatedBy(ws).Named("EmptyStatement")
+            PrimaryExpression.Then(Semi).SeparatedBy(Spaces).Named("EmptyStatement")
         );
 
         Block.Add(
             LeftBrace,
-            Statement.Repeat(0).SeparatedBy(ws),
+            Statement.Repeat(0).SeparatedBy(Spaces),
             RightBrace
         );
-        Block.Separator = ws;
+        Block.Separator = Spaces;
 
 
         
