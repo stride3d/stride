@@ -31,7 +31,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         public DebugRenderProcessor()
         {
-            Order = 10200;
+            Order = 10200; // Transform processor operates at -200, as long as we're after it we're working optimally
         }
 
         protected override void OnSystemAdd()
@@ -98,7 +98,8 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 foreach (var kvp in _wireFrameRenderObject)
                 {
                     var container = kvp.Key;
-                    container.Entity.Transform.UpdateWorldMatrix();
+                    // We don't need to call UpdateWorldMatrix before reading WorldMatrix as we're running after the TransformProcessor operated,
+                    // and we don't expect or care if other processors affect the transform afterwards
                     container.Entity.Transform.WorldMatrix.Decompose(out _, out Matrix rotMatrix, out var translation);
                     rotMatrix.TranslationVector = translation; // rotMatrix is now a translation and rotation matrix
                     foreach (var wireframe in kvp.Value)
