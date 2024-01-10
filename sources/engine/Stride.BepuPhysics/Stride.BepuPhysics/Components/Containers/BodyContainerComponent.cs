@@ -15,7 +15,7 @@ namespace Stride.BepuPhysics.Components.Containers
         [DataMemberIgnore]
         public new IContactEventHandler? ContactEventHandler
         {
-            get => ContactEventHandler;
+            get => base.ContactEventHandler;
             set => base.ContactEventHandler = value;
         }
 
