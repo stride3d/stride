@@ -99,13 +99,11 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 {
                     var container = kvp.Key;
                     container.Entity.Transform.UpdateWorldMatrix();
-                    container.Entity.Transform.WorldMatrix.Decompose(out _, out Matrix rotMatrix, out var transformPos);
-                    var transMatrix = Matrix.Translation(transformPos);
+                    container.Entity.Transform.WorldMatrix.Decompose(out _, out Matrix rotMatrix, out var translation);
+                    rotMatrix.TranslationVector = translation; // rotMatrix is now a translation and rotation matrix
                     foreach (var wireframe in kvp.Value)
                     {
-                        wireframe.WorldMatrix = wireframe.ContainerBaseMatrix;
-                        wireframe.WorldMatrix *= rotMatrix;
-                        wireframe.WorldMatrix *= transMatrix;
+                        wireframe.WorldMatrix = wireframe.ContainerBaseMatrix * rotMatrix;
                     }
                 }
             }
@@ -152,13 +150,11 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 var shapeAndOffset = shapeAndOffsets[i];
                 var local = shapeAndOffset;
 
-                Matrix.Transformation(ref local.transform.Scale, ref local.transform.RotationLocal, ref local.transform.PositionLocal, out var containerMatrix);
-
                 var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, shapeAndOffset.data.Indices, shapeAndOffset.data.Vertices);
                 wireframe.Color = color;
-                wireframe.ContainerBaseMatrix = containerMatrix;
-                _visibilityGroup.RenderObjects.Add(wireframe);
+                Matrix.Transformation(ref local.transform.Scale, ref local.transform.RotationLocal, ref local.transform.PositionLocal, out wireframe.ContainerBaseMatrix);
                 wireframes[i] = wireframe;
+                _visibilityGroup.RenderObjects.Add(wireframe);
             }
             _wireFrameRenderObject.Add(container, wireframes);
         }
