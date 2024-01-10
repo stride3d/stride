@@ -2,7 +2,7 @@
 
 namespace Stride.BepuPhysics.Components.Containers.Interfaces
 {
-    public interface IContainerWithColliders
+    public interface IContainerWithColliders : IContainer
     {
         public ListOfColliders Colliders { get; set; }
 

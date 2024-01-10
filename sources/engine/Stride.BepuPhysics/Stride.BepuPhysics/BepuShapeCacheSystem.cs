@@ -114,7 +114,7 @@ namespace Stride.BepuPhysics
             }
 
 #warning maybe allow mesh transform ? (by adding Scale, Orientation & Offset to IContainerWithMesh)
-            return ((shapeCache.BodyShapeData, new() { PositionLocal = Vector3.Zero, RotationLocal = Quaternion.Identity, Scale = ((IContainer)meshContainer).Entity.Transform.Scale }));
+            return ((shapeCache.BodyShapeData, new() { PositionLocal = Vector3.Zero, RotationLocal = Quaternion.Identity, Scale = (meshContainer).Entity.Transform.Scale }));
         }
 
         private static void ExtractHull(PhysicsColliderShape Hull, out VertexPosition3[] outPoints, out int[] outIndices)

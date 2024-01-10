@@ -2,7 +2,7 @@
 
 namespace Stride.BepuPhysics.Components.Containers.Interfaces
 {
-    public interface IContainerWithMesh
+    public interface IContainerWithMesh : IContainer
     {
         public float Mass { get; }
         public bool Closed { get; }
