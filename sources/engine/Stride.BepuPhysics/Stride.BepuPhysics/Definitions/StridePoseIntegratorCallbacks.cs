@@ -115,7 +115,7 @@ namespace Stride.BepuPhysics.Definitions
                     else if (bodyIndex >= 0)
                     {
                         ignoreGravitySpan[bundleSlotIndex] = 1f;
-                        //Should not happend but it's happening.
+#warning This should not happend, it was before, need testing
                     }
                 }
 

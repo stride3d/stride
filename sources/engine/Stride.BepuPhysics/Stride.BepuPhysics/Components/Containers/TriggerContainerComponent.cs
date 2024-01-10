@@ -2,6 +2,7 @@
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Extensions;
+using Stride.Core;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
@@ -9,6 +10,13 @@ namespace Stride.BepuPhysics.Components.Containers
     {
         public event EventHandler<IContainer>? ContainerEnter;
         public event EventHandler<IContainer>? ContainerLeave;
+
+        [DataMemberIgnore]
+        public new IContactEventHandler? ContactEventHandler
+        {
+            get => base.ContactEventHandler;
+            private set => base.ContactEventHandler = value;
+        }
 
         public TriggerContainerComponent()
         {

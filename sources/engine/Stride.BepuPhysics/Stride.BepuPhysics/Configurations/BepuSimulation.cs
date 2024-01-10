@@ -29,6 +29,7 @@ public class BepuSimulation
     internal Dictionary<StaticHandle, IStaticContainer> StaticsContainers { get; } = new();
 
     internal float RemainingUpdateTime { get; set; } = 0;
+    internal int SoftStartRemainingDurationMs = -1;
 
     /// <summary>
     /// Get the bepu Simulation /!\
@@ -36,31 +37,52 @@ public class BepuSimulation
     [DataMemberIgnore]
     public Simulation Simulation { get; private set; }
 
-
+    /// <summary>
+    /// Start or Stop the simulation updating.
+    /// </summary>
     [Display(0, "Enabled")]
     public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Allows you to choose the speed of the simulation (real time multiplicator).
+    /// </summary>
     [Display(1, "TimeWarp")]
     public float TimeWarp { get; set; } = 1f;
 
+    /// <summary>
+    /// This function slow down the simulation but allow to integrate per Body settings.
+    /// Ignore global gravity will not work if set to false.
+    /// </summary>
     [Display(11, "UsePerBodyAttributes")]
-    public bool UsePerBodyAttributes //Warning, set this to false can disable some features used by components.
+    public bool UsePerBodyAttributes //
     {
         get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.UsePerBodyAttributes;
         set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.UsePerBodyAttributes = value;
     }
 
+    /// <summary>
+    /// Global gravity settings. This gravity will be applied to all bodies in the simulations that are not kinematic.
+    /// </summary>
     [Display(12, "PoseGravity")]
     public Vector3 PoseGravity
     {
         get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.Gravity.ToStrideVector();
         set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.Gravity = value.ToNumericVector();
     }
+
+    /// <summary>
+    /// Controls linear damping (how fast object loose it's linear velocity)
+    /// </summary>
     [Display(13, "PoseLinearDamping")]
     public float PoseLinearDamping
     {
         get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.LinearDamping;
         set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.LinearDamping = value;
     }
+
+    /// <summary>
+    /// Controls angular damping (how fast object loose it's angular velocity)
+    /// </summary>
     [Display(14, "PoseAngularDamping")]
     public float PoseAngularDamping
     {
@@ -68,27 +90,53 @@ public class BepuSimulation
         set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.AngularDamping = value;
     }
 
+    /// <summary>
+    /// Controls the number of iterations for the solver
+    /// Can be heavy performance wise, consider update solveSubStep first.
+    /// </summary>
     [Display(15, "SolveIteration")]
     public int SolveIteration { get => Simulation.Solver.VelocityIterationCount; init => Simulation.Solver.VelocityIterationCount = value; }
 
+    /// <summary>
+    /// Specifies the number of sub-steps for solving 
+    /// </summary>
     [Display(16, "SolveSubStep")]
     public int SolveSubStep { get => Simulation.Solver.SubstepCount; init => Simulation.Solver.SubstepCount = value; }
 
+    /// <summary>
+    /// Specifies the number of milliseconds per step to simulate
+    /// </summary>
     [Display(30, "Simulation fixed step")]
     public int SimulationFixedStep { get; set; } = 1000 / 60;
+
+    /// <summary>
+    /// Represents the maximum number of steps per frame to avoid a death loop
+    /// </summary>
     [Display(31, "Max steps/frame")]
     public int MaxStepPerFrame { get; set; } = 3;
 
-
+    /// <summary>
+    /// Does we update entities transforms using Dispatcher or single threaded ?
+    /// </summary>
     [Display(35, "Parallel update")]
     public bool ParallelUpdate { get; set; } = true;
 
-
+    /// <summary>
+    /// The duration in millisec of the SoftStart.
+    /// Negative or 0 disable the feature.
+    /// </summary>
     [Display(36, "SoftStart duration (ms)")]
     public int SoftStartDuration { get; set; } = 1000;
+
+    /// <summary>
+    /// How much we should soften the simulation during softStart ?
+    /// </summary>
     [Display(37, "SoftStart softness")]
     public int SoftStartSoftness { get; set; } = 4;
-    internal int SoftStartRemainingDurationMs = -1;
+
+    /// <summary>
+    /// Reset the SoftStart to SoftStartDuration.
+    /// </summary>
     public void ResetSoftStart()
     {
         if (SoftStartDuration > 0)
@@ -96,11 +144,23 @@ public class BepuSimulation
     }
 
 
-#pragma warning disable CS8618 //Done in setup to avoid 2 times the samecode.
     public BepuSimulation()
-#pragma warning restore CS8618 
     {
-        Setup();
+        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
+
+        ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
+        BufferPool = new BufferPool();
+        ContactEvents = new ContactEventsManager(ThreadDispatcher, BufferPool);
+
+        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials, ContactEvents = ContactEvents };
+        var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks() { CollidableMaterials = CollidableMaterials };
+        var _solveDescription = new SolveDescription(1, 1);
+
+        Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
+
+        CollidableMaterials.Initialize(Simulation);
+        ContactEvents.Initialize(Simulation);
+        //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
     }
 
     /// <summary>
@@ -223,33 +283,19 @@ public class BepuSimulation
         Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref handler);
     }
 
-    private void Setup()
-    {
-        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
-
-        ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
-        BufferPool = new BufferPool();
-        ContactEvents = new ContactEventsManager(ThreadDispatcher, BufferPool);
-
-        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials, ContactEvents = ContactEvents };
-        var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks() { CollidableMaterials = CollidableMaterials };
-        var _solveDescription = new SolveDescription(1, 1);
-
-        Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
-
-        CollidableMaterials.Initialize(Simulation);
-        ContactEvents.Initialize(Simulation);
-        //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
-    }
-    private void Clear()
-    {
-        //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
-        BufferPool.Clear();
-        BodiesContainers.Clear();
-        StaticsContainers.Clear();
-        ContactEvents.Dispose();
-        Setup();
-    }
+    //private void Setup()
+    //{
+       
+    //}
+    //private void Clear()
+    //{
+    //    //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
+    //    BufferPool.Clear();
+    //    BodiesContainers.Clear();
+    //    StaticsContainers.Clear();
+    //    ContactEvents.Dispose();
+    //    Setup();
+    //}
 
     internal void CallSimulationUpdate(float simTimeStep)
     {
