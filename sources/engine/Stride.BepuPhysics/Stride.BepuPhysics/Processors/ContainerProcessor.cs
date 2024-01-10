@@ -19,7 +19,7 @@ namespace Stride.BepuPhysics.Processors
 
         public ContainerProcessor()
         {
-            Order = 10000;
+            Order = BepuOrderHelper.ORDER_OF_CONTAINER_P;
         }
 
         protected override void OnSystemAdd()

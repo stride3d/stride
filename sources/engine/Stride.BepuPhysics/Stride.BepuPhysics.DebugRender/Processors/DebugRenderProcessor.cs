@@ -31,7 +31,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         public DebugRenderProcessor()
         {
-            Order = 10200; // Transform processor operates at -200, as long as we're after it we're working optimally
+            Order = BepuOrderHelper.ORDER_OF_DEBUG_P;
         }
 
         protected override void OnSystemAdd()

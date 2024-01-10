@@ -15,7 +15,7 @@ namespace Stride.BepuPhysics
         public BepuPhysicsGameSystem(IServiceRegistry registry) : base(registry)
         {
             _bepuConfiguration = registry.GetService<BepuConfiguration>();
-            UpdateOrder = -1000; //make sure physics runs before everything
+            UpdateOrder = BepuOrderHelper.ORDER_OF_GAME_SYSTEM; 
             Enabled = true; //enabled by default
 
 

@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Processors
 
         public ConstraintProcessor()
         {
-            Order = 10100;
+            Order = BepuOrderHelper.ORDER_OF_CONSTRAINT_P;
         }
 
         protected override void OnSystemAdd()
