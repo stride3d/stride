@@ -23,14 +23,14 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             Trigger.ContainerLeave += SetBaseColor;
         }
 
-        private void SetBaseColor(object? sender, IContainer? e)
+        private void SetBaseColor(object? sender, IContainer e)
         {
             var mc = Trigger.Entity.Get<ModelComponent>();
             mc.Materials.Clear();
             mc.Materials.Add(new(0,MatBase));
         }
 
-        private void SetRedColor(object? sender, IContainer? e)
+        private void SetRedColor(object? sender, IContainer e)
         {
             var mc = Trigger.Entity.Get<ModelComponent>();
             mc.Materials.Clear();
