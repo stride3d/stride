@@ -92,9 +92,6 @@ Hierarchy:
                         Instancing: ref!! a0d3246e-8622-43f9-9286-a31b16e0e35b
                         SpawnPosition: ref!! 0c201775-1362-4664-a45a-53419a14374f
                         Speed: 20.0
-                    48c28325bdaa4214899215ffba403739: !Stride.BepuPhysics.Components._2DSimulationConfigurator,Stride.BepuPhysics._2D
-                        Id: 62022625-a28a-4388-a745-6224c3db4955
-                        SimulationIndex: 0
                     c21ca5abe2bbd45eff772bd354505b9d: !Stride.BepuPhysics.Demo.Components.Utils.SpawnerComponent,Stride.BepuPhysics.Demo
                         Id: a2d714fa-431a-4d31-88ce-5c5cea8eeb8e
                         SimulationIndex: 0
@@ -102,9 +99,12 @@ Hierarchy:
                         Instancing: ref!! a0d3246e-8622-43f9-9286-a31b16e0e35b
                         SpawnPosition: ref!! c06734b6-d768-4453-a181-9ae26b304976
                         Count: 1000
-                        SpawnRate: 5.0
-                        SpawnVelocity: {X: 0.0, Y: 20.0, Z: 0.0}
-                        SpawnVelocityRange: {X: 2.0, Y: 0.0, Z: 2.0}
+                        SpawnRate: 10.0
+                        SpawnVelocity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        SpawnVelocityRange: {X: 3.0, Y: 0.0, Z: 0.0}
+                    16b1c216dcc3451a2350ca95db40810e: !Stride.BepuPhysics._2D.Components._2DSimulationConfigurator,Stride.BepuPhysics._2D
+                        Id: b61da860-a7dd-40c0-baf0-b5ba58b0f98b
+                        SimulationIndex: 0
         -   Entity:
                 Id: a62c8d3b-72d9-4feb-897d-28d64e863115
                 Name: Directional light

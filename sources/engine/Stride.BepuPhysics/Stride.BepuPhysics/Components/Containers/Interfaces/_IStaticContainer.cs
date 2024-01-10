@@ -2,7 +2,7 @@
 using BepuPhysics.Collidables;
 using Stride.Core.Mathematics;
 
-namespace Stride.BepuPhysics.Components.Containers
+namespace Stride.BepuPhysics.Components.Containers.Interfaces
 {
     public interface IStaticContainer : IContainer
     {

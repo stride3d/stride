@@ -2,7 +2,7 @@
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
-namespace Stride.BepuPhysics.Components.Containers
+namespace Stride.BepuPhysics.Components.Containers.Interfaces
 {
     public interface IContainer
     {

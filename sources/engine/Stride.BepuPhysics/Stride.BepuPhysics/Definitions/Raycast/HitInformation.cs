@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 
 namespace Stride.BepuPhysics.Definitions.Raycast
 {

@@ -1,4 +1,4 @@
-﻿using Stride.BepuPhysics.Components.Containers;
+﻿using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.Core;
 

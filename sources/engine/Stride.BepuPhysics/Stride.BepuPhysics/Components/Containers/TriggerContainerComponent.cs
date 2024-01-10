@@ -1,5 +1,6 @@
 ﻿using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;

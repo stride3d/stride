@@ -25,15 +25,13 @@ namespace Stride.BepuPhysics._2D.Components.Containers
             }
             set
             {
-#warning Get ref instead of SetLocalInertia
-                //var localInertia =  GetPhysicBodyRef().LocalInertia;
-                ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle].LocalInertia.InverseInertiaTensor.XX *= value.X;
-                ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle].LocalInertia.InverseInertiaTensor.YX *= value.X * value.Y;
-                ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle].LocalInertia.InverseInertiaTensor.ZX *= value.Z * value.X;
-                ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle].LocalInertia.InverseInertiaTensor.YY *= value.Y;
-                ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle].LocalInertia.InverseInertiaTensor.ZY *= value.Z * value.Y;
-                ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle].LocalInertia.InverseInertiaTensor.ZZ *= value.Z;
-                //GetPhysicBodyRef().SetLocalInertia(localInertia);
+                var body = ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
+                body.LocalInertia.InverseInertiaTensor.XX *= value.X;
+                body.LocalInertia.InverseInertiaTensor.YX *= value.X * value.Y;
+                body.LocalInertia.InverseInertiaTensor.ZX *= value.Z * value.X;
+                body.LocalInertia.InverseInertiaTensor.YY *= value.Y;
+                body.LocalInertia.InverseInertiaTensor.ZY *= value.Z * value.Y;
+                body.LocalInertia.InverseInertiaTensor.ZZ *= value.Z;
             }
         }
 

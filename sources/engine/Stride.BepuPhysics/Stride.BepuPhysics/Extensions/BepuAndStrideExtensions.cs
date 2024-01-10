@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using BepuPhysics;
 using BepuPhysics.Collidables;
-using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
 using Stride.Engine;
 

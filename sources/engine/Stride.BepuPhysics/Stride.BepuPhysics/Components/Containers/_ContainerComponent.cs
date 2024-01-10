@@ -1,4 +1,5 @@
-﻿using Stride.BepuPhysics.Configurations;
+﻿using Stride.BepuPhysics.Components.Containers.Interfaces;
+using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;

@@ -1,7 +1,7 @@
 ﻿using BepuPhysics;
 using BulletSharp.SoftBody;
 using Stride.BepuPhysics.Components.Constraints;
-using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Extensions;
