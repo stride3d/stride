@@ -2,6 +2,7 @@
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Extensions;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
@@ -11,6 +12,12 @@ namespace Stride.BepuPhysics.Components.Containers
 {
     public class BodyContainerComponent : ContainerComponent, IBodyContainer, IContainerWithColliders
     {
+        [DataMemberIgnore]
+        public new IContactEventHandler? ContactEventHandler
+        {
+            get => ContactEventHandler;
+            set => base.ContactEventHandler = value;
+        }
 
         #region Body
 

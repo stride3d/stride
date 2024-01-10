@@ -1,4 +1,5 @@
-﻿using Stride.BepuPhysics.Components.Containers;
+﻿using Stride.BepuPhysics.Components;
+using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
 using Stride.Core.Annotations;
 using Stride.Engine;
@@ -42,6 +43,8 @@ namespace Stride.BepuPhysics.Processors
 
             component.ContainerData = new(component, _bepuConfiguration, _game);
             component.ContainerData.RebuildContainer();
+            if (component is ISimulationUpdate simulationUpdate)
+                component.ContainerData.BepuSimulation.Register(simulationUpdate);
 
             OnPostAdd?.Invoke(component);
         }
@@ -50,6 +53,8 @@ namespace Stride.BepuPhysics.Processors
         {
             OnPreRemove?.Invoke(component);
 
+            if (component is ISimulationUpdate simulationUpdate)
+                component.ContainerData?.BepuSimulation.Unregister(simulationUpdate);
             component.ContainerData?.DestroyContainer();
             component.ContainerData = null;
 

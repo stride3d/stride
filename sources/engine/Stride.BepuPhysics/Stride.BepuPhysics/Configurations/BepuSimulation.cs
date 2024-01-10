@@ -17,7 +17,7 @@ namespace Stride.BepuPhysics.Configurations;
 [DataContract]
 public class BepuSimulation
 {
-    private readonly List<SimulationUpdateComponent> _simulationUpdateComponents = new();
+    private readonly List<ISimulationUpdate> _simulationUpdateComponents = new();
 
     internal ThreadDispatcher ThreadDispatcher { get; private set; }
     internal BufferPool BufferPool { get; private set; }
@@ -266,11 +266,11 @@ public class BepuSimulation
         }
     }
 
-    internal void Register(SimulationUpdateComponent simulationUpdateComponent)
+    internal void Register(ISimulationUpdate simulationUpdateComponent)
     {
         _simulationUpdateComponents.Add(simulationUpdateComponent);
     }
-    internal void Unregister(SimulationUpdateComponent simulationUpdateComponent)
+    internal void Unregister(ISimulationUpdate simulationUpdateComponent)
     {
         _simulationUpdateComponents.Remove(simulationUpdateComponent);
     }

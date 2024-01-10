@@ -16,6 +16,10 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         {
         }
 
+        public override void AfterSimulationUpdate(float simTimeStep)
+        {
+        }
+
         public override void Update()
         {
             DebugText.Print("Throw a prefab (T)", new(Game.Window.PreferredWindowedSize.X - 500, 125));

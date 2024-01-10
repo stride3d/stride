@@ -1,28 +1,31 @@
-﻿using Stride.BepuPhysics.Definitions.Contacts;
+﻿using BepuPhysics.Collidables;
+using BepuPhysics.CollisionDetection;
+using Stride.BepuPhysics.Definitions.Contacts;
+using Stride.BepuPhysics.Extensions;
 
 namespace Stride.BepuPhysics.Components.Containers
 {
-    public class TriggerContainerComponent : StaticContainerComponent
+    public class TriggerContainerComponent : StaticContainerComponent, IContactEventHandler
     {
-        public new IContactEventHandler? ContactEventHandler => base.ContactEventHandler; //Make it readonly.
-
         public event EventHandler<IContainer?>? ContainerEnter;
         public event EventHandler<IContainer?>? ContainerLeave;
 
         public TriggerContainerComponent()
         {
-            base.ContactEventHandler = new TriggerContactEventHandler(() => Simulation, RaiseEnterEvent, RaiseLeaveEvent);
+            ContactEventHandler = this;
         }
 
-        public void RaiseEnterEvent(IContainer? e)
+        void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex)
         {
-            ContainerEnter?.Invoke(this, e);
+            var containerA = pair.A.GetContainerFromCollidable(Simulation);
+            var containerB = pair.B.GetContainerFromCollidable(Simulation);
+            ContainerLeave?.Invoke(this, containerA is TriggerContainerComponent ? containerB : containerA);
         }
-        public void RaiseLeaveEvent(IContainer? e)
+        void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex)
         {
-            ContainerLeave?.Invoke(this, e);
+            var containerA = pair.A.GetContainerFromCollidable(Simulation);
+            var containerB = pair.B.GetContainerFromCollidable(Simulation);
+            ContainerEnter?.Invoke(this, containerA is TriggerContainerComponent ? containerB : containerA);
         }
-
     }
-
 }

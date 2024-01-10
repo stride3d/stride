@@ -319,8 +319,8 @@ Hierarchy:
                         Children:
                             9c043aa05eeeb48303292605df5d47a7: ref!! 208628ad-d844-4b8f-85da-051838e7a82d
                             d598fb00d865cb8c873573206ac94e9f: ref!! c7eaa95d-05cc-4032-84cf-e78be01fb256
-                    f50f00721249c3d43505ab33909003e0: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
-                        Id: f6ebac31-2bed-4a87-ba4f-34b56c9a2153
+                    ae2e89b5cbf890341249bbff30f4cff7: !Stride.BepuPhysics.Components.CharacterComponent,Stride.BepuPhysics
+                        Id: 87ee6edd-89ca-44e3-aae2-774f6806c6ac
                         SimulationIndex: 1
                         SpringFrequency: 120.0
                         SpringDampingRatio: 1000.0
@@ -336,24 +336,20 @@ Hierarchy:
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Colliders:
-                            f2e6544e3a887872cb4a15ef240a531d: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
+                            bf2a2e6c87c29a4b9c2a1e3b8eb2ef34: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Radius: 0.35
                                 Length: 0.5
+                        Speed: 10.0
+                        JumpSpeed: 1.0
                     643c56ad282de3b130386f69a6e94b5f: !Stride.BepuPhysics.Demo.Components.Character.CharacterControllerComponent,Stride.BepuPhysics.Demo
                         Id: cd4ade13-0099-4e24-af15-ea4fd74f3655
                         CameraPivot: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a
                         CharacterEntity: ref!! bdc9f16d-92a2-401f-a719-5c385c3b68ad
                         MinCameraAngle: -90.0
                         MaxCameraAngle: 90.0
-                    ae2e89b5cbf890341249bbff30f4cff7: !Stride.BepuPhysics.Components.Character.BepuCharacterComponent,Stride.BepuPhysics
-                        Id: 87ee6edd-89ca-44e3-aae2-774f6806c6ac
-                        SimulationIndex: 1
-                        Speed: 10.0
-                        JumpSpeed: 1.0
-                        CharacterBody: ref!! f6ebac31-2bed-4a87-ba4f-34b56c9a2153
         -   Entity:
                 Id: ce3fc329-9038-4602-93b7-71ac6ce61daa
                 Name: DefaultScripts

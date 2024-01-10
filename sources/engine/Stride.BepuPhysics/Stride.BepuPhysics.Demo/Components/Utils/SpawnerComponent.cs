@@ -51,6 +51,12 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 }
             }
         }
+
+        public override void AfterSimulationUpdate(float simTimeStep)
+        {
+
+        }
+
         public override void Update()
         {
             if (Input.IsKeyPressed(Keys.P))

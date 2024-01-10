@@ -152,6 +152,11 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 LastsRPMList.RemoveAt(0);
         }
 
+        public override void AfterSimulationUpdate(float simTimeStep)
+        {
+
+        }
+
         private void HandleGearing()
         {
             if (AutomaticGearing)

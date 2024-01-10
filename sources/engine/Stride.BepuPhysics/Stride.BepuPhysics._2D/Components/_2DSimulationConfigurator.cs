@@ -12,6 +12,11 @@ namespace Stride.BepuPhysics.Components
     [ComponentCategory("Bepu - 2D")]
     public class _2DSimulationConfigurator : SimulationUpdateComponent
     {
+        public override void SimulationUpdate(float simTimeStep)
+        {
+
+        }
+
         public override void AfterSimulationUpdate(float simTimeStep)
         {
             var bodies = BepuSimulation.BodiesContainers.Values.OfType<_2DBodyContainerComponent>().ToArray();
@@ -25,7 +30,6 @@ namespace Stride.BepuPhysics.Components
                 //body.Orientation = Quaternion.RotationYawPitchRoll(0, 0, roll);
                 //body.AngularVelocity *= new Vector3(0, 0, 1);
             }
-            base.AfterSimulationUpdate(simTimeStep);
         }
 
         public override void Update()

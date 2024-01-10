@@ -41,7 +41,7 @@ namespace Stride.BepuPhysics.Components.Containers
         public IContactEventHandler? ContactEventHandler
         {
             get => _contactEventHandler;
-            set
+            protected set
             {
                 if (ContainerData?.IsRegistered() == true)
                     ContainerData?.UnregisterContact();

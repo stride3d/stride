@@ -5,8 +5,8 @@ using Stride.Engine;
 namespace Stride.BepuPhysics.Components
 {
 
-#warning may be nice to use Interface and Register it to Sim using a processsor.
-    public abstract class SimulationUpdateComponent : SyncScript
+#warning may be nice to use Interface and Register it to Sim using a processor.
+    public abstract class SimulationUpdateComponent : SyncScript, ISimulationUpdate
     {
         private bool _started = false;
         private int _simulationIndex = 0;
@@ -44,7 +44,7 @@ namespace Stride.BepuPhysics.Components
             BepuSimulation = null;
         }
 
-        public virtual void SimulationUpdate(float simTimeStep) { }
-        public virtual void AfterSimulationUpdate(float simTimeStep) { }
+        public abstract void SimulationUpdate(float simTimeStep);
+        public abstract void AfterSimulationUpdate(float simTimeStep);
     }
 }
