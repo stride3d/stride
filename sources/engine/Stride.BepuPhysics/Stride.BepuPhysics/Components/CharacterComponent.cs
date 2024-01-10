@@ -15,16 +15,26 @@ namespace Stride.BepuPhysics.Components;
 [ComponentCategory("Bepu - Character")]
 public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, IContactEventHandler
 {
-    /// <summary> Order is not guaranteed and may change at any moment </summary>
+    private bool _tryJump;
+
+
+    /// <summary> 
+    /// Order is not guaranteed and may change at any moment 
+    /// </summary>
     [DataMemberIgnore]
     public List<(IContainer Source, Contact Contact)> Contacts { get; } = new();
-    private bool _tryJump { get; set; }
 
+    /// <summary>
+    /// Movement speed
+    /// </summary>
     public float Speed { get; set; } = 10f;
+    /// <summary>
+    /// Jump force
+    /// </summary>
     public float JumpSpeed { get; set; } = 1f;
 
     [DataMemberIgnore]
-    public Quaternion Orientation { get; set; }
+    public new Quaternion Orientation { get; set; }
     [DataMemberIgnore]
     public Vector3 Velocity { get; set; }
     [DataMemberIgnore]
@@ -67,7 +77,7 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
 
         Awake = true;
 
-        Orientation = Orientation;
+        base.Orientation = Orientation;
         LinearVelocity = new Vector3(Velocity.X, LinearVelocity.Y, Velocity.Z);
 
         if (_tryJump)
@@ -134,7 +144,6 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
                 Contacts.SwapRemoveAt(i);
         }
     }
-
     void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex)
     {
         var sim = Simulation;

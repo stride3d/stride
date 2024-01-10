@@ -3,7 +3,7 @@ using Stride.Engine;
 
 namespace Stride.BepuPhysics.Components
 {
-    public abstract class SoftStartResetComponent : StartupScript
+    public sealed class SoftStartResetComponent : StartupScript
     {
         public int SimulationIndex { get; set; }
 
