@@ -92,8 +92,8 @@
   </ItemGroup>
   <!-- Visual Studio dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.7.37357" />
-    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.7.2196" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.8.37222" />
+    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.8.2365" />
   </ItemGroup>
   <!-- Test dependencies -->
   <ItemGroup>
