@@ -155,18 +155,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
                     continue;
                 }
 
-                if (diagnosticData.GetTextSpan() is Microsoft.CodeAnalysis.Text.TextSpan diag == false)
-                {
-                    continue;
-                }
 
-                var marker = textMarkerService.TryCreate(diag.Start, diag.Length);
-                if (marker != null)
-                {
-                    marker.Tag = args.Id;
-                    marker.MarkerColor = GetDiagnosticsColor(diagnosticData);
-                    marker.ToolTip = diagnosticData.Message;
-                }
             }
         }
 
