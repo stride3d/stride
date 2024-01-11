@@ -59,7 +59,7 @@ namespace Stride.Core.Storage
         OdbStreamWriter CreateStream();
 
         /// <summary>
-        /// Determines weither the object with the specified <see cref="ObjectId"/> exists.
+        /// Determines if the object with the specified <see cref="ObjectId"/> exists.
         /// </summary>
         /// <param name="objectId">The <see cref="ObjectId"/> to check existence for.</param>
         /// <returns><c>true</c> if an object with the specified <see cref="ObjectId"/> exists; otherwise, <c>false</c>.</returns>

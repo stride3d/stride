@@ -93,9 +93,9 @@ namespace Stride.Engine.Processors
             }
         }
 
-        internal void UpdateTransformations(FastCollection<TransformComponent> transformationComponents)
+        internal unsafe void UpdateTransformations(FastCollection<TransformComponent> transformationComponents)
         {
-            Dispatcher.ForEach(transformationComponents, UpdateTransformationsRecursive);
+            Dispatcher.ForBatched(transformationComponents.Count, transformationComponents, &UpdateTransformationsRecursive);
 
             // Re-update model node links to avoid one frame delay compared reference model (ideally entity should be sorted to avoid this in future).
             if (ModelNodeLinkProcessor != null)
@@ -105,17 +105,18 @@ namespace Stride.Engine.Processors
                 {
                     modelNodeLinkComponents.Add(modelNodeLink.Entity.Transform);
                 }
-                Dispatcher.ForEach(modelNodeLinkComponents, UpdateTransformationsRecursive);
+                Dispatcher.ForBatched(modelNodeLinkComponents.Count, modelNodeLinkComponents, &UpdateTransformationsRecursive);
             }
         }
 
-        private static void UpdateTransformationsRecursive(TransformComponent transform)
+        private static void UpdateTransformationsRecursive(FastCollection<TransformComponent> transforms, int from, int toExclusive)
         {
-            transform.UpdateLocalMatrix();
-            transform.UpdateWorldMatrixInternal(false);
-            foreach (var child in transform.Children)
+            for (int i = from; i < toExclusive; i++)
             {
-                UpdateTransformationsRecursive(child);
+                var transform = transforms[i];
+                transform.UpdateLocalMatrix();
+                transform.UpdateWorldMatrixInternal(false);
+                UpdateTransformationsRecursive(transform.Children, 0, transform.Children.Count);
             }
         }
 

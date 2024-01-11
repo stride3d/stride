@@ -12,7 +12,6 @@
   <ItemGroup>
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="TeamCity.VSTest.TestAdapter" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />

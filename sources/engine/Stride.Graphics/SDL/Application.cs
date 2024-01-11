@@ -175,11 +175,11 @@ namespace Stride.Graphics.SDL
                     ctrl = WindowFromSdlHandle(SDL.GetWindowFromID(e.Window.WindowID));
                     switch ((WindowEventID)e.Window.Event)
                     {
-                        case WindowEventID.WindoweventFocusGained:
+                        case WindowEventID.FocusGained:
                             WindowWithFocus = ctrl;
                             break;
 
-                        case WindowEventID.WindoweventFocusLost:
+                        case WindowEventID.FocusLost:
                             WindowWithFocus = null;
                             break;
                     }
