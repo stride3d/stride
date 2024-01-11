@@ -82,41 +82,32 @@ namespace Stride.BepuPhysics
                 }
             }
         }
+
         private static void UpdateBodiesPositionFunction(BodyHandle handle, BepuSimulation bepuSim)
         {
             var bodyContainer = bepuSim.BodiesContainers[handle];
-            var body = bepuSim.Simulation.Bodies[handle];
+            if (bodyContainer.ContainerData!.Parent is {} containerParent)
+            {
+                // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
+                UpdateBodiesPositionFunction(containerParent.ContainerData!.BHandle, bepuSim);
+                bodyContainer.Entity.Transform.Parent.UpdateWorldMatrix(); // This can be slower than expected when we have two or more containers in the hierarchy above us since we're recomputing the same worlds multiple times but this should be a fairly thin edge case
+            }
 
-            var entityTransform = bodyContainer.Entity.Transform;
+            var body = bepuSim.Simulation.Bodies[handle];
             var localPosition = body.Pose.Position.ToStrideVector();
             var localRotation = body.Pose.Orientation.ToStrideQuaternion();
-            if (bodyContainer.Entity.Transform.Parent is { } parent)
+
+            var entityTransform = bodyContainer.Entity.Transform;
+            if (entityTransform.Parent is { } parent)
             {
                 parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
-                localRotation = localRotation * Quaternion.Invert(parentEntityRotation);
-                localPosition = Vector3.Transform(localPosition - parentEntityPosition, Quaternion.Invert(parentEntityRotation));
+                var iRotation = Quaternion.Invert(parentEntityRotation);
+                localPosition = Vector3.Transform(localPosition - parentEntityPosition, iRotation);
+                localRotation = localRotation * iRotation;
             }
 
             entityTransform.Rotation = localRotation;
-            entityTransform.Position = localPosition - Vector3.Transform(bodyContainer.CenterOfMass, entityTransform.Rotation);
-
-            if (bodyContainer.ChildsContainerComponent.Count > 0)
-            {
-                foreach (var item in bodyContainer.ChildsContainerComponent)
-                {
-                    //We need to call 
-                    if (item.ContainerData != null && !item.ContainerData.IsStatic)
-                    {
-                        //Warning this may cause threading-race issues (but i did large tests and never had issues)
-                        entityTransform.UpdateWorldMatrix();
-                        UpdateBodiesPositionFunction(item.ContainerData.BHandle, bepuSim);
-                    }
-                }
-            }
-
+            entityTransform.Position = localPosition - Vector3.Transform(bodyContainer.CenterOfMass, localRotation);
         }
-
-
-
     }
 }

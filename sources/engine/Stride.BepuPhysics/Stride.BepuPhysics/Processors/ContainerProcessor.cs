@@ -1,4 +1,5 @@
-﻿using Stride.BepuPhysics.Components;
+﻿using System.Diagnostics;
+using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Configurations;
 using Stride.Core.Annotations;
@@ -36,12 +37,9 @@ namespace Stride.BepuPhysics.Processors
             if (_bepuConfiguration == null)
                 throw new NullReferenceException(nameof(_bepuConfiguration));
 
-#warning will not work if we add 2 entities, add a Container to the child Then add a container to the parent. Need rework
-            var parent = GetComponentsInParents<ContainerComponent>(entity).FirstOrDefault();
-            if (parent != null)
-                parent.ChildsContainerComponent.Add(component);
+            SetParentForChildren(component, component.Entity.Transform);
 
-            component.ContainerData = new(component, _bepuConfiguration, _game);
+            component.ContainerData = new(component, _bepuConfiguration, _game, FindParentContainer(component));
             component.ContainerData.RebuildContainer();
             if (component is ISimulationUpdate simulationUpdate)
                 component.ContainerData.BepuSimulation.Register(simulationUpdate);
@@ -53,36 +51,44 @@ namespace Stride.BepuPhysics.Processors
         {
             OnPreRemove?.Invoke(component);
 
+            Debug.Assert(component.ContainerData is not null);
+
             if (component is ISimulationUpdate simulationUpdate)
-                component.ContainerData?.BepuSimulation.Unregister(simulationUpdate);
-            component.ContainerData?.DestroyContainer();
+                component.ContainerData.BepuSimulation.Unregister(simulationUpdate);
+
+            if (component.ContainerData.Parent is { } parent) // Make sure that children we leave behind can count on their grand-parent to take care of them
+            {
+                SetParentForChildren(parent, component.Entity.Transform);
+            }
+
+            component.ContainerData.DestroyContainer();
             component.ContainerData = null;
-
-            var parent = GetComponentsInParents<ContainerComponent>(entity).FirstOrDefault();
-            if (parent != null)
-                parent.ChildsContainerComponent.Remove(component);
         }
 
-        private static IEnumerable<Entity> GetParents(Entity entity, bool includeMyself = false)
+        private static void SetParentForChildren(ContainerComponent parent, TransformComponent root)
         {
-            if (includeMyself)
-                yield return entity;
-
-            var parent = entity.GetParent();
-            while (parent != null)
+            foreach (var child in root.Children)
             {
-                yield return parent;
-                parent = parent.GetParent();
-            }
-        }
-        private static IEnumerable<T> GetComponentsInParents<T>(Entity entity, bool includeMyself = false) where T : EntityComponent
-        {
-            foreach (var parent in GetParents(entity, includeMyself))
-            {
-                if (parent.Get<T>() is T component)
-                    yield return component;
+                if (child.Entity.Get<ContainerComponent>() is { } container)
+                {
+                    container.ContainerData!.Parent = parent;
+                }
+                else
+                {
+                    SetParentForChildren(parent, child);
+                }
             }
         }
 
+        private static ContainerComponent? FindParentContainer(ContainerComponent component)
+        {
+            for (var parent = component.Entity.Transform.Parent; parent != null; parent = parent.Parent)
+            {
+                if (parent.Entity.Get<ContainerComponent>() is { } comp)
+                    return comp;
+            }
+
+            return null;
+        }
     }
 }

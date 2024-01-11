@@ -29,15 +29,17 @@ namespace Stride.BepuPhysics.Processors
         internal BodyHandle BHandle { get; private set; } = new(-1);
         internal StaticHandle SHandle { get; private set; } = new(-1);
         internal TypedIndex ShapeIndex { get; private set; }// = new(-1, -1);
+        internal ContainerComponent? Parent { get; set; }
 
         internal bool Exist => _exist;
         internal bool IsStatic => _isStatic;
 
-        internal ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game)
+        internal ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game, ContainerComponent? parent)
         {
             _containerComponent = containerComponent;
             _config = config;
             _game = game;
+            Parent = parent;
         }
 
         internal void TryUpdateContainer()

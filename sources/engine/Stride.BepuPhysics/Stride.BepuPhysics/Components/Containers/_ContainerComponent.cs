@@ -14,7 +14,6 @@ namespace Stride.BepuPhysics.Components.Containers
     [ComponentCategory("Bepu - Containers")]
     public abstract class ContainerComponent : StartupScript, IContainer
     {
-        List<ContainerComponent> IContainer.ChildsContainerComponent => ChildsContainerComponent;
         ContainerData IContainer.ContainerData => ContainerData;
 
         private int _simulationIndex = 0;
@@ -34,7 +33,6 @@ namespace Stride.BepuPhysics.Components.Containers
         private IContactEventHandler? _contactEventHandler = null;
 
 
-        internal List<ContainerComponent> ChildsContainerComponent { get; } = new();
         internal ContainerData? ContainerData { get; set; }
 
 

@@ -6,7 +6,6 @@ namespace Stride.BepuPhysics.Components.Containers.Interfaces
 {
     public interface IContainer
     {
-        internal List<ContainerComponent> ChildsContainerComponent { get; }
         internal ContainerData? ContainerData { get; }
 
         public Entity Entity { get; }
