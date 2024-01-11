@@ -188,14 +188,13 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         private void ClearTrackingForContainer(ContainerComponent container)
         {
-            if (_wireFrameRenderObject.TryGetValue(container, out var wfros))
+            if (_wireFrameRenderObject.Remove(container, out var wfros))
             {
                 foreach (var wireframe in wfros)
                 {
                     wireframe.Dispose();
                     _visibilityGroup.RenderObjects.Remove(wireframe);
                 }
-                _wireFrameRenderObject.Remove(container);
             }
         }
 
