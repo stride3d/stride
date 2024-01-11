@@ -9,6 +9,7 @@ using Stride.Games;
 using Stride.Rendering;
 using Stride.Core.Mathematics;
 using System.Numerics;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 
 namespace Stride.BepuPhysics.Processors
 {
@@ -17,7 +18,7 @@ namespace Stride.BepuPhysics.Processors
         private IGame? _game = null;
         private BepuConfiguration? _bepuConfiguration = default;
 
-        private readonly UnsortedO1List<StaticContainerComponent, Matrix4x4> _statics = new();
+        private readonly UnsortedO1List<IStaticContainer, Matrix4x4> _statics = new();
 
         internal Dictionary<ContainerComponent, ContainerComponent>.Enumerator ComponentDatas => base.ComponentDatas.GetEnumerator();
 
@@ -67,7 +68,7 @@ namespace Stride.BepuPhysics.Processors
             if (component is ISimulationUpdate simulationUpdate)
                 component.ContainerData.BepuSimulation.Register(simulationUpdate);
 
-            if (component is StaticContainerComponent staticContainer)
+            if (component is IStaticContainer staticContainer)
                 _statics.Add(staticContainer, Unsafe.As<Matrix, Matrix4x4>(ref staticContainer.Entity.Transform.WorldMatrix));
 
             OnPostAdd?.Invoke(component);
@@ -77,7 +78,7 @@ namespace Stride.BepuPhysics.Processors
         {
             OnPreRemove?.Invoke(component);
 
-            if (component is StaticContainerComponent staticContainer)
+            if (component is IStaticContainer staticContainer)
                 _statics.Remove(staticContainer);
 
             Debug.Assert(component.ContainerData is not null);
