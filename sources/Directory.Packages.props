@@ -19,14 +19,14 @@
     <PackageVersion Include="SharpDX.MediaFoundation" Version="4.2.0" />
     <PackageVersion Include="SharpDX.RawInput" Version="4.2.0" />
     <PackageVersion Include="SharpDX.XInput" Version="4.2.0" />
-    <PackageVersion Include="Silk.NET.OpenGL" Version="2.19.0" />
-    <PackageVersion Include="Silk.NET.OpenGLES" Version="2.19.0" />
-    <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.19.0" />
-    <PackageVersion Include="Silk.NET.OpenXR" Version="2.19.0" />
-    <PackageVersion Include="Silk.NET.Sdl" Version="2.19.0" />
+    <PackageVersion Include="Silk.NET.OpenGL" Version="2.20.0" />
+    <PackageVersion Include="Silk.NET.OpenGLES" Version="2.20.0" />
+    <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.20.0" />
+    <PackageVersion Include="Silk.NET.OpenXR" Version="2.20.0" />
+    <PackageVersion Include="Silk.NET.Sdl" Version="2.20.0" />
     <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.19.0" />
     <PackageVersion Include="Stride.SharpFont" Version="1.0.0" />
-    <PackageVersion Include="System.Drawing.Common" Version="8.0.0" />
+    <PackageVersion Include="System.Drawing.Common" Version="8.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="8.0.0" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
@@ -53,11 +53,11 @@
     <PackageVersion Include="NuGet.PackageManagement" Version="6.8.0" />
     <PackageVersion Include="NuGet.Protocol" Version="6.8.0" />
     <PackageVersion Include="NuGet.Resolver" Version="6.8.0" />
-    <PackageVersion Include="Silk.NET.Assimp" Version="2.19.0" />
+    <PackageVersion Include="Silk.NET.Assimp" Version="2.20.0" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
     <PackageVersion Include="Stride.Mono.TextTemplating" Version="2.1.0-preview-0009-g0d0b6db3ca" />
-    <PackageVersion Include="SSH.NET" Version="2023.0.0" />
+    <PackageVersion Include="SSH.NET" Version="2023.0.1" />
     <PackageVersion Include="System.AppContext" Version="4.3.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.Console" Version="4.3.1" />
@@ -98,21 +98,18 @@
   <!-- Test dependencies -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageVersion Include="TeamCity.VSTest.TestAdapter" Version="1.0.32" />
-    <PackageVersion Include="xunit" Version="2.6.1" />
-    <PackageVersion Include="xunit.runner.utility" Version="2.6.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageVersion>
+    <PackageVersion Include="TeamCity.VSTest.TestAdapter" Version="1.0.39" />
+    <PackageVersion Include="xunit" Version="2.6.5" />
+    <PackageVersion Include="xunit.runner.utility" Version="2.6.5" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.6" />
     <PackageVersion Include="Xunit.SkippableFact" Version="1.4.13" />
   </ItemGroup>
   <!-- Avalonia dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Avalonia" Version="11.0.5" />
-    <PackageVersion Include="Avalonia.Desktop" Version="11.0.5" />
-    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.0.5" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.0.5" />
+    <PackageVersion Include="Avalonia" Version="11.0.6" />
+    <PackageVersion Include="Avalonia.Desktop" Version="11.0.6" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.0.6" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.0.6" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
