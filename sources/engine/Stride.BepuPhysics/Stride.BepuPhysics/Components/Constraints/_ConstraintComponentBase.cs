@@ -1,5 +1,5 @@
-﻿using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions;
+﻿using Stride.BepuPhysics.Components.Containers.Interfaces;
+using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Engine;
@@ -14,6 +14,8 @@ namespace Stride.BepuPhysics.Components.Constraints
     public abstract class ConstraintComponentBase : SyncScript
     {
         private bool _enabled = true;
+        private readonly IBodyContainer?[] _bodies;
+
         public bool Enabled
         {
             get
@@ -26,17 +28,25 @@ namespace Stride.BepuPhysics.Components.Constraints
                 UntypedConstraintData?.RebuildConstraint();
             }
         }
-        public ListOfContainer BodyContainers { get; set; } = new();
 
-        public ConstraintComponentBase()
+        public ReadOnlySpan<IBodyContainer?> Bodies => _bodies;
+
+        protected ConstraintComponentBase(int bodies) => _bodies = new IBodyContainer?[bodies];
+
+        protected IBodyContainer? this[int i]
         {
-            BodyContainers.OnEditCallBack = () => UntypedConstraintData?.RebuildConstraint();
+            get => _bodies[i];
+            set
+            {
+                _bodies[i] = value;
+                UntypedConstraintData?.RebuildConstraint();
+            }
         }
 
         public override void Update()
         {
-            if (UntypedConstraintData?.Exist != true)
-                UntypedConstraintData?.RebuildConstraint();
+            if (UntypedConstraintData?.Exist == false)
+                UntypedConstraintData.RebuildConstraint();
         }
 
         internal abstract void RemoveDataRef();
@@ -44,7 +54,5 @@ namespace Stride.BepuPhysics.Components.Constraints
         internal abstract ConstraintDataBase? UntypedConstraintData { get; }
 
         internal abstract ConstraintDataBase CreateProcessorData(BepuConfiguration bepuConfiguration);
-
-
     }
 }

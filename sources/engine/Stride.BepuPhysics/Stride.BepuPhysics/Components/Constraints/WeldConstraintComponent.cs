@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class WeldConstraintComponent : ConstraintComponent<Weld>
+    public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
     {
         public WeldConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 

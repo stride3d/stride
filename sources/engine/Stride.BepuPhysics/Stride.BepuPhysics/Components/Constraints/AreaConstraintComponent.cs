@@ -9,7 +9,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class AreaConstraintComponent : ConstraintComponent<AreaConstraint>
+    public sealed class AreaConstraintComponent : ThreeBodyConstraintComponent<AreaConstraint>
     {
         public AreaConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 

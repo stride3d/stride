@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class SwingLimitConstraintComponent : ConstraintComponent<SwingLimit>
+    public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<SwingLimit>
     {
         public SwingLimitConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 

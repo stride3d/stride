@@ -67,15 +67,15 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 var bs = new BallSocketConstraintComponent();
                 var sl = new SwingLimitConstraintComponent();
 
-                bs.BodyContainers.Add(bodiesContainers[i - 1]);
-                bs.BodyContainers.Add(bodiesContainers[i]);
+                bs.A = bodiesContainers[i - 1];
+                bs.B = bodiesContainers[i];
                 bs.LocalOffsetA = Vector3.UnitZ * RopePartSize / 2f;
                 bs.LocalOffsetB = -bs.LocalOffsetA;
                 bs.SpringFrequency = 120;
                 bs.SpringDampingRatio = 1;
 
-                sl.BodyContainers.Add(bodiesContainers[i - 1]);
-                sl.BodyContainers.Add(bodiesContainers[i]);
+                sl.A = bodiesContainers[i - 1];
+                sl.B = bodiesContainers[i];
                 sl.AxisLocalA = Vector3.UnitZ;
                 sl.AxisLocalB = Vector3.UnitZ;
                 sl.SpringFrequency = 120;
@@ -87,14 +87,14 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             }
 
             var bs1 = new BallSocketConstraintComponent();
-            bs1.BodyContainers.Add(A);
-            bs1.BodyContainers.Add(bodiesContainers.First());
+            bs1.A = A;
+            bs1.B = bodiesContainers.First();
             bs1.LocalOffsetA = APos;
             bs1.LocalOffsetB = -(Vector3.UnitZ * RopePartSize) / 2f;
 
             var bs2 = new BallSocketConstraintComponent();
-            bs2.BodyContainers.Add(B);
-            bs2.BodyContainers.Add(bodiesContainers.Last());
+            bs2.A = B;
+            bs2.B = bodiesContainers.Last();
             bs2.LocalOffsetA = BPos;
             bs2.LocalOffsetB = Vector3.UnitZ * RopePartSize / 2f;
 

@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class AngularSwivelHingeConstraintComponent : ConstraintComponent<AngularSwivelHinge>
+    public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintComponent<AngularSwivelHinge>
     {
         public AngularSwivelHingeConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 

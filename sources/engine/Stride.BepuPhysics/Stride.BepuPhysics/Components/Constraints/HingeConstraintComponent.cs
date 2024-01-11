@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class HingeConstraintComponent : ConstraintComponent<Hinge>
+    public sealed class HingeConstraintComponent : TwoBodyConstraintComponent<Hinge>
     {
         public HingeConstraintComponent() => BepuConstraint = new()
         {

@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class TwistServoConstraintComponent : ConstraintComponent<TwistServo>
+    public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<TwistServo>
     {
         public TwistServoConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5), ServoSettings = new ServoSettings(10, 1, 1000) };
 

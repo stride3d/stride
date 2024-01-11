@@ -25,5 +25,6 @@ namespace Stride.BepuPhysics.Components.Constraints
         internal override ConstraintDataBase? UntypedConstraintData => ConstraintData;
 
         internal override ConstraintDataBase CreateProcessorData(BepuConfiguration bepuConfiguration) => ConstraintData = new(this, bepuConfiguration);
+        protected ConstraintComponent(int bodies) : base(bodies) { }
     }
 }

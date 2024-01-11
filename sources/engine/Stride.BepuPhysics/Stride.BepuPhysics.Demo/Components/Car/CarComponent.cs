@@ -78,8 +78,8 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 var WheelComponent = wheel.Get<WheelComponent>() ?? new();
 
                 var polscc = new PointOnLineServoConstraintComponent();
-                polscc.BodyContainers.Add(bodyContainer);
-                polscc.BodyContainers.Add(wheelContainer);
+                polscc.A = bodyContainer;
+                polscc.B = wheelContainer;
 
                 polscc.LocalOffsetA = wheel.Transform.GetWorldPos() - CarBody.Transform.GetWorldPos();
                 polscc.LocalOffsetB = new();
@@ -88,8 +88,8 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 wheel.Add(polscc);
 
                 var lascc = new LinearAxisServoConstraintComponent();
-                lascc.BodyContainers.Add(bodyContainer);
-                lascc.BodyContainers.Add(wheelContainer);
+                lascc.A = bodyContainer;
+                lascc.B = wheelContainer;
 
                 lascc.LocalOffsetA = wheel.Transform.GetWorldPos() - CarBody.Transform.GetWorldPos();
                 lascc.LocalOffsetB = new();
@@ -101,8 +101,8 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 wheel.Add(lascc);
 
                 var ahcc = new AngularHingeConstraintComponent();
-                ahcc.BodyContainers.Add(bodyContainer);
-                ahcc.BodyContainers.Add(wheelContainer);
+                ahcc.A = bodyContainer;
+                ahcc.B = wheelContainer;
 
                 ahcc.LocalHingeAxisA = Vector3.UnitZ;
                 ahcc.LocalHingeAxisB = Vector3.UnitY;

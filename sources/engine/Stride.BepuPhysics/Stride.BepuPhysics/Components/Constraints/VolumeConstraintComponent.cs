@@ -9,7 +9,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class VolumeConstraintComponent : ConstraintComponent<VolumeConstraint>
+    public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<VolumeConstraint>
     {
         public VolumeConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 

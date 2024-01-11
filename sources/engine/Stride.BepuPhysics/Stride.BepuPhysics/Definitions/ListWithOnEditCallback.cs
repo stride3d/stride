@@ -48,48 +48,6 @@ namespace Stride.BepuPhysics.Definitions
     //}
 
     [DataContract]
-    public sealed class ListOfContainer : List<IBodyContainer>
-    {
-        public Action? OnEditCallBack { get; internal set; }
-
-        public new void Add(IBodyContainer item)
-        {
-            base.Add(item);
-            OnEditCallBack?.Invoke();
-        }
-        public new void Remove(IBodyContainer item)
-        {
-            base.Remove(item);
-            OnEditCallBack?.Invoke();
-        }
-        public new void RemoveAll(Predicate<IBodyContainer> match)
-        {
-            base.RemoveAll(match);
-            OnEditCallBack?.Invoke();
-        }
-        public new void RemoveAt(int index)
-        {
-            base.RemoveAt(index);
-            OnEditCallBack?.Invoke();
-        }
-        public new void RemoveRange(int index, int count)
-        {
-            base.RemoveRange(index, count);
-            OnEditCallBack?.Invoke();
-        }
-        public new void AddRange(IEnumerable<IBodyContainer> collection)
-        {
-            base.AddRange(collection);
-            OnEditCallBack?.Invoke();
-        }
-        public new void Clear()
-        {
-            base.Clear();
-            OnEditCallBack?.Invoke();
-        }
-    }
-
-    [DataContract]
     public sealed class ListOfColliders : List<ColliderBase>
     {
         public Action? OnEditCallBack { get; internal set; }

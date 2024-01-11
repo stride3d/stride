@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class DistanceServoConstraintComponent : ConstraintComponent<DistanceServo>
+    public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponent<DistanceServo>
     {
         public DistanceServoConstraintComponent() => BepuConstraint = new()
         {

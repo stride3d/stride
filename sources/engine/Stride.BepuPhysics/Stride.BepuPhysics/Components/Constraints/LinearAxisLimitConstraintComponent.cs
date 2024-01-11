@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class LinearAxisLimitConstraintComponent : ConstraintComponent<LinearAxisLimit>
+    public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintComponent<LinearAxisLimit>
     {
         public LinearAxisLimitConstraintComponent() => BepuConstraint = new()
         {

@@ -255,11 +255,10 @@ Hierarchy:
                             c4be3cde9267c1a84ebd34fce78c8e1e: ref!! fdb4eab0-70be-4b54-9eab-de347caed944
                             2de7129a3af3a0a764eb2962d5236ecb: ref!! 89d9ebd9-70c2-4b77-8e09-db6c6a98308d
                     46d3e0466c59e94eb920dcace9871a76: !Stride.BepuPhysics.Components.Constraints.HingeConstraintComponent,Stride.BepuPhysics
-                        Id: 4a876034-62f5-4e4c-b8cf-2df09e5a7148
+                        Id: add283f6-122b-409b-ab7c-14bf21781fab
                         Enabled: true
-                        BodyContainers:
-                            f1393658ab85b135ede2fd9d83713c77: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
-                            c96c24c59d637d90b97e85068490a42a: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! befd947e-d1a5-4a14-9423-d272129d4ae5
+                        A: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
+                        B: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! befd947e-d1a5-4a14-9423-d272129d4ae5
                         LocalOffsetA: {X: 0.0, Y: 2.1, Z: 0.0}
                         LocalHingeAxisA: {X: 0.0, Y: 1.0, Z: 0.0}
                         LocalOffsetB: {X: 0.0, Y: -0.6, Z: 0.0}
@@ -267,10 +266,9 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                     82adb9d9847f9eab8cefae5aa42e7be3: !Stride.BepuPhysics.Components.Constraints.OneBodyAngularMotorConstraintComponent,Stride.BepuPhysics
-                        Id: caddabfd-316c-4f43-a07a-df3f1048bd97
+                        Id: e671ad85-a81f-4968-ba5a-a620bbf84f47
                         Enabled: true
-                        BodyContainers:
-                            edda64cf538b6804540f112272f43200: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
+                        A: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
                         TargetVelocity: {X: 0.0, Y: 0.5, Z: 0.0}
                         MotorDamping: 100.0
                         MotorMaximumForce: 10000000.0

@@ -1,6 +1,8 @@
-﻿using BepuPhysics;
+﻿using System.Diagnostics;
+using BepuPhysics;
 using BepuPhysics.Constraints;
 using Stride.BepuPhysics.Components.Constraints;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
 
 namespace Stride.BepuPhysics.Processors
@@ -26,23 +28,29 @@ namespace Stride.BepuPhysics.Processors
             DestroyConstraint();
 
 #warning check that the body count == Constraint.BodyCount (some need 1, 2 or more bodies)
-            if (_constraintComponent.BodyContainers.Count == 0 || !_constraintComponent.Enabled)
+            if (!_constraintComponent.Enabled)
                 return;
 
-            var simIndex = _constraintComponent.BodyContainers[0].SimulationIndex;
-            Span<BodyHandle> bodies = stackalloc BodyHandle[_constraintComponent.BodyContainers.Count];
+            foreach (var container in _constraintComponent.Bodies)
+            {
+                if (container is null || container.ContainerData == null)
+                    return; // need to wait for a body to be attached or instanced
+            }
+
+            var simIndex = _constraintComponent.Bodies[0]!.SimulationIndex;
+            Span<BodyHandle> bodies = stackalloc BodyHandle[_constraintComponent.Bodies.Length];
             int count = 0;
 
             _bepuSimulation = _bepuConfig.BepuSimulations[simIndex];
 
-            foreach (var component in _constraintComponent.BodyContainers)
+            foreach (var component in _constraintComponent.Bodies)
             {
+                Debug.Assert(component is not null);
+                Debug.Assert(component.ContainerData is not null);
+
 #warning maybe send a warning, like the missing camera notification in the engine, instead of exception at runtime
                 if (component.SimulationIndex != simIndex)
                     throw new Exception("A constraint between object with different SimulationIndex is not possible");
-
-                if (component.ContainerData == null)
-                    return; //need to wait for body to be instanced
 
                 bodies[count++] = component.ContainerData.BHandle;
             }

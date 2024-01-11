@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Components.Constraints
     [DataContract("AngularServoConstraint")]
     [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentCategory("Bepu - Constraint")]
-    public sealed class AngularServoConstraintComponent : ConstraintComponent<AngularServo>
+    public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent<AngularServo>
     {
         public AngularServoConstraintComponent() => BepuConstraint = new()
         {
