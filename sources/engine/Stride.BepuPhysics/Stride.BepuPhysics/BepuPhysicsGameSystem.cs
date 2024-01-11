@@ -1,4 +1,5 @@
-﻿using BepuPhysics;
+﻿using System.Diagnostics;
+using BepuPhysics;
 using Stride.BepuPhysics.Configurations;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core;
@@ -86,11 +87,17 @@ namespace Stride.BepuPhysics
         private static void UpdateBodiesPositionFunction(BodyHandle handle, BepuSimulation bepuSim)
         {
             var bodyContainer = bepuSim.BodiesContainers[handle];
-            if (bodyContainer.ContainerData!.Parent is {} containerParent)
+            Debug.Assert(bodyContainer.ContainerData is not null);
+
+            if (bodyContainer.ContainerData.Parent is {} containerParent)
             {
+                Debug.Assert(containerParent.ContainerData is not null);
                 // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
-                UpdateBodiesPositionFunction(containerParent.ContainerData!.BHandle, bepuSim);
-                bodyContainer.Entity.Transform.Parent.UpdateWorldMatrix(); // This can be slower than expected when we have two or more containers in the hierarchy above us since we're recomputing the same worlds multiple times but this should be a fairly thin edge case
+                // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
+                UpdateBodiesPositionFunction(containerParent.ContainerData.BHandle, bepuSim);
+                // This can be slower than expected when we have multiple containers as parents recursively since we would recompute the topmost container n times, the second topmost n-1 etc.
+                // It's not that likely but should still be documented as suboptimal somewhere
+                containerParent.Entity.Transform.Parent.UpdateWorldMatrix();
             }
 
             var body = bepuSim.Simulation.Bodies[handle];

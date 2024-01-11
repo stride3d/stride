@@ -18,6 +18,8 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 {
     public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     {
+        public SynchronizationMode Mode { get; set; } = SynchronizationMode.Physics; // Setting it to Physics by default to show when there is a large discrepancy between the entity and physics
+
         private IGame? _game = null;
         private SceneSystem _sceneSystem;
         private BepuShapeCacheSystem _bepuShapeCacheSystem;
@@ -62,9 +64,9 @@ namespace Stride.BepuPhysics.DebugRender.Processors
             base.OnEntityComponentAdding(entity, component, data);
         }
 
-        public override void Update(GameTime time)
+        public override void Draw(RenderContext context)
         {
-            base.Update(time);
+            base.Draw(context);
 
             bool shouldBeOn = _alwaysOn || _input.IsKeyDown(Keys.F10);
             if (_isOn != shouldBeOn) // Changed state
@@ -98,13 +100,37 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 foreach (var kvp in _wireFrameRenderObject)
                 {
                     var container = kvp.Key;
-                    // We don't need to call UpdateWorldMatrix before reading WorldMatrix as we're running after the TransformProcessor operated,
-                    // and we don't expect or care if other processors affect the transform afterwards
-                    container.Entity.Transform.WorldMatrix.Decompose(out _, out Matrix rotMatrix, out var translation);
-                    rotMatrix.TranslationVector = translation; // rotMatrix is now a translation and rotation matrix
+                    Matrix matrix;
+                    switch (Mode)
+                    {
+                        case SynchronizationMode.Physics:
+                            if (container.ContainerData is { } containerData)
+                            {
+                                var body = containerData.BepuSimulation.Simulation.Bodies[containerData.BHandle];
+                                var worldPosition = body.Pose.Position.ToStrideVector();
+                                var worldRotation = body.Pose.Orientation.ToStrideQuaternion();
+                                var scale = Vector3.One;
+                                Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);
+                            }
+                            else
+                            {
+                                continue;
+                            }
+
+                            break;
+                        case SynchronizationMode.Entity:
+                            // We don't need to call UpdateWorldMatrix before reading WorldMatrix as we're running after the TransformProcessor operated,
+                            // and we don't expect or care if other processors affect the transform afterwards
+                            container.Entity.Transform.WorldMatrix.Decompose(out _, out matrix, out var translation);
+                            matrix.TranslationVector = translation; // rotMatrix is now a translation and rotation matrix
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(Mode));
+                    }
+
                     foreach (var wireframe in kvp.Value)
                     {
-                        wireframe.WorldMatrix = wireframe.ContainerBaseMatrix * rotMatrix;
+                        wireframe.WorldMatrix = wireframe.ContainerBaseMatrix * matrix;
                     }
                 }
             }
@@ -184,6 +210,15 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 }
             }
             _wireFrameRenderObject.Clear();
+        }
+
+        public enum SynchronizationMode
+        {
+            /// <summary> Read from the physics engine, ignore any changes made to the entity </summary>
+            /// <remarks> Ensures that users can see when their entities/shapes are not synchronized with physics </remarks>
+            Physics,
+            /// <summary> Read from the entity, showing any changes that affected it after physics </summary>
+            Entity
         }
     }
 }
