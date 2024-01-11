@@ -11,8 +11,10 @@ Hierarchy:
         - ref!! a62c8d3b-72d9-4feb-897d-28d64e863115
         - ref!! cb1fd7d2-c1c7-469a-93f0-577ff215ed3b
         - ref!! 08a1c431-0165-4c26-94bd-d6545cadcc3a
-        - ref!! b1ecf2b4-8390-4cbf-bad8-8c1ca71fe7a0
         - ref!! c06734b6-d768-4453-a181-9ae26b304976
+        - ref!! b1ecf2b4-8390-4cbf-bad8-8c1ca71fe7a0
+        - ref!! 289e8db6-044e-4613-87a6-691054648501
+        - ref!! 5d99c32a-8700-47fc-a605-f60966dfcaed
     Parts:
         -   Entity:
                 Id: 08a1c431-0165-4c26-94bd-d6545cadcc3a
@@ -59,6 +61,42 @@ Hierarchy:
                         MouseRotationSpeed: {X: 1.0, Y: 1.0}
                         TouchRotationSpeed: {X: 1.0, Y: 0.7}
         -   Entity:
+                Id: 289e8db6-044e-4613-87a6-691054648501
+                Name: Floor
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 9184e411-aacf-4b3d-9077-a13ccdda1877
+                        Position: {X: -25.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
+                        Scale: {X: 50.0, Y: 0.1, Z: 1.0}
+                        Children: {}
+                    c56b73ea1d2c06cfbb81c201bc86051c: !ModelComponent
+                        Id: 37882772-e116-45e9-9fec-172f3c17b091
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    59036e98d99d36e4bb84ceecfab5d545: !Stride.BepuPhysics._2D.Components.Containers._2DBodyContainerComponent,Stride.BepuPhysics._2D
+                        Id: 6541c5e3-0b6e-4693-a806-6b7fed767edf
+                        SimulationIndex: 2
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
+                        Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        Colliders:
+                            d5318590fe49aed7bbd23cd8304526cb: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 50.0, Y: 0.1, Z: 1.0}
+        -   Entity:
                 Id: 4f6ce0da-d8b4-497b-ad72-74a02e81046d
                 Name: DefaultScripts
                 Components:
@@ -73,7 +111,7 @@ Hierarchy:
                         Children: {}
                     d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
                         Id: 1b1dd429-6d6e-4161-aac3-cd899da829b4
-                        SimulationIndex: 0
+                        SimulationIndex: 2
                     2a6837977767a5a889c048518e854744: !Stride.BepuPhysics.Demo.Components.GameProfilerComponent,Stride.BepuPhysics.Demo
                         Id: a22dbc66-b292-4d86-ae56-d30daeb4710b
                         Enabled: true
@@ -82,29 +120,62 @@ Hierarchy:
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
-                    22b1fb53fb58e8989ce0fccfedd55654: !Stride.BepuPhysics.DebugRender.Components.DebugRenderComponent,Stride.BepuPhysics.DebugRender
-                        Id: 587848e2-d849-462b-87e0-3cb0b7954fa1
-                        AlwaysRender: true
                     cbf3fa810d830d5032f2e41ff081a75c: !Stride.BepuPhysics.Demo.Components.Utils.ThrowerComponent,Stride.BepuPhysics.Demo
                         Id: f4413083-5f96-4237-a835-7ffe429000dc
-                        SimulationIndex: 0
+                        SimulationIndex: 2
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
                         Instancing: ref!! a0d3246e-8622-43f9-9286-a31b16e0e35b
                         SpawnPosition: ref!! 0c201775-1362-4664-a45a-53419a14374f
                         Speed: 20.0
                     c21ca5abe2bbd45eff772bd354505b9d: !Stride.BepuPhysics.Demo.Components.Utils.SpawnerComponent,Stride.BepuPhysics.Demo
                         Id: a2d714fa-431a-4d31-88ce-5c5cea8eeb8e
-                        SimulationIndex: 0
+                        SimulationIndex: 2
                         SpawnPrefab: 57f69f98-4a88-4440-8f4d-708972727b78:Prefabs/Bepu/Bepu2DInstancedCube
                         Instancing: ref!! a0d3246e-8622-43f9-9286-a31b16e0e35b
                         SpawnPosition: ref!! c06734b6-d768-4453-a181-9ae26b304976
-                        Count: 1000
-                        SpawnRate: 10.0
-                        SpawnVelocity: {X: 0.0, Y: 10.0, Z: 0.0}
-                        SpawnVelocityRange: {X: 3.0, Y: 0.0, Z: 0.0}
+                        Count: 30000
+                        SpawnRate: 20.0
+                        SpawnVelocity: {X: 0.0, Y: -1.0, Z: 0.0}
+                        SpawnVelocityRange: {X: 1.0, Y: 0.0, Z: 0.0}
                     16b1c216dcc3451a2350ca95db40810e: !Stride.BepuPhysics._2D.Components._2DSimulationConfigurator,Stride.BepuPhysics._2D
                         Id: b61da860-a7dd-40c0-baf0-b5ba58b0f98b
-                        SimulationIndex: 0
+                        SimulationIndex: 2
+        -   Entity:
+                Id: 5d99c32a-8700-47fc-a605-f60966dfcaed
+                Name: Floor
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 1f3af4eb-d2f4-4a57-b4b1-7841736474ab
+                        Position: {X: 25.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
+                        Scale: {X: 50.0, Y: 0.1, Z: 1.0}
+                        Children: {}
+                    c56b73ea1d2c06cfbb81c201bc86051c: !ModelComponent
+                        Id: 40e69c4e-c8c8-4e49-85b1-5c41c6555bb3
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    59036e98d99d36e4bb84ceecfab5d545: !Stride.BepuPhysics._2D.Components.Containers._2DBodyContainerComponent,Stride.BepuPhysics._2D
+                        Id: c582722a-6296-4e6e-a785-419f55681bb6
+                        SimulationIndex: 2
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
+                        Kinematic: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        Colliders:
+                            d5318590fe49aed7bbd23cd8304526cb: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 50.0, Y: 0.1, Z: 1.0}
         -   Entity:
                 Id: a62c8d3b-72d9-4feb-897d-28d64e863115
                 Name: Directional light
@@ -136,9 +207,9 @@ Hierarchy:
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 380c4f50-49ff-4c37-be06-f7da2c7b4622
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Position: {X: 0.0, Y: -25.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 50.0, Y: 0.1, Z: 1.0}
+                        Scale: {X: 50.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     c56b73ea1d2c06cfbb81c201bc86051c: !ModelComponent
                         Id: 9fe99f9a-33eb-448e-87e6-095f6dd40705
@@ -146,7 +217,7 @@ Hierarchy:
                         Materials: {}
                     59036e98d99d36e4bb84ceecfab5d545: !Stride.BepuPhysics._2D.Components.Containers._2DBodyContainerComponent,Stride.BepuPhysics._2D
                         Id: 9a4679d0-13ce-4bb2-9b90-545eabcc718a
-                        SimulationIndex: 0
+                        SimulationIndex: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -165,14 +236,14 @@ Hierarchy:
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 50.0, Y: 0.1, Z: 1.0}
+                                Size: {X: 50.0, Y: 1.0, Z: 1.0}
         -   Entity:
                 Id: c06734b6-d768-4453-a181-9ae26b304976
                 Name: SpawnP
                 Components:
                     45076fc0544aa708dddd8a32fba044b1: !TransformComponent
                         Id: 87335a19-a6b5-4ce2-a3f0-04781bb62f11
-                        Position: {X: 0.0, Y: 10.0, Z: 0.0}
+                        Position: {X: 0.0, Y: 40.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}

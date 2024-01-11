@@ -56,7 +56,7 @@ Defaults:
                 PoseLinearDamping: 0.05
                 PoseAngularDamping: 0.05
                 SolveIteration: 1
-                SolveSubStep: 3
+                SolveSubStep: 6
                 SimulationFixedStep: 30
                 MaxStepPerFrame: 3
                 ParallelUpdate: true

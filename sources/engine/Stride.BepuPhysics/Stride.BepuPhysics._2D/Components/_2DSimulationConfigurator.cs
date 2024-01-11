@@ -13,6 +13,8 @@ namespace Stride.BepuPhysics._2D.Components
     [ComponentCategory("Bepu - 2D")]
     public class _2DSimulationConfigurator : SimulationUpdateComponent
     {
+        private _2DBodyContainerComponent[] bodies = Array.Empty<_2DBodyContainerComponent>();
+
         public override void SimulationUpdate(float simTimeStep)
         {
 
@@ -20,7 +22,6 @@ namespace Stride.BepuPhysics._2D.Components
 
         public override void AfterSimulationUpdate(float simTimeStep)
         {
-            var bodies = BepuSimulation.BodiesContainers.Values.OfType<_2DBodyContainerComponent>().ToArray();
             foreach (var body in bodies)
             {
                 body.Position *= new Vector3(1, 1, 0);//Fix Z = 0
@@ -35,6 +36,7 @@ namespace Stride.BepuPhysics._2D.Components
 
         public override void Update()
         {
+             bodies = BepuSimulation.BodiesContainers.Values.OfType<_2DBodyContainerComponent>().ToArray();
         }
     }
 }

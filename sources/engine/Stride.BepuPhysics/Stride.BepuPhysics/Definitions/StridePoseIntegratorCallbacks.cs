@@ -124,6 +124,16 @@ namespace Stride.BepuPhysics.Definitions
 
                 velocity.Linear = (velocity.Linear + (gravityWideDt * GravityVec)) * linearDampingDt;
                 velocity.Angular = velocity.Angular * angularDampingDt;
+
+#warning TODO
+                //IF (2D)
+                //velocity.Linear *= Vector3Wide.Broadcast(new Vector3(1, 1, 0));
+                //velocity.Angular *= Vector3Wide.Broadcast(new Vector3(0, 0, 1));
+                //position *= Vector3Wide.Broadcast(new Vector3(1, 1, 0));
+                ////Quaternion.RotationYawPitchRoll(ref bodyRot, out var yaw, out var pitch, out var roll);
+                ////body.Orientation = Quaternion.RotationYawPitchRoll(0, 0, roll);
+                //QuaternionWide.Broadcast(new Quaternion(0, 0, 1, 0), out var res); //that will not work (: it's placeholder
+                //orientation *= res;
             }
             else
             {
