@@ -18,13 +18,6 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
 {
     private bool _tryJump;
 
-
-    /// <summary> 
-    /// Order is not guaranteed and may change at any moment 
-    /// </summary>
-    [DataMemberIgnore]
-    public List<(IContainer Source, Contact Contact)> Contacts { get; } = new();
-
     /// <summary>
     /// Movement speed
     /// </summary>
@@ -32,7 +25,7 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
     /// <summary>
     /// Jump force
     /// </summary>
-    public float JumpSpeed { get; set; } = 1f;
+    public float JumpSpeed { get; set; } = 10f;
 
     [DataMemberIgnore]
     public new Quaternion Orientation { get; set; }
@@ -40,6 +33,12 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
     public Vector3 Velocity { get; set; }
     [DataMemberIgnore]
     public bool IsGrounded { get; private set; }
+
+    /// <summary>
+    /// Order is not guaranteed and may change at any moment
+    /// </summary>
+    [DataMemberIgnore]
+    public List<(IContainer Source, Contact Contact)> Contacts { get; } = new();
 
 
     public override void Start()
@@ -74,9 +73,7 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
 
     public void SimulationUpdate(float simTimeStep)
     {
-        CheckGrounded();
-
-        Awake = true;
+        Awake = true; // Keep this body active
 
         base.Orientation = Orientation;
         LinearVelocity = new Vector3(Velocity.X, LinearVelocity.Y, Velocity.Z);
@@ -84,25 +81,16 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
         if (_tryJump)
         {
             if (IsGrounded)
-                ApplyLinearImpulse(Vector3.UnitY * JumpSpeed * 10);
+                ApplyLinearImpulse(Vector3.UnitY * JumpSpeed);
             _tryJump = false;
         }
     }
     public void AfterSimulationUpdate(float simTimeStep)
     {
-        if (IsGrounded)
-        {
-            var linVeloExceptY = LinearVelocity * new Vector3(1, 0, 1);
-            var linVeloExceptYLen = linVeloExceptY.Length();
-
-            if (linVeloExceptYLen < 0.8f && linVeloExceptYLen > 0.000001f)
-            {
-                LinearVelocity = new Vector3(0, 0, 0);
-                IgnoreGlobalGravity = true;
-            }
-            return;
-        }
-        IgnoreGlobalGravity = false;
+        CheckGrounded(); // Checking for grounded after simulation ran to compute contacts as soon as possible after they are received
+        // If there is no input from the player and we are grounded, ignore gravity to prevent sliding down the slope we might be on
+        // Do not ignore if there is any input to ensure we stick to the surface as much as possible while moving down the slope
+        IgnoreGlobalGravity = IsGrounded && Velocity.Length() <= 0f;
     }
     private void CheckGrounded()
     {

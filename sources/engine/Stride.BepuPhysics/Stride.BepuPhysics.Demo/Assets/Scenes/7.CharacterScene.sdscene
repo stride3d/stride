@@ -343,7 +343,7 @@ Hierarchy:
                                 Radius: 0.35
                                 Length: 0.5
                         Speed: 10.0
-                        JumpSpeed: 1.0
+                        JumpSpeed: 10.0
                     643c56ad282de3b130386f69a6e94b5f: !Stride.BepuPhysics.Demo.Components.Character.CharacterControllerComponent,Stride.BepuPhysics.Demo
                         Id: cd4ade13-0099-4e24-af15-ea4fd74f3655
                         CameraPivot: ref!! e941dadf-4371-495f-9d46-9cc617fd1f4a
