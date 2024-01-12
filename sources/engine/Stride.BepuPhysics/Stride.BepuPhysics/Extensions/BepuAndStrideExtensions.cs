@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
@@ -10,11 +9,9 @@ namespace Stride.BepuPhysics.Extensions
 {
     public static class BepuAndStrideExtensions
     {
-        public static IContainer? GetContainerFromCollidable(this CollidableReference collidable, BepuSimulation? sim)
+        public static IContainer GetContainerFromCollidable(this CollidableReference collidable, BepuSimulation sim)
         {
-            if (sim == null)
-                return null;
-
+            #warning optimize away those dictionary access into array access
             if (collidable.Mobility == CollidableMobility.Static && sim.StaticsContainers.TryGetValue(collidable.StaticHandle, out IStaticContainer? staticsContainer))
             {
                 return staticsContainer;
@@ -23,7 +20,9 @@ namespace Stride.BepuPhysics.Extensions
             {
                 return bodiesContainer;
             }
-            return null;
+
+            // bepu and containers should be perfectly synchronized, we're in an invalid state if this collider does not exist
+            throw new InvalidOperationException($"Could not find Stride associated with Bepu's {collidable}");
         }
 
         public static Core.Mathematics.Vector3 GetWorldPos(this TransformComponent tr) => tr.WorldMatrix.TranslationVector;
@@ -54,11 +53,6 @@ namespace Stride.BepuPhysics.Extensions
         {
             return Unsafe.As<Quaternion, Core.Mathematics.Quaternion>(ref qua);
             //return new Stride.Core.Mathematics.Quaternion(qua.X, qua.Y, qua.Z, qua.W);
-        }
-
-        public static RigidPose ToBepuPose(this TransformComponent transform)
-        {
-            return new RigidPose(transform.Position.ToNumericVector(), transform.Rotation.ToNumericQuaternion());
         }
     }
 
