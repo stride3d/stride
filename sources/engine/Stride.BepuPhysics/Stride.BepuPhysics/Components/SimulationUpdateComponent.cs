@@ -33,6 +33,7 @@ namespace Stride.BepuPhysics.Components
         {
             _started = true;
             base.Start();
+            BepuServicesHelper.LoadBepuServices(Services);
             BepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[SimulationIndex];
             BepuSimulation.Register(this);
         }
