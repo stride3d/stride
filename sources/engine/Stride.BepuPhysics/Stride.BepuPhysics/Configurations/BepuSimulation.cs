@@ -161,6 +161,7 @@ public class BepuSimulation
     {
         var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
 
+        #warning Consider wrapping stride's threadpool/dispatcher into an IThreadDispatcher and passing that over to bepu instead of using their dispatcher
         ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
         BufferPool = new BufferPool();
         ContactEvents = new ContactEventsManager(ThreadDispatcher, BufferPool);
@@ -294,6 +295,54 @@ public class BepuSimulation
     {
         var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
         Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref handler);
+    }
+
+    /// <summary>
+    /// Returns true when this shape overlaps with any physics object in this simulation
+    /// </summary>
+    /// <param name="shape">The shape used to test for overlap</param>
+    /// <param name="pose">Position the shape is on for this test</param>
+    /// <param name="collisionMask"></param>
+    /// <typeparam name="TShape"></typeparam>
+    /// <returns>True when the given shape overlaps with any physics object in the simulation</returns>
+    public bool Overlap<TShape>(in TShape shape, in RigidPose pose, byte collisionMask = 255) where TShape : unmanaged, IConvexShape
+    {
+        var handler = new OverlapAnyHandler(this, collisionMask);
+        Simulation.Sweep(shape, pose, default, 0f, BufferPool, ref handler);
+        return handler.Any;
+    }
+
+    /// <summary>
+    /// Fills <paramref name="buffer"/> with any physics object in the simulation that overlaps with this shape
+    /// </summary>
+    /// <param name="shape">The shape used to test for overlap</param>
+    /// <param name="pose">Position the shape is on for this test</param>
+    /// <param name="buffer">
+    /// The collection used to store hits into,
+    /// feel free to rent it from <see cref="System.Buffers.ArrayPool{T}"/> and return it after you processed <paramref name="overlaps"/>
+    /// </param>
+    /// <param name="overlaps">Containers are pushed to <see cref="buffer"/>, this is the subset of <paramref name="buffer"/> that contains valid/assigned containers</param>
+    /// <param name="collisionMask"></param>
+    /// <typeparam name="TShape"></typeparam>
+    public void Overlap<TShape>(in TShape shape, in RigidPose pose, IContainer[] buffer, out Span<IContainer> overlaps, byte collisionMask = 255) where TShape : unmanaged, IConvexShape
+    {
+        var handler = new OverlapArrayHandler(this, buffer, collisionMask);
+        Simulation.Sweep(shape, pose, default, 0f, BufferPool, ref handler);
+        overlaps = new(buffer, 0, handler.Count);
+    }
+
+    /// <summary>
+    /// Fills <paramref name="collection"/> with any physics object in the simulation that overlaps with this shape
+    /// </summary>
+    /// <param name="shape">The shape used to test for overlap</param>
+    /// <param name="pose">Position the shape is on for this test</param>
+    /// <param name="collection">The collection used to store containers into, the collection is not cleared before usage, containers are appended to it</param>
+    /// <param name="collisionMask"></param>
+    /// <typeparam name="TShape"></typeparam>
+    public void Overlap<TShape>(in TShape shape, in RigidPose pose, ICollection<IContainer> collection, byte collisionMask = 255) where TShape : unmanaged, IConvexShape
+    {
+        var handler = new OverlapCollectionHandler(this, collection, collisionMask);
+        Simulation.Sweep(shape, pose, default, 0f, BufferPool, ref handler);
     }
 
     //private void Setup()
