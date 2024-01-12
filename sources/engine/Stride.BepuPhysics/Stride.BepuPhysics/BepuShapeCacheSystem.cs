@@ -53,11 +53,9 @@ namespace Stride.BepuPhysics
                     shapes.Add(collider switch
                     {
                         BoxCollider box => new(_boxShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = box.Size }),
-#warning Capsule can't be scaled for now (see lower)
                         CapsuleCollider cap => new(buildCapsule(cap), new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(1, 1, 1) }),
                         CylinderCollider cyl => new(_cylinderShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(cyl.Radius, cyl.Length, cyl.Radius) }),
                         SphereCollider sph => new(_sphereShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(sph.Radius, sph.Radius, sph.Radius) }),
-#warning Triangle can't be scaled
                         TriangleCollider tri => new(buildTriangle(tri), new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(1, 1, 1) }),
                         ConvexHullCollider con => BorrowHull(con),
                         _ => throw new NotImplementedException($"collider type {collider.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it"),

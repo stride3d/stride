@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Constraints;
+using SharpDX.D3DCompiler;
 using Stride.BepuPhysics.Components.Constraints;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
@@ -27,9 +28,26 @@ namespace Stride.BepuPhysics.Processors
         {
             DestroyConstraint();
 
-#warning check that the body count == Constraint.BodyCount (some need 1, 2 or more bodies)
             if (!_constraintComponent.Enabled)
                 return;
+
+#warning Display error in editor / console / ? 
+            if (_constraintComponent.GetType().IsAssignableFrom(typeof(OneBodyConstraintComponent<>)) && _constraintComponent.Bodies.Length != 1)
+            {
+                return;
+            }
+            else if (_constraintComponent.GetType().IsAssignableFrom(typeof(TwoBodyConstraintComponent<>)))
+            {
+                return;
+            }
+            else if (_constraintComponent.GetType().IsAssignableFrom(typeof(ThreeBodyConstraintComponent<>)))
+            {
+                return;
+            }
+            else if (_constraintComponent.GetType().IsAssignableFrom(typeof(FourBodyConstraintComponent<>)))
+            {
+                return;
+            }
 
             foreach (var container in _constraintComponent.Bodies)
             {
