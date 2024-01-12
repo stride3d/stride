@@ -22,17 +22,7 @@ namespace Stride.BepuPhysics.Definitions.Raycast
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AllowTest(CollidableReference collidable)
-        {
-            var result = collidable.GetContainerFromCollidable(_sim);
-            if (result == null)
-                return true;
-
-            var a = CollisionMask;
-            var b = result.ColliderGroupMask;
-            var com = a & b;
-            return com == a || com == b && com != 0;
-        }
+        public bool AllowTest(CollidableReference collidable) => TestHandler.AllowTest(_sim, CollisionMask, collidable);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AllowTest(CollidableReference collidable, int childIndex)
@@ -42,27 +32,13 @@ namespace Stride.BepuPhysics.Definitions.Raycast
 
         public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
         {
-            HitInformation = new()
-            {
-                Container = collidable.GetContainerFromCollidable(_sim) ?? throw new NullReferenceException(collidable.ToString()),
-                Normal = normal,
-                Distance = t,
-                Point = ray.Origin + ray.Direction * t
-            };
-
+            HitInformation = new(ray.Origin + ray.Direction * t, normal, t, collidable.GetContainerFromCollidable(_sim));
             maximumT = t;
         }
 
         public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
         {
-            HitInformation = new()
-            {
-                Container = collidable.GetContainerFromCollidable(_sim) ?? throw new NullReferenceException(collidable.ToString()),
-                Normal = hitNormal,
-                Distance = t,
-                Point = hitLocation
-            };
-
+            HitInformation = new(hitLocation, hitNormal, t, collidable.GetContainerFromCollidable(_sim));
             maximumT = t;
         }
 
