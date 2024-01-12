@@ -116,7 +116,7 @@ public class BepuSimulation
     public int MaxStepPerFrame { get; set; } = 3;
 
     /// <summary>
-    /// Does we update entities transforms using Dispatcher or single threaded ?
+    /// Allow entity synchronization to occur across multiple threads instead of just the main thread
     /// </summary>
     [Display(35, "Parallel update")]
     public bool ParallelUpdate { get; set; } = true;
@@ -133,6 +133,19 @@ public class BepuSimulation
     /// </summary>
     [Display(37, "SoftStart softness")]
     public int SoftStartSoftness { get; set; } = 4;
+
+    /// <summary>
+    /// Whether to use a deterministic time step when using multithreading. When set to true, additional time is spent sorting constraint additions and transfers.
+    /// Note that this can only affect determinism locally- different processor architectures may implement instructions differently.
+    /// </summary>
+    [Display(38, "Deterministic")]
+    public bool Deterministic
+    {
+        get => Simulation.Deterministic;
+        set => Simulation.Deterministic = value;
+    }
+
+
 
     /// <summary>
     /// Reset the SoftStart to SoftStartDuration.
