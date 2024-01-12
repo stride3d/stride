@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -15,12 +16,15 @@ namespace Stride.BepuPhysics.Definitions.Raycast
 
         public byte CollisionMask { get; set; }
         public int Count { get; set; }
+        public float StoredMax { get; set; }
+        public int IndexOfMax { get; set; }
 
         public RayHitsArrayHandler(BepuSimulation sim, HitInfo[] array, byte collisionMask)
         {
             _array = array;
+            _sim = sim;
             CollisionMask = collisionMask;
-            this._sim = sim;
+            StoredMax = float.NegativeInfinity;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -42,66 +46,100 @@ namespace Stride.BepuPhysics.Definitions.Raycast
             return true;
         }
 
-        public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
+        public void OnRayHit(in RayData ray, ref float maximumT, float distance, Vector3 normal, CollidableReference collidable, int childIndex)
         {
             if (Count < _array.Length)
             {
+                if (distance > StoredMax)
+                {
+                    StoredMax = distance;
+                    IndexOfMax = Count;
+                }
+
                 _array[Count++] = new()
                 {
                     Container = collidable.GetContainerFromCollidable(_sim) ?? throw new NullReferenceException(collidable.ToString()),
                     Normal = normal,
-                    Distance = t,
-                    Point = ray.Origin + ray.Direction * t
+                    Distance = distance,
+                    Point = ray.Origin + ray.Direction * distance
                 };
-                Array.Sort(_array, 0, Count);
+
+                if (Count == _array.Length) // Once the array is filled up, ignore all hits that occur further away than the furthest hit in the array
+                    maximumT = StoredMax;
             }
-            else if (_array[Count - 1].Distance > t) // The array is sorted, so last is guaranteed to always be the furthest away.
+            else
             {
-                // Although this comparison may be unnecessary as setting maximumT below guarantees that any subsequent hit is closer than the previous one ...
-                // Something to validate when we have time
-                _array[Count - 1] = new()
+                Debug.Assert(distance > StoredMax, "maximumT should have prevented this hit from being returned, if this is hit it means that we need to change the above into an 'else if (distance < StoredMax)'");
+
+                _array[IndexOfMax] = new()
                 {
                     Container = collidable.GetContainerFromCollidable(_sim) ?? throw new NullReferenceException(collidable.ToString()),
                     Normal = normal,
-                    Distance = t,
-                    Point = ray.Origin + ray.Direction * t
+                    Distance = distance,
+                    Point = ray.Origin + ray.Direction * distance
                 };
-                Array.Sort(_array);
-            }
 
-            if (Count >= _array.Length)
-                maximumT = t;
+                // Re-scan to find the new max now that the last one was replaced
+                StoredMax = float.NegativeInfinity;
+                for (int i = 0; i < _array.Length; i++)
+                {
+                    if (_array[i].Distance > StoredMax)
+                    {
+                        StoredMax = _array[i].Distance;
+                        IndexOfMax = i;
+                    }
+                }
+
+                maximumT = StoredMax;
+            }
         }
 
-        public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
+        public void OnHit(ref float maximumT, float distance, Vector3 hitLocation, Vector3 normal, CollidableReference collidable)
         {
             if (Count < _array.Length)
             {
+                if (distance > StoredMax)
+                {
+                    StoredMax = distance;
+                    IndexOfMax = Count;
+                }
+
                 _array[Count++] = new()
                 {
                     Container = collidable.GetContainerFromCollidable(_sim) ?? throw new NullReferenceException(collidable.ToString()),
-                    Normal = hitNormal,
-                    Distance = t,
+                    Normal = normal,
+                    Distance = distance,
                     Point = hitLocation
                 };
-                Array.Sort(_array, 0, Count);
+
+                if (Count == _array.Length) // Once the array is filled up, ignore all hits that occur further away than the furthest hit in the array
+                    maximumT = StoredMax;
             }
-            else if (_array[Count - 1].Distance > t) // The array is sorted, so last is guaranteed to always be the furthest away.
+            else
             {
-                // Although this comparison may be unnecessary as setting maximumT below guarantees that any subsequent hit is closer than the previous one ...
-                // Something to validate when we have time
-                _array[Count - 1] = new()
+                Debug.Assert(distance > StoredMax, "maximumT should have prevented this hit from being returned, if this is hit it means that we need to change the above into an 'else if (distance < StoredMax)'");
+
+                _array[IndexOfMax] = new()
                 {
                     Container = collidable.GetContainerFromCollidable(_sim) ?? throw new NullReferenceException(collidable.ToString()),
-                    Normal = hitNormal,
-                    Distance = t,
+                    Normal = normal,
+                    Distance = distance,
                     Point = hitLocation
                 };
-                Array.Sort(_array);
-            }
 
-            if (Count >= _array.Length)
-                maximumT = t;
+                // Re-scan to find the new max now that the last one was replaced
+                StoredMax = float.NegativeInfinity;
+                for (int i = 0; i < _array.Length; i++)
+                {
+                    if (_array[i].Distance > StoredMax)
+                    {
+                        StoredMax = _array[i].Distance;
+                        IndexOfMax = i;
+                    }
+                }
+
+                maximumT = StoredMax;
+            }
         }
 
         public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)

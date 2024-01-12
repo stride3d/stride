@@ -172,7 +172,7 @@ public class BepuSimulation
     /// <param name="result">An intersection in the world when this method returns true, an undefined value when this method returns false</param>
     /// <param name="collisionMask"></param>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
-    public bool RayCast(Vector3 origin, Vector3 dir, float maxDistance, out HitInfo result, byte collisionMask = 255)
+    public bool RayCast(in Vector3 origin, in Vector3 dir, float maxDistance, out HitInfo result, byte collisionMask = 255)
     {
         var handler = new RayClosestHitHandler(this, collisionMask);
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
@@ -187,7 +187,7 @@ public class BepuSimulation
     }
 
     /// <summary>
-    /// Collect intersections between the given ray and shapes in this simulation. Hits are sorted from closest to furthest away.
+    /// Collect intersections between the given ray and shapes in this simulation. Hits are NOT sorted.
     /// </summary>
     /// <param name="origin">The start position for this ray</param>
     /// <param name="dir">The normalized direction the ray is facing</param>
@@ -198,7 +198,7 @@ public class BepuSimulation
     /// </param>
     /// <param name="hits">Intersections are pushed to <see cref="buffer"/>, this is the subset of <paramref name="buffer"/> that contains valid/assigned values</param>
     /// <param name="collisionMask"></param>
-    public void RaycastPenetrating(Vector3 origin, Vector3 dir, float maxDistance, HitInfo[] buffer, out Span<HitInfo> hits, byte collisionMask = 255)
+    public void RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, HitInfo[] buffer, out Span<HitInfo> hits, byte collisionMask = 255)
     {
         var handler = new RayHitsArrayHandler(this, buffer, collisionMask);
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
@@ -213,7 +213,7 @@ public class BepuSimulation
     /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
     /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
     /// <param name="collisionMask"></param>
-    public void RaycastPenetrating(Vector3 origin, Vector3 dir, float maxDistance, ICollection<HitInfo> collection, byte collisionMask = 255)
+    public void RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, byte collisionMask = 255)
     {
         var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
