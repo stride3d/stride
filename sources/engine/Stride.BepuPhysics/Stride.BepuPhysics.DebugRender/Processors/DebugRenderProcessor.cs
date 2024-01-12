@@ -106,23 +106,23 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                         case SynchronizationMode.Physics:
                             if (container.ContainerData is { } containerData)
                             {
-                                var body = containerData.BepuSimulation.Simulation.Bodies[containerData.BHandle];
-                                var worldPosition = body.Pose.Position.ToStrideVector();
-                                var worldRotation = body.Pose.Orientation.ToStrideQuaternion();
+                                var pose = containerData.IsStatic ? containerData.BepuSimulation.Simulation.Statics[containerData.SHandle].Pose : containerData.BepuSimulation.Simulation.Bodies[containerData.BHandle].Pose;
+                                var worldPosition = pose.Position.ToStrideVector();
+                                var worldRotation = pose.Orientation.ToStrideQuaternion();
                                 var scale = Vector3.One;
+                                worldPosition -= Vector3.Transform(container.CenterOfMass, worldRotation);
                                 Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);
                             }
                             else
                             {
                                 continue;
                             }
-
                             break;
                         case SynchronizationMode.Entity:
                             // We don't need to call UpdateWorldMatrix before reading WorldMatrix as we're running after the TransformProcessor operated,
                             // and we don't expect or care if other processors affect the transform afterwards
                             container.Entity.Transform.WorldMatrix.Decompose(out _, out matrix, out var translation);
-                            matrix.TranslationVector = translation; // rotMatrix is now a translation and rotation matrix
+                            matrix.TranslationVector = translation;
                             break;
                         default:
                             throw new ArgumentOutOfRangeException(nameof(Mode));
@@ -152,20 +152,25 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         private void StartTrackingContainer(ContainerComponent container, List<(BodyShapeData data, BodyShapeTransform transform)> shapeAndOffsets)
         {
-            var color = Color.Black;
+            var color = new Vector3(0, 0, 0);
 
 #warning replace with I2DContainer
             if (container is _2DBodyContainerComponent)
             {
-                color = Color.Green;
+                color += new Vector3(0, 0, 1);
             }
-            else if (container is IContainerWithColliders)
+            else
             {
-                color = Color.Red;
+                color += new Vector3(0, 0, 0);
+            }
+
+            if (container is IContainerWithColliders)
+            {
+                color += new Vector3(1, 0, 0);
             }
             else if (container is IContainerWithMesh)
             {
-                color = Color.Blue;
+                color += new Vector3(0, 1, 0);
             }
 
             shapeAndOffsets.Clear();
@@ -178,14 +183,31 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 var local = shapeAndOffset;
 
                 var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, shapeAndOffset.data.Indices, shapeAndOffset.data.Vertices);
-                wireframe.Color = color;
+                wireframe.Color = Color.FromRgba(Vector3ToRGBA(color));
                 Matrix.Transformation(ref local.transform.Scale, ref local.transform.RotationLocal, ref local.transform.PositionLocal, out wireframe.ContainerBaseMatrix);
                 wireframes[i] = wireframe;
                 _visibilityGroup.RenderObjects.Add(wireframe);
             }
             _wireFrameRenderObject.Add(container, wireframes);
         }
+        static int Vector3ToRGBA(Vector3 rgb)
+        {
+            //Clamp to [0;1]
+            rgb.X = Math.Clamp(rgb.X, 0f, 1f);
+            rgb.Y = Math.Clamp(rgb.Y, 0f, 1f);
+            rgb.Z = Math.Clamp(rgb.Z, 0f, 1f);
 
+            // Scale RGB values to the range [0, 255]
+            int r = (int)(rgb.X * 255);
+            int g = (int)(rgb.Y * 255);
+            int b = (int)(rgb.Z * 255);
+
+            // Combine values into an int32 RGBA format
+            //int rgba = (r << 24) | (g << 16) | (b << 8) | 255;
+            int rgba = (255 << 24) | (b << 16) | (g << 8) | r;
+
+            return rgba;
+        }
         private void ClearTrackingForContainer(ContainerComponent container)
         {
             if (_wireFrameRenderObject.Remove(container, out var wfros))

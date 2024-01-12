@@ -31,7 +31,7 @@ public class BepuSimulation
     internal Dictionary<StaticHandle, IStaticContainer> StaticsContainers { get; } = new();
     internal List<BodyContainerComponent> InterpolatedBodies { get; } = new();
 
-    internal float RemainingUpdateTime { get; set; } = 0;
+    internal int RemainingUpdateTimeMs { get; set; } = 0;
     internal int SoftStartRemainingDurationMs = -1;
 
     /// <summary>

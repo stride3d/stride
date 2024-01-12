@@ -41,11 +41,11 @@ namespace Stride.BepuPhysics
                 if (!bepuSim.Enabled)
                     continue;
 
-                var totalTimeStepInMillisec = dt * bepuSim.TimeWarp; //Calculate the theoretical time step of the simulation
-                bepuSim.RemainingUpdateTime += totalTimeStepInMillisec; //Add it to the counter
+                var totalTimeStepInMillisec = (int)(dt * bepuSim.TimeWarp); //Calculate the theoretical time step of the simulation
+                bepuSim.RemainingUpdateTimeMs += totalTimeStepInMillisec; //Add it to the counter
 
                 int stepCount = 0;
-                while (bepuSim.RemainingUpdateTime >= bepuSim.SimulationFixedStep & (stepCount < bepuSim.MaxStepPerFrame || bepuSim.MaxStepPerFrame == -1))
+                while (bepuSim.RemainingUpdateTimeMs >= bepuSim.SimulationFixedStep & (stepCount < bepuSim.MaxStepPerFrame || bepuSim.MaxStepPerFrame == -1))
                 {
                     if (bepuSim.SoftStartDuration != 0 && bepuSim.SoftStartRemainingDurationMs == bepuSim.SoftStartDuration)
                     {
@@ -67,7 +67,7 @@ namespace Stride.BepuPhysics
                     bepuSim.CallSimulationUpdate(simTimeStepInSec);//call the SimulationUpdate with the real step time of the sim in secs
                     bepuSim.Simulation.Timestep(simTimeStepInSec, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
                     bepuSim.ContactEvents.Flush(); //Fire event handler stuff.
-                    bepuSim.RemainingUpdateTime -= bepuSim.SimulationFixedStep; //in millisec
+                    bepuSim.RemainingUpdateTimeMs -= bepuSim.SimulationFixedStep; //in millisec
                     stepCount++;
 
                     if (bepuSim.ParallelUpdate)
@@ -82,12 +82,12 @@ namespace Stride.BepuPhysics
                         }
                     }
 
-                    bepuSim.CallAfterSimulationUpdate(simTimeStepInSec);//call the AfterSimulationUpdate with the real step time of the sim in secs
+                    bepuSim.CallAfterSimulationUpdate(simTimeStepInSec);//call the AfterSimulationUpdate with the real step time of the sim in secs & set previousPose/CurrentPose of each containers.
                 }
 
                 // Find the interpolation factor, a value [0,1] which represents the ratio of the current time relative to the previous and the next physics step,
                 // a value of 0.5 means that we're halfway to the next physics update, just have to wait for the same amount of time.
-                float interpolationFactor = bepuSim.RemainingUpdateTime / bepuSim.SimulationFixedStep;
+                float interpolationFactor = bepuSim.RemainingUpdateTimeMs / bepuSim.SimulationFixedStep;
                 interpolationFactor = MathF.Min(interpolationFactor, 1f);
                 if (bepuSim.ParallelUpdate)
                 {
