@@ -667,7 +667,7 @@ msgstr "Compilar el proyecto e iniciar el juego"
 #: ../editor/Stride.GameStudio/GameStudioWindow.xaml:405
 msgctxt "ToolTip"
 msgid "Start project in live-scripting mode"
-msgstr "Iniciar proyecto en modo live-scripting"
+msgstr "Iniciar proyecto en modo live scripting"
 
 #: ../editor/Stride.GameStudio/GameStudioWindow.xaml:410
 msgctxt "ToolTip"

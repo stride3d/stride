@@ -101,19 +101,19 @@ msgstr "IDE por defecto"
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:53
 msgctxt "Settings"
 msgid "Ask before deleting assets"
-msgstr "Preguntar antes de eliminar activos"
+msgstr "Preguntar antes de eliminar assets"
 
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:57
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:58
 msgctxt "Settings"
 msgid "Ask before reloading assemblies"
-msgstr "Pregunte antes de recargar los ensamblajes"
+msgstr "Pregunte antes de recargar los ensamblados"
 
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:62
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:63
 msgctxt "Settings"
 msgid "Automatically reload assemblies"
-msgstr "Recargar automáticamente los ensamblajes"
+msgstr "Recargar automáticamente los ensamblados"
 
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:67
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:68
@@ -690,7 +690,7 @@ msgid ""
 "The asset {0} is referenced by other assets. Choose how to handle these "
 "references."
 msgstr ""
-"El asset {0} está referenciado por otros activos. Elija cómo gestionar estas "
+"El asset {0} está referenciado por otros assets. Elija cómo gestionar estas "
 "referencias."
 
 #: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:38
@@ -931,7 +931,7 @@ msgstr "Incluido en la compilación como dependencia"
 
 #: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:111
 msgid "Excluded from build"
-msgstr "Excluidos de la construcción"
+msgstr "Excluidos de la compilación"
 
 #: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:204
 msgid "Name"
@@ -1219,7 +1219,7 @@ msgstr "(null)"
 
 #: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1318
 msgid "Unable to load the object of type {0} from assembly {1}"
-msgstr "No se puede cargar el objeto del tipo {0} desde el ensamblaje {1}"
+msgstr "No se puede cargar el objeto del tipo {0} desde el ensamblado {1}"
 
 #: ../editor/Stride.Core.Assets.Editor/View/NotificationWindow.xaml:6
 msgid "Notification"

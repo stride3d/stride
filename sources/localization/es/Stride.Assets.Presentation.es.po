@@ -990,7 +990,7 @@ msgstr "Cambiar el tipo de layout"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:69
 msgctxt "Menu"
 msgid "Pin origin"
-msgstr "Origen de alfiler"
+msgstr "Origen del pivote"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:83
 msgctxt "Menu"
@@ -1040,7 +1040,7 @@ msgstr "Abajo a la derecha"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:92
 msgctxt "Menu"
 msgid "Front"
-msgstr "Delante"
+msgstr "Frontal"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:93
 msgctxt "Menu"
@@ -1050,7 +1050,7 @@ msgstr "En medio"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:94
 msgctxt "Menu"
 msgid "Back"
-msgstr "Atrás"
+msgstr "Trasera"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:101
 msgctxt "Menu"
@@ -1133,12 +1133,12 @@ msgstr "Ver"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:188
 msgctxt "Menu"
 msgid "Zoom in"
-msgstr "Zoom"
+msgstr "Hacer zoom"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:189
 msgctxt "Menu"
 msgid "Zoom out"
-msgstr "Zoom de alejamiento"
+msgstr "Alejar zoom"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:190
 msgctxt "Menu"
@@ -1148,7 +1148,7 @@ msgstr "Reiniciar la cámara"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:226
 msgctxt "Button"
 msgid "UI properties"
-msgstr "Propiedades de la interfaz de usuario"
+msgstr "Propiedades de interfaz de usuario"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:237
 msgid "UI library"
@@ -1157,7 +1157,7 @@ msgstr "Biblioteca de interfaz de usuario"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:284
 msgctxt "ToolTip"
 msgid "Expand all elements"
-msgstr "Expandir todos los  elementos"
+msgstr "Expandir todos los elementos"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:288
 msgctxt "ToolTip"
@@ -1167,12 +1167,12 @@ msgstr "Contraer todos los elementos"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:378
 msgctxt "ToolTip"
 msgid "Reset zoom"
-msgstr "Reiniciar ampliación"
+msgstr "Reiniciar zoom"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:389
 msgctxt "ToolTip"
 msgid "Snaps to this value (0 to disable)"
-msgstr "Se ajusta a este valor (0 para desactivarlo)"
+msgstr "Ajustar a este valor (0 para desactivarlo)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:401
 msgid "Colors"
@@ -1180,11 +1180,11 @@ msgstr "Colores"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:417
 msgid "Guideline"
-msgstr "Directriz"
+msgstr "Pauta"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:433
 msgid "Highlight"
-msgstr "Resalte"
+msgstr "Realce"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:449
 msgid "Selection"
@@ -1244,7 +1244,7 @@ msgstr "Curvas:"
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:73
 msgctxt "ToolTip"
 msgid "Show or hide the tracker"
-msgstr "Mostrar u ocultar el tracker"
+msgstr "Mostrar u ocultar la curva de rastreo"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:79
 msgctxt "ToolTip"
@@ -1254,12 +1254,12 @@ msgstr "Ajustar la vista de la curva"
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:82
 msgctxt "ToolTip"
 msgid "Fit view to curve height"
-msgstr "Ajustar la vista a la altura de la curva"
+msgstr "Ajustar la vista al alto de la curva"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:85
 msgctxt "ToolTip"
 msgid "Fit view to curve width"
-msgstr "Ajustar la vista a la anchura de la curva"
+msgstr "Ajustar la vista al ancho de la curva"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:92
 msgctxt "ToolTip"
@@ -1269,26 +1269,26 @@ msgstr "Eliminar puntos seleccionados"
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:101
 msgctxt "ToolTip"
 msgid "First key"
-msgstr "Primera clave"
+msgstr "Primer punto clave"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:104
 msgctxt "ToolTip"
 msgid "Previous key"
-msgstr "Clave anterior"
+msgstr "Punto clave anterior"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:107
 msgctxt "ToolTip"
 msgid "Next key"
-msgstr "Siguiente clave"
+msgstr "Siguiente punto clave"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:110
 msgctxt "ToolTip"
 msgid "Last key"
-msgstr "Última clave"
+msgstr "Último punto clave"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:117
 msgid "Key"
-msgstr "Clave"
+msgstr "Punto clave"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:120
 msgid "Value"
@@ -1448,7 +1448,7 @@ msgstr "Forzar regeneración de todas las plataformas de proyectos"
 #: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:28
 msgctxt "ToolTip"
 msgid "Play the animation"
-msgstr "Jugar la animación"
+msgstr "Reproducir la animación"
 
 #: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:31
 msgctxt "ToolTip"
@@ -1475,16 +1475,16 @@ msgstr ""
 #: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:201
 msgctxt "ToolTip"
 msgid "Play the sound"
-msgstr "Reproducir el sonido"
+msgstr "Reproducir sonido"
 
 #: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:204
 msgctxt "ToolTip"
 msgid "Pause the sound"
-msgstr "Pausar el sonido"
+msgstr "Pausar sonido"
 
 #: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:240
 msgid "Building preview sound asset..."
-msgstr "Creación de una vista previa de sonido...."
+msgstr "Generando vista previa de sonido...."
 
 #: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:278
 msgctxt "ToolTip"
@@ -1525,7 +1525,7 @@ msgstr "H: {0}"
 #: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:18
 msgctxt "ToolTip"
 msgid "Edit curve"
-msgstr "Tratar curva"
+msgstr "Editar curva"
 
 #: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:70
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:71
@@ -1541,7 +1541,7 @@ msgstr "Actualizar"
 
 #: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:11
 msgid "Live scripting debugger"
-msgstr "Depurador de scripts en vivo"
+msgstr "Depurador live scripting"
 
 #: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:21
 msgctxt "ToolTip"
