@@ -28,8 +28,6 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
     public float JumpSpeed { get; set; } = 10f;
 
     [DataMemberIgnore]
-    public new Quaternion Orientation { get; set; }
-    [DataMemberIgnore]
     public Vector3 Velocity { get; set; }
     [DataMemberIgnore]
     public bool IsGrounded { get; private set; }
@@ -40,6 +38,10 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
     [DataMemberIgnore]
     public List<(IContainer Source, Contact Contact)> Contacts { get; } = new();
 
+    public CharacterComponent()
+    {
+        Interpolation = Interpolation.Interpolated;
+    }
 
     public override void Start()
     {
@@ -58,11 +60,6 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
         Velocity = direction * Speed;
     }
 
-    public void Rotate(Quaternion rotation)
-    {
-        Orientation = rotation;
-    }
-
     /// <summary>
     /// Will jump if grounded
     /// </summary>
@@ -75,7 +72,6 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
     {
         Awake = true; // Keep this body active
 
-        base.Orientation = Orientation;
         LinearVelocity = new Vector3(Velocity.X, LinearVelocity.Y, Velocity.Z);
 
         if (_tryJump)

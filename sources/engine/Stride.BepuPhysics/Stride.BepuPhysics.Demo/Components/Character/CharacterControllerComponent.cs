@@ -10,9 +10,9 @@ namespace Stride.BepuPhysics.Demo.Components.Character;
 public class CharacterControllerComponent : SyncScript
 {
     public Entity? CameraPivot { get; set; }
-    public Entity? CharacterEntity { get; set; }
+    public required Entity CharacterEntity { get; set; }
     [DataMemberIgnore]
-    public CharacterComponent? Character { get; set; }
+    public required CharacterComponent Character { get; set; }
 
     public float MinCameraAngle { get; set; } = -90;
     public float MaxCameraAngle { get; set; } = 90;
@@ -21,7 +21,7 @@ public class CharacterControllerComponent : SyncScript
 
     public override void Start()
     {
-        Character = CharacterEntity?.Get<CharacterComponent>();
+        Character = CharacterEntity.Get<CharacterComponent>();
         Input.LockMousePosition(true);
         Game.IsMouseVisible = false;
 
@@ -44,7 +44,7 @@ public class CharacterControllerComponent : SyncScript
         Rotate();
 
         if (Input.IsKeyPressed(Keys.Space))
-            Character?.TryJump();
+            Character.TryJump();
     }
 
     private void Move()
@@ -52,13 +52,13 @@ public class CharacterControllerComponent : SyncScript
         // Keyboard movement
         var moveDirection = Vector2.Zero;
         if (Input.IsKeyDown(Keys.W) || Input.IsKeyDown(Keys.Z))
-            moveDirection.Y = 1;
+            moveDirection.Y += 1;
         if (Input.IsKeyDown(Keys.S))
             moveDirection.Y -= 1;
         if (Input.IsKeyDown(Keys.A) || Input.IsKeyDown(Keys.Q))
             moveDirection.X -= 1;
         if (Input.IsKeyDown(Keys.D))
-            moveDirection.X = 1;
+            moveDirection.X += 1;
 
         var velocity = new Vector3(moveDirection.X, 0, -moveDirection.Y);
         velocity.Normalize();
@@ -68,7 +68,7 @@ public class CharacterControllerComponent : SyncScript
         if (Input.IsKeyDown(Keys.LeftShift))
             velocity *= 2f;
 
-        Character?.Move(velocity);
+        Character.Move(velocity);
     }
 
     private void Rotate()
@@ -79,7 +79,7 @@ public class CharacterControllerComponent : SyncScript
         _cameraDirection.Y -= delta.X;
         _cameraDirection.X = MathUtil.Clamp(_cameraDirection.X, MinCameraAngle, MaxCameraAngle);
 
-        Character?.Rotate(Quaternion.RotationY(_cameraDirection.Y));
+        Character.Orientation = Quaternion.RotationY(_cameraDirection.Y);
         if (CameraPivot != null)
             CameraPivot.Transform.Rotation = Quaternion.RotationX(_cameraDirection.X);
     }
