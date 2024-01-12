@@ -122,10 +122,6 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
 
         var containerA = pair.A.GetContainerFromCollidable(sim);
         var containerB = pair.B.GetContainerFromCollidable(sim);
-        if (containerA == null || containerB == null)
-        {
-            return;
-        }
         var otherContainer = this == containerA ? containerB : containerA;
         for (int i = Contacts.Count - 1; i >= 0; i--)
         {
@@ -141,10 +137,6 @@ public class CharacterComponent : BodyContainerComponent, ISimulationUpdate, ICo
 
         var containerA = pair.A.GetContainerFromCollidable(sim);
         var containerB = pair.B.GetContainerFromCollidable(sim);
-        if (containerA == null || containerB == null)
-        {
-            return;
-        }
         var otherContainer = this == containerA ? containerB : containerA;
 
         contactManifold.GetContact(contactIndex, out var contact);

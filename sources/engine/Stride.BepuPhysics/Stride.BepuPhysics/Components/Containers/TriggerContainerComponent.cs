@@ -1,4 +1,5 @@
-﻿using BepuPhysics.Collidables;
+﻿using System.Diagnostics;
+using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions.Contacts;
@@ -26,19 +27,19 @@ namespace Stride.BepuPhysics.Components.Containers
 
         void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex)
         {
+            Debug.Assert(Simulation is not null);
             var containerA = pair.A.GetContainerFromCollidable(Simulation);
             var containerB = pair.B.GetContainerFromCollidable(Simulation);
             var other = containerA is TriggerContainerComponent ? containerB : containerA;
-            if (other is not null)
-                ContainerEnter?.Invoke(this, other);
+            ContainerEnter?.Invoke(this, other);
         }
         void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex)
         {
+            Debug.Assert(Simulation is not null);
             var containerA = pair.A.GetContainerFromCollidable(Simulation);
             var containerB = pair.B.GetContainerFromCollidable(Simulation);
             var other = containerA is TriggerContainerComponent ? containerB : containerA;
-            if (other is not null)
-                ContainerLeave?.Invoke(this, other);
+            ContainerLeave?.Invoke(this, other);
         }
     }
 }
