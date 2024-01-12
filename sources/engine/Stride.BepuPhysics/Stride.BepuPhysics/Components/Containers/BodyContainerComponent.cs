@@ -24,6 +24,9 @@ namespace Stride.BepuPhysics.Components.Containers
         private bool _kinematic = false;
         private float _sleepThreshold = 0.01f;
         private byte _minimumTimestepCountUnderThreshold = 32;
+        private Interpolation _interpolation = Interpolation.None;
+
+        internal RigidPose PreviousPose, CurrentPos;
 
         public bool Kinematic
         {
@@ -53,12 +56,17 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        internal BodyReference GetPhysicBodyRef()
+        public Interpolation Interpolation
         {
-            if (ContainerData == null)
-                throw new Exception("Container data is null");
-
-            return ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
+            get => _interpolation;
+            set
+            {
+                if (_interpolation == Interpolation.None && value != Interpolation.None)
+                    ContainerData?.BepuSimulation.RegisterInterpolated(this);
+                if (_interpolation != Interpolation.None && value == Interpolation.None)
+                    ContainerData?.BepuSimulation.UnregisterInterpolated(this);
+                _interpolation = value;
+            }
         }
 
         [DataMemberIgnore]
@@ -140,6 +148,14 @@ namespace Stride.BepuPhysics.Components.Containers
                 var bodyRef = GetPhysicBodyRef();
                 bodyRef.Collidable.Continuity = value;
             }
+        }
+
+        internal BodyReference GetPhysicBodyRef()
+        {
+            if (ContainerData == null)
+                throw new Exception("Container data is null");
+
+            return ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
         }
 
         public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)

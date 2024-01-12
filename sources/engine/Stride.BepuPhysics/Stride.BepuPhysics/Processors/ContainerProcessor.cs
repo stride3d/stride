@@ -67,6 +67,8 @@ namespace Stride.BepuPhysics.Processors
             component.ContainerData.RebuildContainer();
             if (component is ISimulationUpdate simulationUpdate)
                 component.ContainerData.BepuSimulation.Register(simulationUpdate);
+            if (component is BodyContainerComponent body && body.Interpolation != Interpolation.None)
+                component.ContainerData.BepuSimulation.RegisterInterpolated(body);
 
             if (component is IStaticContainer staticContainer)
                 _statics.Add(staticContainer, Unsafe.As<Matrix, Matrix4x4>(ref staticContainer.Entity.Transform.WorldMatrix));
@@ -85,6 +87,8 @@ namespace Stride.BepuPhysics.Processors
 
             if (component is ISimulationUpdate simulationUpdate)
                 component.ContainerData.BepuSimulation.Unregister(simulationUpdate);
+            if (component is BodyContainerComponent body && body.Interpolation != Interpolation.None)
+                component.ContainerData.BepuSimulation.UnregisterInterpolated(body);
 
             if (component.ContainerData.Parent is { } parent) // Make sure that children we leave behind can count on their grand-parent to take care of them
             {

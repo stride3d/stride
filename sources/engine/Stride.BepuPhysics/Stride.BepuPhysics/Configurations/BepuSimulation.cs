@@ -1,8 +1,10 @@
-﻿using BepuPhysics;
+﻿using System.Diagnostics;
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Components;
+using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Contacts;
@@ -22,11 +24,12 @@ public class BepuSimulation
     internal ThreadDispatcher ThreadDispatcher { get; private set; }
     internal BufferPool BufferPool { get; private set; }
 
-    internal CollidableProperty<MaterialProperties> CollidableMaterials { get; private set; } = new CollidableProperty<MaterialProperties>();
+    internal CollidableProperty<MaterialProperties> CollidableMaterials { get; private set; } = new();
     internal ContactEventsManager ContactEvents { get; private set; }
 
     internal Dictionary<BodyHandle, IBodyContainer> BodiesContainers { get; } = new();
     internal Dictionary<StaticHandle, IStaticContainer> StaticsContainers { get; } = new();
+    internal List<BodyContainerComponent> InterpolatedBodies { get; } = new();
 
     internal float RemainingUpdateTime { get; set; } = 0;
     internal int SoftStartRemainingDurationMs = -1;
@@ -372,6 +375,13 @@ public class BepuSimulation
         {
             updateComponent.AfterSimulationUpdate(simTimeStep);
         }
+
+        foreach (var body in InterpolatedBodies)
+        {
+            body.PreviousPose = body.CurrentPos;
+            Debug.Assert(body.ContainerData is not null);
+            body.CurrentPos = Simulation.Bodies[body.ContainerData.BHandle].Pose;
+        }
     }
 
     internal void Register(ISimulationUpdate simulationUpdateComponent)
@@ -381,5 +391,14 @@ public class BepuSimulation
     internal void Unregister(ISimulationUpdate simulationUpdateComponent)
     {
         _simulationUpdateComponents.Remove(simulationUpdateComponent);
+    }
+
+    internal void RegisterInterpolated(BodyContainerComponent body)
+    {
+        InterpolatedBodies.Add(body);
+    }
+    internal void UnregisterInterpolated(BodyContainerComponent body)
+    {
+        InterpolatedBodies.Remove(body);
     }
 }
