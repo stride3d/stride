@@ -123,8 +123,8 @@
     <PackageVersion Include="Stride.GraphX.WPF.Controls" Version="2.4.0" />
     <PackageVersion Include="Stride.Metrics" Version="1.0.3" />
     <PackageVersion Include="RoslynPad.Editor.Windows" Version="1.2.0" />
-    <PackageVersion Include="RoslynPad.Roslyn" Version="4.8.0" />
-    <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="4.8.0" />
+    <PackageVersion Include="RoslynPad.Roslyn" Version="3.6.0" />
+    <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="3.6.0" />
   </ItemGroup>
   <!-- Analyzers -->
   <ItemGroup>
