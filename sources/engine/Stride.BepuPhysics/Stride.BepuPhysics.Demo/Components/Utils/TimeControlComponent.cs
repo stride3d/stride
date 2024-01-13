@@ -25,11 +25,11 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             if (Input.IsKeyPressed(Keys.Add))
             {
-                _bepuSimulation.TimeWarp *= 1.1f;
+                _bepuSimulation.TimeScale *= 1.1f;
             }
             if (Input.IsKeyPressed(Keys.Subtract))
             {
-                _bepuSimulation.TimeWarp /= 1.1f;
+                _bepuSimulation.TimeScale /= 1.1f;
             }
 
             if (Input.IsKeyPressed(Keys.Multiply))
@@ -48,7 +48,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             }
 
             DebugText.Print($"Physic Enabled : {_bepuSimulation.Enabled} (Numpad *)", new(Game.Window.PreferredWindowedSize.X - 500, 225));
-            DebugText.Print($"Time multiplicator : {_bepuSimulation.TimeWarp} (numpad + & -)", new(Game.Window.PreferredWindowedSize.X - 500, 250));
+            DebugText.Print($"Time scale : {_bepuSimulation.TimeScale} (numpad + & -)", new(Game.Window.PreferredWindowedSize.X - 500, 250));
             DebugText.Print($"Gravity : {_bepuSimulation.PoseGravity} (numpad o & l)", new(Game.Window.PreferredWindowedSize.X - 500, 275));
         }
     }

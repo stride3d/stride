@@ -30,45 +30,42 @@ namespace Stride.BepuPhysics
 
         public override void Update(GameTime time)
         {
-            var dt = (float)time.Elapsed.TotalMilliseconds;
-            if (dt == 0f)
+            var elapsed = time.Elapsed;
+            if (elapsed > TimeSpan.Zero)
                 return;
-
-            //GC.Collect(); //looks like to prevent crash (but RIP FPS)
 
             foreach (var bepuSim in _bepuConfiguration.BepuSimulations)
             {
                 if (!bepuSim.Enabled)
                     continue;
 
-                var totalTimeStepInMillisec = (int)(dt * bepuSim.TimeWarp); //Calculate the theoretical time step of the simulation
-                bepuSim.RemainingUpdateTimeMs += totalTimeStepInMillisec; //Add it to the counter
+                var totalTimeStep = bepuSim.TimeScale == 1f ? elapsed : elapsed * bepuSim.TimeScale; //Calculate the theoretical time step of the simulation
+                bepuSim.RemainingUpdateTime += totalTimeStep; //Add it to the counter
 
-                int stepCount = 0;
-                while (bepuSim.RemainingUpdateTimeMs >= bepuSim.SimulationFixedStep & (stepCount < bepuSim.MaxStepPerFrame || bepuSim.MaxStepPerFrame == -1))
+                for (int stepCount = 0; bepuSim.RemainingUpdateTime >= bepuSim.FixedTimeStep && (stepCount < bepuSim.MaxStepPerFrame || bepuSim.MaxStepPerFrame != -1); stepCount++)
                 {
-                    if (bepuSim.SoftStartDuration != 0 && bepuSim.SoftStartRemainingDurationMs == bepuSim.SoftStartDuration)
+                    if (bepuSim.SoftStartScheduled)
                     {
-                        bepuSim.Simulation.Solver.SubstepCount = bepuSim.SolveSubStep * bepuSim.SoftStartSoftness;
-                        bepuSim.SoftStartRemainingDurationMs--;
-                    }
-                    else if (bepuSim.SoftStartRemainingDurationMs == 0)
-                    {
-                        bepuSim.Simulation.Solver.SubstepCount = bepuSim.SolveSubStep / bepuSim.SoftStartSoftness;
-                        bepuSim.SoftStartRemainingDurationMs = -1;
-                    }
-
-                    if (bepuSim.SoftStartRemainingDurationMs > 0)
-                    {
-                        bepuSim.SoftStartRemainingDurationMs = Math.Max(0, bepuSim.SoftStartRemainingDurationMs - bepuSim.SimulationFixedStep);
+                        bepuSim.SoftStartScheduled = false;
+                        if (bepuSim.SoftStartDuration > TimeSpan.Zero)
+                        {
+                            bepuSim.SoftStartRemainingDuration = bepuSim.SoftStartDuration;
+                            bepuSim.Simulation.Solver.SubstepCount = bepuSim.SolveSubStep * bepuSim.SoftStartSoftness;
+                        }
                     }
 
-                    var simTimeStepInSec = bepuSim.SimulationFixedStep / 1000f;
+                    bool turnOffSoftStart = false;
+                    if (bepuSim.SoftStartRemainingDuration > TimeSpan.Zero)
+                    {
+                        turnOffSoftStart = bepuSim.SoftStartRemainingDuration <= bepuSim.FixedTimeStep;
+                        bepuSim.SoftStartRemainingDuration -= bepuSim.FixedTimeStep;
+                    }
+
+                    var simTimeStepInSec = (float)bepuSim.FixedTimeStep.TotalSeconds;
                     bepuSim.CallSimulationUpdate(simTimeStepInSec);//call the SimulationUpdate with the real step time of the sim in secs
                     bepuSim.Simulation.Timestep(simTimeStepInSec, bepuSim.ThreadDispatcher); //perform physic simulation using bepuSim.SimulationFixedStep
                     bepuSim.ContactEvents.Flush(); //Fire event handler stuff.
-                    bepuSim.RemainingUpdateTimeMs -= bepuSim.SimulationFixedStep; //in millisec
-                    stepCount++;
+                    bepuSim.RemainingUpdateTime -= bepuSim.FixedTimeStep; //in millisec
 
                     if (bepuSim.ParallelUpdate)
                     {
@@ -82,12 +79,18 @@ namespace Stride.BepuPhysics
                         }
                     }
 
+                    if (turnOffSoftStart)
+                    {
+                        bepuSim.Simulation.Solver.SubstepCount = bepuSim.SolveSubStep / bepuSim.SoftStartSoftness;
+                        bepuSim.SoftStartRemainingDuration = TimeSpan.Zero;
+                    }
+
                     bepuSim.CallAfterSimulationUpdate(simTimeStepInSec);//call the AfterSimulationUpdate with the real step time of the sim in secs & set previousPose/CurrentPose of each containers.
                 }
 
                 // Find the interpolation factor, a value [0,1] which represents the ratio of the current time relative to the previous and the next physics step,
                 // a value of 0.5 means that we're halfway to the next physics update, just have to wait for the same amount of time.
-                float interpolationFactor = bepuSim.RemainingUpdateTimeMs / bepuSim.SimulationFixedStep;
+                var interpolationFactor = (float)(bepuSim.RemainingUpdateTime.TotalSeconds / bepuSim.FixedTimeStep.TotalSeconds);
                 interpolationFactor = MathF.Min(interpolationFactor, 1f);
                 if (bepuSim.ParallelUpdate)
                 {

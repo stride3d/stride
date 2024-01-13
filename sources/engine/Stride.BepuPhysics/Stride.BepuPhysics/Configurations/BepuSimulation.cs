@@ -19,6 +19,7 @@ namespace Stride.BepuPhysics.Configurations;
 [DataContract]
 public class BepuSimulation
 {
+    private TimeSpan _fixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60);
     private readonly List<ISimulationUpdate> _simulationUpdateComponents = new();
 
     internal ThreadDispatcher ThreadDispatcher { get; private set; }
@@ -31,8 +32,9 @@ public class BepuSimulation
     internal Dictionary<StaticHandle, IStaticContainer> StaticsContainers { get; } = new();
     internal List<BodyContainerComponent> InterpolatedBodies { get; } = new();
 
-    internal int RemainingUpdateTimeMs { get; set; } = 0;
-    internal int SoftStartRemainingDurationMs = -1;
+    internal TimeSpan RemainingUpdateTime { get; set; }
+    internal TimeSpan SoftStartRemainingDuration;
+    internal bool SoftStartScheduled = false;
 
     /// <summary>
     /// Get the bepu Simulation /!\
@@ -47,10 +49,26 @@ public class BepuSimulation
     public bool Enabled { get; set; } = true;
 
     /// <summary>
+    /// Specifies the number of seconds per step to simulate. Lossy, prefer <see cref="FixedTimeStep"/>.
+    /// </summary>
+    [Display(30, "Fixed Time Step (s)")]
+    public double FixedTimeStepSeconds
+    {
+        get => FixedTimeStep.TotalSeconds;
+        set => FixedTimeStep = TimeSpan.FromSeconds(value);
+    }
+
+    /// <summary>
     /// Allows you to choose the speed of the simulation (real time multiplicator).
     /// </summary>
-    [Display(1, "TimeWarp")]
-    public float TimeWarp { get; set; } = 1f;
+    [Display(1, "Time Scale")]
+    public float TimeScale { get; set; } = 1f;
+
+    /// <summary>
+    /// Represents the maximum number of steps per frame to avoid a death loop
+    /// </summary>
+    [Display(31, "Max steps/frame")]
+    public int MaxStepPerFrame { get; set; } = 3;
 
     /// <summary>
     /// This function slow down the simulation but allow to integrate per Body settings.
@@ -107,35 +125,23 @@ public class BepuSimulation
     public int SolveSubStep { get => Simulation.Solver.SubstepCount; init => Simulation.Solver.SubstepCount = value; }
 
     /// <summary>
-    /// Specifies the number of milliseconds per step to simulate
-    /// </summary>
-    [Display(30, "Simulation fixed step")]
-    public int SimulationFixedStep { get; set; } = 1000 / 60;
-
-    /// <summary>
-    /// Represents the maximum number of steps per frame to avoid a death loop
-    /// </summary>
-    [Display(31, "Max steps/frame")]
-    public int MaxStepPerFrame { get; set; } = 3;
-
-    /// <summary>
-    /// Allow entity synchronization to occur across multiple threads instead of just the main thread
-    /// </summary>
-    [Display(35, "Parallel update")]
-    public bool ParallelUpdate { get; set; } = true;
-
-    /// <summary>
-    /// The duration in millisec of the SoftStart.
+    /// The duration in seconds of the SoftStart.
     /// Negative or 0 disable the feature.
     /// </summary>
-    [Display(36, "SoftStart duration (ms)")]
-    public int SoftStartDuration { get; set; } = 1000;
+    [Display(36, "SoftStart duration")]
+    public TimeSpan SoftStartDuration { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
     /// How much we should soften the simulation during softStart ?
     /// </summary>
     [Display(37, "SoftStart softness")]
     public int SoftStartSoftness { get; set; } = 4;
+
+    /// <summary>
+    /// Allow entity synchronization to occur across multiple threads instead of just the main thread
+    /// </summary>
+    [Display(35, "Parallel update")]
+    public bool ParallelUpdate { get; set; } = true;
 
     /// <summary>
     /// Whether to use a deterministic time step when using multithreading. When set to true, additional time is spent sorting constraint additions and transfers.
@@ -148,6 +154,16 @@ public class BepuSimulation
         set => Simulation.Deterministic = value;
     }
 
+    [DataMemberIgnore] public TimeSpan FixedTimeStep
+    {
+        get => _fixedTimeStep;
+        set
+        {
+            if (value.Ticks <= 0)
+                throw new ArgumentException("Duration provided must be greater than zero");
+            _fixedTimeStep = value;
+        }
+    }
 
 
     /// <summary>
@@ -155,8 +171,7 @@ public class BepuSimulation
     /// </summary>
     public void ResetSoftStart()
     {
-        if (SoftStartDuration > 0)
-            SoftStartRemainingDurationMs = SoftStartDuration;
+        SoftStartScheduled = true;
     }
 
 

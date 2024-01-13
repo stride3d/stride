@@ -34,7 +34,6 @@ Defaults:
                 SimulationFixedStep: 17
                 MaxStepPerFrame: 5
                 ParallelUpdate: true
-                SoftStartDuration: 1000
                 SoftStartSoftness: 4
             -   Enabled: true
                 TimeWarp: 1.0
@@ -47,7 +46,6 @@ Defaults:
                 SimulationFixedStep: 16
                 MaxStepPerFrame: 3
                 ParallelUpdate: true
-                SoftStartDuration: 1000
                 SoftStartSoftness: 4
             -   Enabled: true
                 TimeWarp: 1.0
@@ -60,7 +58,6 @@ Defaults:
                 SimulationFixedStep: 30
                 MaxStepPerFrame: 3
                 ParallelUpdate: true
-                SoftStartDuration: 1000
                 SoftStartSoftness: 4
 Overrides: []
 PlatformFilters:
