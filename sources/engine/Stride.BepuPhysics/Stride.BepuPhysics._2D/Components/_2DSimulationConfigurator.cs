@@ -30,13 +30,17 @@ namespace Stride.BepuPhysics._2D.Components
                 if (body is not _2DBodyContainerComponent)
                     continue;
 
-                body.Position *= new Vector3(1, 1, 0);//Fix Z = 0
-                body.LinearVelocity *= new Vector3(1, 1, 0);
+                if (body.Position.Z > 0.05f || body.Position.Z < -0.05f)
+                    body.Position *= new Vector3(1, 1, 0);//Fix Z = 0
+                if (body.LinearVelocity.Z > 0.05f || body.LinearVelocity.Z < -0.05f)
+                    body.LinearVelocity *= new Vector3(1, 1, 0);
 
                 var bodyRot = body.Orientation;
                 Quaternion.RotationYawPitchRoll(ref bodyRot, out var yaw, out var pitch, out var roll);
-                body.Orientation = Quaternion.RotationYawPitchRoll(0, 0, roll);
-                body.AngularVelocity *= new Vector3(0, 0, 1);
+                if (yaw > 0.05f || pitch > 0.05f || yaw < -0.05f || pitch < -0.05f)
+                    body.Orientation = Quaternion.RotationYawPitchRoll(0, 0, roll);
+                if (body.AngularVelocity.X > 0.05f || body.AngularVelocity.Y > 0.05f || body.AngularVelocity.X < -0.05f || body.AngularVelocity.Y < -0.05f)
+                    body.AngularVelocity *= new Vector3(0, 0, 1);
             }
         }
         public override void Update()
