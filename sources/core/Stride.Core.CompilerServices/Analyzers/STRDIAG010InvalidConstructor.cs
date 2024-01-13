@@ -8,7 +8,7 @@ using Stride.Core.CompilerServices.Common;
 namespace Stride.Core.CompilerServices.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
+public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG010";
     private const string Title = "Invalid Constructor";
@@ -63,9 +63,9 @@ internal class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
             // Check if the type has the specified DataContractAttribute through inheritance
             if (type.TryGetAttribute(dataContractAttribute,out var datacontractData) && datacontractData.AttributeConstructor is not null)
             {
-                if (datacontractData is { AttributeConstructor.Parameters: [.., { Name: "aliasName" }], ConstructorArguments: [{ Value: bool inherited }, ..] })
+                if (datacontractData is { NamedArguments: [.., { Key: "Inherited" } ], NamedArguments: [..,{ Value: TypedConstant  inherited }] })
                 {
-                    isInherited = inherited;
+                    isInherited = (bool)inherited.Value;
                 }
                 break;
             }
