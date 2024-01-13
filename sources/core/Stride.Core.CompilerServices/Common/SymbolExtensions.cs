@@ -13,7 +13,7 @@ internal static class SymbolExtensions
         var accessibility = symbol.DeclaredAccessibility;
 
         if (hasDataMemberAttribute)
-            return accessibility == Accessibility.Public || accessibility == Accessibility.Internal || accessibility == Accessibility.ProtectedOrInternal;
+            return accessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal;
         return accessibility == Accessibility.Public;
     }
 
