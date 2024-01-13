@@ -53,5 +53,16 @@ public class ValidCollection
     {0} {1} X {{ get; set; }}
 }}
 ";
+    public const string InheritedDataContract = @"
+using Stride.Core;
+using System;
+[DataContract(Inherited = true)]
+public class Base {{ }}
+
+public class Inherited : Base
+{{
+    {0}
+}}
+";
 
 }
