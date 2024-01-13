@@ -20,7 +20,7 @@ namespace Stride.BepuPhysics.Processors
 
         private readonly UnsortedO1List<IStaticContainer, Matrix4x4> _statics = new();
 
-        internal Dictionary<ContainerComponent, ContainerComponent>.Enumerator ComponentDatas => base.ComponentDatas.GetEnumerator();
+        internal Dictionary<ContainerComponent, ContainerComponent>.Enumerator ComponentDataEnumerator => base.ComponentDatas.GetEnumerator();
 
         public event Action<ContainerComponent>? OnPostAdd;
         public event Action<ContainerComponent>? OnPreRemove;
@@ -42,7 +42,8 @@ namespace Stride.BepuPhysics.Processors
                 if (span[i].Value != entityMatrix)
                 {
                     span[i].Value = entityMatrix;
-                    #warning REBUILD/MOVE STATIC CONTAINER
+#warning REBUILD/MOVE STATIC CONTAINER
+                    //span[i].Key.Position = entityMatrix. //nicogo: not sure to know what to do
                 }
             }
         }

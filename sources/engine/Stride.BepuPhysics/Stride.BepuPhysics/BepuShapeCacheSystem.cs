@@ -80,7 +80,6 @@ namespace Stride.BepuPhysics
             return new BodyShapeData() { Vertices = new[] { tri.A, tri.B, tri.C }.Select(x => new VertexPosition3(x)).ToArray(), Indices = Enumerable.Range(0, 3).ToArray() };
         }
 
-#warning returning empty data or null ?
         public (BodyShapeData data, BodyShapeTransform transform) BorrowHull(ConvexHullCollider convex)
         {
             if (convex.Hull == null)

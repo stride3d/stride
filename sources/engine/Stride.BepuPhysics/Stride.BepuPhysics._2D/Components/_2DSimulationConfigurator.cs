@@ -13,17 +13,23 @@ namespace Stride.BepuPhysics._2D.Components
     [ComponentCategory("Bepu - 2D")]
     public class _2DSimulationConfigurator : SimulationUpdateComponent
     {
-        private _2DBodyContainerComponent[] bodies = Array.Empty<_2DBodyContainerComponent>();
-
         public override void SimulationUpdate(float simTimeStep)
         {
 
         }
-
         public override void AfterSimulationUpdate(float simTimeStep)
         {
-            foreach (var body in bodies)
+            if (BepuSimulation == null)
+                return;
+
+            for (int i = 0; i < BepuSimulation.Simulation.Bodies.ActiveSet.Count; i++)
             {
+                var handle = BepuSimulation.Simulation.Bodies.ActiveSet.IndexToHandle[i];
+                var body = BepuSimulation.BodiesContainers[handle];
+
+                if (body is not _2DBodyContainerComponent)
+                    continue;
+
                 body.Position *= new Vector3(1, 1, 0);//Fix Z = 0
                 body.LinearVelocity *= new Vector3(1, 1, 0);
 
@@ -33,10 +39,8 @@ namespace Stride.BepuPhysics._2D.Components
                 body.AngularVelocity *= new Vector3(0, 0, 1);
             }
         }
-
         public override void Update()
         {
-             bodies = BepuSimulation.BodiesContainers.Values.OfType<_2DBodyContainerComponent>().ToArray();
         }
     }
 }

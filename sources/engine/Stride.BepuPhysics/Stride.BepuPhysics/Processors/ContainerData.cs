@@ -104,7 +104,6 @@ namespace Stride.BepuPhysics.Processors
                 ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
                 _shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
 
-#warning Shouldn't this be uncommented ?
                 //if (_containerComponent is BodyMeshContainerComponent _b)
                 //{
                 //    _containerComponent.CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();

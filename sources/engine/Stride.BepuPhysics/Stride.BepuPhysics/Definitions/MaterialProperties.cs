@@ -1,4 +1,5 @@
-﻿using BepuPhysics.Constraints;
+﻿using System.Numerics;
+using BepuPhysics.Constraints;
 
 namespace Stride.BepuPhysics.Definitions
 {
@@ -18,8 +19,11 @@ namespace Stride.BepuPhysics.Definitions
         public ushort FilterByDistanceY;
         public ushort FilterByDistanceZ;
 
-        //__Pose__Settings__
+        //__Pose__Settings__ (Warning, if UserPerBodiesAttribute == false, doesn't work)
         public bool IgnoreGlobalGravity;
+        public Vector3 PersonalGravity;
+#warning PersonalGravity not implemented;
+
 
         public static bool AllowContactGeneration(MaterialProperties a, MaterialProperties b)
         {

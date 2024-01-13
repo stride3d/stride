@@ -1,4 +1,6 @@
-﻿using Stride.BepuPhysics._2D.Components.Containers;
+﻿using System.ComponentModel;
+using System.Xml.Linq;
+using Stride.BepuPhysics._2D.Components.Containers;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.DebugRender.Components;
@@ -112,6 +114,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                                 var scale = Vector3.One;
                                 worldPosition -= Vector3.Transform(container.CenterOfMass, worldRotation);
                                 Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);
+
                             }
                             else
                             {
@@ -131,6 +134,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                     foreach (var wireframe in kvp.Value)
                     {
                         wireframe.WorldMatrix = wireframe.ContainerBaseMatrix * matrix;
+                        wireframe.Color = GetCurrentColor(container);
                     }
                 }
             }
@@ -142,7 +146,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         private void StartTracking(ContainerProcessor proc)
         {
             var shapeAndOffsets = new List<(BodyShapeData data, BodyShapeTransform transform)>();
-            for (var containers = proc.ComponentDatas; containers.MoveNext();)
+            for (var containers = proc.ComponentDataEnumerator; containers.MoveNext();)
             {
                 StartTrackingContainer(containers.Current.Key, shapeAndOffsets);
             }
@@ -152,26 +156,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         private void StartTrackingContainer(ContainerComponent container, List<(BodyShapeData data, BodyShapeTransform transform)> shapeAndOffsets)
         {
-            var color = new Vector3(0, 0, 0);
 
-#warning replace with I2DContainer
-            if (container is _2DBodyContainerComponent)
-            {
-                color += new Vector3(0, 0, 1);
-            }
-            else
-            {
-                color += new Vector3(0, 0, 0);
-            }
-
-            if (container is IContainerWithColliders)
-            {
-                color += new Vector3(1, 0, 0);
-            }
-            else if (container is IContainerWithMesh)
-            {
-                color += new Vector3(0, 1, 0);
-            }
 
             shapeAndOffsets.Clear();
             _bepuShapeCacheSystem.AppendCachedShapesFor(container, shapeAndOffsets);
@@ -183,7 +168,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 var local = shapeAndOffset;
 
                 var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, shapeAndOffset.data.Indices, shapeAndOffset.data.Vertices);
-                wireframe.Color = Color.FromRgba(Vector3ToRGBA(color));
+                wireframe.Color = GetCurrentColor(container);
                 Matrix.Transformation(ref local.transform.Scale, ref local.transform.RotationLocal, ref local.transform.PositionLocal, out wireframe.ContainerBaseMatrix);
                 wireframes[i] = wireframe;
                 _visibilityGroup.RenderObjects.Add(wireframe);
@@ -241,5 +226,36 @@ namespace Stride.BepuPhysics.DebugRender.Processors
             /// <summary> Read from the entity, showing any changes that affected it after physics </summary>
             Entity
         }
+
+        private Color GetCurrentColor(ContainerComponent container)
+        {
+            var color = new Vector3(0, 0, 0);
+
+#warning replace with I2DContainer
+            if (container is _2DBodyContainerComponent)
+            {
+                color += new Vector3(0, 0, 1);
+            }
+            else
+            {
+                color += new Vector3(0, 0, 0);
+            }
+
+            if (container is IContainerWithColliders)
+            {
+                color += new Vector3(1, 0, 0);
+            }
+            else if (container is IContainerWithMesh)
+            {
+                color += new Vector3(0, 1, 0);
+            }
+
+            if (container is IBodyContainer bodyC && !bodyC.Awake)
+            {
+                color /= new Vector3(4);
+            }
+            return Color.FromRgba(Vector3ToRGBA(color));
+        }
+
     }
 }

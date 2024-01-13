@@ -57,7 +57,7 @@ public class BepuSimulation
     /// Ignore global gravity will not work if set to false.
     /// </summary>
     [Display(11, "UsePerBodyAttributes")]
-    public bool UsePerBodyAttributes //
+    public bool UsePerBodyAttributes 
     {
         get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.UsePerBodyAttributes;
         set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.UsePerBodyAttributes = value;

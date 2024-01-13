@@ -1,21 +1,21 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using BepuPhysics;
 using BepuUtilities;
 
-#warning allow better Editor/runtime modifications of StridePoseIntegratorCallbacks (thinking of PerBodyGravity, ...)
 
 namespace Stride.BepuPhysics.Definitions
 {
-    public struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
+    internal struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
-        private Bodies _bodies;
+        private Bodies? _bodies;
 
-        private Vector3Wide gravityWideDt = default;
-        private Vector<float> linearDampingDt = default;
-        private Vector<float> angularDampingDt = default;
+        private Vector3Wide _gravityWideDt = default;
+        private Vector<float> _linearDampingDt = default;
+        private Vector<float> _angularDampingDt = default;
+        private float _lastDt = 0;
 
-
-        internal CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
+        internal required CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
 
         public bool UsePerBodyAttributes { get; set; } = true;
 
@@ -75,9 +75,10 @@ namespace Stride.BepuPhysics.Definitions
         {
             //No reason to recalculate gravity * dt for every body; just cache it ahead of time.
             //Since these callbacks don't use per-body damping values, we can precalculate everything.
-            linearDampingDt = new Vector<float>(MathF.Pow(MathHelper.Clamp(1 - LinearDamping, 0, 1), dt));
-            angularDampingDt = new Vector<float>(MathF.Pow(MathHelper.Clamp(1 - AngularDamping, 0, 1), dt));
-            gravityWideDt = Vector3Wide.Broadcast(Gravity * dt);
+            _linearDampingDt = new Vector<float>(MathF.Pow(MathHelper.Clamp(1 - LinearDamping, 0, 1), dt));
+            _angularDampingDt = new Vector<float>(MathF.Pow(MathHelper.Clamp(1 - AngularDamping, 0, 1), dt));
+            _gravityWideDt = Vector3Wide.Broadcast(Gravity * dt);
+            _lastDt = dt;
         }
 
         /// <summary>
@@ -93,6 +94,7 @@ namespace Stride.BepuPhysics.Definitions
         /// <param name="velocity">Velocity of bodies in the bundle. Any changes to lanes which are not active by the integrationMask will be discarded.</param>
         public void IntegrateVelocity(Vector<int> bodyIndices, Vector3Wide position, QuaternionWide orientation, BodyInertiaWide localInertia, Vector<int> integrationMask, int workerIndex, Vector<float> dt, ref BodyVelocityWide velocity)
         {
+
             //This is a handy spot to implement things like position dependent gravity or per-body damping.
             //This implementation uses a single damping value for all bodies that allows it to be precomputed.
             //We don't have to check for kinematics; IntegrateVelocityForKinematics returns false, so we'll never see them in this callback.
@@ -114,19 +116,18 @@ namespace Stride.BepuPhysics.Definitions
                     }
                     else if (bodyIndex >= 0)
                     {
+                        Debug.Assert(false); //no longer occuring :)
                         ignoreGravitySpan[bundleSlotIndex] = 1f;
-#warning This should not happend, it was before, need testing
                     }
                 }
 
                 var GravityVec = new Vector<float>(ignoreGravitySpan);
 
 
-                velocity.Linear = (velocity.Linear + (gravityWideDt * GravityVec)) * linearDampingDt;
-                velocity.Angular = velocity.Angular * angularDampingDt;
+                velocity.Linear = (velocity.Linear + (_gravityWideDt * GravityVec)) * _linearDampingDt;
+                velocity.Angular = velocity.Angular * _angularDampingDt;
 
-#warning TODO
-                //IF (2D)
+                //Probably not needed.
                 //velocity.Linear *= Vector3Wide.Broadcast(new Vector3(1, 1, 0));
                 //velocity.Angular *= Vector3Wide.Broadcast(new Vector3(0, 0, 1));
                 //position *= Vector3Wide.Broadcast(new Vector3(1, 1, 0));
@@ -137,8 +138,8 @@ namespace Stride.BepuPhysics.Definitions
             }
             else
             {
-                velocity.Linear = (velocity.Linear + gravityWideDt) * linearDampingDt;
-                velocity.Angular = velocity.Angular * angularDampingDt;
+                velocity.Linear = (velocity.Linear + _gravityWideDt) * _linearDampingDt;
+                velocity.Angular = velocity.Angular * _angularDampingDt;
             }
 
         }
