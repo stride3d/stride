@@ -65,7 +65,7 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
             {
                 if (datacontractData is { NamedArguments: [.., { Key: "Inherited" } ], NamedArguments: [..,{ Value: TypedConstant  inherited }] })
                 {
-                    isInherited = (bool)inherited.Value;
+                    isInherited = (bool)inherited.Value!;
                 }
                 break;
             }
