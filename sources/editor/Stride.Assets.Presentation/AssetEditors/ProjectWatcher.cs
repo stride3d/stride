@@ -10,9 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -23,6 +21,11 @@ using Stride.Core.Extensions;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Project = Microsoft.CodeAnalysis.Project;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.Build.Execution;
+using System.Diagnostics.CodeAnalysis;
+using QuickGraph;
 
 namespace Stride.Assets.Presentation.AssetEditors
 {
@@ -51,7 +54,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         public Project Project { get; set; }
     }
-    
+
     public class ProjectWatcher : IDisposable
     {
         private readonly TrackingCollection<TrackedAssembly> trackedAssemblies;
@@ -88,7 +91,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             batchChangesTask = BatchChanges();
         }
-
+        public List<AssemblyChangedEvent> Events { get; set; }
         private async Task BatchChanges()
         {
             var buffer = new BufferBlock<AssemblyChangedEvent>();
@@ -101,8 +104,31 @@ namespace Stride.Assets.Presentation.AssetEditors
                     do
                     {
                         var assemblyChange = await buffer.ReceiveAsync(batchChangesCancellationTokenSource.Token);
+                        
+
                         if (assemblyChange != null)
+                        {
                             assemblyChanges.Add(assemblyChange);
+                            var project = assemblyChange.Project;
+                            var projects = msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id);
+                            foreach(var p in projects)
+                            {
+                                var assemblyName = msbuildWorkspace.CurrentSolution.GetProject(p).AssemblyName;
+                                var target = trackedAssemblies.FirstOrDefault(x => x.Project.AssemblyName == assemblyName );
+                                if(target != null)
+                                {
+                                    string file = assemblyChange.ChangedFile;
+                                    if(assemblyChange.ChangeType == AssemblyChangeType.Binary)
+                                    {
+                                        file = target.LoadedAssembly.Path;
+                                    }else if(assemblyChange.ChangeType == AssemblyChangeType.Project)
+                                    {
+                                        file = target.Project.FilePath;
+                                    }
+                                    assemblyChanges.Add(new AssemblyChangedEvent(target.LoadedAssembly, assemblyChange.ChangeType, file, target.Project));
+                                }
+                            }
+                         }
 
                         if (assemblyChange != null && !hasChanged)
                         {
@@ -115,12 +141,11 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                     // Merge files that were modified multiple time
                     assemblyChanges = assemblyChanges.GroupBy(x => x.ChangedFile).Select(x => x.Last()).ToList();
-
+                    Events = assemblyChanges;
                     AssembliesChangedBroadcast.Post(assemblyChanges);
                 }
             }
         }
-
         public BroadcastBlock<AssemblyChangedEvent> AssemblyChangedBroadcast { get; } = new BroadcastBlock<AssemblyChangedEvent>(null);
         public BroadcastBlock<List<AssemblyChangedEvent>> AssembliesChangedBroadcast { get; } = new BroadcastBlock<List<AssemblyChangedEvent>>(null);
 
@@ -350,7 +375,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             return true;
         }
-
+        private Solution solution;
         private async Task<Project> OpenProject(UFile projectPath)
         {
             if (msbuildWorkspace == null)
@@ -358,8 +383,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 var host = await RoslynHost;
                 msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
             }
-
-            msbuildWorkspace.CloseSolution();
+            Solution s = await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToWindowsPath());
             
             // Try up to 10 times (1 second)
             const int retryCount = 10;
@@ -367,8 +391,8 @@ namespace Stride.Assets.Presentation.AssetEditors
             {
                 try
                 {
-                    var project = await msbuildWorkspace.OpenProjectAsync(projectPath.ToWindowsPath());
 
+                    var project = msbuildWorkspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath == projectPath.ToWindowsPath());
                     if (msbuildWorkspace.Diagnostics.Count > 0)
                     {
                         // There was an issue compiling the project

@@ -162,48 +162,55 @@ namespace Stride.GameStudio.ViewModels
             var changesBuffer = new BufferBlock<AssemblyChangedEvent>();
             using (projectWatcher.AssemblyChangedBroadcast.LinkTo(changesBuffer))
             {
-                while (!assemblyTrackingCancellation.IsCancellationRequested)
+                var assemblyChanges = changesBuffer.ReceiveAllAsync();
+                while (true)
                 {
-                    var assemblyChange = await changesBuffer.ReceiveAsync(assemblyTrackingCancellation.Token);
-
-                    if (!trackAssemblyChanges || assemblyChange == null)
-                        continue;
-
-                    // Ignore Binary changes
-                    if (assemblyChange.ChangeType == AssemblyChangeType.Binary)
-                        continue;
+                    await WaitUntil(() => projectWatcher.Events != null);
+                    var events = projectWatcher.Events;
+                    projectWatcher.Events = null;
+                    foreach(var assemblyChange in  events)
+                    {
+                        if (assemblyChange == null || assemblyChange.ChangeType == AssemblyChangeType.Binary)
+                            continue;
+                        modifiedAssemblies[assemblyChange.Assembly] = new ModifiedAssembly
+                        {
+                            LoadedAssembly = assemblyChange.Assembly,
+                            ChangeType = assemblyChange.ChangeType,
+                            Project = assemblyChange.Project
+                        };
+                    }
 
                     var shouldNotify = !assemblyChangesPending;
-                    modifiedAssemblies[assemblyChange.Assembly] = new ModifiedAssembly
-                    {
-                        LoadedAssembly = assemblyChange.Assembly,
-                        ChangeType = assemblyChange.ChangeType,
-                        Project = assemblyChange.Project
-                    };
-
-                    Dispatcher.Invoke(() =>
-                    {
-                        UpdateCommands();
-
-                        if (shouldNotify)
-                        {
-                            var message = Tr._p("Message", "Some game code files have been modified. Do you want to reload the assemblies?");
-                            ServiceProvider.Get<IEditorDialogService>().AddDelayedNotification(EditorSettings.AskBeforeReloadingAssemblies, message,
-                                Tr._p("Button", "Reload"), Tr._p("Button", "Don't reload"),
-                                yesAction: async () =>
-                                {
-                                    var undoRedoService = ServiceProvider.Get<IUndoRedoService>();
-                                    // Wait for current transactions, undo/redo or save to complete before continuing.
-                                    await Task.WhenAll(undoRedoService.TransactionCompletion, undoRedoService.UndoRedoCompletion, Session.SaveCompletion);
-                                    // Reload assembly, if possible
-                                    if (ReloadAssembliesCommand.IsEnabled)
-                                        ReloadAssembliesCommand.Execute();
-                                },
-                                yesNoSettingsKey: EditorSettings.AutoReloadAssemblies);
-                        }
-                    });
+                    if (modifiedAssemblies.Count > 0 && shouldNotify)
+                        RunNotifier(true);
                 }
             }
+        }
+
+        private async void RunNotifier(bool shouldNotify)
+        {
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateCommands();
+
+                    if (shouldNotify)
+                    {
+                        var message = Tr._p("Message", "Some game code files have been modified. Do you want to reload the assemblies?");
+                        ServiceProvider.Get<IEditorDialogService>().AddDelayedNotification(EditorSettings.AskBeforeReloadingAssemblies, message,
+                            Tr._p("Button", "Reload"), Tr._p("Button", "Don't reload"),
+                            yesAction: async () =>
+                            {
+                                var undoRedoService = ServiceProvider.Get<IUndoRedoService>();
+                                // Wait for current transactions, undo/redo or save to complete before continuing.
+                                await Task.WhenAll(undoRedoService.TransactionCompletion, undoRedoService.UndoRedoCompletion, Session.SaveCompletion);
+                                // Reload assembly, if possible
+                                if (ReloadAssembliesCommand.IsEnabled)
+                                    ReloadAssembliesCommand.Execute();
+                            },
+                            yesNoSettingsKey: EditorSettings.AutoReloadAssemblies);
+                    }
+                });
+            
         }
 
         private void UpdateCommands()
@@ -227,6 +234,21 @@ namespace Stride.GameStudio.ViewModels
             public AssemblyChangeType ChangeType;
 
             public Project Project;
+        }
+        /// <summary>
+        /// Blocks until condition is true or timeout occurs.
+        /// </summary>
+        /// <param name="condition">The break condition.</param>
+        /// <param name="frequency">The frequency at which the condition will be checked.</param>
+        /// <param name="timeout">The timeout in milliseconds.</param>
+        /// <returns></returns>
+        public static async Task WaitUntil(Func<bool> condition, int frequency = 25)
+        {
+            var waitTask = Task.Run(async () =>
+            {
+                while (!condition()) await Task.Delay(frequency);
+            });
+            await waitTask;
         }
 
         private async Task ReloadAssemblies()
