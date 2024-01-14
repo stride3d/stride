@@ -371,7 +371,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             return true;
         }
-        private Solution solution;
+
         private async Task<Project> OpenProject(UFile projectPath)
         {
             if (msbuildWorkspace == null)
@@ -379,7 +379,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 var host = await RoslynHost;
                 msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
             }
-            Solution s = await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToWindowsPath());
+            await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToWindowsPath());
 
             // Try up to 10 times (1 second)
             const int retryCount = 10;
