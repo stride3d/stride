@@ -36,7 +36,7 @@ namespace Stride.GameStudio.ViewModels
 {
     public class DebuggingViewModel : DispatcherViewModel, IDisposable
     {
-
+        private const int LookUpFrequency = 25;
         private readonly IDebugService debugService;
         private readonly GameStudioViewModel editor;
         private readonly Dictionary<PackageLoadedAssembly, ModifiedAssembly> modifiedAssemblies;
@@ -164,7 +164,7 @@ namespace Stride.GameStudio.ViewModels
             {
                 while (!assemblyTrackingCancellation.IsCancellationRequested)
                 {
-                    await WaitUntil(() => projectWatcher.Events != null);
+                    while (projectWatcher.Events is null) await Task.Delay(LookUpFrequency);
                     var events = projectWatcher.Events;
                     projectWatcher.Events = null;
                     foreach (var assemblyChange in events)
@@ -233,21 +233,6 @@ namespace Stride.GameStudio.ViewModels
             public AssemblyChangeType ChangeType;
 
             public Project Project;
-        }
-        /// <summary>
-        /// Blocks until condition is true or timeout occurs.
-        /// </summary>
-        /// <param name="condition">The break condition.</param>
-        /// <param name="frequency">The frequency at which the condition will be checked.</param>
-        /// <param name="timeout">The timeout in milliseconds.</param>
-        /// <returns></returns>
-        public static async Task WaitUntil(Func<bool> condition, int frequency = 25)
-        {
-            var waitTask = Task.Run(async () =>
-            {
-                while (!condition()) await Task.Delay(frequency);
-            });
-            await waitTask;
         }
 
         private async Task ReloadAssemblies()
