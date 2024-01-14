@@ -31,24 +31,6 @@ namespace Stride.BepuPhysics.Processors
             if (!_constraintComponent.Enabled)
                 return;
 
-#warning Display error in editor / console / ? 
-            if (_constraintComponent.GetType().IsAssignableFrom(typeof(OneBodyConstraintComponent<>)) && _constraintComponent.Bodies.Length != 1)
-            {
-                return;
-            }
-            else if (_constraintComponent.GetType().IsAssignableFrom(typeof(TwoBodyConstraintComponent<>)))
-            {
-                return;
-            }
-            else if (_constraintComponent.GetType().IsAssignableFrom(typeof(ThreeBodyConstraintComponent<>)))
-            {
-                return;
-            }
-            else if (_constraintComponent.GetType().IsAssignableFrom(typeof(FourBodyConstraintComponent<>)))
-            {
-                return;
-            }
-
             foreach (var container in _constraintComponent.Bodies)
             {
                 if (container is null || container.ContainerData == null)
