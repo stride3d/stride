@@ -137,6 +137,18 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                     // Merge files that were modified multiple time
                     assemblyChanges = assemblyChanges.GroupBy(x => x.ChangedFile).Select(x => x.Last()).ToList();
+                    
+                    // the assembly changes got allready picked up
+                    if (Events == null)
+                    {
+                        Events = assemblyChanges;
+                    }
+                    // the assembly changes didn't get picked up
+                    else
+                    {
+                        Events.AddRange(assemblyChanges);
+                    }
+
                     Events = assemblyChanges;
                     AssembliesChangedBroadcast.Post(assemblyChanges);
                 }
