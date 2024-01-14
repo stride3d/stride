@@ -186,7 +186,7 @@ namespace Stride.GameStudio.ViewModels
             }
         }
 
-        private async void RunNotifier(bool shouldNotify)
+        private void RunNotifier(bool shouldNotify)
         {
             Dispatcher.Invoke(() =>
             {
