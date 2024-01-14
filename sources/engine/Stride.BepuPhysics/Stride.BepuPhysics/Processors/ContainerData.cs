@@ -172,7 +172,14 @@ namespace Stride.BepuPhysics.Processors
                 else
                 {
                     BHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
-                    BepuSimulation.BodiesContainers.Add(BHandle, body);
+                    if (BepuSimulation.Bodies.Count == BHandle.Value)
+                    {
+                        BepuSimulation.Bodies.Add(body);
+                    }
+                    else
+                    {
+                        BepuSimulation.Bodies[BHandle.Value] = body;
+                    }
                     BepuSimulation.CollidableMaterials.Allocate(BHandle) = new();
                 }
             }
@@ -189,7 +196,14 @@ namespace Stride.BepuPhysics.Processors
                 else
                 {
                     SHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
-                    BepuSimulation.StaticsContainers.Add(SHandle, @static);
+                    if (BepuSimulation.Statics.Count == SHandle.Value)
+                    {
+                        BepuSimulation.Statics.Add(@static);
+                    }
+                    else
+                    {
+                        BepuSimulation.Statics[SHandle.Value] = @static;
+                    }
                     BepuSimulation.CollidableMaterials.Allocate(SHandle) = new();
                 }
             }
@@ -222,7 +236,7 @@ namespace Stride.BepuPhysics.Processors
             if (BHandle.Value != -1 && BepuSimulation.Simulation.Bodies.BodyExists(BHandle))
             {
                 BepuSimulation.Simulation.Bodies.Remove(BHandle);
-                BepuSimulation.BodiesContainers.Remove(BHandle);
+                BepuSimulation.Bodies[BHandle.Value] = null!;
                 BHandle = new(-1);
                 _exist = false;
             }
@@ -230,7 +244,7 @@ namespace Stride.BepuPhysics.Processors
             if (SHandle.Value != -1 && BepuSimulation.Simulation.Statics.StaticExists(SHandle))
             {
                 BepuSimulation.Simulation.Statics.Remove(SHandle);
-                BepuSimulation.StaticsContainers.Remove(SHandle);
+                BepuSimulation.Statics[SHandle.Value] = null!;
                 SHandle = new(-1);
                 _exist = false;
             }

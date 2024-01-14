@@ -11,14 +11,14 @@ namespace Stride.BepuPhysics.Extensions
     {
         public static IContainer GetContainerFromCollidable(this CollidableReference collidable, BepuSimulation sim)
         {
-            #warning optimize away those dictionary access into array access
-            if (collidable.Mobility == CollidableMobility.Static && sim.StaticsContainers.TryGetValue(collidable.StaticHandle, out IStaticContainer? staticsContainer))
+            #warning could move this function into simulation instead
+            if (collidable.Mobility == CollidableMobility.Static)
             {
-                return staticsContainer;
+                return sim.GetContainer(collidable.StaticHandle);
             }
-            else if (collidable.Mobility != CollidableMobility.Static && sim.BodiesContainers.TryGetValue(collidable.BodyHandle, out IBodyContainer? bodiesContainer))
+            else if (collidable.Mobility != CollidableMobility.Static)
             {
-                return bodiesContainer;
+                return sim.GetContainer(collidable.BodyHandle);
             }
 
             // bepu and containers should be perfectly synchronized, we're in an invalid state if this collider does not exist

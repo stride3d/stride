@@ -25,7 +25,7 @@ namespace Stride.BepuPhysics._2D.Components
             for (int i = 0; i < BepuSimulation.Simulation.Bodies.ActiveSet.Count; i++)
             {
                 var handle = BepuSimulation.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                var body = BepuSimulation.BodiesContainers[handle];
+                var body = BepuSimulation.GetContainer(handle);
 
                 if (body is not _2DBodyContainerComponent)
                     continue;

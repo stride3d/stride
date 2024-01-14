@@ -36,8 +36,8 @@ public class BepuSimulation
     internal CollidableProperty<MaterialProperties> CollidableMaterials { get; } = new();
     internal ContactEventsManager ContactEvents { get; }
 
-    internal Dictionary<BodyHandle, IBodyContainer> BodiesContainers { get; } = new();
-    internal Dictionary<StaticHandle, IStaticContainer> StaticsContainers { get; } = new();
+    internal List<IBodyContainer?> Bodies { get; } = new();
+    internal List<IStaticContainer?> Statics { get; } = new();
 
     /// <summary>
     /// Get the bepu Simulation /!\
@@ -215,6 +215,20 @@ public class BepuSimulation
         CollidableMaterials.Initialize(Simulation);
         ContactEvents.Initialize(Simulation);
         //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
+    }
+
+    public IBodyContainer GetContainer(BodyHandle handle)
+    {
+        var body = Bodies[handle.Value];
+        Debug.Assert(body is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
+        return body;
+    }
+
+    public IStaticContainer GetContainer(StaticHandle handle)
+    {
+        var statics = Statics[handle.Value];
+        Debug.Assert(statics is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
+        return statics;
     }
 
     /// <summary>
@@ -469,7 +483,7 @@ public class BepuSimulation
 
         static void SyncTransformsWithPhysics(BodyHandle handle, BepuSimulation bepuSim)
         {
-            var bodyContainer = bepuSim.BodiesContainers[handle];
+            var bodyContainer = bepuSim.GetContainer(handle);
             Debug.Assert(bodyContainer.ContainerData is not null);
 
             if (bodyContainer.ContainerData.Parent is {} containerParent)
