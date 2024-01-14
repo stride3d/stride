@@ -24,41 +24,47 @@ Defaults:
     - !Stride.BepuPhysics.Configurations.BepuConfiguration,Stride.BepuPhysics
         BepuSimulations:
             -   Enabled: true
-                TimeWarp: 1.0
+                ParallelUpdate: true
+                Deterministic: false
+                FixedTimeStepSeconds: 0.0166666
+                TimeScale: 1.0
+                MaxStepPerFrame: 5
                 UsePerBodyAttributes: true
                 PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
                 PoseLinearDamping: 0.05
                 PoseAngularDamping: 0.05
-                SolveIteration: 2
-                SolveSubStep: 17
-                SimulationFixedStep: 17
-                MaxStepPerFrame: 5
-                ParallelUpdate: true
-                SoftStartSoftness: 4
+                SolverIteration: 1
+                SolverSubStep: 17
+                SoftStartDuration: 0:00:00:01.0000000
+                SoftStartSubstepFactor: 4
             -   Enabled: true
-                TimeWarp: 1.0
+                ParallelUpdate: true
+                Deterministic: false
+                FixedTimeStepSeconds: 0.0166666
+                TimeScale: 1.0
+                MaxStepPerFrame: 3
                 UsePerBodyAttributes: true
                 PoseGravity: {X: 0.0, Y: -30.0, Z: 0.0}
                 PoseLinearDamping: 0.05
                 PoseAngularDamping: 0.05
-                SolveIteration: 1
-                SolveSubStep: 1
-                SimulationFixedStep: 16
-                MaxStepPerFrame: 3
-                ParallelUpdate: true
-                SoftStartSoftness: 4
+                SolverIteration: 1
+                SolverSubStep: 1
+                SoftStartDuration: 0:00:00:01.0000000
+                SoftStartSubstepFactor: 4
             -   Enabled: true
-                TimeWarp: 1.0
+                ParallelUpdate: true
+                Deterministic: false
+                FixedTimeStepSeconds: 0.0166666
+                TimeScale: 1.0
+                MaxStepPerFrame: 3
                 UsePerBodyAttributes: false
                 PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
                 PoseLinearDamping: 0.05
                 PoseAngularDamping: 0.05
-                SolveIteration: 1
-                SolveSubStep: 6
-                SimulationFixedStep: 30
-                MaxStepPerFrame: 3
-                ParallelUpdate: true
-                SoftStartSoftness: 4
+                SolverIteration: 1
+                SolverSubStep: 6
+                SoftStartDuration: 0:00:00:01.0000000
+                SoftStartSubstepFactor: 4
 Overrides: []
 PlatformFilters:
     - PowerVR SGX 54[0-9]

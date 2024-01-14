@@ -156,6 +156,8 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
+        /// <summary> Whether to ignore the simulation's <see cref="BepuSimulation.PoseGravity"/> </summary>
+        /// <remarks> Gravity is always active if <see cref="BepuSimulation.UsePerBodyAttributes"/> is false </remarks>
         public bool IgnoreGlobalGravity
         {
             get => _ignoreGlobalGravity;
