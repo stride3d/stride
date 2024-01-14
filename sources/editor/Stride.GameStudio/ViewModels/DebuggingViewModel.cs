@@ -167,7 +167,7 @@ namespace Stride.GameStudio.ViewModels
                     await WaitUntil(() => projectWatcher.Events != null);
                     var events = projectWatcher.Events;
                     projectWatcher.Events = null;
-                    foreach(var assemblyChange in  events)
+                    foreach (var assemblyChange in events)
                     {
                         if (assemblyChange == null || assemblyChange.ChangeType == AssemblyChangeType.Binary)
                             continue;
@@ -188,28 +188,28 @@ namespace Stride.GameStudio.ViewModels
 
         private async void RunNotifier(bool shouldNotify)
         {
-                Dispatcher.Invoke(() =>
-                {
-                    UpdateCommands();
+            Dispatcher.Invoke(() =>
+            {
+                UpdateCommands();
 
-                    if (shouldNotify)
-                    {
-                        var message = Tr._p("Message", "Some game code files have been modified. Do you want to reload the assemblies?");
-                        ServiceProvider.Get<IEditorDialogService>().AddDelayedNotification(EditorSettings.AskBeforeReloadingAssemblies, message,
-                            Tr._p("Button", "Reload"), Tr._p("Button", "Don't reload"),
-                            yesAction: async () =>
-                            {
-                                var undoRedoService = ServiceProvider.Get<IUndoRedoService>();
-                                // Wait for current transactions, undo/redo or save to complete before continuing.
-                                await Task.WhenAll(undoRedoService.TransactionCompletion, undoRedoService.UndoRedoCompletion, Session.SaveCompletion);
-                                // Reload assembly, if possible
-                                if (ReloadAssembliesCommand.IsEnabled)
-                                    ReloadAssembliesCommand.Execute();
-                            },
-                            yesNoSettingsKey: EditorSettings.AutoReloadAssemblies);
-                    }
-                });
-            
+                if (shouldNotify)
+                {
+                    var message = Tr._p("Message", "Some game code files have been modified. Do you want to reload the assemblies?");
+                    ServiceProvider.Get<IEditorDialogService>().AddDelayedNotification(EditorSettings.AskBeforeReloadingAssemblies, message,
+                        Tr._p("Button", "Reload"), Tr._p("Button", "Don't reload"),
+                        yesAction: async () =>
+                        {
+                            var undoRedoService = ServiceProvider.Get<IUndoRedoService>();
+                            // Wait for current transactions, undo/redo or save to complete before continuing.
+                            await Task.WhenAll(undoRedoService.TransactionCompletion, undoRedoService.UndoRedoCompletion, Session.SaveCompletion);
+                            // Reload assembly, if possible
+                            if (ReloadAssembliesCommand.IsEnabled)
+                                ReloadAssembliesCommand.Execute();
+                        },
+                        yesNoSettingsKey: EditorSettings.AutoReloadAssemblies);
+                }
+            });
+
         }
 
         private void UpdateCommands()

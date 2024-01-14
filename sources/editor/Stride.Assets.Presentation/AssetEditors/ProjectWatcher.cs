@@ -99,31 +99,32 @@ namespace Stride.Assets.Presentation.AssetEditors
                     do
                     {
                         var assemblyChange = await buffer.ReceiveAsync(batchChangesCancellationTokenSource.Token);
-                        
+
 
                         if (assemblyChange != null)
                         {
                             assemblyChanges.Add(assemblyChange);
                             var project = assemblyChange.Project;
                             var projects = msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id);
-                            foreach(var p in projects)
+                            foreach (var p in projects)
                             {
                                 var assemblyName = msbuildWorkspace.CurrentSolution.GetProject(p).AssemblyName;
-                                var target = trackedAssemblies.FirstOrDefault(x => x.Project.AssemblyName == assemblyName );
-                                if(target != null)
+                                var target = trackedAssemblies.FirstOrDefault(x => x.Project.AssemblyName == assemblyName);
+                                if (target != null)
                                 {
                                     string file = assemblyChange.ChangedFile;
-                                    if(assemblyChange.ChangeType == AssemblyChangeType.Binary)
+                                    if (assemblyChange.ChangeType == AssemblyChangeType.Binary)
                                     {
                                         file = target.LoadedAssembly.Path;
-                                    }else if(assemblyChange.ChangeType == AssemblyChangeType.Project)
+                                    }
+                                    else if (assemblyChange.ChangeType == AssemblyChangeType.Project)
                                     {
                                         file = target.Project.FilePath;
                                     }
                                     assemblyChanges.Add(new AssemblyChangedEvent(target.LoadedAssembly, assemblyChange.ChangeType, file, target.Project));
                                 }
                             }
-                         }
+                        }
 
                         if (assemblyChange != null && !hasChanged)
                         {
@@ -217,12 +218,12 @@ namespace Stride.Assets.Presentation.AssetEditors
             }
         }
 
-        private  async Task<AssemblyChangedEvent> FileChangeTransformation(FileEvent e)
+        private async Task<AssemblyChangedEvent> FileChangeTransformation(FileEvent e)
         {
             string changedFile;
             var renameEvent = e as FileRenameEvent;
             changedFile = renameEvent?.OldFullPath ?? e.FullPath;
-            
+
             foreach (var trackedAssembly in trackedAssemblies)
             {
                 // Report change of the assembly binary
@@ -332,7 +333,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 directoryWatcher.Track(loadedAssembly.ProjectReference.Location);
 
                 var trackedAssembly = new TrackedAssembly { Package = package, LoadedAssembly = loadedAssembly };
-                
+
                 // Track project source code
                 if (await UpdateProject(trackedAssembly))
                     trackedAssemblies.Add(trackedAssembly);
@@ -379,7 +380,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
             }
             Solution s = await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToWindowsPath());
-            
+
             // Try up to 10 times (1 second)
             const int retryCount = 10;
             for (var i = retryCount - 1; i >= 0; --i)
