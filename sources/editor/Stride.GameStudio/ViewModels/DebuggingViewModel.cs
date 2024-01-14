@@ -162,7 +162,7 @@ namespace Stride.GameStudio.ViewModels
             var changesBuffer = new BufferBlock<AssemblyChangedEvent>();
             using (projectWatcher.AssemblyChangedBroadcast.LinkTo(changesBuffer))
             {
-                while (true)
+                while (!assemblyTrackingCancellation.IsCancellationRequested)
                 {
                     await WaitUntil(() => projectWatcher.Events != null);
                     var events = projectWatcher.Events;
