@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,12 +21,6 @@ using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Project = Microsoft.CodeAnalysis.Project;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.Build.Execution;
-using System.Diagnostics.CodeAnalysis;
-using QuickGraph;
 
 namespace Stride.Assets.Presentation.AssetEditors
 {
