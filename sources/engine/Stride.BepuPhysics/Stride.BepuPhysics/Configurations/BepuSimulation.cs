@@ -148,6 +148,7 @@ public class BepuSimulation
     /// </summary>
     /// <remarks>
     /// Can be heavy performance wise, consider changing <see cref="SolverSubStep"/> first.
+    /// Smaller values improve performance at the cost of stability and precision.
     /// </remarks>
     [Display(10, "Solver Iteration", CATEGORY_CONSTRAINTS)]
     public int SolverIteration { get => Simulation.Solver.VelocityIterationCount; init => Simulation.Solver.VelocityIterationCount = value; }
@@ -155,6 +156,9 @@ public class BepuSimulation
     /// <summary>
     /// The number of sub-steps used when solving constraints
     /// </summary>
+    /// <remarks>
+    /// Smaller values improve performance at the cost of stability and precision.
+    /// </remarks>
     [Display(11, "Solver SubStep", CATEGORY_CONSTRAINTS)]
     public int SolverSubStep { get => Simulation.Solver.SubstepCount; init => Simulation.Solver.SubstepCount = value; }
 
@@ -206,6 +210,7 @@ public class BepuSimulation
         var _solveDescription = new SolveDescription(1, 1);
 
         Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
+        Simulation.Solver.SubstepCount = 16;
 
         CollidableMaterials.Initialize(Simulation);
         ContactEvents.Initialize(Simulation);
