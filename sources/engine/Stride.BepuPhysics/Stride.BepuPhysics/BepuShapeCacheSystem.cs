@@ -17,7 +17,7 @@ namespace Stride.BepuPhysics
 {
     internal class BepuShapeCacheSystem
     {
-        private IGame? _game = null;
+        private IGame _game;
 
         private readonly BodyShapeData _boxShapeData;
         private readonly BodyShapeData _cylinderShapeData;

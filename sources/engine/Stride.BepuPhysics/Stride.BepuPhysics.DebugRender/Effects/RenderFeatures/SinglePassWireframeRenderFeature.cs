@@ -9,8 +9,9 @@ namespace Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 
 public class SinglePassWireframeRenderFeature : RootRenderFeature
 {
-    DynamicEffectInstance shader;
-    MutablePipelineState pipelineState;
+    private DynamicEffectInstance _shader = null!;
+    private MutablePipelineState _pipelineState = null!;
+    private readonly List<WireFrameRenderObject> _wireframes = new();
 
     [DataMember(0)]
     public bool Enable = true;
@@ -19,10 +20,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
     [DataMemberRange(0.0f, 10.0f, 0.001f, 0.002f, 4)]
     public float LineWidth = 3f;
 
-
     public override Type SupportedRenderObjectType => typeof(WireFrameRenderObject);
-
-    private List<WireFrameRenderObject> _wireframes = new();
 
     public SinglePassWireframeRenderFeature()
     {
@@ -34,15 +32,15 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         base.InitializeCore();
 
         // initialize shader
-        shader = new DynamicEffectInstance("SinglePassWireframeShader");
-        shader.Initialize(Context.Services);
+        _shader = new DynamicEffectInstance("SinglePassWireframeShader");
+        _shader.Initialize(Context.Services);
 
         // create the pipeline state and set properties that won't change
-        pipelineState = new MutablePipelineState(Context.GraphicsDevice);
-        pipelineState.State.SetDefaults();
-        pipelineState.State.InputElements = VertexPosition3.Layout.CreateInputElements();
-        pipelineState.State.BlendState = BlendStates.AlphaBlend;
-        pipelineState.State.RasterizerState.CullMode = CullMode.None;
+        _pipelineState = new MutablePipelineState(Context.GraphicsDevice);
+        _pipelineState.State.SetDefaults();
+        _pipelineState.State.InputElements = VertexPosition3.Layout.CreateInputElements();
+        _pipelineState.State.BlendState = BlendStates.AlphaBlend;
+        _pipelineState.State.RasterizerState.CullMode = CullMode.None;
     }
 
     protected override void OnAddRenderObject(RenderObject renderObject)
@@ -71,31 +69,31 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
     {
         if (!Enable) return;
 
-        shader.UpdateEffect(context.GraphicsDevice);
-        shader.Parameters.Set(TransformationKeys.WorldScale, new Vector3(1.002f));
-        shader.Parameters.Set(SinglePassWireframeShaderKeys.Viewport, new Vector4(context.RenderContext.RenderView.ViewSize, 0, 0));
-        shader.Parameters.Set(SinglePassWireframeShaderKeys.LineWidth, LineWidth);
+        _shader.UpdateEffect(context.GraphicsDevice);
+        _shader.Parameters.Set(TransformationKeys.WorldScale, new Vector3(1.002f));
+        _shader.Parameters.Set(SinglePassWireframeShaderKeys.Viewport, new Vector4(context.RenderContext.RenderView.ViewSize, 0, 0));
+        _shader.Parameters.Set(SinglePassWireframeShaderKeys.LineWidth, LineWidth);
 
         foreach (var myRenderObject in _wireframes)
         {
             // set shader parameters
-            shader.Parameters.Set(TransformationKeys.WorldViewProjection, myRenderObject.WorldMatrix * renderView.ViewProjection); // matrix
-            shader.Parameters.Set(SinglePassWireframeShaderKeys.LineColor, (Vector3)myRenderObject.Color);
+            _shader.Parameters.Set(TransformationKeys.WorldViewProjection, myRenderObject.WorldMatrix * renderView.ViewProjection); // matrix
+            _shader.Parameters.Set(SinglePassWireframeShaderKeys.LineColor, (Vector3)myRenderObject.Color);
 
             // prepare pipeline state
-            pipelineState.State.RootSignature = shader.RootSignature;
-            pipelineState.State.EffectBytecode = shader.Effect.Bytecode;
-            pipelineState.State.PrimitiveType = myRenderObject.PrimitiveType;
+            _pipelineState.State.RootSignature = _shader.RootSignature;
+            _pipelineState.State.EffectBytecode = _shader.Effect.Bytecode;
+            _pipelineState.State.PrimitiveType = myRenderObject.PrimitiveType;
 
-            pipelineState.State.Output.CaptureState(context.CommandList);
-            pipelineState.Update();
+            _pipelineState.State.Output.CaptureState(context.CommandList);
+            _pipelineState.Update();
 
             context.CommandList.SetVertexBuffer(0, myRenderObject.VertexBuffer, 0, myRenderObject.VertexStride);
             context.CommandList.SetIndexBuffer(myRenderObject.IndiceBuffer, 0, true);
-            context.CommandList.SetPipelineState(pipelineState.CurrentState);
+            context.CommandList.SetPipelineState(_pipelineState.CurrentState);
 
             // apply the effect
-            shader.Apply(context.GraphicsContext);
+            _shader.Apply(context.GraphicsContext);
 
             context.CommandList.DrawIndexed(myRenderObject.IndiceBuffer.ElementCount);
         }

@@ -8,12 +8,11 @@ namespace Stride.BepuPhysics.Definitions
 {
     internal struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
-        private Bodies? _bodies;
+        private Bodies _bodies = null!;
 
         private Vector3Wide _gravityWideDt = default;
         private Vector<float> _linearDampingDt = default;
         private Vector<float> _angularDampingDt = default;
-        private float _lastDt = 0;
 
         internal required CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
 
@@ -78,7 +77,6 @@ namespace Stride.BepuPhysics.Definitions
             _linearDampingDt = new Vector<float>(MathF.Pow(MathHelper.Clamp(1 - LinearDamping, 0, 1), dt));
             _angularDampingDt = new Vector<float>(MathF.Pow(MathHelper.Clamp(1 - AngularDamping, 0, 1), dt));
             _gravityWideDt = Vector3Wide.Broadcast(Gravity * dt);
-            _lastDt = dt;
         }
 
         /// <summary>

@@ -22,12 +22,12 @@ namespace Stride.BepuPhysics.DebugRender.Processors
     {
         public SynchronizationMode Mode { get; set; } = SynchronizationMode.Physics; // Setting it to Physics by default to show when there is a large discrepancy between the entity and physics
 
-        private IGame? _game = null;
-        private SceneSystem _sceneSystem;
-        private BepuShapeCacheSystem _bepuShapeCacheSystem;
-        private InputManager _input;
-        private SinglePassWireframeRenderFeature _wireframeRenderFeature;
-        private VisibilityGroup _visibilityGroup;
+        private IGame _game = null!;
+        private SceneSystem _sceneSystem = null!;
+        private BepuShapeCacheSystem _bepuShapeCacheSystem = null!;
+        private InputManager _input = null!;
+        private SinglePassWireframeRenderFeature _wireframeRenderFeature = null!;
+        private VisibilityGroup _visibilityGroup = null!;
         private Dictionary<ContainerComponent, WireFrameRenderObject[]> _wireFrameRenderObject = new();
 
         private bool _alwaysOn = false;
@@ -156,8 +156,6 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         private void StartTrackingContainer(ContainerComponent container, List<(BodyShapeData data, BodyShapeTransform transform)> shapeAndOffsets)
         {
-
-
             shapeAndOffsets.Clear();
             _bepuShapeCacheSystem.AppendCachedShapesFor(container, shapeAndOffsets);
 

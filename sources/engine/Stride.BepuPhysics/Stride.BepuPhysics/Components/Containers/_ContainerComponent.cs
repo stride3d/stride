@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Components.Containers
     [ComponentCategory("Bepu - Containers")]
     public abstract class ContainerComponent : StartupScript, IContainer
     {
-        ContainerData IContainer.ContainerData => ContainerData;
+        ContainerData? IContainer.ContainerData => ContainerData;
 
         private int _simulationIndex = 0;
         private float _springFrequency = 30;
