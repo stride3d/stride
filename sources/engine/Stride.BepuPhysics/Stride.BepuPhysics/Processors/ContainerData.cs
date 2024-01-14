@@ -20,7 +20,6 @@ namespace Stride.BepuPhysics.Processors
         private readonly BepuConfiguration _config;
         private readonly IGame _game;
 
-        private BodyInertia _shapeInertia;
         private bool _isStatic;
         private bool _exist;
 
@@ -31,7 +30,6 @@ namespace Stride.BepuPhysics.Processors
         internal TypedIndex ShapeIndex { get; private set; }// = new(-1, -1);
         internal ContainerComponent? Parent { get; set; }
 
-        internal bool Exist => _exist;
         internal bool IsStatic => _isStatic;
 
         internal ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game, ContainerComponent? parent)
@@ -89,6 +87,7 @@ namespace Stride.BepuPhysics.Processors
             _containerComponent.Entity.Transform.UpdateWorldMatrix();
             _containerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
 
+            BodyInertia shapeInertia;
             if (_containerComponent is IContainerWithMesh meshContainer)
             {
                 if (meshContainer.Model == null)
@@ -102,7 +101,7 @@ namespace Stride.BepuPhysics.Processors
                 var mesh = new Mesh(triangles, _containerComponent.Entity.Transform.Scale.ToNumericVector(), BepuSimulation.BufferPool);
 
                 ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
-                _shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
+                shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
 
                 //if (_containerComponent is BodyMeshContainerComponent _b)
                 //{
@@ -135,12 +134,10 @@ namespace Stride.BepuPhysics.Processors
                     }
 
                     BepuUtilities.Memory.Buffer<CompoundChild> compoundChildren;
-                    BodyInertia shapeInertia;
                     System.Numerics.Vector3 shapeCenter;
                     compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
 
                     ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
-                    _shapeInertia = shapeInertia;
                     _containerComponent.CenterOfMass = shapeCenter.ToStrideVector();
                 }
                 finally
@@ -148,55 +145,57 @@ namespace Stride.BepuPhysics.Processors
                     compoundBuilder.Dispose();
                 }
             }
-
-            var ContainerPose = new RigidPose((containerWorldTranslation + _containerComponent.CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
-            switch (_containerComponent)
+            else
             {
-                case IBodyContainer _c:
-                    _isStatic = false;
-                    if (_c.Kinematic)
-                    {
-                        _shapeInertia = new BodyInertia();
-                    }
+                throw new Exception($"Container type '{_containerComponent.GetType()}' doesn't have any content");
+            }
 
-                    var bDescription = BodyDescription.CreateDynamic(ContainerPose, _shapeInertia, ShapeIndex, new(_c.SleepThreshold, _c.MinimumTimestepCountUnderThreshold));
+            _exist = true;
 
-                    if (BHandle.Value != -1)
-                    {
-                        BepuSimulation.Simulation.Bodies[BHandle].GetDescription(out var tmpDesc);
-                        bDescription.Velocity = tmpDesc.Velocity; //Keep velocity when updating
-                        BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, bDescription);
-                    }
-                    else
-                    {
-                        BHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
-                        BepuSimulation.BodiesContainers.Add(BHandle, _c);
-                        BepuSimulation.CollidableMaterials.Allocate(BHandle) = new();
-                        _exist = true;
-                    }
+            var containerPose = new RigidPose((containerWorldTranslation + _containerComponent.CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
+            if (_containerComponent is IBodyContainer body)
+            {
+                _isStatic = false;
+                if (body.Kinematic)
+                {
+                    shapeInertia = new BodyInertia();
+                }
 
-                    break;
-                case IStaticContainer _c:
-                    _isStatic = true;
+                var bDescription = BodyDescription.CreateDynamic(containerPose, shapeInertia, ShapeIndex, new(body.SleepThreshold, body.MinimumTimestepCountUnderThreshold));
 
-                    var sDescription = new StaticDescription(ContainerPose, ShapeIndex);
-                    var isTrigger = _c is TriggerContainerComponent;
+                if (BHandle.Value != -1)
+                {
+                    BepuSimulation.Simulation.Bodies[BHandle].GetDescription(out var tmpDesc);
+                    bDescription.Velocity = tmpDesc.Velocity; //Keep velocity when updating
+                    BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, bDescription);
+                }
+                else
+                {
+                    BHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
+                    BepuSimulation.BodiesContainers.Add(BHandle, body);
+                    BepuSimulation.CollidableMaterials.Allocate(BHandle) = new();
+                }
+            }
+            else if (_containerComponent is IStaticContainer @static)
+            {
+                _isStatic = true;
 
-                    if (SHandle.Value != -1)
-                    {
-                        BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, sDescription);
-                    }
-                    else
-                    {
-                        SHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
-                        BepuSimulation.StaticsContainers.Add(SHandle, _c);
-                        BepuSimulation.CollidableMaterials.Allocate(SHandle) = new();
-                        _exist = true;
-                    }
+                var sDescription = new StaticDescription(containerPose, ShapeIndex);
 
-                    break;
-                default:
-                    break;
+                if (SHandle.Value != -1)
+                {
+                    BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, sDescription);
+                }
+                else
+                {
+                    SHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
+                    BepuSimulation.StaticsContainers.Add(SHandle, @static);
+                    BepuSimulation.CollidableMaterials.Allocate(SHandle) = new();
+                }
+            }
+            else
+            {
+                throw new Exception($"Container type '{_containerComponent.GetType()}' is not static nor body");
             }
 
             if (_containerComponent.ContactEventHandler != null && !IsRegistered())
@@ -204,6 +203,7 @@ namespace Stride.BepuPhysics.Processors
 
             UpdateMaterialProperties();
         }
+
         internal void DestroyContainer()
         {
             _containerComponent.CenterOfMass = new();
