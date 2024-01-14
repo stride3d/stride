@@ -8,8 +8,9 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering;
 using Stride.Core.Mathematics;
-using System.Numerics;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
+using Stride.BepuPhysics.Extensions;
+using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace Stride.BepuPhysics.Processors
 {
@@ -38,13 +39,20 @@ namespace Stride.BepuPhysics.Processors
             var span = _statics.UnsafeGetSpan();
             for (int i = 0; i < span.Length; i++)
             {
-                ref Matrix4x4 entityMatrix = ref Unsafe.As<Matrix, Matrix4x4>(ref span[i].Key.Entity.Transform.WorldMatrix);
-                if (span[i].Value != entityMatrix)
-                {
-                    span[i].Value = entityMatrix;
-#warning REBUILD/MOVE STATIC CONTAINER
-                    //span[i].Key.Position = entityMatrix. //nicogo: not sure to know what to do
-                }
+                var container = span[i].Key;
+                ref Matrix4x4 numericMatrix = ref Unsafe.As<Matrix, Matrix4x4>(ref container.Entity.Transform.WorldMatrix); // Casting to numerics, stride's equality comparison is ... not great
+                if (span[i].Value == numericMatrix)
+                    continue; // This static did not move
+
+                span[i].Value = numericMatrix;
+                if (container.ContainerData is null || container.ContainerData.SHandle.Value == -1)
+                    continue;
+
+                var description = container.ContainerData.BepuSimulation.Simulation.Statics.GetDescription(container.ContainerData.SHandle);
+                container.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out Vector3 translation);
+                description.Pose.Position = (translation + container.CenterOfMass).ToNumericVector();
+                description.Pose.Orientation = rotation.ToNumericQuaternion();
+                container.ContainerData.BepuSimulation.Simulation.Statics.ApplyDescription(container.ContainerData.SHandle, description);
             }
         }
 
