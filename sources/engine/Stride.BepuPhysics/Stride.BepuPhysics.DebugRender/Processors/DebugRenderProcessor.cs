@@ -108,7 +108,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                             RigidPose pose;
                             if (container.ContainerData?.StaticReference is { } sRef)
                                 pose = sRef.Pose;
-                            else if (container.ContainerData?.BodyReference is {} bRef)
+                            else if (container.ContainerData?.BodyReference is { } bRef)
                                 pose = bRef.Pose;
                             else
                                 continue;
@@ -227,30 +227,39 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         {
             var color = new Vector3(0, 0, 0);
 
-#warning replace with I2DContainer
-            if (container is _2DBodyContainerComponent)
-            {
-                color += new Vector3(0, 0, 1);
-            }
-            else
-            {
-                color += new Vector3(0, 0, 0);
-            }
-
-            if (container is IContainerWithColliders)
+            if (container is IContainerWithMesh)
             {
                 color += new Vector3(1, 0, 0);
             }
-            else if (container is IContainerWithMesh)
+            else if (container is IContainerWithColliders)
+            {
+                //color += new Vector3(0, 0, 0);
+            }
+
+#warning replace with I2DContainer
+            if (container is _2DBodyContainerComponent)
             {
                 color += new Vector3(0, 1, 0);
             }
-
-            if (container is IBodyContainer bodyC && !bodyC.Awake)
+            else
             {
-                color /= new Vector3(4);
+                //color += new Vector3(0, 0, 0);
             }
-            return Color.FromRgba(Vector3ToRGBA(color));
+
+            if (container is IBodyContainer bodyC)
+            {
+                color += new Vector3(0, 0, 1);
+
+                if (!bodyC.Awake)
+                    color /= 3f;
+            }
+            else if (container is IStaticContainer staticC)
+            {
+                //color += new Vector3(0, 0, 0);
+                color /= 9f;
+            }
+
+            return Color.FromRgba(Vector3ToRGBA(color)); //R : Mesh, G : 2D, B : body. Total : awake => 100% else 33% | Static => 11%
         }
 
     }
