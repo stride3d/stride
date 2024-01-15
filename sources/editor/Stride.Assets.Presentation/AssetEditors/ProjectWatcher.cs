@@ -21,7 +21,6 @@ using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Project = Microsoft.CodeAnalysis.Project;
-using Accessibility;
 
 namespace Stride.Assets.Presentation.AssetEditors
 {
