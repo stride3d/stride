@@ -65,4 +65,13 @@ public class Inherited : Base
 }}
 ";
 
+    public const string PrimaryConstructorTemplate = @"
+using Stride.Core;
+using System;
+[DataContract]
+public class ValidCollection(int x)
+{{
+    {0}
+}}
+";
 }

@@ -39,4 +39,10 @@ public class STRDIAG010_Test
         string sourceCode = string.Format(ClassTemplates.InheritedDataContract, "public Inherited(int x) { }");
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG010InvalidConstructor.DiagnosticId);
     }
+    [Fact]
+    public void Error_On_Primary_Constructor()
+    {
+        string sourceCode = string.Format(ClassTemplates.PrimaryConstructorTemplate, "");
+        TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG010InvalidConstructor.DiagnosticId);
+    }
 }
