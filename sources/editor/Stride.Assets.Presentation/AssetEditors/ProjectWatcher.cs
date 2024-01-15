@@ -92,14 +92,10 @@ namespace Stride.Assets.Presentation.AssetEditors
             var buffer = new BufferBlock<AssemblyChangedEvent>();
             using (AssemblyChangedBroadcast.LinkTo(buffer))
             {
-                while (true)
+                while (!batchChangesCancellationTokenSource.IsCancellationRequested)
                 {
                     var hasChanged = false;
                     var assemblyChanges = new List<AssemblyChangedEvent>();
-                    if(batchChangesCancellationTokenSource.IsCancellationRequested)
-                    {
-                        break;
-                    }
                     do
                     {
                         var assemblyChange = await buffer.ReceiveAsync(batchChangesCancellationTokenSource.Token);
