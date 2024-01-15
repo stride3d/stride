@@ -78,11 +78,11 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
     }
     private static void TryReportDiagnostics(INamedTypeSymbol symbol,SymbolAnalysisContext context)
     {
-        if (HasEmptyConstructor(symbol))
+        if (HasPublicEmptyConstructor(symbol))
             return;
         else
             Rule.ReportDiagnostics(context, symbol);
     }
-    private static bool HasEmptyConstructor(INamedTypeSymbol type) 
-        => type.Constructors.Any(x => x.Parameters.Length == 0);
+    private static bool HasPublicEmptyConstructor(INamedTypeSymbol type) 
+        => type.Constructors.Any(x => x.Parameters.Length == 0 && x.DeclaredAccessibility == Accessibility.Public);
 }
