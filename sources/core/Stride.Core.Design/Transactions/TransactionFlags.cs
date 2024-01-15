@@ -13,5 +13,10 @@ namespace Stride.Core.Transactions
         /// Keep parent transaction alive (useful to start async inner transactions).
         /// </summary>
         KeepParentsAlive = 1,
+
+        /// <summary>
+        /// Skip over the transaction when using undo or redo.
+        /// </summary>
+        SkipUndoRedo = 2,
     }
 }

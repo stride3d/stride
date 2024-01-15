@@ -272,7 +272,7 @@ namespace Stride.GameStudio.ViewModels
             // If any assemblies are built successfully, reload them
             if (assembliesToReload.Count > 0)
             {
-                using (var transaction = Session.UndoRedoService.CreateTransaction())
+                using (var transaction = Session.UndoRedoService.CreateTransaction(Core.Transactions.TransactionFlags.SkipUndoRedo))
                 {
                     var assemblyToAnalyze = assembliesToReload.Where(x => x.LoadedAssembly?.Assembly != null && x.Project != null).ToDictionary(x => x.Project, x => x.LoadedAssembly.Assembly.FullName);
                     var logResult = new LoggerResult();
