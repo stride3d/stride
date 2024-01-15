@@ -137,13 +137,12 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                     // Merge files that were modified multiple time
                     assemblyChanges = assemblyChanges.GroupBy(x => x.ChangedFile).Select(x => x.Last()).ToList();
-                    AssembliesChangedBroadcast.Post(assemblyChanges);
+
                     yield return assemblyChanges;
                 }
             }
         }
         public BroadcastBlock<AssemblyChangedEvent> AssemblyChangedBroadcast { get; } = new BroadcastBlock<AssemblyChangedEvent>(null);
-        public BroadcastBlock<List<AssemblyChangedEvent>> AssembliesChangedBroadcast { get; } = new BroadcastBlock<List<AssemblyChangedEvent>>(null);
 
         public Project CurrentGameLibrary
         {

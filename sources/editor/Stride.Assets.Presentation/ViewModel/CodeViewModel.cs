@@ -25,6 +25,7 @@ using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Translation;
 using Stride.Assets.Scripts;
 using System.Collections.Specialized;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
@@ -82,15 +83,15 @@ namespace Stride.Assets.Presentation.ViewModel
                         switch (e.Action)
                         {
                             case NotifyCollectionChangedAction.Add:
-                            {
-                                workspace.AddOrUpdateProject(project);
-                                break;
-                            }
+                                {
+                                    workspace.AddOrUpdateProject(project);
+                                    break;
+                                }
                             case NotifyCollectionChangedAction.Remove:
-                            {
-                                workspace.RemoveProject(project.Id);
-                                break;
-                            }
+                                {
+                                    workspace.RemoveProject(project.Id);
+                                    break;
+                                }
                         }
                     }
                 }
@@ -99,36 +100,9 @@ namespace Stride.Assets.Presentation.ViewModel
                 // TODO: Right now, we simply replace the solution with newly loaded one
                 // Ideally, we should keep our existing solution and update it to follow external changes after initial loading (similar to VisualStudioWorkspace)
                 // This should provide better integration with background changes and local changes
-                projectWatcher.AssembliesChangedBroadcast.LinkTo(new ActionBlock<List<AssemblyChangedEvent>>(events =>
-                {
-                    if (events.Count == 0)
-                        return;
-
-                    Dispatcher.InvokeAsync(async () =>
-                    {
-                        // Update projects
-                        foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Project))
-                        {
-                            var project = e.Project;
-                            if (project != null)
-                            {
-                                await ReloadProject(strideAssetsViewModel.Session, project);
-                            }
-                        }
-
-                        // Update files
-                        foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Source))
-                        {
-                            var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(e.ChangedFile).FirstOrDefault();
-                            if (documentId != null)
-                                workspace.HostDocumentTextLoaderChanged(documentId, new FileTextLoader(e.ChangedFile, null));
-                        }
-                    }).Wait();
-                }), new DataflowLinkOptions());
-
+                ProjectUpdate = UpdateProjects(projectWatcher, workspace, strideAssetsViewModel);
                 return workspace;
             });
-
             // Apply syntax highlighting for tooltips
             keywordBrush = new SolidColorBrush(ClassificationHighlightColorsDark.KeywordColor);
             typeBrush = new SolidColorBrush(ClassificationHighlightColorsDark.TypeColor);
@@ -138,6 +112,33 @@ namespace Stride.Assets.Presentation.ViewModel
             // TODO: Update with latest RoslynPad
             //SymbolDisplayPartExtensions.StyleRunFromSymbolDisplayPartKind = StyleRunFromSymbolDisplayPartKind;
             //SymbolDisplayPartExtensions.StyleRunFromTextTag = StyleRunFromTextTag;
+        }
+        private Task ProjectUpdate;
+        private async Task UpdateProjects(ProjectWatcher projectWatcher,RoslynWorkspace workspace, StrideAssetsViewModel strideAssetsViewModel)
+        {
+            await foreach(var events in projectWatcher.BatchChange)
+            {
+                Dispatcher.InvokeAsync(async () =>
+                {
+                    // Update projects
+                    foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Project))
+                    {
+                        var project = e.Project;
+                        if (project != null)
+                        {
+                            await ReloadProject(strideAssetsViewModel.Session, project);
+                        }
+                    }
+
+                    // Update files
+                    foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Source))
+                    {
+                        var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(e.ChangedFile).FirstOrDefault();
+                        if (documentId != null)
+                            workspace.HostDocumentTextLoaderChanged(documentId, new FileTextLoader(e.ChangedFile, null));
+                    }
+                }).Wait();
+            }
         }
 
         /// <summary>
