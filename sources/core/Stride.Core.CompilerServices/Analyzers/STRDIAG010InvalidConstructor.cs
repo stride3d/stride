@@ -64,10 +64,10 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
             // Check if the type has the specified DataContractAttribute through inheritance
             if (type.TryGetAttribute(dataContractAttribute,out var datacontractData) && datacontractData.AttributeConstructor is not null)
             {
-                if (datacontractData is { NamedArguments: [.., { Key: "Inherited" } ], NamedArguments: [..,{ Value: TypedConstant  inherited }] })
+                if (datacontractData is { NamedArguments: [.., { Key: "Inherited" , Value: TypedConstant inherited } ] })
                 {
                     isInherited = (bool)inherited.Value!;
-                }
+                } 
                 break;
             }
             type = type.BaseType;
