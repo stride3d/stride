@@ -96,6 +96,10 @@ namespace Stride.Assets.Presentation.AssetEditors
                 {
                     var hasChanged = false;
                     var assemblyChanges = new List<AssemblyChangedEvent>();
+                    if(batchChangesCancellationTokenSource.IsCancellationRequested)
+                    {
+                        break;
+                    }
                     do
                     {
                         var assemblyChange = await buffer.ReceiveAsync(batchChangesCancellationTokenSource.Token);
