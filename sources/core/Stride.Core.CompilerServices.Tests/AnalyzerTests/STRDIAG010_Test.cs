@@ -45,4 +45,10 @@ public class STRDIAG010_Test
         string sourceCode = string.Format(ClassTemplates.PrimaryConstructorTemplate, "");
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG010InvalidConstructor.DiagnosticId);
     }
+    [Fact]
+    public void No_Error_On_Flipped_DataContract_Parameters()
+    {
+        string sourceCode = string.Format(ClassTemplates.DataContractArgumentsTemplate, "");
+        TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
+    }
 }

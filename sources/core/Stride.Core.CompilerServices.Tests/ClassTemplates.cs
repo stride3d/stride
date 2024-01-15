@@ -74,4 +74,15 @@ public class ValidCollection(int x)
     {0}
 }}
 ";
+    public const string DataContractArgumentsTemplate = @"
+[DataContract(Inherited = true,DefaultMemberMode = DataMemberMode.Assign)]
+public struct ValidCollection
+{{
+}}
+[DataContract(DefaultMemberMode = DataMemberMode.Assign,Inherited = true)]
+public struct ValidCollection2
+{{
+    {0}
+}}
+";
 }
