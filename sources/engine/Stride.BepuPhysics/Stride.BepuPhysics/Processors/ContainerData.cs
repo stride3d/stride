@@ -98,6 +98,7 @@ namespace Stride.BepuPhysics.Processors
 
 #warning maybe recycle mesh shapes themselves if possible ?
                 var triangles = ExtractMeshDataSlow(meshContainer.Model, _game, BepuSimulation.BufferPool);
+                #warning Local scale should be extracted from the world matrix, have to notify the user when the scale is skewed though, same issue with other shapes and debug
                 var mesh = new Mesh(triangles, ContainerComponent.Entity.Transform.Scale.ToNumericVector(), BepuSimulation.BufferPool);
 
                 ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
@@ -164,9 +165,9 @@ namespace Stride.BepuPhysics.Processors
 
                 if (BodyReference is {} bRef)
                 {
-                    bRef.GetDescription(out var tmpDesc);
-                    bDescription.Velocity = tmpDesc.Velocity; //Keep velocity when updating
-                    BepuSimulation.Simulation.Bodies.ApplyDescription(bRef.Handle, bDescription);
+                    bRef.GetDescription(out var previousDesc);
+                    bDescription.Velocity = previousDesc.Velocity; //Keep velocity when updating
+                    bRef.ApplyDescription(bDescription);
                 }
                 else
                 {
@@ -190,7 +191,7 @@ namespace Stride.BepuPhysics.Processors
 
                 if (StaticReference is {} sRef)
                 {
-                    BepuSimulation.Simulation.Statics.ApplyDescription(sRef.Handle, sDescription);
+                    sRef.ApplyDescription(sDescription);
                 }
                 else
                 {
