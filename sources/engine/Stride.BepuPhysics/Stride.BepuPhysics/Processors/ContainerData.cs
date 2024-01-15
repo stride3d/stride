@@ -1,4 +1,5 @@
-﻿using BepuPhysics;
+﻿using System.Diagnostics;
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
@@ -16,25 +17,30 @@ namespace Stride.BepuPhysics.Processors
 {
     internal class ContainerData
     {
-        private readonly ContainerComponent _containerComponent;
         private readonly BepuConfiguration _config;
         private readonly IGame _game;
 
-        private bool _isStatic;
         private bool _exist;
 
-        internal BepuSimulation BepuSimulation => _config.BepuSimulations[_containerComponent.SimulationIndex];
+        #warning we should be able to get rid of that second condition in the summary by moving their container to a waiting queue and setting their ContainerData to null
+        /// <summary>
+        /// Can be null when the container is not of type <see cref="IBodyContainer"/> or when the body does not have any colliders
+        /// </summary>
+        internal BodyReference? BodyReference { get; private set; } = null;
+        /// <summary>
+        /// Can be null when the container is not of type <see cref="IStaticContainer"/> or when the body does not have any colliders
+        /// </summary>
+        internal StaticReference? StaticReference { get; private set; } = null;
 
-        internal BodyHandle BHandle { get; private set; } = new(-1);
-        internal StaticHandle SHandle { get; private set; } = new(-1);
+        internal BepuSimulation BepuSimulation => _config.BepuSimulations[ContainerComponent.SimulationIndex];
+
         internal TypedIndex ShapeIndex { get; private set; }// = new(-1, -1);
-        internal ContainerComponent? Parent { get; set; }
+        internal ContainerData? Parent { get; set; }
+        internal ContainerComponent ContainerComponent { get; set; }
 
-        internal bool IsStatic => _isStatic;
-
-        internal ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game, ContainerComponent? parent)
+        internal ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game, ContainerData? parent)
         {
-            _containerComponent = containerComponent;
+            ContainerComponent = containerComponent;
             _config = config;
             _game = game;
             Parent = parent;
@@ -45,37 +51,31 @@ namespace Stride.BepuPhysics.Processors
             if (_exist)
                 RebuildContainer();
         }
+
         internal void UpdateMaterialProperties()
         {
             if (!_exist)
                 return;
 
-            var isTrigger = _containerComponent is TriggerContainerComponent;
-            MaterialProperties mat;
+            Debug.Assert(BodyReference.HasValue || StaticReference.HasValue);
 
-            if (_isStatic)
-                mat = BepuSimulation.CollidableMaterials[SHandle];
-            else
-                mat = BepuSimulation.CollidableMaterials[BHandle];
+            var isTrigger = ContainerComponent is TriggerContainerComponent;
+            ref var mat = ref StaticReference is {} sRef ? ref BepuSimulation.CollidableMaterials[sRef.Handle] : ref BepuSimulation.CollidableMaterials[BodyReference!.Value];
 
-            mat.SpringSettings = new(_containerComponent.SpringFrequency, _containerComponent.SpringDampingRatio);
-            mat.FrictionCoefficient = _containerComponent.FrictionCoefficient;
-            mat.MaximumRecoveryVelocity = _containerComponent.MaximumRecoveryVelocity;
+            mat.SpringSettings = new(ContainerComponent.SpringFrequency, ContainerComponent.SpringDampingRatio);
+            mat.FrictionCoefficient = ContainerComponent.FrictionCoefficient;
+            mat.MaximumRecoveryVelocity = ContainerComponent.MaximumRecoveryVelocity;
             mat.IsTrigger = isTrigger;
 
-            mat.ColliderGroupMask = _containerComponent.ColliderGroupMask;
-            mat.FilterByDistanceId = _containerComponent.ColliderFilterByDistanceId;
-            mat.FilterByDistanceX = _containerComponent.ColliderFilterByDistanceX;
-            mat.FilterByDistanceY = _containerComponent.ColliderFilterByDistanceY;
-            mat.FilterByDistanceZ = _containerComponent.ColliderFilterByDistanceZ;
+            mat.ColliderGroupMask = ContainerComponent.ColliderGroupMask;
+            mat.FilterByDistanceId = ContainerComponent.ColliderFilterByDistanceId;
+            mat.FilterByDistanceX = ContainerComponent.ColliderFilterByDistanceX;
+            mat.FilterByDistanceY = ContainerComponent.ColliderFilterByDistanceY;
+            mat.FilterByDistanceZ = ContainerComponent.ColliderFilterByDistanceZ;
 
-            mat.IgnoreGlobalGravity = _containerComponent.IgnoreGlobalGravity;
-
-            if (_isStatic)
-                BepuSimulation.CollidableMaterials[SHandle] = mat;
-            else
-                BepuSimulation.CollidableMaterials[BHandle] = mat;
+            mat.IgnoreGlobalGravity = ContainerComponent.IgnoreGlobalGravity;
         }
+
         internal void RebuildContainer()
         {
             if (ShapeIndex.Exists)
@@ -84,11 +84,11 @@ namespace Stride.BepuPhysics.Processors
                 ShapeIndex = default;
             }
 
-            _containerComponent.Entity.Transform.UpdateWorldMatrix();
-            _containerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
+            ContainerComponent.Entity.Transform.UpdateWorldMatrix();
+            ContainerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
 
             BodyInertia shapeInertia;
-            if (_containerComponent is IContainerWithMesh meshContainer)
+            if (ContainerComponent is IContainerWithMesh meshContainer)
             {
                 if (meshContainer.Model == null)
                 {
@@ -98,7 +98,7 @@ namespace Stride.BepuPhysics.Processors
 
 #warning maybe recycle mesh shapes themselves if possible ?
                 var triangles = ExtractMeshDataSlow(meshContainer.Model, _game, BepuSimulation.BufferPool);
-                var mesh = new Mesh(triangles, _containerComponent.Entity.Transform.Scale.ToNumericVector(), BepuSimulation.BufferPool);
+                var mesh = new Mesh(triangles, ContainerComponent.Entity.Transform.Scale.ToNumericVector(), BepuSimulation.BufferPool);
 
                 ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
                 shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
@@ -112,7 +112,7 @@ namespace Stride.BepuPhysics.Processors
                 //    _containerComponent.CenterOfMass = (_s.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();
                 //}
             }
-            else if (_containerComponent is IContainerWithColliders collidersContainer)
+            else if (ContainerComponent is IContainerWithColliders collidersContainer)
             {
                 if (collidersContainer.Colliders.Count == 0)
                 {
@@ -130,7 +130,7 @@ namespace Stride.BepuPhysics.Processors
 
                         var compoundChildLocalPose = new RigidPose(localTranslation.ToNumericVector(), localRotation.ToNumericQuaternion());
                         collider.AddToCompoundBuilder(_game, BepuSimulation, ref compoundBuilder, compoundChildLocalPose);
-                        collider.Container = _containerComponent;
+                        collider.Container = ContainerComponent;
                     }
 
                     BepuUtilities.Memory.Buffer<CompoundChild> compoundChildren;
@@ -138,7 +138,7 @@ namespace Stride.BepuPhysics.Processors
                     compoundBuilder.BuildDynamicCompound(out compoundChildren, out shapeInertia, out shapeCenter);
 
                     ShapeIndex = BepuSimulation.Simulation.Shapes.Add(new Compound(compoundChildren));
-                    _containerComponent.CenterOfMass = shapeCenter.ToStrideVector();
+                    ContainerComponent.CenterOfMass = shapeCenter.ToStrideVector();
                 }
                 finally
                 {
@@ -147,15 +147,14 @@ namespace Stride.BepuPhysics.Processors
             }
             else
             {
-                throw new Exception($"Container type '{_containerComponent.GetType()}' doesn't have any content");
+                throw new Exception($"Container type '{ContainerComponent.GetType()}' doesn't have any content");
             }
 
             _exist = true;
 
-            var containerPose = new RigidPose((containerWorldTranslation + _containerComponent.CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
-            if (_containerComponent is IBodyContainer body)
+            var containerPose = new RigidPose((containerWorldTranslation + ContainerComponent.CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
+            if (ContainerComponent is IBodyContainer body)
             {
-                _isStatic = false;
                 if (body.Kinematic)
                 {
                     shapeInertia = new BodyInertia();
@@ -163,56 +162,57 @@ namespace Stride.BepuPhysics.Processors
 
                 var bDescription = BodyDescription.CreateDynamic(containerPose, shapeInertia, ShapeIndex, new(body.SleepThreshold, body.MinimumTimestepCountUnderThreshold));
 
-                if (BHandle.Value != -1)
+                if (BodyReference is {} bRef)
                 {
-                    BepuSimulation.Simulation.Bodies[BHandle].GetDescription(out var tmpDesc);
+                    bRef.GetDescription(out var tmpDesc);
                     bDescription.Velocity = tmpDesc.Velocity; //Keep velocity when updating
-                    BepuSimulation.Simulation.Bodies.ApplyDescription(BHandle, bDescription);
+                    BepuSimulation.Simulation.Bodies.ApplyDescription(bRef.Handle, bDescription);
                 }
                 else
                 {
-                    BHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
-                    if (BepuSimulation.Bodies.Count == BHandle.Value)
+                    var bHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
+                    BodyReference = BepuSimulation.Simulation.Bodies[bHandle];
+                    BodyReference.Value.Collidable.Continuity = body.ContinuousDetection;
+                    if (BepuSimulation.Bodies.Count == bHandle.Value)
                     {
                         BepuSimulation.Bodies.Add(body);
                     }
                     else
                     {
-                        BepuSimulation.Bodies[BHandle.Value] = body;
+                        BepuSimulation.Bodies[bHandle.Value] = body;
                     }
-                    BepuSimulation.CollidableMaterials.Allocate(BHandle) = new();
+                    BepuSimulation.CollidableMaterials.Allocate(bHandle) = new();
                 }
             }
-            else if (_containerComponent is IStaticContainer @static)
+            else if (ContainerComponent is IStaticContainer @static)
             {
-                _isStatic = true;
-
                 var sDescription = new StaticDescription(containerPose, ShapeIndex);
 
-                if (SHandle.Value != -1)
+                if (StaticReference is {} sRef)
                 {
-                    BepuSimulation.Simulation.Statics.ApplyDescription(SHandle, sDescription);
+                    BepuSimulation.Simulation.Statics.ApplyDescription(sRef.Handle, sDescription);
                 }
                 else
                 {
-                    SHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
-                    if (BepuSimulation.Statics.Count == SHandle.Value)
+                    var sHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
+                    StaticReference = BepuSimulation.Simulation.Statics[sHandle];
+                    if (BepuSimulation.Statics.Count == sHandle.Value)
                     {
                         BepuSimulation.Statics.Add(@static);
                     }
                     else
                     {
-                        BepuSimulation.Statics[SHandle.Value] = @static;
+                        BepuSimulation.Statics[sHandle.Value] = @static;
                     }
-                    BepuSimulation.CollidableMaterials.Allocate(SHandle) = new();
+                    BepuSimulation.CollidableMaterials.Allocate(sHandle) = new();
                 }
             }
             else
             {
-                throw new Exception($"Container type '{_containerComponent.GetType()}' is not static nor body");
+                throw new Exception($"Container type '{ContainerComponent.GetType()}' is not static nor body");
             }
 
-            if (_containerComponent.ContactEventHandler != null && !IsRegistered())
+            if (ContainerComponent.ContactEventHandler != null && !IsRegistered())
                 RegisterContact();
 
             UpdateMaterialProperties();
@@ -220,7 +220,7 @@ namespace Stride.BepuPhysics.Processors
 
         internal void DestroyContainer()
         {
-            _containerComponent.CenterOfMass = new();
+            ContainerComponent.CenterOfMass = new();
 
             if (IsRegistered())
             {
@@ -233,52 +233,47 @@ namespace Stride.BepuPhysics.Processors
                 ShapeIndex = default;
             }
 
-            if (BHandle.Value != -1 && BepuSimulation.Simulation.Bodies.BodyExists(BHandle))
+            if (BodyReference is {} bRef)
             {
-                BepuSimulation.Simulation.Bodies.Remove(BHandle);
-                BepuSimulation.Bodies[BHandle.Value] = null!;
-                BHandle = new(-1);
+                BepuSimulation.Simulation.Bodies.Remove(bRef.Handle);
+                BepuSimulation.Bodies[bRef.Handle.Value] = null;
                 _exist = false;
+                BodyReference = null;
             }
 
-            if (SHandle.Value != -1 && BepuSimulation.Simulation.Statics.StaticExists(SHandle))
+            if (StaticReference is {} sRef)
             {
-                BepuSimulation.Simulation.Statics.Remove(SHandle);
-                BepuSimulation.Statics[SHandle.Value] = null!;
-                SHandle = new(-1);
+                BepuSimulation.Simulation.Statics.Remove(sRef.Handle);
+                BepuSimulation.Statics[sRef.Handle.Value] = null;
                 _exist = false;
+                StaticReference = null;
             }
         }
 
         internal void RegisterContact()
         {
-            if (_exist == false || _containerComponent.ContactEventHandler == null)
+            if (ContainerComponent.ContactEventHandler == null)
                 return;
 
-            if (_isStatic)
-                BepuSimulation.ContactEvents.Register(SHandle, _containerComponent.ContactEventHandler);
-            else
-                BepuSimulation.ContactEvents.Register(BHandle, _containerComponent.ContactEventHandler);
+            if (StaticReference is {} sRef)
+                BepuSimulation.ContactEvents.Register(sRef.Handle, ContainerComponent.ContactEventHandler);
+            else if (BodyReference is {} bRef)
+                BepuSimulation.ContactEvents.Register(bRef.Handle, ContainerComponent.ContactEventHandler);
         }
         internal void UnregisterContact()
         {
-            if (_exist == false)
-                return;
-
-            if (_isStatic)
-                BepuSimulation.ContactEvents.Unregister(SHandle);
-            else
-                BepuSimulation.ContactEvents.Unregister(BHandle);
+            if (StaticReference is {} sRef)
+                BepuSimulation.ContactEvents.Unregister(sRef.Handle);
+            else if (BodyReference is {} bRef)
+                BepuSimulation.ContactEvents.Unregister(bRef.Handle);
         }
         internal bool IsRegistered()
         {
-            if (_exist == false)
-                return false;
-
-            if (_isStatic)
-                return BepuSimulation.ContactEvents.IsListener(SHandle);
-            else
-                return BepuSimulation.ContactEvents.IsListener(BHandle);
+            if (StaticReference is {} sRef)
+                return BepuSimulation.ContactEvents.IsListener(sRef.Handle);
+            else if (BodyReference is {} bRef)
+                return BepuSimulation.ContactEvents.IsListener(bRef.Handle);
+            return false;
         }
 
         private static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractMeshDataSlow(Model model, IGame game, BufferPool pool)

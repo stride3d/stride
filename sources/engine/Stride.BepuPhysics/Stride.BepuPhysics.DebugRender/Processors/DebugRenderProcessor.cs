@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Xml.Linq;
+﻿using BepuPhysics;
 using Stride.BepuPhysics._2D.Components.Containers;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
@@ -106,20 +105,19 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                     switch (Mode)
                     {
                         case SynchronizationMode.Physics:
-                            if (container.ContainerData is { } containerData)
-                            {
-                                var pose = containerData.IsStatic ? containerData.BepuSimulation.Simulation.Statics[containerData.SHandle].Pose : containerData.BepuSimulation.Simulation.Bodies[containerData.BHandle].Pose;
-                                var worldPosition = pose.Position.ToStrideVector();
-                                var worldRotation = pose.Orientation.ToStrideQuaternion();
-                                var scale = Vector3.One;
-                                worldPosition -= Vector3.Transform(container.CenterOfMass, worldRotation);
-                                Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);
-
-                            }
+                            RigidPose pose;
+                            if (container.ContainerData?.StaticReference is { } sRef)
+                                pose = sRef.Pose;
+                            else if (container.ContainerData?.BodyReference is {} bRef)
+                                pose = bRef.Pose;
                             else
-                            {
                                 continue;
-                            }
+
+                            var worldPosition = pose.Position.ToStrideVector();
+                            var worldRotation = pose.Orientation.ToStrideQuaternion();
+                            var scale = Vector3.One;
+                            worldPosition -= Vector3.Transform(container.CenterOfMass, worldRotation);
+                            Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);
                             break;
                         case SynchronizationMode.Entity:
                             // We don't need to call UpdateWorldMatrix before reading WorldMatrix as we're running after the TransformProcessor operated,

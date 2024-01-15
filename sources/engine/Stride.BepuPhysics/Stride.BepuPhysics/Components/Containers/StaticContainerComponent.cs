@@ -4,7 +4,6 @@ using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Extensions;
-using Stride.BepuPhysics.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -22,48 +21,36 @@ namespace Stride.BepuPhysics.Components.Containers
 
         #region Static
 
-        private StaticReference GetPhysicStaticRef()
-        {
-            if (ContainerData == null)
-                throw new Exception("Container data is null");
+        private StaticReference? GetPhysicStaticRef() => ContainerData?.StaticReference;
 
-            return ContainerData.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
-        }
-
-        /// <summary>
-        /// Get the bepu StaticReference /!\
-        /// </summary>
-        /// <returns>A volatil ref to the bepu static associed with this bodyContainer</returns>
-        [DataMemberIgnore]
-        public StaticReference? GetPhysicStatic => ContainerData?.BepuSimulation.Simulation.Statics[ContainerData.SHandle];
         [DataMemberIgnore]
         public Vector3 Position
         {
-            get => GetPhysicStaticRef().Pose.Position.ToStrideVector();
+            get => GetPhysicStaticRef()?.Pose.Position.ToStrideVector() ?? default;
             set
             {
-                var bodyRef = GetPhysicStaticRef();
-                bodyRef.Pose.Position = value.ToNumericVector();
+                if (GetPhysicStaticRef() is {} staticRef)
+                    staticRef.Pose.Position = value.ToNumericVector();
             }
         }
         [DataMemberIgnore]
         public Quaternion Orientation
         {
-            get => GetPhysicStaticRef().Pose.Orientation.ToStrideQuaternion();
+            get => GetPhysicStaticRef()?.Pose.Orientation.ToStrideQuaternion() ?? default;
             set
             {
-                var bodyRef = GetPhysicStaticRef();
-                bodyRef.Pose.Orientation = value.ToNumericQuaternion();
+                if (GetPhysicStaticRef() is {} staticRef)
+                    staticRef.Pose.Orientation = value.ToNumericQuaternion();
             }
         }
         [DataMemberIgnore]
         public ContinuousDetection ContinuousDetection
         {
-            get => GetPhysicStaticRef().Continuity;
+            get => GetPhysicStaticRef()?.Continuity ?? default;
             set
             {
-                var bodyRef = GetPhysicStaticRef();
-                bodyRef.Continuity = value;
+                if (GetPhysicStaticRef() is {} staticRef)
+                    staticRef.Continuity = value;
             }
         }
 

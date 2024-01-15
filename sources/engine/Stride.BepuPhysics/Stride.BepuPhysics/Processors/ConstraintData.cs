@@ -33,7 +33,7 @@ namespace Stride.BepuPhysics.Processors
 
             foreach (var container in _constraintComponent.Bodies)
             {
-                if (container is null || container.ContainerData == null)
+                if (container is null || container.ContainerData == null || container.ContainerData.BodyReference.HasValue == false)
                     return; // need to wait for a body to be attached or instanced
             }
 
@@ -47,12 +47,13 @@ namespace Stride.BepuPhysics.Processors
             {
                 Debug.Assert(component is not null);
                 Debug.Assert(component.ContainerData is not null);
+                Debug.Assert(component.ContainerData.BodyReference.HasValue);
 
 #warning maybe send a warning, like the missing camera notification in the engine, instead of exception at runtime
                 if (component.SimulationIndex != simIndex)
                     throw new Exception("A constraint between object with different SimulationIndex is not possible");
 
-                bodies[count++] = component.ContainerData.BHandle;
+                bodies[count++] = component.ContainerData.BodyReference.Value.Handle;
             }
 
             Span<BodyHandle> validBodies = bodies[..count];

@@ -45,14 +45,15 @@ namespace Stride.BepuPhysics.Processors
                     continue; // This static did not move
 
                 span[i].Value = numericMatrix;
-                if (container.ContainerData is null || container.ContainerData.SHandle.Value == -1)
-                    continue;
 
-                var description = container.ContainerData.BepuSimulation.Simulation.Statics.GetDescription(container.ContainerData.SHandle);
-                container.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out Vector3 translation);
-                description.Pose.Position = (translation + container.CenterOfMass).ToNumericVector();
-                description.Pose.Orientation = rotation.ToNumericQuaternion();
-                container.ContainerData.BepuSimulation.Simulation.Statics.ApplyDescription(container.ContainerData.SHandle, description);
+                if (container.ContainerData?.StaticReference is { } sRef)
+                {
+                    var description = sRef.GetDescription();
+                    container.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out Vector3 translation);
+                    description.Pose.Position = (translation + container.CenterOfMass).ToNumericVector();
+                    description.Pose.Orientation = rotation.ToNumericQuaternion();
+                    sRef.ApplyDescription(description);
+                }
             }
         }
 
@@ -70,9 +71,8 @@ namespace Stride.BepuPhysics.Processors
             if (_bepuConfiguration == null)
                 throw new NullReferenceException(nameof(_bepuConfiguration));
 
-            SetParentForChildren(component, component.Entity.Transform);
-
             component.ContainerData = new(component, _bepuConfiguration, _game, FindParentContainer(component));
+            SetParentForChildren(component.ContainerData, component.Entity.Transform);
             component.ContainerData.RebuildContainer();
             if (component is ISimulationUpdate simulationUpdate)
                 component.ContainerData.BepuSimulation.Register(simulationUpdate);
@@ -108,7 +108,7 @@ namespace Stride.BepuPhysics.Processors
             component.ContainerData = null;
         }
 
-        private static void SetParentForChildren(ContainerComponent parent, TransformComponent root)
+        private static void SetParentForChildren(ContainerData parent, TransformComponent root)
         {
             foreach (var child in root.Children)
             {
@@ -123,12 +123,12 @@ namespace Stride.BepuPhysics.Processors
             }
         }
 
-        private static ContainerComponent? FindParentContainer(ContainerComponent component)
+        private static ContainerData? FindParentContainer(ContainerComponent component)
         {
             for (var parent = component.Entity.Transform.Parent; parent != null; parent = parent.Parent)
             {
-                if (parent.Entity.Get<ContainerComponent>() is { } comp)
-                    return comp;
+                if (parent.Entity.Get<ContainerComponent>()?.ContainerData is {} containerData)
+                    return containerData;
             }
 
             return null;

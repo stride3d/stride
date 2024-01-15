@@ -20,18 +20,25 @@ namespace Stride.BepuPhysics._2D.Components.Containers
         {
             get
             {
-                var inverseInertiaTensor = GetPhysicBodyRef().LocalInertia.InverseInertiaTensor;
-                return new Vector3(inverseInertiaTensor.ZX, inverseInertiaTensor.ZY, inverseInertiaTensor.ZZ);
+                if (GetPhysicBodyRef() is { } bRef)
+                {
+                    var inverseInertiaTensor = bRef.LocalInertia.InverseInertiaTensor;
+                    return new Vector3(inverseInertiaTensor.ZX, inverseInertiaTensor.ZY, inverseInertiaTensor.ZZ);
+                }
+
+                return default;
             }
             set
             {
-                var body = ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
-                body.LocalInertia.InverseInertiaTensor.XX *= value.X;
-                body.LocalInertia.InverseInertiaTensor.YX *= value.X * value.Y;
-                body.LocalInertia.InverseInertiaTensor.ZX *= value.Z * value.X;
-                body.LocalInertia.InverseInertiaTensor.YY *= value.Y;
-                body.LocalInertia.InverseInertiaTensor.ZY *= value.Z * value.Y;
-                body.LocalInertia.InverseInertiaTensor.ZZ *= value.Z;
+                if (GetPhysicBodyRef() is { } bRef)
+                {
+                    bRef.LocalInertia.InverseInertiaTensor.XX *= value.X;
+                    bRef.LocalInertia.InverseInertiaTensor.YX *= value.X * value.Y;
+                    bRef.LocalInertia.InverseInertiaTensor.ZX *= value.Z * value.X;
+                    bRef.LocalInertia.InverseInertiaTensor.YY *= value.Y;
+                    bRef.LocalInertia.InverseInertiaTensor.ZY *= value.Z * value.Y;
+                    bRef.LocalInertia.InverseInertiaTensor.ZZ *= value.Z;
+                }
             }
         }
 

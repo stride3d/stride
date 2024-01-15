@@ -54,106 +54,100 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        private BodyReference GetPhysicBodyRef()
-        {
-            if (ContainerData == null)
-                throw new NullReferenceException(nameof(ContainerData));
-
-            return ContainerData.BepuSimulation.Simulation.Bodies[ContainerData.BHandle];
-        }
+        private BodyReference? GetPhysicBodyRef() => ContainerData?.BodyReference;
 
         [DataMemberIgnore]
         public bool Awake
         {
-            get => GetPhysicBodyRef().Awake;
+            get => GetPhysicBodyRef()?.Awake ?? false;
             set
             {
-                var bodyRef = GetPhysicBodyRef();
-                bodyRef.Awake = value;
+                if (GetPhysicBodyRef() is {} bodyRef)
+                    bodyRef.Awake = value;
             }
         }
         [DataMemberIgnore]
         public Vector3 LinearVelocity
         {
-            get => GetPhysicBodyRef().Velocity.Linear.ToStrideVector();
+            get => GetPhysicBodyRef()?.Velocity.Linear.ToStrideVector() ?? default;
             set
             {
-                var bodyRef = GetPhysicBodyRef();
-                bodyRef.Velocity.Linear = value.ToNumericVector();
+                if (GetPhysicBodyRef() is {} bodyRef)
+                    bodyRef.Velocity.Linear = value.ToNumericVector();
             }
         }
         [DataMemberIgnore]
         public Vector3 AngularVelocity
         {
-            get => GetPhysicBodyRef().Velocity.Angular.ToStrideVector();
+            get => GetPhysicBodyRef()?.Velocity.Angular.ToStrideVector() ?? default;
             set
             {
-                var bodyRef = GetPhysicBodyRef();
-                bodyRef.Velocity.Angular = value.ToNumericVector();
+                if (GetPhysicBodyRef() is {} bodyRef)
+                    bodyRef.Velocity.Angular = value.ToNumericVector();
             }
         }
         [DataMemberIgnore]
         public Vector3 Position
         {
-            get => GetPhysicBodyRef().Pose.Position.ToStrideVector();
+            get => GetPhysicBodyRef()?.Pose.Position.ToStrideVector() ?? default;
             set
             {
-                var bodyRef = GetPhysicBodyRef();
-                bodyRef.Pose.Position = value.ToNumericVector();
+                if (GetPhysicBodyRef() is {} bodyRef)
+                    bodyRef.Pose.Position = value.ToNumericVector();
             }
         }
         [DataMemberIgnore]
         public Quaternion Orientation
         {
-            get => GetPhysicBodyRef().Pose.Orientation.ToStrideQuaternion();
+            get => GetPhysicBodyRef()?.Pose.Orientation.ToStrideQuaternion() ?? Quaternion.Identity;
             set
             {
-                var bodyRef = GetPhysicBodyRef();
-                bodyRef.Pose.Orientation = value.ToNumericQuaternion();
+                if (GetPhysicBodyRef() is {} bodyRef)
+                    bodyRef.Pose.Orientation = value.ToNumericQuaternion();
             }
         }
         [DataMemberIgnore]
         public BodyInertia BodyInertia
         {
-            get => GetPhysicBodyRef().LocalInertia;
+            get => GetPhysicBodyRef()?.LocalInertia ?? default;
             set
             {
-                var bodyRef = GetPhysicBodyRef();
-                bodyRef.LocalInertia = value;
+                if (GetPhysicBodyRef() is {} bodyRef)
+                    bodyRef.LocalInertia = value;
             }
         }
         [DataMemberIgnore]
         public float SpeculativeMargin
         {
-            get => GetPhysicBodyRef().Collidable.SpeculativeMargin;
+            get => GetPhysicBodyRef()?.Collidable.SpeculativeMargin ?? default;
             set
             {
-                var bodyRef = GetPhysicBodyRef();
-                bodyRef.Collidable.SpeculativeMargin = value;
+                if (GetPhysicBodyRef() is {} bodyRef)
+                    bodyRef.Collidable.SpeculativeMargin = value;
             }
         }
         [DataMemberIgnore]
         public ContinuousDetection ContinuousDetection
         {
-            get => GetPhysicBodyRef().Collidable.Continuity;
+            get => GetPhysicBodyRef()?.Collidable.Continuity ?? default;
             set
             {
-                var bodyRef = GetPhysicBodyRef();
-                bodyRef.Collidable.Continuity = value;
+                if (GetPhysicBodyRef() is {} bodyRef)
+                    bodyRef.Collidable.Continuity = value;
             }
         }
 
         public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
         {
-            GetPhysicBodyRef().ApplyImpulse(impulse.ToNumericVector(), impulseOffset.ToNumericVector());
+            GetPhysicBodyRef()?.ApplyImpulse(impulse.ToNumericVector(), impulseOffset.ToNumericVector());
         }
         public void ApplyAngularImpulse(Vector3 impulse)
         {
-            GetPhysicBodyRef().ApplyAngularImpulse(impulse.ToNumericVector());
+            GetPhysicBodyRef()?.ApplyAngularImpulse(impulse.ToNumericVector());
         }
         public void ApplyLinearImpulse(Vector3 impulse)
         {
-            GetPhysicBodyRef().ApplyLinearImpulse(impulse.ToNumericVector());
+            GetPhysicBodyRef()?.ApplyLinearImpulse(impulse.ToNumericVector());
         }
 
         #endregion

@@ -6,7 +6,6 @@ namespace Stride.BepuPhysics.Components.Containers.Interfaces
 {
     public interface IStaticContainer : IContainer
     {
-        public StaticReference? GetPhysicStatic { get; }
         public Vector3 Position { get; set; }
         public Quaternion Orientation { get; set; }
         public ContinuousDetection ContinuousDetection { get; set; }

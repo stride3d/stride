@@ -460,7 +460,8 @@ public class BepuSimulation
             {
                 body.PreviousPose = body.CurrentPos;
                 Debug.Assert(body.ContainerData is not null);
-                body.CurrentPos = Simulation.Bodies[body.ContainerData.BHandle].Pose;
+                if (body.ContainerData.BodyReference is {} bRef)
+                    body.CurrentPos = bRef.Pose;
             }
         }
 
@@ -471,33 +472,34 @@ public class BepuSimulation
     {
         if (ParallelUpdate)
         {
-            Dispatcher.For(0, Simulation.Bodies.ActiveSet.Count, (i) => SyncTransformsWithPhysics(Simulation.Bodies.ActiveSet.IndexToHandle[i], this));
+            Dispatcher.For(0, Simulation.Bodies.ActiveSet.Count, (i) => SyncTransformsWithPhysics(Simulation.Bodies.GetBodyReference(Simulation.Bodies.ActiveSet.IndexToHandle[i]), this));
         }
         else
         {
             for (int i = 0; i < Simulation.Bodies.ActiveSet.Count; i++)
             {
-                SyncTransformsWithPhysics(Simulation.Bodies.ActiveSet.IndexToHandle[i], this);
+                SyncTransformsWithPhysics(Simulation.Bodies.GetBodyReference(Simulation.Bodies.ActiveSet.IndexToHandle[i]), this);
             }
         }
 
-        static void SyncTransformsWithPhysics(BodyHandle handle, BepuSimulation bepuSim)
+        static void SyncTransformsWithPhysics(in BodyReference body, BepuSimulation bepuSim)
         {
-            var bodyContainer = bepuSim.GetContainer(handle);
+            var bodyContainer = bepuSim.GetContainer(body.Handle);
             Debug.Assert(bodyContainer.ContainerData is not null);
 
-            if (bodyContainer.ContainerData.Parent is {} containerParent)
+            for (var containerParent = bodyContainer.ContainerData.Parent; containerParent != null; containerParent = containerParent.Parent)
             {
-                Debug.Assert(containerParent.ContainerData is not null);
-                // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
-                // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
-                SyncTransformsWithPhysics(containerParent.ContainerData.BHandle, bepuSim);
-                // This can be slower than expected when we have multiple containers as parents recursively since we would recompute the topmost container n times, the second topmost n-1 etc.
-                // It's not that likely but should still be documented as suboptimal somewhere
-                containerParent.Entity.Transform.Parent.UpdateWorldMatrix();
+                if (containerParent.BodyReference is { } bRef)
+                {
+                    // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
+                    // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
+                    SyncTransformsWithPhysics(bRef, bepuSim);
+                    // This can be slower than expected when we have multiple containers as parents recursively since we would recompute the topmost container n times, the second topmost n-1 etc.
+                    // It's not that likely but should still be documented as suboptimal somewhere
+                    containerParent.ContainerComponent.Entity.Transform.Parent.UpdateWorldMatrix();
+                }
             }
 
-            var body = bepuSim.Simulation.Bodies[handle];
             var localPosition = body.Pose.Position.ToStrideVector();
             var localRotation = body.Pose.Orientation.ToStrideQuaternion();
 
@@ -539,14 +541,14 @@ public class BepuSimulation
 
             // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
             // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
-            for (var containerParent = body.ContainerData.Parent; containerParent != null; containerParent = containerParent.ContainerData!.Parent)
+            for (var containerParent = body.ContainerData.Parent; containerParent != null; containerParent = containerParent.Parent)
             {
-                if (containerParent is BodyContainerComponent parentBody && parentBody.Interpolation != Interpolation.None)
+                if (containerParent.ContainerComponent is BodyContainerComponent parentBody && parentBody.Interpolation != Interpolation.None)
                 {
                     InterpolateContainer(parentBody, interpolationFactor); // That guy will take care of his parents too
                     // This can be slower than expected when we have multiple containers as parents recursively since we would recompute the topmost container n times, the second topmost n-1 etc.
                     // It's not that likely but should still be documented as suboptimal somewhere
-                    containerParent.Entity.Transform.Parent.UpdateWorldMatrix();
+                    parentBody.Entity.Transform.Parent.UpdateWorldMatrix();
                     break;
                 }
             }
