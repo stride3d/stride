@@ -159,30 +159,23 @@ namespace Stride.GameStudio.ViewModels
 
         private async void PullAssemblyChanges([NotNull] ProjectWatcher projectWatcher)
         {
-            var changesBuffer = new BufferBlock<AssemblyChangedEvent>();
-            using (projectWatcher.AssemblyChangedBroadcast.LinkTo(changesBuffer))
+            await foreach (var events in projectWatcher.BatchChange)
             {
-                while (!assemblyTrackingCancellation.IsCancellationRequested)
+                foreach (var assemblyChange in events)
                 {
-                    while (projectWatcher.Events is null) await Task.Delay(LookUpFrequency);
-                    var events = projectWatcher.Events;
-                    projectWatcher.Events = null;
-                    foreach (var assemblyChange in events)
+                    if (assemblyChange == null || assemblyChange.ChangeType == AssemblyChangeType.Binary)
+                        continue;
+                    modifiedAssemblies[assemblyChange.Assembly] = new ModifiedAssembly
                     {
-                        if (assemblyChange == null || assemblyChange.ChangeType == AssemblyChangeType.Binary)
-                            continue;
-                        modifiedAssemblies[assemblyChange.Assembly] = new ModifiedAssembly
-                        {
-                            LoadedAssembly = assemblyChange.Assembly,
-                            ChangeType = assemblyChange.ChangeType,
-                            Project = assemblyChange.Project
-                        };
-                    }
-
-                    var shouldNotify = !assemblyChangesPending;
-                    if (modifiedAssemblies.Count > 0 && shouldNotify)
-                        RunNotifier(true);
+                        LoadedAssembly = assemblyChange.Assembly,
+                        ChangeType = assemblyChange.ChangeType,
+                        Project = assemblyChange.Project
+                    };
                 }
+
+                var shouldNotify = !assemblyChangesPending;
+                if (modifiedAssemblies.Count > 0 && shouldNotify)
+                    RunNotifier(true);
             }
         }
 

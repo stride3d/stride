@@ -21,6 +21,7 @@ using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Project = Microsoft.CodeAnalysis.Project;
+using Accessibility;
 
 namespace Stride.Assets.Presentation.AssetEditors
 {
@@ -63,7 +64,7 @@ namespace Stride.Assets.Presentation.AssetEditors
         private Project gameExecutable;
 
         private CancellationTokenSource batchChangesCancellationTokenSource = new CancellationTokenSource();
-        private Task batchChangesTask;
+        public IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChange;
 
         private MSBuildWorkspace msbuildWorkspace;
 
@@ -84,10 +85,10 @@ namespace Stride.Assets.Presentation.AssetEditors
             fileChangedLink1 = fileChanged.LinkTo(fileChangedTransform);
             fileChangedLink2 = fileChangedTransform.LinkTo(AssemblyChangedBroadcast);
 
-            batchChangesTask = BatchChanges();
+            BatchChange = BatchChanges();
         }
-        public List<AssemblyChangedEvent> Events { get; set; }
-        private async Task BatchChanges()
+
+        private async IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChanges()
         {
             var buffer = new BufferBlock<AssemblyChangedEvent>();
             using (AssemblyChangedBroadcast.LinkTo(buffer))
@@ -138,19 +139,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                     // Merge files that were modified multiple time
                     assemblyChanges = assemblyChanges.GroupBy(x => x.ChangedFile).Select(x => x.Last()).ToList();
                     
-                    // the assembly changes got allready picked up
-                    if (Events == null)
-                    {
-                        Events = assemblyChanges;
-                    }
-                    // the assembly changes didn't get picked up
-                    else
-                    {
-                        Events.AddRange(assemblyChanges);
-                    }
-
-                    Events = assemblyChanges;
-                    AssembliesChangedBroadcast.Post(assemblyChanges);
+                    yield return assemblyChanges;
                 }
             }
         }
@@ -178,7 +167,6 @@ namespace Stride.Assets.Presentation.AssetEditors
         public void Dispose()
         {
             batchChangesCancellationTokenSource.Cancel();
-            batchChangesTask.Wait();
 
             directoryWatcher.Dispose();
             fileChangedLink1.Dispose();
