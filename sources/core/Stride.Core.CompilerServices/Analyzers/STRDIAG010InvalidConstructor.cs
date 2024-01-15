@@ -12,7 +12,7 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG010";
     private const string Title = "Invalid Constructor";
-    private const string MessageFormat = "The Type '{0}' doesn't have an empty constructor, which is needed for Serialization";
+    private const string MessageFormat = "The Type '{0}' doesn't have a public parameterless constructor, which is needed for Serialization";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -54,6 +54,7 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
         if (symbol.HasAttribute(dataContractAttribute))
         {
             TryReportDiagnostics(symbol, context);
+            return;
         }
 
         var type = symbol.BaseType;
