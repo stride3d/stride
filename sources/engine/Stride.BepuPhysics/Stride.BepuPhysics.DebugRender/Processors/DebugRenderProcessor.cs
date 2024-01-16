@@ -27,7 +27,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         private InputManager _input = null!;
         private SinglePassWireframeRenderFeature _wireframeRenderFeature = null!;
         private VisibilityGroup _visibilityGroup = null!;
-        private Dictionary<ContainerComponent, WireFrameRenderObject[]> _wireFrameRenderObject = new();
+        private Dictionary<ContainerComponent, (WireFrameRenderObject[] Wireframes, BepuShapeCacheSystem.Cache? cache)> _wireFrameRenderObject = new();
 
         private bool _alwaysOn = false;
         private bool _isOn = false;
@@ -98,9 +98,8 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
             if (_isOn) // Update gizmos transform
             {
-                foreach (var kvp in _wireFrameRenderObject)
+                foreach (var (container, (wireframes, cache)) in _wireFrameRenderObject)
                 {
-                    var container = kvp.Key;
                     Matrix matrix;
                     switch (Mode)
                     {
@@ -129,7 +128,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                             throw new ArgumentOutOfRangeException(nameof(Mode));
                     }
 
-                    foreach (var wireframe in kvp.Value)
+                    foreach (var wireframe in wireframes)
                     {
                         wireframe.WorldMatrix = wireframe.ContainerBaseMatrix * matrix;
                         wireframe.Color = GetCurrentColor(container);
@@ -143,7 +142,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         private void StartTracking(ContainerProcessor proc)
         {
-            var shapeAndOffsets = new List<(BodyShapeData data, BodyShapeTransform transform)>();
+            var shapeAndOffsets = new List<BodyShapeData>();
             for (var containers = proc.ComponentDataEnumerator; containers.MoveNext();)
             {
                 StartTrackingContainer(containers.Current.Key, shapeAndOffsets);
@@ -152,24 +151,36 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         private void StartTrackingContainer(ContainerComponent container) => StartTrackingContainer(container, new());
 
-        private void StartTrackingContainer(ContainerComponent container, List<(BodyShapeData data, BodyShapeTransform transform)> shapeAndOffsets)
+        private void StartTrackingContainer(ContainerComponent container, List<BodyShapeData> shapeData)
         {
-            shapeAndOffsets.Clear();
-            _bepuShapeCacheSystem.AppendCachedShapesFor(container, shapeAndOffsets);
+            shapeData.Clear();
 
-            WireFrameRenderObject[] wireframes = new WireFrameRenderObject[shapeAndOffsets.Count];
-            for (int i = 0; i < shapeAndOffsets.Count; i++)
+            BepuShapeCacheSystem.Cache? cache = null;
+            if (container is IContainerWithMesh meshContainer && meshContainer.Model != null)
             {
-                var shapeAndOffset = shapeAndOffsets[i];
-                var local = shapeAndOffset;
+                _bepuShapeCacheSystem.GetModelCache(meshContainer.Model, out cache);
+                BodyShapeData data;
+                cache.GetBuffers(out data.Vertices, out data.Indices);
+                shapeData.Add(data);
+            }
+            else if (container is IContainerWithColliders colliderContainer)
+                _bepuShapeCacheSystem.AppendCachedShapesFor(colliderContainer, shapeData);
 
-                var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, shapeAndOffset.data.Indices, shapeAndOffset.data.Vertices);
+            Span<ShapeTransform> transforms = stackalloc ShapeTransform[((IContainer)container).GetAmountOfShapes];
+            _bepuShapeCacheSystem.GetShapeLocalTransformation(container, transforms);
+
+            WireFrameRenderObject[] wireframes = new WireFrameRenderObject[transforms.Length];
+            for (int i = 0; i < shapeData.Count; i++)
+            {
+                var data = shapeData[i];
+
+                var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
                 wireframe.Color = GetCurrentColor(container);
-                Matrix.Transformation(ref local.transform.Scale, ref local.transform.RotationLocal, ref local.transform.PositionLocal, out wireframe.ContainerBaseMatrix);
+                Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out wireframe.ContainerBaseMatrix);
                 wireframes[i] = wireframe;
                 _visibilityGroup.RenderObjects.Add(wireframe);
             }
-            _wireFrameRenderObject.Add(container, wireframes);
+            _wireFrameRenderObject.Add(container, (wireframes, cache)); // We have to store the cache alongside it to ensure it doesn't get discarded for future calls to GetModelCache with the same model
         }
         static int Vector3ToRGBA(Vector3 rgb)
         {
@@ -193,7 +204,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         {
             if (_wireFrameRenderObject.Remove(container, out var wfros))
             {
-                foreach (var wireframe in wfros)
+                foreach (var wireframe in wfros.Wireframes)
                 {
                     wireframe.Dispose();
                     _visibilityGroup.RenderObjects.Remove(wireframe);
@@ -203,9 +214,9 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         private void Clear()
         {
-            foreach (var kvp in _wireFrameRenderObject)
+            foreach (var (container, (wireframes, cache)) in _wireFrameRenderObject)
             {
-                foreach (var wireframe in kvp.Value)
+                foreach (var wireframe in wireframes)
                 {
                     wireframe.Dispose();
                     _visibilityGroup.RenderObjects.Remove(wireframe);

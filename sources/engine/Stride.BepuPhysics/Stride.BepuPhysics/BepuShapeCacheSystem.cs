@@ -1,6 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using Stride.BepuPhysics.Components.Containers;
+﻿using System.Runtime.InteropServices;
+using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
@@ -12,6 +11,8 @@ using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Physics;
 using Stride.Rendering;
+using BufferPool = BepuUtilities.Memory.BufferPool;
+using Mesh = BepuPhysics.Collidables.Mesh;
 
 namespace Stride.BepuPhysics
 {
@@ -22,10 +23,10 @@ namespace Stride.BepuPhysics
         private readonly BodyShapeData _boxShapeData;
         private readonly BodyShapeData _cylinderShapeData;
         private readonly BodyShapeData _sphereShapeData;
-        private readonly ConditionalWeakTable<Model, ModelShapeCache> _modelsShapeData = new();
         private readonly Dictionary<PhysicsColliderShape, BodyShapeData> _hullShapeData = new();
 
-        record ModelShapeCache(BodyShapeData BodyShapeData); // Weak table doesn't support structures as values, wrap around our structure in a class
+        private readonly BufferPool _sharedPool = new();
+        private readonly Dictionary<Model, WeakReference<Cache>> _bepuMeshCache = new();
 
         public BepuShapeCacheSystem(IServiceRegistry Services)
         {
@@ -40,51 +41,115 @@ namespace Stride.BepuPhysics
             _game = Services.GetService<IGame>();
         }
 
-        public void AppendCachedShapesFor(ContainerComponent containerCompo, List<(BodyShapeData data, BodyShapeTransform transform)> shapes)
+        /// <summary>
+        /// Retrieve the cache for a given model, you MUST store <paramref name="cache"/> to keep the cache alive,
+        /// it will be cleaned up by the GC while you're using it otherwise.
+        /// </summary>
+        /// <param name="model">The model to retrieve data from</param>
+        /// <param name="cache">A class that you must store for as long as the data contained is used, that way other calls with the same model hit the cache instead of being rebuilt</param>
+        /// <param name="flushModelChanges">Discard the cache for this model, ensuring latest changes made to the model are reflected</param>
+        public void GetModelCache(Model model, out Cache cache, bool flushModelChanges = false)
         {
-            if (containerCompo is IContainerWithMesh meshContainer)
+            if (flushModelChanges == false)
             {
-                shapes.Add(BorrowMesh(meshContainer));
-            }
-            else if (containerCompo is IContainerWithColliders withColliders)
-            {
-                foreach (var collider in withColliders.Colliders)
+                lock (_bepuMeshCache)
                 {
-                    shapes.Add(collider switch
+                    if (_bepuMeshCache.TryGetValue(model, out var weakRefFromCache) && weakRefFromCache.TryGetTarget(out var cached))
                     {
-                        BoxCollider box => new(_boxShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = box.Size }),
-                        CapsuleCollider cap => new(buildCapsule(cap), new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(1, 1, 1) }),
-                        CylinderCollider cyl => new(_cylinderShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(cyl.Radius, cyl.Length, cyl.Radius) }),
-                        SphereCollider sph => new(_sphereShapeData, new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(sph.Radius, sph.Radius, sph.Radius) }),
-                        TriangleCollider tri => new(buildTriangle(tri), new() { PositionLocal = collider.PositionLocal, RotationLocal = collider.RotationLocal, Scale = new(1, 1, 1) }),
-                        ConvexHullCollider con => BorrowHull(con),
-                        _ => throw new NotImplementedException($"collider type {collider.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it"),
-                    });
+                        cache = cached;
+                        return;
+                    }
                 }
+            }
+
+            cache = new(model, this);
+            var weakRef = new WeakReference<Cache>(cache);
+
+            lock (_bepuMeshCache)
+            {
+                _bepuMeshCache[model] = weakRef; // Setting the key directly, it's fine to overwrite whatever was on that key if it so happens
+            }
+        }
+
+        public void AppendCachedShapesFor(IContainerWithColliders container, List<BodyShapeData> shapes)
+        {
+            foreach (var collider in container.Colliders)
+            {
+                shapes.Add(collider switch
+                {
+                    BoxCollider box => _boxShapeData,
+                    CapsuleCollider cap => BuildCapsule(cap),
+                    CylinderCollider cyl => _cylinderShapeData,
+                    SphereCollider sph => _sphereShapeData,
+                    TriangleCollider tri => BuildTriangle(tri),
+                    ConvexHullCollider con => BorrowHull(con),
+                    _ => throw new NotImplementedException($"collider type {collider.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it"),
+                });
+            }
+        }
+
+        /// <summary>
+        /// Fills in a span to transform <see cref="AppendCachedShapesFor"/> or <see cref="GetModelCache"/> from their neutral transform into the one specified by its container.
+        /// </summary>
+        /// <remarks>
+        /// You must still transform this further into worldspace by using the world position and rotation the container's entity.
+        /// </remarks>
+        public void GetShapeLocalTransformation(IContainer container, Span<ShapeTransform> transforms)
+        {
+            if (container is IContainerWithColliders withColliders)
+            {
+                for (int i = 0; i < withColliders.Colliders.Count; i++)
+                {
+                    var collider = withColliders.Colliders[i];
+                    transforms[i].PositionLocal = collider.PositionLocal;
+                    transforms[i].RotationLocal = collider.RotationLocal;
+                    transforms[i].Scale = collider switch
+                    {
+                        BoxCollider box => box.Size,
+                        CapsuleCollider cap => Vector3.One,
+                        CylinderCollider cyl => new(cyl.Radius, cyl.Length, cyl.Radius),
+                        SphereCollider sph => new(sph.Radius),
+                        TriangleCollider tri => Vector3.One,
+                        ConvexHullCollider convex => convex.Scale,
+                        _ => throw new NotImplementedException($"Collider type {collider.GetType()} is missing in {nameof(GetShapeLocalTransformation)}, please fill an issue or fix it"),
+                    };
+                }
+            }
+            else if (container is IContainerWithMesh withMesh)
+            {
+                transforms[0].PositionLocal = Vector3.Zero;
+                transforms[0].RotationLocal = Quaternion.Identity;
+                transforms[0].Scale = ComputeMeshScale(withMesh);
             }
             else
             {
-                throw new NotImplementedException($"Container type {containerCompo.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it");
+                throw new NotImplementedException($"'{container.GetType()}' does not inherit from either {nameof(IContainerWithMesh)} or {nameof(IContainerWithColliders)}");
             }
+        }
+
+        public Vector3 ComputeMeshScale(IContainerWithMesh withMesh)
+        {
+            withMesh.Entity.Transform.UpdateWorldMatrix();
+            return GetClosestToDecomposableScale(withMesh.Entity.Transform.WorldMatrix);
         }
 
 
 #warning that's slow, we could consider build a dictionary<float LenRadRatio, BodyShapeData>.
-        private BodyShapeData buildCapsule(CapsuleCollider cap)
+        private BodyShapeData BuildCapsule(CapsuleCollider cap)
         {
             var capGeo = GeometricPrimitive.Capsule.New(cap.Length, cap.Radius, 8);
-            return new BodyShapeData() { Vertices = capGeo.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = capGeo.Indices };
+            return new() { Vertices = capGeo.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = capGeo.Indices };
         }
-        private BodyShapeData buildTriangle(TriangleCollider tri)
+        private BodyShapeData BuildTriangle(TriangleCollider tri)
         {
-            return new BodyShapeData() { Vertices = new[] { tri.A, tri.B, tri.C }.Select(x => new VertexPosition3(x)).ToArray(), Indices = Enumerable.Range(0, 3).ToArray() };
+            return new() { Vertices = new VertexPosition3[] { new(tri.A), new(tri.B), new(tri.C) }, Indices = new[]{0, 1, 2} };
         }
 
-        public (BodyShapeData data, BodyShapeTransform transform) BorrowHull(ConvexHullCollider convex)
+        public BodyShapeData BorrowHull(ConvexHullCollider convex)
         {
             if (convex.Hull == null)
             {
-                return new(new(), new());
+                return new();
             }
 
             if (_hullShapeData.TryGetValue(convex.Hull, out var hull) == false)
@@ -94,24 +159,7 @@ namespace Stride.BepuPhysics
                 _hullShapeData.Add(convex.Hull, hull);
             }
 
-            return new(hull, new() { PositionLocal = convex.PositionLocal, RotationLocal = convex.RotationLocal, Scale = convex.Scale });
-        }
-        public (BodyShapeData data, BodyShapeTransform transform) BorrowMesh(IContainerWithMesh meshContainer)
-        {
-            if (meshContainer.Model == null)
-            {
-                return new(new(), new());
-            }
-
-            if (_modelsShapeData.TryGetValue(meshContainer.Model, out ModelShapeCache? shapeCache) == false)
-            {
-                ExtractMesh(meshContainer.Model, _game.GraphicsContext.CommandList, out VertexPosition3[] vertices, out int[] indices);
-                shapeCache = new(new() { Vertices = vertices, Indices = indices });
-                _modelsShapeData.Add(meshContainer.Model, shapeCache);
-            }
-
-#warning maybe allow mesh transform ? (by adding Scale, Orientation & Offset to IContainerWithMesh)
-            return ((shapeCache.BodyShapeData, new() { PositionLocal = Vector3.Zero, RotationLocal = Quaternion.Identity, Scale = (meshContainer).Entity.Transform.Scale }));
+            return hull;
         }
 
         private static void ExtractHull(PhysicsColliderShape Hull, out VertexPosition3[] outPoints, out int[] outIndices)
@@ -162,7 +210,77 @@ namespace Stride.BepuPhysics
                 }
             }
         }
-        private static unsafe void ExtractMesh(Model model, CommandList commandList, out VertexPosition3[] vertices, out int[] indices)
+
+        //internal void ClearShape(ContainerComponent component)
+        //{
+        //    if (component is IContainerWithMesh withMesh)
+        //    {
+        //        if (withMesh.Model != null)
+        //        {
+        //            _modelsShapeData.Remove(withMesh.Model);
+        //        }
+        //    }
+        //    else if (component is IContainerWithColliders withColliders)
+        //    {
+        //        foreach (var collider in withColliders.Colliders)
+        //        {
+        //            if (collider is ConvexHullCollider con && con.Hull != null)
+        //            {
+        //                _hullShapeData.Remove(con.Hull);
+        //            }
+        //        }
+        //    }
+        //}
+
+        private static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractBepuMesh(Model model, IGame game, BufferPool pool)
+        {
+            int totalIndices = 0;
+            foreach (var meshData in model.Meshes)
+            {
+                totalIndices += meshData.Draw.IndexBuffer.Count;
+            }
+
+            pool.Take<Triangle>(totalIndices / 3, out var triangles);
+            var triangleAsV3 = triangles.As<Vector3>();
+            int triangleV3Index = 0;
+
+            foreach (var meshData in model.Meshes)
+            {
+                // Get mesh data from GPU or shared memory, this can be quite slow
+                byte[] verticesBytes = meshData.Draw.VertexBuffers[0].Buffer.GetData<byte>(game.GraphicsContext.CommandList);
+                byte[] indicesBytes = meshData.Draw.IndexBuffer.Buffer.GetData<byte>(game.GraphicsContext.CommandList);
+
+                var vBindings = meshData.Draw.VertexBuffers[0];
+                int vStride = vBindings.Declaration.VertexStride;
+                var position = vBindings.Declaration.EnumerateWithOffsets().First(x => x.VertexElement.SemanticName == VertexElementUsage.Position);
+
+                if (position.VertexElement.Format is PixelFormat.R32G32B32_Float or PixelFormat.R32G32B32A32_Float == false)
+                    throw new ArgumentException($"{model}'s vertex position must be declared as float3 or float4");
+
+                fixed (byte* vBuffer = &verticesBytes[vBindings.Offset])
+                fixed (byte* iBuffer = indicesBytes)
+                {
+                    if (meshData.Draw.IndexBuffer.Is32Bit)
+                    {
+                        foreach (int i in new Span<int>(iBuffer + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+                        {
+                            triangleAsV3[triangleV3Index++] = *(Vector3*)(vBuffer + vStride * i + position.Offset); // start of the buffer, move to the 'i'th vertex, and read from the position field of that vertex
+                        }
+                    }
+                    else
+                    {
+                        foreach (ushort i in new Span<ushort>(iBuffer + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+                        {
+                            triangleAsV3[triangleV3Index++] = *(Vector3*)(vBuffer + vStride * i + position.Offset);
+                        }
+                    }
+                }
+            }
+
+            return triangles;
+        }
+
+        private static unsafe void ExtractMeshBuffers(Model model, Graphics.CommandList commandList, out VertexPosition3[] vertices, out int[] indices)
         {
             int totalVertices = 0, totalIndices = 0;
             foreach (var meshData in model.Meshes)
@@ -228,26 +346,127 @@ namespace Stride.BepuPhysics
             }
         }
 
-        //internal void ClearShape(ContainerComponent component)
-        //{
-        //    if (component is IContainerWithMesh withMesh)
-        //    {
-        //        if (withMesh.Model != null)
-        //        {
-        //            _modelsShapeData.Remove(withMesh.Model);
-        //        }
-        //    }
-        //    else if (component is IContainerWithColliders withColliders)
-        //    {
-        //        foreach (var collider in withColliders.Colliders)
-        //        {
-        //            if (collider is ConvexHullCollider con && con.Hull != null)
-        //            {
-        //                _hullShapeData.Remove(con.Hull);
-        //            }
-        //        }
-        //    }
-        //}
+        /// <summary>
+        /// Matrices may not produce a valid local scale when decomposed into T,R,S; the basis of the matrix may be skewed/sheered depending on transformations
+        /// coming from parents, sheering is by definition not on the local basis
+        /// </summary>
+        static Vector3 GetClosestToDecomposableScale(Matrix matrix)
+        {
+            float d1 = Vector3.Dot((Vector3)matrix.Row1, (Vector3)matrix.Row2);
+            float d2 = Vector3.Dot((Vector3)matrix.Row2, (Vector3)matrix.Row3);
+            float d3 = Vector3.Dot((Vector3)matrix.Row1, (Vector3)matrix.Row3);
+            Vector3 o;
+            if (MathF.Abs(d1) > float.Epsilon || MathF.Abs(d2) > float.Epsilon || MathF.Abs(d3) > float.Epsilon) // Matrix is skewed, scale cannot be
+            {
+                Span<Vector3> basisIn = stackalloc Vector3[]
+                {
+                    (Vector3)matrix.Row1,
+                    (Vector3)matrix.Row2,
+                    (Vector3)matrix.Row3,
+                };
+                Span<Vector3> basisOut = stackalloc Vector3[3];
+                Orthogonalize(basisIn, basisOut);
+                o.X = basisOut[0].Length();
+                o.Y = basisOut[1].Length();
+                o.Z = basisOut[2].Length();
+            }
+            else
+            {
+                o.X = matrix.Row1.Length();
+                o.Y = matrix.Row2.Length();
+                o.Z = matrix.Row3.Length();
+            }
 
+            return o;
+
+            static void Orthogonalize(ReadOnlySpan<Vector3> source, Span<Vector3> destination)
+            {
+                // Dump of strides' method to strip the memory alloc, refer to Vector3.Orthogonalize
+                if (source == null)
+                    throw new ArgumentNullException(nameof(source));
+                if (destination == null)
+                    throw new ArgumentNullException(nameof(destination));
+                if (destination.Length < source.Length)
+                    throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
+
+                for (int i = 0; i < source.Length; ++i)
+                {
+                    Vector3 newVector = source[i];
+
+                    for (int r = 0; r < i; ++r)
+                    {
+                        newVector -= (Vector3.Dot(destination[r], newVector) / Vector3.Dot(destination[r], destination[r])) * destination[r];
+                    }
+
+                    destination[i] = newVector;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Hold onto this to keep the cache and the bepu shape for the corresponding mesh alive
+        /// </summary>
+        public record Cache(Model TargetModel, BepuShapeCacheSystem CacheSystem)
+        {
+            (VertexPosition3[] Vertices, int[] Indices)? _buffers;
+            Mesh? _bepuMesh;
+            public Mesh GetBepuMesh(Vector3 scale)
+            {
+                Mesh newMesh;
+
+                if (_bepuMesh is { } mesh)
+                {
+                    newMesh = mesh;
+                }
+                else
+                {
+                    lock (CacheSystem._sharedPool)
+                    {
+                        var triangles = ExtractBepuMesh(TargetModel, CacheSystem._game, CacheSystem._sharedPool);
+                        newMesh = new Mesh(triangles, System.Numerics.Vector3.One, CacheSystem._sharedPool);
+                    }
+                }
+
+                _bepuMesh = newMesh;
+                newMesh.Scale = scale.ToNumericVector();
+                return newMesh;
+            }
+
+            public void GetBuffers(out VertexPosition3[] vertices, out int[] indices)
+            {
+                if (_buffers is { } buffers)
+                {
+                    vertices = buffers.Vertices;
+                    indices = buffers.Indices;
+                }
+                else
+                {
+                    ExtractMeshBuffers(TargetModel, CacheSystem._game.GraphicsContext.CommandList, out vertices, out indices);
+                    _buffers = (vertices, indices);
+                }
+            }
+
+            ~Cache()
+            {
+                // /!\ THIS MAY RUN OUTSIDE OF THE MAIN THREAD /!\
+
+                lock (CacheSystem._bepuMeshCache)
+                {
+                    if (CacheSystem._bepuMeshCache.TryGetValue(TargetModel, out var weakRef))
+                    {
+                        // It could be the case that the cache was replaced by another cache, do not remove in those cases
+                        if (weakRef.TryGetTarget(out var cache) == false || ReferenceEquals(cache, this))
+                            CacheSystem._bepuMeshCache.Remove(TargetModel);
+                    }
+                }
+
+                lock (CacheSystem._sharedPool)
+                {
+                    _bepuMesh?.Dispose(CacheSystem._sharedPool);
+                }
+
+                // /!\ THIS MAY RUN OUTSIDE OF THE MAIN THREAD /!\
+            }
+        }
     }
 }

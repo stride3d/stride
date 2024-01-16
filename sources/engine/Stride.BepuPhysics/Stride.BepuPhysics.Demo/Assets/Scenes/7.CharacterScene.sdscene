@@ -11,6 +11,7 @@ Hierarchy:
         - ref!! a9aba88b-eb7c-4390-956b-d9a38dcf452b
         - ref!! 68a236eb-82e6-4b17-b8aa-49499ada47f9
         - ref!! b20e7c40-03a8-4243-b6e4-24d201c52765
+        - ref!! 84719c9b-a56c-4ecc-b41b-7e0619322d99
     Parts:
         -   Entity:
                 Id: 0cb3ed35-97c8-482c-8a58-87b38df65b12
@@ -72,6 +73,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             456710298a11543e853da6109e78b50e: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -108,6 +111,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             aabb6c056bc3d3f9161a98675b38d4f4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -132,6 +137,36 @@ Hierarchy:
                     8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
                         Id: 191e406f-0e44-44c1-b32d-acbfc269c2b6
                         Type: !InstancingEntityTransform {}
+        -   Entity:
+                Id: 6a66727a-2eb6-4c01-81ac-995d719fa59d
+                Name: Dungeon
+                Components:
+                    dfd75f91fa5ef860cf3ab18d38b04a4a: !TransformComponent
+                        Id: 3e1436b1-4d80-4233-b40e-a013940cc726
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.52535844, Z: 0.0, W: 0.850881}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4533050dfd3fcc4176d50100a32b74b8: !ModelComponent
+                        Id: f5136d3a-ecb3-45be-9e3e-8969f79683e0
+                        Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
+                        Materials: {}
+                    2892030a3c27bfa024cb81244fc1473a: !Stride.BepuPhysics.Components.Containers.StaticMeshContainerComponent,Stride.BepuPhysics
+                        Id: baf6f226-d7a0-4fd4-91d6-edfbb2ea40ed
+                        SimulationIndex: 1
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
+                        Mass: 1.0
+                        Closed: true
+                        Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
         -   Entity:
                 Id: 718407b2-5728-4811-8b58-3a7b206d2c09
                 Name: Directional light
@@ -229,6 +264,17 @@ Hierarchy:
                         Trigger: ref!! 4f3dc2aa-51ed-4b02-8fe2-da628f85faaf
                         MatRed: 90098d7c-e768-47ba-950a-43ac840ee2d6:Materials/QRTransMatR
                         MatBase: cc61e97a-203f-46ef-b432-966557e2ca14:Materials/QRTransMat
+        -   Entity:
+                Id: 84719c9b-a56c-4ecc-b41b-7e0619322d99
+                Name: Entity
+                Components:
+                    1862f8f601ff85cc590b52ec7111dfe5: !TransformComponent
+                        Id: bad89b95-cacc-4147-b871-8ce983b2098a
+                        Position: {X: 10.863291, Y: 0.0, Z: 40.568768}
+                        Rotation: {X: 0.0, Y: 0.9066507, Z: 0.0, W: 0.42188203}
+                        Scale: {X: 0.484, Y: 0.2, Z: 0.484}
+                        Children:
+                            a82616334a721759631bd632df432ecf: ref!! 3e1436b1-4d80-4233-b40e-a013940cc726
         -   Entity:
                 Id: 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                 Name: Camera
@@ -335,6 +381,8 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: Interpolated
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             bf2a2e6c87c29a4b9c2a1e3b8eb2ef34: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0

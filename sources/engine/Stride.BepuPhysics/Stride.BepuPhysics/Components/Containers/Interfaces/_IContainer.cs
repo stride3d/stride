@@ -21,6 +21,6 @@ namespace Stride.BepuPhysics.Components.Containers.Interfaces
         public ushort ColliderFilterByDistanceY { get; set; }
         public ushort ColliderFilterByDistanceZ { get; set; }
         public bool IgnoreGlobalGravity { get; set; }
-
+        public int GetAmountOfShapes => 0;
     }
 }

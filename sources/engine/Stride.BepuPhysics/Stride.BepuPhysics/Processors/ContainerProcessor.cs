@@ -16,19 +16,28 @@ namespace Stride.BepuPhysics.Processors
 {
     public class ContainerProcessor : EntityProcessor<ContainerComponent>
     {
-        private IGame? _game = null;
-        private BepuConfiguration? _bepuConfiguration = default;
-
         private readonly UnsortedO1List<IStaticContainer, Matrix4x4> _statics = new();
 
+        internal BepuShapeCacheSystem ShapeCache { get; private set; } = null!;
         internal Dictionary<ContainerComponent, ContainerComponent>.Enumerator ComponentDataEnumerator => base.ComponentDatas.GetEnumerator();
 
-        public event Action<ContainerComponent>? OnPostAdd;
-        public event Action<ContainerComponent>? OnPreRemove;
+        public IGame Game { get; private set; } = null!;
+        public BepuConfiguration BepuConfiguration { get; private set; } = null!;
+
+        public Action<ContainerComponent>? OnPostAdd;
+        public Action<ContainerComponent>? OnPreRemove;
 
         public ContainerProcessor()
         {
             Order = BepuOrderHelper.ORDER_OF_CONTAINER_P;
+        }
+
+        protected override void OnSystemAdd()
+        {
+            BepuServicesHelper.LoadBepuServices(Services);
+            Game = Services.GetService<IGame>();
+            BepuConfiguration = Services.GetService<BepuConfiguration>();
+            ShapeCache = Game.Services.GetService<BepuShapeCacheSystem>();
         }
 
         public override void Draw(RenderContext context) // While this is not related to drawing, we're doing this in draw as it runs after the TransformProcessor updates WorldMatrix
@@ -57,21 +66,14 @@ namespace Stride.BepuPhysics.Processors
             }
         }
 
-        protected override void OnSystemAdd()
-        {
-            BepuServicesHelper.LoadBepuServices(Services);
-            _game = Services.GetService<IGame>();
-            _bepuConfiguration = Services.GetService<BepuConfiguration>();
-        }
-
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            if (_game == null)
-                throw new NullReferenceException(nameof(_game));
-            if (_bepuConfiguration == null)
-                throw new NullReferenceException(nameof(_bepuConfiguration));
+            if (Game == null)
+                throw new NullReferenceException(nameof(Game));
+            if (BepuConfiguration == null)
+                throw new NullReferenceException(nameof(BepuConfiguration));
 
-            component.ContainerData = new(component, _bepuConfiguration, _game, FindParentContainer(component));
+            component.ContainerData = new(component, this, Game, FindParentContainer(component));
             SetParentForChildren(component.ContainerData, component.Entity.Transform);
             component.ContainerData.RebuildContainer();
             if (component is ISimulationUpdate simulationUpdate)
@@ -81,14 +83,10 @@ namespace Stride.BepuPhysics.Processors
 
             if (component is IStaticContainer staticContainer)
                 _statics.Add(staticContainer, Unsafe.As<Matrix, Matrix4x4>(ref staticContainer.Entity.Transform.WorldMatrix));
-
-            OnPostAdd?.Invoke(component);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
         {
-            OnPreRemove?.Invoke(component);
-
             if (component is IStaticContainer staticContainer)
                 _statics.Remove(staticContainer);
 

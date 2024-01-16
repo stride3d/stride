@@ -30,7 +30,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders
         {
 #warning maybe don't rely on cache actually, instead cache the convexhull struct itself ? See if that can be reused
             var data = game.Services.GetService<BepuShapeCacheSystem>().BorrowHull(this);
-            var points = MemoryMarshal.Cast<VertexPosition3, System.Numerics.Vector3>(data.data.Vertices);
+            var points = MemoryMarshal.Cast<VertexPosition3, System.Numerics.Vector3>(data.Vertices);
 
             if (_scale != Vector3.One) // Bepu doesn't support scaling on the collider itself, we have to create a temporary array and scale the points before passing it on
             {

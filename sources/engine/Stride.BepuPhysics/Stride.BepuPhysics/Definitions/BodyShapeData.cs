@@ -12,13 +12,13 @@ public struct BodyShapeData
     {
     }
 }
-public struct BodyShapeTransform
+public struct ShapeTransform
 {
     public Vector3 PositionLocal = Vector3.Zero;
     public Quaternion RotationLocal = Quaternion.Identity;
     public Vector3 Scale = Vector3.One;
 
-    public BodyShapeTransform()
+    public ShapeTransform()
     {
     }
 }

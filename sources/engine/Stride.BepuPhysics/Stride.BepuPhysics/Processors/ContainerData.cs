@@ -4,23 +4,18 @@ using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Extensions;
-using Stride.Core.Mathematics;
 using Stride.Games;
-using Stride.Graphics;
-using Stride.Rendering;
-using BufferPool = BepuUtilities.Memory.BufferPool;
-using Mesh = BepuPhysics.Collidables.Mesh;
+using Stride.Core.Mathematics;
 
 namespace Stride.BepuPhysics.Processors
 {
     internal class ContainerData
     {
-        private readonly BepuConfiguration _config;
         private readonly IGame _game;
-
         private bool _exist;
+        private BepuShapeCacheSystem.Cache? _cache;
+        private ContainerProcessor _processor;
 
 #warning we should be able to get rid of that second condition in the summary by moving their container to a waiting queue and setting their ContainerData to null
         /// <summary>
@@ -32,16 +27,16 @@ namespace Stride.BepuPhysics.Processors
         /// </summary>
         internal StaticReference? StaticReference { get; private set; } = null;
 
-        internal BepuSimulation BepuSimulation => _config.BepuSimulations[ContainerComponent.SimulationIndex];
+        internal BepuSimulation BepuSimulation => _processor.BepuConfiguration.BepuSimulations[ContainerComponent.SimulationIndex];
 
         internal TypedIndex ShapeIndex { get; private set; }// = new(-1, -1);
         internal ContainerData? Parent { get; set; }
         internal ContainerComponent ContainerComponent { get; set; }
 
-        internal ContainerData(ContainerComponent containerComponent, BepuConfiguration config, IGame game, ContainerData? parent)
+        internal ContainerData(ContainerComponent containerComponent, ContainerProcessor processor, IGame game, ContainerData? parent)
         {
             ContainerComponent = containerComponent;
-            _config = config;
+            _processor = processor;
             _game = game;
             Parent = parent;
         }
@@ -85,7 +80,8 @@ namespace Stride.BepuPhysics.Processors
             }
 
             ContainerComponent.Entity.Transform.UpdateWorldMatrix();
-            ContainerComponent.Entity.Transform.WorldMatrix.Decompose(out Vector3 containerWorldScale, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
+            var matrix = ContainerComponent.Entity.Transform.WorldMatrix;
+            matrix.Decompose(out _, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
 
             BodyInertia shapeInertia;
             if (ContainerComponent is IContainerWithMesh meshContainer)
@@ -96,10 +92,8 @@ namespace Stride.BepuPhysics.Processors
                     return;
                 }
 
-#warning maybe recycle mesh shapes themselves if possible ?
-                var triangles = ExtractMeshDataSlow(meshContainer.Model, _game, BepuSimulation.BufferPool);
-#warning Local scale should be extracted from the world matrix, have to notify the user when the scale is skewed though, same issue with other shapes and debug
-                var mesh = new Mesh(triangles, ContainerComponent.Entity.Transform.Scale.ToNumericVector(), BepuSimulation.BufferPool);
+                _processor.ShapeCache.GetModelCache(meshContainer.Model, out _cache);
+                var mesh = _cache.GetBepuMesh(_processor.ShapeCache.ComputeMeshScale(meshContainer));
 
                 ShapeIndex = BepuSimulation.Simulation.Shapes.Add(mesh);
                 shapeInertia = meshContainer.Closed ? mesh.ComputeClosedInertia(meshContainer.Mass) : mesh.ComputeOpenInertia(meshContainer.Mass);
@@ -217,10 +211,17 @@ namespace Stride.BepuPhysics.Processors
                 RegisterContact();
 
             UpdateMaterialProperties();
+
+            _processor.OnPostAdd?.Invoke(ContainerComponent);
         }
 
         internal void DestroyContainer()
         {
+            if (_exist == false)
+                return;
+
+            _processor.OnPreRemove?.Invoke(ContainerComponent);
+
             ContainerComponent.CenterOfMass = new();
 
             if (IsRegistered())
@@ -230,7 +231,16 @@ namespace Stride.BepuPhysics.Processors
 
             if (ShapeIndex.Exists)
             {
-                BepuSimulation.Simulation.Shapes.RemoveAndDispose(ShapeIndex, BepuSimulation.BufferPool);
+                if (ContainerComponent is IContainerWithMesh)
+                {
+                    BepuSimulation.Simulation.Shapes.Remove(ShapeIndex);
+                    _cache = null; // Let GC collect the cache
+                }
+                else
+                {
+                    BepuSimulation.Simulation.Shapes.RemoveAndDispose(ShapeIndex, BepuSimulation.BufferPool);
+                }
+
                 ShapeIndex = default;
             }
 
@@ -275,54 +285,6 @@ namespace Stride.BepuPhysics.Processors
             else if (BodyReference is { } bRef)
                 return BepuSimulation.ContactEvents.IsListener(bRef.Handle);
             return false;
-        }
-
-        private static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractMeshDataSlow(Model model, IGame game, BufferPool pool)
-        {
-            int totalIndices = 0;
-            foreach (var meshData in model.Meshes)
-            {
-                totalIndices += meshData.Draw.IndexBuffer.Count;
-            }
-
-            pool.Take<Triangle>(totalIndices / 3, out var triangles);
-            var triangleAsV3 = triangles.As<Vector3>();
-            int triangleV3Index = 0;
-
-            foreach (var meshData in model.Meshes)
-            {
-                // Get mesh data from GPU or shared memory, this can be quite slow
-                byte[] verticesBytes = meshData.Draw.VertexBuffers[0].Buffer.GetData<byte>(game.GraphicsContext.CommandList);
-                byte[] indicesBytes = meshData.Draw.IndexBuffer.Buffer.GetData<byte>(game.GraphicsContext.CommandList);
-
-                var vBindings = meshData.Draw.VertexBuffers[0];
-                int vStride = vBindings.Declaration.VertexStride;
-                var position = vBindings.Declaration.EnumerateWithOffsets().First(x => x.VertexElement.SemanticName == VertexElementUsage.Position);
-
-                if (position.VertexElement.Format is PixelFormat.R32G32B32_Float or PixelFormat.R32G32B32A32_Float == false)
-                    throw new ArgumentException($"{model}'s vertex position must be declared as float3 or float4");
-
-                fixed (byte* vBuffer = &verticesBytes[vBindings.Offset])
-                fixed (byte* iBuffer = indicesBytes)
-                {
-                    if (meshData.Draw.IndexBuffer.Is32Bit)
-                    {
-                        foreach (int i in new Span<int>(iBuffer + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
-                        {
-                            triangleAsV3[triangleV3Index++] = *(Vector3*)(vBuffer + vStride * i + position.Offset); // start of the buffer, move to the 'i'th vertex, and read from the position field of that vertex
-                        }
-                    }
-                    else
-                    {
-                        foreach (ushort i in new Span<ushort>(iBuffer + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
-                        {
-                            triangleAsV3[triangleV3Index++] = *(Vector3*)(vBuffer + vStride * i + position.Offset);
-                        }
-                    }
-                }
-            }
-
-            return triangles;
         }
     }
 }
