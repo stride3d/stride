@@ -180,14 +180,11 @@ namespace Stride.BepuPhysics.Processors
                     var bHandle = BepuSimulation.Simulation.Bodies.Add(bDescription);
                     BodyReference = BepuSimulation.Simulation.Bodies[bHandle];
                     BodyReference.Value.Collidable.Continuity = body.ContinuousDetection;
-                    if (BepuSimulation.Bodies.Count == bHandle.Value)
-                    {
-                        BepuSimulation.Bodies.Add(body);
-                    }
-                    else
-                    {
-                        BepuSimulation.Bodies[bHandle.Value] = body;
-                    }
+
+                    while (BepuSimulation.Bodies.Count <= bHandle.Value) // There may be more than one add if soft physics inserted a couple of bodies
+                        BepuSimulation.Bodies.Add(null);
+                    BepuSimulation.Bodies[bHandle.Value] = body;
+
                     BepuSimulation.CollidableMaterials.Allocate(bHandle) = new();
                 }
             }
@@ -203,14 +200,11 @@ namespace Stride.BepuPhysics.Processors
                 {
                     var sHandle = BepuSimulation.Simulation.Statics.Add(sDescription);
                     StaticReference = BepuSimulation.Simulation.Statics[sHandle];
-                    if (BepuSimulation.Statics.Count == sHandle.Value)
-                    {
-                        BepuSimulation.Statics.Add(@static);
-                    }
-                    else
-                    {
-                        BepuSimulation.Statics[sHandle.Value] = @static;
-                    }
+
+                    while (BepuSimulation.Statics.Count <= sHandle.Value) // There may be more than one add if soft physics inserted a couple of bodies
+                        BepuSimulation.Statics.Add(null);
+                    BepuSimulation.Statics[sHandle.Value] = @static;
+
                     BepuSimulation.CollidableMaterials.Allocate(sHandle) = new();
                 }
             }
