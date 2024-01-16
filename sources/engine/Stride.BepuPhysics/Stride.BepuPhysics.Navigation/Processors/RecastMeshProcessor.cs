@@ -116,10 +116,11 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
             else if ((IContainer)container is IContainerWithColliders colliderContainer)
                 _shapeCache.AppendCachedShapesFor(colliderContainer, shapeData);
 
-            Span<ShapeTransform> transforms = stackalloc ShapeTransform[((IContainer)container).GetAmountOfShapes];
-            _shapeCache.GetShapeLocalTransformation(container, transforms);
-            transformsOut.AddRange(transforms);
-            matrices.Add((((IContainer)container).Entity.Transform.WorldMatrix, transforms.Length));
+            var shapeCount = ((IContainer)container).GetAmountOfShapes;
+            for (int i = shapeCount - 1; i >= 0; i--)
+                transformsOut.Add(default);
+            _shapeCache.GetShapeLocalTransformation(container, CollectionsMarshal.AsSpan(transformsOut)[^shapeCount..]);
+            matrices.Add((((IContainer)container).Entity.Transform.WorldMatrix, shapeCount));
         }
 
         var settingsCopy = new RcNavMeshBuildSettings
