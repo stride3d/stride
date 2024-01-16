@@ -5,6 +5,7 @@ using DotRecast.Recast.Geom;
 using DotRecast.Recast.Toolset;
 using DotRecast.Recast.Toolset.Builder;
 using DotRecast.Recast.Toolset.Geom;
+using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Navigation.Components;
 using Stride.Core.Annotations;
@@ -12,6 +13,11 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Core;
 using Stride.Input;
+using Stride.Rendering;
+using Stride.Graphics;
+using Stride.Rendering.Materials.ComputeColors;
+using Stride.Rendering.Materials;
+using Stride.Core.Mathematics;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComponent>
@@ -24,8 +30,10 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
     private BepuStaticColliderProcessor _colliderProcessor = new();
     private CancellationTokenSource _rebuildingTask = new();
     private Task<DtNavMesh>? _runningRebuild;
+	private IGame _game;
+    private BepuShapeCacheSystem _shapeCache;
 
-    public RecastMeshProcessor()
+	public RecastMeshProcessor()
     {
         // this is done to ensure that this processor runs after the BepuPhysicsProcessors
         Order = 20000;
@@ -37,6 +45,8 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         _sceneSystem = Services.GetService<SceneSystem>();
         _input = Services.GetSafeServiceAs<InputManager>();
         _sceneSystem.SceneInstance.Processors.Add(_colliderProcessor);
+		_game = Services.GetService<IGame>();
+        _shapeCache = Services.GetService<BepuShapeCacheSystem>();
     }
 
     protected override void OnEntityComponentAdding(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
@@ -55,7 +65,19 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         {
             _navMesh = _runningRebuild.Result;
             _runningRebuild = null;
-        }
+
+			List<Vector3> strideVerts = new List<Vector3>();
+			for (int i = 0; i < _navMesh.GetTileCount(); i++)
+			{
+				for (int j = 0; j < _navMesh.GetTile(i).data.verts.Length;)
+				{
+					strideVerts.Add(
+						new Vector3(_navMesh.GetTile(i).data.verts[j++], _navMesh.GetTile(i).data.verts[j++], _navMesh.GetTile(i).data.verts[j++])
+						);
+				}
+			}
+			SpawPrefabAtVerts(strideVerts);
+		}
 
 #warning Remove debug logic
         if (_input.IsKeyPressed(Keys.Space))
@@ -66,6 +88,8 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 
     public Task RebuildNavMesh()
     {
+        // The goal of this method is to do the strict minimum here on the main thread, gathering data for the async thread to do the rest on its own
+
         // Cancel any ongoing rebuild
         _rebuildingTask.Cancel();
         _rebuildingTask = new CancellationTokenSource();
@@ -73,20 +97,29 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         // Fetch mesh data from the scene - this may be too slow
         // There are a couple of avenues we could go down into to fix this but none of them are easy
         // Something we'll have to investigate later.
-        var points = new List<VertexPosition3>();
-        var indices = new List<int>();
-        foreach (var shape in _colliderProcessor.BodyShapes)
+        var shapeData = new List<BodyShapeData>();
+        var transformsOut = new List<ShapeTransform>();
+        var matrices = new List<(Matrix entity, int count)>();
+        for (var e = _colliderProcessor.ComponentDatas; e.MoveNext(); )
         {
-            // Copy vertices
-            int vBase = points.Count;
-            points.AddRange(shape.Value.Vertices);
+            #warning _colliderProcessor.ComponentDatas does not contain any StaticMeshContainerComponent, they should be added in as well
+            var container = e.Current.Value;
 
-            // Copy indices with offset applied
-            indices.Capacity += shape.Value.Indices.Length;
-            foreach (int index in shape.Value.Indices)
+            if ((IContainer)container is IContainerWithMesh meshContainer && meshContainer.Model != null)
             {
-                indices.Add(index + vBase);
+                // No need to store cache, nav mesh recompute should be rare enough were it would waste more memory than necessary
+                _shapeCache.GetModelCache(meshContainer.Model, out var cache);
+                BodyShapeData data;
+                cache.GetBuffers(out data.Vertices, out data.Indices);
+                shapeData.Add(data);
             }
+            else if ((IContainer)container is IContainerWithColliders colliderContainer)
+                _shapeCache.AppendCachedShapesFor(colliderContainer, shapeData);
+
+            Span<ShapeTransform> transforms = stackalloc ShapeTransform[((IContainer)container).GetAmountOfShapes];
+            _shapeCache.GetShapeLocalTransformation(container, transforms);
+            transformsOut.AddRange(transforms);
+            matrices.Add((((IContainer)container).Entity.Transform.WorldMatrix, transforms.Length));
         }
 
         var settingsCopy = new RcNavMeshBuildSettings
@@ -114,19 +147,52 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
             tileSize = _navSettings.tileSize,
         };
         var token = _rebuildingTask.Token;
-        var task = Task.Run(() => _navMesh = CreateNavMesh(settingsCopy, points, indices, token), token);
+        var task = Task.Run(() => _navMesh = CreateNavMesh(settingsCopy, shapeData, transformsOut, matrices, token), token);
         _runningRebuild = task;
         return task;
     }
 
-    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, List<VertexPosition3> Points, List<int> Indices, CancellationToken cancelToken)
+    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, List<BodyShapeData> shapeData,  List<ShapeTransform> transformsOut, List<(Matrix entity, int count)> matrices, CancellationToken cancelToken)
     {
+        // /!\ THIS IS NOT RUNNING ON THE MAIN THREAD /!\
+
+        var verts = new List<VertexPosition3>();
+        var indices = new List<int>();
+        for (int containerI = 0, shapeI = 0; containerI < matrices.Count; containerI++)
+        {
+            var (containerMatrix, shapeCount) = matrices[containerI];
+            containerMatrix.Decompose(out _, out Matrix worldMatrix, out var translation);
+            worldMatrix.TranslationVector = translation;
+
+            for (int j = 0; j < shapeCount; j++, shapeI++)
+            {
+                var transform = transformsOut[shapeI];
+                Matrix.Transformation(ref transform.Scale, ref transform.RotationLocal, ref transform.PositionLocal, out var localMatrix);
+                var finalMatrix = localMatrix * worldMatrix;
+
+                var shape = shapeData[shapeI];
+                verts.EnsureCapacity(verts.Count + shape.Vertices.Length);
+                indices.EnsureCapacity(indices.Count + shape.Indices.Length);
+
+                int vertexBufferStart = verts.Count;
+                foreach (int index in shape.Indices)
+                    indices.Add(vertexBufferStart + index);
+
+                for (int l = 0; l < shape.Vertices.Length; l++)
+                {
+                    var vertex = shape.Vertices[l].Position;
+                    Vector3.Transform(ref vertex, ref finalMatrix, out Vector3 transformedVertex);
+                    verts.Add(new(transformedVertex));
+                }
+            }
+        }
+
         // Get the backing array of this list,
         // get a span to that backing array,
-        var spanToPoints = CollectionsMarshal.AsSpan(Points);
+        var spanToPoints = CollectionsMarshal.AsSpan(verts);
         // cast the type of span to read it as if it was a series of contiguous floats instead of contiguous vectors
         var reinterpretedPoints = MemoryMarshal.Cast<VertexPosition3, float>(spanToPoints);
-        StrideGeomProvider geom = new StrideGeomProvider(reinterpretedPoints.ToArray(), Indices.ToArray());
+        StrideGeomProvider geom = new StrideGeomProvider(reinterpretedPoints.ToArray(), indices.ToArray());
 
         cancelToken.ThrowIfCancellationRequested();
 
@@ -218,5 +284,44 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         int num = (sizeX + tileSize - 1) / tileSize;
         int num2 = (sizeZ + tileSize - 1) / tileSize;
         return [num, num2];
+    }
+
+    #warning this is just me debugging should remove later
+    private void SpawPrefabAtVerts(List<Vector3> verts)
+    {
+        // Make sure the cube is a root asset or else this wont load
+        var cube = _game.Content.Load<Model>("Cube");
+        foreach (var vert in verts)
+        {
+            AddMesh(_game.GraphicsDevice, _sceneSystem.SceneInstance.RootScene, vert, cube.Meshes[0].Draw);
+        }
+    }
+    Entity AddMesh(GraphicsDevice graphicsDevice, Scene rootScene, Vector3 position, MeshDraw meshDraw)
+    {
+        var entity = new Entity { Scene = rootScene, Transform = { Position = position } };
+        var model = new Model
+        {
+        new MaterialInstance
+        {
+            Material = Material.New(graphicsDevice, new MaterialDescriptor
+            {
+                Attributes = new MaterialAttributes
+                {
+                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
+                    Diffuse = new MaterialDiffuseMapFeature
+                    {
+                        DiffuseMap = new ComputeVertexStreamColor()
+                    },
+                }
+            })
+        },
+        new Mesh
+        {
+            Draw = meshDraw,
+            MaterialIndex = 0
+        }
+        };
+        entity.Add(new ModelComponent { Model = model });
+        return entity;
     }
 }
