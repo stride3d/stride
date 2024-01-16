@@ -13,6 +13,8 @@ namespace Stride.BepuPhysics._2D.Components
     [ComponentCategory("Bepu - 2D")]
     public class _2DSimulationConfigurator : SimulationUpdateComponent
     {
+        public float MaxZLiberty { get; set; } = 0.05f;
+
         public override void SimulationUpdate(float simTimeStep)
         {
 
@@ -30,16 +32,16 @@ namespace Stride.BepuPhysics._2D.Components
                 if (body is not _2DBodyContainerComponent)
                     continue;
 
-                if (body.Position.Z > 0.05f || body.Position.Z < -0.05f)
+                if (body.Position.Z > MaxZLiberty || body.Position.Z < -MaxZLiberty)
                     body.Position *= new Vector3(1, 1, 0);//Fix Z = 0
-                if (body.LinearVelocity.Z > 0.05f || body.LinearVelocity.Z < -0.05f)
+                if (body.LinearVelocity.Z > MaxZLiberty || body.LinearVelocity.Z < -MaxZLiberty)
                     body.LinearVelocity *= new Vector3(1, 1, 0);
 
                 var bodyRot = body.Orientation;
                 Quaternion.RotationYawPitchRoll(ref bodyRot, out var yaw, out var pitch, out var roll);
-                if (yaw > 0.05f || pitch > 0.05f || yaw < -0.05f || pitch < -0.05f)
+                if (yaw > MaxZLiberty || pitch > MaxZLiberty || yaw < -MaxZLiberty || pitch < -MaxZLiberty)
                     body.Orientation = Quaternion.RotationYawPitchRoll(0, 0, roll);
-                if (body.AngularVelocity.X > 0.05f || body.AngularVelocity.Y > 0.05f || body.AngularVelocity.X < -0.05f || body.AngularVelocity.Y < -0.05f)
+                if (body.AngularVelocity.X > MaxZLiberty || body.AngularVelocity.Y > MaxZLiberty || body.AngularVelocity.X < -MaxZLiberty || body.AngularVelocity.Y < -MaxZLiberty)
                     body.AngularVelocity *= new Vector3(0, 0, 1);
             }
         }

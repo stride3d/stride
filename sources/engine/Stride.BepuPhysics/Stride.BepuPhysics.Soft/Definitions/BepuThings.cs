@@ -5,6 +5,10 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using BepuPhysics.Collidables;
+using BepuPhysics.Constraints;
+using BepuPhysics;
+using BepuUtilities;
 using BepuUtilities.Collections;
 using BepuUtilities.Memory;
 
@@ -477,4 +481,148 @@ namespace Stride.BepuPhysics.Soft.Definitions
             floodFilledCells.Dispose(pool);
         }
     }
+
+    public class Newt
+    {
+        struct Edge : IEqualityComparerRef<Edge>
+        {
+            public int A;
+            public int B;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int Hash(ref Edge item)
+            {
+                return item.A + item.B;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Equals(ref Edge a, ref Edge b)
+            {
+                return (a.A == b.A && a.B == b.B) || (a.B == b.A && a.A == b.B);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void TryAddEdge(int a, int b, ref QuickSet<Edge, Edge> edges, ref Buffer<int> vertexEdgeCounts, BufferPool pool)
+        {
+            if (edges.Add(new Edge { A = a, B = b }, pool))
+            {
+                ++vertexEdgeCounts[a];
+                ++vertexEdgeCounts[b];
+            }
+        }
+
+#warning Not needed ?
+        //private static unsafe int CreateTetrahedralUniqueEdgesList(ref Buffer<TetrahedronVertices> tetrahedraVertices,
+        //   ref Buffer<int> vertexEdgeCounts, BufferPool pool, ref QuickSet<Edge, Edge> cellEdges)
+        //{
+        //    for (int i = 0; i < tetrahedraVertices.Length; ++i)
+        //    {
+        //        //Collect all unique hexahedral edges. We're going to stick welds between all of them.
+        //        ref var tetrahedron = ref tetrahedraVertices[i];
+
+        //        TryAddEdge(tetrahedron.A, tetrahedron.B, ref cellEdges, ref vertexEdgeCounts, pool);
+        //        TryAddEdge(tetrahedron.A, tetrahedron.C, ref cellEdges, ref vertexEdgeCounts, pool);
+        //        TryAddEdge(tetrahedron.A, tetrahedron.D, ref cellEdges, ref vertexEdgeCounts, pool);
+        //        TryAddEdge(tetrahedron.B, tetrahedron.C, ref cellEdges, ref vertexEdgeCounts, pool);
+        //        TryAddEdge(tetrahedron.B, tetrahedron.D, ref cellEdges, ref vertexEdgeCounts, pool);
+        //        TryAddEdge(tetrahedron.C, tetrahedron.D, ref cellEdges, ref vertexEdgeCounts, pool);
+        //    }
+        //    return 18;
+        //}
+
+        private static unsafe int CreateHexahedralUniqueEdgesList(ref Buffer<CellVertexIndices> cellVertexIndices,
+            ref Buffer<int> vertexEdgeCounts, BufferPool pool, ref QuickSet<Edge, Edge> cellEdges)
+        {
+            for (int i = 0; i < cellVertexIndices.Length; ++i)
+            {
+                //Collect all unique hexahedral edges. We're going to stick welds between all of them.
+                ref var cell = ref cellVertexIndices[i];
+                TryAddEdge(cell.V000, cell.V001, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V000, cell.V010, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V000, cell.V100, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V001, cell.V011, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V001, cell.V101, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V010, cell.V011, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V010, cell.V110, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V011, cell.V111, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V100, cell.V101, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V100, cell.V110, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V101, cell.V111, ref cellEdges, ref vertexEdgeCounts, pool);
+                TryAddEdge(cell.V110, cell.V111, ref cellEdges, ref vertexEdgeCounts, pool);
+            }
+            return 6;
+        }
+
+        internal unsafe static void CreateDeformable(Simulation simulation, Vector3 position, Quaternion orientation, float density, float cellSize, in SpringSettings weldSpringiness, in SpringSettings volumeSpringiness, int instanceId,
+            ref Buffer<Vector3> vertices, ref CellSet vertexSpatialIndices, ref Buffer<CellVertexIndices> cellVertexIndices, ref Buffer<TetrahedronVertices> tetrahedraVertexIndices)
+        {
+            var pool = simulation.BufferPool;
+            pool.TakeAtLeast<int>(vertices.Length, out var vertexEdgeCounts);
+            vertexEdgeCounts.Clear(0, vertices.Length);
+            var edges = new QuickSet<Edge, Edge>(vertices.Length * 3, pool);
+            var edgeCountForInternalVertex = CreateHexahedralUniqueEdgesList(ref cellVertexIndices, ref vertexEdgeCounts, pool, ref edges);
+            //var edgeCountForInternalVertex = CreateTetrahedralUniqueEdgesList(ref tetrahedraVertexIndices, ref vertexEdgeCounts, ref cellEdgePool, ref intPool, ref edges);
+
+            pool.TakeAtLeast<BodyHandle>(vertices.Length, out var vertexHandles);
+            var vertexShape = new Sphere(cellSize * 0.7f);
+            var massPerVertex = density * (cellSize * cellSize * cellSize);
+            var vertexInertia = vertexShape.ComputeInertia(massPerVertex);
+            var vertexShapeIndex = simulation.Shapes.Add(vertexShape);
+            for (int i = 0; i < vertices.Length; ++i)
+            {
+                vertexHandles[i] = simulation.Bodies.Add(BodyDescription.CreateDynamic((position + QuaternionEx.Transform(vertices[i], orientation), orientation), vertexInertia,
+                    //Bodies don't have to have collidables. Take advantage of this for all the internal vertices.
+                    vertexEdgeCounts[i] == edgeCountForInternalVertex ? new TypedIndex() : vertexShapeIndex, 0.01f));
+                ref var vertexSpatialIndex = ref vertexSpatialIndices[i];
+                //filters.Allocate(vertexHandles[i]) = new DeformableCollisionFilter(vertexSpatialIndex.X, vertexSpatialIndex.Y, vertexSpatialIndex.Z, instanceId);
+            }
+
+            for (int i = 0; i < edges.Count; ++i)
+            {
+                ref var edge = ref edges[i];
+                var offset = vertices[edge.B] - vertices[edge.A];
+                simulation.Solver.Add(vertexHandles[edge.A], vertexHandles[edge.B],
+                    new Weld
+                    {
+                        LocalOffset = offset,
+                        LocalOrientation = Quaternion.Identity,
+                        SpringSettings = weldSpringiness
+                    });
+            }
+            //Volume constraints add a fairly subtle effect, especially when dealing with already stiff weld constraints.
+            //They're included here as an example, but you'll notice in the PlumpDancerDemo that there are no volume constraints.
+            //There, we're primarily concerned about scaling up simulations to many characters, so adding tons of additional constraints for minimal behavioral difference doesn't make sense.
+            for (int i = 0; i < tetrahedraVertexIndices.Length; ++i)
+            {
+                ref var tetrahedron = ref tetrahedraVertexIndices[i];
+                simulation.Solver.Add(vertexHandles[tetrahedron.A], vertexHandles[tetrahedron.B], vertexHandles[tetrahedron.C], vertexHandles[tetrahedron.D],
+                    new VolumeConstraint(vertices[tetrahedron.A], vertices[tetrahedron.B], vertices[tetrahedron.C], vertices[tetrahedron.D], volumeSpringiness));
+            }
+
+            pool.Return(ref vertexEdgeCounts);
+            edges.Dispose(pool);
+        }
+
+        public void Create(Simulation simulation, TriangleContent[] triangles)
+        {
+            float cellSize = 0.1f;
+            var bufferPool = simulation.BufferPool;
+            DumbTetrahedralizer.Tetrahedralize(triangles, cellSize, bufferPool,
+             out var vertices, out var vertexSpatialIndices, out var cellVertexIndices, out var tetrahedraVertexIndices);
+
+            var weldSpringiness = new SpringSettings(30f, 1f);
+            var volumeSpringiness = new SpringSettings(30f, 1);
+
+            CreateDeformable(simulation, new Vector3(0, 0, 0), QuaternionEx.CreateFromAxisAngle(new Vector3(1, 0, 0), MathF.PI * (0 * 0.55f)), 1f, cellSize, weldSpringiness, volumeSpringiness, 1, ref vertices, ref vertexSpatialIndices, ref cellVertexIndices, ref tetrahedraVertexIndices);
+
+            bufferPool.Return(ref vertices);
+            vertexSpatialIndices.Dispose(bufferPool);
+            bufferPool.Return(ref cellVertexIndices);
+            bufferPool.Return(ref tetrahedraVertexIndices);
+        }
+
+    }
+
+
 }
