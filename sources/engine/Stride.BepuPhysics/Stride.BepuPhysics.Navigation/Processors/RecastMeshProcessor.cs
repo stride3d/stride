@@ -18,22 +18,25 @@ using Stride.Graphics;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.Materials;
 using Stride.Core.Mathematics;
+using Stride.BepuPhysics.Processors;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComponent>
 {
-    private RcNavMeshBuildSettings _navSettings = new();
-    private DtNavMesh? _navMesh;
-    private List<BepuNavigationBoundingBoxComponent> _boundingBoxes = new();
+    private IGame _game;
     private SceneSystem _sceneSystem;
     private InputManager _input;
-    private BepuStaticColliderProcessor _colliderProcessor = new();
-    private CancellationTokenSource _rebuildingTask = new();
-    private Task<DtNavMesh>? _runningRebuild;
-	private IGame _game;
+    private ContainerProcessor? _containerProcessor;
     private BepuShapeCacheSystem _shapeCache;
 
-	public RecastMeshProcessor()
+    private DtNavMesh? _navMesh;
+    private Task<DtNavMesh>? _runningRebuild;
+
+    private CancellationTokenSource _rebuildingTask = new();
+    private RcNavMeshBuildSettings _navSettings = new();
+    private List<BepuNavigationBoundingBoxComponent> _boundingBoxes = new();
+
+    public RecastMeshProcessor()
     {
         // this is done to ensure that this processor runs after the BepuPhysicsProcessors
         Order = 20000;
@@ -42,10 +45,10 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
     protected override void OnSystemAdd()
     {
         base.OnSystemAdd();
+        _game = Services.GetService<IGame>();
         _sceneSystem = Services.GetService<SceneSystem>();
-        _input = Services.GetSafeServiceAs<InputManager>();
-        _sceneSystem.SceneInstance.Processors.Add(_colliderProcessor);
-		_game = Services.GetService<IGame>();
+        _input = Services.GetService<InputManager>();
+        _containerProcessor = (ContainerProcessor?)_sceneSystem.SceneInstance.Processors.FirstOrDefault(e => e is ContainerProcessor);
         _shapeCache = Services.GetService<BepuShapeCacheSystem>();
     }
 
@@ -66,18 +69,18 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
             _navMesh = _runningRebuild.Result;
             _runningRebuild = null;
 
-			List<Vector3> strideVerts = new List<Vector3>();
-			for (int i = 0; i < _navMesh.GetTileCount(); i++)
-			{
-				for (int j = 0; j < _navMesh.GetTile(i).data.verts.Length;)
-				{
-					strideVerts.Add(
-						new Vector3(_navMesh.GetTile(i).data.verts[j++], _navMesh.GetTile(i).data.verts[j++], _navMesh.GetTile(i).data.verts[j++])
-						);
-				}
-			}
-			SpawPrefabAtVerts(strideVerts);
-		}
+            List<Vector3> strideVerts = new List<Vector3>();
+            for (int i = 0; i < _navMesh.GetTileCount(); i++)
+            {
+                for (int j = 0; j < _navMesh.GetTile(i).data.verts.Length;)
+                {
+                    strideVerts.Add(
+                        new Vector3(_navMesh.GetTile(i).data.verts[j++], _navMesh.GetTile(i).data.verts[j++], _navMesh.GetTile(i).data.verts[j++])
+                        );
+                }
+            }
+            SpawPrefabAtVerts(strideVerts);
+        }
 
 #warning Remove debug logic
         if (_input.IsKeyPressed(Keys.Space))
@@ -100,10 +103,12 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         var shapeData = new List<BodyShapeData>();
         var transformsOut = new List<ShapeTransform>();
         var matrices = new List<(Matrix entity, int count)>();
-        for (var e = _colliderProcessor.ComponentDatas; e.MoveNext(); )
+        for (var e = _containerProcessor.ComponentDataEnumerator; e.MoveNext();)
         {
-            #warning _colliderProcessor.ComponentDatas does not contain any StaticMeshContainerComponent, they should be added in as well
             var container = e.Current.Value;
+
+            if (container is IBodyContainer)
+                continue;
 
             if ((IContainer)container is IContainerWithMesh meshContainer && meshContainer.Model != null)
             {
@@ -153,7 +158,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         return task;
     }
 
-    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, List<BodyShapeData> shapeData,  List<ShapeTransform> transformsOut, List<(Matrix entity, int count)> matrices, CancellationToken cancelToken)
+    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, List<BodyShapeData> shapeData, List<ShapeTransform> transformsOut, List<(Matrix entity, int count)> matrices, CancellationToken cancelToken)
     {
         // /!\ THIS IS NOT RUNNING ON THE MAIN THREAD /!\
 
@@ -176,8 +181,17 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
                 indices.EnsureCapacity(indices.Count + shape.Indices.Length);
 
                 int vertexBufferStart = verts.Count;
-                foreach (int index in shape.Indices)
+
+                for (int i = 0; i < shape.Indices.Length; i += 3)
+                {
+                    var index = shape.Indices[i];
                     indices.Add(vertexBufferStart + index);
+                    indices.Add(vertexBufferStart + index + 2);
+                    indices.Add(vertexBufferStart + index + 1);
+                }
+
+                //foreach (int index in shape.Indices)
+                //    indices.Add(vertexBufferStart + index);
 
                 for (int l = 0; l < shape.Vertices.Length; l++)
                 {
@@ -287,7 +301,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         return [num, num2];
     }
 
-    #warning this is just me debugging should remove later
+#warning this is just me debugging should remove later
     private void SpawPrefabAtVerts(List<Vector3> verts)
     {
         // Make sure the cube is a root asset or else this wont load

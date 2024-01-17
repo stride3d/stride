@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BepuUtilities" Version="2.5.0-beta.18" />
+    <PackageReference Include="BepuUtilities" Version="2.5.0-beta.19" />
     <PackageReference Include="Stride.Engine" Version="4.2.0.2067" />
   </ItemGroup>
 
