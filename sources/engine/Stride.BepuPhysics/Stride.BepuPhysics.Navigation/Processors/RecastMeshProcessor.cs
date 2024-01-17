@@ -100,10 +100,8 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         // Fetch mesh data from the scene - this may be too slow
         // There are a couple of avenues we could go down into to fix this but none of them are easy
         // Something we'll have to investigate later.
-        var shapeData = new List<BodyShapeData>();
-        var transformsOut = new List<ShapeTransform>();
-        var matrices = new List<(Matrix entity, int count)>();
-        for (var e = _containerProcessor.ComponentDataEnumerator; e.MoveNext();)
+        var asyncInput = new AsyncInput();
+        for (var e = _containerProcessor.ComponentDataEnumerator; e.MoveNext(); )
         {
             var container = e.Current.Value;
 
@@ -111,22 +109,22 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
             if (container is IBodyContainer)
                 continue;
 
-            if ((IContainer)container is IContainerWithMesh meshContainer && meshContainer.Model != null)
+            if (container is IContainerWithMesh meshContainer && meshContainer.Model != null)
             {
                 // No need to store cache, nav mesh recompute should be rare enough were it would waste more memory than necessary
                 _shapeCache.GetModelCache(meshContainer.Model, out var cache);
                 BodyShapeData data;
                 cache.GetBuffers(out data.Vertices, out data.Indices);
-                shapeData.Add(data);
+                asyncInput.shapeData.Add(data);
             }
-            else if ((IContainer)container is IContainerWithColliders colliderContainer)
-                _shapeCache.AppendCachedShapesFor(colliderContainer, shapeData);
+            else if (container is IContainerWithColliders colliderContainer)
+                _shapeCache.AppendCachedShapesFor(colliderContainer, asyncInput.shapeData);
 
             var shapeCount = ((IContainer)container).GetAmountOfShapes;
             for (int i = shapeCount - 1; i >= 0; i--)
-                transformsOut.Add(default);
-            _shapeCache.GetShapeLocalTransformation(container, CollectionsMarshal.AsSpan(transformsOut)[^shapeCount..]);
-            matrices.Add((((IContainer)container).Entity.Transform.WorldMatrix, shapeCount));
+                asyncInput.transformsOut.Add(default);
+            _shapeCache.GetShapeLocalTransformation(container, CollectionsMarshal.AsSpan(asyncInput.transformsOut)[^shapeCount..]);
+            asyncInput.matrices.Add((container.Entity.Transform.WorldMatrix, shapeCount));
         }
 
         var settingsCopy = new RcNavMeshBuildSettings
@@ -154,30 +152,30 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
             tileSize = _navSettings.tileSize,
         };
         var token = _rebuildingTask.Token;
-        var task = Task.Run(() => _navMesh = CreateNavMesh(settingsCopy, shapeData, transformsOut, matrices, token), token);
+        var task = Task.Run(() => _navMesh = CreateNavMesh(settingsCopy, asyncInput, token), token);
         _runningRebuild = task;
         return task;
     }
 
-    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, List<BodyShapeData> shapeData, List<ShapeTransform> transformsOut, List<(Matrix entity, int count)> matrices, CancellationToken cancelToken)
+    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, AsyncInput input, CancellationToken cancelToken)
     {
         // /!\ THIS IS NOT RUNNING ON THE MAIN THREAD /!\
 
         var verts = new List<VertexPosition3>();
         var indices = new List<int>();
-        for (int containerI = 0, shapeI = 0; containerI < matrices.Count; containerI++)
+        for (int containerI = 0, shapeI = 0; containerI < input.matrices.Count; containerI++)
         {
-            var (containerMatrix, shapeCount) = matrices[containerI];
+            var (containerMatrix, shapeCount) = input.matrices[containerI];
             containerMatrix.Decompose(out _, out Matrix worldMatrix, out var translation);
             worldMatrix.TranslationVector = translation;
 
             for (int j = 0; j < shapeCount; j++, shapeI++)
             {
-                var transform = transformsOut[shapeI];
+                var transform = input.transformsOut[shapeI];
                 Matrix.Transformation(ref transform.Scale, ref transform.RotationLocal, ref transform.PositionLocal, out var localMatrix);
                 var finalMatrix = localMatrix * worldMatrix;
 
-                var shape = shapeData[shapeI];
+                var shape = input.shapeData[shapeI];
                 verts.EnsureCapacity(verts.Count + shape.Vertices.Length);
                 indices.EnsureCapacity(indices.Count + shape.Indices.Length);
 
@@ -341,5 +339,12 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         };
         entity.Add(new ModelComponent { Model = model });
         return entity;
+    }
+
+    class AsyncInput
+    {
+        public List<BodyShapeData> shapeData = new();
+        public List<ShapeTransform> transformsOut = new();
+        public List<(Matrix entity, int count)> matrices = new();
     }
 }
