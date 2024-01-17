@@ -90,7 +90,13 @@ namespace Stride.Core.Presentation.Windows
             var i = 1;
             var buttons = captions.Select(s =>
             {
-                var buttonInfo = new DialogButtonInfo(s, i, defaultIndex == i, cancelIndex == i);
+                var buttonInfo = new DialogButtonInfo
+                {
+                    Content = s,
+                    Result = i,
+                    IsDefault = defaultIndex == i,
+                    IsCancel = cancelIndex == i
+                };
                 i++;
                 return buttonInfo;
             });

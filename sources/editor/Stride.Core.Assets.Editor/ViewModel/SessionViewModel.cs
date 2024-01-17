@@ -464,8 +464,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
                     var buttons = new[]
                     {
-                        new DialogButtonInfo(Tr._p("Button", "Upgrade"), (int)PackageUpgradeRequestedAnswer.Upgrade),
-                        new DialogButtonInfo(Tr._p("Button", "Skip"), (int)PackageUpgradeRequestedAnswer.DoNotUpgrade),
+                        new DialogButtonInfo { Content = Tr._p("Button", "Upgrade"), Result = (int)PackageUpgradeRequestedAnswer.Upgrade },
+                        new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = (int)PackageUpgradeRequestedAnswer.DoNotUpgrade },
                     };
                     var checkBoxMessage = Tr._p("Message", "Do this for every package in the solution");
                     var messageBoxResult = workProgress.ServiceProvider.Get<IDialogService2>().CheckedMessageBox(message.ToString(), false, checkBoxMessage, buttons).Result;
