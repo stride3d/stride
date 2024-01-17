@@ -28,15 +28,18 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             95dd079d4f24e8f815bb14bd4975d6fe: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 0.01

@@ -33,13 +33,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -89,13 +90,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -127,13 +129,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -165,13 +168,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -203,13 +207,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Mass: 10.0
@@ -263,13 +268,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -301,13 +307,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Mass: 10.0
@@ -334,13 +341,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -372,13 +380,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -436,13 +445,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -486,12 +496,12 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Colliders:
                             7a901c9573e728642196ea5ac3649bf5: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -519,13 +529,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -557,13 +568,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -596,13 +608,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -634,13 +647,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -672,13 +686,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: true
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -877,12 +892,12 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Mass: 1.0
                         Closed: true
                         Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
@@ -925,13 +940,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 255
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Everything
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -1004,13 +1020,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.5
                         MaximumRecoveryVelocity: 10000.0
-                        ColliderGroupMask: 1
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Layer1
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -1049,13 +1066,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
-                        ColliderGroupMask: 1
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Layer1
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -1152,13 +1170,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.5
                         MaximumRecoveryVelocity: 10000.0
-                        ColliderGroupMask: 1
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Layer1
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -1207,13 +1226,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 2.0
                         MaximumRecoveryVelocity: 10000.0
-                        ColliderGroupMask: 1
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Layer1
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
@@ -1251,13 +1271,14 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        ColliderGroupMask: 2
-                        ColliderFilterByDistanceId: 0
-                        ColliderFilterByDistanceX: 0
-                        ColliderFilterByDistanceY: 0
-                        ColliderFilterByDistanceZ: 0
-                        IgnoreGlobalGravity: false
+                        CollisionMask: Layer0
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
                         Kinematic: false
+                        IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None

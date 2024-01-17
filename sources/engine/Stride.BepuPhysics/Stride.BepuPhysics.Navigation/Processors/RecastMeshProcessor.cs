@@ -26,7 +26,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
     private IGame _game;
     private SceneSystem _sceneSystem;
     private InputManager _input;
-    private ContainerProcessor? _containerProcessor;
+    private ContainerProcessor _containerProcessor;
     private BepuShapeCacheSystem _shapeCache;
 
     private DtNavMesh? _navMesh;
@@ -48,7 +48,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         _game = Services.GetService<IGame>();
         _sceneSystem = Services.GetService<SceneSystem>();
         _input = Services.GetService<InputManager>();
-        _containerProcessor = (ContainerProcessor?)_sceneSystem.SceneInstance.Processors.FirstOrDefault(e => e is ContainerProcessor);
+        _containerProcessor = _sceneSystem.SceneInstance.Processors.Get<ContainerProcessor>();
         _shapeCache = Services.GetService<BepuShapeCacheSystem>();
     }
 
