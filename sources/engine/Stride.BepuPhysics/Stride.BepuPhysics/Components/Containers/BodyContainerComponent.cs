@@ -213,6 +213,7 @@ namespace Stride.BepuPhysics.Components.Containers
 
         #region WithCollider
 
+        [Display(Expand = ExpandRule.Always)]
         public ListOfColliders Colliders { get; set; } = new();
 
 
