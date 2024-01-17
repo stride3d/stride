@@ -39,7 +39,7 @@ namespace Stride.Assets.Presentation.ViewModel
         private async Task GeneratePrecompiledFont()
         {
             var font = (SpriteFontAsset)AssetItem.Asset;
-            var dialogService = ServiceProvider.Get<IDialogService2>();
+            var dialogService = ServiceProvider.Get<IDialogService>();
             // Dynamic font cannot be precompiled
             if (font.FontType is RuntimeRasterizedSpriteFontType)
             {
@@ -61,7 +61,7 @@ namespace Stride.Assets.Presentation.ViewModel
             if (gameSettings == null)
             {
                 var buttons = DialogHelper.CreateButtons(new[] { ColorSpace.Linear.ToString(), ColorSpace.Gamma.ToString(), Tr._p("Button", "Cancel") }, 1, 3);
-                var result = await dialogService.MessageBox(Tr._p("Message", "Which color space do you want to use?"), buttons, MessageBoxImage.Question);
+                var result = await dialogService.MessageBoxAsync(Tr._p("Message", "Which color space do you want to use?"), buttons, MessageBoxImage.Question);
                 // Close without clicking a button or Cancel
                 if (result == 0 || result == 3)
                     return;

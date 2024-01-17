@@ -25,8 +25,8 @@ public class NaturalStringComparer : IComparer<string>
             return 1;
         
         // Split strings by numbers
-        var splitX = NumericRegex.Split(x.Replace(" ", ""));
-        var splitY = NumericRegex.Split(y.Replace(" ", ""));
+        var splitX = NumericRegex.Split(x.Replace(" ", string.Empty));
+        var splitY = NumericRegex.Split(y.Replace(" ", string.Empty));
 
         var comparer = 0;
         for (var i = 0; comparer == 0 && i < splitX.Length; i++)

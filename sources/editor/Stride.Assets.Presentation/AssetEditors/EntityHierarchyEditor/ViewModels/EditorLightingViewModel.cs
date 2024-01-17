@@ -108,22 +108,17 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
         private async Task CaptureCubemap()
         {
-            var dialog = ServiceProvider.Get<IEditorDialogService>().CreateFileSaveModalDialog();
-            dialog.Filters.Add(new FileDialogFilter("DDS texture", "dds"));
-            dialog.DefaultExtension = "dds";
-            if (editor.Session.SolutionPath != null)
-                dialog.InitialDirectory = editor.Session.SolutionPath.GetFullDirectory().ToWindowsPath();
-
-            var result = await dialog.ShowModal();
-            if (result == DialogResult.Ok)
+            var filepath = await ServiceProvider.Get<IDialogService>().SaveFilePickerAsync(
+                editor.Session.SolutionPath?.GetFullDirectory().ToWindowsPath(),
+                [new FilePickerFilter("DDS texture") { Patterns = ["*.dds"] }],
+                "dds");
+            if (filepath is not null)
             {
                 // Capture cubemap
-                using (var image = await CubemapService.CaptureCubemap())
-                {
-                    // And save it
-                    using (var file = File.Create(dialog.FilePath))
-                        image.Save(file, ImageFileType.Dds);
-                }
+                using var image = await CubemapService.CaptureCubemap();
+                // And save it
+                using var file = File.Create(filepath);
+                image.Save(file, ImageFileType.Dds);
             }
         }
     }

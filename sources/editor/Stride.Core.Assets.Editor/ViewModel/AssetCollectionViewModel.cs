@@ -543,21 +543,20 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var pathResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (pathResult == MessageBoxResult.No)
             {
-                while(true)
+                while (true)
                 {
-                    var fileDialog = Dialogs.CreateFileSaveModalDialog();
-                    fileDialog.Filters = new List<FileDialogFilter>() { new FileDialogFilter("", file.GetFileExtension()) };
-                    fileDialog.InitialDirectory = Path.GetFullPath(directory.Package.Package.ResourceFolders[0].FullPath);
-                    fileDialog.DefaultFileName = file.GetFileName();
-                    DialogResult result = await fileDialog.ShowModal();
+                   var filePath = await Dialogs.SaveFilePickerAsync(
+                       Path.GetFullPath(directory.Package.Package.ResourceFolders[0].FullPath),
+                       [new FilePickerFilter("") { Patterns = [file.GetFileExtension()]}],
+                       defaultFileName: file.GetFileName());
 
                     // If the user closes the dialog, assume that they want to use the default directory
-                    if (result != DialogResult.Ok)
+                    if (filePath is null)
                     {
                         return finalPath;
                     }
 
-                    var fullPath = Path.GetFullPath(fileDialog.FilePath);
+                    var fullPath = Path.GetFullPath(filePath);
 
                     bool inResource = directory.Package.Package.ResourceFolders.Any(x => fullPath.StartsWith(Path.GetFullPath(x.FullPath), StringComparison.Ordinal));
                     if (inResource)

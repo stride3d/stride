@@ -334,7 +334,7 @@ namespace Stride.Core.Assets.Editor.View
                 if (ask)
                 {
                     var buttons = DialogHelper.CreateButtons(new[] { yesCaption, noCaption }, 1, 2);
-                    var result = await CheckedMessageBox(message, false, DialogHelper.DontAskAgain, buttons, MessageBoxImage.Question);
+                    var result = await CheckedMessageBoxAsync(message, false, DialogHelper.DontAskAgain, buttons, MessageBoxImage.Question);
                     // Close without clicking on a button
                     if (result.Result == 0)
                         return;

@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -48,34 +49,29 @@ namespace Stride.Core.Presentation.Dialogs
             return new FileSaveModalDialog(Dispatcher);
         }
 
-        public Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
+        public async Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
+        {
+            return (MessageBoxResult)await DialogHelper.MessageBox(Dispatcher, message, ApplicationName, IDialogService.GetButtons(buttons), image);
+        }
+
+        public Task<int> MessageBoxAsync(string message, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
         {
             return DialogHelper.MessageBox(Dispatcher, message, ApplicationName, buttons, image);
         }
 
-        public Task<int> MessageBox(string message, IEnumerable<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
+        public async Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
-            return DialogHelper.MessageBox(Dispatcher, message, ApplicationName, buttons, image);
+            return await DialogHelper.CheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, IDialogService.GetButtons(button), image);
         }
 
-        public Task<CheckedMessageBoxResult> CheckedMessageBox(string message, bool? isChecked, MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
-        {
-            return DialogHelper.CheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, button, image);
-        }
-
-        public Task<CheckedMessageBoxResult> CheckedMessageBox(string message, bool? isChecked, string checkboxMessage, MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
-        {
-            return DialogHelper.CheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, button, image);
-        }
-
-        public Task<CheckedMessageBoxResult> CheckedMessageBox(string message, bool? isChecked, string checkboxMessage, IEnumerable<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
+        public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
         {
             return DialogHelper.CheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, buttons, image);
         }
 
         public MessageBoxResult BlockingMessageBox(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
-            return DialogHelper.BlockingMessageBox(Dispatcher, message, ApplicationName, buttons, image);
+            return (MessageBoxResult)DialogHelper.BlockingMessageBox(Dispatcher, message, ApplicationName, IDialogService.GetButtons(buttons), image);
         }
 
         public int BlockingMessageBox(string message, IEnumerable<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
@@ -85,12 +81,12 @@ namespace Stride.Core.Presentation.Dialogs
 
         public CheckedMessageBoxResult BlockingCheckedMessageBox(string message, bool? isChecked, MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
-            return DialogHelper.BlockingCheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, button, image);
+            return BlockingCheckedMessageBox(message, isChecked, DialogHelper.DontAskAgain, button, image);
         }
 
         public CheckedMessageBoxResult BlockingCheckedMessageBox(string message, bool? isChecked, string checkboxMessage, MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
-            return DialogHelper.BlockingCheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, button, image);
+            return DialogHelper.BlockingCheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, IDialogService.GetButtons(button), image);
         }
 
         public CheckedMessageBoxResult BlockingCheckedMessageBox(string message, bool? isChecked, string checkboxMessage, IEnumerable<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
@@ -155,7 +151,7 @@ namespace Stride.Core.Presentation.Dialogs
         {
             var dialog = CreateFileOpenModalDialog();
             dialog.AllowMultiSelection = false;
-            dialog.InitialDirectory = initialPath;
+            dialog.InitialDirectory = initialPath.ToWindowsPath();
             if (filters is not null)
                 dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
 
@@ -169,7 +165,7 @@ namespace Stride.Core.Presentation.Dialogs
         {
             var dialog = CreateFileOpenModalDialog();
             dialog.AllowMultiSelection = true;
-            dialog.InitialDirectory = initialPath;
+            dialog.InitialDirectory = initialPath.ToWindowsPath();
             if (filters is not null)
                 dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
 
@@ -180,11 +176,26 @@ namespace Stride.Core.Presentation.Dialogs
         async Task<UDirectory> IDialogService.OpenFolderPickerAsync(UDirectory initialPath)
         {
             var dialog = CreateFolderOpenModalDialog();
-            dialog.InitialDirectory = initialPath;
+            dialog.InitialDirectory = initialPath.ToWindowsPath();
 
             var result = await dialog.ShowModal();
             return result == DialogResult.Ok
                 ? dialog.Directory
+                : null;
+        }
+
+        async Task<UFile> IDialogService.SaveFilePickerAsync(UDirectory initialPath, IReadOnlyList<FilePickerFilter> filters, string defaultExtension, string defaultFileName)
+        {
+            var dialog = CreateFileSaveModalDialog();
+            dialog.DefaultExtension = defaultExtension;
+            dialog.DefaultFileName = defaultFileName;
+            dialog.InitialDirectory = initialPath.ToWindowsPath();
+            if (filters is not null)
+                dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
+
+            var result = await dialog.ShowModal();
+            return result == DialogResult.Ok
+                ? dialog.FilePath
                 : null;
         }
     }
