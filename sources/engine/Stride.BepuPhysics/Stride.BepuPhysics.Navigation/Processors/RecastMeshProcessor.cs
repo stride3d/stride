@@ -109,7 +109,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
             if (container is IBodyContainer)
                 continue;
 
-            if (container is IContainerWithMesh meshContainer && meshContainer.Model != null)
+            if (container is IContainerWithMesh meshContainer)
             {
                 // No need to store cache, nav mesh recompute should be rare enough were it would waste more memory than necessary
                 _shapeCache.GetModelCache(meshContainer.Model, out var cache);

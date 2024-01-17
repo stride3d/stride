@@ -3,8 +3,8 @@ using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Extensions;
-using Stride.BepuPhysics.Processors;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
 
@@ -173,7 +173,7 @@ namespace Stride.BepuPhysics.Components.Containers
 
         private float _mass = 1f;
         private bool _closed = true;
-        private Model? _model;
+        private Model _model = null!; // We have a 'required' guard making sure it is assigned
 
         public float Mass
         {
@@ -199,7 +199,9 @@ namespace Stride.BepuPhysics.Components.Containers
                 }
             }
         }
-        public Model? Model
+
+        [MemberRequired]
+        public required Model Model
         {
             get => _model;
             set

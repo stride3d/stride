@@ -156,7 +156,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
             shapeData.Clear();
 
             BepuShapeCacheSystem.Cache? cache = null;
-            if (container is IContainerWithMesh meshContainer && meshContainer.Model != null)
+            if (container is IContainerWithMesh meshContainer)
             {
                 _bepuShapeCacheSystem.GetModelCache(meshContainer.Model, out cache);
                 BodyShapeData data;

@@ -83,12 +83,6 @@ namespace Stride.BepuPhysics.Processors
             BodyInertia shapeInertia;
             if (ContainerComponent is IContainerWithMesh meshContainer)
             {
-                if (meshContainer.Model == null)
-                {
-                    DestroyContainer();
-                    return;
-                }
-
                 _processor.ShapeCache.GetModelCache(meshContainer.Model, out _cache);
                 var mesh = _cache.GetBepuMesh(_processor.ShapeCache.ComputeMeshScale(meshContainer));
 
