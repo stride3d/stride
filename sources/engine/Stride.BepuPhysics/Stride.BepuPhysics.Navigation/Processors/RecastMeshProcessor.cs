@@ -107,6 +107,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         {
             var container = e.Current.Value;
 
+#warning should we really ignore all bodies ?
             if (container is IBodyContainer)
                 continue;
 
@@ -184,10 +185,12 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 
                 for (int i = 0; i < shape.Indices.Length; i += 3)
                 {
-                    var index = shape.Indices[i];
-                    indices.Add(vertexBufferStart + index);
-                    indices.Add(vertexBufferStart + index + 2);
-                    indices.Add(vertexBufferStart + index + 1);
+                    var index0 = shape.Indices[i];
+                    var index1 = shape.Indices[i+1];
+                    var index2 = shape.Indices[i+2];
+                    indices.Add(vertexBufferStart + index0);
+                    indices.Add(vertexBufferStart + index2);
+                    indices.Add(vertexBufferStart + index1);
                 }
 
                 //foreach (int index in shape.Indices)
@@ -308,7 +311,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         var cube = _game.Content.Load<Model>("Cube");
         foreach (var vert in verts)
         {
-            AddMesh(_game.GraphicsDevice, _sceneSystem.SceneInstance.RootScene, vert, cube.Meshes[0].Draw);
+            AddMesh(_game.GraphicsDevice, _sceneSystem.SceneInstance.RootScene.Children[0], vert, cube.Meshes[0].Draw);
         }
     }
     Entity AddMesh(GraphicsDevice graphicsDevice, Scene rootScene, Vector3 position, MeshDraw meshDraw)

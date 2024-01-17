@@ -90,6 +90,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             d5318590fe49aed7bbd23cd8304526cb: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -140,6 +142,7 @@ Hierarchy:
                     16b1c216dcc3451a2350ca95db40810e: !Stride.BepuPhysics._2D.Components._2DSimulationConfigurator,Stride.BepuPhysics._2D
                         Id: b61da860-a7dd-40c0-baf0-b5ba58b0f98b
                         SimulationIndex: 2
+                        MaxZLiberty: 0.05
         -   Entity:
                 Id: 5d99c32a-8700-47fc-a605-f60966dfcaed
                 Name: Floor
@@ -170,6 +173,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             d5318590fe49aed7bbd23cd8304526cb: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -231,6 +236,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             d5318590fe49aed7bbd23cd8304526cb: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0

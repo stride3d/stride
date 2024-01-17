@@ -55,6 +55,8 @@ Hierarchy:
                         Kinematic*: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             5575fa76dc17f39fb0dbcf46c4375ffe: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -173,6 +175,8 @@ Hierarchy:
                         Kinematic*: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             22a474a76098940221e1d65e930ef451: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -255,7 +259,7 @@ Hierarchy:
                             c4be3cde9267c1a84ebd34fce78c8e1e: ref!! fdb4eab0-70be-4b54-9eab-de347caed944
                             2de7129a3af3a0a764eb2962d5236ecb: ref!! 89d9ebd9-70c2-4b77-8e09-db6c6a98308d
                     46d3e0466c59e94eb920dcace9871a76: !Stride.BepuPhysics.Components.Constraints.HingeConstraintComponent,Stride.BepuPhysics
-                        Id: add283f6-122b-409b-ab7c-14bf21781fab
+                        Id: b9ac61e3-3921-4392-9835-603419b10153
                         Enabled: true
                         A: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
                         B: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! befd947e-d1a5-4a14-9423-d272129d4ae5
@@ -266,7 +270,7 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                     82adb9d9847f9eab8cefae5aa42e7be3: !Stride.BepuPhysics.Components.Constraints.OneBodyAngularMotorConstraintComponent,Stride.BepuPhysics
-                        Id: e671ad85-a81f-4968-ba5a-a620bbf84f47
+                        Id: 67d2b6fa-7340-44a6-aa2a-4c769cb75cc0
                         Enabled: true
                         A: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
                         TargetVelocity: {X: 0.0, Y: 0.5, Z: 0.0}
@@ -348,6 +352,8 @@ Hierarchy:
                         Kinematic*: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             a893530c8d1c67dca8c13a0aafe370f1: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -448,6 +454,8 @@ Hierarchy:
                         Kinematic*: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             39d3e16fa2dea3f65f1f24f16835e99d: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -483,6 +491,8 @@ Hierarchy:
                         Kinematic*: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             48b3a5b354116db1b3b7089b62bf9ca3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -518,6 +528,8 @@ Hierarchy:
                         Kinematic*: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             187754f230078e03fd3d17622966ce5b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0

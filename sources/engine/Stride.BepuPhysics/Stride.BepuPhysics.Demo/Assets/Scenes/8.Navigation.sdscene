@@ -12,7 +12,42 @@ Hierarchy:
         - ref!! 3048579d-590d-4cb6-9da2-00d3df6c348c
         - ref!! 74ad0481-11b5-452c-a193-8e34d677bcda
         - ref!! c352c501-36ae-4812-8f56-51b5abe2ab25
+        - ref!! 7d6efaec-e0e1-4ba3-a0ac-68711a1c2c68
     Parts:
+        -   Entity:
+                Id: 2e7d0005-01e8-4c1a-9c08-edcdc9851193
+                Name: Hex2
+                Components:
+                    c6b2174e894768b47f8d000f8f9d33da: !TransformComponent
+                        Id: 6f95bf9d-03ed-4d8e-9c44-80f66e2917ef
+                        Position: {X: -142.47379, Y: -19.932272, Z: -26.171318}
+                        Rotation: {X: 0.65328145, Y: -0.270598, Z: 0.270598, W: 0.65328145}
+                        Scale: {X: 0.3, Y: 0.3, Z: 0.3}
+                        Children: {}
+                    da77210aeeb3d1caa000293889e6b172: !ModelComponent
+                        Id: 137b9aab-d5fe-4b6f-9ab5-c9c5fa4a3ca1
+                        Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
+                        Materials: {}
+                    b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                        Id: 94468a8d-bf99-4b5f-b97b-682eeb4dad00
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
+                        Colliders:
+                            a2657354665f8d0e0bfb0c15ca6b75f7: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 15.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
+                                Scale: {X: 0.3, Y: 0.3, Z: 0.3}
         -   Entity:
                 Id: 3048579d-590d-4cb6-9da2-00d3df6c348c
                 Name: Skybox
@@ -34,7 +69,7 @@ Hierarchy:
                         Intensity: 0.1
         -   Entity:
                 Id: 33f10382-7951-47d4-80f0-6a621bca55e4
-                Name: Hex
+                Name: Hex1
                 Components:
                     c6b2174e894768b47f8d000f8f9d33da: !TransformComponent
                         Id: 923fa071-ae79-4363-a32e-12463ef3357c
@@ -62,10 +97,43 @@ Hierarchy:
                         Colliders:
                             a2657354665f8d0e0bfb0c15ca6b75f7: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 15.0, Z: 0.0}
                                 RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
                                 Scale: {X: 0.3, Y: 0.3, Z: 0.3}
+        -   Entity:
+                Id: 644ed304-94db-494a-9a6f-e584604da464
+                Name: Floor
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 205b5160-ea11-43b1-a163-8f208b0751c5
+                        Position: {X: 56.39747, Y: 12.476216, Z: -87.553894}
+                        Rotation: {X: -0.28016648, Y: 0.53898555, Z: 0.1961747, W: 0.76975113}
+                        Scale: {X: 50.0, Y: 0.5, Z: 50.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: c2dece02-6bf1-4704-9b43-b9d1c1e85e93
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                        Id: e5b7efce-60c7-4c58-8413-cccf2cdd74d8
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
+                        Colliders:
+                            ec021a68e3874f78309aea134bfe69f3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 50.0, Y: 0.5, Z: 50.0}
         -   Entity:
                 Id: 6958ee95-2589-42b4-86f7-b95e75c06a30
                 Name: DefaultScripts
@@ -146,7 +214,7 @@ Hierarchy:
                 Components:
                     6961414337769221283ce59319f70fa8: !TransformComponent
                         Id: 501de015-083a-476f-9648-5b1889fd0a39
-                        Position: {X: 20.891396, Y: 12.476216, Z: -84.71667}
+                        Position: {X: 56.39747, Y: 12.476216, Z: -28.538315}
                         Rotation: {X: -0.051378015, Y: -0.67475283, Z: -0.04718331, W: 0.7347399}
                         Scale: {X: 50.0, Y: 0.5, Z: 50.0}
                         Children: {}
@@ -173,6 +241,36 @@ Hierarchy:
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Size: {X: 50.0, Y: 0.5, Z: 50.0}
+        -   Entity:
+                Id: 7d6efaec-e0e1-4ba3-a0ac-68711a1c2c68
+                Name: dungeon
+                Components:
+                    85be625b4f84209be842dff287512cf8: !TransformComponent
+                        Id: 4c45bcfc-6f03-4286-84d2-69ed08c4a98c
+                        Position: {X: -21.806572, Y: 0.0, Z: 156.01624}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ebb01a977a7984a7f1ff829c96713614: !ModelComponent
+                        Id: 57c08643-5c79-4145-b1c5-3f2af4a54b7b
+                        Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
+                        Materials: {}
+                    f5cc6fb5cbc9c81d0ae2c6f0d5f2faa1: !Stride.BepuPhysics.Components.Containers.StaticMeshContainerComponent,Stride.BepuPhysics
+                        Id: 48e47765-62be-4e6c-917f-12115953fe96
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        ColliderGroupMask: 255
+                        ColliderFilterByDistanceId: 0
+                        ColliderFilterByDistanceX: 0
+                        ColliderFilterByDistanceY: 0
+                        ColliderFilterByDistanceZ: 0
+                        IgnoreGlobalGravity: false
+                        Mass: 1.0
+                        Closed: true
+                        Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
         -   Entity:
                 Id: 8b35bb99-2d17-4174-9aa0-3d0ec2d84b59
                 Name: nav_test
@@ -209,7 +307,7 @@ Hierarchy:
                 Components:
                     6961414337769221283ce59319f70fa8: !TransformComponent
                         Id: 3ca31b15-4d32-4710-aa0d-55baf6051f5c
-                        Position: {X: 83.62334, Y: 0.0, Z: -11.688089}
+                        Position: {X: 119.12941, Y: 0.0, Z: 44.490265}
                         Rotation: {X: 0.0, Y: -0.4393583, Z: 0.0, W: 0.8983119}
                         Scale: {X: 50.0, Y: 0.5, Z: 50.0}
                         Children: {}
@@ -248,7 +346,7 @@ Hierarchy:
                         Children: {}
                     a2dce13dfa9042f6daa0341907b83feb: !BepuNavigationBoundingBoxComponent
                         Id: adc3ba80-5865-4f8c-ae76-8aad42fcdc7f
-                        Size: {X: 100.0, Y: 50.0, Z: 100.0}
+                        Size: {X: 200.0, Y: 50.0, Z: 200.0}
         -   Entity:
                 Id: c1d69305-de4d-4dc5-8414-ae412db81f58
                 Name: Directional light
@@ -285,16 +383,18 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             d7669fe30cb49ca09a9c56e4a8ea4126: ref!! df1b1d9b-7b12-4f9c-bd44-fd4039d6d7ed
+                            3f088841bedaa7ea6d3c25138c78704e: ref!! f3bd512c-b5a3-404d-bc25-f7470a4d63c7
                             9732fe286d70b4dee2d3598d7a29238c: ref!! 3ca31b15-4d32-4710-aa0d-55baf6051f5c
-                            c846816d1b41b8b41c31a1d9c1951bb5: ref!! f3bd512c-b5a3-404d-bc25-f7470a4d63c7
                             921b141e654480024e131f875f508594: ref!! 501de015-083a-476f-9648-5b1889fd0a39
-                            cb69d06b949e4f4a27abf89335d9f215: ref!! b8025715-3247-401e-8edd-eeec7acef0df
+                            656bc7e67a5bb4f6ab35b2a05bb31a3b: ref!! 205b5160-ea11-43b1-a163-8f208b0751c5
                             e477409f51de6f506569fa565fca8495: ref!! 276d6c54-5967-447c-b848-63b055eabf76
+                            3c43a4ddd29d7028460935d76f05893d: ref!! b8025715-3247-401e-8edd-eeec7acef0df
+                            e39b0ed8fbd66d3e067ce57c8555ab8e: ref!! a8a69d8e-9116-44a7-aef6-5c69eecfb7e8
                             4fe1b87f4f5e444d9ee843fb98d97fdd: ref!! 923fa071-ae79-4363-a32e-12463ef3357c
-                            76be3a32490a441bbf1eb66a9e36a555: ref!! a8a69d8e-9116-44a7-aef6-5c69eecfb7e8
+                            100f34b30941f3ad202635dc44f0895d: ref!! 6f95bf9d-03ed-4d8e-9c44-80f66e2917ef
         -   Entity:
                 Id: c3bb90a8-1489-40f9-90cd-95f5518327b6
-                Name: HexOf
+                Name: Hex0
                 Components:
                     c6b2174e894768b47f8d000f8f9d33da: !TransformComponent
                         Id: a8a69d8e-9116-44a7-aef6-5c69eecfb7e8
@@ -322,18 +422,17 @@ Hierarchy:
                         Colliders:
                             dca234d69636add3aa7f7af08439df56: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
                                 Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                PositionLocal: {X: 0.0, Y: 15.0, Z: 0.0}
                                 RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                 Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
                                 Scale: {X: 0.3, Y: 0.3, Z: 0.3}
-        -   Folder: null
-            Entity:
+        -   Entity:
                 Id: c7d5cb4a-8254-49de-8de0-b72b901759f5
                 Name: Floor
                 Components:
                     6961414337769221283ce59319f70fa8: !TransformComponent
                         Id: f3bd512c-b5a3-404d-bc25-f7470a4d63c7
-                        Position: {X: 91.434265, Y: 12.476216, Z: 97.90936}
+                        Position: {X: 126.94034, Y: 12.476216, Z: 154.0877}
                         Rotation: {X: 0.0, Y: -0.6764005, Z: 0.0, W: 0.73653406}
                         Scale: {X: 50.0, Y: 0.5, Z: 50.0}
                         Children: {}

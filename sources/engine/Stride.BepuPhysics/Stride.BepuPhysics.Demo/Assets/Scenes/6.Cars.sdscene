@@ -42,6 +42,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             f82e45bc925b7639ca1737c3b9691593: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -96,6 +98,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             2f7e140680119fe82716c6f62c30a194: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -132,6 +136,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             7b32ada34c9787e5548d9e84ba3d604a: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -168,6 +174,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             873875aef5c46693c560626aa3a63bc2: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -264,6 +272,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             8f3714b11b751e6fd737cc496b6df6c6: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -333,6 +343,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             33270ac8acfafe58ef05b259f36106de: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -369,6 +381,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             d2190741ac69be43b62b54e071f92a43: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -431,6 +445,8 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             68fca51abfe3709b90cec0bd580a5fb2: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -512,6 +528,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             96ad33017a225b75b429306a7ec515ff: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -548,6 +566,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             8f743d29ce66ec35f411531381214428: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -585,6 +605,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             d3f4b467d6f222274ffcb0065cf70cdd: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -621,6 +643,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             12e6eb8fc5c587f60fd7d1473beba21e: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -657,6 +681,8 @@ Hierarchy:
                         Kinematic: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             0be3b14bd6abfeb4536a5098bcd950e6: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -908,6 +934,8 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             db1448f5bbeece34a6ba37b359b31842: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -985,6 +1013,8 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             58350d79d3f3ae37d72722ff9788325e: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -1028,6 +1058,8 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             f43906c4b57fe5ff1999e1a89a64d806: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -1129,6 +1161,8 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             6df48b251e5774eb16c8411ca8712018: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -1182,6 +1216,8 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             b1097cc069fd426cde3da3eb01056ba4: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
@@ -1224,6 +1260,8 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             3f8ced47eebfc4c0ff0b39fb4e41075c: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0

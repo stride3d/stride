@@ -14,7 +14,7 @@ Hierarchy:
                         Id: 32391ea4-d87f-46a5-8848-638782b834dd
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 0.2, Y: 0.2, Z: 1}
+                        Scale: {X: 0.2, Y: 0.2, Z: 1.0}
                         Children: {}
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: c2f7a377-0786-4b5a-a030-35bc416a7c44
@@ -35,9 +35,11 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             a7feabaf7a7ef12bdebf7e1c635e3c47: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 0.1
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                 RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 0.2, Y: 0.2, Z: 1}
+                                Size: {X: 0.2, Y: 0.2, Z: 1.0}

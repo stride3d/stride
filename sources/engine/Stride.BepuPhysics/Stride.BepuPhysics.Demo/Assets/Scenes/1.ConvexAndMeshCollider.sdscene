@@ -228,6 +228,8 @@ Hierarchy:
                         Kinematic: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
+                        Interpolation: None
+                        ContinuousDetectionMode: Discrete
                         Colliders:
                             2ce2366b442bef89e46281e4be3476e0: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
                                 Mass: 1.0
