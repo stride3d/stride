@@ -9,7 +9,8 @@ Meta:
 AssetFolders:
     -   Path: !dir ../Assets/Shared
     -   Path: !dir Effects
-ResourceFolders: []
+ResourceFolders:
+    - !dir ../Resources
 OutputGroupDirectories: {}
 ExplicitFolders: []
 Bundles: []
