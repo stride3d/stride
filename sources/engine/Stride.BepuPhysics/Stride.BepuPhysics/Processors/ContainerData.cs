@@ -144,7 +144,7 @@ namespace Stride.BepuPhysics.Processors
 
             _exist = true;
 
-            var containerPose = new RigidPose((containerWorldTranslation + ContainerComponent.CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
+            var containerPose = new RigidPose((containerWorldTranslation + containerWorldRotation * ContainerComponent.CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
             if (ContainerComponent is IBodyContainer body)
             {
                 if (body.Kinematic)
