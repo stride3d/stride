@@ -5,6 +5,7 @@ using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
 using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Extensions;
 
 namespace Stride.BepuPhysics.Definitions.Raycast
@@ -14,12 +15,12 @@ namespace Stride.BepuPhysics.Definitions.Raycast
         private HitInfo[] _array;
         private readonly BepuSimulation _sim;
 
-        public byte CollisionMask { get; set; }
+        public CollisionMask CollisionMask { get; set; }
         public int Count { get; set; }
         public float StoredMax { get; set; }
         public int IndexOfMax { get; set; }
 
-        public RayHitsArrayHandler(BepuSimulation sim, HitInfo[] array, byte collisionMask)
+        public RayHitsArrayHandler(BepuSimulation sim, HitInfo[] array, CollisionMask collisionMask)
         {
             _array = array;
             _sim = sim;

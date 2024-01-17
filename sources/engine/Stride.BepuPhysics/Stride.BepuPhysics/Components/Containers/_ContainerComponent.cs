@@ -1,5 +1,6 @@
 ﻿using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Processors;
 using Stride.Core;
@@ -22,13 +23,8 @@ namespace Stride.BepuPhysics.Components.Containers
         private float _frictionCoefficient = 1f;
         private float _maximumRecoveryVelocity = 1000;
 
-        private byte _colliderGroupMask = byte.MaxValue; //1111 1111 => collide with everything
-        private ushort _colliderFilterByDistanceId = 0; //0 => Feature not enabled
-        private ushort _colliderFilterByDistanceX = 0; //collision occur if deltaX > 1
-        private ushort _colliderFilterByDistanceY = 0; //collision occur if deltaY > 1
-        private ushort _colliderFilterByDistanceZ = 0; //collision occur if deltaZ > 1
-
-        private bool _ignoreGlobalGravity = false;
+        private CollisionMask _collisionMask = CollisionMask.Everything;
+        private FilterByDistance _filterByDistance;
 
         private IContactEventHandler? _contactEventHandler = null;
 
@@ -110,63 +106,22 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        public byte ColliderGroupMask
+        public CollisionMask CollisionMask
         {
-            get => _colliderGroupMask;
+            get => _collisionMask;
             set
             {
-                _colliderGroupMask = value;
-                ContainerData?.UpdateMaterialProperties();
-            }
-        }
-        public ushort ColliderFilterByDistanceId
-        {
-            get => _colliderFilterByDistanceId;
-            set
-            {
-                _colliderFilterByDistanceId = value;
-                ContainerData?.UpdateMaterialProperties();
-            }
-        }
-        public ushort ColliderFilterByDistanceX
-        {
-            get => _colliderFilterByDistanceX;
-            set
-            {
-                _colliderFilterByDistanceX = value;
-                ContainerData?.UpdateMaterialProperties();
-            }
-        }
-        public ushort ColliderFilterByDistanceY
-        {
-            get => _colliderFilterByDistanceY;
-            set
-            {
-                _colliderFilterByDistanceY = value;
-                ContainerData?.UpdateMaterialProperties();
-            }
-        }
-        public ushort ColliderFilterByDistanceZ
-        {
-            get => _colliderFilterByDistanceZ;
-            set
-            {
-                _colliderFilterByDistanceX = value;
+                _collisionMask = value;
                 ContainerData?.UpdateMaterialProperties();
             }
         }
 
-        /// <summary> Whether to ignore the simulation's <see cref="BepuSimulation.PoseGravity"/> </summary>
-        /// <remarks> Gravity is always active if <see cref="BepuSimulation.UsePerBodyAttributes"/> is false </remarks>
-        public bool IgnoreGlobalGravity
+        public FilterByDistance FilterByDistance
         {
-            get => _ignoreGlobalGravity;
+            get => _filterByDistance;
             set
             {
-                if (_ignoreGlobalGravity == value)
-                    return;
-
-                _ignoreGlobalGravity = value;
+                _filterByDistance = value;
                 ContainerData?.UpdateMaterialProperties();
             }
         }

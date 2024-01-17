@@ -12,6 +12,7 @@ namespace Stride.BepuPhysics.Components.Containers.Interfaces
 
 
         public bool Awake { get; set; }
+        public bool IgnoreGlobalGravity { get; set; }
         public Vector3 LinearVelocity { get; set; }
         public Vector3 AngularVelocity { get; set; }
         public Vector3 Position { get; set; }

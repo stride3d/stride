@@ -7,6 +7,7 @@ using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Extensions;
@@ -240,7 +241,7 @@ public class BepuSimulation
     /// <param name="result">An intersection in the world when this method returns true, an undefined value when this method returns false</param>
     /// <param name="collisionMask"></param>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
-    public bool RayCast(in Vector3 origin, in Vector3 dir, float maxDistance, out HitInfo result, byte collisionMask = 255)
+    public bool RayCast(in Vector3 origin, in Vector3 dir, float maxDistance, out HitInfo result, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayClosestHitHandler(this, collisionMask);
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
@@ -266,7 +267,7 @@ public class BepuSimulation
     /// </param>
     /// <param name="hits">Intersections are pushed to <see cref="buffer"/>, this is the subset of <paramref name="buffer"/> that contains valid/assigned values</param>
     /// <param name="collisionMask"></param>
-    public void RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, HitInfo[] buffer, out Span<HitInfo> hits, byte collisionMask = 255)
+    public void RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, HitInfo[] buffer, out Span<HitInfo> hits, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayHitsArrayHandler(this, buffer, collisionMask);
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
@@ -281,7 +282,7 @@ public class BepuSimulation
     /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
     /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
     /// <param name="collisionMask"></param>
-    public void RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, byte collisionMask = 255)
+    public void RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
         Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
@@ -298,7 +299,7 @@ public class BepuSimulation
     /// <param name="collisionMask"></param>
     /// <typeparam name="TShape"></typeparam>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
-    public bool SweepCast<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, out HitInfo result, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    public bool SweepCast<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, out HitInfo result, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
     {
         var handler = new RayClosestHitHandler(this, collisionMask);
         Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref handler);
@@ -327,7 +328,7 @@ public class BepuSimulation
     /// <param name="collisionMask"></param>
     /// <typeparam name="TShape"></typeparam>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
-    public void SweepCastPenetrating<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, HitInfo[] buffer, out Span<HitInfo> contacts, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    public void SweepCastPenetrating<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, HitInfo[] buffer, out Span<HitInfo> contacts, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
     {
         var handler = new RayHitsArrayHandler(this, buffer, collisionMask);
         Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref handler);
@@ -345,7 +346,7 @@ public class BepuSimulation
     /// <param name="collisionMask"></param>
     /// <typeparam name="TShape"></typeparam>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
-    public void SweepCastPenetrating<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, ICollection<HitInfo> collection, byte collisionMask = 255) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    public void SweepCastPenetrating<TShape>(in TShape shape, in RigidPose pose, in BodyVelocity velocity, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
     {
         var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
         Simulation.Sweep(shape, pose, velocity, maxDistance, BufferPool, ref handler);
@@ -359,7 +360,7 @@ public class BepuSimulation
     /// <param name="collisionMask"></param>
     /// <typeparam name="TShape"></typeparam>
     /// <returns>True when the given shape overlaps with any physics object in the simulation</returns>
-    public bool Overlap<TShape>(in TShape shape, in RigidPose pose, byte collisionMask = 255) where TShape : unmanaged, IConvexShape
+    public bool Overlap<TShape>(in TShape shape, in RigidPose pose, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
         var handler = new OverlapAnyHandler(this, collisionMask);
         Simulation.Sweep(shape, pose, default, 0f, BufferPool, ref handler);
@@ -378,7 +379,7 @@ public class BepuSimulation
     /// <param name="overlaps">Containers are pushed to <see cref="buffer"/>, this is the subset of <paramref name="buffer"/> that contains valid/assigned containers</param>
     /// <param name="collisionMask"></param>
     /// <typeparam name="TShape"></typeparam>
-    public void Overlap<TShape>(in TShape shape, in RigidPose pose, IContainer[] buffer, out Span<IContainer> overlaps, byte collisionMask = 255) where TShape : unmanaged, IConvexShape
+    public void Overlap<TShape>(in TShape shape, in RigidPose pose, IContainer[] buffer, out Span<IContainer> overlaps, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
         var handler = new OverlapArrayHandler(this, buffer, collisionMask);
         Simulation.Sweep(shape, pose, default, 0f, BufferPool, ref handler);
@@ -393,7 +394,7 @@ public class BepuSimulation
     /// <param name="collection">The collection used to store containers into, the collection is not cleared before usage, containers are appended to it</param>
     /// <param name="collisionMask"></param>
     /// <typeparam name="TShape"></typeparam>
-    public void Overlap<TShape>(in TShape shape, in RigidPose pose, ICollection<IContainer> collection, byte collisionMask = 255) where TShape : unmanaged, IConvexShape
+    public void Overlap<TShape>(in TShape shape, in RigidPose pose, ICollection<IContainer> collection, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
         var handler = new OverlapCollectionHandler(this, collection, collisionMask);
         Simulation.Sweep(shape, pose, default, 0f, BufferPool, ref handler);

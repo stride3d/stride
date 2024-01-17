@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using BepuPhysics.Constraints;
+using Stride.BepuPhysics.Definitions.Colliders;
 
 namespace Stride.BepuPhysics.Definitions
 {
@@ -13,11 +14,8 @@ namespace Stride.BepuPhysics.Definitions
         public float MaximumRecoveryVelocity;
         public bool IsTrigger;
 
-        public byte ColliderGroupMask;
-        public ushort FilterByDistanceId; //0 => no check by distance
-        public ushort FilterByDistanceX;
-        public ushort FilterByDistanceY;
-        public ushort FilterByDistanceZ;
+        public CollisionMask ColliderCollisionMask;
+        public FilterByDistance FilterByDistance;
 
         //__Pose__Settings__ (Warning, if UserPerBodiesAttribute == false, doesn't work)
         public bool IgnoreGlobalGravity;
@@ -27,14 +25,13 @@ namespace Stride.BepuPhysics.Definitions
 
         public static bool AllowContactGeneration(MaterialProperties a, MaterialProperties b)
         {
-            byte colliderGroupAnd = (byte)(a.ColliderGroupMask & b.ColliderGroupMask);
-            bool result = colliderGroupAnd == a.ColliderGroupMask || colliderGroupAnd == b.ColliderGroupMask && colliderGroupAnd != 0;
+            bool result = a.ColliderCollisionMask.Collide(b.ColliderCollisionMask);
 
-            if (result && a.FilterByDistanceId == b.FilterByDistanceId && a.FilterByDistanceId != 0)
+            if (result && a.FilterByDistance.Id == b.FilterByDistance.Id && a.FilterByDistance.Id != 0)
             {
-                var differenceX = a.FilterByDistanceX - b.FilterByDistanceX;
-                var differenceY = a.FilterByDistanceY - b.FilterByDistanceY;
-                var differenceZ = a.FilterByDistanceZ - b.FilterByDistanceZ;
+                var differenceX = a.FilterByDistance.XAxis - b.FilterByDistance.XAxis;
+                var differenceY = a.FilterByDistance.YAxis - b.FilterByDistance.YAxis;
+                var differenceZ = a.FilterByDistance.ZAxis - b.FilterByDistance.ZAxis;
 
                 if ((!(differenceX < -DEFAULT_DISTANCE || differenceX > DEFAULT_DISTANCE)) && (!(differenceY < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)) && (!(differenceZ < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)))
                     result = false;

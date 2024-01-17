@@ -1,4 +1,5 @@
 ﻿using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
@@ -79,7 +80,7 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
                 dir.Normalize();
 
 
-                if (_simulationConfig.BepuSimulations[0].RayCast(raycastStart, dir, len, out HitInfo hitResult, 252)) //collider group == 1 so it don't collide with car body
+                if (_simulationConfig.BepuSimulations[0].RayCast(raycastStart, dir, len, out HitInfo hitResult, (CollisionMask)252)) //collider group == 1 so it don't collide with car body
                 {
                     // If we hit something along the way, calculate the distance
                     var hitDistance = Vector3.Distance(raycastStart, hitResult.Point.ToStrideVector()); 

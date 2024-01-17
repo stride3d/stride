@@ -1,4 +1,5 @@
-﻿using Stride.BepuPhysics.Processors;
+﻿using Stride.BepuPhysics.Definitions.Colliders;
+using Stride.BepuPhysics.Processors;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -15,12 +16,8 @@ namespace Stride.BepuPhysics.Components.Containers.Interfaces
         public float SpringDampingRatio { get; set; }
         public float FrictionCoefficient { get; set; }
         public float MaximumRecoveryVelocity { get; set; }
-        public byte ColliderGroupMask { get; set; }
-        public ushort ColliderFilterByDistanceId { get; set; }
-        public ushort ColliderFilterByDistanceX { get; set; }
-        public ushort ColliderFilterByDistanceY { get; set; }
-        public ushort ColliderFilterByDistanceZ { get; set; }
-        public bool IgnoreGlobalGravity { get; set; }
+        public CollisionMask CollisionMask { get; set; }
+        public FilterByDistance FilterByDistance { get; set; }
         public int GetAmountOfShapes => 0;
     }
 }

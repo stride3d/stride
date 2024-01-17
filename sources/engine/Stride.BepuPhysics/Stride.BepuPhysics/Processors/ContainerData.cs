@@ -62,13 +62,10 @@ namespace Stride.BepuPhysics.Processors
             mat.MaximumRecoveryVelocity = ContainerComponent.MaximumRecoveryVelocity;
             mat.IsTrigger = isTrigger;
 
-            mat.ColliderGroupMask = ContainerComponent.ColliderGroupMask;
-            mat.FilterByDistanceId = ContainerComponent.ColliderFilterByDistanceId;
-            mat.FilterByDistanceX = ContainerComponent.ColliderFilterByDistanceX;
-            mat.FilterByDistanceY = ContainerComponent.ColliderFilterByDistanceY;
-            mat.FilterByDistanceZ = ContainerComponent.ColliderFilterByDistanceZ;
+            mat.ColliderCollisionMask = ContainerComponent.CollisionMask;
+            mat.FilterByDistance = ContainerComponent.FilterByDistance;
 
-            mat.IgnoreGlobalGravity = ContainerComponent.IgnoreGlobalGravity;
+            mat.IgnoreGlobalGravity = ContainerComponent is IBodyContainer body && body.IgnoreGlobalGravity;
         }
 
         internal void RebuildContainer()

@@ -23,6 +23,7 @@ namespace Stride.BepuPhysics.Components.Containers
         #region Body
 
         private bool _kinematic = false;
+        private bool _ignoreGlobalGravity = false;
         private float _sleepThreshold = 0.01f;
         private byte _minimumTimestepCountUnderThreshold = 32;
 
@@ -35,6 +36,22 @@ namespace Stride.BepuPhysics.Components.Containers
                 ContainerData?.TryUpdateContainer();
             }
         }
+
+        /// <summary> Whether to ignore the simulation's <see cref="Configurations.BepuSimulation.PoseGravity"/> </summary>
+        /// <remarks> Gravity is always active if <see cref="Configurations.BepuSimulation.UsePerBodyAttributes"/> is false </remarks>
+        public bool IgnoreGlobalGravity
+        {
+            get => _ignoreGlobalGravity;
+            set
+            {
+                if (_ignoreGlobalGravity == value)
+                    return;
+
+                _ignoreGlobalGravity = value;
+                ContainerData?.UpdateMaterialProperties();
+            }
+        }
+
         public float SleepThreshold
         {
             get => _sleepThreshold;

@@ -31,16 +31,6 @@ namespace Stride.BepuPhysics.Definitions
 
             return MaterialProperties.AllowContactGeneration(matA, matB);
         }
-        //Table of thruth. If the number in the table is present on X/Y (inside '()') collision occur exept if result is "0".
-        //! indicate no collision
-
-        //                  1111 1111 (255)     0000 0001 (1  )      0000 0011 (3  )        0000 0101 (5  )     0000 0000 (0)
-        //1111 1111 (255)      255                  1                    3                      5                   0!
-        //0000 0001 (1  )       1                   1                    1                      1                   0!
-        //0000 0011 (3  )       3                   1                    3                      1!                  0!
-        //0000 0101 (5  )       5                   1                    1!                     5                   0!
-        //0000 1001 (9  )       9                   1                    1!                     1!                  0!
-        //0000 1010 (10 )       10                  0!                   2!                     0!                  0!
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

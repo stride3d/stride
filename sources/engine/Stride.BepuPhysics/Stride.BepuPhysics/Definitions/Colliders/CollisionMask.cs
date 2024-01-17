@@ -1,0 +1,44 @@
+﻿namespace Stride.BepuPhysics.Definitions.Colliders
+{
+    //Table of truth. If the number in the table is present on X/Y (inside '()') collision occur except if result is "0".
+    //! indicate no collision
+    //                  1111 1111 (255)     0000 0001 (1  )      0000 0011 (3  )        0000 0101 (5  )     0000 0000 (0)
+    //1111 1111 (255)      255                  1                    3                      5                   0!
+    //0000 0001 (1  )       1                   1                    1                      1                   0!
+    //0000 0011 (3  )       3                   1                    3                      1!                  0!
+    //0000 0101 (5  )       5                   1                    1!                     5                   0!
+    //0000 1001 (9  )       9                   1                    1!                     1!                  0!
+    //0000 1010 (10 )       10                  0!                   2!                     0!                  0!
+
+    /// <summary>
+    /// Collision occurs when mask 'a' contains all the layers set in 'b' or 'b' contains all the layers of 'a'.
+    /// </summary>
+    [Flags]
+    public enum CollisionMask : byte
+    {
+        /// <summary> No contact generated nor collisions reported between any object and this one </summary>
+        NoCollision = 0b0000_0000,
+        Layer0      = 0b0000_0001,
+        Layer1      = 0b0000_0010,
+        Layer2      = 0b0000_0100,
+        Layer3      = 0b0000_1000,
+        Layer4      = 0b0001_0000,
+        Layer5      = 0b0010_0000,
+        Layer6      = 0b0100_0000,
+        Layer7      = 0b1000_0000,
+        /// <summary> Collisions will occur between this one and any other colliders unless they have their mask set to <see cref="NoCollision"/> </summary>
+        Everything  = 0b1111_1111,
+    }
+
+    public static class CollisionMaskExtension
+    {
+        /// <summary>
+        /// Collision occurs when 'a' contains all the layers set in 'b' or 'b' contains all the layers of 'a'.
+        /// </summary>
+        public static bool Collide(this CollisionMask a, CollisionMask b)
+        {
+            CollisionMask and = a & b;
+            return and != 0 && (and == a || and == b);
+        }
+    }
+}

@@ -3,6 +3,7 @@ using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Extensions;
 
 namespace Stride.BepuPhysics.Definitions.Raycast
@@ -12,9 +13,9 @@ namespace Stride.BepuPhysics.Definitions.Raycast
         private readonly BepuSimulation _sim;
         private readonly ICollection<IContainer> _collection;
 
-        public byte CollisionMask { get; set; }
+        public CollisionMask CollisionMask { get; set; }
 
-        public OverlapCollectionHandler(BepuSimulation sim, ICollection<IContainer> collection, byte collisionMask)
+        public OverlapCollectionHandler(BepuSimulation sim, ICollection<IContainer> collection, CollisionMask collisionMask)
         {
             _sim = sim;
             _collection = collection;
@@ -43,10 +44,10 @@ namespace Stride.BepuPhysics.Definitions.Raycast
         private readonly BepuSimulation _sim;
         private readonly IContainer[] _collection;
 
-        public byte CollisionMask { get; set; }
+        public CollisionMask CollisionMask { get; set; }
         public int Count { get; set; }
 
-        public OverlapArrayHandler(BepuSimulation sim, IContainer[] collection, byte collisionMask)
+        public OverlapArrayHandler(BepuSimulation sim, IContainer[] collection, CollisionMask collisionMask)
         {
             _sim = sim;
             _collection = collection;
@@ -80,10 +81,10 @@ namespace Stride.BepuPhysics.Definitions.Raycast
     {
         private readonly BepuSimulation _sim;
 
-        public byte CollisionMask { get; set; }
+        public CollisionMask CollisionMask { get; set; }
         public bool Any { get; set; }
 
-        public OverlapAnyHandler(BepuSimulation sim, byte collisionMask)
+        public OverlapAnyHandler(BepuSimulation sim, CollisionMask collisionMask)
         {
             _sim = sim;
             CollisionMask = collisionMask;

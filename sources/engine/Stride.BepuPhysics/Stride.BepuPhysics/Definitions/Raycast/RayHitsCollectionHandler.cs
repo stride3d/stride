@@ -4,6 +4,7 @@ using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
 using Stride.BepuPhysics.Configurations;
+using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Extensions;
 
 namespace Stride.BepuPhysics.Definitions.Raycast
@@ -13,9 +14,9 @@ namespace Stride.BepuPhysics.Definitions.Raycast
         private ICollection<HitInfo> _collection;
         private readonly BepuSimulation _sim;
 
-        public byte CollisionMask { get; set; }
+        public CollisionMask CollisionMask { get; set; }
 
-        public RayHitsCollectionHandler(BepuSimulation sim, ICollection<HitInfo> collection, byte collisionMask)
+        public RayHitsCollectionHandler(BepuSimulation sim, ICollection<HitInfo> collection, CollisionMask collisionMask)
         {
             _collection = collection;
             CollisionMask = collisionMask;
