@@ -28,7 +28,7 @@ namespace Stride.BepuPhysics.Components.Containers
         private byte _minimumTimestepCountUnderThreshold = 32;
         private Interpolation _interpolation = Interpolation.None;
 
-        internal RigidPose PreviousPose, CurrentPos; //Sets by AfterSimulationUpdate()
+        internal RigidPose PreviousPose, CurrentPose; //Sets by AfterSimulationUpdate()
 
         public bool Kinematic
         {

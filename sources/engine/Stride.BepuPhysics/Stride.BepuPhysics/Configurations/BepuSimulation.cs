@@ -459,10 +459,10 @@ public class BepuSimulation
 
             foreach (var body in _interpolatedBodies)
             {
-                body.PreviousPose = body.CurrentPos;
+                body.PreviousPose = body.CurrentPose;
                 Debug.Assert(body.ContainerData is not null);
                 if (body.ContainerData.BodyReference is {} bRef)
-                    body.CurrentPos = bRef.Pose;
+                    body.CurrentPose = bRef.Pose;
             }
         }
 
@@ -557,9 +557,9 @@ public class BepuSimulation
             if (body.Interpolation == Interpolation.Extrapolated)
                 interpolationFactor += 1f;
 
-            var interpolatedPosition = System.Numerics.Vector3.Lerp(body.PreviousPose.Position, body.CurrentPos.Position, interpolationFactor).ToStrideVector();
+            var interpolatedPosition = System.Numerics.Vector3.Lerp(body.PreviousPose.Position, body.CurrentPose.Position, interpolationFactor).ToStrideVector();
             // We may be able to get away with just a Lerp instead of Slerp, not sure if it needs to be normalized though at which point it may not be that much faster
-            var interpolatedRotation = System.Numerics.Quaternion.Slerp(body.PreviousPose.Orientation, body.CurrentPos.Orientation, interpolationFactor).ToStrideQuaternion();
+            var interpolatedRotation = System.Numerics.Quaternion.Slerp(body.PreviousPose.Orientation, body.CurrentPose.Orientation, interpolationFactor).ToStrideQuaternion();
 
             var entityTransform = body.Entity.Transform;
             if (entityTransform.Parent is { } parent)
@@ -601,7 +601,14 @@ public class BepuSimulation
     internal void RegisterInterpolated(BodyContainerComponent body)
     {
         _interpolatedBodies.Add(body);
+
+        body.Entity.Transform.UpdateWorldMatrix();
+        body.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
+        body.CurrentPose.Position = (containerWorldTranslation + body.CenterOfMass).ToNumericVector();
+        body.CurrentPose.Orientation = containerWorldRotation.ToNumericQuaternion();
+        body.PreviousPose = body.CurrentPose;
     }
+
     internal void UnregisterInterpolated(BodyContainerComponent body)
     {
         _interpolatedBodies.Remove(body);
