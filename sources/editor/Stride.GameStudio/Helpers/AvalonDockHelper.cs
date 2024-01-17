@@ -6,10 +6,10 @@ using System.Linq;
 using System.Windows;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.ViewModel;
 using AvalonDock;
 using AvalonDock.Controls;
 using AvalonDock.Layout;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Helpers
 {

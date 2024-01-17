@@ -356,7 +356,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 var message = string.Format(
                             Tr._p("Message", "{0}\r\n\r\nThis file has been changed externally and has unsaved changes inside the editor.\r\nDo you want to reload it and lose your changes?"),
                             newDocument.FilePath);
-                var dialogResult = ServiceProvider.Get<IDialogService>().BlockingMessageBox(message, buttons, MessageBoxImage.Question);
+                var dialogResult = ServiceProvider.Get<IDialogService2>().BlockingMessageBox(message, buttons, MessageBoxImage.Question);
 
                 switch (dialogResult)
                 {

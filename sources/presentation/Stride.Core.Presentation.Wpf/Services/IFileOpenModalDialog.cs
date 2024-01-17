@@ -17,6 +17,6 @@ namespace Stride.Core.Presentation.Services
         /// <summary>
         /// Gets the list of file paths selected by the user.
         /// </summary>
-        IReadOnlyCollection<string> FilePaths { get; }
+        IReadOnlyList<string> FilePaths { get; }
     }
 }

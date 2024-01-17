@@ -7,10 +7,10 @@ using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
-using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
@@ -89,7 +89,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
             string error;
             if (!Templates.ValidateProperties(out error))
             {
-                DialogHelper.BlockingMessageBox(DispatcherService.Create(), error, EditorPath.EditorTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                DialogHelper.BlockingMessageBox(DispatcherService.Create(), error, EditorPath.EditorTitle, [IDialogService.ButtonOK], MessageBoxImage.Error);
                 return false;
             }
             return true;
