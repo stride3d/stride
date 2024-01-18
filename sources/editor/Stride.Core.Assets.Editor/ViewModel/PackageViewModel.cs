@@ -33,6 +33,7 @@ using Stride.Core.Quantum.References;
 using Stride.Core.Translation;
 using System.IO;
 using Stride.Core.Packages;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -449,7 +450,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -464,13 +465,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public async Task AddExistingProject()
         {
-            var fileDialog = ServiceProvider.Get<IEditorDialogService>().CreateFileOpenModalDialog();
-            fileDialog.Filters.Add(new FileDialogFilter("Visual Studio C# project", "csproj"));
-            fileDialog.InitialDirectory = Session.SolutionPath;
-            var result = await fileDialog.ShowModal();
-
-            var projectPath = fileDialog.FilePaths.FirstOrDefault();
-            if (result == DialogResult.Ok && projectPath != null)
+            var file = await ServiceProvider.Get<IDialogService>()
+                .OpenFilePickerAsync(Session.SolutionPath?.GetFullDirectory(), [new FilePickerFilter("Visual Studio C# project") { Patterns = ["*.csproj"] }]);
+            if (file is not null)
             {
                 var loggerResult = new LoggerResult();
                 var cancellationSource = new CancellationTokenSource();
@@ -492,7 +489,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     {
                         try
                         {
-                            Package.AddExistingProject(projectPath, loggerResult);
+                            Package.AddExistingProject(file, loggerResult);
                         }
                         catch (Exception e)
                         {
@@ -503,7 +500,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
                     RefreshPackageReferences();
 
-                    UndoRedoService.SetName(transaction, $"Import project '{new UFile(projectPath).GetFileNameWithoutExtension()}'");
+                    UndoRedoService.SetName(transaction, $"Import project '{file.GetFileNameWithoutExtension()}'");
                 }
 
                 // Notify that the task is finished
@@ -657,7 +654,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             string error;
             if (!IsValidName(newName, out error))
             {
-                ServiceProvider.Get<IDialogService>().BlockingMessageBox(string.Format(Tr._p("Message", "This package couldn't be renamed. {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
+                ServiceProvider.Get<IDialogService2>().BlockingMessageBox(string.Format(Tr._p("Message", "This package couldn't be renamed. {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             var newPath = UFile.Combine(PackagePath.GetFullDirectory(), newName + PackagePath.GetFileExtension());
