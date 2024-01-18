@@ -261,7 +261,7 @@ Hierarchy:
                             c4be3cde9267c1a84ebd34fce78c8e1e: ref!! fdb4eab0-70be-4b54-9eab-de347caed944
                             2de7129a3af3a0a764eb2962d5236ecb: ref!! 89d9ebd9-70c2-4b77-8e09-db6c6a98308d
                     46d3e0466c59e94eb920dcace9871a76: !Stride.BepuPhysics.Components.Constraints.HingeConstraintComponent,Stride.BepuPhysics
-                        Id: f2b4f116-e9f9-44b1-955c-a4495d8d2658
+                        Id: 1d6c27c1-1d53-4b2f-951f-4d089cd2f9dd
                         Enabled: true
                         A: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
                         B: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! befd947e-d1a5-4a14-9423-d272129d4ae5
@@ -272,7 +272,7 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                     82adb9d9847f9eab8cefae5aa42e7be3: !Stride.BepuPhysics.Components.Constraints.OneBodyAngularMotorConstraintComponent,Stride.BepuPhysics
-                        Id: 14142c5d-49a4-4f04-b68e-5e294ac6220a
+                        Id: f7523f14-1d92-49b3-80cf-e0fab803c1cd
                         Enabled: true
                         A: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
                         TargetVelocity: {X: 0.0, Y: 0.5, Z: 0.0}
@@ -306,6 +306,10 @@ Hierarchy:
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
+                    5fd6488be037a607d143da8a06b96fcc: !Stride.BepuPhysics.Demo.Components.Utils.GravityGunComponent,Stride.BepuPhysics.Demo
+                        Id: 3baf0844-433b-41bd-928d-fd84d4e16fa3
+                        Camera: ref!! 262cb5ce-c21d-44e1-aa32-4417cf02206e
+                        SimIndex: 2
                     d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
                         Id: 07390e70-d3f6-4541-9e22-3feea438321a
                         SimulationIndex: 2

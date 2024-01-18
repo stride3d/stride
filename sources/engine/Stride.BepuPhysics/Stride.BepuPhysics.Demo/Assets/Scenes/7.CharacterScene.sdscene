@@ -429,6 +429,10 @@ Hierarchy:
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
+                    3e9e8d6e7b24d918d3823713e8c37068: !Stride.BepuPhysics.Demo.Components.Utils.GravityGunComponent,Stride.BepuPhysics.Demo
+                        Id: 87114be3-98e3-4bf8-9346-627867f07f8a
+                        Camera: ref!! 6b596901-2d10-42e2-bfeb-5f7cad34f49a
+                        SimIndex: 1
                     d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
                         Id: 7d2ba482-6949-4481-a60a-fa8c769c71a6
                         SimulationIndex: 1
