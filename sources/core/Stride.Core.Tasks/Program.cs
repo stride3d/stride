@@ -79,7 +79,7 @@ namespace Stride.Core.Tasks
                     case "locate-devenv":
                     {
                         if(!OperatingSystem.IsWindows())
-                            throw new OptionException("This option is only available on Windows");
+                            throw new OptionException("This option is only available on Windows", "");
                             
                         if (commandArgs.Count != 2)
                             throw new OptionException("Need one extra argument", "");
