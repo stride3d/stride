@@ -88,7 +88,7 @@ namespace Stride.BepuPhysics.Components.Containers
             }
         }
 
-        [MemberRequired]
+        [MemberRequired(ReportAs = MemberRequiredReportType.Error)]
         public required Model Model
         {
             get => _model;
