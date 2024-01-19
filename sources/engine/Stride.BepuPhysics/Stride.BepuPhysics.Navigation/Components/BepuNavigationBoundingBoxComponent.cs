@@ -1,5 +1,4 @@
-﻿using Stride.BepuPhysics.Components.Containers;
-using Stride.BepuPhysics.Navigation.Processors;
+﻿using Stride.BepuPhysics.Navigation.Processors;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;

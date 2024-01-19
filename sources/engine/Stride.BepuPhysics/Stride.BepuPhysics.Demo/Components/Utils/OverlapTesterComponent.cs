@@ -1,8 +1,5 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Collidables;
-using Stride.BepuPhysics.Components.Containers.Interfaces;
-using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -13,7 +10,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
     {
         public override void Update()
         {
-            var buffer = System.Buffers.ArrayPool<IContainer>.Shared.Rent(16);
+            var buffer = System.Buffers.ArrayPool<ContainerComponent>.Shared.Rent(16);
             var bepuConfig = Services.GetService<BepuConfiguration>();
             var rot = Entity.Transform.GetWorldRot();
             var pos = Entity.Transform.GetWorldPos();
@@ -37,7 +34,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             {
                 DebugText.Print("no overlap", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 430));
             }
-            System.Buffers.ArrayPool<IContainer>.Shared.Return(buffer);
+            System.Buffers.ArrayPool<ContainerComponent>.Shared.Return(buffer);
         }
     }
 }

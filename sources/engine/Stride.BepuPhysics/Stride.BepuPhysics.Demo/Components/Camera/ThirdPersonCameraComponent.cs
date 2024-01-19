@@ -1,8 +1,4 @@
-﻿using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions.Colliders;
-using Stride.BepuPhysics.Definitions.Raycast;
-using Stride.BepuPhysics.Extensions;
-using Stride.Core.Mathematics;
+﻿using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 

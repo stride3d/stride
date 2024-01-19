@@ -100,7 +100,7 @@ Hierarchy:
                         Id: f092cb31-b02b-40c2-9e5f-a2c832a52f9e
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    35cc099f52862d462cf32a4e641a3953: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                    35cc099f52862d462cf32a4e641a3953: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
                         Id: 805641b3-f967-41df-b273-a1063faecd6b
                         SimulationIndex: 2
                         SpringFrequency: 30.0
@@ -113,7 +113,7 @@ Hierarchy:
                             XAxis: 0
                             YAxis: 0
                             ZAxis: 0
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             b6bbd3df557583b6dba66fc6e43461b5: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}

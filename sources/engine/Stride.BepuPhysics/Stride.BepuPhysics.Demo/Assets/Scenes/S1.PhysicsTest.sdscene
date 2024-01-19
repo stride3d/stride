@@ -47,7 +47,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    f1e348c32c828e5a583787585bdf2a6b: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                    f1e348c32c828e5a583787585bdf2a6b: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
                         Id: 930d3811-127e-4463-9ddb-53c33d6dc3f1
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -60,7 +60,7 @@ Hierarchy:
                             XAxis: 0
                             YAxis: 0
                             ZAxis: 0
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             6bf9b77fe4fd786d01763b41cc69f586: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}

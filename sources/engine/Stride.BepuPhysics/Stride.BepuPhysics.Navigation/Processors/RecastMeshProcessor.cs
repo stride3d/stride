@@ -5,20 +5,18 @@ using DotRecast.Recast.Geom;
 using DotRecast.Recast.Toolset;
 using DotRecast.Recast.Toolset.Builder;
 using DotRecast.Recast.Toolset.Geom;
-using Stride.BepuPhysics.Components.Containers.Interfaces;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Navigation.Components;
 using Stride.Core.Annotations;
 using Stride.Engine;
 using Stride.Games;
-using Stride.Core;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Graphics;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.Materials;
 using Stride.Core.Mathematics;
-using Stride.BepuPhysics.Processors;
+using Stride.BepuPhysics.Systems;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComponent>
@@ -27,7 +25,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
     private SceneSystem _sceneSystem;
     private InputManager _input;
     private ContainerProcessor _containerProcessor;
-    private BepuShapeCacheSystem _shapeCache;
+    private ShapeCacheSystem _shapeCache;
 
     private DtNavMesh? _navMesh;
     private Task<DtNavMesh>? _runningRebuild;
@@ -49,7 +47,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         _sceneSystem = Services.GetService<SceneSystem>();
         _input = Services.GetService<InputManager>();
         _containerProcessor = _sceneSystem.SceneInstance.Processors.Get<ContainerProcessor>();
-        _shapeCache = Services.GetService<BepuShapeCacheSystem>();
+        _shapeCache = Services.GetService<ShapeCacheSystem>();
     }
 
     protected override void OnEntityComponentAdding(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
@@ -106,24 +104,15 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
             var container = e.Current.Value;
 
 #warning should we really ignore all bodies ?
-            if (container is IBodyContainer)
+            if (container is BodyComponent)
                 continue;
 
-            if (container is IContainerWithMesh meshContainer)
-            {
-                // No need to store cache, nav mesh recompute should be rare enough were it would waste more memory than necessary
-                _shapeCache.GetModelCache(meshContainer.Model, out var cache);
-                BodyShapeData data;
-                cache.GetBuffers(out data.Vertices, out data.Indices);
-                asyncInput.shapeData.Add(data);
-            }
-            else if (container is IContainerWithColliders colliderContainer)
-                _shapeCache.AppendCachedShapesFor(colliderContainer, asyncInput.shapeData);
-
-            var shapeCount = ((IContainer)container).GetAmountOfShapes;
+            // No need to store cache, nav mesh recompute should be rare enough were it would waste more memory than necessary
+            container.Collider.AppendModel(asyncInput.shapeData, _shapeCache, out object? cache);
+            var shapeCount = container.Collider.Transforms;
             for (int i = shapeCount - 1; i >= 0; i--)
                 asyncInput.transformsOut.Add(default);
-            _shapeCache.GetShapeLocalTransformation(container, CollectionsMarshal.AsSpan(asyncInput.transformsOut)[^shapeCount..]);
+            container.Collider.GetLocalTransforms(container, CollectionsMarshal.AsSpan(asyncInput.transformsOut)[^shapeCount..]);
             asyncInput.matrices.Add((container.Entity.Transform.WorldMatrix, shapeCount));
         }
 
@@ -343,7 +332,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 
     class AsyncInput
     {
-        public List<BodyShapeData> shapeData = new();
+        public List<BasicMeshBuffers> shapeData = new();
         public List<ShapeTransform> transformsOut = new();
         public List<(Matrix entity, int count)> matrices = new();
     }

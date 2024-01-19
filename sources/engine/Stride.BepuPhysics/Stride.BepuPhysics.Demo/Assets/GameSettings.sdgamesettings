@@ -21,7 +21,7 @@ Defaults:
         ResourceLiveTimeout: 0:00:00:08.0000000
     - !Stride.Assets.Textures.TextureSettings,Stride.Assets
         TextureQuality: Normal
-    - !Stride.BepuPhysics.Configurations.BepuConfiguration,Stride.BepuPhysics
+    - !Stride.BepuPhysics.BepuConfiguration,Stride.BepuPhysics
         BepuSimulations:
             -   Enabled: true
                 ParallelUpdate: true

@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.BepuPhysics.Components.Constraints;
-using Stride.BepuPhysics.Components.Containers;
-using Stride.BepuPhysics.Extensions;
-using Stride.Core;
+using Stride.BepuPhysics.Constraints;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -21,20 +18,20 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         public float RopePartSize { get; set; } = 1.0f; //the z size of the rope part
 
 
-        private BodyContainerComponent? A { get; set; }
+        private BodyComponent? A { get; set; }
         public Entity? AEntity { get; set; }
         public Vector3 APos { get; set; } = new(0.5f, 0, 0);
 
 
-		private BodyContainerComponent? B { get; set; }
+		private BodyComponent? B { get; set; }
         public Entity? BEntity { get; set; }
         public Vector3 BPos { get; set; } = new(-0.5f, 0, 0);
 
 
         public override void Start()
         {
-            A = AEntity?.Get<BodyContainerComponent>();
-            B = BEntity?.Get<BodyContainerComponent>();
+            A = AEntity?.Get<BodyComponent>();
+            B = BEntity?.Get<BodyComponent>();
 
             if (RopePart == null || A == null || B == null)
                 return;
@@ -47,14 +44,14 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             dir.Normalize();
 
             var len = seg.Length() / RopePartSize;
-            var bodiesContainers = new List<BodyContainerComponent>();
+            var bodiesContainers = new List<BodyComponent>();
 
             for (var i = 0; i < len; i++)
             {
                 var entity = RopePart.Instantiate().First();
                 entity.Transform.Position = start + dir * RopePartSize * i;
                 entity.Transform.Rotation = Quaternion.LookRotation(dir, Vector3.UnitY);
-                var body = entity.Get<BodyContainerComponent>();
+                var body = entity.Get<BodyComponent>();
                 body.SimulationIndex = SimulationIndex;
                 
                 bodiesContainers.Add(body);

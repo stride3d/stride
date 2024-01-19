@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Stride.BepuPhysics.Components;
-using Stride.BepuPhysics.Components.Constraints;
-using Stride.BepuPhysics.Components.Containers;
+using Stride.BepuPhysics.Constraints;
 using Stride.BepuPhysics.Demo.Car;
-using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
@@ -21,7 +19,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
         public const float GEAR_DOWN_VALUE = 0.1f;
 
         //--Refs--
-        //Every Entities must contains a BodyContainerComponent & their collider.
+        //Every Entities must contains a BodyComponent & their collider.
         public Entity CarBody { get; set; } = new();
         public List<Entity> Wheels { get; set; } = new(); //all the car wheel
         public List<Entity> SteerWheels { get; set; } = new(); //wheel that can turn
@@ -70,11 +68,11 @@ namespace Stride.BepuPhysics.Demo.Components.Car
             if (CarBody == null || Wheels.Count == 0)
                 throw new Exception("CarComponent : must contains at least one body & one wheel");
 
-            var bodyContainer = CarBody.Get<BodyContainerComponent>();
+            var bodyContainer = CarBody.Get<BodyComponent>();
 
             foreach (var wheel in Wheels)
             {
-                var wheelContainer = wheel.Get<BodyContainerComponent>();
+                var wheelContainer = wheel.Get<BodyComponent>();
                 var WheelComponent = wheel.Get<WheelComponent>() ?? new();
 
                 var polscc = new PointOnLineServoConstraintComponent();
@@ -111,7 +109,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
 
             //foreach (var wheel in DriveWheels.Union(BreakWheels))
             //{
-            //    var wheelContainer = wheel.Get<BodyContainerComponent>();
+            //    var wheelContainer = wheel.Get<BodyComponent>();
 
             //    var aamcc = new AngularAxisMotorConstraintComponent();
             //    aamcc.Bodies.Add(wheelContainer);
@@ -262,7 +260,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 if (!Clutch)
                     DriveWheels.ForEach(e =>
                     {
-                        var wheelBody = e.Get<BodyContainerComponent>();
+                        var wheelBody = e.Get<BodyComponent>();
                         // do we want to get rid of the GetPhysicBody() method? 
                         var rotationNormal = GetWheelRotationNormal(wheelBody);
                         wheelBody.ApplyAngularImpulse(rotationNormal * engineForce);
@@ -272,7 +270,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 if (brakeForce != 0f)
                     BreakWheels.ForEach(e =>
                     {
-                        var wheelBody = e.Get<BodyContainerComponent>();
+                        var wheelBody = e.Get<BodyComponent>();
 
                         var rotationNormal = GetWheelRotationNormal(wheelBody);
                         var averageWheelRPM = GetWheelAverageRPM(wheelBody);
@@ -381,7 +379,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
         {
             DriveWheels.ForEach(e =>
             {
-                var wheelBody = e.Get<BodyContainerComponent>();
+                var wheelBody = e.Get<BodyComponent>();
 
                 var rotationNormal = GetWheelRotationNormal(wheelBody);
                 wheelBody.AngularVelocity = CurrentRPM * CarEngine.Gears[CurrentGear].GearRatio * rotationNormal;
@@ -390,11 +388,11 @@ namespace Stride.BepuPhysics.Demo.Components.Car
 
         private float GetWheelsAverageRPM() => DriveWheels.Select(e =>
         {
-            var wheelBody = e.Get<BodyContainerComponent>();
+            var wheelBody = e.Get<BodyComponent>();
 
             return GetWheelAverageRPM(wheelBody);
         }).Average();
-        private float GetWheelAverageRPM(BodyContainerComponent e)
+        private float GetWheelAverageRPM(BodyComponent e)
         {
             var rotationNormal = GetWheelRotationNormal(e);
             var angularVelocity = e.AngularVelocity;
@@ -404,7 +402,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
 
             return result;
         }
-        private Vector3 GetWheelRotationNormal(BodyContainerComponent e)
+        private Vector3 GetWheelRotationNormal(BodyComponent e)
         {
             var unitVec = new Vector3(0, 1, 0);
             e.Orientation.Rotate(ref unitVec);

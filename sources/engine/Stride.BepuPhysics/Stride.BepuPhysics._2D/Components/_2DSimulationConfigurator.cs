@@ -1,11 +1,6 @@
-﻿using Silk.NET.OpenGL;
-using Stride.BepuPhysics._2D.Components.Containers;
-using Stride.BepuPhysics.Components;
-using Stride.BepuPhysics.Configurations;
-using Stride.Core;
+﻿using Stride.BepuPhysics.Components;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using static Stride.Graphics.Buffer;
 
 namespace Stride.BepuPhysics._2D.Components
 {
@@ -29,7 +24,7 @@ namespace Stride.BepuPhysics._2D.Components
                 var handle = BepuSimulation.Simulation.Bodies.ActiveSet.IndexToHandle[i];
                 var body = BepuSimulation.GetContainer(handle);
 
-                if (body is not _2DBodyContainerComponent)
+                if (body is not Body2DComponent)
                     continue;
 
                 if (body.Position.Z > MaxZLiberty || body.Position.Z < -MaxZLiberty)

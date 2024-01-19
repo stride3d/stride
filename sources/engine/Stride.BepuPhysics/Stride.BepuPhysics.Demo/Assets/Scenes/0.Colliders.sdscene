@@ -104,7 +104,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 49946dd2-8773-4a53-b676-0c6b72384dbf
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -123,7 +123,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             a9f00db663b1a9a6b23535302bcc9ca4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -165,7 +165,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    c1dc62b6ad0eeaa6ac5bce61acaea95d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    c1dc62b6ad0eeaa6ac5bce61acaea95d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 3637b612-dfa7-48da-8e20-cc601c1daed6
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -184,7 +184,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             b39ec3beacf3467ba72036ec031579b3: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -213,7 +213,7 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             6465785dc96ea7ac8d1aaf4a2311846d: ref!! 9184f9cb-7ef2-4baa-ae94-c752e113d079
-                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 8d3804ca-7176-46ed-9648-ee3fbda3adf2
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -232,7 +232,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             a9f00db663b1a9a6b23535302bcc9ca4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -249,7 +249,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    b782d35571eca87ac831439c3c7112c1: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    b782d35571eca87ac831439c3c7112c1: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 090da23b-0dba-45cb-8819-5c29be9ec1e8
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -268,7 +268,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             468f3594e8773fe07cadeaac28fbd67b: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -287,7 +287,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 2.0, Y: 1.0, Z: 2.0}
                         Children: {}
-                    800181884bf3173cb65ae0ae3a747fae: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    800181884bf3173cb65ae0ae3a747fae: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 822afc01-c0d0-4b8e-a895-820dba2e046a
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -306,7 +306,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             ae244369f97dd0bef4020b41ad63e8ff: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -358,7 +358,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    c1dc62b6ad0eeaa6ac5bce61acaea95d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    c1dc62b6ad0eeaa6ac5bce61acaea95d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: e91f5d44-e4de-463c-8fb6-ed9be95511e3
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -377,7 +377,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             b39ec3beacf3467ba72036ec031579b3: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -400,7 +400,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    c36d55f16a6d7e546e9fdfc2408c829b: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    c36d55f16a6d7e546e9fdfc2408c829b: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 7d54d223-7f68-4e52-93fa-81731ec72851
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -419,7 +419,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             d73e0b03f776d8a9d1deb7b03a9a2c85: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -464,7 +464,7 @@ Hierarchy:
                 Id: 72863708-7038-42b9-886a-c732c01853d6
                 Name: ComposedShape2
                 Components:
-                    4dd9c4977b44048486a40db3c86dbce0: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    4dd9c4977b44048486a40db3c86dbce0: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: c0a5daf7-f0aa-49a8-b720-427d5c21d363
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -483,7 +483,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             8fcbb7a6172d34c9470a58c6fb9bfb83: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: -0.5, Y: 0.0, Z: 0.0}
@@ -531,7 +531,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    c1dc62b6ad0eeaa6ac5bce61acaea95d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    c1dc62b6ad0eeaa6ac5bce61acaea95d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: bf1ac7b1-3505-43cc-9d81-d3f5180dff2b
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -550,7 +550,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             b39ec3beacf3467ba72036ec031579b3: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -635,7 +635,7 @@ Hierarchy:
                 Id: a2e2fd4f-5b9b-405b-a0e5-8f52c599f3a8
                 Name: ComposedShape
                 Components:
-                    563ba9b0d6bcd432626fd9759d36b76b: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    563ba9b0d6bcd432626fd9759d36b76b: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 49b96772-0cae-4ae2-b220-b3b076bc922f
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -654,7 +654,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             8fcbb7a6172d34c9470a58c6fb9bfb83: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: -0.5, Y: 0.0, Z: 0.0}
@@ -690,7 +690,7 @@ Hierarchy:
                 Id: abacc45d-ec02-4248-a0d3-a1b7e42c1185
                 Name: ComposedShape3
                 Components:
-                    e3e7d2eb58c67667be314303e6b410a6: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    e3e7d2eb58c67667be314303e6b410a6: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: ccb58fad-52dc-4d2e-aec6-0dbda094c3ee
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -709,7 +709,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             8fcbb7a6172d34c9470a58c6fb9bfb83: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: -0.5, Y: 0.0, Z: 0.0}
@@ -756,7 +756,7 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             1c67987a0801b3ccaed88c8f8af9e00d: ref!! ea880ebc-6eb2-43ee-bfe4-09fb3867a854
-                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 757a688c-8869-4950-aede-d98645c8a9a0
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -775,7 +775,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             a9f00db663b1a9a6b23535302bcc9ca4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -792,7 +792,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 2.0, Z: 1.0}
                         Children: {}
-                    800181884bf3173cb65ae0ae3a747fae: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    800181884bf3173cb65ae0ae3a747fae: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 4c2f106d-2f66-4d99-8391-2738877ea6ce
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -811,7 +811,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             ae244369f97dd0bef4020b41ad63e8ff: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -853,7 +853,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    800181884bf3173cb65ae0ae3a747fae: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    800181884bf3173cb65ae0ae3a747fae: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 3ea4b1e6-499f-4ba7-8557-49ab1e3c61c1
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -872,7 +872,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             ae244369f97dd0bef4020b41ad63e8ff: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -899,7 +899,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 2.0, Y: 1.0, Z: 2.0}
                         Children: {}
-                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 13a2dea0-c699-4db1-9a16-e8f96f27b775
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -918,7 +918,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             a9f00db663b1a9a6b23535302bcc9ca4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -935,7 +935,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    b782d35571eca87ac831439c3c7112c1: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    b782d35571eca87ac831439c3c7112c1: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: c7230b28-2dfd-4d70-9990-3a6343b7a679
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -954,7 +954,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             8fcbb7a6172d34c9470a58c6fb9bfb83: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -973,7 +973,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 150.0, Y: 0.1, Z: 150.0}
                         Children: {}
-                    13f3af2c4ea391eb3010e218853e2b2c: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    13f3af2c4ea391eb3010e218853e2b2c: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: b94ea803-7534-447f-b4e1-1c8ed2d79fc2
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -992,7 +992,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             8fcbb7a6172d34c9470a58c6fb9bfb83: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -1037,7 +1037,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 2.0, Y: 2.0, Z: 2.0}
                         Children: {}
-                    c36d55f16a6d7e546e9fdfc2408c829b: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    c36d55f16a6d7e546e9fdfc2408c829b: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 05c9871e-5b38-4348-acd3-5b167bebf988
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -1056,7 +1056,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             d73e0b03f776d8a9d1deb7b03a9a2c85: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -1095,7 +1095,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 2.0, Z: 1.0}
                         Children: {}
-                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    41416b9ddf1316784a7b70320492b88d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 758d53ac-2ff9-4431-a302-ac9b049f5b33
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -1114,7 +1114,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                         Interpolation: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
+                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             a9f00db663b1a9a6b23535302bcc9ca4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                 Mass: 1.0
                                 PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}

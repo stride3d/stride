@@ -1,8 +1,4 @@
-﻿using System.Runtime;
-using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions.Raycast;
-using Stride.BepuPhysics.Extensions;
-using Stride.Core.Mathematics;
+﻿using Stride.Core.Mathematics;
 using Stride.Engine;
 
 namespace Stride.BepuPhysics.Demo.Components.Utils

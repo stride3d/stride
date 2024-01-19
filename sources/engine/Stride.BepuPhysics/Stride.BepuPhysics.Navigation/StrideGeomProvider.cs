@@ -1,5 +1,4 @@
-﻿using DotRecast.Core.Collections;
-using DotRecast.Core.Numerics;
+﻿using DotRecast.Core.Numerics;
 using DotRecast.Core;
 using DotRecast.Recast.Geom;
 using DotRecast.Recast;

@@ -1,7 +1,5 @@
 ﻿using System.Linq;
 using Stride.BepuPhysics.Components;
-using Stride.BepuPhysics.Components.Containers;
-using Stride.BepuPhysics.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -29,7 +27,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             Entity.AddChild(entity);
 
-            if (entity.Get<ContainerComponent>() is BodyContainerComponent body)
+            if (entity.Get<ContainerComponent>() is BodyComponent body)
             {
                 body.SimulationIndex = SimulationIndex;
                 body?.ApplyImpulse(Impulse, ImpulsePos);
