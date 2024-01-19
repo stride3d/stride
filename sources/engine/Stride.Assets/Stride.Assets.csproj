@@ -43,7 +43,7 @@
     <PackageReference Include="System.Xml.XmlDocument" />
     <PackageReference Include="System.Xml.XPath" />
     <PackageReference Include="System.Xml.XPath.XDocument" />
-    <PackageReference Include="SixLabors.Fonts" Version="1.0.0"/>
+    <PackageReference Include="SixLabors.Fonts"/>
     <Reference Include="VHACDSharp">
       <HintPath>..\..\..\deps\VHACD\VHACDSharp.dll</HintPath>
     </Reference>
