@@ -1,13 +1,13 @@
 using Eto.Parse;
 using Eto.Parse.Parsers;
 using static Eto.Parse.Terminals;
+using static SDSL.Parsing.Grammars.CommonParsers;
 
 namespace SDSL.Parsing.Grammars.SDSL;
 public class SDSLMixinReader : SDSLGrammar
 {
     public override void CreateAll()
     {
-        CreateTokens();
         CreateTokenGroups();
         CreateLiterals();
         CreateExpressions();

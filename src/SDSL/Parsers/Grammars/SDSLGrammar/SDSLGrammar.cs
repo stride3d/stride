@@ -19,7 +19,6 @@ public partial class SDSLGrammar : Grammar
 
     public virtual void CreateAll()
     {
-        CreateTokens();
         CreateTokenGroups();
         CreateLiterals();
         CreateDirectives();

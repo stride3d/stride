@@ -11,7 +11,7 @@ public partial class SDSLGrammar : Grammar
     public SequenceParser ForEachLoop = new() { Name = "ForEachLoop"};
     public SequenceParser ForLoop = new() { Name = "ForLoop"};
 
-    public void CreateLoopFloSpacestatements()
+    public void CreateLoopFlowStatements()
     {
         var valueDeclare = new SequenceParser(
             ((SimpleTypes | Identifier) & Identifier).SeparatedBy(Spaces1).Named("NewVariable")

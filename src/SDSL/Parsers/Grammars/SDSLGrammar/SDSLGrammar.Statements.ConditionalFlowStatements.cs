@@ -7,7 +7,7 @@ namespace SDSL.Parsing.Grammars.SDSL;
 public partial class SDSLGrammar : Grammar
 {
     public SequenceParser ControlFlow = new() { Name = "ControlFlow" };
-    public void CreateConditionalFloSpacestatements()
+    public void CreateConditionalFlowStatements()
     {
 
 

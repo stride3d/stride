@@ -298,7 +298,6 @@ static void ParseSDSL()
 
 }
 
-
 //ParseWorking();
 //CheckOrderedEnumerator();
 Console.WriteLine("working on " + Directory.GetCurrentDirectory());

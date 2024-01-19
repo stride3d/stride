@@ -81,7 +81,7 @@ public class ConditionalFlow : ControlFlow
 }
 
 
-public class ControlFlow : Statement
+public abstract class ControlFlow : Statement
 {
     public static ControlFlow Create(Match m, SymbolTable s)
     {
