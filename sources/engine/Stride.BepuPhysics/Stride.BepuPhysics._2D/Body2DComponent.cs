@@ -6,7 +6,7 @@ using Stride.Engine;
 
 namespace Stride.BepuPhysics
 {
-    [ComponentCategory("Bepu - Containers 2D")]
+    [ComponentCategory("Bepu")]
     public class Body2DComponent : BodyComponent
     {
         Vector3 _rotationLock = new Vector3(0, 0, 1);

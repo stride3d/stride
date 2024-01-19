@@ -11,7 +11,7 @@ using NVector3 = System.Numerics.Vector3;
 
 namespace Stride.BepuPhysics;
 
-[ComponentCategory("Bepu - Character")]
+[ComponentCategory("Bepu")]
 public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEventHandler
 {
     private bool _tryJump;

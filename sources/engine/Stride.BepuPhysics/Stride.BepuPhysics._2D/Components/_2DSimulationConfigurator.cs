@@ -5,7 +5,7 @@ using Stride.Engine;
 namespace Stride.BepuPhysics._2D.Components
 {
 
-    [ComponentCategory("Bepu - 2D")]
+    [ComponentCategory("Bepu")]
     public class _2DSimulationConfigurator : SimulationUpdateComponent
     {
         public float MaxZLiberty { get; set; } = 0.05f;
