@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideExplicitWindowsRuntime>true</StrideExplicitWindowsRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
