@@ -95,7 +95,7 @@
     <StrideAssemblyProcessorFramework>netstandard2.0</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorExt>.dll</StrideAssemblyProcessorExt>
     <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt).hash'))</StrideAssemblyProcessorHash>
-    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([MSBuild]::Unescape('$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\'))</StrideAssemblyProcessorTempBasePath>
     <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
 

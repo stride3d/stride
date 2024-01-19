@@ -56,7 +56,7 @@
     <StrideAssemblyProcessorSerializationHashFile>$(IntermediateOutputPath)$(TargetName).sdserializationhash</StrideAssemblyProcessorSerializationHashFile>
     
     <StrideAssemblyProcessorHash>$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorPath).hash'))</StrideAssemblyProcessorHash>
-    <StrideAssemblyProcessorTempBasePath>$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempBasePath>$([MSBuild]::Unescape('$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\'))</StrideAssemblyProcessorTempBasePath>
     <StrideAssemblyProcessorTempPath>$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorTempPath)" Condition=" '$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
