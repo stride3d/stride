@@ -14,7 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.csproj" />
     <ProjectReference Include="..\..\tools\Stride.Importer.Common\Stride.Importer.Common.csproj" />
-    <ProjectReference Include="..\..\tools\Stride.Importer.FBX\Stride.Importer.FBX.vcxproj" PrivateAssets="All" />
+    <ProjectReference Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="..\..\tools\Stride.Importer.FBX\Stride.Importer.FBX.vcxproj" PrivateAssets="All" />
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
   </ItemGroup>
   <ItemGroup>
