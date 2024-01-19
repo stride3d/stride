@@ -100,33 +100,32 @@ namespace Stride.Assets.Presentation.AssetEditors
                     {
                         var assemblyChange = await buffer.ReceiveAsync(batchChangesCancellationTokenSource.Token);
 
+                        if (assemblyChange == null)
+                            continue;
 
-                        if (assemblyChange != null)
+                        assemblyChanges.Add(assemblyChange);
+                        var project = assemblyChange.Project;
+                        var projects = msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id);
+                        foreach (var p in projects)
                         {
-                            assemblyChanges.Add(assemblyChange);
-                            var project = assemblyChange.Project;
-                            var projects = msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id);
-                            foreach (var p in projects)
+                            var assemblyName = msbuildWorkspace.CurrentSolution.GetProject(p).AssemblyName;
+                            var target = trackedAssemblies.FirstOrDefault(x => x.Project.AssemblyName == assemblyName);
+                            if (target != null)
                             {
-                                var assemblyName = msbuildWorkspace.CurrentSolution.GetProject(p).AssemblyName;
-                                var target = trackedAssemblies.FirstOrDefault(x => x.Project.AssemblyName == assemblyName);
-                                if (target != null)
+                                string file = assemblyChange.ChangedFile;
+                                if (assemblyChange.ChangeType == AssemblyChangeType.Binary)
                                 {
-                                    string file = assemblyChange.ChangedFile;
-                                    if (assemblyChange.ChangeType == AssemblyChangeType.Binary)
-                                    {
-                                        file = target.LoadedAssembly.Path;
-                                    }
-                                    else if (assemblyChange.ChangeType == AssemblyChangeType.Project)
-                                    {
-                                        file = target.Project.FilePath;
-                                    }
-                                    assemblyChanges.Add(new AssemblyChangedEvent(target.LoadedAssembly, assemblyChange.ChangeType, file, target.Project));
+                                    file = target.LoadedAssembly.Path;
                                 }
+                                else if (assemblyChange.ChangeType == AssemblyChangeType.Project)
+                                {
+                                    file = target.Project.FilePath;
+                                }
+                                assemblyChanges.Add(new AssemblyChangedEvent(target.LoadedAssembly, assemblyChange.ChangeType, file, target.Project));
                             }
                         }
 
-                        if (assemblyChange != null && !hasChanged)
+                        if (!hasChanged)
                         {
                             // After the first change, wait for more changes
                             await Task.Delay(TimeSpan.FromMilliseconds(500), batchChangesCancellationTokenSource.Token);
@@ -233,9 +232,9 @@ namespace Stride.Assets.Presentation.AssetEditors
                 // Also check for .cs file changes (DefaultItems auto import *.cs, with some excludes such as obj subfolder)
                 // TODO: Check actual unevaluated .csproj to get the auto includes/excludes?
                 if (needProjectReload == false
-                    && ((e.ChangeType == FileEventChangeType.Deleted ||e.ChangeType == FileEventChangeType.Renamed ||  e.ChangeType == FileEventChangeType.Created)
+                    && ((e.ChangeType == FileEventChangeType.Deleted || e.ChangeType == FileEventChangeType.Renamed || e.ChangeType == FileEventChangeType.Created)
                     && Path.GetExtension(changedFile)?.ToLowerInvariant() == ".cs"
-                    && changedFile.StartsWith(Path.GetDirectoryName(trackedAssembly.Project.FilePath),StringComparison.OrdinalIgnoreCase)))
+                    && changedFile.StartsWith(Path.GetDirectoryName(trackedAssembly.Project.FilePath), StringComparison.OrdinalIgnoreCase)))
                 {
                     needProjectReload = true;
                 }
