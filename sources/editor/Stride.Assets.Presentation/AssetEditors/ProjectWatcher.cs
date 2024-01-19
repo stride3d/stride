@@ -105,10 +105,13 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                         assemblyChanges.Add(assemblyChange);
                         var project = assemblyChange.Project;
-                        var projects = msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id);
-                        foreach (var p in projects)
+                        var referencedProjects = msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id);
+                        foreach (var referenceProject in referencedProjects)
                         {
-                            var assemblyName = msbuildWorkspace.CurrentSolution.GetProject(p).AssemblyName;
+                            var foundProject = msbuildWorkspace.CurrentSolution.GetProject(referenceProject);
+                            if(foundProject is null)
+                                continue;
+                            var assemblyName = foundProject.AssemblyName;
                             var target = trackedAssemblies.FirstOrDefault(x => x.Project.AssemblyName == assemblyName);
                             if (target != null)
                             {
