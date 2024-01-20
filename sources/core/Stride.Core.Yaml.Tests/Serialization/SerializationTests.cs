@@ -816,6 +816,24 @@ Mother:
             Assert.Equal(22, family.Mother.Age);
         }
 
+        [Fact]
+        public void ThrowWithoutEmptyCtor()
+        {
+            try
+            {
+                SerializeThenDeserialize(new ClassWithNonEmptyCtor(default));
+            }
+            catch (Exception ex)
+            {
+                Assert.True(ex.InnerException is DefaultObjectFactory.InstanceCreationException);
+            }
+        }
+
+        class ClassWithNonEmptyCtor 
+        {
+            public ClassWithNonEmptyCtor(bool parameter) { }
+        }
+
 
         [Fact]
         public void DeserializeEmptyDocument()
