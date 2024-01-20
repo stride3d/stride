@@ -822,6 +822,7 @@ Mother:
             try
             {
                 SerializeThenDeserialize(new ClassWithNonEmptyCtor(default));
+                Assert.Fail("An exception should have been thrown given that the class cannot be instanced because of the missing empty constructor ");
             }
             catch (Exception ex)
             {
