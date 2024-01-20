@@ -30,6 +30,13 @@ Hierarchy:
                         Materials: {}
                     141cef7c97863a5254b1e26c28054477: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
                         Id: 10bddda6-1513-4d9e-a8dd-ff8ca5839337
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            d2f59dab828a2b3a808202d729ce2e1f: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 250.0, Y: 0.1, Z: 250.0}
+                        ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -41,12 +48,6 @@ Hierarchy:
                             XAxis: 0
                             YAxis: 0
                             ZAxis: 0
-                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            d2f59dab828a2b3a808202d729ce2e1f: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 250.0, Y: 0.1, Z: 250.0}
         -   Entity:
                 Id: 0c92bced-319f-42ec-84b9-955742cd3448
                 Name: Directional light
@@ -114,6 +115,13 @@ Hierarchy:
                         Materials: {}
                     bd30b55fbbf2272099d933bcb3df00b7: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 5f8aa385-ebee-4437-b8da-7b71732ed9aa
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            db1448f5bbeece34a6ba37b359b31842: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 5.0, Y: 1.0, Z: 5.0}
+                        ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -129,14 +137,8 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Interpolation: None
+                        InterpolationMode: None
                         ContinuousDetectionMode: Discrete
-                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            db1448f5bbeece34a6ba37b359b31842: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 5.0, Y: 1.0, Z: 5.0}
         -   Entity:
                 Id: 846c345d-1504-4fb4-bc4c-83c793937ff2
                 Name: CubeInstancing
@@ -171,6 +173,13 @@ Hierarchy:
                         Materials: {}
                     ece7eda6a6067c7aa682e605a9ec116f: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 285dee99-ee5a-459e-a32f-964531565982
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            68fca51abfe3709b90cec0bd580a5fb2: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                        ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -186,14 +195,8 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Interpolation: None
+                        InterpolationMode: None
                         ContinuousDetectionMode: Discrete
-                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            68fca51abfe3709b90cec0bd580a5fb2: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
         -   Entity:
                 Id: a8119626-e4db-4aa9-ad54-06e435bd1f85
                 Name: BepuPhysics
@@ -323,6 +326,13 @@ Hierarchy:
                         Materials: {}
                     8c9fe621ce058318ab21bcbd56b5f515: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 76b25967-557a-4d2b-ac23-6ea43102150b
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            d3f4b467d6f222274ffcb0065cf70cdd: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                        ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -338,11 +348,5 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Interpolation: None
+                        InterpolationMode: None
                         ContinuousDetectionMode: Discrete
-                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            d3f4b467d6f222274ffcb0065cf70cdd: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 1.0, Y: 1.0, Z: 1.0}

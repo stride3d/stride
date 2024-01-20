@@ -29,6 +29,11 @@ Hierarchy:
                         Materials: {}
                     2892030a3c27bfa024cb81244fc1473a: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
                         Id: 5e47ca2b-f546-496b-a2d8-777a5c01e2b9
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
+                            Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
+                            Mass: 1.0
+                            Closed: true
+                        ContactEventHandler: null
                         SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -40,10 +45,6 @@ Hierarchy:
                             XAxis: 0
                             YAxis: 0
                             ZAxis: 0
-                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
-                            Mass: 1.0
-                            Closed: true
-                            Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
         -   Entity:
                 Id: 0e49b5d5-76b2-4dd2-9887-32a6d9dfa51a
                 Name: Jump2
@@ -60,6 +61,13 @@ Hierarchy:
                         Materials: {}
                     12a5fcba99a3b12926ae3c9148039449: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: b5908f7f-9770-4192-baba-007762533031
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            456710298a11543e853da6109e78b50e: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                        ContactEventHandler: null
                         SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -75,14 +83,8 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Interpolation: None
+                        InterpolationMode: None
                         ContinuousDetectionMode: Discrete
-                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            456710298a11543e853da6109e78b50e: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 20.0, Y: 1.0, Z: 20.0}
         -   Entity:
                 Id: 104f8ef5-ef01-4361-8f1b-f68d5614bc43
                 Name: Jump1
@@ -99,6 +101,13 @@ Hierarchy:
                         Materials: {}
                     08af4686c5711a95ad4ed36ee98f610d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 1fc0f90b-0284-4821-b4d5-9ba3a5090237
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            aabb6c056bc3d3f9161a98675b38d4f4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                        ContactEventHandler: null
                         SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -114,14 +123,8 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Interpolation: None
+                        InterpolationMode: None
                         ContinuousDetectionMode: Discrete
-                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            aabb6c056bc3d3f9161a98675b38d4f4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 20.0, Y: 1.0, Z: 20.0}
         -   Entity:
                 Id: 68a236eb-82e6-4b17-b8aa-49499ada47f9
                 Name: CubeInstancing
@@ -156,6 +159,11 @@ Hierarchy:
                         Materials: {}
                     2892030a3c27bfa024cb81244fc1473a: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
                         Id: baf6f226-d7a0-4fd4-91d6-edfbb2ea40ed
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
+                            Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
+                            Mass: 1.0
+                            Closed: true
+                        ContactEventHandler: null
                         SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -167,10 +175,6 @@ Hierarchy:
                             XAxis: 0
                             YAxis: 0
                             ZAxis: 0
-                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
-                            Mass: 1.0
-                            Closed: true
-                            Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
         -   Entity:
                 Id: 718407b2-5728-4811-8b58-3a7b206d2c09
                 Name: Directional light
@@ -212,6 +216,13 @@ Hierarchy:
                         Materials: {}
                     fbcee747e91ecbcf7f565a3180e62221: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
                         Id: 96752ac7-15be-4847-8c4d-d41d35b5990c
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            ddc8c051db595296f42401fa59ba39fa: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 75.0, Y: 0.5, Z: 75.0}
+                        ContactEventHandler: null
                         SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -223,12 +234,6 @@ Hierarchy:
                             XAxis: 0
                             YAxis: 0
                             ZAxis: 0
-                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            ddc8c051db595296f42401fa59ba39fa: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 75.0, Y: 0.5, Z: 75.0}
         -   Entity:
                 Id: 79048271-9d2d-4c88-85d4-af918b1fc277
                 Name: Trig
@@ -246,6 +251,13 @@ Hierarchy:
                             109b39960c5fe62d147a976f17c859e0~0: cc61e97a-203f-46ef-b432-966557e2ca14:Materials/QRTransMat
                     fd93b2cee857b1b57e4782c043e32e85: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
                         Id: 4f3dc2aa-51ed-4b02-8fe2-da628f85faaf
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            4736565cfec65193f24d4b00651e7608: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Size: {X: 10.0, Y: 5.0, Z: 10.0}
+                        ContactEventHandler: null
                         SimulationIndex: 1
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -257,15 +269,9 @@ Hierarchy:
                             XAxis: 0
                             YAxis: 0
                             ZAxis: 0
-                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            4736565cfec65193f24d4b00651e7608: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 10.0, Y: 5.0, Z: 10.0}
                     f9a37efd54d23446ba6b5e0cd9f3a2f3: !Stride.BepuPhysics.Demo.Components.Utils.TriggerUsageComponent,Stride.BepuPhysics.Demo
                         Id: d50f67c5-8ccd-4785-a628-36012c6c6c0d
-                        Trigger: ref!! 4f3dc2aa-51ed-4b02-8fe2-da628f85faaf
+                        Trigger: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics ref!! 4f3dc2aa-51ed-4b02-8fe2-da628f85faaf
                         MatRed: 90098d7c-e768-47ba-950a-43ac840ee2d6:Materials/QRTransMatR
                         MatBase: cc61e97a-203f-46ef-b432-966557e2ca14:Materials/QRTransMat
         -   Entity:
@@ -371,6 +377,14 @@ Hierarchy:
                             d598fb00d865cb8c873573206ac94e9f: ref!! c7eaa95d-05cc-4032-84cf-e78be01fb256
                     ae2e89b5cbf890341249bbff30f4cff7: !Stride.BepuPhysics.CharacterComponent,Stride.BepuPhysics
                         Id: 87ee6edd-89ca-44e3-aae2-774f6806c6ac
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            bf2a2e6c87c29a4b9c2a1e3b8eb2ef34: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
+                                Mass: 1.0
+                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                Radius: 0.35
+                                Length: 0.5
+                        ContactEventHandler: null
                         SimulationIndex: 1
                         SpringFrequency: 120.0
                         SpringDampingRatio: 1000.0
@@ -386,15 +400,8 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Interpolation: Interpolated
+                        InterpolationMode: Interpolated
                         ContinuousDetectionMode: Discrete
-                        Collider:  !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            bf2a2e6c87c29a4b9c2a1e3b8eb2ef34: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Radius: 0.35
-                                Length: 0.5
                         Speed: 10.0
                         JumpSpeed: 10.0
                     643c56ad282de3b130386f69a6e94b5f: !Stride.BepuPhysics.Demo.Components.Character.CharacterControllerComponent,Stride.BepuPhysics.Demo
