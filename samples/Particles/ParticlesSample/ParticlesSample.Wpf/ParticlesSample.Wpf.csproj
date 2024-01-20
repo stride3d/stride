@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\GameIcon.ico</ApplicationIcon>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>ParticlesSample</RootNamespace>
+    <OutputPath>..\Bin\WPF\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\ParticlesSample.sdpkg</StrideCurrentPackagePath>
+    <StrideProjectType>Executable</StrideProjectType>
+    <StridePlatform>Windows</StridePlatform>
+    <StrideBuildProfile>Windows</StrideBuildProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <OutputPath>..\Bin\WPF\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\WPF\Debug\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <OutputPath>..\Bin\WPF\Release\</OutputPath>
+    <IntermediateOutputPath>obj\WPF\Release\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <OutputPath>..\Bin\WPF\Testing\</OutputPath>
+    <IntermediateOutputPath>obj\WPF\Testing\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <OutputPath>..\Bin\WPF\AppStore\</OutputPath>
+    <IntermediateOutputPath>obj\WPF\AppStore\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Core.Presentation" Version="4.1.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ParticlesSample.Game\ParticlesSample.Game.csproj" />
+  </ItemGroup>
+</Project>
