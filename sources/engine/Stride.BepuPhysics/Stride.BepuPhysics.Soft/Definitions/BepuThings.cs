@@ -507,7 +507,6 @@ namespace Stride.BepuPhysics.Soft.Definitions
             }
         }
 
-#warning Not needed ?
         //private static unsafe int CreateTetrahedralUniqueEdgesList(ref Buffer<TetrahedronVertices> tetrahedraVertices,
         //   ref Buffer<int> vertexEdgeCounts, BufferPool pool, ref QuickSet<Edge, Edge> cellEdges)
         //{

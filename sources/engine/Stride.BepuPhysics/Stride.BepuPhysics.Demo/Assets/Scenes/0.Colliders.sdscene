@@ -29,6 +29,7 @@ Hierarchy:
         - ref!! 49fd61b1-3803-4333-8095-1f832a8f7935
         - ref!! 59c7b735-bfc1-44ed-a93c-5826b338189f
         - ref!! 90d1dd74-2e69-441c-9314-fe409de4d535
+        - ref!! 0cce3e4b-479d-47d7-ba2e-bdc40e76e525
     Parts:
         -   Folder: null
             Entity:
@@ -76,6 +77,37 @@ Hierarchy:
                     c642a0a0f57335ddcb9cdfdb673cd60f: !InstanceComponent
                         Id: 5c936f08-59a6-4903-a60a-81e6f163f916
                         Master: ref!! 1c9d86d7-bb42-4183-bf0f-9ec8fa5cf41b
+        -   Entity:
+                Id: 0cce3e4b-479d-47d7-ba2e-bdc40e76e525
+                Name: GhostTest
+                Components:
+                    6f47ba57ec57885b02ee6b4cc0632500: !TransformComponent
+                        Id: 399dd076-9c86-43b5-ab7f-12d26fccdb1b
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    bef94b9f0ecc27a47c8e3a17907eeac3: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 3c478b50-f02e-485a-878f-d3dd3e0e6102
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics {}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionMask: Layer0
+                        FilterByDistance:
+                            Id: 0
+                            XAxis: 0
+                            YAxis: 0
+                            ZAxis: 0
+                        Kinematic: false
+                        IgnoreGlobalGravity: false
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
         -   Folder: null
             Entity:
                 Id: 113ab00e-2707-4d73-bbda-daded8dcd6f7
