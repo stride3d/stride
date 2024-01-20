@@ -1072,7 +1072,7 @@ msgstr "Añadir..."
 #: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:54
 msgctxt "ToolTip"
 msgid "Replace..."
-msgstr "Reemplazar...."
+msgstr "Reemplazar..."
 
 #: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:132
 msgctxt "ToolTip"

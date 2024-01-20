@@ -685,17 +685,17 @@ msgstr "Derecha"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
-msgstr "Ajustar las transformaciones a este valor"
+msgstr "Adherir (snap) las transformaciones a este valor"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
 msgctxt "ToolTip"
 msgid "Snap rotations to this value"
-msgstr "Ajustar las rotaciones a este valor"
+msgstr "Adherir (snap) las rotaciones a este valor"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:719
 msgctxt "ToolTip"
 msgid "Snap scale to this factor"
-msgstr "Ajustar la escala a este factor"
+msgstr "Adherir (snap) la escala a este factor"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:743
 msgctxt "ToolTip"
@@ -899,13 +899,13 @@ msgstr "Seleccione el siguiente sprite"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:382
 msgctxt "ToolTip"
 msgid "Zoom out"
-msgstr "Zoom de alejamiento"
+msgstr "Alejar"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:237
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:386
 msgctxt "ToolTip"
 msgid "Zoom in"
-msgstr "Zoom"
+msgstr "Acercar"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:241
 msgctxt "ToolTip"
@@ -915,7 +915,7 @@ msgstr "Escalar hasta tamaño de píxel real"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:245
 msgctxt "ToolTip"
 msgid "Fit image to screen"
-msgstr "Ajustar la imagen a la pantalla"
+msgstr "Adherir (snap) la imagen a la pantalla"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:249
 msgctxt "ToolTip"
@@ -1172,7 +1172,7 @@ msgstr "Reiniciar zoom"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:389
 msgctxt "ToolTip"
 msgid "Snaps to this value (0 to disable)"
-msgstr "Ajustar a este valor (0 para desactivarlo)"
+msgstr "Adherir (snap) a este valor (0 para desactivarlo)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:401
 msgid "Colors"
@@ -1180,11 +1180,11 @@ msgstr "Colores"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:417
 msgid "Guideline"
-msgstr "Pauta"
+msgstr "Guía"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:433
 msgid "Highlight"
-msgstr "Realce"
+msgstr "Resalte"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:449
 msgid "Selection"
@@ -1244,22 +1244,22 @@ msgstr "Curvas:"
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:73
 msgctxt "ToolTip"
 msgid "Show or hide the tracker"
-msgstr "Mostrar u ocultar la curva de rastreo"
+msgstr "Mostrar u ocultar el trazado"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:79
 msgctxt "ToolTip"
 msgid "Fit view to curve"
-msgstr "Ajustar la vista de la curva"
+msgstr "Adherir (snap) la vista a la curva"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:82
 msgctxt "ToolTip"
 msgid "Fit view to curve height"
-msgstr "Ajustar la vista al alto de la curva"
+msgstr "Adherir (snap) la vista al alto de la curva"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:85
 msgctxt "ToolTip"
 msgid "Fit view to curve width"
-msgstr "Ajustar la vista al ancho de la curva"
+msgstr "Adherir (snap) la vista al ancho de la curva"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:92
 msgctxt "ToolTip"
@@ -1279,7 +1279,7 @@ msgstr "Punto clave anterior"
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:107
 msgctxt "ToolTip"
 msgid "Next key"
-msgstr "Siguiente punto clave"
+msgstr "Punto clave siguiente"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:110
 msgctxt "ToolTip"
@@ -1317,7 +1317,7 @@ msgstr "Borrar toda la curva"
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:178
 msgctxt "Menu"
 msgid "Fit to curve"
-msgstr "Ajustar a la curva"
+msgstr "Adherir (snap) a la curva"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:180
 msgctxt "Menu"
