@@ -7,13 +7,13 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Engine;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
 using Stride.Core.Extensions;
 using Stride.Core.Translation;
 using Stride.Core.Assets.Templates;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.Templates
 {
@@ -75,7 +75,7 @@ namespace Stride.Assets.Presentation.Templates
 
             if (string.IsNullOrWhiteSpace(ClassName) || string.IsNullOrWhiteSpace(Namespace))
             {
-                await services.Get<IDialogService>().MessageBox(Tr._p("Message", "The names you entered are invalid or empty."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The names you entered are invalid or empty."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 

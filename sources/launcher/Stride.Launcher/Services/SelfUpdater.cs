@@ -15,7 +15,7 @@ using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.LauncherApp.Resources;
 using Stride.LauncherApp.Views;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
@@ -80,7 +80,7 @@ namespace Stride.LauncherApp.Services
             }
             catch (Exception e)
             {
-                await dialogService.MessageBox(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+                await dialogService.MessageBoxAsync(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             // If there is a mandatory intermediate upgrade, take it, otherwise update straight to latest version
@@ -242,7 +242,7 @@ namespace Stride.LauncherApp.Services
                     selfUpdateWindow?.ForceClose();
                 });
 
-                await dialogService.MessageBox(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+                await dialogService.MessageBoxAsync(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

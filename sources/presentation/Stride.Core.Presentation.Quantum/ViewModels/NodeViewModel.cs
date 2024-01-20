@@ -17,9 +17,9 @@ using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
 using Expression = System.Linq.Expressions.Expression;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Presentation.Quantum.ViewModels
 {

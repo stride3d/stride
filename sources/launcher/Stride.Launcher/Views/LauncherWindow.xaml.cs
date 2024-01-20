@@ -12,7 +12,7 @@ using Stride.Core.Packages;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.VisualStudio;
 using Stride.LauncherApp.Services;
 using Stride.LauncherApp.ViewModels;
