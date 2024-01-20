@@ -44,10 +44,13 @@
   </Choose>
   
   <!-- Define default CPU architectures -->
-  <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
+  <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkWindows)'">
     <StrideNativeCPU Include="win-x64;win-x86" LibraryExtension=".dll" LibraryRuntime="win" />
     <StrideNativeCPU Include="linux-x64"  LibraryExtension=".so" LibraryRuntime="linux" />
     <StrideNativeCPU Include="osx-x64"  LibraryExtension=".dylib" LibraryRuntime="osx" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
+    <StrideNativeCPU Include="linux-x64"  LibraryExtension=".so" LibraryRuntime="linux" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
     <StrideNativeCPU Include="android-arm64;android-arm;android-x86;android-x64" LibraryExtension=".so" />
