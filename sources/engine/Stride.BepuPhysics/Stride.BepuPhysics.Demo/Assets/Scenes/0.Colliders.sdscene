@@ -83,13 +83,14 @@ Hierarchy:
                 Components:
                     6f47ba57ec57885b02ee6b4cc0632500: !TransformComponent
                         Id: 399dd076-9c86-43b5-ab7f-12d26fccdb1b
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Position: {X: 0.0, Y: 20.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
+                        Children:
+                            2f9302057b638ff21df71398a4e0f299: ref!! a5806f08-2a60-476e-9657-1d8effac5b89
                     bef94b9f0ecc27a47c8e3a17907eeac3: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 3c478b50-f02e-485a-878f-d3dd3e0e6102
-                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics {}
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.EmptyCollider,Stride.BepuPhysics {}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -274,6 +275,21 @@ Hierarchy:
                         InterpolationMode: None
                         ContinuousDetectionMode: Discrete
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
+        -   Entity:
+                Id: 3aeb852c-243d-4b24-8e1d-946ba722b3c1
+                Name: Entity
+                Components:
+                    2fe1b250e5f932b6e1f4b22cbb53ce26: !ModelComponent
+                        Id: d8b89649-2663-42f8-bb34-363c0d52c9b9
+                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Materials:
+                            ef65e8ed1408768b41eb24d89aacf145~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                    f7be694e6475539eb01155e2b170dc08: !TransformComponent
+                        Id: a5806f08-2a60-476e-9657-1d8effac5b89
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
         -   Entity:
                 Id: 3e4aed87-ab05-42a8-9aa8-95f3fc63ca44
                 Name: MinecraftWheel

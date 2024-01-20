@@ -8,11 +8,14 @@ using Stride.BepuPhysics.Systems;
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
 #warning consider swapping List<> to an IList<> in the future to avoid cast down misuse
+#warning Or/and consider adding a property 'List<ColliderBase> Colliders', so that it work in stride (we actually cannot add/remove BoxColliders/OthersColliders)
+#warning With your new implementation, we can also copy this class and name it "BigCompoundCollider", and use Bepu.BigCompound instead of bepu.Compound (it's faster for bigs compounds)
 
 [DataContract]
-public class CompoundCollider : List<ColliderBase>, ICollider
+public class CompoundCollider : List<ColliderBase>, ICollider, IList<ColliderBase>
 {
     private ContainerComponent? _container;
+    [DataMemberIgnore]
     ContainerComponent? ICollider.Container { get => _container; set => _container = value; }
 
     public new void Add(ColliderBase item)
@@ -51,6 +54,7 @@ public class CompoundCollider : List<ColliderBase>, ICollider
         _container?.TryUpdateContainer();
     }
 
+    [DataMemberIgnore]
     public int Transforms => Count;
 
     public void GetLocalTransforms(ContainerComponent container, Span<ShapeTransform> transforms)
