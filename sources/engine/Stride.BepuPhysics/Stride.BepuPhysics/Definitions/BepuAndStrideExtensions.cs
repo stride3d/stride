@@ -1,29 +1,54 @@
-﻿using System.Numerics;
+﻿using NVector3 = System.Numerics.Vector3;
+using SVector3 = Stride.Core.Mathematics.Vector3;
+
+using NQuaternion = System.Numerics.Quaternion;
+using SQuaternion = Stride.Core.Mathematics.Quaternion;
+
+using NRigidPose = BepuPhysics.RigidPose;
+using SRigidPose = Stride.BepuPhysics.Definitions.RigidPose;
+
+using NBodyVelocity = BepuPhysics.BodyVelocity;
+using SBodyVelocity = Stride.BepuPhysics.Definitions.BodyVelocity;
+
 using System.Runtime.CompilerServices;
 
-namespace Stride.BepuPhysics.Definitions;
 
 internal static class BepuAndStrideExtensions
 {
-    public static Vector3 ToNumericVector(this Core.Mathematics.Vector3 vec)
+
+    public static NRigidPose ToNumericRigidPose(this SRigidPose pose)
     {
-        return Unsafe.As<Core.Mathematics.Vector3, Vector3>(ref vec);
-        //return new Vector3(vec.X, vec.Y, vec.Z);
+        return Unsafe.As<SRigidPose, NRigidPose>(ref pose);
     }
-    public static Core.Mathematics.Vector3 ToStrideVector(this Vector3 vec)
+    public static SRigidPose ToStrideRigidPose(this NRigidPose pose)
     {
-        return Unsafe.As<Vector3, Core.Mathematics.Vector3>(ref vec);
-        //return new Stride.Core.Mathematics.Vector3(vec.X, vec.Y, vec.Z);
+        return Unsafe.As<NRigidPose, SRigidPose>(ref pose);
     }
 
-    public static Quaternion ToNumericQuaternion(this Core.Mathematics.Quaternion qua)
+    public static NBodyVelocity ToNumericBodyVelocity(this SBodyVelocity pose)
     {
-        return Unsafe.As<Core.Mathematics.Quaternion, Quaternion>(ref qua);
-        //return new Quaternion(qua.X, qua.Y, qua.Z, qua.W);
+        return Unsafe.As<SBodyVelocity, NBodyVelocity>(ref pose);
     }
-    public static Core.Mathematics.Quaternion ToStrideQuaternion(this Quaternion qua)
+    public static SBodyVelocity ToStrideBodyVelocity(this NBodyVelocity pose)
     {
-        return Unsafe.As<Quaternion, Core.Mathematics.Quaternion>(ref qua);
-        //return new Stride.Core.Mathematics.Quaternion(qua.X, qua.Y, qua.Z, qua.W);
+        return Unsafe.As<NBodyVelocity, SBodyVelocity>(ref pose);
+    }
+
+    public static NVector3 ToNumericVector(this SVector3 vec)
+    {
+        return Unsafe.As<SVector3, NVector3>(ref vec);
+    }
+    public static SVector3 ToStrideVector(this NVector3 vec)
+    {
+        return Unsafe.As<NVector3, SVector3>(ref vec);
+    }
+
+    public static NQuaternion ToNumericQuaternion(this SQuaternion qua)
+    {
+        return Unsafe.As<SQuaternion, NQuaternion>(ref qua);
+    }
+    public static SQuaternion ToStrideQuaternion(this NQuaternion qua)
+    {
+        return Unsafe.As<NQuaternion, SQuaternion>(ref qua);
     }
 }

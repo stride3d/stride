@@ -4,6 +4,7 @@ using BepuUtilities.Memory;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.BepuPhysics.Systems;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -66,7 +67,7 @@ public class BigCompoundCollider : ICollider
                 var localTranslation = collider.PositionLocal;
                 var localRotation = collider.RotationLocal;
 
-                var compoundChildLocalPose = new RigidPose(localTranslation.ToNumericVector(), localRotation.ToNumericQuaternion());
+                var compoundChildLocalPose = new NRigidPose(localTranslation.ToNumericVector(), localRotation.ToNumericQuaternion());
                 collider.AddToCompoundBuilder(shapeCache, pool, ref compoundBuilder, compoundChildLocalPose);
                 collider.Container = _container;
             }

@@ -6,6 +6,7 @@ using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Physics;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -25,7 +26,7 @@ public sealed class ConvexHullCollider : ColliderBase
         }
     }
 
-    internal override void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, RigidPose localPose)
+    internal override void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose)
     {
 #warning maybe don't rely on cache actually, instead cache the convexhull struct itself ? See if that can be reused
         var data = shape.BorrowHull(this);

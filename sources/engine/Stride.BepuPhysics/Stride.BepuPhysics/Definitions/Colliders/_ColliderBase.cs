@@ -4,6 +4,7 @@ using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -54,5 +55,5 @@ public abstract class ColliderBase
     [DataMemberIgnore]
     public ContainerComponent? Container { get; internal set; }
 
-    internal abstract void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, RigidPose localPose);
+    internal abstract void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose);
 }

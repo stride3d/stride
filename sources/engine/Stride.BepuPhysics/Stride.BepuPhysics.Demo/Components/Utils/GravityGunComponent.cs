@@ -57,7 +57,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             _body = body;
             _distance = info.Distance;
-            _localGrabPoint = Vector3.Transform(info.Point.ToStrideVector() - _body.Position, Quaternion.Invert(_body.Orientation));
+            _localGrabPoint = Vector3.Transform(info.Point - _body.Position, Quaternion.Invert(_body.Orientation));
             _targetOrientation = body.Entity.Transform.GetWorldRot() * Quaternion.Invert(Camera.Entity.Transform.GetWorldRot());
         }
         public void UpdateConstraints()

@@ -2,7 +2,7 @@
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.Core;
 
-namespace Stride.BepuPhysics.Definition;
+namespace Stride.BepuPhysics.Definitions;
 
 public delegate void TriggerDelegate(ContainerComponent @this, ContainerComponent other);
 

@@ -1,4 +1,5 @@
-﻿using Stride.Engine;
+﻿using Stride.Core.Mathematics;
+using Stride.Engine;
 using Stride.Input;
 
 namespace Stride.BepuPhysics.Demo.Components.Utils
@@ -28,9 +29,9 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             if (Input.IsKeyPressed(Keys.T))
             {
                 var camera = Game.Services.GetService<SceneSystem>().GraphicsCompositor.Cameras[0].Camera;
-                var forward = Core.Mathematics.Vector3.TransformNormal(-Core.Mathematics.Vector3.UnitZ, Core.Mathematics.Matrix.RotationQuaternion(camera.Entity.Transform.GetWorldRot())).ToNumericVector();
+                var forward = Vector3.TransformNormal(-Vector3.UnitZ, Matrix.RotationQuaternion(camera.Entity.Transform.GetWorldRot()));
 
-                Spawn(SpawnPosition.Transform.GetWorldPos(), (forward * Speed).ToStrideVector(), new());
+                Spawn(SpawnPosition.Transform.GetWorldPos(), (forward * Speed), new());
             }
         }
     }

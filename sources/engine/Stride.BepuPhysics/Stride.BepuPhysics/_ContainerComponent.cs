@@ -10,6 +10,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
@@ -196,7 +197,7 @@ public abstract class ContainerComponent : EntityComponent
 
         Entity.Transform.UpdateWorldMatrix();
         Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
-        var containerPose = new RigidPose((containerWorldTranslation + containerWorldRotation * CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
+        var containerPose = new NRigidPose((containerWorldTranslation + containerWorldRotation * CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
 
         AttachInner(containerPose, shapeInertia, ShapeIndex);
 
@@ -252,7 +253,7 @@ public abstract class ContainerComponent : EntityComponent
     }
 
     protected abstract ref MaterialProperties MaterialProperties { get; }
-    protected internal abstract RigidPose? Pose { get; }
+    protected internal abstract NRigidPose? Pose { get; }
 
     /// <summary>
     /// Called every time the container is added to a simulation
@@ -260,7 +261,7 @@ public abstract class ContainerComponent : EntityComponent
     /// <remarks>
     /// May occur when certain larger changes are made to the object, <see cref="Simulation"/> is the one this object is being added to
     /// </remarks>
-    protected abstract void AttachInner(RigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex);
+    protected abstract void AttachInner(NRigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex);
     /// <summary>
     /// Called every time the container is removed from the simulation
     /// </summary>

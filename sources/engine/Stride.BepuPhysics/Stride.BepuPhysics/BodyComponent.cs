@@ -5,6 +5,7 @@ using Stride.BepuPhysics.Definitions;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
@@ -26,7 +27,7 @@ public class BodyComponent : ContainerComponent
     internal BodyComponent? Parent;
 
     [DataMemberIgnore]
-    internal RigidPose PreviousPose, CurrentPose; //Sets by AfterSimulationUpdate()
+    internal NRigidPose PreviousPose, CurrentPose; //Sets by AfterSimulationUpdate()
 
     public bool Kinematic
     {
@@ -238,10 +239,10 @@ public class BodyComponent : ContainerComponent
     }
 
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[BodyReference!.Value];
-    protected internal override RigidPose? Pose => BodyReference?.Pose;
+    protected internal override NRigidPose? Pose => BodyReference?.Pose;
 
     private BodyInertia _nativeIntertia;
-    protected override void AttachInner(RigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
+    protected override void AttachInner(NRigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         Debug.Assert(Simulation is not null);
 

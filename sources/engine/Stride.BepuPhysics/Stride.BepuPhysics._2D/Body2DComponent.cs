@@ -9,19 +9,13 @@ namespace Stride.BepuPhysics
     [ComponentCategory("Bepu")]
     public class Body2DComponent : BodyComponent
     {
-        Vector3 _rotationLock = new Vector3(0, 0, 1);
+        Vector3 _rotationLock = new Vector3(0, 0, 0);
 
         [DataMemberIgnore]
-        public Vector3 RotationLock
+        internal Vector3 RotationLock
         {
             get
             {
-                if (BodyReference is { } bRef)
-                {
-                    var inverseInertiaTensor = bRef.LocalInertia.InverseInertiaTensor;
-                    return new Vector3(inverseInertiaTensor.ZX, inverseInertiaTensor.ZY, inverseInertiaTensor.ZZ);
-                }
-
                 return _rotationLock;
             }
             set
@@ -42,6 +36,7 @@ namespace Stride.BepuPhysics
         protected override void AttachInner(RigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
         {
             base.AttachInner(containerPose, shapeInertia, shapeIndex);
+#warning what about a body that become kinematic after some time ?
             if (!Kinematic)
                 RotationLock = new Vector3(0, 0, 1);
         }

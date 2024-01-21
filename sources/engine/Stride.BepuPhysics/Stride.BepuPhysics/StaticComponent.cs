@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -9,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Quaternion = Stride.Core.Mathematics.Quaternion;
 using Vector3 = Stride.Core.Mathematics.Vector3;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
@@ -53,9 +53,9 @@ public class StaticComponent : ContainerComponent
     }
 
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[StaticReference!.Value.Handle];
-    protected internal override RigidPose? Pose => StaticReference?.Pose;
+    protected internal override NRigidPose? Pose => StaticReference?.Pose;
 
-    protected override void AttachInner(RigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
+    protected override void AttachInner(NRigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         Debug.Assert(Processor is not null);
         Debug.Assert(Simulation is not null);
@@ -78,7 +78,7 @@ public class StaticComponent : ContainerComponent
             Simulation.CollidableMaterials.Allocate(sHandle) = new();
         }
 
-        Processor.Statics.Add(this, Unsafe.As<Matrix, Matrix4x4>(ref Entity.Transform.WorldMatrix));
+        Processor.Statics.Add(this, Unsafe.As<Matrix, System.Numerics.Matrix4x4>(ref Entity.Transform.WorldMatrix));
     }
 
     protected override void DetachInner()

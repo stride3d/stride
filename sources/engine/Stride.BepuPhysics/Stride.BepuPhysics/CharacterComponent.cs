@@ -9,6 +9,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using NVector3 = System.Numerics.Vector3;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
@@ -42,7 +43,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         InterpolationMode = InterpolationMode.Interpolated;
     }
 
-    protected override void AttachInner(RigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
+    protected override void AttachInner(NRigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         base.AttachInner(containerPose, shapeInertia, shapeIndex);
 

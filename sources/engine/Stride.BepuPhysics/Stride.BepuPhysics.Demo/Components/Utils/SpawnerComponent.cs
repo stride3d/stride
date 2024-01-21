@@ -44,8 +44,8 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
                 for (int i = 0; i < toSpawn && currentCount < Count; i++)
                 {
-                    var vel = SpawnVelocity.ToNumericVector() + SpawnVelocityRange.ToNumericVector() * new System.Numerics.Vector3(minus1to1(), minus1to1(), minus1to1());
-                    Spawn(SpawnPosition.Transform.Position, vel.ToStrideVector(), new());
+                    var vel = SpawnVelocity + new Vector3(minus1to1() * SpawnVelocityRange.X, minus1to1() * SpawnVelocityRange.Y, minus1to1() * SpawnVelocityRange.Z);
+                    Spawn(SpawnPosition.Transform.Position, vel, new());
                     currentCount++;
                 }
             }
