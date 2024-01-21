@@ -103,11 +103,12 @@ Hierarchy:
                     35cc099f52862d462cf32a4e641a3953: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 805641b3-f967-41df-b273-a1063faecd6b
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            b6bbd3df557583b6dba66fc6e43461b5: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 1000.0, Y: 0.1, Z: 1000.0}
+                            Colliders:
+                                d08e48acbebf46cc3c8cadd83a38e1e9: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 1000.0, Y: 0.1, Z: 1000.0}
                         ContactEventHandler: null
                         SimulationIndex: 2
                         SpringFrequency: 30.0

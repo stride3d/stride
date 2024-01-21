@@ -31,12 +31,13 @@ Hierarchy:
                     b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 94468a8d-bf99-4b5f-b97b-682eeb4dad00
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            a2657354665f8d0e0bfb0c15ca6b75f7: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 15.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
-                                Scale: {X: 0.3, Y: 0.3, Z: 0.3}
+                            Colliders:
+                                1a965a0f5df6635d3c9f2d946691a137: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
+                                    Scale: {X: 0.3, Y: 0.3, Z: 0.3}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -85,12 +86,13 @@ Hierarchy:
                     b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 10692df4-3936-4ca3-8ef7-03a2b1b7b095
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            a2657354665f8d0e0bfb0c15ca6b75f7: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 15.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
-                                Scale: {X: 0.3, Y: 0.3, Z: 0.3}
+                            Colliders:
+                                c71f9dbf5524da007063cced260080eb: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
+                                    Scale: {X: 0.3, Y: 0.3, Z: 0.3}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -120,11 +122,12 @@ Hierarchy:
                     f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: e5b7efce-60c7-4c58-8413-cccf2cdd74d8
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            ec021a68e3874f78309aea134bfe69f3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 50.0, Y: 0.5, Z: 50.0}
+                            Colliders:
+                                72326e171e0ab3a81881a59f2ed2479f: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 50.0, Y: 0.5, Z: 50.0}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -228,11 +231,12 @@ Hierarchy:
                     f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 520a04b6-4ebc-4c09-b763-e5dce0d8eb3c
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            ec021a68e3874f78309aea134bfe69f3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 50.0, Y: 0.5, Z: 50.0}
+                            Colliders:
+                                85c0ca6fe9eabd2d14a9525664f26cef: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 50.0, Y: 0.5, Z: 50.0}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -326,11 +330,12 @@ Hierarchy:
                     f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 609db8c1-7dfb-4c6f-a810-3f92e913a046
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            25da08fad8f8c9c6c6b61f78bd9e991b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 50.0, Y: 0.5, Z: 50.0}
+                            Colliders:
+                                fdfa47ac152d5cec18f245310fbfd523: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 50.0, Y: 0.5, Z: 50.0}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -418,12 +423,13 @@ Hierarchy:
                     b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: dcb56223-0de0-4abb-b4c6-a5b6cf5637e9
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            dca234d69636add3aa7f7af08439df56: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 15.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
-                                Scale: {X: 0.3, Y: 0.3, Z: 0.3}
+                            Colliders:
+                                41b0cd17a0dd10d448e8f5b812b6d95f: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
+                                    Scale: {X: 0.3, Y: 0.3, Z: 0.3}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -453,11 +459,12 @@ Hierarchy:
                     f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 5bf45a5b-2077-4d26-be7e-14b32b7428bf
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            d6903f279e5337699353a1172e5474ea: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 50.0, Y: 0.5, Z: 50.0}
+                            Colliders:
+                                07ae6ae96e3befd486ecc43e2734f0f9: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 50.0, Y: 0.5, Z: 50.0}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -487,12 +494,13 @@ Hierarchy:
                     ef8400394a9991c782659221f2154ec4: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: b647e165-4564-4a1e-bd2d-baf27893cec2
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
-                            f0e9e9b3ffbe101f71cef34b286a661f: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Radius: 5.0
-                                Length: 10.0
+                            Colliders:
+                                b808a8dd75279658f6991c8a5739163d: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 5.0
+                                    Length: 10.0
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
