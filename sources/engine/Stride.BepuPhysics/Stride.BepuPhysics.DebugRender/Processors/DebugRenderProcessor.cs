@@ -232,6 +232,10 @@ namespace Stride.BepuPhysics.DebugRender.Processors
             {
                 //color += new Vector3(0, 0, 0);
             }
+            else if (container.Collider is BigCompoundCollider)
+            {
+                color += new Vector3(0.5f, 0, 0);
+            }
 
 #warning replace with I2DContainer
             if (container is Body2DComponent)
