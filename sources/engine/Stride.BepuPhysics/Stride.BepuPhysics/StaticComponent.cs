@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics;
 
 
 [ComponentCategory("Bepu")]
-public class StaticColliderComponent : ContainerComponent
+public class StaticComponent : ContainerComponent
 {
     /// <summary> Can be null when it isn't part of a simulation yet/anymore </summary>
     internal StaticReference? StaticReference { get; private set; } = null;
@@ -94,19 +94,19 @@ public class StaticColliderComponent : ContainerComponent
         Processor.Statics.Remove(this);
     }
 
-    protected override void RegisterContact()
+    protected override void RegisterContactHandler()
     {
         if (ContactEventHandler is not null && Simulation is not null && StaticReference is { } sRef)
             Simulation.ContactEvents.Register(sRef.Handle, ContactEventHandler);
     }
 
-    protected override void UnregisterContact()
+    protected override void UnregisterContactHandler()
     {
         if (Simulation is not null && StaticReference is { } sRef)
             Simulation.ContactEvents.Unregister(sRef.Handle);
     }
 
-    protected override bool IsRegistered()
+    protected override bool IsContactHandlerRegistered()
     {
         if (Simulation is not null && StaticReference is { } sRef)
             return Simulation.ContactEvents.IsListener(sRef.Handle);

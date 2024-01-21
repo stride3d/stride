@@ -250,7 +250,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 if (!bodyC.Awake)
                     color /= 3f;
             }
-            else if (container is StaticColliderComponent staticC)
+            else if (container is StaticComponent staticC)
             {
                 //color += new Vector3(0, 0, 0);
                 color /= 9f;

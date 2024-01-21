@@ -63,7 +63,7 @@ Hierarchy:
                         Id: a2b25f4f-0977-4a26-9d7f-528a0c584f57
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    b24e6f17befd60f29fbb2c7b6bb740bd: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    b24e6f17befd60f29fbb2c7b6bb740bd: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: bf04da26-8d14-4977-8652-f825ec67644b
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             291a1c1fe7c742a10850bba92e1c01a3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics

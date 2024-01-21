@@ -71,11 +71,11 @@ public abstract class ContainerComponent : EntityComponent
         }
         set
         {
-            if (IsRegistered())
-                UnregisterContact();
+            if (IsContactHandlerRegistered())
+                UnregisterContactHandler();
 
             _trigger = value;
-            RegisterContact();
+            RegisterContactHandler();
             TryUpdateMaterialProperties();
         }
     }
@@ -200,8 +200,8 @@ public abstract class ContainerComponent : EntityComponent
 
         AttachInner(containerPose, shapeInertia, ShapeIndex);
 
-        if (ContactEventHandler != null && !IsRegistered())
-            RegisterContact();
+        if (ContactEventHandler != null && !IsContactHandlerRegistered())
+            RegisterContactHandler();
 
         TryUpdateMaterialProperties();
 
@@ -217,9 +217,9 @@ public abstract class ContainerComponent : EntityComponent
 
         CenterOfMass = new();
 
-        if (IsRegistered())
+        if (IsContactHandlerRegistered())
         {
-            UnregisterContact();
+            UnregisterContactHandler();
         }
 
         if (ShapeIndex.Exists)
@@ -268,7 +268,7 @@ public abstract class ContainerComponent : EntityComponent
     /// May occur right before <see cref="AttachInner"/> when certain larger changes are made to the object, <see cref="Simulation"/> is the one this object was on prior to detaching
     /// </remarks>
     protected abstract void DetachInner();
-    protected abstract void RegisterContact();
-    protected abstract void UnregisterContact();
-    protected abstract bool IsRegistered();
+    protected abstract void RegisterContactHandler();
+    protected abstract void UnregisterContactHandler();
+    protected abstract bool IsContactHandlerRegistered();
 }

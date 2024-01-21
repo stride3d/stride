@@ -34,7 +34,7 @@ public class BepuSimulation
     internal ContactEventsManager ContactEvents { get; }
 
     internal List<BodyComponent?> Bodies { get; } = new();
-    internal List<StaticColliderComponent?> Statics { get; } = new();
+    internal List<StaticComponent?> Statics { get; } = new();
 
     /// <summary>
     /// Get the bepu Simulation /!\
@@ -233,7 +233,7 @@ public class BepuSimulation
         return body;
     }
 
-    public StaticColliderComponent GetContainer(StaticHandle handle)
+    public StaticComponent GetContainer(StaticHandle handle)
     {
         var statics = Statics[handle.Value];
         Debug.Assert(statics is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");

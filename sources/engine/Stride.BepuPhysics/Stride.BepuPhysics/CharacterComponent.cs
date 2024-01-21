@@ -2,6 +2,7 @@
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Components;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.Core;
 using Stride.Core.Extensions;

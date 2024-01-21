@@ -505,7 +505,7 @@ Hierarchy:
                         Id: e1b89669-0319-44cf-96f0-4fa5f77f81b7
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    92c708d40742b95bf646cb5d85014531: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    92c708d40742b95bf646cb5d85014531: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 96752ac7-15be-4847-8c4d-d41d35b5990c
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             7a901c9573e728642196ea5ac3649bf5: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
@@ -907,7 +907,7 @@ Hierarchy:
                         Id: ff4715b1-1ada-4874-a4dc-c0539009c02d
                         Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
                         Materials: {}
-                    cf354e1d7d135cb72515d5284d6b5f60: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    cf354e1d7d135cb72515d5284d6b5f60: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 4a2bb55a-c1f0-45aa-9623-539262e7fd8a
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
                             Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge

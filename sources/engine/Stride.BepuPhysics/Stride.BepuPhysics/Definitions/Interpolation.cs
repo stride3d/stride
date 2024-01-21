@@ -1,4 +1,4 @@
-﻿namespace Stride.BepuPhysics;
+﻿namespace Stride.BepuPhysics.Definitions;
 
 public enum InterpolationMode
 {

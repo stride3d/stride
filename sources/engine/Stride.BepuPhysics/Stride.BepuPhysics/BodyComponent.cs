@@ -294,19 +294,19 @@ public class BodyComponent : ContainerComponent
         BodyReference = null;
     }
 
-    protected override void RegisterContact()
+    protected override void RegisterContactHandler()
     {
         if (ContactEventHandler is not null && Simulation is not null && BodyReference is { } bRef)
             Simulation.ContactEvents.Register(bRef.Handle, ContactEventHandler);
     }
 
-    protected override void UnregisterContact()
+    protected override void UnregisterContactHandler()
     {
         if (Simulation is not null && BodyReference is { } bRef)
             Simulation.ContactEvents.Unregister(bRef.Handle);
     }
 
-    protected override bool IsRegistered()
+    protected override bool IsContactHandlerRegistered()
     {
         if (Simulation is not null && BodyReference is { } bRef)
             return Simulation.ContactEvents.IsListener(bRef.Handle);

@@ -7,12 +7,13 @@ using Stride.Games;
 using Stride.Rendering;
 using Stride.Core.Mathematics;
 using Matrix4x4 = System.Numerics.Matrix4x4;
+using Stride.BepuPhysics.Definitions;
 
 namespace Stride.BepuPhysics.Systems;
 
 public class ContainerProcessor : EntityProcessor<ContainerComponent>
 {
-    internal readonly UnsortedO1List<StaticColliderComponent, Matrix4x4> Statics = new();
+    internal readonly UnsortedO1List<StaticComponent, Matrix4x4> Statics = new();
 
     internal ShapeCacheSystem ShapeCache { get; private set; } = null!;
     internal Dictionary<ContainerComponent, ContainerComponent>.Enumerator ComponentDataEnumerator => base.ComponentDatas.GetEnumerator();

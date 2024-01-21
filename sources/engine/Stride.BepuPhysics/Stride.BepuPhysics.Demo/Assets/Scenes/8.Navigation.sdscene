@@ -28,7 +28,7 @@ Hierarchy:
                         Id: 137b9aab-d5fe-4b6f-9ab5-c9c5fa4a3ca1
                         Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
                         Materials: {}
-                    b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 94468a8d-bf99-4b5f-b97b-682eeb4dad00
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             a2657354665f8d0e0bfb0c15ca6b75f7: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
@@ -82,7 +82,7 @@ Hierarchy:
                         Id: c495370b-1700-42af-975f-d820c504d429
                         Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
                         Materials: {}
-                    b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 10692df4-3936-4ca3-8ef7-03a2b1b7b095
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             a2657354665f8d0e0bfb0c15ca6b75f7: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
@@ -117,7 +117,7 @@ Hierarchy:
                         Id: c2dece02-6bf1-4704-9b43-b9d1c1e85e93
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: e5b7efce-60c7-4c58-8413-cccf2cdd74d8
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             ec021a68e3874f78309aea134bfe69f3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
@@ -225,7 +225,7 @@ Hierarchy:
                         Id: 26aca8fb-0044-4c2d-ba6c-80664c49f0c0
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 520a04b6-4ebc-4c09-b763-e5dce0d8eb3c
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             ec021a68e3874f78309aea134bfe69f3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
@@ -259,7 +259,7 @@ Hierarchy:
                         Id: 57c08643-5c79-4145-b1c5-3f2af4a54b7b
                         Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
                         Materials: {}
-                    f5cc6fb5cbc9c81d0ae2c6f0d5f2faa1: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    f5cc6fb5cbc9c81d0ae2c6f0d5f2faa1: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 48e47765-62be-4e6c-917f-12115953fe96
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
                             Model: 5766c6b6-7d03-426f-a47d-836d9966e60b:Models/dungeon
@@ -291,7 +291,7 @@ Hierarchy:
                         Id: 6d1e337b-62f9-44c8-a18e-821d008c549b
                         Model: b665474d-edd9-4825-ac73-1fd6f4c517f4:Models/nav_test
                         Materials: {}
-                    fb2d2e34e4c3aacddea548d9b4995d27: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    fb2d2e34e4c3aacddea548d9b4995d27: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 56c4c2c0-bc66-4499-9b9a-1d1b6155d9bf
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
                             Model: b665474d-edd9-4825-ac73-1fd6f4c517f4:Models/nav_test
@@ -323,7 +323,7 @@ Hierarchy:
                         Id: 8e461c8b-1cea-46d1-b18a-65f6cb7a8df1
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 609db8c1-7dfb-4c6f-a810-3f92e913a046
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             25da08fad8f8c9c6c6b61f78bd9e991b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
@@ -415,7 +415,7 @@ Hierarchy:
                         Id: cf629dae-efba-4e02-9aae-0825f06f7891
                         Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
                         Materials: {}
-                    b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    b9a24695c6d6288c419eae7d86bbd1ee: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: dcb56223-0de0-4abb-b4c6-a5b6cf5637e9
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             dca234d69636add3aa7f7af08439df56: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
@@ -450,7 +450,7 @@ Hierarchy:
                         Id: 8d3b51c2-fc93-4687-9b90-3522555c52f7
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    f9e8a07bcfbe085256eaef5211853f66: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 5bf45a5b-2077-4d26-be7e-14b32b7428bf
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             d6903f279e5337699353a1172e5474ea: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
@@ -484,7 +484,7 @@ Hierarchy:
                         Id: 8c759be9-b412-400a-89d6-08b651262535
                         Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
                         Materials: {}
-                    ef8400394a9991c782659221f2154ec4: !Stride.BepuPhysics.StaticColliderComponent,Stride.BepuPhysics
+                    ef8400394a9991c782659221f2154ec4: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: b647e165-4564-4a1e-bd2d-baf27893cec2
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             f0e9e9b3ffbe101f71cef34b286a661f: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
