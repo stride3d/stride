@@ -826,7 +826,7 @@ Mother:
             }
             catch (Exception ex)
             {
-                Assert.True(ex.InnerException is DefaultObjectFactory.InstanceCreationException);
+                Assert.IsType<DefaultObjectFactory.InstanceCreationException>(ex.InnerException);
             }
         }
 
