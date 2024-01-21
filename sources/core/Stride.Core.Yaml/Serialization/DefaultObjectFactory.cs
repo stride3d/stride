@@ -120,7 +120,7 @@ namespace Stride.Core.Yaml.Serialization
                 }
             }
 
-            throw new InstanceCreationException($"Failed to create instance of type '{type}', type does not implement a parameterless constructor.");
+            throw new InstanceCreationException($"Failed to create instance of type '{type}', type does not have a parameterless constructor.");
         }
 
         public class InstanceCreationException : Exception
