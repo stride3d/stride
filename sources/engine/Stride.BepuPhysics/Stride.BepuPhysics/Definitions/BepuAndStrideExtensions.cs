@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace Stride.BepuPhysics;
+namespace Stride.BepuPhysics.Definitions;
 
 internal static class BepuAndStrideExtensions
 {

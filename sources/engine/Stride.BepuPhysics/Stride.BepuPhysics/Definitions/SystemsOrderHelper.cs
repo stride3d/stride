@@ -1,4 +1,4 @@
-﻿namespace Stride.BepuPhysics.Systems;
+﻿namespace Stride.BepuPhysics.Definitions;
 
 internal static class SystemsOrderHelper
 {

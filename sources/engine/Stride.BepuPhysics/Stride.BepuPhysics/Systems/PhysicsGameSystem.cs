@@ -1,4 +1,5 @@
-﻿using Stride.Core;
+﻿using Stride.BepuPhysics.Definitions;
+using Stride.Core;
 using Stride.Games;
 
 namespace Stride.BepuPhysics.Systems;

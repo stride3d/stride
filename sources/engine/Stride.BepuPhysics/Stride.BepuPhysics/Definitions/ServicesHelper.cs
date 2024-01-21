@@ -1,8 +1,9 @@
-﻿using Stride.Core;
+﻿using Stride.BepuPhysics.Systems;
+using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Games;
 
-namespace Stride.BepuPhysics.Systems;
+namespace Stride.BepuPhysics.Definitions;
 
 internal static class ServicesHelper
 {

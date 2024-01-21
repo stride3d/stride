@@ -1,4 +1,4 @@
-﻿using Stride.BepuPhysics.Systems;
+﻿using Stride.BepuPhysics.Definitions;
 using Stride.Core;
 using Stride.Engine;
 
