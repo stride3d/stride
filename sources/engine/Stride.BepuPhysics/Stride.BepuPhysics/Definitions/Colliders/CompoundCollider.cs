@@ -7,61 +7,32 @@ using Stride.BepuPhysics.Systems;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
-#warning consider swapping List<> to an IList<> in the future to avoid cast down misuse
-#warning Or/and consider adding a property 'List<ColliderBase> Colliders', so that it work in stride (we actually cannot add/remove BoxColliders/OthersColliders)
-#warning With your new implementation, we can also copy this class and name it "BigCompoundCollider", and use Bepu.BigCompound instead of bepu.Compound (it's faster for bigs compounds)
 
 [DataContract]
-public class CompoundCollider : List<ColliderBase>, ICollider, IList<ColliderBase>
+public class CompoundCollider : ICollider
 {
     private ContainerComponent? _container;
+#warning consider swapping List<> to an IList<> in the future to avoid cast down misuse
+    private ListOfColliders _colliders;
+
+
+    [DataMemberIgnore]
+    public int Transforms => _colliders.Count;
     [DataMemberIgnore]
     ContainerComponent? ICollider.Container { get => _container; set => _container = value; }
 
-    public new void Add(ColliderBase item)
-    {
-        base.Add(item);
-        _container?.TryUpdateContainer();
-    }
-    public new void Remove(ColliderBase item)
-    {
-        base.Remove(item);
-        _container?.TryUpdateContainer();
-    }
-    public new void RemoveAll(Predicate<ColliderBase> match)
-    {
-        base.RemoveAll(match);
-        _container?.TryUpdateContainer();
-    }
-    public new void RemoveAt(int index)
-    {
-        base.RemoveAt(index);
-        _container?.TryUpdateContainer();
-    }
-    public new void RemoveRange(int index, int count)
-    {
-        base.RemoveRange(index, count);
-        _container?.TryUpdateContainer();
-    }
-    public new void AddRange(IEnumerable<ColliderBase> collection)
-    {
-        base.AddRange(collection);
-        _container?.TryUpdateContainer();
-    }
-    public new void Clear()
-    {
-        base.Clear();
-        _container?.TryUpdateContainer();
-    }
+    public ListOfColliders Colliders { get => _colliders; set => _colliders = value; }
 
-    [DataMemberIgnore]
-    public int Transforms => Count;
+    public CompoundCollider()
+    {
+        _colliders = new() { OnEditCallBack = () => _container?.TryUpdateContainer() };
+    }
 
     public void GetLocalTransforms(ContainerComponent container, Span<ShapeTransform> transforms)
     {
-        for (int i = 0; i < Count; i++)
+        for (int i = 0; i < _colliders.Count; i++)
         {
-            var collider = this[i];
+            var collider = _colliders[i];
             transforms[i].PositionLocal = collider.PositionLocal;
             transforms[i].RotationLocal = collider.RotationLocal;
             transforms[i].Scale = collider switch
@@ -79,7 +50,7 @@ public class CompoundCollider : List<ColliderBase>, ICollider, IList<ColliderBas
 
     bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
     {
-        if (Count == 0)
+        if (_colliders.Count == 0)
         {
             index = default;
             centerOfMass = default;
@@ -87,10 +58,10 @@ public class CompoundCollider : List<ColliderBase>, ICollider, IList<ColliderBas
             return false;
         }
 
-        var compoundBuilder = new CompoundBuilder(pool, shapes, Count);
+        var compoundBuilder = new CompoundBuilder(pool, shapes, _colliders.Count);
         try
         {
-            foreach (var collider in this)
+            foreach (var collider in _colliders)
             {
                 var localTranslation = collider.PositionLocal;
                 var localRotation = collider.RotationLocal;
@@ -123,7 +94,7 @@ public class CompoundCollider : List<ColliderBase>, ICollider, IList<ColliderBas
     void ICollider.AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cache)
     {
         cache = null;
-        foreach (var collider in this)
+        foreach (var collider in _colliders)
         {
             buffer.Add(collider switch
             {
