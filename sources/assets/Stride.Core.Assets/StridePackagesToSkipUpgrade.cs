@@ -6,7 +6,7 @@ namespace Stride.Core.Assets;
 
 public static class StridePackagesToSkipUpgrade
 {
-    public static HashSet<string> PackageNames =
+    public static string[] PackageNames =
     [
         "Stride.Awesome.Shaders",
         // In case other packages are added with the community namespace,

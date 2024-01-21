@@ -145,18 +145,13 @@ namespace Stride.Assets
                 {
                     var project = VSProjectHelper.LoadProject(projectFullPath.ToWindowsPath());
                     var isProjectDirty = false;
-
-                    // Update Stride package references that are meant to upgrade
-                    //var packageReferences = project.GetItems("PackageReference")
-                    //    .Where(x => !StridePackagesToSkipUpgrade.PackageNames.Contains(x.EvaluatedInclude))
-                    //    .ToList();
                     
                     List<Microsoft.Build.Evaluation.ProjectItem> packageReferences = new();
                     foreach(var package in project.GetItems("PackageReference"))
                     {
-                        for (int i = 0; i < StridePackagesToSkipUpgrade.PackageNames.Count; i++)
+                        for (int i = 0; i < StridePackagesToSkipUpgrade.PackageNames.Length; i++)
                         {
-                            if (package.EvaluatedInclude.StartsWith(StridePackagesToSkipUpgrade.PackageNames.ElementAt(i))
+                            if (package.EvaluatedInclude.StartsWith(StridePackagesToSkipUpgrade.PackageNames[i])
                                 || StridePackagesToSkipUpgrade.PackageNames.Contains(package.EvaluatedInclude))
                             {
                                 continue;
