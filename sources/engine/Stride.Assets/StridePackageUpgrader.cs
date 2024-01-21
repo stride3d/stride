@@ -149,17 +149,19 @@ namespace Stride.Assets
                     List<Microsoft.Build.Evaluation.ProjectItem> packageReferences = new();
                     foreach(var package in project.GetItems("PackageReference"))
                     {
+                        bool addPackage = true;
                         for (int i = 0; i < StridePackagesToSkipUpgrade.PackageNames.Length; i++)
                         {
                             if (package.EvaluatedInclude.StartsWith(StridePackagesToSkipUpgrade.PackageNames[i])
-                                || StridePackagesToSkipUpgrade.PackageNames.Contains(package.EvaluatedInclude))
+                                || StridePackagesToSkipUpgrade.PackageNames[i].Equals(package.EvaluatedInclude))
                             {
-                                continue;
+                                addPackage = false;
                             }
-                            else
-                            {
-                                packageReferences.Add(package);
-                            }
+                        }
+
+                        if(addPackage)
+                        {
+                            packageReferences.Add(package);
                         }
                     }
 
