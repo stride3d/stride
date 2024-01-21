@@ -28,8 +28,10 @@ namespace Stride.Assets.Models
 
         public static ImportModelCommand Create(string extension)
         {
+            #if STRIDE_UI_WPF
             if (ImportFbxCommand.IsSupportingExtensions(extension))
                 return new ImportFbxCommand();
+            #endif
             if (ImportAssimpCommand.IsSupportingExtensions(extension))
                 return new ImportAssimpCommand();
 

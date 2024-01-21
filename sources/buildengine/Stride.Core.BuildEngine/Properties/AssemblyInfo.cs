@@ -14,7 +14,6 @@ using System.Runtime.InteropServices;
 [assembly: Obfuscation(Feature = "embed Stride.Engine.dll", Exclude = false)]
 [assembly: Obfuscation(Feature = "embed Stride.Framework.dll", Exclude = false)]
 [assembly: Obfuscation(Feature = "embed Stride.Framework.Graphics.dll", Exclude = false)]
-[assembly: Obfuscation(Feature = "embed Stride.Importer.FBX.dll", Exclude = false)]
 [assembly: Obfuscation(Feature = "embed Stride.Importer.Assimp.dll", Exclude = false)]
 [assembly: Obfuscation(Feature = "embed Mono.Options.dll", Exclude = false)]
 [assembly: Obfuscation(Feature = "embed SharpDX.dll", Exclude = false)]
@@ -25,6 +24,10 @@ using System.Runtime.InteropServices;
 [assembly: Obfuscation(Feature = "embed SharpDX.RawInput.dll", Exclude = false)]
 [assembly: Obfuscation(Feature = "embed SharpDX.XInput.dll", Exclude = false)]
 #endif
+
+#if STRIDE_UI_WPF
+[assembly: Obfuscation(Feature = "embed Stride.Importer.FBX.dll", Exclude = false)]
+endif
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

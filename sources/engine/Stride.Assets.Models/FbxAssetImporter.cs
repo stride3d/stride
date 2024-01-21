@@ -8,6 +8,7 @@ using Stride.Core.IO;
 using Stride.Assets.Textures;
 using Stride.Importer.Common;
 
+#if STRIDE_UI_WPF
 namespace Stride.Assets.Models
 {
     public class FbxAssetImporter : ModelAssetImporter
@@ -48,3 +49,4 @@ namespace Stride.Assets.Models
         }
     }
 }
+#endif
