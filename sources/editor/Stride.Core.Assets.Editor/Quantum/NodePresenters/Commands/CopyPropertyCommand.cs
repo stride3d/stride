@@ -7,7 +7,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Quantum;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
 {

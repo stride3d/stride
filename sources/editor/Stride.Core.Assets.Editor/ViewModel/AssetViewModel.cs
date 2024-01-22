@@ -12,7 +12,6 @@ using System.Windows.Media.Imaging;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
@@ -24,11 +23,9 @@ using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Quantum;
-using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
-using Stride.Core.Quantum.References;
 using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel
