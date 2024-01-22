@@ -97,6 +97,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ExecutableExtension Condition="$([MSBuild]::IsOSPlatform('Windows'))">.exe</ExecutableExtension>
   </PropertyGroup>
 
   <!-- Pack target -->
@@ -106,7 +107,7 @@
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
     </PackAssets>-->
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideEditorTargetFramework)\Stride.Core.Tasks.exe&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\stride&quot;" ConsoleToMsBuild="true">
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideXplatEditorTargetFramework)\Stride.Core.Tasks$(ExecutableExtension)&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\stride&quot;" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>

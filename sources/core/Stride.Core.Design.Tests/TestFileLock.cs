@@ -36,7 +36,7 @@ namespace Stride.Core.Design.Tests
                 {
                     // This should never happen. So throw an exception and make sure it is not caught by our catch below.
                     flag = true;
-                    Assert.True(false, "Cannot create a file lock if parent directory does not exist.");
+                    Assert.Fail("Cannot create a file lock if parent directory does not exist.");
                 }
             }
             catch (Exception)

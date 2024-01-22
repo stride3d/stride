@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +27,6 @@ using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
@@ -48,6 +46,8 @@ using Stride.GameStudio.Helpers;
 using Stride.GameStudio.ViewModels;
 using Stride.GameStudio.Plugin;
 using Stride.GameStudio.Services;
+using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Presentation.Services;
 
 namespace Stride.GameStudio;
 
@@ -83,7 +83,7 @@ public static class Program
         Thread.CurrentThread.Name = "Main thread";
 
         // Install Metrics for the editor
-        using (StrideGameStudio.MetricsClient = new MetricsClient(CommonApps.StrideEditorAppId))
+        using (StrideGameStudio.MetricsClient = EditorSettings.EnableMetrics.GetValue() ? new MetricsClient(CommonApps.StrideEditorAppId) : null)
         {
             try
             {
@@ -226,7 +226,7 @@ public static class Program
                               "Check that you have a valid installation with the required workloads, or go to [www.visualstudio.com/downloads](https://www.visualstudio.com/downloads) to install a new one.\r\n" +
                               "Also make sure you have the latest [.NET 6 SDK](https://dotnet.microsoft.com/) \r\n\r\n" +
                               e;
-                await serviceProvider.Get<IEditorDialogService>().MessageBox(message, Core.Presentation.Services.MessageBoxButton.OK, Core.Presentation.Services.MessageBoxImage.Error);
+                await serviceProvider.Get<IDialogService>().MessageBoxAsync(message, Core.Presentation.Services.MessageBoxButton.OK, Core.Presentation.Services.MessageBoxImage.Error);
                 app.Shutdown();
                 return;
             }

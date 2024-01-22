@@ -141,7 +141,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             string error;
             if (IsValidName(newName, out error) == false)
             {
-                ServiceProvider.Get<IDialogService>().BlockingMessageBox(string.Format(Tr._p("Message", "Unable to rename folder. {0}"), error), MessageBoxButton.OK, MessageBoxImage.Error);
+                ServiceProvider.Get<IDialogService2>().BlockingMessageBox(string.Format(Tr._p("Message", "Unable to rename folder. {0}"), error), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 

@@ -10,6 +10,7 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {

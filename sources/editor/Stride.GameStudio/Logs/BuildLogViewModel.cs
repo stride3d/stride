@@ -3,6 +3,7 @@
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Logs
 {

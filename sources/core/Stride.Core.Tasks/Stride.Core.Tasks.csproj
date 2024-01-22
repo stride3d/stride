@@ -6,7 +6,7 @@
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideOutputPath>bin\$(Configuration)\</StrideOutputPath>
     <RestorePackages>true</RestorePackages>

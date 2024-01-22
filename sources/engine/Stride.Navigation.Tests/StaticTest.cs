@@ -58,7 +58,7 @@ namespace Stride.Navigation.Tests
             base.Update(gameTime);
             if (gameTime.Total > TimeSpan.FromSeconds(6))
             {
-                Assert.True(false, "Test timed out");
+                Assert.Fail("Test timed out");
             }
         }
 

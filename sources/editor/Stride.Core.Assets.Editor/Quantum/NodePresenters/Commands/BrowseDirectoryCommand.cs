@@ -7,7 +7,6 @@ using Stride.Core.IO;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Quantum;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
 {
@@ -48,22 +47,16 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc/>
         protected override async Task<PickerResult> ShowPicker(IReadOnlyCollection<INodePresenter> nodePresenters, object currentValue, object parameter)
         {
-            var openDialog = dialogService.CreateFolderOpenModalDialog();
             var currentPath = (UDirectory)currentValue;
             if (initialDirectoryProvider != null)
             {
                 currentPath = initialDirectoryProvider.GetInitialDirectory(currentPath);
             }
-            if (currentPath != null)
-            {
-                openDialog.InitialDirectory = currentPath;
-            }
-
-            var result = await openDialog.ShowModal();
+            var directory = await dialogService.OpenFolderPickerAsync(currentPath);
             var pickerResult = new PickerResult
             {
-                ProcessChange = result == DialogResult.Ok,
-                NewValue = result == DialogResult.Ok ? new UDirectory(openDialog.Directory) : null
+                ProcessChange = directory is not null,
+                NewValue = directory
             };
             return pickerResult;
         }

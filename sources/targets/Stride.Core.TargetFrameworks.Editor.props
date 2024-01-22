@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <StrideEditorTargetFramework>net8.0-windows7.0</StrideEditorTargetFramework>
+    <StrideXplatEditorTargetFramework>net8.0</StrideXplatEditorTargetFramework>
   </PropertyGroup>
 
 </Project>

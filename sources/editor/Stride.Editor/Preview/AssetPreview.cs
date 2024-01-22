@@ -9,13 +9,13 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Assets;
 using Stride.Editor.Preview.View;
 using Stride.Editor.Preview.ViewModel;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Editor.Preview
 {

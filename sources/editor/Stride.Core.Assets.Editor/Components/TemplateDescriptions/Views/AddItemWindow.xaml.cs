@@ -4,7 +4,7 @@ using System.Windows.Input;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
 {

@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 {

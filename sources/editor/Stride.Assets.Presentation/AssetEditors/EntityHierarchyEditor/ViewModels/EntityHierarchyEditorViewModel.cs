@@ -496,7 +496,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                     confirmMessage = string.Format(Tr._p("Message", "Are you sure you want to delete these {0} entities?"), entitiesToDelete.Count);
                 var checkedMessage = string.Format(Stride.Core.Assets.Editor.Settings.EditorSettings.AlwaysDeleteWithoutAsking, "entities");
                 var buttons = DialogHelper.CreateButtons(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
-                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBox(confirmMessage, false, checkedMessage, buttons, MessageBoxImage.Question);
+                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, checkedMessage, buttons, MessageBoxImage.Question);
                 if (result.Result != 1)
                     return;
                 if (result.IsChecked == true)

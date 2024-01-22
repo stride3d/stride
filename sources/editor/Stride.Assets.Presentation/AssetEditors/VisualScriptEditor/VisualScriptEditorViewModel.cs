@@ -22,7 +22,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Quantum.References;
 using Stride.Assets.Presentation.ViewModel;

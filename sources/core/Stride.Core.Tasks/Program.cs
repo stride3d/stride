@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.Build.Locator;
 using Mono.Options;
 using Stride.Core.Assets.CompilerApp.Tasks;
@@ -77,6 +78,9 @@ namespace Stride.Core.Tasks
                 {
                     case "locate-devenv":
                     {
+                        if(!OperatingSystem.IsWindows())
+                            throw new OptionException("This option is only available on Windows", "");
+                            
                         if (commandArgs.Count != 2)
                             throw new OptionException("Need one extra argument", "");
                         var devenvPath = LocateDevenv.FindDevenv(commandArgs[1]);

@@ -10,7 +10,7 @@ using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 {

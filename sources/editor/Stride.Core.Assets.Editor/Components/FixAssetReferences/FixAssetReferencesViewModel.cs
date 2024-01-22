@@ -13,8 +13,8 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.FixAssetReferences
 {

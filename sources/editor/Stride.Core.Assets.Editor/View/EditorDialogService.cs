@@ -26,8 +26,8 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.Windows;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {
@@ -334,7 +334,7 @@ namespace Stride.Core.Assets.Editor.View
                 if (ask)
                 {
                     var buttons = DialogHelper.CreateButtons(new[] { yesCaption, noCaption }, 1, 2);
-                    var result = await CheckedMessageBox(message, false, DialogHelper.DontAskAgain, buttons, MessageBoxImage.Question);
+                    var result = await CheckedMessageBoxAsync(message, false, DialogHelper.DontAskAgain, buttons, MessageBoxImage.Question);
                     // Close without clicking on a button
                     if (result.Result == 0)
                         return;

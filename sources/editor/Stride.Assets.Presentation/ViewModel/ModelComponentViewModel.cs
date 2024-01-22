@@ -8,13 +8,13 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Extensions;
 using Stride.Core.Serialization;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Core.Collections;
 using Stride.Engine;
 using Stride.Rendering;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.ViewModel
 {

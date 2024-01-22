@@ -5,7 +5,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {

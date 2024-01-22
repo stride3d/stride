@@ -10,13 +10,13 @@ using Stride.Core;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Assets.Templates;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 using MessageBoxResult = Stride.Core.Presentation.Services.MessageBoxResult;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.Templates
 {
@@ -58,7 +58,7 @@ namespace Stride.Assets.Presentation.Templates
         {
             if (!SelectedPlatforms.Any())
             {
-                await services.Get<IDialogService>().MessageBox(Tr._p("Message", "You must select at least one platform."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await services.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "You must select at least one platform."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -70,7 +70,7 @@ namespace Stride.Assets.Presentation.Templates
                     Tr._p("Button", "Cancel")
                 }, 1, 2);
                 var msg = string.Format(Tr._p("Message", "Are you sure you want to remove these {0} platform(s) from the package?"), AvailablePlatforms.Count(x => x.MarkedToRemove));
-                var result = await services.Get<IDialogService>().MessageBox(msg, buttons, MessageBoxImage.Question);
+                var result = await services.Get<IDialogService>().MessageBoxAsync(msg, buttons, MessageBoxImage.Question);
                 if (result != 1)
                     return;
 
