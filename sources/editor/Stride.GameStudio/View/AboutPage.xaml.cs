@@ -52,13 +52,13 @@ namespace Stride.GameStudio.View
         private async void License_OnClick(object sender, RoutedEventArgs e)
         {
             var message = await LoadMarkdown("LICENSE.md");
-            Service.MessageBox(message).Forget();
+            Service.MessageBoxAsync(message).Forget();
         }
 
         private async void ThirdParty_OnClick(object sender, RoutedEventArgs e)
         {
             var message = await LoadMarkdown("THIRD PARTY.md");
-            Service.MessageBox(message).Forget();
+            Service.MessageBoxAsync(message).Forget();
         }
         
         private async static Task<string> LoadMarkdown(string file)

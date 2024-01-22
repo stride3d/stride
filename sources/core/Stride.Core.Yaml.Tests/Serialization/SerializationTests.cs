@@ -816,6 +816,25 @@ Mother:
             Assert.Equal(22, family.Mother.Age);
         }
 
+        [Fact]
+        public void ThrowWithoutEmptyCtor()
+        {
+            try
+            {
+                SerializeThenDeserialize(new ClassWithNonEmptyCtor(default));
+                Assert.Fail("An exception should have been thrown by this method before hitting this line, the class provided does not have an empty constructor");
+            }
+            catch (Exception ex)
+            {
+                Assert.IsType<DefaultObjectFactory.InstanceCreationException>(ex.InnerException);
+            }
+        }
+
+        class ClassWithNonEmptyCtor 
+        {
+            public ClassWithNonEmptyCtor(bool parameter) { }
+        }
+
 
         [Fact]
         public void DeserializeEmptyDocument()

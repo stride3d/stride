@@ -67,6 +67,11 @@ namespace Stride.Core.Assets.Editor.Settings
                 DisplayName = $"{Interface}/{Tr._p("Settings", "Ask before saving new scripts")}",
                 Description = Tr._p("Settings", "Ask before saving new scripts"),
             };
+            EnableMetrics = new SettingsKey<bool>("Interface/ToggleMetrics", SettingsContainer, true)
+            {
+                DisplayName = $"{Interface}/{Tr._p("Settings", "Usage Analytics")}",
+                Description = Tr._p("Settings", "Anonymous usage analytics to help the Stride community improve the software. Statistics on installation, version-specific usage, and platform popularity. The data is open-source at https://metrics.stride3d.net")
+            };
             StoreCrashEmail = new SettingsKey<string>("Interface/StoreCrashEmail", SettingsContainer, "")
             {
                 DisplayName = $"{Interface}/{Tr._p("Settings", "Crash report e-mail")}",
@@ -119,6 +124,8 @@ namespace Stride.Core.Assets.Editor.Settings
 
         public static SettingsKey<bool> ReloadLastSession { get; }
 
+        public static SettingsKey<bool> EnableMetrics { get; }
+
         public static bool NeedRestart { get; set; }
 
         public static void Initialize()
@@ -129,6 +136,7 @@ namespace Stride.Core.Assets.Editor.Settings
             // Settings that requires a restart must register here:
             UseEffectCompilerServer.ChangesValidated += (s, e) => NeedRestart = true;
             Language.ChangesValidated += (s, e) => NeedRestart = true;
+            EnableMetrics.ChangesValidated += (s, e) => NeedRestart = true;
 
             Presentation.Themes.ThemesSettings.ThemeName.ChangesValidated += (s, e) => NeedRestart = true;
         }

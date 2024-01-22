@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Core;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
 {

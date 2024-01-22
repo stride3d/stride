@@ -1,18 +1,18 @@
 <Project>
   <!-- NuGet resolved needed for StrideDefaultAssetsPlugin.LoadDefaultTemplates() -->
-  <Import Project="..\..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
   <Import Project="..\..\sources\targets\Stride.UnitTests.props" />
   <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="xunit" Version="2.4.2-pre.12" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+    <PackageReference Include="xunit" Version="2.6.5" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\sources\shared\SharedAssemblyInfo.cs">
@@ -27,6 +27,11 @@
     <ProjectReference Include="..\..\sources\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
     <ProjectReference Include="..\..\sources\tools\Stride.SamplesTestServer\Stride.SamplesTestServer.csproj" />
   </ItemGroup>
-  <Import Project="..\..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
+  <Import Project="..\..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
   <Import Project="..\..\sources\targets\Stride.UnitTests.targets" />
+  <!-- Override the references set in Stride.UnitTests.targets -->
+  <ItemGroup>
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Update="TeamCity.VSTest.TestAdapter" Version="1.0.39" />
+  </ItemGroup>
 </Project>

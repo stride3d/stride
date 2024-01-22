@@ -114,7 +114,12 @@ namespace Stride.VisualStudio.Commands
                     {
                         try
                         {
-                            strideCommands = new NpClient<IStrideCommands>(new NpEndPoint(address + "/IStrideCommands"));
+                            strideCommands = stridePackageInfo.LoadedVersion >= new PackageVersion("4.2.0")
+                                ? new NpClient<IStrideCommands>(new NpEndPoint(address + "/IStrideCommands"))
+                                // For Stride 4.1, we were using ServiceWire 5.3.4, which didn't have compressor and used BinaryFormatter serialization
+                                // BinaryFormatter was removed from .NET 8.0, ServiceWire 5.5.4 and Stride 4.2, but we still need to be able to communicate with previous version of Stride
+                                // Luckily, since VS still work with .NET 4.7, we can access BinaryFormatter and implement a custom ServiceWire.ISerializer for it.
+                                : new NpClient<IStrideCommands>(new NpEndPoint(address + "/IStrideCommands"), new ServiceWireBinaryFormatterSerializer(), new ServiceWireDoNothingCompressor());
                             break;
                         }
                         catch
@@ -171,9 +176,9 @@ namespace Stride.VisualStudio.Commands
             // Try to find the package with the expected version
             if (packageInfo.ExpectedVersion != null && packageInfo.ExpectedVersion >= MinimumVersion)
             {
-                // Try both net6.0 and net472
+                // Try both net8.0 and net472
                 var success = false;
-                foreach (var folder in new[] { "net6.0-windows7.0", "net472" })
+                foreach (var folder in new[] { "net8.0-windows7.0", "net472" })
                 {
                     var logger = new Logger();
                     var solutionRoot = Path.GetDirectoryName(solution);
@@ -188,7 +193,7 @@ namespace Stride.VisualStudio.Commands
                 }
                 if (!success)
                 {
-                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it. To fix this you can either build {packageName} or pull the right version from nugget manually");
+                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it. To fix this you can either build {packageName} or pull the right version from NuGet manually");
                 }
             }
 

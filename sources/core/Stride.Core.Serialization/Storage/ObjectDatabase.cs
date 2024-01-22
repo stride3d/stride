@@ -146,7 +146,7 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Loads the specified bundle.
+        /// Unloads the specified bundle.
         /// </summary>
         /// <param name="bundleName">Name of the bundle.</param>
         public void UnloadBundle(string bundleName)

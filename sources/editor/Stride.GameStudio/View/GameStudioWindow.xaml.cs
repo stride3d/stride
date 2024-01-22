@@ -22,6 +22,7 @@ using Stride.Core.Serialization;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.Interop;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using AvalonDock.Layout;
@@ -29,6 +30,7 @@ using Stride.GameStudio.ViewModels;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.AssetsEditors;
 using Stride.GameStudio.Layout;
+
 #if DEBUG
 using Stride.Assets.Presentation.Test;
 #endif
@@ -82,7 +84,7 @@ namespace Stride.GameStudio.View
             {
                 var message = Tr._p("Message", "To reset the layout, Game Studio needs to close and re-open all asset and document editors. You won't lose unsaved changes.");
                 var buttons = DialogHelper.CreateButtons(new[] { "Reset layout", "Cancel" }, 1, 2);
-                var result = await Editor.ServiceProvider.Get<IEditorDialogService>().MessageBox(message, buttons);
+                var result = await Editor.ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, buttons);
                 if (result != 1)
                     return;
             }

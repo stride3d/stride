@@ -8,7 +8,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Presentation.Quantum.ViewModels
 {

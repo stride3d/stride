@@ -7,8 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -18,15 +16,15 @@ using NuGet.Versioning;
 
 namespace Stride.Core.Assets
 {
-    class NuGetAssemblyResolver
+    public class NuGetAssemblyResolver
     {
         public const string DevSource = @"%LocalAppData%\Stride\NugetDev";
 
         static bool assembliesResolved;
         static readonly object assembliesLock = new object();
-        static List<string> assemblies;
+        static Dictionary<string, string> assemblyNameToPath;
 
-        internal static void DisableAssemblyResolve()
+        public static void DisableAssemblyResolve()
         {
             assembliesResolved = true;
         }
@@ -37,9 +35,8 @@ namespace Stride.Core.Assets
         /// <param name="packageName">Name of the root package for NuGet resolution.</param>
         /// <param name="packageVersion">Package version.</param>
         /// <param name="metadataAssembly">Assembly for getting target framrwork and platform.</param>
-        internal static void SetupNuGet(string packageName, string packageVersion, Assembly metadataAssembly = null)
+        public static void SetupNuGet(string targetFramework, string packageName, string packageVersion)
         {
-            metadataAssembly ??= Assembly.GetEntryAssembly();
             // Make sure our nuget local store is added to nuget config
             var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string strideFolder = null;
@@ -62,12 +59,6 @@ namespace Stride.Core.Assets
             // Note: we perform nuget restore inside the assembly resolver rather than top level module ctor (otherwise it freezes)
             AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) =>
             {
-                // Check if already loaded.
-                // Somehow it happens for Microsoft.NET.Build.Tasks -> NuGet.ProjectModel, probably due to the specific way it's loaded.
-                var matchingAssembly = Array.Find(AppDomain.CurrentDomain.GetAssemblies(), x => x.FullName == eventArgs.Name);
-                if (matchingAssembly != null)
-                    return matchingAssembly;
-
                 if (!assembliesResolved)
                 {
                     lock (assembliesLock)
@@ -77,7 +68,7 @@ namespace Stride.Core.Assets
 
                         var logger = new Logger();
 
-#if STRIDE_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UI
                         var dialogNotNeeded = new TaskCompletionSource<bool>();
                         var dialogClosed = new TaskCompletionSource<bool>();
 
@@ -124,25 +115,8 @@ namespace Stride.Core.Assets
                             // Since we execute restore synchronously, we don't want any surprise concerning synchronization context (i.e. Avalonia one doesn't work with this)
                             SynchronizationContext.SetSynchronizationContext(null);
 
-                            // Determine current TFM
-                            var framework = metadataAssembly
-                                .GetCustomAttribute<TargetFrameworkAttribute>()?
-                                .FrameworkName ?? ".NETFramework,Version=v4.7.2";
-                            var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
-
-#if NETCOREAPP
-                            // Add TargetPlatform to net6.0 TFM (i.e. net6.0 to net6.0-windows7.0)
-                            var platform = metadataAssembly?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
-                            if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp, StringComparison.Ordinal) && platform != string.Empty)
-                            {
-                                var platformParseResult = Regex.Match(platform, @"([a-zA-Z]+)(\d+.*)");
-                                if (platformParseResult.Success && Version.TryParse(platformParseResult.Groups[2].Value, out var platformVersion))
-                                {
-                                    var platformName = platformParseResult.Groups[1].Value;
-                                    nugetFramework = new NuGetFramework(nugetFramework.Framework, nugetFramework.Version, platformName, platformVersion);
-                                }
-                            }
-#endif
+                            // Parse current TFM
+                            var nugetFramework = NuGetFramework.Parse(targetFramework);
 
                             // Only allow this specific version
                             var versionRange = new VersionRange(new NuGetVersion(packageVersion), true, new NuGetVersion(packageVersion), true);
@@ -152,15 +126,35 @@ namespace Stride.Core.Assets
                                 throw new InvalidOperationException($"Could not restore NuGet packages");
                             }
 
-                            assemblies = RestoreHelper.ListAssemblies(result.LockFile);
+                            // Build list of assemblies
+                            var assemblies = RestoreHelper.ListAssemblies(result.LockFile);
+
+                            // Create a dictionary by assembly name
+                            // note: we ignore case as filename might not be properly matching assembly name casing
+                            assemblyNameToPath = new(StringComparer.OrdinalIgnoreCase);
+                            foreach (var assembly in assemblies)
+                            {
+                                var extension = Path.GetExtension(assembly).ToLowerInvariant();
+                                if (extension != ".dll")
+                                    continue;
+                                var assemblyName = Path.GetFileNameWithoutExtension(assembly);
+                                // Ignore duplicates (however, make sure it's the same version otherwise display a warning)
+                                if (assemblyNameToPath.TryGetValue(assemblyName, out var otherAssembly))
+                                {
+                                    if (!FileContentIsSame(new FileInfo(otherAssembly), new FileInfo(assembly)))
+                                        logger.LogWarning($"Assembly {assemblyName} found in two locations with different content: {assembly} and {otherAssembly}");
+                                    continue;
+                                }
+                                assemblyNameToPath.Add(assemblyName, assembly);
+                            }
 
                             // Register the native libraries
                             var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
-                            RegisterNativeDependencies(assemblies, nativeLibs);
+                            RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
                         }
                         catch (Exception e)
                         {
-#if STRIDE_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UI
                             logger.LogError($@"Error restoring NuGet packages: {e}");
                             dialogClosed.Task.Wait();
 #else
@@ -181,7 +175,7 @@ namespace Stride.Core.Assets
                         }
                         finally
                         {
-#if STRIDE_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UI
                             dialogNotNeeded.TrySetResult(true);
 #endif
                             SynchronizationContext.SetSynchronizationContext(previousSynchronizationContext);
@@ -189,19 +183,40 @@ namespace Stride.Core.Assets
                     }
                 }
 
-                if (assemblies != null)
+                if (assemblyNameToPath != null)
                 {
                     var aname = new AssemblyName(eventArgs.Name);
                     if (aname.Name.StartsWith("Microsoft.Build", StringComparison.Ordinal) && aname.Name != "Microsoft.Build.Locator")
                         return null;
-                    var assemblyPath = assemblies.Find(x => Path.GetFileNameWithoutExtension(x) == aname.Name);
-                    if (assemblyPath != null)
+                    if (assemblyNameToPath.TryGetValue(aname.Name, out var assemblyPath))
                     {
                         return Assembly.LoadFrom(assemblyPath);
                     }
                 }
                 return null;
             };
+        }
+
+        static bool FileContentIsSame(FileInfo file1, FileInfo file2)
+        {
+            if (file1.Length != file2.Length)
+                return false;
+
+            // Assume same size and same modified time means it's the same file
+            if (file1.LastWriteTimeUtc == file2.LastWriteTimeUtc)
+                return true;
+
+            // Otherwise, full file compare
+            using (var fs1 = file1.OpenRead())
+            using (var fs2 = file2.OpenRead())
+            {
+                for (int i = 0; i < file1.Length; i++)
+                {
+                    if (fs1.ReadByte() != fs2.ReadByte())
+                        return false;
+                }
+            }
+            return true;
         }
 
         private static void RemoveSources(ISettings settings, string prefixName)
@@ -228,9 +243,9 @@ namespace Stride.Core.Assets
         /// <summary>
         /// Registers the listed native libs in Stride.Core.NativeLibraryHelper using reflection to avoid a compile time dependency on Stride.Core
         /// </summary>
-        private static void RegisterNativeDependencies(List<string> assemblies, List<string> nativeLibs)
+        private static void RegisterNativeDependencies(Dictionary<string, string> assemblyNameToPath, List<string> nativeLibs)
         {
-            var strideCoreAssembly = Assembly.LoadFrom(assemblies.Find(a => Path.GetFileNameWithoutExtension(a) == "Stride.Core"));
+            var strideCoreAssembly = Assembly.LoadFrom(assemblyNameToPath["Stride.Core"]);
             if (strideCoreAssembly is null)
                 throw new InvalidOperationException($"Couldn't find assembly 'Stride.Core' in restored packages");
 

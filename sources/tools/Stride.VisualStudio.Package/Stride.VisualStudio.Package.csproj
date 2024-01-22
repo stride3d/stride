@@ -17,6 +17,7 @@
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>  
   <ItemGroup>
     <None Remove="NShader\Common\GLSLKeywords.map" />
@@ -24,16 +25,16 @@
     <None Remove="NShader\Common\StrideShaderKeywords.map" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" ExcludeAssets="runtime">
+    <PackageReference Include="Microsoft.VisualStudio.SDK" ExcludeAssets="runtime">
         <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Commands" Version="6.4.2" />
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Commands" />
 
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Design" />
@@ -76,9 +77,6 @@
     <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="Core\LoaderToolLocator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="MyControl.xaml.cs">
-      <DependentUpon>MyControl.xaml</DependentUpon>
-    </Compile>
     <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -130,12 +128,6 @@
     <EmbeddedResource Include="NShader\Common\StrideShaderKeywords.map" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="MyControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
@@ -145,9 +137,7 @@
     <Folder Include="NuGet\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj">
-      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
-    </ProjectReference>
+    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
@@ -161,6 +151,4 @@
     </ItemGroup>
   </Target>
   <Import Project="$(StrideSdkTargets)" />
-  <!-- Force NET Sdk to be included before VsSDK -->
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
 </Project>

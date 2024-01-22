@@ -19,9 +19,9 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="ServiceWire" Version="5.3.4" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" Version="6.0.2" />
+    <PackageReference Include="ServiceWire" />
+    <PackageReference Include="System.ValueTuple" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" />
   </ItemGroup>
   
   <ItemGroup>
