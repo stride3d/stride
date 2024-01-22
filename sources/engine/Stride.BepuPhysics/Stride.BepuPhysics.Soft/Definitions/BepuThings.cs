@@ -601,7 +601,7 @@ namespace Stride.BepuPhysics.Soft.Definitions
 
         public static void Create(BepuSimulation simulation, Buffer<Triangle> triangles, Vector3 position)
         {
-            float cellSize = 1f;
+            float cellSize = 0.2f;
             var bufferPool = simulation.BufferPool;
             DumbTetrahedralizer.Tetrahedralize(triangles, cellSize, bufferPool,
              out var vertices, out var vertexSpatialIndices, out var cellVertexIndices, out var tetrahedraVertexIndices);

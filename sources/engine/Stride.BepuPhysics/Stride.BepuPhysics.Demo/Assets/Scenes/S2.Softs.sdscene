@@ -86,16 +86,15 @@ Hierarchy:
                         Id: 503191fb-190d-472f-9185-1399a455cad3
                         Camera: ref!! baae9b80-eab0-445d-a3b9-97bcb86a021b
                         SimIndex: 0
-                    22b1fb53fb58e8989ce0fccfedd55654: !Stride.BepuPhysics.DebugRender.Components.DebugRenderComponent,Stride.BepuPhysics.DebugRender
-                        Id: b8bd53ff-f1b0-4bfa-9a7d-1ed849ba3cf2
-                        AlwaysRender: true
+                    6c8c0cd079dd6b55bd9cacf8c74e00c1: !Stride.BepuPhysics.DebugRender.Components.LowDebugRenderComponent,Stride.BepuPhysics.DebugRender
+                        Id: c317dfb3-c89e-4e62-8b47-df185ced4504
         -   Entity:
                 Id: 6ae3f310-586f-44d8-8741-32e3b16c0123
                 Name: Cube1
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 93232324-fb48-4c34-9922-71bb39b83d52
-                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Position: {X: 0.0, Y: 20.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}

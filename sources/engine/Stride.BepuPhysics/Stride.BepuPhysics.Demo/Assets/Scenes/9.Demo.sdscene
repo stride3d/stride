@@ -267,7 +267,7 @@ Hierarchy:
                             c4be3cde9267c1a84ebd34fce78c8e1e: ref!! fdb4eab0-70be-4b54-9eab-de347caed944
                             2de7129a3af3a0a764eb2962d5236ecb: ref!! 89d9ebd9-70c2-4b77-8e09-db6c6a98308d
                     46d3e0466c59e94eb920dcace9871a76: !Stride.BepuPhysics.Constraints.HingeConstraintComponent,Stride.BepuPhysics
-                        Id: 16054a60-0698-48cb-a4c6-08fa3baea6fe
+                        Id: 2b47c5cf-ae33-4e7c-ad38-931d81433ba5
                         Enabled: true
                         A: ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
                         B: ref!! befd947e-d1a5-4a14-9423-d272129d4ae5
@@ -278,7 +278,7 @@ Hierarchy:
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                     82adb9d9847f9eab8cefae5aa42e7be3: !Stride.BepuPhysics.Constraints.OneBodyAngularMotorConstraintComponent,Stride.BepuPhysics
-                        Id: f19e4525-ad3e-43f6-a214-7c99074a66f9
+                        Id: 1aeadfc1-ce36-43e7-b0b9-af74a1edc156
                         Enabled: true
                         A: ref!! b9ffe6bf-b37b-41f7-ad06-f9fda610e08c
                         TargetVelocity: {X: 0.0, Y: 0.5, Z: 0.0}
