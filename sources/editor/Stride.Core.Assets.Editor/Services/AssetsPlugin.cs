@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Stride.Core.Annotations;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
-using Stride.Core.Extensions;
 using Stride.Core.Presentation.View;
 
 namespace Stride.Core.Assets.Editor.Services
@@ -49,24 +49,7 @@ namespace Stride.Core.Assets.Editor.Services
                     if (attribute != null)
                     {
                         Type closureType = type;
-                        attribute.AssetTypes.ForEach(x => assetViewModelTypes.Add(x, closureType));
-                    }
-                }
-            }
-        }
-
-        public void RegisterAssetPropertyGraphViewModelTypes([NotNull] IDictionary<Type, Type> assetViewModelTypes)
-        {
-            var pluginAssembly = GetType().Assembly;
-            foreach (var type in pluginAssembly.GetTypes())
-            {
-                if (typeof(AssetViewModel).IsAssignableFrom(type))
-                {
-                    var attribute = type.GetCustomAttribute<AssetViewModelAttribute>();
-                    if (attribute != null)
-                    {
-                        Type closureType = type;
-                        attribute.AssetTypes.ForEach(x => assetViewModelTypes.Add(x, closureType));
+                        assetViewModelTypes.Add(attribute.AssetType, closureType);
                     }
                 }
             }
