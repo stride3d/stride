@@ -167,7 +167,7 @@ internal class ShapeCacheSystem
     //    }
     //}
 
-    private static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractBepuMesh(Model model, IGame game, BufferPool pool)
+    internal static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractBepuMesh(Model model, IGame game, BufferPool pool)
     {
         int totalIndices = 0;
         foreach (var meshData in model.Meshes)

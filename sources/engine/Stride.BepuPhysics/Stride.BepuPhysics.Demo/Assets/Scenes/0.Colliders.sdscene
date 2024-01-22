@@ -84,11 +84,15 @@ Hierarchy:
                 Components:
                     6f47ba57ec57885b02ee6b4cc0632500: !TransformComponent
                         Id: 399dd076-9c86-43b5-ab7f-12d26fccdb1b
-                        Position: {X: 0.0, Y: 20.0, Z: 0.0}
+                        Position: {X: -20.0, Y: 20.0, Z: -10.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            2f9302057b638ff21df71398a4e0f299: ref!! a5806f08-2a60-476e-9657-1d8effac5b89
+                        Children: {}
+                    f8f0c20a9c8fbc28fdeddd3f08d16ae1: !ModelComponent
+                        Id: 12255c88-1646-42f6-85d3-16aa12e52773
+                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Materials:
+                            ef65e8ed1408768b41eb24d89aacf145~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
                     bef94b9f0ecc27a47c8e3a17907eeac3: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 3c478b50-f02e-485a-878f-d3dd3e0e6102
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.EmptyCollider,Stride.BepuPhysics {}
@@ -279,21 +283,6 @@ Hierarchy:
                         InterpolationMode: None
                         ContinuousDetectionMode: Discrete
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
-        -   Entity:
-                Id: 3aeb852c-243d-4b24-8e1d-946ba722b3c1
-                Name: Entity
-                Components:
-                    2fe1b250e5f932b6e1f4b22cbb53ce26: !ModelComponent
-                        Id: d8b89649-2663-42f8-bb34-363c0d52c9b9
-                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
-                        Materials:
-                            ef65e8ed1408768b41eb24d89aacf145~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
-                    f7be694e6475539eb01155e2b170dc08: !TransformComponent
-                        Id: a5806f08-2a60-476e-9657-1d8effac5b89
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
         -   Entity:
                 Id: 3e4aed87-ab05-42a8-9aa8-95f3fc63ca44
                 Name: MinecraftWheel
@@ -924,22 +913,26 @@ Hierarchy:
                 Components:
                     ee1e8e17a6d46acf659376295a6f9076: !TransformComponent
                         Id: 611fb7a9-990e-4cf6-af9f-7fef06dfcab7
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Position: {X: -20.0, Y: 20.0, Z: -5.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Scale: {X: 1.0, Y: 2.0, Z: 1.0}
                         Children: {}
+                    efe08501922bc19df5a068bf57372684: !ModelComponent
+                        Id: 97f26b87-ae07-4a51-9572-8940fcd60d98
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
                     d10f1a4e70a8fe7535b35d26b5b19b23: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 4e3e953b-7cb6-4bcb-8f40-69b8975246d1
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.BigCompoundCollider,Stride.BepuPhysics
                             Colliders:
                                 c09b013f0509686209ff7d9b30d50799: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                     Mass: 1.0
-                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    PositionLocal: {X: 0.0, Y: -0.5, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                     Size: {X: 1.0, Y: 1.0, Z: 1.0}
                                 381c569e33ff4045a12a7c160914425e: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                     Mass: 1.0
-                                    PositionLocal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                    PositionLocal: {X: 0.0, Y: 0.5, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                     Size: {X: 1.0, Y: 1.0, Z: 1.0}
                         ContactEventHandler: null

@@ -40,7 +40,7 @@ public class BodyComponent : ContainerComponent
             _kinematic = value;
             if (BodyReference is { } bRef)
             {
-                #warning maybe setting bRef.LocalInertia is enough instead of getting and applying description ... ?
+#warning maybe setting bRef.LocalInertia is enough instead of getting and applying description ... ?
                 bRef.GetDescription(out var description);
                 description.LocalInertia = Kinematic ? new BodyInertia() : _nativeIntertia;
                 bRef.ApplyDescription(description);
@@ -140,7 +140,7 @@ public class BodyComponent : ContainerComponent
         get => BodyReference?.Awake ?? false;
         set
         {
-            if (BodyReference is {} bodyRef)
+            if (BodyReference is { } bodyRef)
                 bodyRef.Awake = value;
         }
     }
@@ -151,7 +151,7 @@ public class BodyComponent : ContainerComponent
         get => BodyReference?.Velocity.Linear.ToStrideVector() ?? default;
         set
         {
-            if (BodyReference is {} bodyRef)
+            if (BodyReference is { } bodyRef)
                 bodyRef.Velocity.Linear = value.ToNumericVector();
         }
     }
@@ -162,7 +162,7 @@ public class BodyComponent : ContainerComponent
         get => BodyReference?.Velocity.Angular.ToStrideVector() ?? default;
         set
         {
-            if (BodyReference is {} bodyRef)
+            if (BodyReference is { } bodyRef)
                 bodyRef.Velocity.Angular = value.ToNumericVector();
         }
     }
@@ -173,7 +173,7 @@ public class BodyComponent : ContainerComponent
         get => BodyReference?.Pose.Position.ToStrideVector() ?? default;
         set
         {
-            if (BodyReference is {} bodyRef)
+            if (BodyReference is { } bodyRef)
                 bodyRef.Pose.Position = value.ToNumericVector();
         }
     }
@@ -184,7 +184,7 @@ public class BodyComponent : ContainerComponent
         get => BodyReference?.Pose.Orientation.ToStrideQuaternion() ?? Quaternion.Identity;
         set
         {
-            if (BodyReference is {} bodyRef)
+            if (BodyReference is { } bodyRef)
                 bodyRef.Pose.Orientation = value.ToNumericQuaternion();
         }
     }
@@ -195,7 +195,7 @@ public class BodyComponent : ContainerComponent
         get => BodyReference?.LocalInertia ?? default;
         set
         {
-            if (BodyReference is {} bodyRef)
+            if (BodyReference is { } bodyRef)
                 bodyRef.LocalInertia = value;
         }
     }
@@ -206,7 +206,7 @@ public class BodyComponent : ContainerComponent
         get => BodyReference?.Collidable.SpeculativeMargin ?? default;
         set
         {
-            if (BodyReference is {} bodyRef)
+            if (BodyReference is { } bodyRef)
                 bodyRef.Collidable.SpeculativeMargin = value;
         }
     }
@@ -218,7 +218,7 @@ public class BodyComponent : ContainerComponent
         set
         {
             _continuous = value;
-            if (BodyReference is {} bodyRef)
+            if (BodyReference is { } bodyRef)
                 bodyRef.Collidable.Continuity = _continuous;
         }
     }
@@ -265,7 +265,7 @@ public class BodyComponent : ContainerComponent
             BodyReference.Value.Collidable.Continuity = ContinuousDetection;
 
             while (Simulation.Bodies.Count <= bHandle.Value) // There may be more than one add if soft physics inserted a couple of bodies
-                Simulation.Bodies.Add(null);
+                Simulation.Bodies.Add(null); 
             Simulation.Bodies[bHandle.Value] = this;
 
             Simulation.CollidableMaterials.Allocate(bHandle) = new();

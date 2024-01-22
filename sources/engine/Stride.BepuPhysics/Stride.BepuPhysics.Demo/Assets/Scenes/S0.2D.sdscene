@@ -145,7 +145,6 @@ Hierarchy:
                     16b1c216dcc3451a2350ca95db40810e: !Stride.BepuPhysics._2D.Simulation2DComponent,Stride.BepuPhysics._2D
                         Id: b61da860-a7dd-40c0-baf0-b5ba58b0f98b
                         SimulationIndex: 2
-                        MaxZLiberty: 0.05
         -   Entity:
                 Id: 5d99c32a-8700-47fc-a605-f60966dfcaed
                 Name: Floor

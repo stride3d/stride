@@ -232,7 +232,8 @@ public class BepuSimulation
     public BodyComponent GetContainer(BodyHandle handle)
     {
         var body = Bodies[handle.Value];
-        Debug.Assert(body is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
+#warning disabled for soft
+        //Debug.Assert(body is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
         return body;
     }
 
@@ -496,6 +497,10 @@ public class BepuSimulation
         static void SyncTransformsWithPhysics(in BodyReference body, BepuSimulation bepuSim)
         {
             var bodyContainer = bepuSim.GetContainer(body.Handle);
+
+#warning temp fix for softs
+            if (bodyContainer == null)
+                return;
 
             for (var containerParent = bodyContainer.Parent; containerParent != null; containerParent = containerParent.Parent)
             {

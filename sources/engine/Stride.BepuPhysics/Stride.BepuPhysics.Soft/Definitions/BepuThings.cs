@@ -6,6 +6,7 @@ using BepuPhysics;
 using BepuUtilities;
 using BepuUtilities.Collections;
 using BepuUtilities.Memory;
+using Stride.BepuPhysics.Definitions.Colliders;
 
 namespace Stride.BepuPhysics.Soft.Definitions
 {
@@ -360,7 +361,7 @@ namespace Stride.BepuPhysics.Soft.Definitions
 
 
 
-        public static void Tetrahedralize(Span<TriangleContent> triangles, float cellSize, BufferPool pool, out Buffer<Vector3> vertices, out CellSet vertexSpatialIndices, out Buffer<CellVertexIndices> cellVertexIndices, out Buffer<TetrahedronVertices> tetrahedraVertexIndices)
+        public static void Tetrahedralize(Span<Triangle> triangles, float cellSize, BufferPool pool, out Buffer<Vector3> vertices, out CellSet vertexSpatialIndices, out Buffer<CellVertexIndices> cellVertexIndices, out Buffer<TetrahedronVertices> tetrahedraVertexIndices)
         {
             //Compute the size of the 3d grid by scanning all vertices.
             Vector3 min = new(float.MaxValue), max = new(float.MinValue);
@@ -587,20 +588,20 @@ namespace Stride.BepuPhysics.Soft.Definitions
             //Volume constraints add a fairly subtle effect, especially when dealing with already stiff weld constraints.
             //They're included here as an example, but you'll notice in the PlumpDancerDemo that there are no volume constraints.
             //There, we're primarily concerned about scaling up simulations to many characters, so adding tons of additional constraints for minimal behavioral difference doesn't make sense.
-            for (int i = 0; i < tetrahedraVertexIndices.Length; ++i)
-            {
-                ref var tetrahedron = ref tetrahedraVertexIndices[i];
-                simulation.Solver.Add(vertexHandles[tetrahedron.A], vertexHandles[tetrahedron.B], vertexHandles[tetrahedron.C], vertexHandles[tetrahedron.D],
-                    new VolumeConstraint(vertices[tetrahedron.A], vertices[tetrahedron.B], vertices[tetrahedron.C], vertices[tetrahedron.D], volumeSpringiness));
-            }
+            //for (int i = 0; i < tetrahedraVertexIndices.Length; ++i)
+            //{
+            //    ref var tetrahedron = ref tetrahedraVertexIndices[i];
+            //    simulation.Solver.Add(vertexHandles[tetrahedron.A], vertexHandles[tetrahedron.B], vertexHandles[tetrahedron.C], vertexHandles[tetrahedron.D],
+            //        new VolumeConstraint(vertices[tetrahedron.A], vertices[tetrahedron.B], vertices[tetrahedron.C], vertices[tetrahedron.D], volumeSpringiness));
+            //}
 
             pool.Return(ref vertexEdgeCounts);
             edges.Dispose(pool);
         }
 
-        public void Create(Simulation simulation, TriangleContent[] triangles)
+        public static void Create(BepuSimulation simulation, Buffer<Triangle> triangles)
         {
-            float cellSize = 0.1f;
+            float cellSize = 1f;
             var bufferPool = simulation.BufferPool;
             DumbTetrahedralizer.Tetrahedralize(triangles, cellSize, bufferPool,
              out var vertices, out var vertexSpatialIndices, out var cellVertexIndices, out var tetrahedraVertexIndices);
@@ -608,12 +609,16 @@ namespace Stride.BepuPhysics.Soft.Definitions
             var weldSpringiness = new SpringSettings(30f, 1f);
             var volumeSpringiness = new SpringSettings(30f, 1);
 
-            CreateDeformable(simulation, new Vector3(0, 0, 0), QuaternionEx.CreateFromAxisAngle(new Vector3(1, 0, 0), MathF.PI * (0 * 0.55f)), 1f, cellSize, weldSpringiness, volumeSpringiness, 1, ref vertices, ref vertexSpatialIndices, ref cellVertexIndices, ref tetrahedraVertexIndices);
+            CreateDeformable(simulation.Simulation, new Vector3(0, 0, 0), QuaternionEx.CreateFromAxisAngle(new Vector3(1, 0, 0), MathF.PI * (0 * 0.55f)), 1f, cellSize, weldSpringiness, volumeSpringiness, 1, ref vertices, ref vertexSpatialIndices, ref cellVertexIndices, ref tetrahedraVertexIndices);
 
             bufferPool.Return(ref vertices);
             vertexSpatialIndices.Dispose(bufferPool);
             bufferPool.Return(ref cellVertexIndices);
             bufferPool.Return(ref tetrahedraVertexIndices);
+
+#warning We Need to be able to add a bodies types that is not a component, just an "internalBody"
+            while (simulation.Bodies.Count <= simulation.Simulation.Bodies.CountBodies())
+                simulation.Bodies.Add(null); 
         }
 
     }
