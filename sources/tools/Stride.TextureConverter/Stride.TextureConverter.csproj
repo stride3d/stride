@@ -3,7 +3,7 @@
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <OutputType>Library</OutputType>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>

@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows.Threading;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 
 namespace Stride.Core.Presentation.Quantum.Tests.Helpers

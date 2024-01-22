@@ -8,9 +8,9 @@ using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
 using Stride.Rendering;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.Templates
 {

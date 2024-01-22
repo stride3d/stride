@@ -37,6 +37,7 @@ using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Core.Packages;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -135,7 +136,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Gets the current active project for build/startup operations.
         /// </summary>
         // TODO: this property should become cancellable to maintain action stack consistency! Undoing a "mark as root" operation after changing the current package wouldn't work.
-        public ProjectViewModel CurrentProject { get => currentProject; private set { var oldValue = currentProject;  SetValueUncancellable(ref currentProject, value, () => UpdateCurrentProject(oldValue, value)); } }
+        public ProjectViewModel CurrentProject { get => currentProject; private set { var oldValue = currentProject; SetValueUncancellable(ref currentProject, value, () => UpdateCurrentProject(oldValue, value)); } }
 
         [NotNull]
         public ThumbnailsViewModel Thumbnails { get; }
@@ -281,7 +282,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)
             {
-                await serviceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await serviceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return null;
             }
 
@@ -463,11 +464,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
                     var buttons = new[]
                     {
-                        new DialogButtonInfo(Tr._p("Button", "Upgrade"), (int)PackageUpgradeRequestedAnswer.Upgrade),
-                        new DialogButtonInfo(Tr._p("Button", "Skip"), (int)PackageUpgradeRequestedAnswer.DoNotUpgrade),
+                        new DialogButtonInfo { Content = Tr._p("Button", "Upgrade"), Result = (int)PackageUpgradeRequestedAnswer.Upgrade },
+                        new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = (int)PackageUpgradeRequestedAnswer.DoNotUpgrade },
                     };
                     var checkBoxMessage = Tr._p("Message", "Do this for every package in the solution");
-                    var messageBoxResult = workProgress.ServiceProvider.Get<IDialogService>().CheckedMessageBox(message.ToString(), false, checkBoxMessage, buttons).Result;
+                    var messageBoxResult = workProgress.ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(message.ToString(), false, checkBoxMessage, buttons).Result;
                     var result = (PackageUpgradeRequestedAnswer)messageBoxResult.Result;
                     if (messageBoxResult.IsChecked == true)
                     {
@@ -710,7 +711,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     Tr._p("Button", "Save"),
                     Tr._p("Button", "Cancel")
                 }, 1, 2);
-                var result = await Dialogs.MessageBox(Tr._p("Message", "This asset has unsaved changes. To open it, you need to save the session first. Do you want to save now?"), buttons, MessageBoxImage.Information);
+                var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "This asset has unsaved changes. To open it, you need to save the session first. Do you want to save now?"), buttons, MessageBoxImage.Information);
                 if (result == 1)
                     await SaveSession();
 
@@ -724,7 +725,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var path = asset.AssetItem.FullPath.ToWindowsPath();
                 if (!File.Exists(path))
                 {
-                    await Dialogs.MessageBox(Tr._p("Message", "You need to save the file before you can open it."), MessageBoxButton.OK, MessageBoxImage.Information);
+                    await Dialogs.MessageBoxAsync(Tr._p("Message", "You need to save the file before you can open it."), MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
                 var process = new Process { StartInfo = new ProcessStartInfo(editorPath, $"\"{path}\"") { UseShellExecute = true } };
@@ -733,7 +734,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             catch (Exception ex)
             {
                 var message = $"{Tr._p("Message", "There was a problem starting the text editor. Make sure the path to the text editor in Settings is correct.")}{ex.FormatSummary(true)}";
-                await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -749,7 +750,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     Tr._p("Button", "Save"),
                     Tr._p("Button", "Cancel")
                 }, 1, 2);
-                var result = await Dialogs.MessageBox(Tr._p("Message", "This asset has unsaved changes. To open it, you need to save it first. Do you want to save the session now?"), buttons, MessageBoxImage.Information);
+                var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "This asset has unsaved changes. To open it, you need to save it first. Do you want to save the session now?"), buttons, MessageBoxImage.Information);
                 if (result == 1)
                     await SaveSession();
 
@@ -768,7 +769,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var fileToOpen = asset.Asset.MainSource;
             if (fileToOpen == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "This asset doesn't have a source file to open."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "This asset doesn't have a source file to open."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -833,7 +834,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var stringPath = path.ToString().Replace('/', '\\');
                 if (asset != null && !File.Exists(stringPath))
                 {
-                    await Dialogs.MessageBox(Tr._p("Message", "You need to save the asset before you can explore it."), MessageBoxButton.OK, MessageBoxImage.Information);
+                    await Dialogs.MessageBoxAsync(Tr._p("Message", "You need to save the asset before you can explore it."), MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
@@ -844,7 +845,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             catch (Exception)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "There was a problem starting the file explorer."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "There was a problem starting the file explorer."), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -853,7 +854,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var filePathToOpen = asset?.Asset?.MainSource;
             if (filePathToOpen == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "This asset doesn't have a source file."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "This asset doesn't have a source file."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -868,7 +869,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     fileSelection = false;
                     if (!Directory.Exists(stringPath))
                     {
-                        await Dialogs.MessageBox(Tr._p("Message", "Source file and path no longer exists."), MessageBoxButton.OK, MessageBoxImage.Information);
+                        await Dialogs.MessageBoxAsync(Tr._p("Message", "Source file and path no longer exists."), MessageBoxButton.OK, MessageBoxImage.Information);
                         return;
                     }
                 }
@@ -880,7 +881,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             catch (Exception)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "There was a problem starting the file explorer."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "There was a problem starting the file explorer."), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -984,7 +985,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Since notifications will be raised asynchronously, <paramref name="assets"/> collection should not be modified after it has been passed to this method.
         /// If necessary, caller must provide a copy.
         /// </remarks>
-        public async void NotifyAssetPropertiesChanged([ItemNotNull, NotNull]  IReadOnlyCollection<AssetViewModel> assets)
+        public async void NotifyAssetPropertiesChanged([ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets)
         {
             var tasks = assets.Select(x => AssetDependenciesViewModel.NotifyAssetChanged(x.Session, x)).ToList();
             await Task.WhenAll(tasks);
@@ -1053,7 +1054,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     Tr._p("Button", "Don't save"),
                     Tr._p("Button", "Cancel")
                 }, 1, 3);
-                var result = await Dialogs.MessageBox(Tr._p("Message", "The project has unsaved changes. Do you want to save it?"), buttons, MessageBoxImage.Question);
+                var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "The project has unsaved changes. Do you want to save it?"), buttons, MessageBoxImage.Question);
                 switch (result)
                 {
                     case 0:
@@ -1087,21 +1088,21 @@ namespace Stride.Core.Assets.Editor.ViewModel
             switch (packageContainer)
             {
                 case SolutionProject project:
-                {
-                    var packageContainerViewModel = new ProjectViewModel(this, project, packageAlreadyInSession);
-                    packageMap.Add(packageContainerViewModel, project);
-                    if (!packageAlreadyInSession)
-                        session.Projects.Add(project);
-                    return packageContainerViewModel;
-                }
+                    {
+                        var packageContainerViewModel = new ProjectViewModel(this, project, packageAlreadyInSession);
+                        packageMap.Add(packageContainerViewModel, project);
+                        if (!packageAlreadyInSession)
+                            session.Projects.Add(project);
+                        return packageContainerViewModel;
+                    }
                 case StandalonePackage standalonePackage:
-                {
-                    var packageContainerViewModel = new PackageViewModel(this, standalonePackage, packageAlreadyInSession);
-                    packageMap.Add(packageContainerViewModel, standalonePackage);
-                    if (!packageAlreadyInSession)
-                        session.Projects.Add(standalonePackage);
-                    return packageContainerViewModel;
-                }
+                    {
+                        var packageContainerViewModel = new PackageViewModel(this, standalonePackage, packageAlreadyInSession);
+                        packageMap.Add(packageContainerViewModel, standalonePackage);
+                        if (!packageAlreadyInSession)
+                            session.Projects.Add(standalonePackage);
+                        return packageContainerViewModel;
+                    }
                 default:
                     throw new ArgumentOutOfRangeException(nameof(packageContainer));
             }
@@ -1188,7 +1189,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             await TemplateGeneratorHelper.RunTemplateGeneratorSafe(generator, parameters, workProgress);
@@ -1210,19 +1211,15 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private async Task AddExistingProject()
         {
-            var fileDialog = ServiceProvider.Get<IEditorDialogService>().CreateFileOpenModalDialog();
-            fileDialog.Filters.Add(new FileDialogFilter("Visual Studio C# project", "csproj"));
-            fileDialog.InitialDirectory = session.SolutionPath;
-            var result = await fileDialog.ShowModal();
-
-            var projectPath = fileDialog.FilePaths.FirstOrDefault();
-            if (result == DialogResult.Ok && projectPath != null)
+            var file = await ServiceProvider.Get<IDialogService>()
+                .OpenFilePickerAsync(session.SolutionPath?.GetFullDirectory(), [new FilePickerFilter("Visual Studio C# project") { Patterns = ["*.csproj"] }]);
+            if (file is not null)
             {
-                await AddExistingProject(projectPath);
+                await AddExistingProject(file);
             }
         }
 
-        public async Task<PackageViewModel> AddExistingProject(string projectPath)
+        public async Task<PackageViewModel> AddExistingProject(UFile projectPath)
         {
             var loggerResult = new LoggerResult();
 
@@ -1262,7 +1259,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             using (var transaction = UndoRedoService.CreateTransaction())
             {
                 ProcessAddedProjects(loggerResult, workProgress, true);
-                UndoRedoService.SetName(transaction, $"Import project '{new UFile(projectPath).GetFileNameWithoutExtension()}'");
+                UndoRedoService.SetName(transaction, $"Import project '{projectPath.GetFileNameWithoutExtension()}'");
             }
 
             // Notify that the task is finished
@@ -1305,14 +1302,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var message = Tr._p("Message", "Please select a single package.");
             if (ActiveAssetView.SelectedLocations.Count != 1)
             {
-                await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
                 return null;
             }
 
             PackageViewModel selectedPackage = GetContainerPackage(ActiveAssetView.SelectedLocations[0]);
             if (selectedPackage == null)
             {
-                await Dialogs.MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
             return selectedPackage;
@@ -1347,7 +1344,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             if (AllPackages.All(x => !packagePicker.Filter(new LoadedPickablePackageViewModel(x))))
             {
-                await Dialogs.MessageBox(Tr._p("Message", "There are no packages that can be added as dependencies to this package."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "There are no packages that can be added as dependencies to this package."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -1405,7 +1402,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // If an error occurred while creating folders, inform the user.
             if (invalidSelectedItem)
             {
-                await Dialogs.MessageBox(locations.Count == 1
+                await Dialogs.MessageBoxAsync(locations.Count == 1
                     ? Tr._p("Message", "Folders can only be created in the Assets hierarchy of a package.")
                     : Tr._p("Message", "Game Studio can't create a folder in some of the locations you selected. Folders can only be created in the Assets hierarchy of a package."));
             }
@@ -1564,7 +1561,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var message = $"Are you sure you want to delete {string.Join(" and ", messageParts)}?";
                 var checkedMessage = Tr._p("Settings", "Always delete without asking");
                 var buttons = DialogHelper.CreateButtons(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
-                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBox(message, false, checkedMessage, buttons, MessageBoxImage.Question);
+                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(message, false, checkedMessage, buttons, MessageBoxImage.Question);
                 if (result.Result != 1)
                     return false;
 
@@ -1586,7 +1583,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 if (!asset.CanDelete(out error))
                 {
                     error = string.Format(Tr._p("Message", "Stride can't delete the {0} asset. {1}{2}"), asset.Url, Environment.NewLine, error);
-                    await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await Dialogs.MessageBoxAsync(error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
             }
@@ -1596,7 +1593,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 if (!directory.CanDelete(out error))
                 {
                     error = string.Format(Tr._p("Message", "Stride can't delete the {0} folder. {1}{2}"), directory.Name, Environment.NewLine, error);
-                    await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await Dialogs.MessageBoxAsync(error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
             }
@@ -1641,7 +1638,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     // Note: this should never happen. UI rules should ensure that the user cannot attempt a system package deletion.
                     if (selectedPackage.Package.IsSystem && !systemPackageWarningDisplayed)
                     {
-                        await Dialogs.MessageBox(Tr._p("Message", "Stride can't delete the system package."), MessageBoxButton.OK, MessageBoxImage.Information);
+                        await Dialogs.MessageBoxAsync(Tr._p("Message", "Stride can't delete the system package."), MessageBoxButton.OK, MessageBoxImage.Information);
                         systemPackageWarningDisplayed = true;
                         continue;
                     }
@@ -1653,7 +1650,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             Tr._p("Button", "Delete"),
                             Tr._p("Button", "Cancel")
                         }, 1, 2);
-                        var result = await Dialogs.MessageBox(Tr._p("Message", "Are you sure you want to delete this package? The package files will remain on the disk."), buttons, MessageBoxImage.Question);
+                        var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "Are you sure you want to delete this package? The package files will remain on the disk."), buttons, MessageBoxImage.Question);
                         if (result != 1)
                             break;
                     }
@@ -1684,7 +1681,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             Tr._p("Button", "Delete"),
                             Tr._p("Button", "Cancel")
                         }, 1, 2);
-                        var result = await Dialogs.MessageBox(Tr._p("Message", "Are you sure you want to delete this dependency?"), buttons, MessageBoxImage.Question);
+                        var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "Are you sure you want to delete this dependency?"), buttons, MessageBoxImage.Question);
                         if (result != 1)
                             break;
                     }
@@ -1725,7 +1722,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 if (locations.OfType<AssetMountPointViewModel>().Any())
                 {
                     // We can't delete a root directory
-                    await Dialogs.MessageBox(Tr._p("Message", "Asset root folders can't be deleted."), MessageBoxButton.OK, MessageBoxImage.Information);
+                    await Dialogs.MessageBoxAsync(Tr._p("Message", "Asset root folders can't be deleted."), MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
                 // Delete projects
@@ -1738,7 +1735,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             Tr._p("Button", "Delete"),
                             Tr._p("Button", "Cancel")
                         }, 1, 2);
-                        var result = await Dialogs.MessageBox(Tr._p("Message", "Are you sure you want to delete these projects?"), buttons, MessageBoxImage.Question);
+                        var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "Are you sure you want to delete these projects?"), buttons, MessageBoxImage.Question);
                         if (result != 1)
                             break;
                     }

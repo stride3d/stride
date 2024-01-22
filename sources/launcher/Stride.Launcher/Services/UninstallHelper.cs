@@ -7,7 +7,7 @@ using System.Linq;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.LauncherApp.Services
 {
@@ -141,7 +141,7 @@ namespace Stride.LauncherApp.Services
 
         private bool DisplayMessage(string message)
         {
-            var result = serviceProvider.Get<IDialogService>().BlockingMessageBox(message, MessageBoxButton.OKCancel);
+            var result = serviceProvider.Get<IDialogService2>().BlockingMessageBox(message, MessageBoxButton.OKCancel);
             return result != MessageBoxResult.Cancel;
         }
 
