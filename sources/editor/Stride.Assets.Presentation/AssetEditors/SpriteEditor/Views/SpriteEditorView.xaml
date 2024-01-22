@@ -7,6 +7,7 @@
        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
        xmlns:behaviors="clr-namespace:Stride.Assets.Presentation.View.Behaviors"
+       xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
        xmlns:valueConverters="clr-namespace:Stride.Assets.Presentation.ValueConverters"
        xmlns:sprite="clr-namespace:Stride.Assets.Sprite;assembly=Stride.Assets"
        xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
@@ -193,12 +194,12 @@
                                           DisplayInsertAdorner="True" DisplayDropAdorner="ExternalOnly"
                                           DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
             <sd:ListBoxBindableSelectedItemsBehavior SelectedItems="{Binding SelectedSprites}"/>
-            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding CopyImageCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding CopyImageCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
             <!--
-              <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding CutImageCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+              <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding CutImageCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
               -->
-            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding RemoveImageCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
-            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding PasteImageCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding RemoveImageCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
+            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding PasteImageCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
           </i:Interaction.Behaviors>
         </sd:EditableContentListBox>
         <i:Interaction.Behaviors>

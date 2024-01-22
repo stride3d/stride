@@ -217,7 +217,7 @@ namespace Stride.LauncherApp.ViewModels
                     {
                         // We'll enter this if UAC has been declined, but also if it timed out (which is a frequent case
                         // if you don't stay in front of your computer during the installation.
-                        var result = await ServiceProvider.Get<IDialogService>().MessageBox("The installation of prerequisites has been canceled by user or failed to run. Do you want to run it again?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                        var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync("The installation of prerequisites has been canceled by user or failed to run. Do you want to run it again?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                         if (result != MessageBoxResult.Yes)
                             break;
                     }

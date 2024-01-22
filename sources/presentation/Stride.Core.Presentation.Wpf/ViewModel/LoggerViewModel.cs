@@ -11,6 +11,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Presentation.ViewModel
 {
