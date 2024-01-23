@@ -1,6 +1,4 @@
-﻿using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Extensions;
-using Stride.Engine;
+﻿using Stride.Engine;
 using Stride.Input;
 
 namespace Stride.BepuPhysics.Demo.Components.Utils

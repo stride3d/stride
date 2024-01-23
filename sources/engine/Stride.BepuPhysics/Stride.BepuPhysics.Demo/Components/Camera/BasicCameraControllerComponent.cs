@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
-using Stride.Rendering.Compositing;
 
 namespace Stride.BepuPhysics.Demo.Components.Camera
 {

@@ -1,8 +1,5 @@
 ﻿using BepuPhysics.Collidables;
-using BepuPhysics.CollisionDetection;
-using Stride.BepuPhysics.Components.Containers;
 using Stride.BepuPhysics.Definitions.Contacts;
-using Stride.BepuPhysics.Extensions;
 using Stride.Engine;
 
 
@@ -18,10 +15,10 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         private MyCustomContactEventHandler MyCustomContactEventHandler3 = new();
         private MyCustomContactEventHandler MyCustomContactEventHandler4 = new();
 
-        public BodyContainerComponent? Container1 { get; set; }
-        public BodyContainerComponent? Container2 { get; set; }
-        public BodyContainerComponent? Container3 { get; set; }
-        public BodyContainerComponent? Container4 { get; set; }
+        public BodyComponent? Container1 { get; set; }
+        public BodyComponent? Container2 { get; set; }
+        public BodyComponent? Container3 { get; set; }
+        public BodyComponent? Container4 { get; set; }
 
         public override void Start()
         {
@@ -44,13 +41,14 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
     public class MyCustomContactEventHandler : IContactEventHandler
     {
         public bool Contact { get; private set; } = false;
+        public bool NoContactResponse => false;
 
-        void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex)
+        void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
         {
             Contact = true;
         }
 
-        void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int contactIndex)
+        void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
         {
             Contact = false;
         }

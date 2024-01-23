@@ -1,7 +1,4 @@
-﻿using Stride.BepuPhysics.Extensions;
-using Stride.Core.Serialization;
-using Stride.Engine;
-using Stride.Input;
+﻿using Stride.Engine;
 
 namespace Stride.BepuPhysics.Demo.Components
 {

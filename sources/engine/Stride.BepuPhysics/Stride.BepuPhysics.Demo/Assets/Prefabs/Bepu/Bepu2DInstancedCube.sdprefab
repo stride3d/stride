@@ -19,8 +19,16 @@ Hierarchy:
                     fe417a7f83004f72593133d581ddcc78: !InstanceComponent
                         Id: c2f7a377-0786-4b5a-a030-35bc416a7c44
                         Master: null
-                    04b7ca01c1750c07459297069017aaf7: !Stride.BepuPhysics._2D.Components.Containers._2DBodyContainerComponent,Stride.BepuPhysics._2D
+                    04b7ca01c1750c07459297069017aaf7: !Stride.BepuPhysics.Body2DComponent,Stride.BepuPhysics._2D
                         Id: d638addf-bde9-4c78-ae27-4ae018aeb505
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                7ceae8199da51cce8dd432dff53e4a3e: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.2, Y: 0.2, Z: 1.0}
+                        ContactEventHandler: null
                         SimulationIndex: 2
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -36,11 +44,5 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Interpolation: None
+                        InterpolationMode: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
-                            a7feabaf7a7ef12bdebf7e1c635e3c47: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 0.1
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 0.2, Y: 0.2, Z: 1.0}

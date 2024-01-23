@@ -63,8 +63,16 @@ Hierarchy:
                         Id: a2b25f4f-0977-4a26-9d7f-528a0c584f57
                         Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
                         Materials: {}
-                    b24e6f17befd60f29fbb2c7b6bb740bd: !Stride.BepuPhysics.Components.Containers.StaticContainerComponent,Stride.BepuPhysics
+                    b24e6f17befd60f29fbb2c7b6bb740bd: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: bf04da26-8d14-4977-8652-f825ec67644b
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                f80fb79c8d40f1bae98d5ee103e0bf73: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 250.0, Y: 0.1, Z: 250.0}
+                        ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -76,12 +84,6 @@ Hierarchy:
                             XAxis: 0
                             YAxis: 0
                             ZAxis: 0
-                        Colliders:
-                            291a1c1fe7c742a10850bba92e1c01a3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Size: {X: 250.0, Y: 0.1, Z: 250.0}
         -   Entity:
                 Id: 653a8a5f-3a25-494f-9335-b38f1d853f59
                 Name: BridgeMeshContainer
@@ -97,8 +99,13 @@ Hierarchy:
                         Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
                         Materials:
                             37439bd1ca6e9765847ffa07f178b50e~0: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
-                    a61ed9913de89b33f908f399bb797e7a: !Stride.BepuPhysics.Components.Containers.BodyMeshContainerComponent,Stride.BepuPhysics
+                    a61ed9913de89b33f908f399bb797e7a: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 9c384156-5813-4753-b8d3-668783b839ef
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
+                            Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                            Mass: 1.0
+                            Closed: true
+                        ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -114,9 +121,8 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Mass: 1.0
-                        Closed: true
-                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
         -   Entity:
                 Id: b5a7568b-fd59-4906-8fd5-37893c7dfaf8
                 Name: Skybox
@@ -178,8 +184,13 @@ Hierarchy:
                             2a41d13fbc4fceee297dc6c449db4317~0: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
                             b567cfc22f702bd104caf9afaf08df0f~1: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
                             d2b731ca0fa9136c738998563d22aedc~2: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
-                    6c6e738690230cb357bc6a7d193b3b5d: !Stride.BepuPhysics.Components.Containers.BodyMeshContainerComponent,Stride.BepuPhysics
+                    6c6e738690230cb357bc6a7d193b3b5d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: e6d3aad3-d50a-4530-ad50-2c777597a867
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
+                            Model: 77e7e900-fdb0-4501-8a3f-8658f67c30d3:Models/Wagon_A_green
+                            Mass: 1.0
+                            Closed: true
+                        ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -195,9 +206,8 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Mass: 1.0
-                        Closed: true
-                        Model: 77e7e900-fdb0-4501-8a3f-8658f67c30d3:Models/Wagon_A_green
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
         -   Entity:
                 Id: d11956cc-c083-481b-a12d-1626df8d32fe
                 Name: HexConvexHull
@@ -214,8 +224,17 @@ Hierarchy:
                         Materials:
                             896d342a02d524b28d3a30b1b63195d0~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
                             662d82b5c3b080ce82abc57939239817~1: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
-                    c6f6b5494ec1b33d07116d6bc7e4d13f: !Stride.BepuPhysics.Components.Containers.BodyContainerComponent,Stride.BepuPhysics
+                    c6f6b5494ec1b33d07116d6bc7e4d13f: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 3b7024e6-a5db-4aaf-b630-c58b1e2780bd
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                ace3395461c4bc7684857f2efe470965: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 5.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
+                                    Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -231,15 +250,8 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Interpolation: None
+                        InterpolationMode: None
                         ContinuousDetectionMode: Discrete
-                        Colliders:
-                            2ce2366b442bef89e46281e4be3476e0: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
-                                Mass: 1.0
-                                PositionLocal: {X: 0.0, Y: 5.0, Z: 0.0}
-                                RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                Hull: c25448cc-f555-49dc-8f0b-87639a44f1d8:Models/HexHull
-                                Scale: {X: 0.1, Y: 0.1, Z: 0.1}
         -   Entity:
                 Id: e9ae13c5-bd03-4fba-bc23-9cdccedc3f30
                 Name: BepuPhysics
@@ -271,8 +283,13 @@ Hierarchy:
                         Materials:
                             b5330a6b01f889d72e378d43ee7f5913~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
                             e1fde20fec8c37dfcd862bc055bd12da~1: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
-                    dc93ec7834e278e3a0378c18e2c91c9d: !Stride.BepuPhysics.Components.Containers.BodyMeshContainerComponent,Stride.BepuPhysics
+                    dc93ec7834e278e3a0378c18e2c91c9d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 7fc5c406-3821-4ead-89e7-0cbcbf912835
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
+                            Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
+                            Mass: 1.0
+                            Closed: true
+                        ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
@@ -288,9 +305,8 @@ Hierarchy:
                         IgnoreGlobalGravity: false
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                        Mass: 1.0
-                        Closed: true
-                        Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
         -   Entity:
                 Id: f1fb92e1-1faf-4538-9668-05f1417337b6
                 Name: CubeInstancing

@@ -1,53 +1,52 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Collidables;
-using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Extensions;
+using BepuUtilities.Memory;
+using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Games;
+using NRigidPose = BepuPhysics.RigidPose;
 
-namespace Stride.BepuPhysics.Definitions.Colliders
+namespace Stride.BepuPhysics.Definitions.Colliders;
+
+[DataContract]
+public sealed class TriangleCollider : ColliderBase
 {
-    [DataContract]
-    public sealed class TriangleCollider : ColliderBase
+    private Vector3 _a = new(1, 1, 1);
+    private Vector3 _b = new(1, 1, 1);
+    private Vector3 _c = new(1, 1, 1);
+
+    public Vector3 A
     {
-        private Vector3 _a = new(1, 1, 1);
-        private Vector3 _b = new(1, 1, 1);
-        private Vector3 _c = new(1, 1, 1);
-
-        public Vector3 A
+        get => _a;
+        set
         {
-            get => _a;
-            set
-            {
-                _a = value;
-                Container?.ContainerData?.TryUpdateContainer();
-            }
+            _a = value;
+            Container?.TryUpdateContainer();
         }
+    }
 
-        public Vector3 B
+    public Vector3 B
+    {
+        get => _b;
+        set
         {
-            get => _b;
-            set
-            {
-                _b = value;
-                Container?.ContainerData?.TryUpdateContainer();
-            }
+            _b = value;
+            Container?.TryUpdateContainer();
         }
+    }
 
-        public Vector3 C
+    public Vector3 C
+    {
+        get => _c;
+        set
         {
-            get => _c;
-            set
-            {
-                _c = value;
-                Container?.ContainerData?.TryUpdateContainer();
-            }
+            _c = value;
+            Container?.TryUpdateContainer();
         }
+    }
 
-        internal override void AddToCompoundBuilder(IGame game, BepuSimulation simulation, ref CompoundBuilder builder, RigidPose localPose)
-        {
-            builder.Add(new Triangle(A.ToNumericVector(), B.ToNumericVector(), C.ToNumericVector()), localPose, Mass);
-        }
+    internal override void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose)
+    {
+        builder.Add(new Triangle(A.ToNumericVector(), B.ToNumericVector(), C.ToNumericVector()), localPose, Mass);
     }
 }

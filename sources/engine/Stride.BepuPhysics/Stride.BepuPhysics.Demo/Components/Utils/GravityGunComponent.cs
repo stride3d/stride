@@ -1,10 +1,5 @@
-﻿using BepuPhysics;
-using BulletSharp.SoftBody;
-using Stride.BepuPhysics.Components.Constraints;
-using Stride.BepuPhysics.Components.Containers.Interfaces;
-using Stride.BepuPhysics.Configurations;
-using Stride.BepuPhysics.Definitions.Raycast;
-using Stride.BepuPhysics.Extensions;
+﻿
+using Stride.BepuPhysics.Constraints;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
@@ -19,7 +14,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         private OneBodyLinearServoConstraintComponent? _oblscc;
         private OneBodyAngularServoConstraintComponent? _obascc;
 
-        private IBodyContainer? _body;
+        private BodyComponent? _body;
         private float _distance = 0f;
         private Vector3 _localGrabPoint = new Vector3();
         private Quaternion _targetOrientation = Quaternion.Identity;
@@ -40,7 +35,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             if (_body != null || Camera == null)
                 return;
 
-            if (info.Container is not IBodyContainer body)
+            if (info.Container is not BodyComponent body)
                 return;
 
             _oblscc = new OneBodyLinearServoConstraintComponent();
@@ -62,7 +57,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             _body = body;
             _distance = info.Distance;
-            _localGrabPoint = Vector3.Transform(info.Point.ToStrideVector() - _body.Position, Quaternion.Invert(_body.Orientation));
+            _localGrabPoint = Vector3.Transform(info.Point - _body.Position, Quaternion.Invert(_body.Orientation));
             _targetOrientation = body.Entity.Transform.GetWorldRot() * Quaternion.Invert(Camera.Entity.Transform.GetWorldRot());
         }
         public void UpdateConstraints()
