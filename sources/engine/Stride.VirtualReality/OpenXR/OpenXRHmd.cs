@@ -634,16 +634,6 @@ namespace Stride.VirtualReality
         }
 #endif
 
-
-        public unsafe void SetPassthroughLayer(IntPtr layer)
-        {
-            if (layer != IntPtr.Zero)
-            {
-                this.compositionLayers[0] = (CompositionLayerBaseHeader*)layer;
-                nextCompositionLayer = 1;
-            }
-        }
-
         public override void Commit(CommandList commandList, Texture renderFrame)
         {
             // if we didn't wait a frame, don't commit
