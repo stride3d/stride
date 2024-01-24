@@ -640,7 +640,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     return;
                 }
 
-                ServiceProvider.Get<IEditorDialogService>().AssetEditorsManager.OpenAssetEditorWindow(asset);
+                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorWindow(asset);
             }
 
             // Folder

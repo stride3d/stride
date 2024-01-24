@@ -62,7 +62,7 @@ namespace Stride.GameStudio.View
 
             dockingLayout = new DockingLayoutManager(this, editor.Session);
             assetEditorsManager = new AssetEditorsManager(dockingLayout, editor.Session);
-            editor.ServiceProvider.Get<IEditorDialogService>().AssetEditorsManager = assetEditorsManager;
+            editor.ServiceProvider.RegisterService(assetEditorsManager);
 
             OpenDebugWindowCommand = new AnonymousCommand(editor.ServiceProvider, OpenDebugWindow);
             CreateTestAssetCommand = new AnonymousCommand(editor.ServiceProvider, CreateTestAsset);

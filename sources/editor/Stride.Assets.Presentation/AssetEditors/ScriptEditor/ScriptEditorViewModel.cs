@@ -95,7 +95,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
                     DocumentClosed?.Invoke(this, EventArgs.Empty);
 
                     // Document is closing, we assume we have been asked before to save
-                    ServiceProvider.Get<IEditorDialogService>().AssetEditorsManager.CloseAssetEditorWindow(Asset, false);
+                    ServiceProvider.Get<IAssetEditorsManager>().CloseAssetEditorWindow(Asset, false);
                 });
             }
         }

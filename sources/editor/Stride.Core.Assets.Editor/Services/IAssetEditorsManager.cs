@@ -7,7 +7,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 namespace Stride.Core.Assets.Editor.Services
 {
     /// <summary>
-    /// An interface representing a window that can open and close editor instances for assets.
+    /// An interface representing a service that can open and close editor instances for assets.
     /// </summary>
     public interface IAssetEditorsManager
     {

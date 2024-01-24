@@ -693,7 +693,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             var prefabs = new HashSet<PrefabViewModel>(SelectedItems.Select(x => x.SourcePrefab).NotNull());
             foreach (var prefab in prefabs)
             {
-                ServiceProvider.Get<IEditorDialogService>().AssetEditorsManager.OpenAssetEditorWindow(prefab);
+                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorWindow(prefab);
             }
         }
 

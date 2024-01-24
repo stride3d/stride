@@ -58,8 +58,6 @@ namespace Stride.Core.Assets.Editor.View
         {
         }
 
-        public IAssetEditorsManager AssetEditorsManager { get; set; }
-
         public void ShowNotificationWindow(string title, string message, ICommandBase command, object commandParameter)
         {
             var notificationWindow = new NotificationWindow(title, message, command, commandParameter);
