@@ -6,6 +6,7 @@
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePlatformDependent>true</StridePlatformDependent>
+    <StridePackAssets>true</StridePackAssets>
     <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
