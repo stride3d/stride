@@ -32,7 +32,7 @@ namespace Stride.GameStudio.AssetsEditors
     {
         private readonly ConditionalWeakTable<IMultipleAssetEditorViewModel, NotifyCollectionChangedEventHandler> registeredHandlers = new();
         private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = new();
-        private readonly HashSet<AssetViewModel> openedAssets = new HashSet<AssetViewModel>();
+        private readonly Dictionary<AssetViewModel, IAssetEditorViewModel> openedAssets = new Dictionary<AssetViewModel, IAssetEditorViewModel>();
         // TODO have a base interface for all editors and factorize to make curve editor not be a special case anymore
         private Tuple<CurveEditorViewModel, LayoutAnchorable> curveEditor;
 
@@ -53,7 +53,7 @@ namespace Stride.GameStudio.AssetsEditors
         /// <remarks>
         /// This does not include all assets in <see cref="IMultipleAssetEditorViewModel"/> but rather those that were explicitly opened.
         /// </remarks>
-        public IReadOnlyCollection<AssetViewModel> OpenedAssets => openedAssets;
+        public IReadOnlyCollection<AssetViewModel> OpenedAssets => openedAssets.Keys;
 
         /// <inheritdoc />
         void IDestroyable.Destroy()
@@ -168,7 +168,7 @@ namespace Stride.GameStudio.AssetsEditors
         public bool CloseAllEditorWindows(bool? save)
         {
             // Attempt to close all opened assets
-            if (!openedAssets.ToList().All(asset => CloseAssetEditorWindow(asset, save)))
+            if (!openedAssets.ToList().All(kv => CloseAssetEditorWindow(kv.Key, save)))
                 return false;
 
             // Then check that they are no remaining editor
@@ -228,7 +228,7 @@ namespace Stride.GameStudio.AssetsEditors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal IReadOnlyCollection<AssetViewModel> GetCurrentlyOpenedAssets()
         {
-            var hashSet = new HashSet<AssetViewModel>(openedAssets);
+            var hashSet = new HashSet<AssetViewModel>(openedAssets.Keys);
             assetEditors.Keys.OfType<IMultipleAssetEditorViewModel>().ForEach(x => hashSet.AddRange(x.OpenedAssets));
             return hashSet;
         }
@@ -317,7 +317,7 @@ namespace Stride.GameStudio.AssetsEditors
                     else
                     {
                         assetEditors[viewModel] = editorPane;
-                        openedAssets.Add(asset);
+                        openedAssets.Add(asset, viewModel);
                         if (viewModel is IMultipleAssetEditorViewModel multiEditor)
                         {
                             foreach (var item in multiEditor.OpenedAssets)
@@ -461,7 +461,7 @@ namespace Stride.GameStudio.AssetsEditors
 
         private void AssetsDeleted(object sender, [NotNull] NotifyCollectionChangedEventArgs e)
         {
-            e.NewItems?.Cast<AssetViewModel>().Where(x => openedAssets.Contains(x)).ForEach(CloseEditorWindow);
+            e.NewItems?.Cast<AssetViewModel>().Where(x => openedAssets.ContainsKey(x)).ForEach(CloseEditorWindow);
         }
 
         /// <summary>
