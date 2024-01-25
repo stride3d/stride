@@ -314,8 +314,6 @@ namespace Stride.GameStudio.AssetsEditors
                     editorPane.Content = view;
                     // Make the pane visible immediately
                     MakeActiveVisible(editorPane);
-                    // Initialize the editor view
-                    view.DataContext = asset;
 
                     // Create a binding for the title
                     var binding = new Binding(nameof(AssetViewModel.Url)) { Mode = BindingMode.OneWay, Source = asset };
@@ -330,6 +328,9 @@ namespace Stride.GameStudio.AssetsEditors
                     }
                     else
                     {
+                        // Initialize the editor view
+                        view.DataContext = viewModel;
+
                         assetEditors[viewModel] = editorPane;
                         openedAssets.Add(asset, viewModel);
                         if (viewModel is IMultipleAssetEditorViewModel multiEditor)
