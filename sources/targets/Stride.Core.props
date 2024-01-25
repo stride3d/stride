@@ -239,6 +239,16 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="GetLibReferences" AfterTargets="ResolveFrameworkReferences">
+    <MSBuild Projects="@(ProjectReference)" Targets="GetLibReferences">
+      <Output ItemName="LibReference" TaskParameter="TargetOutputs" />
+    </MSBuild>
+    <ItemGroup>
+      <Reference Include="@(LibReference)" />
+      <Content Include="@(LibReference)" PackagePath="lib/$(TargetFramework)" Pack="true" />
+    </ItemGroup>
+  </Target>
+
   <!-- Include Stride analyzer/code generator -->
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.CompilerServices.props"/>
 

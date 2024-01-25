@@ -9,6 +9,16 @@
     <DefineConstants>STRIDE_NUGET_RESOLVER_UI;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
+  <Target Name="GetLibReferences" AfterTargets="ResolveFrameworkReferences">
+    <MSBuild Projects="@(ProjectReference)" Targets="GetLibReferences">
+      <Output ItemName="LibReference" TaskParameter="TargetOutputs" />
+    </MSBuild>
+    <ItemGroup>
+      <Reference Include="@(LibReference)" />
+      <Content Include="@(LibReference)" PackagePath="lib/$(TargetFramework)" Pack="true" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
     <Compile Include="..\Stride.NuGetResolver\NuGetAssemblyResolver.cs" Link="NuGetAssemblyResolver.cs" />
     <Compile Include="..\Stride.NuGetResolver\RestoreHelper.cs" Link="RestoreHelper.cs" />

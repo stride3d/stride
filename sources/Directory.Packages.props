@@ -2,6 +2,9 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
+  <PropertyGroup>
+    <RoslynPrivateVersion>4.8.0-7.23558.1</RoslynPrivateVersion>
+  </PropertyGroup>
   <!-- Runtime dependencies -->
   <ItemGroup>
     <PackageVersion Include="FFmpeg.AutoGen" Version="3.4.0.2" />
@@ -34,14 +37,15 @@
   </ItemGroup>
   <!-- Other dependencies -->
   <ItemGroup>
+    <PackageVersion Include="IgnoresAccessChecksToGenerator" Version="0.6.0" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageVersion Include="Microsoft.Build" Version="17.8.3" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.8.3" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.6.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.6.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.6.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.8.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="8.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.8.2112" />
@@ -122,9 +126,9 @@
     <PackageVersion Include="Stride.CrashReport" Version="1.0.2" />
     <PackageVersion Include="Stride.GraphX.WPF.Controls" Version="2.4.0" />
     <PackageVersion Include="Stride.Metrics" Version="1.0.3" />
-    <PackageVersion Include="RoslynPad.Editor.Windows" Version="1.2.0" />
-    <PackageVersion Include="RoslynPad.Roslyn" Version="3.6.0" />
-    <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="3.6.0" />
+    <PackageVersion Include="RoslynPad.Editor.Windows" Version="4.8.0" />
+    <PackageVersion Include="RoslynPad.Roslyn" Version="4.8.0" />
+    <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="4.8.0" />
   </ItemGroup>
   <!-- Analyzers -->
   <ItemGroup>

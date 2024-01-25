@@ -34,6 +34,8 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 
         public RoslynWorkspace(RoslynHost host) : base(host.HostServices, WorkspaceKind.Host)
         {
+            //DiagnosticProvider.Enable(this); // Unable to cast object of type 'Stride.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace' to type 'RoslynPad.Roslyn.RoslynWorkspace'.
+
             this.host = host;
             host.GetService<IDiagnosticService>().DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
@@ -198,7 +200,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         }
 
         /// <inheritdoc/>
-        protected override void OnProjectReloaded(ProjectInfo reloadedProjectInfo)
+        public override void OnProjectReloaded(ProjectInfo reloadedProjectInfo)
         {
             // Close any document that don't exist anymore
             var documentIds = new HashSet<DocumentId>(reloadedProjectInfo.Documents.Select(x => x.Id));

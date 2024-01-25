@@ -148,6 +148,12 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
                 return;
             }
 
+            var document = workspace.Host.GetDocument(documentId);
+            if (document == null || !document.TryGetText(out var text))
+            {
+                return;
+            }
+
             foreach (var diagnosticData in args.Diagnostics)
             {
                 if (diagnosticData.Severity == DiagnosticSeverity.Hidden || diagnosticData.IsSuppressed)
@@ -155,7 +161,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
                     continue;
                 }
 
-                if (diagnosticData.GetTextSpan() is Microsoft.CodeAnalysis.Text.TextSpan diag == false)
+                if (diagnosticData.GetTextSpan(text) is Microsoft.CodeAnalysis.Text.TextSpan diag == false)
                 {
                     continue;
                 }
