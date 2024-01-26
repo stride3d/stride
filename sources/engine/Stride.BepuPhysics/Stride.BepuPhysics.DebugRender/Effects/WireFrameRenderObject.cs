@@ -16,25 +16,27 @@ namespace Stride.BepuPhysics.DebugRender.Effects
         // Vertex buffer setup
         public readonly int VertexStride;
         public readonly Buffer VertexBuffer;
-        public readonly Buffer IndiceBuffer;
+        public readonly Buffer IndexBuffer;
         public PrimitiveType PrimitiveType => PrimitiveType.TriangleList;
 
-        private WireFrameRenderObject(int vertexStride, Buffer vertexBuffer, Buffer indiceBuffer)
+        private WireFrameRenderObject(int vertexStride, Buffer vertexBuffer, Buffer indexBuffer)
         {
             VertexStride = vertexStride;
             VertexBuffer = vertexBuffer;
-            IndiceBuffer = indiceBuffer;
+            IndexBuffer = indexBuffer;
         }
 
         public static WireFrameRenderObject New<T>(GraphicsDevice graphicsDevice, int[] indices, T[] vertices) where T : unmanaged, IVertexStructure
         {
+            #warning change dynamic to default
+            #warning we should pool those as well
             return new(T.Declaration().VertexStride, Buffer.Vertex.New(graphicsDevice, vertices, GraphicsResourceUsage.Dynamic), Buffer.Index.New(graphicsDevice, indices));
         }
 
         public void Dispose()
         {
             VertexBuffer.Dispose();
-            IndiceBuffer.Dispose();
+            IndexBuffer.Dispose();
         }
     }
 }

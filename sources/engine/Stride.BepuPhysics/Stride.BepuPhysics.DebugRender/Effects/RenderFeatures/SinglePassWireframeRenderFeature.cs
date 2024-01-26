@@ -89,13 +89,13 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
             _pipelineState.Update();
 
             context.CommandList.SetVertexBuffer(0, myRenderObject.VertexBuffer, 0, myRenderObject.VertexStride);
-            context.CommandList.SetIndexBuffer(myRenderObject.IndiceBuffer, 0, true);
+            context.CommandList.SetIndexBuffer(myRenderObject.IndexBuffer, 0, true);
             context.CommandList.SetPipelineState(_pipelineState.CurrentState);
 
             // apply the effect
             _shader.Apply(context.GraphicsContext);
 
-            context.CommandList.DrawIndexed(myRenderObject.IndiceBuffer.ElementCount);
+            context.CommandList.DrawIndexed(myRenderObject.IndexBuffer.ElementCount);
         }
     }
 }

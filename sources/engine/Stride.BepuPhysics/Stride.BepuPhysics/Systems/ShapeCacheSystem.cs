@@ -3,9 +3,12 @@ using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.Core;
+using Stride.Core.IO;
 using Stride.Core.Mathematics;
-using Stride.Games;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
+using Stride.Graphics.Data;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Physics;
 using Stride.Rendering;
@@ -16,11 +19,10 @@ namespace Stride.BepuPhysics.Systems;
 
 internal class ShapeCacheSystem
 {
-    private IGame _game;
-
     internal readonly BasicMeshBuffers _boxShapeData;
     internal readonly BasicMeshBuffers _cylinderShapeData;
     internal readonly BasicMeshBuffers _sphereShapeData;
+    internal readonly IServiceRegistry Services;
     private readonly Dictionary<PhysicsColliderShape, BasicMeshBuffers> _hullShapeData = new();
 
     private readonly BufferPool _sharedPool = new();
@@ -28,6 +30,7 @@ internal class ShapeCacheSystem
 
     public ShapeCacheSystem(IServiceRegistry Services)
     {
+        this.Services = Services;
         var box = GeometricPrimitive.Cube.New(new Vector3(1, 1, 1));
         var cylinder = GeometricPrimitive.Cylinder.New(1, 1, 8);
         var sphere = GeometricPrimitive.Sphere.New(1, 8);
@@ -35,8 +38,6 @@ internal class ShapeCacheSystem
         _boxShapeData = new() { Vertices = box.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = box.Indices };
         _cylinderShapeData = new() { Vertices = cylinder.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = cylinder.Indices };
         _sphereShapeData = new() { Vertices = sphere.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = sphere.Indices };
-
-        _game = Services.GetService<IGame>();
     }
 
     /// <summary>
@@ -167,7 +168,74 @@ internal class ShapeCacheSystem
     //    }
     //}
 
-    internal static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractBepuMesh(Model model, IGame game, BufferPool pool)
+    internal static IEnumerable<(Stride.Rendering.Mesh mesh, byte[] verticesBytes, byte[] indicesBytes)> ExtractMeshes(Model model, IServiceRegistry services)
+    {
+        foreach (var meshData in model.Meshes)
+        {
+            byte[]? verticesBytes = TryFetchBufferContent(meshData.Draw.VertexBuffers[0].Buffer, services);
+            byte[]? indicesBytes = TryFetchBufferContent(meshData.Draw.IndexBuffer.Buffer, services);
+
+            if(verticesBytes is null || indicesBytes is null || verticesBytes.Length == 0 || indicesBytes.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to find mesh buffers while attempting to build a {nameof(StaticMeshColliderShape)}. " +
+                    $"Make sure that the {nameof(model)} is either an asset on disk, or has its buffer data attached to the buffer through '{nameof(AttachedReference)}'\n" +
+                    $"You can also explicitly build a {nameof(StaticMeshColliderShape)} using the second constructor instead of this one.");
+            }
+
+            yield return (meshData, verticesBytes, indicesBytes);
+        }
+
+        // Get mesh data from GPU, shared memory or disk
+        static unsafe byte[]? TryFetchBufferContent(Graphics.Buffer buffer, IServiceRegistry services)
+        {
+            var bufRef = AttachedReferenceManager.GetAttachedReference(buffer);
+            if (bufRef?.Data != null && ((BufferData)bufRef.Data).Content is { } output)
+                return output;
+
+            // Try to load it from disk, a file provider is required, editor does not provide one
+            if (services.GetService<IDatabaseFileProviderService>() is {} provider && provider.FileProvider is not null && bufRef?.Url != null)
+            {
+                // We have to create a new one otherwise the serialized data isn't dumped
+                var cleanManager = new ContentManager(services);
+                var bufferCopy = cleanManager.Load<Graphics.Buffer>(bufRef.Url);
+                try
+                {
+                    return bufferCopy.GetSerializationData().Content;
+                }
+                finally
+                {
+                    cleanManager.Unload(bufRef.Url);
+                }
+            }
+
+            // When the mesh is created at runtime, or when the file provider is null as can be the case in editor, fetch from GPU
+            // will most likely break on non-dx11 APIs
+            if (services.GetService<GraphicsContext>() is { } context)
+            {
+                output = new byte[buffer.SizeInBytes];
+                fixed (byte* window = output)
+                {
+                    var ptr = new DataPointer(window, output.Length);
+                    if (buffer.Description.Usage == GraphicsResourceUsage.Staging) // Directly if this is a staging resource
+                    {
+                        buffer.GetData(context.CommandList, buffer, ptr);
+                    }
+                    else // inefficient way to use the Copy method using dynamic staging texture
+                    {
+                        using var throughStaging = buffer.ToStaging();
+                        buffer.GetData(context.CommandList, throughStaging, ptr);
+                    }
+                }
+
+                return output;
+            }
+
+            return null;
+        }
+    }
+
+    internal static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractBepuMesh(Model model, IServiceRegistry services, BufferPool pool)
     {
         int totalIndices = 0;
         foreach (var meshData in model.Meshes)
@@ -179,13 +247,9 @@ internal class ShapeCacheSystem
         var triangleAsV3 = triangles.As<Vector3>();
         int triangleV3Index = 0;
 
-        foreach (var meshData in model.Meshes)
+        foreach ((Rendering.Mesh mesh, byte[] verticesBytes, byte[] indicesBytes) in ExtractMeshes(model, services))
         {
-            // Get mesh data from GPU or shared memory, this can be quite slow
-            byte[] verticesBytes = meshData.Draw.VertexBuffers[0].Buffer.GetData<byte>(game.GraphicsContext.CommandList);
-            byte[] indicesBytes = meshData.Draw.IndexBuffer.Buffer.GetData<byte>(game.GraphicsContext.CommandList);
-
-            var vBindings = meshData.Draw.VertexBuffers[0];
+            var vBindings = mesh.Draw.VertexBuffers[0];
             int vStride = vBindings.Declaration.VertexStride;
             var position = vBindings.Declaration.EnumerateWithOffsets().First(x => x.VertexElement.SemanticName == VertexElementUsage.Position);
 
@@ -195,16 +259,16 @@ internal class ShapeCacheSystem
             fixed (byte* vBuffer = &verticesBytes[vBindings.Offset])
             fixed (byte* iBuffer = indicesBytes)
             {
-                if (meshData.Draw.IndexBuffer.Is32Bit)
+                if (mesh.Draw.IndexBuffer.Is32Bit)
                 {
-                    foreach (int i in new Span<int>(iBuffer + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+                    foreach (int i in new Span<int>(iBuffer + mesh.Draw.IndexBuffer.Offset, mesh.Draw.IndexBuffer.Count))
                     {
                         triangleAsV3[triangleV3Index++] = *(Vector3*)(vBuffer + vStride * i + position.Offset); // start of the buffer, move to the 'i'th vertex, and read from the position field of that vertex
                     }
                 }
                 else
                 {
-                    foreach (ushort i in new Span<ushort>(iBuffer + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+                    foreach (ushort i in new Span<ushort>(iBuffer + mesh.Draw.IndexBuffer.Offset, mesh.Draw.IndexBuffer.Count))
                     {
                         triangleAsV3[triangleV3Index++] = *(Vector3*)(vBuffer + vStride * i + position.Offset);
                     }
@@ -215,7 +279,7 @@ internal class ShapeCacheSystem
         return triangles;
     }
 
-    private static unsafe void ExtractMeshBuffers(Model model, Graphics.CommandList commandList, out VertexPosition3[] vertices, out int[] indices)
+    private static unsafe void ExtractMeshBuffers(Model model, IServiceRegistry services, out VertexPosition3[] vertices, out int[] indices)
     {
         int totalVertices = 0, totalIndices = 0;
         foreach (var meshData in model.Meshes)
@@ -229,27 +293,12 @@ internal class ShapeCacheSystem
 
         int vertexWriteHead = 0;
         int indexWriteHead = 0;
-        foreach (var meshData in model.Meshes)
+        foreach ((Rendering.Mesh mesh, byte[] verticesBytes, byte[] indicesBytes) in ExtractMeshes(model, services))
         {
-            var vBuffer = meshData.Draw.VertexBuffers[0].Buffer;
-            var iBuffer = meshData.Draw.IndexBuffer.Buffer;
-            byte[] verticesBytes = vBuffer.GetData<byte>(commandList);
-            byte[] indicesBytes = iBuffer.GetData<byte>(commandList);
-
-            if (verticesBytes == null || indicesBytes == null)
-                throw new InvalidOperationException($"Could not extract data from gpu for '{model}', maybe this model isn't uploaded to the gpu yet ?");
-
-            if (verticesBytes.Length == 0 || indicesBytes.Length == 0)
-            {
-                vertices = Array.Empty<VertexPosition3>();
-                indices = Array.Empty<int>();
-                return;
-            }
-
             int vertMappingStart = vertexWriteHead;
             fixed (byte* bytePtr = verticesBytes)
             {
-                var vBindings = meshData.Draw.VertexBuffers[0];
+                var vBindings = mesh.Draw.VertexBuffers[0];
                 int count = vBindings.Count;
                 int stride = vBindings.Declaration.VertexStride;
 
@@ -261,18 +310,18 @@ internal class ShapeCacheSystem
 
             fixed (byte* bytePtr = indicesBytes)
             {
-                var count = meshData.Draw.IndexBuffer.Count;
+                var count = mesh.Draw.IndexBuffer.Count;
 
-                if (meshData.Draw.IndexBuffer.Is32Bit)
+                if (mesh.Draw.IndexBuffer.Is32Bit)
                 {
-                    foreach (int indexBufferValue in new Span<int>(bytePtr + meshData.Draw.IndexBuffer.Offset, count))
+                    foreach (int indexBufferValue in new Span<int>(bytePtr + mesh.Draw.IndexBuffer.Offset, count))
                     {
                         indices[indexWriteHead++] = vertMappingStart + indexBufferValue;
                     }
                 }
                 else
                 {
-                    foreach (ushort indexBufferValue in new Span<ushort>(bytePtr + meshData.Draw.IndexBuffer.Offset, count))
+                    foreach (ushort indexBufferValue in new Span<ushort>(bytePtr + mesh.Draw.IndexBuffer.Offset, count))
                     {
                         indices[indexWriteHead++] = vertMappingStart + indexBufferValue;
                     }
@@ -291,7 +340,7 @@ internal class ShapeCacheSystem
         float d2 = Vector3.Dot((Vector3)matrix.Row2, (Vector3)matrix.Row3);
         float d3 = Vector3.Dot((Vector3)matrix.Row1, (Vector3)matrix.Row3);
         Vector3 o;
-        if (MathF.Abs(d1) > float.Epsilon || MathF.Abs(d2) > float.Epsilon || MathF.Abs(d3) > float.Epsilon) // Matrix is skewed, scale cannot be
+        if (MathF.Abs(d1) > float.Epsilon || MathF.Abs(d2) > float.Epsilon || MathF.Abs(d3) > float.Epsilon) // Matrix is skewed, scale has to be axis aligned for physics
         {
             Span<Vector3> basisIn = stackalloc Vector3[]
             {
@@ -358,7 +407,7 @@ internal class ShapeCacheSystem
             {
                 lock (CacheSystem._sharedPool)
                 {
-                    var triangles = ExtractBepuMesh(TargetModel, CacheSystem._game, CacheSystem._sharedPool);
+                    var triangles = ExtractBepuMesh(TargetModel, CacheSystem.Services, CacheSystem._sharedPool);
                     newMesh = new Mesh(triangles, System.Numerics.Vector3.One, CacheSystem._sharedPool);
                 }
             }
@@ -377,7 +426,7 @@ internal class ShapeCacheSystem
             }
             else
             {
-                ExtractMeshBuffers(TargetModel, CacheSystem._game.GraphicsContext.CommandList, out vertices, out indices);
+                ExtractMeshBuffers(TargetModel, CacheSystem.Services, out vertices, out indices);
                 _buffers = (vertices, indices);
             }
         }
