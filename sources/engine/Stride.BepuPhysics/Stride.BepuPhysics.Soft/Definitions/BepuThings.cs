@@ -570,7 +570,16 @@ namespace Stride.BepuPhysics.Soft.Definitions
                     //Bodies don't have to have collidables. Take advantage of this for all the internal vertices.
                     vertexEdgeCounts[i] == edgeCountForInternalVertex ? new TypedIndex() : vertexShapeIndex, 0.01f));
                 ref var vertexSpatialIndex = ref vertexSpatialIndices[i];
-                simulation.CollidableMaterials.Allocate(vertexHandles[i]) = new BepuPhysics.Definitions.MaterialProperties() { FilterByDistance = new BepuPhysics.Definitions.Contacts.FilterByDistance() { Id = (ushort)instanceId, XAxis = (ushort)vertexSpatialIndex.X, YAxis = (ushort)vertexSpatialIndex.Y, ZAxis = (ushort)vertexSpatialIndex.Z} };
+                simulation.CollidableMaterials.Allocate(vertexHandles[i]) = new BepuPhysics.Definitions.MaterialProperties()
+                {
+                    ColliderCollisionMask = CollisionMask.Everything,
+                    FrictionCoefficient = 1,
+                    IgnoreGlobalGravity = false,
+                    IsTrigger = false,
+                    MaximumRecoveryVelocity = 1,
+                    SpringSettings = new(30,1),
+                    FilterByDistance = new BepuPhysics.Definitions.Contacts.FilterByDistance() { Id = (ushort)instanceId, XAxis = (ushort)vertexSpatialIndex.X, YAxis = (ushort)vertexSpatialIndex.Y, ZAxis = (ushort)vertexSpatialIndex.Z}
+                };
             }
 
             for (int i = 0; i < edges.Count; ++i)
@@ -601,15 +610,15 @@ namespace Stride.BepuPhysics.Soft.Definitions
 
         public static void Create(BepuSimulation simulation, Buffer<Triangle> triangles, Vector3 position)
         {
-            float cellSize = 0.2f;
+            float cellSize = 40f;
             var bufferPool = simulation.BufferPool;
             DumbTetrahedralizer.Tetrahedralize(triangles, cellSize, bufferPool,
              out var vertices, out var vertexSpatialIndices, out var cellVertexIndices, out var tetrahedraVertexIndices);
 
-            var weldSpringiness = new SpringSettings(30f, 1f);
-            var volumeSpringiness = new SpringSettings(30f, 1);
+            var weldSpringiness = new SpringSettings(5f, 0.0001f);
+            var volumeSpringiness = new SpringSettings(30f, 1f);
 
-            CreateDeformable(simulation, position, QuaternionEx.CreateFromAxisAngle(new Vector3(1, 0, 0), 0), 1f, cellSize, weldSpringiness, volumeSpringiness, 1, ref vertices, ref vertexSpatialIndices, ref cellVertexIndices, ref tetrahedraVertexIndices);
+            CreateDeformable(simulation, position, QuaternionEx.CreateFromAxisAngle(new Vector3(1, 0, 0), 0), 0.000001f, cellSize, weldSpringiness, volumeSpringiness, 1, ref vertices, ref vertexSpatialIndices, ref cellVertexIndices, ref tetrahedraVertexIndices);
 
             bufferPool.Return(ref vertices);
             vertexSpatialIndices.Dispose(bufferPool);

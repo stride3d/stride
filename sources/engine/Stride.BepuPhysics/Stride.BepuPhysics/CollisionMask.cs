@@ -51,6 +51,9 @@ public static class CollisionMaskExtension
     public static bool AllowTest(this CollisionMask collisionMask, CollidableReference collidable, BepuSimulation sim)
     {
         var result = sim.GetContainer(collidable);
+#warning softHack, we should really create a IContainer for them
+        if (result == null)
+            return true;
         return collisionMask.Collide(result.CollisionMask);
     }
 }

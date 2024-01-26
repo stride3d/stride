@@ -34,6 +34,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         private SinglePassWireframeRenderFeature _wireframeRenderFeature = null!;
         private VisibilityGroup _visibilityGroup = null!;
         private List<WireFrameRenderObject> _wireFrameList = new();
+        private bool _enabled = true;
 
         public LowDebugRenderProcessor()
         {
@@ -70,22 +71,31 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         public override void Draw(RenderContext context)
         {
             base.Draw(context);
-
+            
             if (_input.IsKeyPressed(Keys.F11))
+            {
+                _enabled = !_enabled;                
+            }
+
+            if (_enabled)
             {
                 while (_wireFrameList.Any())
                 {
                     var wireFrame = _wireFrameList[0];
-                    _wireFrameList.RemoveAt(0);
                     _visibilityGroup.RenderObjects.Remove(wireFrame);
+                    _wireFrameList.RemoveAt(0);
                     wireFrame.Dispose();
                 }
+            }
 
+            if (_input.IsKeyPressed(Keys.F10) || _enabled)
+            {
                 var count = _sim.Simulation.Bodies.CountBodies();
                 for (int i = 0; i < count; i++)
                 {
                     var body = _sim.Simulation.Bodies[new(i)];
                     var bodyPos = body.Pose.Position.ToStrideVector();
+                    var bodyRot = body.Pose.Orientation.ToStrideQuaternion();
 
                     GetBasicMeshBuffers(body, out var Buffers);
 
@@ -96,9 +106,10 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                         wireframes[i2] = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
                         wireframes[i2].Color = Color.Red;
                         Matrix.Transformation(in Vector3.One, in Quaternion.Identity, in Vector3.Zero, out wireframes[i2].ContainerBaseMatrix);
-                        Matrix.Transformation(in Vector3.One, in Quaternion.Identity, ref bodyPos, out wireframes[i2].WorldMatrix);
+                        Matrix.Transformation(in Vector3.One, ref bodyRot, ref bodyPos, out wireframes[i2].WorldMatrix);
                         _visibilityGroup.RenderObjects.Add(wireframes[i2]);
                     }
+                    _wireFrameList.AddRange(wireframes);
                 }
             }
         }
@@ -111,6 +122,12 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         }
         private void AddShapeData(List<BasicMeshBuffers> shapes, TypedIndex typeIndex)
         {
+            if (!typeIndex.Exists)
+            {
+                shapes.Add(GetBodyShapeData(GetSphereVerts(new Sphere(0.1f))));
+                return;
+            }
+
             var shapeType = typeIndex.Type;
             var shapeIndex = typeIndex.Index;
 

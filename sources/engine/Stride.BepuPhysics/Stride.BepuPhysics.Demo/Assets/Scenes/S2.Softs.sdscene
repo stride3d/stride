@@ -36,11 +36,11 @@ Hierarchy:
                         Intensity: 0.1
         -   Entity:
                 Id: 4198b519-a20b-4e74-8ee9-f31a588e3581
-                Name: CubeSoft
+                Name: Soft
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: b98d34b3-d27a-40a3-b6c6-4d8878dcf3a8
-                        Position: {X: 0.0, Y: 2.3174162, Z: 0.0}
+                        Position: {X: 0.0, Y: 75.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -50,7 +50,7 @@ Hierarchy:
                     c9a825c901f36090a3a66ec021ad9924: !Stride.BepuPhysics.Soft.SoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: a19929ea-4c57-45c8-8d5a-a93f71252c92
                         SimulationIndex: 0
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: eadda2d3-c404-49c9-b6f3-e50cf4660c81:Models/Hex
         -   Entity:
                 Id: 4725bf21-5811-4a9e-b32c-07c9c5c73caf
                 Name: DefaultScripts
@@ -94,19 +94,19 @@ Hierarchy:
                 Components:
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 93232324-fb48-4c34-9922-71bb39b83d52
-                        Position: {X: 0.0, Y: 20.0, Z: 0.0}
+                        Position: {X: 0.0, Y: 800.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Scale: {X: 100.0, Y: 100.0, Z: 100.0}
                         Children: {}
                     b782d35571eca87ac831439c3c7112c1: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: cd30b5fe-55dc-4378-b2bf-598bbe0c9905
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             Colliders:
                                 4d5102c957db9f0c7dbc4a44fb415754: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
-                                    Mass: 1.0
+                                    Mass: 100.0
                                     PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                    Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                    Size: {X: 100.0, Y: 100.0, Z: 100.0}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -152,7 +152,7 @@ Hierarchy:
                 Components:
                     191a9580bfac05d33d042a46b9b519ac: !TransformComponent
                         Id: 99a083d0-1ea1-4b31-b7ca-44fcb7c1f44b
-                        Position: {X: 0.0, Y: 20.0, Z: 50.0}
+                        Position: {X: 0.0, Y: 250.0, Z: 1000.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -166,7 +166,7 @@ Hierarchy:
                     d986a5552032bee5aa22b98d43929462: !Stride.BepuPhysics.Demo.Components.Camera.BasicCameraControllerComponent,Stride.BepuPhysics.Demo
                         Id: c113fb2f-f945-456c-97c3-1e833ea8acfc
                         Gamepad: false
-                        KeyboardMovementSpeed: {X: 10.0, Y: 10.0, Z: 10.0}
+                        KeyboardMovementSpeed: {X: 50.0, Y: 50.0, Z: 50.0}
                         TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
                         SpeedFactor: 5.0
                         KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
@@ -180,7 +180,7 @@ Hierarchy:
                         Id: 5bbb1b51-1017-4580-b374-00e977983000
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 150.0, Y: 0.1, Z: 150.0}
+                        Scale: {X: 500.0, Y: 0.1, Z: 500.0}
                         Children: {}
                     13f3af2c4ea391eb3010e218853e2b2c: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 4c429447-4363-4cff-a453-e6da73061b94
@@ -190,7 +190,7 @@ Hierarchy:
                                     Mass: 1.0
                                     PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                    Size: {X: 150.0, Y: 0.1, Z: 150.0}
+                                    Size: {X: 500.0, Y: 0.1, Z: 500.0}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
