@@ -26,7 +26,7 @@ namespace Stride.Core.Presentation.Dialogs
         public IList<FileDialogFilter> Filters { get; set; }
 
         /// <inheritdoc/>
-        public IReadOnlyCollection<string> FilePaths { get; private set; }
+        public IReadOnlyList<string> FilePaths { get; private set; }
 
         /// <inheritdoc/>
         public string InitialDirectory { get { return OpenDlg.InitialDirectory; } set { OpenDlg.InitialDirectory = value != null ? value.Replace('/', '\\') : null; } }

@@ -114,7 +114,12 @@ namespace Stride.VisualStudio.Commands
                     {
                         try
                         {
-                            strideCommands = new NpClient<IStrideCommands>(new NpEndPoint(address + "/IStrideCommands"));
+                            strideCommands = stridePackageInfo.LoadedVersion >= new PackageVersion("4.2.0")
+                                ? new NpClient<IStrideCommands>(new NpEndPoint(address + "/IStrideCommands"))
+                                // For Stride 4.1, we were using ServiceWire 5.3.4, which didn't have compressor and used BinaryFormatter serialization
+                                // BinaryFormatter was removed from .NET 8.0, ServiceWire 5.5.4 and Stride 4.2, but we still need to be able to communicate with previous version of Stride
+                                // Luckily, since VS still work with .NET 4.7, we can access BinaryFormatter and implement a custom ServiceWire.ISerializer for it.
+                                : new NpClient<IStrideCommands>(new NpEndPoint(address + "/IStrideCommands"), new ServiceWireBinaryFormatterSerializer(), new ServiceWireDoNothingCompressor());
                             break;
                         }
                         catch

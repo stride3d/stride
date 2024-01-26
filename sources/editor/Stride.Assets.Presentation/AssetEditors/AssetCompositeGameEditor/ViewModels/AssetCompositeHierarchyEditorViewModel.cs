@@ -456,7 +456,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
 
                 if (!CanPasteIntoItem(pasteResult, item, out string error))
                 {
-                    await ServiceProvider.Get<IEditorDialogService>().MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Information);
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(error, MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
