@@ -2,10 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
-using Stride.Engine;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Engine.Gizmos
 {
     /// <summary>
     /// The base interface for editor gizmos
@@ -23,17 +23,13 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         float SizeFactor { get; set; }
 
         /// <summary>
-        /// Indicate if the mouse is over the gizmo.
+        /// Used for picking gizmos on mouse down, returns true when that component was created by this gizmo
         /// </summary>
-        /// <param name="pickedComponentId"></param>
-        /// <returns><value>True</value> if the mouse is over the gizmo</returns>
-        bool IsUnderMouse(int pickedComponentId);
+        bool HandlesComponentId(OpaqueComponentId pickedComponentId, [MaybeNullWhen(false)] out Entity selection);
 
         /// <summary>
         /// Initialize the gizmo.
         /// </summary>
-        /// <param name="services"></param>
-        /// <param name="editorScene"></param>
         void Initialize(IServiceRegistry services, Scene editorScene);
     }
 }
