@@ -83,7 +83,7 @@ namespace Stride.VirtualReality
                         case VRApi.OpenXR:
                             {
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-                                Device = new OpenXRHmd(Game.GraphicsDevice);
+                                Device = OpenXRHmd.New();
 #endif
                                 break;
                             }

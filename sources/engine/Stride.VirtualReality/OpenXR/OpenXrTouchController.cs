@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,10 +9,11 @@ using Stride.Games;
 
 namespace Stride.VirtualReality
 {
-    class OpenXrTouchController : TouchController
+    sealed class OpenXrTouchController : TouchController
     {
-        private string baseHandPath;
-        private OpenXRHmd baseHMD;
+        private readonly OpenXRHmd baseHMD;
+        private readonly OpenXRInput input;
+
         private SpaceLocation handLocation;
         private TouchControllerHand myHand;
 
@@ -19,21 +22,23 @@ namespace Stride.VirtualReality
         public Space myHandSpace;
         public Silk.NET.OpenXR.Action myHandAction;
 
-        public OpenXrTouchController(OpenXRHmd hmd, TouchControllerHand whichHand)
+        public OpenXrTouchController(OpenXRHmd hmd, OpenXRInput input, TouchControllerHand whichHand)
         {
-            baseHMD = hmd;
-            handLocation.Type = StructureType.TypeSpaceLocation;
+            this.baseHMD = hmd;
+            this.input = input;
+
+            handLocation.Type = StructureType.SpaceLocation;
             myHand = whichHand;
             myHandAction = OpenXRInput.MappedActions[(int)myHand, (int)OpenXRInput.HAND_PATHS.Position];
 
             ActionSpaceCreateInfo action_space_info = new ActionSpaceCreateInfo()
             {
-                Type = StructureType.TypeActionSpaceCreateInfo,
+                Type = StructureType.ActionSpaceCreateInfo,
                 Action = myHandAction,
                 PoseInActionSpace = new Posef(new Quaternionf(0f, 0f, 0f, 1f), new Vector3f(0f, 0f, 0f)),
             };
 
-            OpenXRHmd.CheckResult(baseHMD.Xr.CreateActionSpace(baseHMD.globalSession, in action_space_info, ref myHandSpace), "CreateActionSpace");
+            baseHMD.Xr.CreateActionSpace(baseHMD.globalSession, in action_space_info, ref myHandSpace).CheckResult();
         }
 
         private Vector3 currentPos;
@@ -48,14 +53,13 @@ namespace Stride.VirtualReality
         private Vector3 currentAngVel;
         public override Vector3 AngularVelocity => currentAngVel;
 
-        public override DeviceState State => (handLocation.LocationFlags & SpaceLocationFlags.SpaceLocationPositionValidBit) != 0 ? DeviceState.Valid : DeviceState.OutOfRange;
+        public override DeviceState State => (handLocation.LocationFlags & SpaceLocationFlags.PositionValidBit) != 0 ? DeviceState.Valid : DeviceState.OutOfRange;
 
         private Quaternion? holdOffset;
-        private float _holdoffset;
 
-        public override float Trigger => OpenXRInput.GetActionFloat(myHand, TouchControllerButton.Trigger, out _);
+        public override float Trigger => input.GetActionFloat(myHand, TouchControllerButton.Trigger, out _);
 
-        public override float Grip => OpenXRInput.GetActionFloat(myHand, TouchControllerButton.Grip, out _);
+        public override float Grip => input.GetActionFloat(myHand, TouchControllerButton.Grip, out _);
 
         public override bool IndexPointing => false;
 
@@ -73,24 +77,24 @@ namespace Stride.VirtualReality
         {
             TouchControllerButton button = index == 0 ? TouchControllerButton.Thumbstick : TouchControllerButton.Touchpad;
 
-            return new Vector2(OpenXRInput.GetActionFloat(myHand, button, out _, false),
-                               OpenXRInput.GetActionFloat(myHand, button, out _, true));
+            return new Vector2(input.GetActionFloat(myHand, button, out _, false),
+                               input.GetActionFloat(myHand, button, out _, true));
         }
 
         public override bool IsPressed(TouchControllerButton button)
         {
-            return OpenXRInput.GetActionBool(myHand, button, out _);
+            return input.GetActionBool(myHand, button, out _);
         }
 
         public override bool IsPressedDown(TouchControllerButton button)
         {
-            bool isDownNow = OpenXRInput.GetActionBool(myHand, button, out bool changed);
+            bool isDownNow = input.GetActionBool(myHand, button, out bool changed);
             return isDownNow && changed;
         }
 
         public override bool IsPressReleased(TouchControllerButton button)
         {
-            bool isDownNow = OpenXRInput.GetActionBool(myHand, button, out bool changed);
+            bool isDownNow = input.GetActionBool(myHand, button, out bool changed);
             return !isDownNow && changed;
         }
 
@@ -116,20 +120,20 @@ namespace Stride.VirtualReality
         {
             ActionStatePose hand_pose_state = new ActionStatePose()
             {
-                Type = StructureType.TypeActionStatePose,
+                Type = StructureType.ActionStatePose,
                 Next = null,
             };
 
             ActionStateGetInfo get_info = new ActionStateGetInfo()
             {
-                Type = StructureType.TypeActionStateGetInfo,
+                Type = StructureType.ActionStateGetInfo,
                 Action = myHandAction,
                 Next = null,
             };
 
             SpaceVelocity sv = new SpaceVelocity()
             {
-                Type = StructureType.TypeSpaceVelocity,
+                Type = StructureType.SpaceVelocity,
                 Next = null,
             };
 
