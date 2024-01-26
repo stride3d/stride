@@ -957,7 +957,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
             var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
 
             var cancelToken = loadParameters.CancelToken;
-            List<AssetLoadingInfo> loadedAssets = [];
+            List<AssetLoadingInfo> assetLoadInfos = [];
             // Make a copy of Packages as it can be modified by PreLoadPackageDependencies
             foreach (var package in packages)
             {
@@ -966,12 +966,12 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                 {
                     return;
                 }
-                if(TryLoadAssemblies(this, log, package, loadParameters,out var info))
-                    loadedAssets.Add(info);
+                if(TryLoadAssemblies(this, log, package, loadParameters,out var assetInfo))
+                    assetLoadInfos.Add(assetInfo);
             }
-            foreach(AssetLoadingInfo info in loadedAssets)
+            foreach (AssetLoadingInfo assetInfo in assetLoadInfos)
             {
-                LoadAssets(info.session,info.log,info.package, info.loadParameters,info.pendingPackageUpgrades,info.newLoadParameters);
+                LoadAssets(assetInfo.session,assetInfo.log,assetInfo.package, assetInfo.loadParameters,assetInfo.pendingPackageUpgrades,assetInfo.newLoadParameters);
             }
         }
 
@@ -1412,6 +1412,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
 
             try
             {
+
 
                 // Get pending package upgrades
                 if (!pendingPackageUpgradesPerPackage.TryGetValue(package, out var pendingPackageUpgrades))
