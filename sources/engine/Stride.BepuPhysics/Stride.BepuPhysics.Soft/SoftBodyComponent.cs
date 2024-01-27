@@ -16,6 +16,7 @@ namespace Stride.BepuPhysics.Soft
     {
         private int _simulationIndex = 0;
         private Model _model;
+        private List<BodyHandle> _bodies;
 
         [DataMemberIgnore]
         public BepuSimulation? Simulation { get; private set; }
@@ -47,7 +48,17 @@ namespace Stride.BepuPhysics.Soft
             base.Start();
             Simulation = Services.GetService<BepuConfiguration>().BepuSimulations[_simulationIndex];
             var modelData = ShapeCacheSystem.ExtractBepuMesh(Model, Game, Simulation.BufferPool);
-            Newt.Create(Simulation, modelData, Entity.Transform.WorldMatrix.TranslationVector.ToNumericVector());
+            Newt.Create(Simulation, modelData, Entity.Transform.WorldMatrix.TranslationVector.ToNumericVector(), out var bodies);
+            _bodies = bodies;
+        }
+
+        public override void Cancel()
+        {
+            foreach (var item in _bodies)
+            {
+                Simulation!.Simulation.Bodies.Remove(item);
+            }
+            base.Cancel();
         }
 
     }

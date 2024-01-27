@@ -19,6 +19,8 @@ using cMesh = BepuPhysics.Collidables.Mesh;
 using static Stride.Rendering.Shadows.LightDirectionalShadowMapRenderer;
 using SharpFont;
 using System.ComponentModel;
+using static Stride.BepuPhysics.Systems.ShapeCacheSystem;
+using Silk.NET.OpenGL;
 
 namespace Stride.BepuPhysics.DebugRender.Processors
 {
@@ -35,7 +37,9 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         private VisibilityGroup _visibilityGroup = null!;
         private List<WireFrameRenderObject> _wireFrameList = new();
         private bool _enabled = true;
-
+        private Dictionary<TypedIndex, BasicMeshBuffers> _cache = new();
+        private int _updateFreq = 3;
+        private int _updateCurrent = 0;
         public LowDebugRenderProcessor()
         {
             Order = SystemsOrderHelper.ORDER_OF_DEBUG_P;
@@ -71,25 +75,33 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         public override void Draw(RenderContext context)
         {
             base.Draw(context);
-            
             if (_input.IsKeyPressed(Keys.F11))
             {
-                _enabled = !_enabled;                
+                _enabled = !_enabled;
             }
 
-            if (_enabled)
+
+            _updateCurrent++;
+            if (_updateCurrent > _updateFreq)
             {
-                while (_wireFrameList.Any())
-                {
-                    var wireFrame = _wireFrameList[0];
-                    _visibilityGroup.RenderObjects.Remove(wireFrame);
-                    _wireFrameList.RemoveAt(0);
-                    wireFrame.Dispose();
-                }
+                _updateCurrent = 0;
+            }
+            else
+            {
+                return;
+            }
+
+            while (_wireFrameList.Any())
+            {
+                var wireFrame = _wireFrameList[0];
+                _visibilityGroup.RenderObjects.Remove(wireFrame);
+                _wireFrameList.RemoveAt(0);
+                wireFrame.Dispose();
             }
 
             if (_input.IsKeyPressed(Keys.F10) || _enabled)
             {
+#warning this crash when changing scene (edit while drawing ?)
                 var count = _sim.Simulation.Bodies.CountBodies();
                 for (int i = 0; i < count; i++)
                 {
@@ -112,6 +124,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                     _wireFrameList.AddRange(wireframes);
                 }
             }
+
         }
 
         public void GetBasicMeshBuffers(BodyReference bodyRef, out List<BasicMeshBuffers> shapes)
@@ -122,40 +135,49 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         }
         private void AddShapeData(List<BasicMeshBuffers> shapes, TypedIndex typeIndex)
         {
+            if (_cache.TryGetValue(typeIndex, out var val))
+            {
+                shapes.Add(val);
+                return;
+            }
+
             if (!typeIndex.Exists)
             {
-                shapes.Add(GetBodyShapeData(GetSphereVerts(new Sphere(0.1f))));
+                var internalShapeData = GetBodyShapeData(GetSphereVerts(new Sphere(0.1f)));
+                _cache.Add(typeIndex, internalShapeData);
+                shapes.Add(internalShapeData);
                 return;
             }
 
             var shapeType = typeIndex.Type;
             var shapeIndex = typeIndex.Index;
+            BasicMeshBuffers? shapeData = null;
 
             switch (shapeType)
             {
                 case 0:
                     var sphere = _sim.Simulation.Shapes.GetShape<Sphere>(shapeIndex);
-                    shapes.Add(GetBodyShapeData(GetSphereVerts(sphere)));
+                    shapeData = GetBodyShapeData(GetSphereVerts(sphere));
+
                     break;
                 case 1:
                     var capsule = _sim.Simulation.Shapes.GetShape<Capsule>(shapeIndex);
-                    shapes.Add(GetBodyShapeData(GetCapsuleVerts(capsule)));
+                    shapeData = GetBodyShapeData(GetCapsuleVerts(capsule));
                     break;
                 case 2:
                     var box = _sim.Simulation.Shapes.GetShape<Box>(shapeIndex);
-                    shapes.Add(GetBodyShapeData(GetBoxVerts(box)));
+                    shapeData = GetBodyShapeData(GetBoxVerts(box));
                     break;
                 case 3:
                     var triangle = _sim.Simulation.Shapes.GetShape<Triangle>(shapeIndex);
                     var a = new VertexPosition3(triangle.A.ToStrideVector());
                     var b = new VertexPosition3(triangle.B.ToStrideVector());
                     var c = new VertexPosition3(triangle.C.ToStrideVector());
-                    var shapeData = new BasicMeshBuffers() { Vertices = [a, b, c], Indices = [0, 1, 2] };
-                    shapes.Add(shapeData);
+                    shapeData = new BasicMeshBuffers() { Vertices = [a, b, c], Indices = [0, 1, 2] };
                     break;
                 case 4:
                     var cyliner = _sim.Simulation.Shapes.GetShape<Cylinder>(shapeIndex);
-                    shapes.Add(GetBodyShapeData(GetCylinderVerts(cyliner)));
+                    shapeData = GetBodyShapeData(GetCylinderVerts(cyliner));
                     break;
                 //case 5:
                 //    var convex = _sim.Simulation.Shapes.GetShape<ConvexHull>(shapeIndex);
@@ -171,6 +193,12 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                     var mesh = _sim.Simulation.Shapes.GetShape<cMesh>(shapeIndex);
                     //shapes.Add(GetMeshData(mesh, toLeftHanded));
                     break;
+            }
+
+            if (shapeData != null)
+            {
+                _cache.Add(typeIndex, shapeData.Value);
+                shapes.Add(shapeData.Value);
             }
         }
 
