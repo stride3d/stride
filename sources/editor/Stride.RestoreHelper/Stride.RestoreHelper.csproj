@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.Build.NoTargets">
-
+<Project Sdk="Microsoft.Build.NoTargets/3.7.56">
+  <Import Project="..\..\targets\Stride.Core.props" />
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>$(StrideFramework)</TargetFramework>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <RestoreSources>
       https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json;
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="$(RoslynPrivateVersion)" GeneratePathProperty="true" IncludeAssets="none" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="4.8.0-7.23558.1" GeneratePathProperty="true" IncludeAssets="none" PrivateAssets="all" />
   </ItemGroup>
   <Target Name="GetLibReferences" Outputs="@(Reference)">
     <ItemGroup>

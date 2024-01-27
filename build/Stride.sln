@@ -45,7 +45,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TextureConverter", "Texture
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Config", "00-Config", "{7662CECF-2A3D-4DBA-AB3D-77FD8536E7A3}"
 	ProjectSection(SolutionItems) = preProject
-		..\global.json = ..\global.json
 		..\sources\shared\SharedAssemblyInfo.cs = ..\sources\shared\SharedAssemblyInfo.cs
 	EndProjectSection
 EndProject
@@ -335,7 +334,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGetResolver", "NuGetResol
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.RestoreHelper", "..\sources\editor\Stride.RestoreHelper\Stride.RestoreHelper.csproj", "{B2AE0143-AAB5-42F3-9214-E678E6393C53}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.RestoreHelper", "..\sources\editor\Stride.RestoreHelper\Stride.RestoreHelper.csproj", "{B2AE0143-AAB5-42F3-9214-E678E6393C53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -48,9 +48,9 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 
             // Create default workspace
             workspace = new RoslynWorkspace(this);
-            //workspace.EnableDiagnostics(/*DiagnosticOptions.Semantic | DiagnosticOptions.Syntax*/); // Unable to cast object of type 'Stride.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace' to type 'RoslynPad.Roslyn.RoslynWorkspace'.
+            workspace.EnableDiagnostics();
 
-            //GetService<IDiagnosticService>().DiagnosticsUpdated += OnDiagnosticsUpdated; // CHECK: I see the same event subscription inside new RoslynWorkspace(this).
+            GetService<IDiagnosticService>().DiagnosticsUpdated += OnDiagnosticsUpdated;
 
             ParseOptions = CreateDefaultParseOptions();
         }
@@ -61,10 +61,10 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             {
                 Assembly.Load("Microsoft.CodeAnalysis.Workspaces"),
                 Assembly.Load("Microsoft.CodeAnalysis.CSharp.Workspaces"),
-                Assembly.Load("Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost"),
                 Assembly.Load("Microsoft.CodeAnalysis.Features"),
                 Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features"),
                 Assembly.Load("Microsoft.CodeAnalysis.Workspaces.MSBuild"),
+                Assembly.Load("Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost"), // because the file extension '.csproj' is not associated with a language.
                 typeof(IRoslynHost).Assembly, // RoslynPad.Roslyn
                 typeof(SymbolDisplayPartExtensions).Assembly, // RoslynPad.Roslyn.Windows
                 typeof(AvalonEditTextContainer).Assembly, // RoslynPad.Editor.Windows
@@ -73,6 +73,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             var partTypes = assemblies
                 .SelectMany(x => x.DefinedTypes)
                 .Select(x => x.AsType())
+                .Where(x => x != typeof(DocumentTrackingServiceFactory))
                 .Concat(MetadataUtil.LoadTypesByNamespaces(typeof(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticService).Assembly, "Microsoft.CodeAnalysis.Diagnostics", "Microsoft.CodeAnalysis.CodeFixes"));
 
             return new ContainerConfiguration()
