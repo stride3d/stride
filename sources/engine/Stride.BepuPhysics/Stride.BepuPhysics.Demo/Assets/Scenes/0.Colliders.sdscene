@@ -923,7 +923,7 @@ Hierarchy:
                         Materials: {}
                     d10f1a4e70a8fe7535b35d26b5b19b23: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 4e3e953b-7cb6-4bcb-8f40-69b8975246d1
-                        Collider: !Stride.BepuPhysics.Definitions.Colliders.BigCompoundCollider,Stride.BepuPhysics
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
                             Colliders:
                                 c09b013f0509686209ff7d9b30d50799: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
                                     Mass: 1.0

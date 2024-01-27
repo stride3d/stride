@@ -12,21 +12,28 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 [DataContract]
 public class CompoundCollider : ICollider
 {
+    private readonly ListOfColliders _colliders;
     private ContainerComponent? _container;
-#warning consider swapping List<> to an IList<> in the future to avoid cast down misuse
-    private ListOfColliders _colliders;
 
+    [DataMember]
+    public IList<ColliderBase> Colliders => _colliders;
+
+    [DataMemberIgnore]
+    public Action OnEditCallBack { get; set; }
 
     [DataMemberIgnore]
     public int Transforms => _colliders.Count;
+
     [DataMemberIgnore]
     ContainerComponent? ICollider.Container { get => _container; set => _container = value; }
 
-    public ListOfColliders Colliders { get => _colliders; set => _colliders = value; }
+#warning shouldn't we build heuristics to swap automatically instead of querying users, is there a definite case where it always performs better as a BigCompound instead of a normal one ? We can't really expect users to choose the right one by themselves
+    public bool IsBig => false;
 
     public CompoundCollider()
     {
-        _colliders = new() { OnEditCallBack = () => _container?.TryUpdateContainer() };
+        OnEditCallBack = () => _container?.TryUpdateContainer();
+        _colliders = new() { Owner = this };
     }
 
     public void GetLocalTransforms(ContainerComponent container, Span<ShapeTransform> transforms)
@@ -76,7 +83,7 @@ public class CompoundCollider : ICollider
             System.Numerics.Vector3 shapeCenter;
             compoundBuilder.BuildDynamicCompound(out compoundChildren, out inertia, out shapeCenter);
 
-            index = shapes.Add(new Compound(compoundChildren));
+            index = IsBig ? shapes.Add(new BigCompound(compoundChildren, shapes, pool)) : shapes.Add(new Compound(compoundChildren));
             centerOfMass = shapeCenter.ToStrideVector();
         }
         finally

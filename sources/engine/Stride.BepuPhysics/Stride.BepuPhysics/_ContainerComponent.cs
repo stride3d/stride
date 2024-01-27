@@ -39,8 +39,6 @@ public abstract class ContainerComponent : EntityComponent
     [DataMemberIgnore]
     protected TypedIndex ShapeIndex { get; private set; }
 
-#warning not working, so changed constructor
-    //[DataMember(DataMemberMode.Content)]
     [MemberRequired, Display(Expand = ExpandRule.Always)]
     public required ICollider Collider
     {
@@ -50,14 +48,12 @@ public abstract class ContainerComponent : EntityComponent
         }
         set
         {
-            if (value == null)
-                value = new EmptyCollider();
-
             if (value.Container != null && ReferenceEquals(value.Container, this) == false)
             {
                 throw new InvalidOperationException($"Container {value} is already assigned to {value.Container}, they cannot be shared");
             }
 
+            _collider.Container = null;
             _collider = value;
             _collider.Container = this;
             TryUpdateContainer();
@@ -167,10 +163,8 @@ public abstract class ContainerComponent : EntityComponent
 
     public ContainerComponent()
     {
-        var compound = new CompoundCollider();
-        //compound.Add(new BoxCollider());
-        _collider = compound;
-        (compound as ICollider).Container = this;
+        _collider = new CompoundCollider();
+        _collider.Container = this;
     }
 
     internal void TryUpdateContainer()

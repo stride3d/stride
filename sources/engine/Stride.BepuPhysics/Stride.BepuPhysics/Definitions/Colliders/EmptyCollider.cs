@@ -14,6 +14,9 @@ public class EmptyCollider : ICollider
     private ContainerComponent? _container;
     ContainerComponent? ICollider.Container { get => _container; set => _container = value; }
 
+    [DataMemberIgnore]
+    public Action OnEditCallBack { get; set; } = () => { };
+
     int ICollider.Transforms => 1; //We don't have collider, but we have a debug render (a sphere of a radius of 0.1 for now)
 
     void ICollider.AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cache)

@@ -28,7 +28,7 @@ public class MeshCollider : ICollider
         set
         {
             _model = value;
-            _container?.TryUpdateContainer();
+            OnEditCallBack();
         }
     }
 
@@ -40,7 +40,7 @@ public class MeshCollider : ICollider
             if (_mass != value)
             {
                 _mass = value;
-                _container?.TryUpdateContainer();
+                OnEditCallBack();
             }
         }
     }
@@ -56,12 +56,20 @@ public class MeshCollider : ICollider
             if (_closed != value)
             {
                 _closed = value;
-                _container?.TryUpdateContainer();
+                OnEditCallBack();
             }
         }
     }
 
     public int Transforms => 1;
+
+    [DataMemberIgnore]
+    public Action OnEditCallBack { get; set; }
+
+    public MeshCollider()
+    {
+        OnEditCallBack = () => _container?.TryUpdateContainer();
+    }
 
     public void GetLocalTransforms(ContainerComponent container, Span<ShapeTransform> transforms)
     {

@@ -229,13 +229,12 @@ namespace Stride.BepuPhysics.DebugRender.Processors
             {
                 //color += new Vector3(0, 0, 0);
             }
-            else if (container.Collider is CompoundCollider)
+            else if (container.Collider is CompoundCollider cc)
             {
-                color += new Vector3(0.5f, 0, 0);
-            }
-            else if (container.Collider is BigCompoundCollider)
-            {
-                color += new Vector3(1f, 0, 0);
+                if (cc.IsBig)
+                    color += new Vector3(1f, 0, 0);
+                else
+                    color += new Vector3(0.5f, 0, 0);
             }
             else if (container.Collider is EmptyCollider)
             {

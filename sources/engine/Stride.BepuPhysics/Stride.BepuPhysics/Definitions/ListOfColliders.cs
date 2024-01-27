@@ -1,52 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Stride.BepuPhysics.Definitions.Colliders;
+﻿using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.Core;
 
 namespace Stride.BepuPhysics.Definitions
 {
     [DataContract]
-    public sealed class ListOfColliders : List<ColliderBase>
+    internal sealed class ListOfColliders : List<ColliderBase>, IList<ColliderBase> // inherit from List<T> for serializer workaround but present users with `IList<T>` instead
     {
-        public Action? OnEditCallBack { get; internal set; }
+        internal required CompoundCollider Owner { get; set; }
 
-        public new void Add(ColliderBase item)
+        void ICollection<ColliderBase>.Add(ColliderBase item)
         {
             base.Add(item);
-            OnEditCallBack?.Invoke();
+            Owner.OnEditCallBack.Invoke();
         }
-        public new void Remove(ColliderBase item)
+
+        bool ICollection<ColliderBase>.Remove(ColliderBase item)
         {
-            base.Remove(item);
-            OnEditCallBack?.Invoke();
+            bool val = base.Remove(item);
+            Owner.OnEditCallBack.Invoke();
+            return val;
         }
-        public new void RemoveAll(Predicate<ColliderBase> match)
-        {
-            base.RemoveAll(match);
-            OnEditCallBack?.Invoke();
-        }
-        public new void RemoveAt(int index)
-        {
-            base.RemoveAt(index);
-            OnEditCallBack?.Invoke();
-        }
-        public new void RemoveRange(int index, int count)
-        {
-            base.RemoveRange(index, count);
-            OnEditCallBack?.Invoke();
-        }
-        public new void AddRange(IEnumerable<ColliderBase> collection)
-        {
-            base.AddRange(collection);
-            OnEditCallBack?.Invoke();
-        }
-        public new void Clear()
+
+        void ICollection<ColliderBase>.Clear()
         {
             base.Clear();
-            OnEditCallBack?.Invoke();
+            Owner.OnEditCallBack.Invoke();
+        }
+
+        void IList<ColliderBase>.Insert(int index, ColliderBase item)
+        {
+            base.Insert(index, item);
+            Owner.OnEditCallBack.Invoke();
+        }
+
+        void IList<ColliderBase>.RemoveAt(int index)
+        {
+            base.RemoveAt(index);
+            Owner.OnEditCallBack.Invoke();
         }
     }
 }
