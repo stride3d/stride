@@ -83,7 +83,7 @@ namespace Stride.Engine.Splines.Processors
 
                 // Always perform cleanup
                 DestroySplineRenderer(context, splineComponent.Entity);
-                
+
                 var totalNodesCount = splineComponent.Nodes.Count;
 
                 if (totalNodesCount > 1)

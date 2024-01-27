@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine.Splines.Components;
 using Stride.Engine.Splines.HierarchyTransformOperations;
+using Stride.Engine.Splines.Models;
 using Stride.Games;
 
 namespace Stride.Engine.Splines.Processors
@@ -27,49 +28,53 @@ namespace Stride.Engine.Splines.Processors
 
         protected override SplineTraverserTransformationInfo GenerateComponentData(Entity entity, SplineTraverserComponent component)
         {
-            return new SplineTraverserTransformationInfo { TransformOperation = new SplineTraverserViewHierarchyTransformOperation(component), };
+            
+            var transformationInfo = new SplineTraverserTransformationInfo(this, component)
+            {
+                TransformOperation = new SplineTraverserViewHierarchyTransformOperation(component)
+            };
+
+            return transformationInfo;
         }
 
         protected override bool IsAssociatedDataValid(Entity entity, SplineTraverserComponent component, SplineTraverserTransformationInfo associatedData)
         {
             return component == associatedData.TransformOperation.SplineTraverserComponent;
         }
-
+        
         protected override void OnEntityComponentAdding(Entity entity, SplineTraverserComponent component, SplineTraverserTransformationInfo data)
         {
-
+            component.SplineComponent.Spline.OnSplineDirty += data.OnSplineDirtyAction;
             splineTraverserComponents.Add(component);
-
-            //component.SplineTraverser.Spline = component.SplineComponent?.Spline;
-            //component.SplineTraverser.Entity = entity;
-
-            //component.SplineTraverser.OnSplineTraverserDirty += () => component.SplineTraverser.DetermineOriginAndTarget();
-            component.SplineTraverser.OnSplineTraverserDirty += () => data.Update(component);
-
-            // Register model view hierarchy update
+            component.SplineTraverser.Spline = component.SplineComponent?.Spline;
+            component.SplineTraverser.Entity = entity;
+            
             entity.Transform.PostOperations.Add(data.TransformOperation);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, SplineTraverserComponent component, SplineTraverserTransformationInfo data)
         {
-            component.SplineTraverser.OnSplineTraverserDirty -= () => data.Update(component);
-
-            // Unregister model view hierarchy update
+            component.SplineComponent.Spline.OnSplineDirty -= data.OnSplineDirtyAction;
             entity.Transform.PostOperations.Remove(data.TransformOperation);
-
-            splineTraverserComponents.Remove(component);
         }
 
         public class SplineTraverserTransformationInfo
         {
             public SplineTraverserViewHierarchyTransformOperation TransformOperation;
+            public Spline.DirtySplineHandler OnSplineDirtyAction;
 
-            public void Update(SplineTraverserComponent component)
+            public SplineTraverserTransformationInfo(SplineTraverserProcessor processor, SplineTraverserComponent component)
             {
+                OnSplineDirtyAction = () => Update(processor, component);
+            }
+
+            private void Update(SplineTraverserProcessor processor, SplineTraverserComponent component)
+            {
+                processor.splineTraverserComponents.Add(component);
                 component.SplineTraverser.AttachedToSpline = false;
             }
         }
-
+        
         public override void Update(GameTime time)
         {
             foreach (var component in splineTraverserComponents)
