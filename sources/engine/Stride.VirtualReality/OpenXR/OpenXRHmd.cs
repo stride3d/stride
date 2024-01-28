@@ -486,8 +486,13 @@ namespace Stride.VirtualReality
 
         public override void Commit(CommandList commandList, Texture renderFrame)
         {
-            if (baseDevice is null || render_targets is null || projection_views is null || views is null)
+            if (baseDevice is null || projection_views is null || views is null)
                 return;
+
+            #if STRIDE_GRAPHICS_API_DIRECT3D11
+            if (render_targets is null)
+                return;
+            #endif
 
             // if we didn't wait a frame, don't commit
             if (begunFrame == false)
