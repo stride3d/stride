@@ -11,7 +11,6 @@
     <PackageReference Include="Stride.Particles" Version="4.2.0.1" />
     <PackageReference Include="Stride.UI" Version="4.2.0.1" />
     <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.1" IncludeAssets="build;buildTransitive" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <ProjectReference Include="..\..\..\..\Templates\Packs\PrototypingBlocks\PrototypingBlocks.csproj" />
     <ProjectReference Include="..\..\..\..\Templates\Packs\mannequinModel\mannequinModel.csproj" />
     <ProjectReference Include="..\..\..\..\Templates\Packs\SamplesAssetPackage\SamplesAssetPackage.csproj" />
