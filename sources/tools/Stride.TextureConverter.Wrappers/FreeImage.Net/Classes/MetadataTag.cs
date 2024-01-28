@@ -407,10 +407,13 @@ namespace FreeImageAPI.Metadata
 					{
 						return null;
 					}
-
-                    ref byte dst = ref MemoryMarshal.GetArrayDataReference(array);
+					
+					var data = new byte[Length];
+					
+                    ref byte dst = ref data[0];
                     ref byte src = ref Unsafe.AsRef<byte>((void*) FreeImage.GetTagValue(tag));
                     Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
+					return dst;
                 }
 			}
 			set

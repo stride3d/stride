@@ -43,6 +43,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using FreeImageAPI.IO;
 using FreeImageAPI.Metadata;
+using System.Runtime.CompilerServices;
 
 namespace FreeImageAPI
 {
