@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
+    <ProjectReference Include="..\Stride.TextureConverter.Wrappers\FreeImage.Net\FreeImage.NET.csproj" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>
