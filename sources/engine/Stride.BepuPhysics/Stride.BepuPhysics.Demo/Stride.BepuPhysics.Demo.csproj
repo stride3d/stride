@@ -1,17 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Engine" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Video" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Physics" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Navigation" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Particles" Version="4.2.0.1" />
-    <PackageReference Include="Stride.UI" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.1" IncludeAssets="build;buildTransitive" />
+    <!--Not sure how to replace this one ?-->
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" VersionOverride="4.2.0.1" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />
@@ -22,10 +17,11 @@
     <ProjectReference Include="..\Stride.BepuPhysics.Soft\Stride.BepuPhysics.Soft.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics._2D\Stride.BepuPhysics._2D.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Assets\Scenes\Old School Color Palette.sdtex" />
-    <None Remove="Assets\Scenes\Wall.sdm3d" />
-    <None Remove="Assets\Cube-Derived.sdpromodel" />
+    <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\Stride.Video\Stride.Video.csproj" />
+    <ProjectReference Include="..\..\Stride.Physics\Stride.Physics.csproj" />
+    <ProjectReference Include="..\..\Stride.Navigation\Stride.Navigation.csproj" />
+    <ProjectReference Include="..\..\Stride.Particles\Stride.Particles.csproj" />
+    <ProjectReference Include="..\..\Stride.UI\Stride.UI.csproj" />
   </ItemGroup>
 </Project>

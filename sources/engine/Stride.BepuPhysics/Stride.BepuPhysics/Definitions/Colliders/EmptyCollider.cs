@@ -1,10 +1,9 @@
-﻿using BepuPhysics;
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using static BulletSharp.Dbvt;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 

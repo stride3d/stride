@@ -1,40 +1,28 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\targets\Stride.props" />
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
-    <Description>This package is an implementation of Bepu Physics V2 for Stride.</Description>
-    <Title>Stride.BepuPhysics</Title>
-    <PackageProjectUrl>https://github.com/Nicogo1705/Stride.BepuPhysics</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/Nicogo1705/Stride.BepuPhysics</RepositoryUrl>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
+    <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\Stride.Physics\Stride.Physics.csproj" /><!--For precomputed hulls-->
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BepuPhysics" Version="2.5.0-beta.19" />
-    <PackageReference Include="Stride.Engine" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Physics" Version="4.2.0.1" /><!--For precomputed hulls-->
-
+    <PackageReference Include="BepuPhysics" />
   </ItemGroup>
 
-
-
-
+  <Import Project="$(StrideSdkTargets)" />
 </Project>
