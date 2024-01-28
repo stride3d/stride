@@ -1,0 +1,44 @@
+name: Build nuget package
+
+on:
+  push:
+    tags:
+      - 'v*.*.*.*'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Determine Version
+      id: version
+      run: |
+        if [[ "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          PACKAGE_VERSION=$(echo "${{ github.ref }}" | sed 's/^refs\/tags\/v//')
+        else
+          echo "Invalid tag format, setting default version..."
+          PACKAGE_VERSION=0.0.0.0
+        fi
+        echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+      
+    - name: Build Stride.BepuPhysics
+      run: dotnet build ./Stride.BepuPhysics/Stride.BepuPhysics.csproj -p:Version=${{ env.PACKAGE_VERSION }} --no-restore     
+
+# if we want to add the nuget to github
+#    - name: Add github nuget source
+#      run: dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+    
+    - name: Publish github nuget
+      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGETAPIKEY}}
+      #run: dotnet nuget push **\*.nupkg --api-key ${{secrets.NUGETAPIKEY}} --source "github"

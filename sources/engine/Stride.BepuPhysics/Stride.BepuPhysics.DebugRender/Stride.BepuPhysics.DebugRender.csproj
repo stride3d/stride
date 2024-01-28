@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Stride.Engine" Version="4.2.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.BepuPhysics._2D\Stride.BepuPhysics._2D.csproj" />
+    <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Effects\SinglePassWireframeShader.sdsl">
+      <Generator>StrideShaderKeyGenerator</Generator>
+    </None>
+  </ItemGroup>
+
+</Project>
