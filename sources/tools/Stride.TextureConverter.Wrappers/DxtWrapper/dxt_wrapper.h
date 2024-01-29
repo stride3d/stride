@@ -24,7 +24,6 @@ extern "C" {
 
 	// I/O functions
 	HRESULT dxtLoadTGAFile(LPCWSTR szFile, DirectX::TexMetadata* metadata, DirectX::ScratchImage& image);
-	HRESULT dxtLoadWICFile(LPCWSTR szFile, int wicflags, DirectX::TexMetadata* metadata, DirectX::ScratchImage& image);
 	HRESULT dxtLoadDDSFile(LPCWSTR szFile, int ddsflags, DirectX::TexMetadata* metadata, DirectX::ScratchImage& image);
 	HRESULT dxtSaveToDDSFile( const DirectX::Image& image, int flags, LPCWSTR szFile );
     HRESULT dxtSaveToDDSFileArray( const DirectX::Image* images, int nimages, const DirectX::TexMetadata& metadata, int flags, LPCWSTR szFile );
