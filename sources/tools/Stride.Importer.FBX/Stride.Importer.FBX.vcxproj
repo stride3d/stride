@@ -203,10 +203,6 @@
       <Project>{c121a566-555e-42b9-9b0a-1696529a9088}</Project>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Rendering\Stride.Rendering.csproj">
-      <Project>{ad4fdc24-b64d-4ed7-91aa-62c9eda12fa4}</Project>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj">
       <Project>{0e916ab7-5a6c-4820-8ab1-aa492fe66d68}</Project>
       <Private>False</Private>
@@ -222,6 +218,9 @@
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj">
       <Project>{5210fb81-b807-49bb-af0d-31fb6a83a572}</Project>
       <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.Rendering\Stride.Rendering.csproj">
+      <Project>{ad4fdc24-b64d-4ed7-91aa-62c9eda12fa4}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\shaders\Stride.Core.Shaders\Stride.Core.Shaders.csproj">
       <Project>{f2d52edb-bc17-4243-b06d-33cd20f87a7f}</Project>

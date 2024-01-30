@@ -180,6 +180,15 @@ public:
 		FbxGeometryElementBinormal* binormalElement = pMesh->GetElementBinormal();
 		FbxGeometryElementSmoothing* smoothingElement = pMesh->GetElementSmoothing();
 
+		auto drawData = gcnew MeshDraw();
+
+		int numVerticess = pMesh->GetControlPointsCount();
+
+		for (int i = 0; i < numVerticess; i++) {
+			Vector3 vert = sceneMapping->ConvertPointFromFbx(controlPoints[i]);
+			drawData->AV(vert.X, vert.Y, vert.Z);
+		}
+
 		// UV set name mapping
 		std::map<std::string, int> uvElementMapping;
 		std::vector<FbxGeometryElementUV*> uvElements;
@@ -521,6 +530,9 @@ public:
 				//	vertexInPolygon[1] = vertexInPolygon[2];
 				//	vertexInPolygon[2] = temp;
 				//}
+				int vertexPolyGon0 = vertexInPolygon[0];
+				int vertexPolyGon1 = vertexInPolygon[1];
+				int vertexPolyGon2 = vertexInPolygon[2];
 				int controlPointIndices[3] = { pMesh->GetPolygonVertex(i, vertexInPolygon[0]), pMesh->GetPolygonVertex(i, vertexInPolygon[1]), pMesh->GetPolygonVertex(i, vertexInPolygon[2]) };
 
 				for (int polygonFanVertex = 0; polygonFanVertex < 3; ++polygonFanVertex)
@@ -533,8 +545,10 @@ public:
 					int edgeIndex = needEdgeIndexing ? pMesh->GetMeshEdgeIndexForPolygon(i, edgesInPolygon[polygonFanVertex]) : 0;
 
 					// POSITION
-					auto controlPoint = sceneMapping->ConvertPointFromFbx(controlPoints[controlPointIndex]);
+					Vector3 controlPoint = sceneMapping->ConvertPointFromFbx(controlPoints[controlPointIndex]);
+					drawData->RES(controlPointIndex, polygonFanIndex, controlPoint.X, controlPoint.Y, controlPoint.Z);
 					*(Vector3*)(vbPointer + positionOffset) = controlPoint;
+					drawData->CAP();
 
 					// NORMAL
 					Vector3 normal = Vector3(1, 0, 0);
@@ -655,7 +669,7 @@ public:
 			auto buffer = buildMesh->buffer;
 			auto vertexBufferBinding = VertexBufferBinding(GraphicsSerializerExtensions::ToSerializableVersion(gcnew BufferData(BufferFlags::VertexBuffer, buffer)), gcnew VertexDeclaration(vertexElements->ToArray()), buildMesh->polygonCount * 3, 0, 0);
 			
-			auto drawData = gcnew MeshDraw();
+			//auto drawData = gcnew MeshDraw();
 			auto vbb = gcnew List<VertexBufferBinding>();
 			vbb->Add(vertexBufferBinding);
 			drawData->VertexBuffers = vbb->ToArray();
@@ -715,8 +729,80 @@ public:
 					meshData->Parameters->Set(MaterialKeys::HasSkinningNormal, true);
 			}
 			modelData->Meshes->Add(meshData);
+
+			ProcessBlendShapes(pMesh, meshData);
+		}
+
+		drawData->CAP();
+	}
+
+
+	void ProcessBlendShapes(FbxMesh* pMesh, Mesh^ mesh) {
+
+		int blendShapeDeformerCount = pMesh->GetDeformerCount(FbxDeformer::eBlendShape);
+
+		for (int i = 0; i < blendShapeDeformerCount; ++i) {
+			FbxBlendShape* pBlendShape = static_cast<FbxBlendShape*>(pMesh->GetDeformer(i, FbxDeformer::eBlendShape));
+
+			int blendShapeChannelCount = pBlendShape->GetBlendShapeChannelCount();
+
+			for (int j = 0; j < blendShapeChannelCount; ++j) {
+				FbxBlendShapeChannel* pBlendShapeChannel = pBlendShape->GetBlendShapeChannel(j);
+				String^ channelBlendShapeName = Marshal::PtrToStringAnsi(static_cast<IntPtr>(const_cast<char*>(pBlendShapeChannel->GetName())));
+
+
+				//Stride::Rendering::BlendShape^ blendShape = gcnew BlendShape();
+				//blendShape->Name = channelBlendShapeName;
+
+				int blenShapeChannelTargetCountr = pBlendShapeChannel->GetTargetShapeCount();
+
+				for (int k = 0; k < blenShapeChannelTargetCountr; ++k)
+				{
+					FbxShape* fbxShape = pBlendShapeChannel->GetTargetShape(k);
+
+
+
+					String^ shapeName = Marshal::PtrToStringAnsi(static_cast<IntPtr>(const_cast<char*>(fbxShape->GetName())));
+
+
+					//  array<int>^ indices=gcnew array<int, 
+					cli::array<int>^ indices = gcnew cli::array<int>(fbxShape->GetControlPointsCount());
+
+					cli::array<System::Numerics::Vector4>^ controlPoints = gcnew cli::array<System::Numerics::Vector4>(fbxShape->GetControlPointsCount());
+
+					for (int h = 0; h < fbxShape->GetControlPointsCount(); ++h)
+					{
+						indices[h] = fbxShape->GetControlPointIndices()[h];
+						System::Numerics::Vector4^ controlPoint = gcnew  System::Numerics::Vector4(fbxShape->GetControlPointAt(h)[0], fbxShape->GetControlPointAt(h)[1], fbxShape->GetControlPointAt(h)[2], fbxShape->GetControlPointAt(h)[3]);
+						//System::Numerics::Vector4 conPnt = *controlPoint;
+						controlPoints[h] = *controlPoint;
+					}
+
+
+					Stride::Rendering::Shape^ shape = gcnew
+
+						Stride::Rendering::Shape();
+					shape->Name = shapeName;
+					shape->Indices = indices; shape->Positions = controlPoints;
+
+
+
+					double weight = pBlendShapeChannel->GetTargetShapeFullWeights()[k];
+
+
+
+					//blendShape->AddShape(shape, weight);
+
+					mesh->AddBlendShapes(shape, weight);
+				}
+
+
+			}
 		}
 	}
+
+
+
 
 	// return a boolean indicating whether the built material is transparent or not
 	MaterialAsset^ ProcessMeshMaterialAsset(FbxSurfaceMaterial* lMaterial, std::map<std::string, size_t>& uvElementMapping)
