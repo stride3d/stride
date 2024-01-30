@@ -30,6 +30,7 @@ namespace Stride.Rendering
         public int[] IndexMapping { get;  set; }
         public int[] VertexMapping { get; set; }
 
+
         public void AV(float X, float Y, float Z)
         {
             VCLIST.Add(new Vector3(X, Y, Z));

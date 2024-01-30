@@ -10,6 +10,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Rendering.Materials;
 using Vortice.Vulkan;
+using Matrix = Stride.Core.Mathematics.Matrix;
 
 namespace Stride.Rendering
 {
@@ -130,14 +131,30 @@ namespace Stride.Rendering
 
         public Vector3[] BlendShapeVertices { get; set; }
 
-        
+        public Matrix[] MATBSHAPE { get; set; }
+
+       
+
         public void AddBlendShapes(Shape shape, float weight)
         {
             (Shapes ??= new()).Add(shape, weight);
-            var vecArray = AdjustToDrawcoordinate(shape.Position, Draw);
-            BlendShapeVertices = AdjustPositionToDrawInstance(vecArray, Draw);
+            //var vecArray = AdjustToDrawcoordinate(shape.Position, Draw);
+            BlendShapeVertices = AdjustPositionToDrawInstance( shape.Position,Draw);
             BlendShapeWeights = GetBlendWeights();
             Parameters.Set(MaterialKeys.HasBlendShape, true);
+
+            int vertexCount = BlendShapeVertices.Count();
+            MATBSHAPE = new Matrix[BlendShapeWeights.Length*vertexCount];    
+            for (int iBendShape=0;iBendShape<BlendShapeWeights.Length;iBendShape++)
+            {
+
+                for(int iVert=0;iVert<vertexCount;iVert++) 
+                {
+                    var vectorValue = BlendShapeVertices[iBendShape*vertexCount +iVert];
+                    MATBSHAPE[iBendShape * vertexCount + iVert].Row1= new Vector4(vectorValue, BlendShapeWeights[iBendShape][0]);
+                    MATBSHAPE[iBendShape * vertexCount + iVert].Row2 = new Vector4(0,0,0, BlendShapeWeights[iBendShape][1]);
+                }
+            }
         }
 
         public Vector2[] GetBlendWeights()
@@ -184,18 +201,28 @@ namespace Stride.Rendering
             return NewVectices;
         }
 
-        public Vector3[] AdjustPositionToDrawInstance(Vector3[] positions, MeshDraw draw)
+        public Vector3[] AdjustPositionToDrawInstance(Vec4[] posBlend, MeshDraw draw)
         {
+
             List<int> originalVerticesIDS = draw.VCPOLYIN.Select(c => c.Item2).ToList();
-            List<int> updatedVertexMapping = draw.VertexMapping.ToList();
+            Dictionary<int, Vector3> mappings= new Dictionary<int, Vector3>();
+            foreach(var tup_id_vec in draw.VCPOLYIN) 
+            {
+                if(!mappings.ContainsKey(tup_id_vec.Item2))
+                {
+                    mappings.Add(tup_id_vec.Item2, tup_id_vec.Item3);
+                }
+            }
+            var positions = draw.VCPOLYIN.Select(c => c.Item3).ToArray();
+           List<int> updatedVertexMapping = draw.VertexMapping.ToList();
 
             
-            Vector3[] NewVectices = new Vector3[positions.Length];
+            Vector3[] NewVectices = new Vector3[updatedVertexMapping.Count];
 
             for (var i = 0; i < updatedVertexMapping.Count; i++)
             {
-                var v= positions[originalVerticesIDS[updatedVertexMapping[i]]];
-                float x = v.X; float y=v.Y; float z=v.Z;
+                var v= posBlend[originalVerticesIDS[updatedVertexMapping[i]]];
+                float x = -1*v.x; float y=v.y; float z=-1*v.z;
                 Vector3 vec3=new Vector3(x,y,z);
                 NewVectices[i]=vec3;
             }

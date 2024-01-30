@@ -1,3 +1,4 @@
+
 shader TransformationBlendShape : TransformationBase, PositionStream4, Transformation
 {
 
@@ -6,7 +7,7 @@ shader TransformationBlendShape : TransformationBase, PositionStream4, Transform
        //stage float2 morphWeights[MAX_MORPH_TARGETS];
        //stage float3 morphTargetVertices[MAX_MORPH_TARGETS*MAX_VERTICES];
 //stage float4x4 BlendMatrixArray[SkinningMaxBones];
-       stage float4x4 BSHAPEDATA[12];
+       stage float4x4 BSHAPEDATA[MAX_VERTICES];
     }
 
     
@@ -14,26 +15,34 @@ shader TransformationBlendShape : TransformationBase, PositionStream4, Transform
 
   float4 ApplyBlendshapes(int vID, float4 pos)
   {
-  float4 blendPos=pos;
-//=pos* 0f;
- // for(int i=0;i<MAX_MORPH_TARGETS;i++)
-  //{
-  //float3 morphedShape=morphTargetVertices[0];
- //blendPos=float4(morphedShape[0],morphedShape[1], morphedShape[2] , pos[3]);
- //blendPos=float4(BSHAPEDATA[3],0,-1 , pos[3]);
-  //}
-  return blendPos;
+float4x4 mat=BSHAPEDATA[vID];
+  float4 blendPos=pos*mat[1][3];
+
+  for(int i=0;i<MAX_MORPH_TARGETS;i++)
+  {
+    float4 morphedShape=BSHAPEDATA[i* MAX_VERTICES+ vID][0];
+    blendPos=+float4(morphedShape[0],morphedShape[1], morphedShape[2] , pos[3])*morphedShape[3];
+// blendPos=float4(BSHAPEDATA[0][[2],0,-1 , pos[3]);
   }
+
+
+//blendPos=float4(mat[vID][0], mat[vID][1],mat[vID][2],pos[3]);
+ return blendPos;
+ 
+ 
+}
 
 
   override stage void PreTransformPosition()
     {
-        base.PreTransformPosition();
         
-if(streams.VertexID==1)
-{
+        
+//if(streams.VertexID==0)
+//{
+base.PreTransformPosition();
+
 streams.PositionWS=ApplyBlendshapes(streams.VertexID, streams.PositionWS);
-}
+//}
 
         //uint tyh= streams.VertexID;
        // float xnew=streams.PositionWS.x;

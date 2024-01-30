@@ -48,5 +48,7 @@ namespace Stride.Rendering
         public Vector2[] BlendShapeWeights;
 
         public Vector3[] BlendShapeVertices;
+        public Matrix[] MATBSHAPE;
+
     }
 }

@@ -196,8 +196,9 @@ namespace Stride.Rendering
 
                     var mappedCB = (byte*)renderNode.Resources.ConstantBuffer.Data + bdataVerticesOffset;
 
-                  //  uint floatSize = (uint)sizeof(float);
+                    //  uint floatSize = (uint)sizeof(float);
 
+                    /*
                     for (int i = 0; i < SIZE; i++)
                     {
                         mat[i].Column1 = new Vector4(1, 2, 3, 4)+ new Vector4(i, i, i, i);
@@ -205,11 +206,13 @@ namespace Stride.Rendering
                         mat[i].Column3 = new Vector4(1, 2, 3, 4) + new Vector4(i, i, i, i);
                         mat[i].Column4 = new Vector4(1, 2, 3, 4) + new Vector4(i, i, i, i);
 
-                    }
+                    }*/
+
+                    mat = renderMesh.MATBSHAPE;
 
                     fixed (Matrix* matPtr = mat)
                     {
-                        Unsafe.CopyBlockUnaligned(mappedCB, matPtr, (uint)(12) * (uint)sizeof(Matrix));
+                        Unsafe.CopyBlockUnaligned(mappedCB, matPtr, (uint)(renderMesh.VerticesCount) * (uint)sizeof(Matrix));
 
                     }
 

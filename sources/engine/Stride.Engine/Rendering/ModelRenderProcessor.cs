@@ -122,13 +122,13 @@ namespace Stride.Rendering
                         if (renderMesh.HasBlendShapes)
                         {
                             renderMesh.BlendShapesCount = mesh.GetBlendShapesCount();
-                            int verticesCount = mesh.GetBlendShapesCount() * mesh.Shapes.First().Key.Position.Length;
+                            int verticesCount = mesh.GetBlendShapesCount() * mesh.Draw.VertexMapping.Length;
                             renderMesh.VerticesCount = verticesCount;
                             //  renderMesh.BlendShapeWeights = new Vector2[renderMesh.BlendShapesCount];
                             //renderMesh.BlendShapeVertices = new Vector3[renderMesh.BlendShapesCount * verticesCount];
                             renderMesh.BlendShapeWeights = mesh.BlendShapeWeights;
                             renderMesh.BlendShapeVertices = mesh.BlendShapeVertices;
-
+                            renderMesh.MATBSHAPE = mesh.MATBSHAPE;
                         }
                     }
                 }
