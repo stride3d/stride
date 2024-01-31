@@ -180,6 +180,12 @@ namespace Stride.Rendering
                 //   var renderModelObjectInfo = renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
                 var renderModelObjectInfo4 = renderModelObjectInfoData4[renderNode.RenderObject.ObjectNode];
                 var renderModelObjectInfo5 = renderModelObjectInfoData5[renderNode.RenderObject.ObjectNode];
+                if(renderModelObjectInfo4 == null)
+                {
+                    return;
+                }
+               
+
                 //   if (renderModelObjectInfo.FloatArray == null)
                 //    return;
 

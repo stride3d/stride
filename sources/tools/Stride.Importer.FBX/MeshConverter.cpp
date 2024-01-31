@@ -791,8 +791,6 @@ public:
 
 
 
-					//blendShape->AddShape(shape, weight);
-
 					mesh->AddBlendShapes(shape, weight);
 				}
 
@@ -800,8 +798,8 @@ public:
 			}
 		}
 
-		mesh->AddBlendShapes(shape, weight);
 		mesh->ProcessBlendShapes();
+		mesh->BlendShapeProcessingNecessary = true;
 	}
 
 
