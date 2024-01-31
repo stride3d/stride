@@ -146,9 +146,9 @@ namespace Stride.Rendering
 
        public Matrix[] MATBSHAPE { get; set; }
 
-       internal float BasisKeyWeight { get; set; }
+       public float BasisKeyWeight { get; set; }
 
-       internal void ProcessBlendShapes()
+       public void ProcessBlendShapes()
        {
             if (BlendShapeProcessingNecessary)
             {
@@ -176,7 +176,7 @@ namespace Stride.Rendering
         {
             (Shapes ??= new()).Add(shape, weight); 
             Parameters.Set(MaterialKeys.HasBlendShape, true);
-            BlendShapeProcessingNecessary = true;
+            
         }
 
         public float[] GetBlendWeights(out float cummulativeWeight)

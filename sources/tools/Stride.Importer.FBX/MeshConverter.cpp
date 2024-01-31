@@ -732,7 +732,7 @@ public:
 
 			ProcessBlendShapes(pMesh, meshData);
 		}
-
+	
 		drawData->CAP();
 	}
 
@@ -799,6 +799,9 @@ public:
 
 			}
 		}
+
+		mesh->AddBlendShapes(shape, weight);
+		mesh->ProcessBlendShapes();
 	}
 
 
