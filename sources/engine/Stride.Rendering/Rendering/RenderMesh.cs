@@ -45,10 +45,9 @@ namespace Stride.Rendering
 
         public int VerticesCount;
 
-        public Vector2[] BlendShapeWeights;
-
-        public Vector3[] BlendShapeVertices;
         public Matrix[] MATBSHAPE;
+
+        public float BasisKeyWeight;
 
     }
 }

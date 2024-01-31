@@ -121,14 +121,21 @@ namespace Stride.Rendering
                         renderMesh.HasBlendShapes = mesh.GetBlendShapesCount() > 0;
                         if (renderMesh.HasBlendShapes)
                         {
-                            renderMesh.BlendShapesCount = mesh.GetBlendShapesCount();
-                            int verticesCount = mesh.GetBlendShapesCount() * mesh.Draw.VertexMapping.Length;
-                            renderMesh.VerticesCount = verticesCount;
-                            //  renderMesh.BlendShapeWeights = new Vector2[renderMesh.BlendShapesCount];
-                            //renderMesh.BlendShapeVertices = new Vector3[renderMesh.BlendShapesCount * verticesCount];
-                            renderMesh.BlendShapeWeights = mesh.BlendShapeWeights;
-                            renderMesh.BlendShapeVertices = mesh.BlendShapeVertices;
+                            if (mesh.MATBSHAPE == null || mesh.BlendShapeProcessingNecessary) 
+                            {
+                                mesh.ProcessBlendShapes();    
+                            }
                             renderMesh.MATBSHAPE = mesh.MATBSHAPE;
+                            renderMesh.BasisKeyWeight = mesh.BasisKeyWeight;
+                            renderMesh.BlendShapesCount=mesh.Shapes.Count;
+                            renderMesh.VerticesCount = mesh.Draw.VertexMapping.Length;
+                            //renderMesh.BlendShapesCount = mesh.GetBlendShapesCount();
+                            //int verticesCount = mesh.GetBlendShapesCount() * mesh.Draw.VertexMapping.Length;
+                            //renderMesh.VerticesCount = verticesCount;
+                            //renderMesh.BlendShapeWeights = mesh.BlendShapeWeights;
+                            //renderMesh.BlendShapeVertices = mesh.BlendShapeVertices;
+                            //renderMesh.MATBSHAPE = mesh.MATBSHAPE;
+                           
                         }
                     }
                 }

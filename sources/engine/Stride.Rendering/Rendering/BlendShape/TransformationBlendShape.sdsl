@@ -7,7 +7,8 @@ shader TransformationBlendShape : TransformationBase, PositionStream4, Transform
        //stage float2 morphWeights[MAX_MORPH_TARGETS];
        //stage float3 morphTargetVertices[MAX_MORPH_TARGETS*MAX_VERTICES];
 //stage float4x4 BlendMatrixArray[SkinningMaxBones];
-       stage float4x4 BSHAPEDATA[MAX_VERTICES];
+       stage float4x4 BSHAPEDATA[MAX_MORPH_TARGETS*MAX_VERTICES];
+ 	stage float BasisKeyWeight;
     }
 
     
@@ -21,7 +22,7 @@ float4x4 mat=BSHAPEDATA[vID];
   for(int i=0;i<MAX_MORPH_TARGETS;i++)
   {
     float4 morphedShape=BSHAPEDATA[i* MAX_VERTICES+ vID][0];
-    blendPos=+float4(morphedShape[0],morphedShape[1], morphedShape[2] , pos[3])*morphedShape[3];
+    blendPos=+float4(morphedShape[0]+BasisKeyWeight,morphedShape[1], morphedShape[2] , pos[3])*morphedShape[3];
 // blendPos=float4(BSHAPEDATA[0][[2],0,-1 , pos[3]);
   }
 
@@ -45,13 +46,13 @@ streams.PositionWS=ApplyBlendshapes(streams.VertexID, streams.PositionWS);
 //}
 
         //uint tyh= streams.VertexID;
-       // float xnew=streams.PositionWS.x;
-       // float ynew=streams.PositionWS.y+1.8+morphWeights[MAX_MORPH_TARGETS-1][1];
+        float xnew=streams.PositionWS.x;
+       float ynew=streams.PositionWS.y;
 
-        //float znew=streams.PositionWS.z;
-        //float4 blendPos = float4(xnew,ynew,znew,streams.PositionWS.w);
+        float znew=streams.PositionWS.z;
+        float4 blendPos = float4(xnew,ynew,znew,streams.PositionWS.w);
         //float4 blendPos=ApplyBlendShape(streams.VertexID, streams.PositionWS);
-        //streams.PositionWS = blendPos;
+        streams.PositionWS = blendPos;
     }
     
   

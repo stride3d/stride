@@ -27,15 +27,18 @@ namespace Stride.Rendering
        // private ObjectPropertyKey<Vector3[]> renderModelObjectInfoKey3;
         private ObjectPropertyKey<Matrix[]> renderModelObjectInfoKey4;
 
+        private ObjectPropertyKey<float> renderModelObjectInfoKey5;
+
         private ConstantBufferOffsetReference morphWeightsRef;
 
         private ConstantBufferOffsetReference morphTargetVerticesRef;
 
         private ConstantBufferOffsetReference BSHAPEDATARef;
+        private ConstantBufferOffsetReference BasisKeyWeightRef;
 
         // private ConstantBufferOffsetReference morphTargetVertexIndicesRef;
 
-     //   private ObjectPropertyKey<int> renderModelObjectIndexKey;
+        //   private ObjectPropertyKey<int> renderModelObjectIndexKey;
 
         bool bufferset = false;
 
@@ -47,7 +50,10 @@ namespace Stride.Rendering
             //  renderModelObjectInfoKey3 = RootRenderFeature.RenderData.CreateObjectKey<Vector3[]>();
             renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
             renderModelObjectInfoKey4 = RootRenderFeature.RenderData.CreateObjectKey<Matrix[]>();
+            renderModelObjectInfoKey5= RootRenderFeature.RenderData.CreateObjectKey<float>();
+
             BSHAPEDATARef = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationBlendShape.BSHAPEDATA.Name);
+            BasisKeyWeightRef= ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationBlendShape.BasisKeyWeight.Name);
             // morphWeightsRef = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationBlendShape.morphWeights.Name);
 
             //  morphTargetVerticesRef = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationBlendShape.morphTargetVertices.Name);
@@ -103,8 +109,8 @@ namespace Stride.Rendering
         public override void Extract()
         {
         //    var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
-        //    var renderModelObjectInfo4 = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey4);
-
+            var renderModelObjectInfo4 = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey4);
+            var renderModelObjectInfo5 = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey5);
             Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
             {
                 var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
@@ -125,12 +131,13 @@ namespace Stride.Rendering
 
 
 
-                // renderModelObjectInfo4[objectNodeReference] = buf.FloatArray;
+                renderModelObjectInfo4[objectNodeReference] = renderMesh.MATBSHAPE;
+                renderModelObjectInfo5[objectNodeReference] = renderMesh.BasisKeyWeight;
 
             });
         }
 
-        Matrix[] mat = new Matrix[12];
+   //     Matrix[] mat = new Matrix[12];
 
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
@@ -139,6 +146,7 @@ namespace Stride.Rendering
            // var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
 
             var renderModelObjectInfoData4 = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey4);
+            var renderModelObjectInfoData5 = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey5);
 
             Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
             {
@@ -163,9 +171,15 @@ namespace Stride.Rendering
                 {
                     return;
                 }
+                var basisWeightDataOffset = perDrawLayout.GetConstantBufferOffset(BasisKeyWeightRef);
+                if (basisWeightDataOffset == -1)
+                {
+                    return;
+                }
 
                 //   var renderModelObjectInfo = renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
                 var renderModelObjectInfo4 = renderModelObjectInfoData4[renderNode.RenderObject.ObjectNode];
+                var renderModelObjectInfo5 = renderModelObjectInfoData5[renderNode.RenderObject.ObjectNode];
                 //   if (renderModelObjectInfo.FloatArray == null)
                 //    return;
 
@@ -208,13 +222,18 @@ namespace Stride.Rendering
 
                     }*/
 
-                    mat = renderMesh.MATBSHAPE;
+                  //  mat = renderMesh.MATBSHAPE;
 
-                    fixed (Matrix* matPtr = mat)
+                    fixed (Matrix* matPtr = renderModelObjectInfo4)
                     {
-                        Unsafe.CopyBlockUnaligned(mappedCB, matPtr, (uint)(renderMesh.VerticesCount) * (uint)sizeof(Matrix));
-
+                        Unsafe.CopyBlockUnaligned(mappedCB, matPtr, (uint)(renderMesh.VerticesCount*renderMesh.BlendShapesCount) * (uint)sizeof(Matrix));
                     }
+                    float* floatPtr = &renderModelObjectInfo5;
+                    
+                        mappedCB = (byte*)renderNode.Resources.ConstantBuffer.Data + basisWeightDataOffset;
+                        Unsafe.CopyBlockUnaligned(mappedCB, floatPtr,   (uint)sizeof(float));
+
+                    
 
                     //    fixed (float* ptr =FloatArray)
                     //{

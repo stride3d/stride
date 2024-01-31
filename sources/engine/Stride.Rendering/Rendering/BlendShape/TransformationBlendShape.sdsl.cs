@@ -21,9 +21,11 @@ namespace Stride.Rendering
 
            public static readonly ValueParameterKey<Matrix> BSHAPEDATA = ParameterKeys.NewValue<Matrix>();
 
-//        public static readonly ValueParameterKey<Vector2> morphWeights = ParameterKeys.NewValue<Vector2>();
+        public static readonly ValueParameterKey<float> BasisKeyWeight=ParameterKeys.NewValue<float>();
 
-  //      public static readonly ValueParameterKey<Vector3> morphTargetVertices = ParameterKeys.NewValue<Vector3>();
+        //        public static readonly ValueParameterKey<Vector2> morphWeights = ParameterKeys.NewValue<Vector2>();
+
+        //      public static readonly ValueParameterKey<Vector3> morphTargetVertices = ParameterKeys.NewValue<Vector3>();
 
         // public static readonly ValueParameterKey<float> morphTargetVertexIndices = ParameterKeys.NewValue<float>();
 

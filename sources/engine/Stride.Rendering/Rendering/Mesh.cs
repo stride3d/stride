@@ -7,6 +7,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using SharpFont;
 using Stride.Core;
+using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Rendering.Materials;
 using Vortice.Vulkan;
@@ -86,9 +87,9 @@ namespace Stride.Rendering
 
         public Dictionary<Shape, float> Shapes { get; set; }
 
-        public Dictionary<Shape, float> GetBlendShapeWeights()
+        public float[] GetBlendShapeWeights()
         {
-            return Shapes;
+            return Shapes?.Values?.ToArray();
         }
 
         public int GetBlendShapesCount()
@@ -96,25 +97,29 @@ namespace Stride.Rendering
             return Shapes?.Count ?? 0;
         }
 
-        public List<Shape> GetBlendShapeList()
+        public string[] GetBlendShapeList()
         {
-            return Shapes?.Keys?.ToList();
+            return Shapes?.Keys?.Select(c=>c.Name).ToArray();
         }
 
-        //public List<float> GetBlendShapeWeights()
-        //{
-        //    return Shapes?.Values?.ToList();
-        //}
 
         public void SetBlendShapeWeightByName(string shapeName, float weight)
         {
             var shape = Shapes?.Keys?.Where(c => c.Name == shapeName).FirstOrDefault();
+            if (shape != null)
+            {
+                SetBendShapeWeight(shape, weight);
+            }
         }
 
 
-        private void SetBlendShapeWeightByIndex(int index, float weight)
+        public void SetBlendShapeWeightByIndex(int index, float weight)
         {
             var shape = Shapes?.ElementAt(index);
+            if (shape != null)
+            {
+                SetBendShapeWeight(shape.Value.Key, weight);
+            } 
         }
 
         void SetBendShapeWeight(Shape shape, float weight)
@@ -124,110 +129,116 @@ namespace Stride.Rendering
             if (containsShape)
             {
                 Shapes[shape] = weight;
-            }
+
+                if (MATBSHAPE != null)
+                {
+                    int index=Shapes.IndexOf(c => c.Key == shape);
+                    for (int i = 0; i < Draw.VertexMapping.Length; i++)
+                    {
+                        var shiftedIndex = index * Draw.VertexMapping.Length + i;
+                        MATBSHAPE[shiftedIndex][3] = weight;
+                    }
+                }
+            }   
         }
 
-        public Vector2[] BlendShapeWeights { get; set; }
+        public bool BlendShapeProcessingNecessary = false;
 
-        public Vector3[] BlendShapeVertices { get; set; }
+       public Matrix[] MATBSHAPE { get; set; }
 
-        public Matrix[] MATBSHAPE { get; set; }
+       internal float BasisKeyWeight { get; set; }
 
-       
+       internal void ProcessBlendShapes()
+       {
+            if (BlendShapeProcessingNecessary)
+            {
+                if (Shapes == null || Shapes.Count < 1) { return; }
+                var blendShapeVertices = AdjustPositionToDrawInstance();
+                var blendShapesWeights = GetBlendWeights(out float cummulativeWeight); ;
+                BasisKeyWeight = 1 - cummulativeWeight;
+
+                MATBSHAPE = new Matrix[Draw.VertexMapping.Length*blendShapesWeights.Length];
+                for (int iBendShape = 0; iBendShape < blendShapesWeights.Length; iBendShape++)
+                {
+                    for (int iVert = 0; iVert < Draw.VertexMapping.Length; iVert++)
+                    {
+                        var vectorValue = blendShapeVertices.ElementAt(iBendShape * Draw.VertexMapping.Length + iVert);
+                        MATBSHAPE[iBendShape * Draw.VertexMapping.Length + iVert].Row1 = new Vector4(vectorValue, blendShapesWeights[iBendShape]);
+
+                    }
+                }
+                BlendShapeProcessingNecessary = false;
+            }
+        }
+        
 
         public void AddBlendShapes(Shape shape, float weight)
         {
-            (Shapes ??= new()).Add(shape, weight);
-            //var vecArray = AdjustToDrawcoordinate(shape.Position, Draw);
-            BlendShapeVertices = AdjustPositionToDrawInstance( shape.Position,Draw);
-            BlendShapeWeights = GetBlendWeights();
+            (Shapes ??= new()).Add(shape, weight); 
             Parameters.Set(MaterialKeys.HasBlendShape, true);
-
-            int vertexCount = BlendShapeVertices.Count();
-            MATBSHAPE = new Matrix[BlendShapeWeights.Length*vertexCount];    
-            for (int iBendShape=0;iBendShape<BlendShapeWeights.Length;iBendShape++)
-            {
-
-                for(int iVert=0;iVert<vertexCount;iVert++) 
-                {
-                    var vectorValue = BlendShapeVertices[iBendShape*vertexCount +iVert];
-                    MATBSHAPE[iBendShape * vertexCount + iVert].Row1= new Vector4(vectorValue, BlendShapeWeights[iBendShape][0]);
-                    MATBSHAPE[iBendShape * vertexCount + iVert].Row2 = new Vector4(0,0,0, BlendShapeWeights[iBendShape][1]);
-                }
-            }
+            BlendShapeProcessingNecessary = true;
         }
 
-        public Vector2[] GetBlendWeights()
+        public float[] GetBlendWeights(out float cummulativeWeight)
         {
-            Vector2[] shapeWeights = new Vector2[Shapes.Count];
-            float cummulativeWeight = 0f;
+            float[] shapeWeights = new float[Shapes.Count];
+            cummulativeWeight = 0f;
              
             for (int i = 0; i < Shapes.Count; i++)
             {
                 var shapeKV = Shapes.ElementAt(i);
                 var shape = shapeKV.Key;
                 var shapeWeight = Math.Clamp(shapeKV.Value, 0f, 1f);
-                float adjustedWeight = 0f;
-                if (cummulativeWeight >= 1f) { adjustedWeight = 0f; }
-                else if (cummulativeWeight + shapeWeight > 1) { adjustedWeight = 1 - cummulativeWeight; }
-                else
-                {
-                    adjustedWeight = shapeWeight;
-                }
-
+                float adjustedWeight = shapeWeight;
+               // if (cummulativeWeight >= 1f) { adjustedWeight = 0f; }
+               // else if (cummulativeWeight + shapeWeight > 1) { adjustedWeight = 1 - cummulativeWeight; }
+                //else
+                //{
+                  //  adjustedWeight = shapeWeight;
+                //}
                 cummulativeWeight += adjustedWeight;
-
-                shapeWeights[i] = new Vector2(adjustedWeight, Math.Clamp(1 - cummulativeWeight, 0f, 1f));
-
-
+                shapeWeights[i] = adjustedWeight;
             }
             return shapeWeights;
         }
 
 
-        public Vector3[] AdjustToDrawcoordinate(Vec4[] positions, MeshDraw draw)
+  
+        public List<Vector3> AdjustPositionToDrawInstance()
         {
-            Vector3[] NewVectices = new Vector3[positions.Length];
-
-            for (var i = 0; i < positions.Length; i++)
+            List<Vector3> adjustedPositons = new List<Vector3>();
+            foreach (var shape in Shapes)
             {
-                float x = -1 * positions[i].x;
-                float y = positions[i].y;
-                float z= -1*positions[i].z;    
-                NewVectices[i]=new Vector3(x,y, z);
-            }
-
-
-            return NewVectices;
-        }
-
-        public Vector3[] AdjustPositionToDrawInstance(Vec4[] posBlend, MeshDraw draw)
-        {
-
-            List<int> originalVerticesIDS = draw.VCPOLYIN.Select(c => c.Item2).ToList();
-            Dictionary<int, Vector3> mappings= new Dictionary<int, Vector3>();
-            foreach(var tup_id_vec in draw.VCPOLYIN) 
-            {
-                if(!mappings.ContainsKey(tup_id_vec.Item2))
+                var posBlend = shape.Key.Position;
+                List<int> originalVerticesIDS = Draw.VCPOLYIN.Select(c => c.Item2).ToList();
+                Dictionary<int, Vector3> mappings = new Dictionary<int, Vector3>();
+                foreach (var tup_id_vec in Draw.VCPOLYIN)
                 {
-                    mappings.Add(tup_id_vec.Item2, tup_id_vec.Item3);
+                    if (!mappings.ContainsKey(tup_id_vec.Item2))
+                    {
+                        mappings.Add(tup_id_vec.Item2, tup_id_vec.Item3);
+                    }
                 }
-            }
-            var positions = draw.VCPOLYIN.Select(c => c.Item3).ToArray();
-           List<int> updatedVertexMapping = draw.VertexMapping.ToList();
+                var positions = Draw.VCPOLYIN.Select(c => c.Item3).ToArray();
+                List<int> updatedVertexMapping = Draw.VertexMapping.ToList();
 
-            
-            Vector3[] NewVectices = new Vector3[updatedVertexMapping.Count];
 
-            for (var i = 0; i < updatedVertexMapping.Count; i++)
-            {
-                var v= posBlend[originalVerticesIDS[updatedVertexMapping[i]]];
-                float x = -1*v.x; float y=v.y; float z=-1*v.z;
-                Vector3 vec3=new Vector3(x,y,z);
-                NewVectices[i]=vec3;
+                Vector3[] NewVectices = new Vector3[updatedVertexMapping.Count];
+
+                for (var i = 0; i < updatedVertexMapping.Count; i++)
+                {
+                    var v = posBlend[originalVerticesIDS[updatedVertexMapping[i]]];
+                    float x = -1 * v.x; float y = v.y; float z = -1 * v.z;
+                    Vector3 vec3 = new Vector3(x, y, z);
+                    NewVectices[i] = vec3;
+                }
+                adjustedPositons.AddRange(NewVectices);
             }
-            return NewVectices;
+            return adjustedPositons;
         }
+
+
+       
 
 
     }

@@ -163,5 +163,8 @@ namespace Stride.Rendering
                     break;
             }
         }
+
+
+
     }
 }
