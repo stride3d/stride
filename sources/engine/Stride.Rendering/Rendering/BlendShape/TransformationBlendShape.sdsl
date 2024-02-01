@@ -5,7 +5,6 @@ shader TransformationBlendShape : TransformationBase, PositionStream4, Transform
     cbuffer PerDraw
     {
        stage float4x4 BSHAPEDATA[MAX_MORPH_TARGETS*MAX_VERTICES];
- 	stage float BasisKeyWeight;
     }
 
     

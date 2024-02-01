@@ -19,7 +19,5 @@ namespace Stride.Rendering
     {
            public static readonly ValueParameterKey<Matrix> BSHAPEDATA = ParameterKeys.NewValue<Matrix>();
 
-           public static readonly ValueParameterKey<float> BasisKeyWeight=ParameterKeys.NewValue<float>();
-
     }
 }
