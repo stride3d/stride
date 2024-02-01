@@ -751,7 +751,7 @@ public:
 
 
 				int blenShapeChannelTargetCountr = pBlendShapeChannel->GetTargetShapeCount();
-
+				float scaleFactor = 0.01f;
 				for (int k = 0; k < blenShapeChannelTargetCountr; ++k)
 				{
 					FbxShape* fbxShape = pBlendShapeChannel->GetTargetShape(k);
@@ -764,7 +764,7 @@ public:
 					for (int h = 0; h < fbxShape->GetControlPointsCount(); ++h)
 					{
 						indices[h] = fbxShape->GetControlPointIndices()[h];
-						Stride::Core::Mathematics::Vector4^ controlPoint = gcnew  Stride::Core::Mathematics::Vector4(fbxShape->GetControlPointAt(h)[0], fbxShape->GetControlPointAt(h)[1], fbxShape->GetControlPointAt(h)[2], fbxShape->GetControlPointAt(h)[3]);
+						Stride::Core::Mathematics::Vector4^ controlPoint =gcnew  Stride::Core::Mathematics::Vector4(fbxShape->GetControlPointAt(h)[0] * scaleFactor, fbxShape->GetControlPointAt(h)[1] * scaleFactor, fbxShape->GetControlPointAt(h)[2] * scaleFactor, fbxShape->GetControlPointAt(h)[3] * scaleFactor);
 						controlPoints[h] = *controlPoint;
 					}
 
@@ -776,7 +776,7 @@ public:
 					shape->Indices = indices; shape->Position = controlPoints;
 
 
-					double scaleFactor = 0.01;
+					
 					double weight = pBlendShapeChannel->GetTargetShapeFullWeights()[k]* scaleFactor;
 
 
