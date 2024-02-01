@@ -669,7 +669,6 @@ public:
 			auto buffer = buildMesh->buffer;
 			auto vertexBufferBinding = VertexBufferBinding(GraphicsSerializerExtensions::ToSerializableVersion(gcnew BufferData(BufferFlags::VertexBuffer, buffer)), gcnew VertexDeclaration(vertexElements->ToArray()), buildMesh->polygonCount * 3, 0, 0);
 			
-			//auto drawData = gcnew MeshDraw();
 			auto vbb = gcnew List<VertexBufferBinding>();
 			vbb->Add(vertexBufferBinding);
 			drawData->VertexBuffers = vbb->ToArray();

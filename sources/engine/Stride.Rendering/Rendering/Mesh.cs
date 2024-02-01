@@ -182,20 +182,13 @@ namespace Stride.Rendering
         public float[] GetBlendWeights(out float cummulativeWeight)
         {
             float[] shapeWeights = new float[Shapes.Count];
-            cummulativeWeight = 0f;
-             
+            cummulativeWeight = 0f;  
             for (int i = 0; i < Shapes.Count; i++)
             {
                 var shapeKV = Shapes.ElementAt(i);
                 var shape = shapeKV.Key;
                 var shapeWeight = Math.Clamp(shapeKV.Value, 0f, 1f);
                 float adjustedWeight = shapeWeight;
-               // if (cummulativeWeight >= 1f) { adjustedWeight = 0f; }
-               // else if (cummulativeWeight + shapeWeight > 1) { adjustedWeight = 1 - cummulativeWeight; }
-                //else
-                //{
-                  //  adjustedWeight = shapeWeight;
-                //}
                 cummulativeWeight += adjustedWeight;
                 shapeWeights[i] = adjustedWeight;
             }
@@ -216,7 +209,7 @@ namespace Stride.Rendering
                 {
                     if (!mappings.ContainsKey(tup_id_vec.Item2))
                     {
-                        mappings.Add(tup_id_vec.Item2, tup_id_vec.Item3);
+                        mappings.TryAdd(tup_id_vec.Item2, tup_id_vec.Item3);
                     }
                 }
                 var positions = Draw.VCPOLYIN.Select(c => c.Item3).ToArray();
@@ -224,7 +217,6 @@ namespace Stride.Rendering
 
 
                 Vector3[] NewVectices = new Vector3[updatedVertexMapping.Count];
-
                 for (var i = 0; i < updatedVertexMapping.Count; i++)
                 {
                     var v = posBlend[originalVerticesIDS[updatedVertexMapping[i]]];

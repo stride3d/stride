@@ -3,12 +3,9 @@ shader TransformationBlendShape : TransformationBase, PositionStream4, Transform
 {
 
     cbuffer PerDraw
-    {   
-       //stage float2 morphWeights[MAX_MORPH_TARGETS];
-       //stage float3 morphTargetVertices[MAX_MORPH_TARGETS*MAX_VERTICES];
-//stage float4x4 BlendMatrixArray[SkinningMaxBones];
+    {
        stage float4x4 BSHAPEDATA[MAX_MORPH_TARGETS*MAX_VERTICES];
- 	stage float BasisKeyWeight;
+ 	   stage float BasisKeyWeight;
     }
 
     
@@ -16,44 +13,20 @@ shader TransformationBlendShape : TransformationBase, PositionStream4, Transform
 
   float4 ApplyBlendshapes(int vID, float4 pos)
   {
-float4x4 mat=BSHAPEDATA[vID];
-  float4 blendPos=pos*mat[1][3];
-
-  for(int i=0;i<MAX_MORPH_TARGETS;i++)
-  {
-    float4 morphedShape=BSHAPEDATA[i* MAX_VERTICES+ vID][0];
-    blendPos=+float4(morphedShape[0]+BasisKeyWeight,morphedShape[1], morphedShape[2] , pos[3])*morphedShape[3];
-// blendPos=float4(BSHAPEDATA[0][[2],0,-1 , pos[3]);
-  }
-
-
-//blendPos=float4(mat[vID][0], mat[vID][1],mat[vID][2],pos[3]);
+    float4x4 mat=BSHAPEDATA[vID];
+    float4 blendPos=pos*mat[1][3];
+    for(int i=0;i<MAX_MORPH_TARGETS;i++)
+    {
+        float4 morphedShape=BSHAPEDATA[i* MAX_VERTICES+ vID][0];
+        blendPos=+float4(morphedShape[0]+BasisKeyWeight,morphedShape[1], morphedShape[2] , pos[3])*morphedShape[3];
+    }
  return blendPos;
- 
- 
-}
+  }
 
 
   override stage void PreTransformPosition()
     {
-        
-        
-//if(streams.VertexID==0)
-//{
-base.PreTransformPosition();
-
-streams.PositionWS=ApplyBlendshapes(streams.VertexID, streams.PositionWS);
-//}
-
-        //uint tyh= streams.VertexID;
-        float xnew=streams.PositionWS.x;
-       float ynew=streams.PositionWS.y;
-
-        float znew=streams.PositionWS.z;
-        float4 blendPos = float4(xnew,ynew,znew,streams.PositionWS.w);
-        //float4 blendPos=ApplyBlendShape(streams.VertexID, streams.PositionWS);
-        streams.PositionWS = blendPos;
+        base.PreTransformPosition();
+        streams.PositionWS=ApplyBlendshapes(streams.VertexID, streams.PositionWS);
     }
-    
-  
 };

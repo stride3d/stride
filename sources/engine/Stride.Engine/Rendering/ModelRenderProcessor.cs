@@ -12,7 +12,6 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
-//using Valve.VR;
 
 namespace Stride.Rendering
 {
@@ -128,14 +127,7 @@ namespace Stride.Rendering
                             renderMesh.MATBSHAPE = mesh.MATBSHAPE;
                             renderMesh.BasisKeyWeight = mesh.BasisKeyWeight;
                             renderMesh.BlendShapesCount=mesh.Shapes.Count;
-                            renderMesh.VerticesCount = mesh.Draw.VertexMapping.Length;
-                            //renderMesh.BlendShapesCount = mesh.GetBlendShapesCount();
-                            //int verticesCount = mesh.GetBlendShapesCount() * mesh.Draw.VertexMapping.Length;
-                            //renderMesh.VerticesCount = verticesCount;
-                            //renderMesh.BlendShapeWeights = mesh.BlendShapeWeights;
-                            //renderMesh.BlendShapeVertices = mesh.BlendShapeVertices;
-                            //renderMesh.MATBSHAPE = mesh.MATBSHAPE;
-                           
+                            renderMesh.VerticesCount = mesh.Draw.VertexMapping.Length; 
                         }
                     }
                 }
