@@ -5,22 +5,21 @@ shader TransformationBlendShape : TransformationBase, PositionStream4, Transform
     cbuffer PerDraw
     {
        stage float4x4 BSHAPEDATA[MAX_MORPH_TARGETS*MAX_VERTICES];
- 	   stage float BasisKeyWeight;
+ 	stage float BasisKeyWeight;
     }
 
     
   stage stream uint VertexID : SV_VertexID;
 
-  float4 ApplyBlendshapes(int vID, float4 pos)
+  float4 ApplyBlendshapes(int vID, float4 originalPosition)
   {
-    float4x4 mat=BSHAPEDATA[vID];
-    float4 blendPos=pos*mat[1][3];
+    float4 blendedPosition=originalPosition;
     for(int i=0;i<MAX_MORPH_TARGETS;i++)
     {
-        float4 morphedShape=BSHAPEDATA[i* MAX_VERTICES+ vID][0];
-        blendPos=+float4(morphedShape[0]+BasisKeyWeight,morphedShape[1], morphedShape[2] , pos[3])*morphedShape[3];
+        float4 morphImact=(BSHAPEDATA[i* MAX_VERTICES+ vID][0] -originalPosition)*(BSHAPEDATA[i* MAX_VERTICES+ vID][0][3]);
+        blendedPosition= blendedPosition+float4(morphImact[0],morphImact[1], morphImact[2] , 0);
     }
- return blendPos;
+ 	return blendedPosition;
   }
 
 
