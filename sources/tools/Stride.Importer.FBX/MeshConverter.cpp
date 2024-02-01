@@ -750,21 +750,13 @@ public:
 				String^ channelBlendShapeName = Marshal::PtrToStringAnsi(static_cast<IntPtr>(const_cast<char*>(pBlendShapeChannel->GetName())));
 
 
-				//Stride::Rendering::BlendShape^ blendShape = gcnew BlendShape();
-				//blendShape->Name = channelBlendShapeName;
-
 				int blenShapeChannelTargetCountr = pBlendShapeChannel->GetTargetShapeCount();
 
 				for (int k = 0; k < blenShapeChannelTargetCountr; ++k)
 				{
 					FbxShape* fbxShape = pBlendShapeChannel->GetTargetShape(k);
-
-
-
 					String^ shapeName = Marshal::PtrToStringAnsi(static_cast<IntPtr>(const_cast<char*>(fbxShape->GetName())));
 
-
-					//  array<int>^ indices=gcnew array<int, 
 					cli::array<int>^ indices = gcnew cli::array<int>(fbxShape->GetControlPointsCount());
 
 					cli::array<System::Numerics::Vector4>^ controlPoints = gcnew cli::array<System::Numerics::Vector4>(fbxShape->GetControlPointsCount());
@@ -772,8 +764,7 @@ public:
 					for (int h = 0; h < fbxShape->GetControlPointsCount(); ++h)
 					{
 						indices[h] = fbxShape->GetControlPointIndices()[h];
-						System::Numerics::Vector4^ controlPoint = gcnew  System::Numerics::Vector4(fbxShape->GetControlPointAt(h)[0], fbxShape->GetControlPointAt(h)[1], fbxShape->GetControlPointAt(h)[2], fbxShape->GetControlPointAt(h)[3]);
-						//System::Numerics::Vector4 conPnt = *controlPoint;
+						System::Numerics::Vector4^ controlPoint = gcnew  System::Numerics::Vector4(fbxShape->GetControlPointAt(h)[0], fbxShape->GetControlPointAt(h)[1], fbxShape->GetControlPointAt(h)[2], fbxShape->GetControlPointAt(h)[3]);	
 						controlPoints[h] = *controlPoint;
 					}
 
@@ -785,8 +776,8 @@ public:
 					shape->Indices = indices; shape->Positions = controlPoints;
 
 
-
-					double weight = pBlendShapeChannel->GetTargetShapeFullWeights()[k];
+					double scaleFactor = 0.01;
+					double weight = pBlendShapeChannel->GetTargetShapeFullWeights()[k]*scaleFactor;
 
 
 

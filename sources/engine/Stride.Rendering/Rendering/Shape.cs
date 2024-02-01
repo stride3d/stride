@@ -38,7 +38,7 @@ namespace Stride.Rendering
                 Position = new Vec4[value.Length];
                 for (int i = 0; i < value.Length; i++)
                 {
-                    Position[i] = value[i] * .01f;
+                    Position[i] = value[i];
                 }
             }
         }
