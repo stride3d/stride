@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Stride.Core;
+using Stride.Core.Mathematics;
 
 namespace Stride.Rendering
 {
@@ -24,26 +25,8 @@ namespace Stride.Rendering
         //Index Of control points in shape
         public int[] Indices { get; set; }
 
-        Vector4[] _positions;
-        public Vector4[] Positions
-        {
-            get
-            {
-                return _positions;
-            }
-            set
-            {
-                if (value == null) { _positions = null; return; }
-                
-                Position = new Vec4[value.Length];
-                for (int i = 0; i < value.Length; i++)
-                {
-                    Position[i] = value[i];
-                }
-            }
-        }
 
-        public Vec4[] Position { get; set; }
+        public Core.Mathematics.Vector4[] Position { get; set; }
 
         public Shape()
         {
@@ -51,34 +34,4 @@ namespace Stride.Rendering
         }
     }
 
-
-    [DataContract]
-    public class Vec4
-    {
-        public float x { get; set; }
-
-
-        public float y { get; set; }
-
-        public float z { get; set; }
-
-        public float w { get; set; }
-
-        public Vec4()
-        {
-
-        }
-
-        public static implicit operator Vector4(Vec4 v)
-        {
-            return new Vector4(v.x, v.y, v.z, v.w);
-        }
-
-        public static implicit operator Vec4(Vector4 v)
-        {
-            return new Vec4() { x = v.X, y = v.Y, z = v.Z, w = v.W };
-        }
-
-       
-    }
 }

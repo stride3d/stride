@@ -220,7 +220,7 @@ namespace Stride.Rendering
                 for (var i = 0; i < updatedVertexMapping.Count; i++)
                 {
                     var v = posBlend[originalVerticesIDS[updatedVertexMapping[i]]];
-                    float x = -1 * v.x; float y = v.y; float z = -1 * v.z;
+                    float x = -1 * v.X; float y = v.Y; float z = -1 * v.Z;
                     Vector3 vec3 = new Vector3(x, y, z);
                     NewVectices[i] = vec3;
                 }

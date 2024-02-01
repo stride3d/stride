@@ -759,12 +759,12 @@ public:
 
 					cli::array<int>^ indices = gcnew cli::array<int>(fbxShape->GetControlPointsCount());
 
-					cli::array<System::Numerics::Vector4>^ controlPoints = gcnew cli::array<System::Numerics::Vector4>(fbxShape->GetControlPointsCount());
+					cli::array<Stride::Core::Mathematics::Vector4>^ controlPoints = gcnew cli::array<Stride::Core::Mathematics::Vector4>(fbxShape->GetControlPointsCount());
 
 					for (int h = 0; h < fbxShape->GetControlPointsCount(); ++h)
 					{
 						indices[h] = fbxShape->GetControlPointIndices()[h];
-						System::Numerics::Vector4^ controlPoint = gcnew  System::Numerics::Vector4(fbxShape->GetControlPointAt(h)[0], fbxShape->GetControlPointAt(h)[1], fbxShape->GetControlPointAt(h)[2], fbxShape->GetControlPointAt(h)[3]);	
+						Stride::Core::Mathematics::Vector4^ controlPoint = gcnew  Stride::Core::Mathematics::Vector4(fbxShape->GetControlPointAt(h)[0], fbxShape->GetControlPointAt(h)[1], fbxShape->GetControlPointAt(h)[2], fbxShape->GetControlPointAt(h)[3]);
 						controlPoints[h] = *controlPoint;
 					}
 
@@ -773,11 +773,11 @@ public:
 
 						Stride::Rendering::Shape();
 					shape->Name = shapeName;
-					shape->Indices = indices; shape->Positions = controlPoints;
+					shape->Indices = indices; shape->Position = controlPoints;
 
 
 					double scaleFactor = 0.01;
-					double weight = pBlendShapeChannel->GetTargetShapeFullWeights()[k]*scaleFactor;
+					double weight = pBlendShapeChannel->GetTargetShapeFullWeights()[k]* scaleFactor;
 
 
 
