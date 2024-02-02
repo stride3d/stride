@@ -216,6 +216,20 @@ namespace Stride.GameStudio.AssetsEditors
             }
         }
 
+        /// <inheritdoc/>
+        public bool TryGetAssetEditor<TEditor>([NotNull] AssetViewModel asset, out TEditor assetEditor)
+             where TEditor : IAssetEditorViewModel
+        {
+            if (openedAssets.TryGetValue(asset, out var found) && found is TEditor editor)
+            {
+                assetEditor = editor;
+                return true;
+            }
+
+            assetEditor = default;
+            return false;
+        }
+
         /// <summary>
         /// Retrieves the list of all assets that are currently opened in an editor.
         /// </summary>
@@ -322,6 +336,7 @@ namespace Stride.GameStudio.AssetsEditors
                         {
                             foreach (var item in multiEditor.OpenedAssets)
                             {
+                                // FIXME: do we still have this case after decoupling asset and editor?
                                 if (item.Editor != null)
                                 {
                                     // Note: this could happen in some case after undo/redo that involves parenting of scenes

@@ -56,5 +56,14 @@ namespace Stride.Core.Assets.Editor.Services
         /// </summary>
         /// <param name="asset">The asset for which to show an editor window.</param>
         Task OpenAssetEditorWindow(AssetViewModel asset);
+
+        /// <summary>
+        /// Try to find an opened editor for the given asset.
+        /// </summary>
+        /// <typeparam name="TEditor"></typeparam>
+        /// <param name="asset"></param>
+        /// <param name="assetEditor"></param>
+        /// <returns></returns>
+        bool TryGetAssetEditor<TEditor>(AssetViewModel asset, out TEditor assetEditor) where TEditor : IAssetEditorViewModel;
     }
 }
