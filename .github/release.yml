@@ -1,0 +1,43 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+  categories:
+    - title: 💥 Breaking Changes
+      labels:
+        - breaking-change
+    - title: 🎉 New Features
+      labels:
+        - new-feature
+    - title: 🐞 Bug Fixes
+      labels:
+        - bug-fix
+    - title: 🚀 Performance Improvements
+      labels:
+        - performance
+    - title: 🔧 Engineering
+      labels:
+        - engineering
+    - title: 🎨 Rendering
+      labels:
+        - rendering
+    - title: ✨ Enhancement
+      labels:
+        - enhancement
+    - title: 📄 Documentation
+      labels:
+        - area-Doc
+    - title: 🖼️ Graphics
+      labels:
+        - area-Graphics
+    - title: ⚙️ Physics
+      labels:
+        - area-Physics
+    - title: 🛠️ GameStudio
+      labels:
+        - area-GameStudio
+    - title: 💪 Other Changes
+      labels:
+        - "*"
