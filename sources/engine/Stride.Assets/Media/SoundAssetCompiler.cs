@@ -41,7 +41,7 @@ namespace Stride.Assets.Media
             protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
                 // Get path to ffmpeg
-                var ffmpeg = ToolLocator.LocateTool("ffmpeg.exe")?.ToWindowsPath() ?? throw new AssetException("Failed to compile a sound asset, ffmpeg was not found.");
+                var ffmpeg = ToolLocator.LocateTool("ffmpeg")?.ToWindowsPath() ?? throw new AssetException("Failed to compile a sound asset, ffmpeg was not found.");
 
                 // Get absolute path of asset source on disk
                 var assetDirectory = Parameters.Source.GetParent();
