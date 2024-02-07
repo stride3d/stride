@@ -306,9 +306,7 @@ namespace Stride.Core.IO
         [NotNull]
         public string ToOSPath()
         {
-            return FullPath.Replace(
-                    Path.DirectorySeparatorChar == '/' ? '\\' : '/', 
-                    Path.DirectorySeparatorChar);
+            return FullPath.Replace('/', Path.DirectorySeparatorChar); 
         }
 
         /// <summary>
