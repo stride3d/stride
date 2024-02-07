@@ -1,30 +1,65 @@
 
-shader TransformationBlendShape : TransformationBase, PositionStream4, Transformation
+shader TransformationBlendShape : TransformationBase, PositionStream4, Transformation,NormalStream
 {
-
     cbuffer PerDraw
     {
-       stage float4x4 BSHAPEDATA[MAX_MORPH_TARGETS*MAX_VERTICES];
+       stage float4x4 BSHAPEDATA[MAT_COUNT];
+       stage float4x4 LOOKUP[MAX_MORPH_TARGETS+1];
     }
 
     
   stage stream uint VertexID : SV_VertexID;
 
-  float4 ApplyBlendshapes(int vID, float4 originalPosition)
+  void DivideAndModulo(int dividend, int divisor, out int quotient, out int remainder)
+{
+    quotient = 0;
+    remainder = dividend;
+
+    while (remainder >= divisor)
+    {
+        remainder -= divisor;
+        quotient++;
+    }
+}
+
+float4x4 CreateTranslation(float4 translation) {
+    return float4x4(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        translation.x, translation.y, translation.z, 1.0f
+    );
+}
+
+
+  float4x4 ApplyBlendshapes(int vID, float4 originalPosition)
   {
-    float4 blendedPosition=originalPosition;
+  float4x4 blendMat;
+  //  float4 blendedPosition=originalPosition;
     for(int i=0;i<MAX_MORPH_TARGETS;i++)
     {
-        float4 morphImact=(BSHAPEDATA[i* MAX_VERTICES+ vID][0] -originalPosition)*(BSHAPEDATA[i* MAX_VERTICES+ vID][0][3]);
-        blendedPosition= blendedPosition+float4(morphImact[0],morphImact[1], morphImact[2] , 0);
+   int counter= i* MAX_VERTICES+ vID;
+int quotient;
+int remainder;
+DivideAndModulo(counter, 4, quotient, remainder);
+float4 blendShapeValue=BSHAPEDATA[quotient][remainder];
+        float4 morphImact=(blendShapeValue -originalPosition);
+     
+     blendMat=blendMat+CreateTranslation(morphImact);
     }
- 	return blendedPosition;
+ 	return blendMat;
   }
+
 
 
   override stage void PreTransformPosition()
     {
         base.PreTransformPosition();
-        streams.PositionWS=ApplyBlendshapes(streams.VertexID, streams.PositionWS);
+        //streams.PositionWS=ApplyBlendshapes(streams.VertexID, streams.PositionWS);
+float4x4 transMat= ApplyBlendshapes(streams.VertexID, streams.PositionWS);
+        float4 blendPos = mul(float4(streams.PositionWS.xyz, 1.0f),transMat);
+       // blendPos /= blendPos.w;
+        streams.PositionWS = blendPos;
+    //streams.meshNormal = normalize(mul(streams.meshNormal, (float3x3)transMat));
     }
 };

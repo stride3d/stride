@@ -133,7 +133,7 @@ namespace Stride.Rendering
                 {
                     mixin.AddMacro("MAX_MORPH_TARGETS", context.GetParam(MaterialKeys.MAX_MORPH_TARGETS));
                     mixin.AddMacro("MAX_VERTICES", context.GetParam(MaterialKeys.MAX_VERTICES));
-
+                    mixin.AddMacro("MAT_COUNT", context.GetParam(MaterialKeys.MAT_COUNT));
                     context.Mixin(mixin, "TransformationBlendShape");
                 }
 

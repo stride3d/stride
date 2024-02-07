@@ -157,14 +157,34 @@ namespace Stride.Rendering
                 var blendShapesWeights = GetBlendWeights(out float cummulativeWeight); ;
                 BasisKeyWeight = 1 - cummulativeWeight;
 
-                MATBSHAPE = new Matrix[Draw.VertexMapping.Length*blendShapesWeights.Length];
+                int MATCOUNT = (Draw.VertexMapping.Length * blendShapesWeights.Length / 4 )+( (Draw.VertexMapping.Length * blendShapesWeights.Length) % 4);
+
+                MATBSHAPE = new Matrix[MATCOUNT];
                 for (int iBendShape = 0; iBendShape < blendShapesWeights.Length; iBendShape++)
                 {
                     for (int iVert = 0; iVert < Draw.VertexMapping.Length; iVert++)
                     {
                         var vectorValue = blendShapeVertices.ElementAt(iBendShape * Draw.VertexMapping.Length + iVert);
-                        MATBSHAPE[iBendShape * Draw.VertexMapping.Length + iVert].Row1 = new Vector4(vectorValue, blendShapesWeights[iBendShape]);
 
+                        var remainder = iVert % 4;
+                        var quotient=iVert / 4;
+                        Vector4 vec = new Vector4(vectorValue, blendShapesWeights[iBendShape]);
+                        if (remainder == 0)
+                        {
+                            MATBSHAPE[quotient].Row1 = vec;
+                        }
+                        else if (remainder == 1)
+                        {
+                            MATBSHAPE[quotient].Row2 = vec;
+                        }
+                        else if (remainder == 2)
+                        {
+                            MATBSHAPE[quotient].Row3 = vec;
+                        }
+                        else if (remainder == 3)
+                        {
+                            MATBSHAPE[quotient].Row4 = vec;
+                        }
                     }
                 }
                 BlendShapeProcessingNecessary = false;

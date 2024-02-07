@@ -764,7 +764,7 @@ public:
 					for (int h = 0; h < fbxShape->GetControlPointsCount(); ++h)
 					{
 						indices[h] = fbxShape->GetControlPointIndices()[h];
-						Stride::Core::Mathematics::Vector4^ controlPoint =gcnew  Stride::Core::Mathematics::Vector4(fbxShape->GetControlPointAt(h)[0] * scaleFactor, fbxShape->GetControlPointAt(h)[1] * scaleFactor, fbxShape->GetControlPointAt(h)[2] * scaleFactor, fbxShape->GetControlPointAt(h)[3] * scaleFactor);
+						Stride::Core::Mathematics::Vector4^ controlPoint =gcnew  Stride::Core::Mathematics::Vector4(fbxShape->GetControlPointAt(h)[0]* scaleFactor, fbxShape->GetControlPointAt(h)[1]* scaleFactor, fbxShape->GetControlPointAt(h)[2]* scaleFactor, fbxShape->GetControlPointAt(h)[3]* scaleFactor);
 						controlPoints[h] = *controlPoint;
 					}
 
