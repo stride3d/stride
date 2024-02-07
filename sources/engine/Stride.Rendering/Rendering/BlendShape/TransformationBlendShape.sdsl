@@ -31,7 +31,6 @@ float4x4 CreateTranslation(float4 translation) {
     );
 }
 
-
   float4x4 ApplyBlendshapes(int vID, float4 originalPosition)
   {
   float4x4 blendMat;
@@ -54,12 +53,10 @@ float4 blendShapeValue=BSHAPEDATA[quotient][remainder];
 
   override stage void PreTransformPosition()
     {
-        base.PreTransformPosition();
-        //streams.PositionWS=ApplyBlendshapes(streams.VertexID, streams.PositionWS);
-float4x4 transMat= ApplyBlendshapes(streams.VertexID, streams.PositionWS);
-        float4 blendPos = mul(float4(streams.PositionWS.xyz, 1.0f),transMat);
-       // blendPos /= blendPos.w;
-        streams.PositionWS = blendPos;
+float4x4 transMat= ApplyBlendshapes(streams.VertexID, streams.Position);
+        float4 blendPos = mul(float4(streams.Position.xyz, 1.0f),transMat);
+         streams.Position = blendPos;
+	base.PreTransformPosition();
     //streams.meshNormal = normalize(mul(streams.meshNormal, (float3x3)transMat));
     }
 };
