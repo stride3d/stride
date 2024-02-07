@@ -231,7 +231,7 @@ namespace Stride.TextureConverter.TexLibraries
             }
             else
             {
-                hr = Utilities.LoadWICFile(loader.FilePath, WIC_FLAGS.WIC_FLAGS_NONE, out libraryData.Metadata, libraryData.Image);
+                hr = Utilities.LoadWICFile(loader.FilePath, out libraryData.Metadata, libraryData.Image);
             }
 
             if (hr != HRESULT.S_OK)
