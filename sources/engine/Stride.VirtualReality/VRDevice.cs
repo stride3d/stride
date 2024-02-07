@@ -74,7 +74,8 @@ namespace Stride.VirtualReality
         /// Starts a passthrough. When enabled the scene is rendered on top of the camera image of the device.
         /// </summary>
         /// <returns>A disposable which will stop the passthrough on dispose.</returns>
-        /// <exception cref="NotSupportedException">Thrown if passthrough is not supported by the device.</exception>
+        /// <exception cref="NotSupportedException">Thrown if the passthrough mode is not supported by the device.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the passthrough mode is already enabled.</exception>
         public virtual IDisposable StartPassthrough()
         {
             throw new NotSupportedException();

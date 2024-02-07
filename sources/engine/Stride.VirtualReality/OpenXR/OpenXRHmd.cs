@@ -20,7 +20,11 @@ namespace Stride.VirtualReality
         // Public static variable to add extensions to the initialization of the openXR session
         public static List<string> extensions = new List<string>();
 
-        public static OpenXRHmd? New(bool requestPassthrough)
+        /// <summary>
+        /// Creates a VR device using OpenXR.
+        /// </summary>
+        /// <param name="requestPassthrough">Whether or not the XR_FB_passthrough extension should be enabled (if available).</param>
+        internal static OpenXRHmd? New(bool requestPassthrough)
         {
             // Create our API object for OpenXR.
             var xr = XR.GetApi();
@@ -62,6 +66,7 @@ namespace Stride.VirtualReality
 
         // Passthrough
         private OpenXRExt_FB_Passthrough? passthroughExt;
+        private bool passthroughRequested;
 
         private GraphicsDevice? baseDevice;
 
@@ -133,6 +138,7 @@ namespace Stride.VirtualReality
         {
             Xr = xr;
             VRApi = VRApi.OpenXR;
+            passthroughRequested = requestPassthrough;
 
             var requestedExtensions = new List<string>(extensions);
             if (requestPassthrough)
@@ -361,8 +367,11 @@ namespace Stride.VirtualReality
 
         public override IDisposable StartPassthrough()
         {
+            if (!passthroughRequested)
+                throw new InvalidOperationException("The passthrough mode needs to be enabled at device creation");
+
             if (!SupportsPassthrough)
-                throw new NotSupportedException();
+                throw new NotSupportedException("The device does not support passthrough mode");
 
             if (passthroughExt is null)
                 passthroughExt = new OpenXRExt_FB_Passthrough(Xr, globalSession, Instance);
