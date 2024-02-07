@@ -83,7 +83,7 @@ namespace Stride.Assets.Media
                 try
                 {
                     // Get path to ffmpeg
-                    var ffmpeg = ToolLocator.LocateTool("ffmpeg.exe")?.ToWindowsPath() ?? throw new AssetException("Failed to compile a video asset, ffmpeg was not found.");
+                    var ffmpeg = ToolLocator.LocateTool("ffmpeg")?.ToWindowsPath() ?? throw new AssetException("Failed to compile a video asset, ffmpeg was not found.");
 
                     // Get absolute path of asset source on disk
                     var assetDirectory = videoAsset.Source.GetParent();
