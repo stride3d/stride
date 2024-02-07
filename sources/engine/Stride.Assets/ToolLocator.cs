@@ -13,15 +13,15 @@ static class ToolLocator
 {
     public static UFile LocateTool(string toolName)
     {
-        if(!OperatingSystem.IsWindows)
+        if(!OperatingSystem.IsWindows())
         {
             var pathDirectories = Environment.GetEnvironmentVariable("PATH")?.Split(':') ?? Array.Empty<string>();
 
             foreach (var directory in pathDirectories)
             {
-                var tool = UPath.Combine(directory, toolName);
-                if (File.Exists(tool))
-                    return tool;
+                var toolPath = Path.Combine(directory, toolName);
+                if (File.Exists(toolPath))
+                    return new UFile(toolPath);
             }
         }
 
