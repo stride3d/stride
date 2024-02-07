@@ -547,14 +547,6 @@ namespace Stride.TextureConverter.DxtWrapper
             return HandleHRESULT(dxtLoadTGAFile(filePath, out metadata, image.ptr));
         }
 
-        public static HRESULT LoadWICFile(string filePath, out TexMetadata metadata, ScratchImage image)
-        {
-            //TODO: NEEDS TO LOAD USING DIFFRENT LIBRARY (WIC SUPPORTS WIN32)
-            metadata = new TexMetadata();            
-
-            return HRESULT.S_OK;
-        }
-
         public static HRESULT SaveToDDSFile(ref DxtImage dxtImage, DDS_FLAGS flags, string szFile)
         {
             return HandleHRESULT(dxtSaveToDDSFile(ref dxtImage, flags, szFile));

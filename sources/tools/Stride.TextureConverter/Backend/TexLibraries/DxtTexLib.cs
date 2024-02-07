@@ -44,17 +44,10 @@ namespace Stride.TextureConverter.TexLibraries
     {
         private static Logger Log = GlobalLogger.GetLogger("DxtTexLib");
 
-        private static HashSet<string> SupportedExtensions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        private static HashSet<string> SupportedExtensions = new(StringComparer.InvariantCultureIgnoreCase)
         {
             ".dds",
-            ".bmp",
             ".tga",
-            ".jpg",
-            ".jpeg",
-            ".jpe",
-            ".png",
-            ".tiff",
-            ".tif",
         };
 
         /// <summary>
@@ -229,11 +222,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 hr = Utilities.LoadTGAFile(loader.FilePath, out libraryData.Metadata, libraryData.Image);
             }
-            else
-            {
-                hr = Utilities.LoadWICFile(loader.FilePath, out libraryData.Metadata, libraryData.Image);
-            }
-
+            
             if (hr != HRESULT.S_OK)
             {
                 Log.Error("Loading dds file " + loader.FilePath + " failed: " + hr);
