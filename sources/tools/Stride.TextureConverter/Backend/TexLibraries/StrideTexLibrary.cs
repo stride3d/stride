@@ -108,7 +108,7 @@ namespace Stride.TextureConverter.TexLibraries
                     break;
 
                 case RequestType.ExportToStride:
-                    ExportToStride(image, libraryData, (ExportToStrideRequest)request);
+                    ExportToStride(image, (ExportToStrideRequest)request);
                     break;
 
                 case RequestType.Loading:
@@ -331,7 +331,6 @@ namespace Stride.TextureConverter.TexLibraries
         /// Exports to Stride <see cref="Image"/>. An instance will be stored in the <see cref="ExportToStrideRequest"/> instance.
         /// </summary>
         /// <param name="image">The image.</param>
-        /// <param name="libraryData">The library data.</param>
         /// <param name="request">The request.</param>
         /// <exception cref="System.InvalidOperationException">
         /// Image size different than expected.
@@ -339,7 +338,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// Failed to convert texture into Stride Image.
         /// </exception>
         /// <exception cref="System.NotImplementedException"></exception>
-        private unsafe void ExportToStride(TexImage image, StrideTextureLibraryData libraryData, ExportToStrideRequest request)
+        private unsafe void ExportToStride(TexImage image, ExportToStrideRequest request)
         {
             Log.Verbose("Exporting to Stride Image ...");
 
