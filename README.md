@@ -194,6 +194,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/dotlogix"><img src="https://avatars.githubusercontent.com/u/16420200?v=4?s=100" width="100px;" alt="Alexander Schill"/><br /><sub><b>Alexander Schill</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=dotlogix" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/froce"><img src="https://avatars.githubusercontent.com/u/8515865?v=4?s=100" width="100px;" alt="froce"/><br /><sub><b>froce</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=froce" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://anthonymarmont.com/"><img src="https://avatars.githubusercontent.com/u/19309165?v=4?s=100" width="100px;" alt="Anthony Marmont"/><br /><sub><b>Anthony Marmont</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=fydar" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MaximilianEmel"><img src="https://avatars.githubusercontent.com/u/19846453?v=4?s=100" width="100px;" alt="MaximilianEmel"/><br /><sub><b>MaximilianEmel</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MaximilianEmel" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
