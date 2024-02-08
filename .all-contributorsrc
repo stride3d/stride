@@ -445,6 +445,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dotlogix",
+      "name": "Alexander Schill",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16420200?v=4",
+      "profile": "https://github.com/dotlogix",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
