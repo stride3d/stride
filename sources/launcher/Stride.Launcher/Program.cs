@@ -42,7 +42,7 @@ internal sealed class Program
         if (Application.Current is null)
         {
             appBuilder = appBuilder
-                .SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime { Args = args, ShutdownMode = ShutdownMode.OnExplicitShutdown });
+                .SetupWithClassicDesktopLifetime(args ?? [], x => x.ShutdownMode = ShutdownMode.OnExplicitShutdown);
             var app = appBuilder.Instance!;
             app.Run(appMain((TApp)app));
         }
@@ -54,7 +54,7 @@ internal sealed class Program
                 ((IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime)?.MainWindow?.Hide();
 
                 // Then setup the new application
-                // HACK: SetupUnsafe is internal and we can't call Setup mutiple times
+                // HACK: SetupUnsafe is internal and we can't call Setup multiple times
                 typeof(AppBuilder).GetMethod("SetupUnsafe", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(appBuilder, null);
                                 
                 var app = appBuilder.Instance!;
