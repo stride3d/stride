@@ -190,6 +190,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://pa.rh.am/"><img src="https://avatars.githubusercontent.com/u/7075456?v=4?s=100" width="100px;" alt="Parham Gholami"/><br /><sub><b>Parham Gholami</b></sub></a><br /><a href="#design-parhamgholami" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/adrsch"><img src="https://avatars.githubusercontent.com/u/35346279?v=4?s=100" width="100px;" alt="adrsch"/><br /><sub><b>adrsch</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=adrsch" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dotlogix"><img src="https://avatars.githubusercontent.com/u/16420200?v=4?s=100" width="100px;" alt="Alexander Schill"/><br /><sub><b>Alexander Schill</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=dotlogix" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
