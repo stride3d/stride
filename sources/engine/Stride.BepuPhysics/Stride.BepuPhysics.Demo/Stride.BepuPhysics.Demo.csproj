@@ -5,23 +5,25 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <!--Not sure how to replace this one ?-->
+    <PackageReference Include="Stride.Engine" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.Video" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.Physics" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.Navigation" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.Particles" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.UI" VersionOverride="4.2.0.1" />
     <PackageReference Include="Stride.Core.Assets.CompilerApp" VersionOverride="4.2.0.1" IncludeAssets="build;buildTransitive" />
+    <PackageReference Include="Stride.BepuPhysics.DebugRender" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.BepuPhysics.Navigation" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.BepuPhysics.Soft" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.BepuPhysics._2D" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.BepuPhysics" VersionOverride="4.2.0.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\PublishProfiles\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Stride.BepuPhysics.DebugRender\Stride.BepuPhysics.DebugRender.csproj" />
-    <ProjectReference Include="..\Stride.BepuPhysics.Navigation\Stride.BepuPhysics.Navigation.csproj" />
-    <ProjectReference Include="..\Stride.BepuPhysics.Soft\Stride.BepuPhysics.Soft.csproj" />
-    <ProjectReference Include="..\Stride.BepuPhysics._2D\Stride.BepuPhysics._2D.csproj" />
-    <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
-    <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\..\Stride.Video\Stride.Video.csproj" />
-    <ProjectReference Include="..\..\Stride.Physics\Stride.Physics.csproj" />
-    <ProjectReference Include="..\..\Stride.Navigation\Stride.Navigation.csproj" />
-    <ProjectReference Include="..\..\Stride.Particles\Stride.Particles.csproj" />
-    <ProjectReference Include="..\..\Stride.UI\Stride.UI.csproj" />
-  </ItemGroup>
+  <!-- We want this project to be open-able in the editor while still ensuring the nuggets are up to date -->
+  <Target Name="EnsureReferenceNuggetsAreBuilt" BeforeTargets="Restore">
+    <Exec Command="msbuild ..\Stride.BepuPhysics.DebugRender -restore" />
+    <Exec Command="msbuild ..\Stride.BepuPhysics.Navigation -restore" />
+    <Exec Command="msbuild ..\Stride.BepuPhysics.Soft -restore" />
+    <Exec Command="msbuild ..\Stride.BepuPhysics._2D -restore" />
+    <Exec Command="msbuild ..\Stride.BepuPhysics -restore" />
+  </Target>
 </Project>
