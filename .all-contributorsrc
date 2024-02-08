@@ -463,6 +463,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "fydar",
+      "name": "Anthony Marmont",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19309165?v=4",
+      "profile": "https://anthonymarmont.com/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
