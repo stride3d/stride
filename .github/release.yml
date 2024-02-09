@@ -10,6 +10,7 @@ changelog:
         - breaking-change
     - title: 🎉 New Features
       labels:
+        - enhancement
         - new-feature
     - title: 🐞 Bug Fixes
       labels:
@@ -20,24 +21,45 @@ changelog:
     - title: 🔧 Engineering
       labels:
         - engineering
-    - title: 🎨 Rendering
+    - title: 📦 Assets
       labels:
-        - rendering
-    - title: ✨ Enhancement
+        - area-Asset
+    - title: 🔊 Audio
       labels:
-        - enhancement
-    - title: 📄 Documentation
+        - area-Audio
+    - title: 🔨 Build
+      labels:
+        - area-Build
+    - title: 📄 Docs
       labels:
         - area-Doc
-    - title: 🖼️ Graphics
-      labels:
-        - area-Graphics
-    - title: ⚙️ Physics
-      labels:
-        - area-Physics
     - title: 🛠️ GameStudio
       labels:
         - area-GameStudio
+    - title: 🖌️ Graphics
+      labels:
+        - area-Graphics
+    - title: ⌨️ Input
+      labels:
+        - area-Input
+    - title: 🚀 Launcher
+      labels:
+        - area-Launcher
+    - title: ⚙️ Physics
+      labels:
+        - area-Physics
+    - title: 📚 Samples
+      labels:
+        - area-Samples
+    - title: 🌈 Shaders
+      labels:
+        - area-Shaders
+    - title: 🖼️ UI
+      labels:
+        - area-UI
+    - title: 🎨 Rendering
+      labels:
+        - area-Rendering
     - title: 💪 Other Changes
       labels:
         - "*"
