@@ -319,16 +319,11 @@ namespace Stride.Core.IO
         }
 
         [DebuggerDisplay("Active: {IsActive}, Path: {Path}")]
-        private sealed class DirectoryWatcherItem
+        private sealed class DirectoryWatcherItem(DirectoryInfo path)
         {
-            public DirectoryWatcherItem(DirectoryInfo path)
-            {
-                Path = path.FullName.ToLowerInvariant();
-            }
-
             public DirectoryWatcherItem Parent;
 
-            public string Path { get; private set; }
+            public string Path { get; private set; } = OperatingSystem.IsWindows() ? path.FullName.ToLowerInvariant() : path.FullName;
 
             public bool IsPathExist()
             {
