@@ -134,7 +134,7 @@ namespace Stride.Core.IO
 
             if (path != null && Directory.Exists(path))
             {
-                info = new DirectoryInfo(path.ToLowerInvariant());
+                info = new DirectoryInfo(OperatingSystem.IsWindows() ? path.ToLowerInvariant() : path);
             }
             else
             {
