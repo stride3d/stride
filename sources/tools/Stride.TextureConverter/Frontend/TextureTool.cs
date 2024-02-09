@@ -53,6 +53,7 @@ namespace Stride.TextureConverter
         {
             textureLibraries = new List<ITexLibrary>
             {
+                new DxtTexLib(),
                 new ImageSharpTexLib(), // used to compress/decompress texture to DXT1-5 and load/save *.dds compressed texture files.
                 new FITexLib(), // used to open/save common bitmap image formats.
                 new StrideTexLibrary(), // used to save/load stride texture format.
@@ -992,8 +993,8 @@ namespace Stride.TextureConverter
                 rowSrcPtr = IntPtr.Add(rowSrcPtr, region.Y * texImage.RowPitch);
                 for (int i = 0; i < region.Height; i++)
                 {
-                    var pSrc = ((UInt32*)rowSrcPtr) + region.X;
-                    var pDst = (UInt32*)rowDstPtr;
+                    var pSrc = ((uint*)rowSrcPtr) + region.X;
+                    var pDst = (uint*)rowDstPtr;
 
                     for (int x = 0; x < region.Width; x++)
                         *(pDst++) = *(pSrc++);
