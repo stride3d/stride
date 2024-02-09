@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -19,7 +18,11 @@ namespace Stride.Rendering
     /// <summary>
     /// The effect system.
     /// </summary>
-    public class EffectSystem : GameSystemBase
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="EffectSystem"/> class.
+    /// </remarks>
+    /// <param name="services">The services.</param>
+    public class EffectSystem(IServiceRegistry services) : GameSystemBase(services)
     {
         private static readonly Logger Log = GlobalLogger.GetLogger("EffectSystem");
 
@@ -50,22 +53,13 @@ namespace Stride.Rendering
         /// </value>
         public IVirtualFileProvider FileProvider => compiler.FileProvider;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EffectSystem"/> class.
-        /// </summary>
-        /// <param name="services">The services.</param>
-        public EffectSystem(IServiceRegistry services)
-            : base(services)
-        {
-        }
-
         public override void Initialize()
         {
             base.Initialize();
 
 
             // Get graphics device service
-            base.InitGraphicsDeviceService();
+            InitGraphicsDeviceService();
 
 #if STRIDE_PLATFORM_DESKTOP
             Enabled = true;

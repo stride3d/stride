@@ -1,26 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using Stride.Core;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
 
 namespace Stride.Rendering
 {
-    public class DynamicEffectInstance : EffectInstance
+    public class DynamicEffectInstance(string effectName, ParameterCollection parameters = null) : EffectInstance(null, parameters)
     {
-        // Parameter keys used for effect permutation
-        //private KeyValuePair<ParameterKey, object>[] effectParameterKeys;
-
-        private string effectName;
         private EffectSystem effectSystem;
-
-        public DynamicEffectInstance(string effectName, ParameterCollection parameters = null) : base(null, parameters)
-        {
-            this.effectName = effectName;
-        }
 
         public string EffectName
         {
@@ -35,7 +24,7 @@ namespace Stride.Rendering
 
         public void Initialize(IServiceRegistry services)
         {
-            this.effectSystem = services.GetSafeServiceAs<EffectSystem>();
+            effectSystem = services.GetSafeServiceAs<EffectSystem>();
         }
 
         protected override void ChooseEffect(GraphicsDevice graphicsDevice)

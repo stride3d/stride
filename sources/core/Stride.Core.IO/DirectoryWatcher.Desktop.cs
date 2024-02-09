@@ -69,8 +69,7 @@ namespace Stride.Core.IO
 
             lock (watchers)
             {
-                DirectoryWatcherItem watcher;
-                if (!watchers.TryGetValue(info.FullName, out watcher))
+                if (!watchers.TryGetValue(info.FullName, out var watcher))
                 {
                     return;
                 }
@@ -149,8 +148,7 @@ namespace Stride.Core.IO
         {
             foreach (var directoryInfo in directories)
             {
-                DirectoryWatcherItem watcher;
-                if (watchers.TryGetValue(directoryInfo.FullName, out watcher))
+                if (watchers.TryGetValue(directoryInfo.FullName, out var watcher))
                 {
                     yield return watcher;
                 }
@@ -169,8 +167,7 @@ namespace Stride.Core.IO
 
         private DirectoryWatcherItem Track(DirectoryInfo info, bool watcherNode)
         {
-            DirectoryWatcherItem watcher;
-            if (watchers.TryGetValue(info.FullName, out watcher))
+            if (watchers.TryGetValue(info.FullName, out var watcher))
             {
                 if (watcher.Watcher == null && watcherNode)
                 {
