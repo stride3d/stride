@@ -67,7 +67,7 @@ namespace Stride.Core.BuildEngine
         {
             builder.Reset();
             builder.Root.Add(dynamicBuildStep);
-            builder.Run(Builder.Mode.Build, true);
+            builder.Run(Builder.Mode.Build);
         }
     }
 }
