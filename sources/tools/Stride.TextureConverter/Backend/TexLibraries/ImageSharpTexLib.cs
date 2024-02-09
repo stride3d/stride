@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 
 using Stride.Core;
 using Stride.Graphics;
@@ -13,6 +14,7 @@ using Stride.TextureConverter.Requests;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using ImageSharp = SixLabors.ImageSharp.Image;
+using SixLabors.ImageSharp.PixelFormats;
 
 using Utilities = Stride.TextureConverter.DxtWrapper.Utilities;
 
@@ -28,9 +30,7 @@ internal class ImageSharpTexLib : ITexLibrary
 
     private static readonly HashSet<string> SupportedExtensions = new(StringComparer.InvariantCultureIgnoreCase)
     {
-        ".dds",
         ".bmp",
-        ".tga",
         ".jpg",
         ".jpeg",
         ".jpe",
@@ -192,12 +192,33 @@ internal class ImageSharpTexLib : ITexLibrary
     /// <param name="image">The image.</param>
     /// <param name="loader">The loader.</param>
     /// <exception cref="TextureToolsException">Loading dds file failed</exception>
-    private void Load(TexImage image, LoadingRequest loader)
+    private unsafe void Load(TexImage image, LoadingRequest loader)
     {
         Log.Verbose("Loading " + loader.FilePath + " ...");
 
-        using var img = ImageSharp.Load(loader.FilePath);
-        image.Data = IntPtr.Zero;  // Set the data pointer
+        using var img = ImageSharp.Load<Rgba32>(loader.FilePath);
+
+        var pixels = new Rgba32[img.Width * img.Height];
+
+        for (int y = 0; y < img.Height; y++)
+        {
+            for (int x = 0; x < img.Width; x++)
+            {
+                pixels[y * img.Width + x] = img[x, y];
+            }
+        }
+
+        uint[] uintPixels = new uint[pixels.Length]; 
+
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            uintPixels[i] = ((uint)pixels[i].R << 24) | ((uint)pixels[i].G << 16) | ((uint)pixels[i].B << 8) | (uint)pixels[i].A;
+        }
+
+        fixed (uint* uintPtr = uintPixels)
+        {
+            image.Data = new IntPtr(uintPtr);
+        }
         image.DataSize = img.Width * img.Height * (img.PixelType.BitsPerPixel / 8);
         image.Width = img.Width;  
         image.Height = img.Height;  
@@ -440,58 +461,58 @@ internal class ImageSharpTexLib : ITexLibrary
     /// </exception>
     private void GenerateMipMaps(TexImage image, DxtTextureLibraryData libraryData, MipMapsGenerationRequest request)
     {
-        Log.Verbose("Generating Mipmaps ... ");
+        Log.Verbose("Generating Mipmaps ... ");;
 
-        var filter = TEX_FILTER_FLAGS.TEX_FILTER_DEFAULT;
-        filter |= request.Filter switch
+        uint AverageColor(uint p00, uint p01, uint p10, uint p11)
         {
-            Filter.MipMapGeneration.Nearest => TEX_FILTER_FLAGS.TEX_FILTER_POINT,
-            Filter.MipMapGeneration.Linear => TEX_FILTER_FLAGS.TEX_FILTER_LINEAR,
-            Filter.MipMapGeneration.Cubic => TEX_FILTER_FLAGS.TEX_FILTER_CUBIC,
-            Filter.MipMapGeneration.Box => image.IsPowerOfTwo() ? TEX_FILTER_FLAGS.TEX_FILTER_FANT : TEX_FILTER_FLAGS.TEX_FILTER_LINEAR,// Box filter is supported only for power of two textures
-            _ => TEX_FILTER_FLAGS.TEX_FILTER_FANT,
-        };
-
-        // Don't use WIC if we have a Float texture as mipmaps are clamped to [0, 1]
-        // TODO: Report bug to DirectXTex
-        var isPowerOfTwoAndFloat = image.IsPowerOfTwo() && (image.Format == PixelFormat.R16G16_Float || image.Format == PixelFormat.R16G16B16A16_Float);
-        if (isPowerOfTwoAndFloat)
-        {
-            filter = TEX_FILTER_FLAGS.TEX_FILTER_FORCE_NON_WIC;
+            // Perform average calculation (simple arithmetic mean)
+            return ((((p00 & 0xFF000000) >> 24) + ((p01 & 0xFF000000) >> 24) + ((p10 & 0xFF000000) >> 24) + ((p11 & 0xFF000000) >> 24)) / 4) << 24 | // Alpha
+                        (((((p00 & 0x00FF0000) >> 16) + ((p01 & 0x00FF0000) >> 16) + ((p10 & 0x00FF0000) >> 16) + ((p11 & 0x00FF0000) >> 16)) / 4) << 16) | // Red
+                        (((((p00 & 0x0000FF00) >> 8) + ((p01 & 0x0000FF00) >> 8) + ((p10 & 0x0000FF00) >> 8) + ((p11 & 0x0000FF00) >> 8)) / 4) << 8) | // Green
+                        (((p00 & 0x000000FF) + (p01 & 0x000000FF) + (p10 & 0x000000FF) + (p11 & 0x000000FF)) / 4); // Blue
         }
 
-        HRESULT hr;
-        var scratchImage = new ScratchImage();
-        if (libraryData.Metadata.dimension == TEX_DIMENSION.TEX_DIMENSION_TEXTURE3D)
-        {
-            Log.Verbose("Only the box and nearest(point) filters are supported for generating Mipmaps with 3D texture.");
-            if ((filter & TEX_FILTER_FLAGS.TEX_FILTER_FANT) == 0 && (filter & TEX_FILTER_FLAGS.TEX_FILTER_POINT) == 0)
+
+        unsafe{
+            int srcWidth = image.Width;
+            int srcHeight = image.Height;
+
+            uint* srcPixels = (uint*)image.Data.ToPointer();
+
+           while (srcWidth > 1 || srcHeight > 1)
             {
-                filter = (TEX_FILTER_FLAGS)((int)filter & 0xf00000);
-                filter |= TEX_FILTER_FLAGS.TEX_FILTER_FANT;
+                int dstWidth = Math.Max(1, srcWidth / 2);
+                int dstHeight = Math.Max(1, srcHeight / 2);
+
+                uint* dstPixels = (uint*)Marshal.AllocHGlobal(dstWidth * dstHeight * sizeof(uint)).ToPointer();
+
+                for (int y = 0; y < dstHeight; y++)
+                {
+                    for (int x = 0; x < dstWidth; x++)
+                    {
+                        // Downsampling by averaging 4 neighboring pixels
+                        int srcOffset = ((2 * y) * srcWidth) + (2 * x);
+                        uint p00 = srcPixels[srcOffset];
+                        uint p01 = srcPixels[srcOffset + 1];
+                        uint p10 = srcPixels[srcOffset + srcWidth];
+                        uint p11 = srcPixels[srcOffset + srcWidth + 1];
+
+                        uint averageColor = AverageColor(p00, p01, p10, p11); // Calculate average color
+
+                        int dstOffset = (y * dstWidth) + x;
+                        dstPixels[dstOffset] = averageColor; // Set the averaged color at the downscaled position
+                    }
+                }
+
+                // Store or process the generated mipmap level in dstPixels
+
+                // Prepare for the next iteration or exit the loop
+                srcWidth = dstWidth;
+                srcHeight = dstHeight;
+                srcPixels = dstPixels;
             }
-            hr = Utilities.GenerateMipMaps3D(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, filter, 0, scratchImage);
+
         }
-        else
-        {
-            hr = Utilities.GenerateMipMaps(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, filter, 0, scratchImage);
-        }
-
-        if (hr != HRESULT.S_OK)
-        {
-            Log.Error("Mipmaps generation failed: " + hr);
-            throw new TextureToolsException("Mipmaps generation failed: " + hr);
-        }
-
-        // Freeing Memory
-        image.DisposingLibrary?.Dispose(image);
-
-        libraryData.Image = scratchImage;
-        libraryData.Metadata = libraryData.Image.metadata;
-        libraryData.DxtImages = libraryData.Image.GetImages();
-        image.DisposingLibrary = this;
-
-        UpdateImage(image, libraryData);
     }
 
 
@@ -642,25 +663,27 @@ internal class ImageSharpTexLib : ITexLibrary
     {
         Log.Verbose("Premultiplying alpha ... ");
 
-        ScratchImage scratchImage = new ScratchImage();
-
-        HRESULT hr = Utilities.PremultiplyAlpha(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, TEX_PREMULTIPLY_ALPHA_FLAGS.TEX_PMALPHA_DEFAULT, scratchImage);
-
-        if (hr != HRESULT.S_OK)
+        unsafe
         {
-            Log.Error("Failed to premultiply the alpha : " + hr);
-            throw new TextureToolsException("Failed to premultiply the alpha : " + hr);
+            uint* pixels = (uint*)image.Data.ToPointer();
+
+            for (int i = 0; i < image.Width * image.Height; i++)
+            {
+                byte alpha = (byte)((pixels[i] & 0xFF000000) >> 24); // Extract alpha value
+
+                float normalizedAlpha = alpha / 255f; // Normalize alpha to range [0,1]
+
+                // Premultiply color components by alpha
+                byte r = (byte)(((pixels[i] & 0x00FF0000) >> 16) * normalizedAlpha);
+                byte g = (byte)(((pixels[i] & 0x0000FF00) >> 8) * normalizedAlpha);
+                byte b = (byte)((pixels[i] & 0x000000FF) * normalizedAlpha);
+
+                // Combine premultiplied color components into pixel value
+                pixels[i] = (uint)((alpha << 24) | (r << 16) | (g << 8) | b);
+            }
         }
 
-        // Freeing Memory
-        image.DisposingLibrary?.Dispose(image);
-
-        libraryData.Image = scratchImage;
-        libraryData.Metadata = libraryData.Image.metadata;
-        libraryData.DxtImages = libraryData.Image.GetImages();
-        image.DisposingLibrary = this;
-
-        UpdateImage(image, libraryData);
+       // UpdateImage(image, libraryData);
     }
 
 

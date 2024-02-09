@@ -1,13 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
-
-using Stride.Games;
 using Stride.Graphics;
-using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.TextureConverter.Requests;
 using System.Runtime.CompilerServices;
@@ -49,7 +44,7 @@ namespace Stride.TextureConverter.TexLibraries
         public void Dispose(TexImage image)
         {
             StrideTextureLibraryData libraryData = (StrideTextureLibraryData)image.LibraryData[this];
-            if (libraryData.XkImage != null) libraryData.XkImage.Dispose();
+            libraryData.XkImage?.Dispose();
         }
 
         public bool SupportBGRAOrder()

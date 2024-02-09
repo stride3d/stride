@@ -10,7 +10,11 @@ namespace Stride.TextureConverter.Requests
     /// <summary>
     /// Request to generate the mipmap chain on a texture (3d texture mipmap generation not yet supported)
     /// </summary>
-    internal class MipMapsGenerationRequest : IRequest
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="MipMapsGenerationRequest"/> class.
+    /// </remarks>
+    /// <param name="filter">The filter.</param>
+    internal class MipMapsGenerationRequest(Filter.MipMapGeneration filter) : IRequest
     {
         public override RequestType Type { get { return RequestType.MipMapsGeneration; } }
 
@@ -21,16 +25,6 @@ namespace Stride.TextureConverter.Requests
         /// <value>
         /// The filter.
         /// </value>
-        public Filter.MipMapGeneration Filter { get; private set; }
-
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MipMapsGenerationRequest"/> class.
-        /// </summary>
-        /// <param name="filter">The filter.</param>
-        public MipMapsGenerationRequest(Filter.MipMapGeneration filter)
-        {
-            Filter = filter;
-        }
+        public Filter.MipMapGeneration Filter { get; private set; } = filter;
     }
 }
