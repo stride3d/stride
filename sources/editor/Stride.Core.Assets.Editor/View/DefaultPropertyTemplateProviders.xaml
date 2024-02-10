@@ -154,12 +154,11 @@
   <DataTemplate x:Key="DefaultPropertyHeaderTemplate" DataType="qvm:NodeViewModel">
     <Grid x:Name="Grid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="{Binding IsVisible, Converter={sd:VisibleOrCollapsed}}">
       <Grid.ColumnDefinitions>
-        <!-- Parameters of the SumNum converters used here must be the total width of fixed columns + MinWidths of sizable columns: 8+5+64=77 -->
         <ColumnDefinition Width="8"/>
         <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type sd:PropertyView}}, Mode=TwoWay}"
-                          MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+                          MinWidth="64"/>
         <ColumnDefinition Width="5"/>
-        <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+        <ColumnDefinition Width="*" MinWidth="64"/>
       </Grid.ColumnDefinitions>
       <Border Width="8" Margin="4,4,0,4" Visibility="{Binding ReorderCollectionItem, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}" Background="Transparent">
         <Rectangle Focusable="False" Cursor="SizeAll">
@@ -428,12 +427,11 @@
                                            {Binding VisibleChildrenCount, Converter={sd:IsGreater}, ConverterParameter={sd:Int 0}},
                                            Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}">
         <Grid.ColumnDefinitions>
-          <!-- Parameters of the SumNum converters used here must be the total width of fixed columns + MinWidths of sizable columns: 8+5+64=77 -->
           <ColumnDefinition Width="8"/>
           <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type sd:PropertyView}}, Mode=TwoWay}"
-                            MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+                            MinWidth="64"/>
           <ColumnDefinition Width="5"/>
-          <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+          <ColumnDefinition Width="*" MinWidth="64"/>
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="1" MinHeight="23" Margin="2">
@@ -494,12 +492,11 @@
             Visibility="{sd:MultiBinding {Binding IsVisible}, {Binding VisibleChildrenCount, Converter={sd:IsGreater}, ConverterParameter={sd:Int 0}},
                                            Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}">
         <Grid.ColumnDefinitions>
-          <!-- Parameters of the SumNum converters used here must be the total width of fixed columns + MinWidths of sizable columns: 8+5+64=77 -->
           <ColumnDefinition Width="8"/>
           <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type sd:PropertyView}}, Mode=TwoWay}"
-                            MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+                            MinWidth="64"/>
           <ColumnDefinition Width="5"/>
-          <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+          <ColumnDefinition Width="*" MinWidth="64"/>
         </Grid.ColumnDefinitions>
         <GridSplitter Grid.Column="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
       </Grid>
@@ -534,12 +531,11 @@
                                            {Binding VisibleChildrenCount, Converter={sd:IsGreater}, ConverterParameter={sd:Int 0}},
                                            Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}">
         <Grid.ColumnDefinitions>
-          <!-- Parameters of the SumNum converters used here must be the total width of fixed columns + MinWidths of sizable columns: 8+5+64=77 -->
           <ColumnDefinition Width="8"/>
           <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type sd:PropertyView}}, Mode=TwoWay}"
-                            MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+                            MinWidth="64"/>
           <ColumnDefinition Width="5"/>
-          <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+          <ColumnDefinition Width="*" MinWidth="64"/>
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="1" MinHeight="23" Margin="2">
