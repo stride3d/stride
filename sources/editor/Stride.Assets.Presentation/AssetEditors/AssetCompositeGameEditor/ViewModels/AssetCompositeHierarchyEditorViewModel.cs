@@ -81,7 +81,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
         public ICommandBase PasteCommand { get; }
 
         [NotNull]
-        protected new AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart> Asset => (AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>)base.Asset;
+        public new AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart> Asset => (AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>)base.Asset;
 
         [NotNull]
         protected FuncClipboardMonitor<bool> PasteAsRootMonitor { get; } = new FuncClipboardMonitor<bool>();
@@ -139,7 +139,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
         {
             if (RootPart is IEditorGamePartViewModel item && id == item.Id)
                 return item;
-            
+
             return RootPart?.EnumerateChildren().BreadthFirst(x => x.EnumerateChildren()).FirstOrDefault(part => part is IEditorGamePartViewModel viewModel && viewModel.Id == id) as IEditorGamePartViewModel;
         }
 

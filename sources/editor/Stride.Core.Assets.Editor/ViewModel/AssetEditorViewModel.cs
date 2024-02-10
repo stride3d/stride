@@ -39,13 +39,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public SessionViewModel Session => Asset.Session;
 
-        /// <summary>
-        /// The asset related to this editor.
-        /// </summary>
-        protected AssetViewModel Asset { get; }
-
         /// <inheritdoc/>
-        AssetViewModel IAssetEditorViewModel.Asset => Asset;
+        public AssetViewModel Asset { get; }
 
         /// <inheritdoc/>
         public abstract Task<bool> Initialize();

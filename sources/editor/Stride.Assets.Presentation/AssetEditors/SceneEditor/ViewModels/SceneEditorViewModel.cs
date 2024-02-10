@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -49,6 +49,9 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
 
         }
 
+        [NotNull]
+        public new SceneViewModel Asset => (SceneViewModel)base.Asset;
+
         public bool DisplayCameraPreview { get => Preview.IsActive; set { SetValue(Preview.IsActive != value, () => Preview.IsActive = value); } }
 
         public Task Initialized => initialized.Task;
@@ -79,7 +82,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
         /// <inheritdoc />
         protected override AssetCompositeItemViewModel CreateRootPartViewModel()
         {
-            return new SceneRootViewModel(this, (SceneViewModel)Asset, loadMutex);
+            return new SceneRootViewModel(this, Asset, loadMutex);
         }
 
         /// <inheritdoc />

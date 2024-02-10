@@ -36,6 +36,9 @@ namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels
         }
 
         [NotNull]
+        public new PrefabViewModel Asset => (PrefabViewModel)base.Asset;
+
+        [NotNull]
         internal new PrefabEditorController Controller => (PrefabEditorController)base.Controller;
 
         [NotNull]
@@ -47,7 +50,7 @@ namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels
         /// <inheritdoc />
         protected override AssetCompositeItemViewModel CreateRootPartViewModel()
         {
-            return new PrefabRootViewModel(this, (PrefabViewModel)Asset);
+            return new PrefabRootViewModel(this, Asset);
         }
 
         /// <inheritdoc />
