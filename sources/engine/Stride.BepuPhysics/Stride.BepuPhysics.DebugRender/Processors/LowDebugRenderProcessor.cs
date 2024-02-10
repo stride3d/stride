@@ -1,4 +1,4 @@
-﻿using BepuPhysics;
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.DebugRender.Components;
 using Stride.BepuPhysics.DebugRender.Effects;
@@ -13,7 +13,6 @@ using Stride.Games;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Graphics;
 using Stride.Input;
-using Stride.Physics;
 using Stride.Rendering;
 using cMesh = BepuPhysics.Collidables.Mesh;
 using static Stride.Rendering.Shadows.LightDirectionalShadowMapRenderer;
@@ -291,37 +290,19 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         private GeometricMeshData<VertexPositionNormalTexture> GetBoxVerts(Box box)
         {
-            var boxDescription = new BoxColliderShapeDesc()
-            {
-                Size = new Vector3(box.Width, box.Height, box.Length)
-            };
-            return GeometricPrimitive.Cube.New(boxDescription.Size, toLeftHanded: true);
+            return GeometricPrimitive.Cube.New(new Vector3(box.Width, box.Height, box.Length), toLeftHanded: true);
         }
         private GeometricMeshData<VertexPositionNormalTexture> GetCapsuleVerts(Capsule capsule)
         {
-            var capsuleDescription = new CapsuleColliderShapeDesc()
-            {
-                Length = capsule.Length,
-                Radius = capsule.Radius
-            };
-            return GeometricPrimitive.Capsule.New(capsuleDescription.Length, capsuleDescription.Radius, 8, toLeftHanded: true);
+            return GeometricPrimitive.Capsule.New(capsule.Length, capsule.Radius, 8, toLeftHanded: true);
         }
         private GeometricMeshData<VertexPositionNormalTexture> GetSphereVerts(Sphere sphere)
         {
-            var sphereDescription = new SphereColliderShapeDesc()
-            {
-                Radius = sphere.Radius
-            };
-            return GeometricPrimitive.Sphere.New(sphereDescription.Radius, 16, toLeftHanded: true);
+            return GeometricPrimitive.Sphere.New(sphere.Radius, 16, toLeftHanded: true);
         }
         private GeometricMeshData<VertexPositionNormalTexture> GetCylinderVerts(Cylinder cylinder)
         {
-            var cylinderDescription = new CylinderColliderShapeDesc()
-            {
-                Height = cylinder.Length,
-                Radius = cylinder.Radius
-            };
-            return GeometricPrimitive.Cylinder.New(cylinderDescription.Height, cylinderDescription.Radius, 32, toLeftHanded: true);
+            return GeometricPrimitive.Cylinder.New(cylinder.Length, cylinder.Radius, 32, toLeftHanded: true);
         }
 
     }

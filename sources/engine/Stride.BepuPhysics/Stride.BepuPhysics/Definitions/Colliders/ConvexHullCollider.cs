@@ -1,11 +1,10 @@
-﻿using System.Runtime.InteropServices;
-using BepuPhysics;
+using System.Runtime.InteropServices;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
-using Stride.Physics;
 using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
@@ -14,7 +13,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 public sealed class ConvexHullCollider : ColliderBase
 {
     private Vector3 _scale = new(1, 1, 1);
-    public PhysicsColliderShape? Hull { get; set; }
+    private DecomposedHulls _hull = null!;
 
     public Vector3 Scale
     {
@@ -26,24 +25,43 @@ public sealed class ConvexHullCollider : ColliderBase
         }
     }
 
+    [MemberRequired(ReportAs = MemberRequiredReportType.Error)]
+    public required DecomposedHulls Hull
+    {
+        get
+        { 
+            return _hull;
+        }
+        set
+        {
+            _hull = value;
+            Container?.TryUpdateContainer();
+        }
+    }
+
     internal override void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose)
     {
-#warning maybe don't rely on cache actually, instead cache the convexhull struct itself ? See if that can be reused
-        var data = shape.BorrowHull(this);
-        var points = MemoryMarshal.Cast<VertexPosition3, System.Numerics.Vector3>(data.Vertices);
-
-        if (_scale != Vector3.One) // Bepu doesn't support scaling on the collider itself, we have to create a temporary array and scale the points before passing it on
+        foreach (var mesh in Hull.Hulls)
         {
-            var copy = points.ToArray();
-            var scaleAsNumerics = _scale.ToNumericVector();
-            for (int i = 0; i < copy.Length; i++)
+#warning find a way to cache all of this to reuse the same ConvexHull
+            foreach (var hull in mesh) // Can't merge all of them into one since individual hulls are convex but aggregate of them may not be
             {
-                copy[i] *= scaleAsNumerics;
+                var points = MemoryMarshal.Cast<Vector3, System.Numerics.Vector3>(hull.Points);
+
+                if (_scale != Vector3.One) // Bepu doesn't support scaling on the collider itself, we have to create a temporary array and scale the points before passing it on
+                {
+                    var copy = points.ToArray();
+                    var scaleAsNumerics = _scale.ToNumericVector();
+                    for (int i = 0; i < copy.Length; i++)
+                    {
+                        copy[i] *= scaleAsNumerics;
+                    }
+
+                    points = copy;
+                }
+
+                builder.Add(new ConvexHull(points, pool, out _), localPose, Mass);
             }
-
-            points = copy;
         }
-
-        builder.Add(new ConvexHull(points, pool, out _), localPose, Mass);
     }
 }

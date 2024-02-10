@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
@@ -10,7 +10,6 @@ using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Graphics.GeometricPrimitives;
-using Stride.Physics;
 using Stride.Rendering;
 using BufferPool = BepuUtilities.Memory.BufferPool;
 using Mesh = BepuPhysics.Collidables.Mesh;
@@ -23,7 +22,7 @@ internal class ShapeCacheSystem
     internal readonly BasicMeshBuffers _cylinderShapeData;
     internal readonly BasicMeshBuffers _sphereShapeData;
     internal readonly IServiceRegistry Services;
-    private readonly Dictionary<PhysicsColliderShape, BasicMeshBuffers> _hullShapeData = new();
+    private readonly Dictionary<DecomposedHulls, BasicMeshBuffers> _hullShapeData = new();
 
     private readonly BufferPool _sharedPool = new();
     private readonly Dictionary<Model, WeakReference<Cache>> _bepuMeshCache = new();
@@ -98,22 +97,17 @@ internal class ShapeCacheSystem
         return hull;
     }
 
-    private static void ExtractHull(PhysicsColliderShape Hull, out VertexPosition3[] outPoints, out int[] outIndices)
+    private static void ExtractHull(DecomposedHulls hullDesc, out VertexPosition3[] outPoints, out int[] outIndices)
     {
         int vertexCount = 0;
         int indexCount = 0;
-        foreach (var colliderShapeDesc in Hull.Descriptions)
+        for (int mesh = 0; mesh < hullDesc.Hulls.Length; mesh++)
         {
-            if (colliderShapeDesc is not ConvexHullColliderShapeDesc hullDesc) // This casting nonsense should be replaced once we have a proper asset to host convex shapes
-                continue;
-
-            for (int mesh = 0; mesh < hullDesc.ConvexHulls.Count; mesh++)
+            for (var hull = 0; hull < hullDesc.Hulls[mesh].Length; hull++)
             {
-                for (var hull = 0; hull < hullDesc.ConvexHulls[mesh].Count; hull++)
-                {
-                    vertexCount += hullDesc.ConvexHulls[mesh][hull].Count;
-                    indexCount += hullDesc.ConvexHullsIndices[mesh][hull].Count;
-                }
+                var hullClass = hullDesc.Hulls[mesh][hull];
+                vertexCount += hullClass.Points.Length;
+                indexCount += hullClass.Indices.Length;
             }
         }
 
@@ -123,26 +117,18 @@ internal class ShapeCacheSystem
         int vertexWriteHead = 0;
         int indexWriteHead = 0;
 
-        foreach (var colliderShapeDesc in Hull.Descriptions)
+        for (int mesh = 0; mesh < hullDesc.Hulls.Length; mesh++)
         {
-            if (colliderShapeDesc is not ConvexHullColliderShapeDesc hullDesc)
-                continue;
-
-            System.Numerics.Vector3 hullScaling = hullDesc.Scaling.ToNumericVector();
-            for (int mesh = 0; mesh < hullDesc.ConvexHulls.Count; mesh++)
+            for (var hull = 0; hull < hullDesc.Hulls[mesh].Length; hull++)
             {
-                for (var hull = 0; hull < hullDesc.ConvexHulls[mesh].Count; hull++)
-                {
-                    var hullVerts = hullDesc.ConvexHulls[mesh][hull];
-                    var hullIndices = hullDesc.ConvexHullsIndices[mesh][hull];
+                var hullClass = hullDesc.Hulls[mesh][hull];
 
-                    int vertMappingStart = vertexWriteHead;
-                    for (int i = 0; i < hullVerts.Count; i++)
-                        outPointsWithAutoCast[vertexWriteHead++] = hullVerts[i].ToNumericVector() * hullScaling;
+                int vertMappingStart = vertexWriteHead;
+                for (int i = 0; i < hullClass.Points.Length; i++)
+                    outPointsWithAutoCast[vertexWriteHead++] = hullClass.Points[i].ToNumericVector();
 
-                    for (int i = 0; i < hullIndices.Count; i++)
-                        outIndices[indexWriteHead++] = vertMappingStart + (int)hullIndices[i];
-                }
+                for (int i = 0; i < hullClass.Indices.Length; i++)
+                    outIndices[indexWriteHead++] = vertMappingStart + (int)hullClass.Indices[i];
             }
         }
     }
@@ -178,9 +164,8 @@ internal class ShapeCacheSystem
             if(verticesBytes is null || indicesBytes is null || verticesBytes.Length == 0 || indicesBytes.Length == 0)
             {
                 throw new InvalidOperationException(
-                    $"Failed to find mesh buffers while attempting to build a {nameof(StaticMeshColliderShape)}. " +
-                    $"Make sure that the {nameof(model)} is either an asset on disk, or has its buffer data attached to the buffer through '{nameof(AttachedReference)}'\n" +
-                    $"You can also explicitly build a {nameof(StaticMeshColliderShape)} using the second constructor instead of this one.");
+                    $"Failed to find mesh buffers while attempting to {nameof(ExtractMeshes)}. " +
+                    $"Make sure that the {nameof(model)} is either an asset on disk, or has its buffer data attached to the buffer through '{nameof(AttachedReference)}'\n");
             }
 
             yield return (meshData, verticesBytes, indicesBytes);
