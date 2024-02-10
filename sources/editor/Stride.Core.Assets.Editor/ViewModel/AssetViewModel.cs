@@ -170,6 +170,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the view model used in the editor of this asset. This property is null if the asset is not opened in an editor.
         /// </summary>
+        [Obsolete]
         public IAssetEditorViewModel Editor
         {
             get => editor;
@@ -189,11 +190,13 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets whether this asset can be opened in an editor.
         /// </summary>
+        [Obsolete]
         public bool HasEditor => IsEditable && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(Session, AssetType);
 
         /// <summary>
         /// Gets a task that completes when the editor is initialized and is reset when the editor is disposed.
         /// </summary>
+        [Obsolete]
         public Task EditorInitialized => editorInitialized.Task;
 
         /// <summary>
