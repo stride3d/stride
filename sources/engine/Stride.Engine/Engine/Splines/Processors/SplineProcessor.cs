@@ -52,7 +52,7 @@ namespace Stride.Engine.Splines.Processors
 
         protected override void OnEntityComponentRemoved(Entity entity, SplineComponent component, SplineTransformationInfo data)
         {
-            //When an spline component is removed, we still need to destroy the Spline renderer
+            //When a spline component is removed, we still need to destroy the Spline renderer
             DestroySplineRenderer(null, entity);
             component.Spline.OnSplineDirty -= data.OnSplineDirtyAction;
             entity.Transform.PostOperations.Remove(data.TransformOperation);
@@ -112,6 +112,7 @@ namespace Stride.Engine.Splines.Processors
 
                 splineComponent.Spline.RegisterSplineNodeDirtyEvents();
 
+                splineBuilder ??= new SplineBuilder();
                 splineBuilder.CalculateSpline(splineComponent.Spline);
 
                 if (!splineComponent.RenderSettings.ShowSegments && !splineComponent.RenderSettings.ShowBoundingBox)

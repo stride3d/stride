@@ -44,7 +44,12 @@ namespace Stride.Engine.Splines.Processors
         
         protected override void OnEntityComponentAdding(Entity entity, SplineTraverserComponent component, SplineTraverserTransformationInfo data)
         {
-            component.SplineComponent.Spline.OnSplineDirty += data.OnSplineDirtyAction;
+            if (component.SplineComponent != null)
+            {
+                component.SplineComponent.Spline.OnSplineDirty += data.OnSplineDirtyAction;
+                
+            }
+            
             splineTraverserComponents.Add(component);
             component.SplineTraverser.Spline = component.SplineComponent?.Spline;
             component.SplineTraverser.Entity = entity;
@@ -148,14 +153,7 @@ namespace Stride.Engine.Splines.Processors
                 var distanceBetweenBezierPoints = Vector3.Distance(component.SplineTraverser.originBezierPoint.Position, component.SplineTraverser.targetBezierPoint.Position);
                 var currentDistance = Vector3.Distance(component.SplineTraverser.originBezierPoint.Position, entityWorldPosition);
                 var ratio = currentDistance / distanceBetweenBezierPoints;
-                try
-                {
-                    component.Entity.Transform.Rotation = Quaternion.Slerp(component.SplineTraverser.startRotation, component.SplineTraverser.targetBezierPoint.Rotation, ratio);
-                }
-                catch (Exception e)
-                {
-                    throw;
-                }
+                component.Entity.Transform.Rotation = Quaternion.Slerp(component.SplineTraverser.startRotation, component.SplineTraverser.targetBezierPoint.Rotation, ratio);
             }
         }
 

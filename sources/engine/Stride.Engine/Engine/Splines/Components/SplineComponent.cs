@@ -24,7 +24,6 @@ namespace Stride.Engine.Splines.Components
         private Vector3 previousPosition;
         private SplineRenderSettings renderSettings;
         private Spline spline;
-        private SplineBuilder splineBuilder;
 
         /// <summary>
         /// Reference to the Spline
@@ -36,7 +35,6 @@ namespace Stride.Engine.Splines.Components
             get
             {
                 spline ??= new Spline();
-                splineBuilder ??= new SplineBuilder();
                 return spline;
             }
             set
