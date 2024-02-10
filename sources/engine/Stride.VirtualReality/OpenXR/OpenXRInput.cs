@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,7 +8,7 @@ using Silk.NET.OpenXR;
 
 namespace Stride.VirtualReality
 {
-    class OpenXRInput
+    sealed class OpenXRInput
     {
         // different types of input we are interested in
         public enum HAND_PATHS
@@ -80,7 +82,6 @@ namespace Stride.VirtualReality
             }
         }
 
-        private static OpenXRHmd baseHMD;
         internal static Silk.NET.OpenXR.Action[,] MappedActions = new Silk.NET.OpenXR.Action[2, HAND_PATH_COUNT];
 
         public static string[] InteractionProfiles =
@@ -100,11 +101,21 @@ namespace Stride.VirtualReality
             "/interaction_profiles/microsoft/hand_interaction",
         };
 
-        internal static unsafe bool IsPathSupported(OpenXRHmd hmd, ulong profile, ActionSuggestedBinding* suggested)
+        private readonly OpenXRHmd hmd;
+
+        public OpenXRInput(OpenXRHmd hmd)
+        {
+            this.hmd = hmd;
+            Initialize(hmd);
+        }
+
+        public OpenXRHmd Hmd => hmd;
+
+        private static unsafe bool IsPathSupported(OpenXRHmd hmd, ulong profile, ActionSuggestedBinding* suggested)
         {
             InteractionProfileSuggestedBinding suggested_bindings = new InteractionProfileSuggestedBinding()
             {
-                Type = StructureType.TypeInteractionProfileSuggestedBinding,
+                Type = StructureType.InteractionProfileSuggestedBinding,
                 InteractionProfile = profile,
                 CountSuggestedBindings = 1,
                 SuggestedBindings = suggested
@@ -113,7 +124,7 @@ namespace Stride.VirtualReality
             return hmd.Xr.SuggestInteractionProfileBinding(hmd.Instance, &suggested_bindings) == Result.Success;
         }
 
-        public static Silk.NET.OpenXR.Action GetAction(TouchControllerHand hand, TouchControllerButton button, bool YAxis = false, bool wantBoolean = false)
+        private static Silk.NET.OpenXR.Action GetAction(TouchControllerHand hand, TouchControllerButton button, bool YAxis = false, bool wantBoolean = false)
         {
             switch (button)
             {
@@ -140,20 +151,20 @@ namespace Stride.VirtualReality
             }
         }
 
-        public static bool GetActionBool(TouchControllerHand hand, TouchControllerButton button, out bool wasChangedSinceLast, bool fallback = false)
+        public bool GetActionBool(TouchControllerHand hand, TouchControllerButton button, out bool wasChangedSinceLast, bool fallback = false)
         {
             ActionStateGetInfo getbool = new ActionStateGetInfo()
             {
                 Action = GetAction(hand, button, false, true),
-                Type = StructureType.TypeActionStateGetInfo
+                Type = StructureType.ActionStateGetInfo
             };
 
             ActionStateBoolean boolresult = new ActionStateBoolean()
             {
-                Type = StructureType.TypeActionStateBoolean
+                Type = StructureType.ActionStateBoolean
             };
 
-            baseHMD.Xr.GetActionStateBoolean(baseHMD.globalSession, in getbool, ref boolresult);
+            hmd.Xr.GetActionStateBoolean(hmd.globalSession, in getbool, ref boolresult);
 
             if (boolresult.IsActive == 0)
             {
@@ -172,20 +183,20 @@ namespace Stride.VirtualReality
             return boolresult.CurrentState == 1;
         }
 
-        public static float GetActionFloat(TouchControllerHand hand, TouchControllerButton button, out bool wasChangedSinceLast, bool YAxis = false, bool fallback = false)
+        public float GetActionFloat(TouchControllerHand hand, TouchControllerButton button, out bool wasChangedSinceLast, bool YAxis = false, bool fallback = false)
         {
             ActionStateGetInfo getfloat = new ActionStateGetInfo()
             {
                 Action = GetAction(hand, button, YAxis),
-                Type = StructureType.TypeActionStateGetInfo
+                Type = StructureType.ActionStateGetInfo
             };
 
             ActionStateFloat floatresult = new ActionStateFloat()
             {
-                Type = StructureType.TypeActionStateFloat
+                Type = StructureType.ActionStateFloat
             };
 
-            baseHMD.Xr.GetActionStateFloat(baseHMD.globalSession, in getfloat, ref floatresult);
+            hmd.Xr.GetActionStateFloat(hmd.globalSession, in getfloat, ref floatresult);
 
             if (floatresult.IsActive == 0)
             {
@@ -204,10 +215,8 @@ namespace Stride.VirtualReality
             return floatresult.CurrentState;
         }
 
-        public static unsafe void Initialize(OpenXRHmd hmd)
+        private static unsafe void Initialize(OpenXRHmd hmd)
         {
-            baseHMD = hmd;
-
             // make actions
             for (int i=0; i<HAND_PATH_COUNT; i++)
             {
@@ -215,7 +224,7 @@ namespace Stride.VirtualReality
                 {
                     ActionCreateInfo action_info = new ActionCreateInfo()
                     {
-                        Type = StructureType.TypeActionCreateInfo,
+                        Type = StructureType.ActionCreateInfo,
                         ActionType = GetActionType((HAND_PATHS)i),
                     };
 
@@ -278,13 +287,13 @@ namespace Stride.VirtualReality
                     {
                         InteractionProfileSuggestedBinding suggested_bindings = new InteractionProfileSuggestedBinding()
                         {
-                            Type = StructureType.TypeInteractionProfileSuggestedBinding,
+                            Type = StructureType.InteractionProfileSuggestedBinding,
                             InteractionProfile = profile,
                             CountSuggestedBindings = (uint)final_bindings.Length,
                             SuggestedBindings = asbptr
                         };
 
-                        OpenXRHmd.CheckResult(hmd.Xr.SuggestInteractionProfileBinding(hmd.Instance, &suggested_bindings), "SuggestInteractionProfileBinding");
+                        hmd.Xr.SuggestInteractionProfileBinding(hmd.Instance, &suggested_bindings).CheckResult();
                     }
                 }
             }

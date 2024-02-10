@@ -13,11 +13,11 @@ using Stride.Core.Transactions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
 using Stride.Core.Quantum.References;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Scripts;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 {

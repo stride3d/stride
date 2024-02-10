@@ -15,9 +15,9 @@ using Stride.Core.Extensions;
 using Stride.Assets.Presentation.View;
 using Stride.Debugger.Target;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
 using Stride.Assets.Presentation.AssetEditors;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Debugging
 {
@@ -37,7 +37,7 @@ namespace Stride.GameStudio.Debugging
         {
             if (currentProject == null)
             {
-                await editor.Session.Dialogs.MessageBox(Tr._p("Message", "An executable project must be set as current project in the session explorer in order to process build."),
+                await editor.Session.Dialogs.MessageBoxAsync(Tr._p("Message", "An executable project must be set as current project in the session explorer in order to process build."),
                     MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }

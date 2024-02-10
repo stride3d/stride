@@ -52,7 +52,7 @@
     <None Include="OculusOVR\OculusOVR.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Silk.NET.OpenXR" Version="2.17.1" />
+    <PackageReference Include="Silk.NET.OpenXR" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

@@ -31,12 +31,13 @@ using Stride.Core.Translation;
 using Stride.Assets.Presentation.AssetEditors;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Remote;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.ViewModels
 {
     public class DebuggingViewModel : DispatcherViewModel, IDisposable
     {
-
+        private const int LookUpFrequency = 25;
         private readonly IDebugService debugService;
         private readonly GameStudioViewModel editor;
         private readonly Dictionary<PackageLoadedAssembly, ModifiedAssembly> modifiedAssemblies;
@@ -159,51 +160,50 @@ namespace Stride.GameStudio.ViewModels
 
         private async void PullAssemblyChanges([NotNull] ProjectWatcher projectWatcher)
         {
-            var changesBuffer = new BufferBlock<AssemblyChangedEvent>();
-            using (projectWatcher.AssemblyChangedBroadcast.LinkTo(changesBuffer))
+            await foreach (var events in projectWatcher.BatchChange)
             {
-                while (!assemblyTrackingCancellation.IsCancellationRequested)
+                foreach (var assemblyChange in events)
                 {
-                    var assemblyChange = await changesBuffer.ReceiveAsync(assemblyTrackingCancellation.Token);
-
-                    if (!trackAssemblyChanges || assemblyChange == null)
+                    if (assemblyChange == null || assemblyChange.ChangeType == AssemblyChangeType.Binary)
                         continue;
-
-                    // Ignore Binary changes
-                    if (assemblyChange.ChangeType == AssemblyChangeType.Binary)
-                        continue;
-
-                    var shouldNotify = !assemblyChangesPending;
                     modifiedAssemblies[assemblyChange.Assembly] = new ModifiedAssembly
                     {
                         LoadedAssembly = assemblyChange.Assembly,
                         ChangeType = assemblyChange.ChangeType,
                         Project = assemblyChange.Project
                     };
-
-                    Dispatcher.Invoke(() =>
-                    {
-                        UpdateCommands();
-
-                        if (shouldNotify)
-                        {
-                            var message = Tr._p("Message", "Some game code files have been modified. Do you want to reload the assemblies?");
-                            ServiceProvider.Get<IEditorDialogService>().AddDelayedNotification(EditorSettings.AskBeforeReloadingAssemblies, message,
-                                Tr._p("Button", "Reload"), Tr._p("Button", "Don't reload"),
-                                yesAction: async () =>
-                                {
-                                    var undoRedoService = ServiceProvider.Get<IUndoRedoService>();
-                                    // Wait for current transactions, undo/redo or save to complete before continuing.
-                                    await Task.WhenAll(undoRedoService.TransactionCompletion, undoRedoService.UndoRedoCompletion, Session.SaveCompletion);
-                                    // Reload assembly, if possible
-                                    if (ReloadAssembliesCommand.IsEnabled)
-                                        ReloadAssembliesCommand.Execute();
-                                },
-                                yesNoSettingsKey: EditorSettings.AutoReloadAssemblies);
-                        }
-                    });
                 }
+
+                var shouldNotify = !assemblyChangesPending;
+                if (modifiedAssemblies.Count > 0 && shouldNotify)
+                    RunNotifier(true);
             }
+        }
+
+        private void RunNotifier(bool shouldNotify)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                UpdateCommands();
+
+                if (shouldNotify)
+                {
+                    var message = Tr._p("Message", "Some game code files have been modified. Do you want to reload the assemblies?");
+                    ServiceProvider.Get<IEditorDialogService>().AddDelayedNotification(EditorSettings.AskBeforeReloadingAssemblies, message,
+                        Tr._p("Button", "Reload"), Tr._p("Button", "Don't reload"),
+                        yesAction: async () =>
+                        {
+                            var undoRedoService = ServiceProvider.Get<IUndoRedoService>();
+                            // Wait for current transactions, undo/redo or save to complete before continuing.
+                            await Task.WhenAll(undoRedoService.TransactionCompletion, undoRedoService.UndoRedoCompletion, Session.SaveCompletion);
+                            // Reload assembly, if possible
+                            if (ReloadAssembliesCommand.IsEnabled)
+                                ReloadAssembliesCommand.Execute();
+                        },
+                        yesNoSettingsKey: EditorSettings.AutoReloadAssemblies);
+                }
+            });
+
         }
 
         private void UpdateCommands()
@@ -317,7 +317,7 @@ namespace Stride.GameStudio.ViewModels
             if (Session.CurrentProject.Platform != PlatformType.Windows)
             {
                 await ServiceProvider.Get<IDialogService>()
-                    .MessageBox(
+                    .MessageBoxAsync(
                         string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform),
                         MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
@@ -578,7 +578,7 @@ namespace Stride.GameStudio.ViewModels
             catch (Exception e)
             {
                 logger.Error("An exception occurred during compilation.", e);
-                await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
             return !currentBuild.IsCanceled && !logger.HasErrors;
@@ -588,7 +588,7 @@ namespace Stride.GameStudio.ViewModels
         {
             if (Session.CurrentProject == null)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "To process the build, set an executable project as the current project in the session explorer."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "To process the build, set an executable project as the current project in the session explorer."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
 
@@ -596,7 +596,7 @@ namespace Stride.GameStudio.ViewModels
 
             if (!saved)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "To build, save the project first."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "To build, save the project first."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
 
@@ -651,7 +651,7 @@ namespace Stride.GameStudio.ViewModels
             }
             catch (Exception e)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
             }
             finally
             {

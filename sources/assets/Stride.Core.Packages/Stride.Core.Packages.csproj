@@ -2,16 +2,16 @@
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Protocol" Version="6.4.2" />
-    <PackageReference Include="NuGet.PackageManagement" Version="6.4.2" />
-    <PackageReference Include="NuGet.Resolver" Version="6.4.2" />
-    <PackageReference Include="NuGet.Commands" Version="6.4.2" />
-    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+    <PackageReference Include="NuGet.Protocol" />
+    <PackageReference Include="NuGet.PackageManagement" />
+    <PackageReference Include="NuGet.Resolver" />
+    <PackageReference Include="NuGet.Commands" />
+    <PackageReference Include="System.IO.Compression" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

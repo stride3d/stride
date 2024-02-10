@@ -12,9 +12,9 @@ using Stride.Core.Assets.IO;
 using Stride.Core.Assets.Templates;
 using Stride.Core;
 using Stride.Core.IO;
-using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Extensions;
 
 namespace Stride.Assets.Presentation.Templates
 {
@@ -154,17 +154,25 @@ namespace Stride.Assets.Presentation.Templates
 
         protected async Task<IEnumerable<UFile>> BrowseForFiles(FileExtensionCollection extensions, bool allowAllFiles, bool allowMultiSelection, string initialDirectory)
         {
-            var fileDialog = SessionViewModel.Instance.ServiceProvider.Get<IEditorDialogService>().CreateFileOpenModalDialog();
-            fileDialog.Filters.Insert(0, new FileDialogFilter(extensions.Description, extensions.ConcatenatedExtensions));
+            List<FilePickerFilter> filters =
+            [
+                new(extensions.Description) { Patterns = extensions.SingleExtensions.ToList() }
+            ];
             if (allowAllFiles)
             {
-                fileDialog.Filters.Add(new FileDialogFilter("All files", "*.*"));
+                filters.Add(new("All files") { Patterns = ["*.*"] });
             }
-            fileDialog.AllowMultiSelection = allowMultiSelection;
-            fileDialog.InitialDirectory = initialDirectory;
 
-            var result = await fileDialog.ShowModal();
-            return result == DialogResult.Ok && fileDialog.FilePaths.Count > 0 ? fileDialog.FilePaths.Select(x => new UFile(x)) : null;
+            if (allowMultiSelection)
+            {
+                var files = await SessionViewModel.Instance.ServiceProvider.Get<IDialogService>().OpenMultipleFilesPickerAsync(initialDirectory, filters);
+                return files.Count > 0 ? files : null;
+            }
+            else
+            {
+                var file = await SessionViewModel.Instance.ServiceProvider.Get<IDialogService>().OpenFilePickerAsync(initialDirectory, filters);
+                return file?.Yield();
+            }
         }
     }
 }

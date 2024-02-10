@@ -6,7 +6,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.LauncherApp.Resources;
 using Stride.LauncherApp.Services;
 
@@ -193,7 +193,7 @@ namespace Stride.LauncherApp.ViewModels
                         if (displayErrorMessage)
                         {
                             var message = $"{UninstallErrorMessage}{e.FormatSummary(true)}";
-                            await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                             await UpdateVersionsFromStore();
                             IsProcessing = false;
                             return;
@@ -252,7 +252,7 @@ namespace Stride.LauncherApp.ViewModels
 ```
 {e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
 ```";
-                        await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                        await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
                     throw;
@@ -271,7 +271,7 @@ namespace Stride.LauncherApp.ViewModels
             if (askConfirmation)
             {
                 var message = string.Format(Strings.ConfirmUninstall, FullName);
-                var confirmResult = await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.YesNo);
+                var confirmResult = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.YesNo);
                 proceed = confirmResult == MessageBoxResult.Yes;
             }
             if (proceed)
@@ -299,7 +299,7 @@ namespace Stride.LauncherApp.ViewModels
                 if (displayErrorMessage)
                 {
                     var message = $"{UninstallErrorMessage}{e.FormatSummary(true)}";
-                    await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
                 throw;

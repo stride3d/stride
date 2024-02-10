@@ -38,7 +38,7 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" PrivateAssets="All" />
   </ItemGroup>
   <!-- Disable analyzers unless StrideEnableCodeAnalysis is set (note: PackageReference can't depend on external Condition) -->
   <Target Name="DisableAnalyzersForStrideBuild"
@@ -47,6 +47,9 @@
     <ItemGroup>
       <!-- We want to include Stride analyzers by default -->
       <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Stride'))" />
+      <!-- We want to include source generators by default -->
+      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Generator'))" />
+      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('SourceGeneration'))" />
       <AnalyzersToRemove Include="@(Analyzer)" Exclude="@(AnalyzersNotToRemove)" />
       <Analyzer Remove="@(AnalyzersToRemove)"/>
     </ItemGroup>
@@ -180,11 +183,15 @@
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
 
   <!-- Generate localization satellite assemblies -->
+  <PropertyGroup>
+    <!-- Unless explicitly requested, only build them for packages to save dev time -->
+    <StrideBuildLocalization Condition="'$(StrideBuildLocalization)' == '' And '$(StridePackageBuild)' == 'true'">true</StrideBuildLocalization>
+  </PropertyGroup>
   <Target Name="StrideGenerateLocalizationSatelliteDlls"
           BeforeTargets="SatelliteDllsProjectOutputGroup"
           AfterTargets="Build"
           Returns="@(SatelliteDllsProjectOutputGroupOutput)"
-          Condition="'$(StrideLocalized)' == 'true'">
+          Condition="'$(StrideLocalized)' == 'true' And '$(StrideBuildLocalization)' == 'true'">
 
     <ItemGroup>
       <!-- Current list of languages to try to generate -->

@@ -4,15 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -22,7 +21,6 @@ using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Project = Microsoft.CodeAnalysis.Project;
-using System.Diagnostics;
 
 namespace Stride.Assets.Presentation.AssetEditors
 {
@@ -51,7 +49,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         public Project Project { get; set; }
     }
-    
+
     public class ProjectWatcher : IDisposable
     {
         private readonly TrackingCollection<TrackedAssembly> trackedAssemblies;
@@ -65,7 +63,7 @@ namespace Stride.Assets.Presentation.AssetEditors
         private Project gameExecutable;
 
         private CancellationTokenSource batchChangesCancellationTokenSource = new CancellationTokenSource();
-        private Task batchChangesTask;
+        public IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChange;
 
         private MSBuildWorkspace msbuildWorkspace;
 
@@ -86,25 +84,51 @@ namespace Stride.Assets.Presentation.AssetEditors
             fileChangedLink1 = fileChanged.LinkTo(fileChangedTransform);
             fileChangedLink2 = fileChangedTransform.LinkTo(AssemblyChangedBroadcast);
 
-            batchChangesTask = BatchChanges();
+            BatchChange = BatchChanges();
         }
 
-        private async Task BatchChanges()
+        private async IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChanges()
         {
             var buffer = new BufferBlock<AssemblyChangedEvent>();
             using (AssemblyChangedBroadcast.LinkTo(buffer))
             {
-                while (true)
+                while (!batchChangesCancellationTokenSource.IsCancellationRequested)
                 {
                     var hasChanged = false;
                     var assemblyChanges = new List<AssemblyChangedEvent>();
                     do
                     {
                         var assemblyChange = await buffer.ReceiveAsync(batchChangesCancellationTokenSource.Token);
-                        if (assemblyChange != null)
-                            assemblyChanges.Add(assemblyChange);
 
-                        if (assemblyChange != null && !hasChanged)
+                        if (assemblyChange == null)
+                            continue;
+
+                        assemblyChanges.Add(assemblyChange);
+                        var project = assemblyChange.Project;
+                        var referencedProjects = msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id);
+                        foreach (var referenceProject in referencedProjects)
+                        {
+                            var foundProject = msbuildWorkspace.CurrentSolution.GetProject(referenceProject);
+                            if(foundProject is null)
+                                continue;
+                            var assemblyName = foundProject.AssemblyName;
+                            var target = trackedAssemblies.FirstOrDefault(x => x.Project.AssemblyName == assemblyName);
+                            if (target != null)
+                            {
+                                string file = assemblyChange.ChangedFile;
+                                if (assemblyChange.ChangeType == AssemblyChangeType.Binary)
+                                {
+                                    file = target.LoadedAssembly.Path;
+                                }
+                                else if (assemblyChange.ChangeType == AssemblyChangeType.Project)
+                                {
+                                    file = target.Project.FilePath;
+                                }
+                                assemblyChanges.Add(new AssemblyChangedEvent(target.LoadedAssembly, assemblyChange.ChangeType, file, target.Project));
+                            }
+                        }
+
+                        if (!hasChanged)
                         {
                             // After the first change, wait for more changes
                             await Task.Delay(TimeSpan.FromMilliseconds(500), batchChangesCancellationTokenSource.Token);
@@ -116,13 +140,11 @@ namespace Stride.Assets.Presentation.AssetEditors
                     // Merge files that were modified multiple time
                     assemblyChanges = assemblyChanges.GroupBy(x => x.ChangedFile).Select(x => x.Last()).ToList();
 
-                    AssembliesChangedBroadcast.Post(assemblyChanges);
+                    yield return assemblyChanges;
                 }
             }
         }
-
         public BroadcastBlock<AssemblyChangedEvent> AssemblyChangedBroadcast { get; } = new BroadcastBlock<AssemblyChangedEvent>(null);
-        public BroadcastBlock<List<AssemblyChangedEvent>> AssembliesChangedBroadcast { get; } = new BroadcastBlock<List<AssemblyChangedEvent>>(null);
 
         public Project CurrentGameLibrary
         {
@@ -145,7 +167,6 @@ namespace Stride.Assets.Presentation.AssetEditors
         public void Dispose()
         {
             batchChangesCancellationTokenSource.Cancel();
-            batchChangesTask.Wait();
 
             directoryWatcher.Dispose();
             fileChangedLink1.Dispose();
@@ -197,12 +218,12 @@ namespace Stride.Assets.Presentation.AssetEditors
             }
         }
 
-        private  async Task<AssemblyChangedEvent> FileChangeTransformation(FileEvent e)
+        private async Task<AssemblyChangedEvent> FileChangeTransformation(FileEvent e)
         {
             string changedFile;
             var renameEvent = e as FileRenameEvent;
             changedFile = renameEvent?.OldFullPath ?? e.FullPath;
-            
+
             foreach (var trackedAssembly in trackedAssemblies)
             {
                 // Report change of the assembly binary
@@ -214,9 +235,9 @@ namespace Stride.Assets.Presentation.AssetEditors
                 // Also check for .cs file changes (DefaultItems auto import *.cs, with some excludes such as obj subfolder)
                 // TODO: Check actual unevaluated .csproj to get the auto includes/excludes?
                 if (needProjectReload == false
-                    && ((e.ChangeType == FileEventChangeType.Deleted ||e.ChangeType == FileEventChangeType.Renamed ||  e.ChangeType == FileEventChangeType.Created)
+                    && ((e.ChangeType == FileEventChangeType.Deleted || e.ChangeType == FileEventChangeType.Renamed || e.ChangeType == FileEventChangeType.Created)
                     && Path.GetExtension(changedFile)?.ToLowerInvariant() == ".cs"
-                    && changedFile.StartsWith(Path.GetDirectoryName(trackedAssembly.Project.FilePath),StringComparison.OrdinalIgnoreCase)))
+                    && changedFile.StartsWith(Path.GetDirectoryName(trackedAssembly.Project.FilePath), StringComparison.OrdinalIgnoreCase)))
                 {
                     needProjectReload = true;
                 }
@@ -312,7 +333,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 directoryWatcher.Track(loadedAssembly.ProjectReference.Location);
 
                 var trackedAssembly = new TrackedAssembly { Package = package, LoadedAssembly = loadedAssembly };
-                
+
                 // Track project source code
                 if (await UpdateProject(trackedAssembly))
                     trackedAssemblies.Add(trackedAssembly);
@@ -358,17 +379,16 @@ namespace Stride.Assets.Presentation.AssetEditors
                 var host = await RoslynHost;
                 msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
             }
+            await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToWindowsPath());
 
-            msbuildWorkspace.CloseSolution();
-            
             // Try up to 10 times (1 second)
             const int retryCount = 10;
             for (var i = retryCount - 1; i >= 0; --i)
             {
                 try
                 {
-                    var project = await msbuildWorkspace.OpenProjectAsync(projectPath.ToWindowsPath());
 
+                    var project = msbuildWorkspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath == projectPath.ToWindowsPath());
                     if (msbuildWorkspace.Diagnostics.Count > 0)
                     {
                         // There was an issue compiling the project
