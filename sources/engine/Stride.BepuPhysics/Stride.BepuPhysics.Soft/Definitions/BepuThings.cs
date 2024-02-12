@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
@@ -574,7 +574,7 @@ namespace Stride.BepuPhysics.Soft.Definitions
                 {
                     ColliderCollisionMask = CollisionMask.Everything,
                     FrictionCoefficient = 1,
-                    IgnoreGlobalGravity = false,
+                    Gravity = true,
                     IsTrigger = false,
                     MaximumRecoveryVelocity = 1,
                     SpringSettings = new(30, 1),

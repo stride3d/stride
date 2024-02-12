@@ -1,4 +1,4 @@
-﻿using BepuPhysics;
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Components;
@@ -85,7 +85,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         CheckGrounded(); // Checking for grounded after simulation ran to compute contacts as soon as possible after they are received
         // If there is no input from the player and we are grounded, ignore gravity to prevent sliding down the slope we might be on
         // Do not ignore if there is any input to ensure we stick to the surface as much as possible while moving down the slope
-        IgnoreGlobalGravity = IsGrounded && Velocity.Length() <= 0f;
+        Gravity = !IsGrounded || Velocity.Length() > 0f;
     }
     private void CheckGrounded()
     {

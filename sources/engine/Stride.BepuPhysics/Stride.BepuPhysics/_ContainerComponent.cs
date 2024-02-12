@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Definitions;
@@ -15,7 +15,7 @@ using NRigidPose = BepuPhysics.RigidPose;
 namespace Stride.BepuPhysics;
 
 [DataContract(Inherited = true)]
-[DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)] //ExecutionMode.Editor | ExecutionMode.Runtime //Lol, don't do that
+[DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public abstract class ContainerComponent : EntityComponent
 {
     private int _simulationIndex = 0;
@@ -243,7 +243,7 @@ public abstract class ContainerComponent : EntityComponent
         mat.FilterByDistance = FilterByDistance;
 
 #warning this is still kind of a mess, what should we do here ?
-        mat.IgnoreGlobalGravity = this is BodyComponent body && body.IgnoreGlobalGravity;
+        mat.Gravity = this is BodyComponent body && body.Gravity;
     }
 
     protected abstract ref MaterialProperties MaterialProperties { get; }

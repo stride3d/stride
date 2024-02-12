@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using BepuPhysics.Constraints;
 using Stride.BepuPhysics.Definitions.Contacts;
 
@@ -17,27 +17,26 @@ public struct MaterialProperties
     public CollisionMask ColliderCollisionMask;
     public FilterByDistance FilterByDistance;
 
-    //__Pose__Settings__ (Warning, if UserPerBodiesAttribute == false, doesn't work)
-    public bool IgnoreGlobalGravity;
-    public Vector3 PersonalGravity;
-#warning PersonalGravity not implemented;
+    //__Pose__Settings__ conditionally enabled by UsePerBodyAttributes state
+    public bool Gravity;
 
 
-    public static bool AllowContactGeneration(MaterialProperties a, MaterialProperties b)
+    public static bool AllowContactGeneration(in MaterialProperties a, in MaterialProperties b)
     {
-        bool result = a.ColliderCollisionMask.Collide(b.ColliderCollisionMask);
-
-        if (result && a.FilterByDistance.Id == b.FilterByDistance.Id && a.FilterByDistance.Id != 0)
+        if (a.ColliderCollisionMask.Collide(b.ColliderCollisionMask) == false)
+            return false;
+        
+        if (a.FilterByDistance.Id == b.FilterByDistance.Id && a.FilterByDistance.Id != 0)
         {
             var differenceX = a.FilterByDistance.XAxis - b.FilterByDistance.XAxis;
             var differenceY = a.FilterByDistance.YAxis - b.FilterByDistance.YAxis;
             var differenceZ = a.FilterByDistance.ZAxis - b.FilterByDistance.ZAxis;
 
             if ((!(differenceX < -DEFAULT_DISTANCE || differenceX > DEFAULT_DISTANCE)) && (!(differenceY < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)) && (!(differenceZ < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)))
-                result = false;
+                return false;
         }
 
-        return result;
+        return true;
     }
 
 }

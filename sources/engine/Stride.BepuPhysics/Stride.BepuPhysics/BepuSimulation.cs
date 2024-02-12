@@ -101,10 +101,10 @@ public class BepuSimulation
     public int MaxStepPerFrame { get; set; } = 3;
 
     /// <summary>
-    /// Allows for per-body features like <see cref="BodyComponent.IgnoreGlobalGravity"/> at a cost to the simulation's performance
+    /// Allows for per-body features like <see cref="BodyComponent.Gravity"/> at a cost to the simulation's performance
     /// </summary>
     /// <remarks>
-    /// <see cref="BodyComponent.IgnoreGlobalGravity"/> will be ignored if this is false.
+    /// <see cref="BodyComponent.Gravity"/> will be ignored if this is false.
     /// </remarks>
     [Display(6, "Per Body Attributes", CATEGORY_FORCES)]
     public bool UsePerBodyAttributes

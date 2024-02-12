@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Numerics;
 using BepuPhysics;
 using BepuUtilities;
@@ -101,7 +101,7 @@ internal struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
         //Transforming to "array of structures" (AOS) format for the callback and then back to AOSOA would involve a lot of overhead, so instead the callback works on the AOSOA representation directly.
         if (UsePerBodyAttributes)
         {
-            Span<float> ignoreGravitySpan = stackalloc float[Vector<float>.Count];
+            Span<float> gravitySpan = stackalloc float[Vector<float>.Count];
             for (int bundleSlotIndex = 0; bundleSlotIndex < Vector<int>.Count; ++bundleSlotIndex)
             {
                 var bodyIndex = bodyIndices[bundleSlotIndex];
@@ -110,16 +110,16 @@ internal struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
                 if (bodyIndex >= 0 && bodyIndex < _bodies.ActiveSet.Count)
                 {
                     var bodyHandle = _bodies.ActiveSet.IndexToHandle[bodyIndex];
-                    ignoreGravitySpan[bundleSlotIndex] = CollidableMaterials[bodyHandle].IgnoreGlobalGravity ? 0f : 1f;
+                    gravitySpan[bundleSlotIndex] = CollidableMaterials[bodyHandle].Gravity ? 1f : 0f;
                 }
                 else if (bodyIndex >= 0)
                 {
                     Debug.Assert(false); //no longer occuring :)
-                    ignoreGravitySpan[bundleSlotIndex] = 1f;
+                    gravitySpan[bundleSlotIndex] = 0f;
                 }
             }
 
-            var GravityVec = new Vector<float>(ignoreGravitySpan);
+            var GravityVec = new Vector<float>(gravitySpan);
 
 
             velocity.Linear = (velocity.Linear + (_gravityWideDt * GravityVec)) * _linearDampingDt;

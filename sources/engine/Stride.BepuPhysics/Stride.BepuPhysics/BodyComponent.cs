@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Definitions;
@@ -13,7 +13,7 @@ namespace Stride.BepuPhysics;
 public class BodyComponent : ContainerComponent
 {
     private bool _kinematic = false;
-    private bool _ignoreGlobalGravity = false;
+    private bool _gravity = true;
     private ContinuousDetection _continuous = ContinuousDetection.Discrete;
     private float _sleepThreshold = 0.01f;
     private byte _minimumTimestepCountUnderThreshold = 32;
@@ -48,17 +48,17 @@ public class BodyComponent : ContainerComponent
         }
     }
 
-    /// <summary> Whether to ignore the simulation's <see cref="Configurations.BepuSimulation.PoseGravity"/> </summary>
+    /// <summary> Whether gravity should affect the simulation's <see cref="Configurations.BepuSimulation.PoseGravity"/> </summary>
     /// <remarks> Gravity is always active if <see cref="Configurations.BepuSimulation.UsePerBodyAttributes"/> is false </remarks>
-    public bool IgnoreGlobalGravity
+    public bool Gravity
     {
-        get => _ignoreGlobalGravity;
+        get => _gravity;
         set
         {
-            if (_ignoreGlobalGravity == value)
+            if (_gravity == value)
                 return;
 
-            _ignoreGlobalGravity = value;
+            _gravity = value;
             TryUpdateMaterialProperties();
         }
     }
