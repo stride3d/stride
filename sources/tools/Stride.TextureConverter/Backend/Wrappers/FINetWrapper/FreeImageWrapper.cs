@@ -1063,16 +1063,16 @@ namespace FreeImageAPI
                 return FREE_IMAGE_FORMAT.FIF_UNKNOWN;
 
 	        var extention = filename.Substring(filename.LastIndexOf('.'));
-	        switch (extention)
-	        {
-                case ".tga":
-                    return FREE_IMAGE_FORMAT.FIF_TARGA;
-                default:
-                    // Note: other format met so far seems to be properly handled by "GetFileType".
-                    //  -> no need to add the extension/format association here.
-                    return FREE_IMAGE_FORMAT.FIF_UNKNOWN;
-	        }
-	    }
+            return extention switch
+            {
+                ".tga" => FREE_IMAGE_FORMAT.FIF_TARGA,
+                ".png" => FREE_IMAGE_FORMAT.FIF_PNG,
+                ".bmp" => FREE_IMAGE_FORMAT.FIF_BMP,
+                ".jpg" or ".jpeg" => FREE_IMAGE_FORMAT.FIF_JPEG,
+                _ => FREE_IMAGE_FORMAT.FIF_UNKNOWN,// Note: other format met so far seems to be properly handled by "GetFileType".
+                                                   //  -> no need to add the extension/format association here.
+            };
+        }
 
 	    /// <summary>
 		/// Loads a .NET <see cref="System.Drawing.Bitmap"/> from a file.
