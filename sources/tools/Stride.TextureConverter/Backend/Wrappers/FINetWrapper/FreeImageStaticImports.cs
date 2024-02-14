@@ -177,29 +177,14 @@ namespace FreeImageAPI
 		#endregion
 
 		#region General functions
-
-		/// <summary>
-		/// Initialises the library.
-		/// </summary>
-		/// <param name="load_local_plugins_only">
-		/// When the <paramref name="load_local_plugins_only"/> is true, FreeImage won't make use of external plugins.
-		/// </param>
-		[DllImport(FreeImageLibrary, EntryPoint = "FreeImage_Initialise")]
-		private static extern void Initialise(bool load_local_plugins_only);
-
-		/// <summary>
-		/// Deinitialises the library.
-		/// </summary>
-		[DllImport(FreeImageLibrary, EntryPoint = "FreeImage_DeInitialise")]
-		private static extern void DeInitialise();
-
+		
 		/// <summary>
 		/// Returns a string containing the current version of the library.
 		/// </summary>
 		/// <returns>The current version of the library.</returns>
 		public static unsafe string GetVersion() { return PtrToStr(GetVersion_()); }
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Ansi, EntryPoint = "FreeImage_GetVersion")]
-		private static unsafe extern byte* GetVersion_();
+		public static unsafe extern byte* GetVersion_();
 
 		/// <summary>
 		/// Returns a string containing a standard copyright message.
@@ -302,7 +287,7 @@ namespace FreeImageAPI
 		/// <param name="filename">Name of the file to decode.</param>
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
 		/// <returns>Handle to a FreeImage bitmap.</returns>
-		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_LoadU")]
+		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_Load")]
 		public static extern FIBITMAP Load(FREE_IMAGE_FORMAT fif, string filename, FREE_IMAGE_LOAD_FLAGS flags);
 
 		/// <summary>
@@ -596,7 +581,7 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="filename">The filename or -extension.</param>
 		/// <returns>The <see cref="FREE_IMAGE_FORMAT"/> of the plugin.</returns>
-		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFIFFromFilenameU")]
+		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_GetFIFFromFilename")]
 		public static extern FREE_IMAGE_FORMAT GetFIFFromFilename(string filename);
 
 		/// <summary>
@@ -607,7 +592,7 @@ namespace FreeImageAPI
 		/// <param name="filename">The filename or -extension.</param>
 		/// <returns>The <see cref="FREE_IMAGE_FORMAT"/> of the plugin.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFIFFromFilenameU")]
-		private static extern FREE_IMAGE_FORMAT GetFIFFromFilenameU(string filename);
+		public static extern FREE_IMAGE_FORMAT GetFIFFromFilenameU(string filename);
 
 		/// <summary>
 		/// Checks if a plugin can load bitmaps.
@@ -785,7 +770,7 @@ namespace FreeImageAPI
 		/// <param name="filename">Name of the file to analyze.</param>
 		/// <param name="size">Reserved parameter - use 0.</param>
 		/// <returns>Type of the bitmap.</returns>
-		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFileTypeU")]
+		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_GetFileType")]
 		public static extern FREE_IMAGE_FORMAT GetFileType(string filename, int size);
 
 
@@ -797,7 +782,7 @@ namespace FreeImageAPI
 		/// <param name="size">Reserved parameter - use 0.</param>
 		/// <returns>Type of the bitmap.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFileTypeU")]
-		private static extern FREE_IMAGE_FORMAT GetFileTypeU(string filename, int size);
+		public static extern FREE_IMAGE_FORMAT GetFileTypeU(string filename, int size);
 
 		/// <summary>
 		/// Uses the <see cref="FreeImageIO"/> structure as described in the topic bitmap management functions
@@ -1835,7 +1820,7 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// This function rotates a 1-, 8-bit greyscale or a 24-, 32-bit color image by means of 3 shears.
-		/// 1-bit images rotation is limited to integer multiple of 90°.
+		/// 1-bit images rotation is limited to integer multiple of 90ï¿½.
 		/// <c>null</c> is returned for other values.
 		/// </summary>
 		/// <param name="dib">Handle to a FreeImage bitmap.</param>
