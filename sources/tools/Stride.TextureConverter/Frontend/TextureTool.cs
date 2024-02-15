@@ -53,8 +53,7 @@ namespace Stride.TextureConverter
         {
             textureLibraries = new List<ITexLibrary>
             {
-                new DxtTexLib(),
-                new ImageSharpTexLib(), // used to compress/decompress texture to DXT1-5 and load/save *.dds compressed texture files.
+                new DxtTexLib(), // used to compress/decompress texture to DXT1-5 and load/save *.dds compressed texture files.
                 new FITexLib(), // used to open/save common bitmap image formats.
                 new StrideTexLibrary(), // used to save/load stride texture format.
                 new PvrttTexLib(), // used to compress/decompress texture to PVRTC1-2 and ETC1-2 and load/save *.pvr compressed texture file.
