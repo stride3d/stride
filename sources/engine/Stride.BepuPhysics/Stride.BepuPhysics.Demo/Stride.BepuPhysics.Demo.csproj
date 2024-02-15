@@ -3,20 +3,22 @@
     <TargetFrameworks>net8.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Engine" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.Video" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.Physics" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.Navigation" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.Particles" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.UI" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" VersionOverride="4.2.0.1" IncludeAssets="build;buildTransitive" />
-    <PackageReference Include="Stride.BepuPhysics.DebugRender" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.BepuPhysics.Navigation" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.BepuPhysics.Soft" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.BepuPhysics._2D" VersionOverride="4.2.0.1" />
-    <PackageReference Include="Stride.BepuPhysics" VersionOverride="4.2.0.1" />
+    <PackageReference Include="Stride.Engine" Version="4.2.0.1" />
+    <PackageReference Include="Stride.Video" Version="4.2.0.1" />
+    <PackageReference Include="Stride.Physics" Version="4.2.0.1" />
+    <PackageReference Include="Stride.Navigation" Version="4.2.0.1" />
+    <PackageReference Include="Stride.Particles" Version="4.2.0.1" />
+    <PackageReference Include="Stride.UI" Version="4.2.0.1" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.1" IncludeAssets="build;buildTransitive" />
+    <PackageReference Include="Stride.BepuPhysics.DebugRender" Version="4.2.0.1" />
+    <PackageReference Include="Stride.BepuPhysics.Navigation" Version="4.2.0.1" />
+    <PackageReference Include="Stride.BepuPhysics.Soft" Version="4.2.0.1" />
+    <PackageReference Include="Stride.BepuPhysics._2D" Version="4.2.0.1" />
+    <PackageReference Include="Stride.BepuPhysics" Version="4.2.0.1" />
   </ItemGroup>
   <!-- We want this project to be open-able in the editor while still ensuring the nuggets are up to date -->
   <Target Name="EnsureReferenceNuggetsAreBuilt" BeforeTargets="Restore">

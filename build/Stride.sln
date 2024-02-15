@@ -332,23 +332,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.NuGetResolver", "..\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGetResolver", "NuGetResolver", "{158087CF-AF74-44E9-AA20-A6AEB1E398A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stride.Bepu", "Stride.Bepu", "{DE048114-9AE4-467E-A879-188DC0D88A59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj", "{3E424688-EC44-4DFB-9FC0-4BB1F0683651}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj", "{3E424688-EC44-4DFB-9FC0-4BB1F0683651}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics._2D", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics._2D\Stride.BepuPhysics._2D.csproj", "{A8B00252-A78E-43F2-8677-57A63CCF1ABA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics._2D", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics._2D\Stride.BepuPhysics._2D.csproj", "{A8B00252-A78E-43F2-8677-57A63CCF1ABA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics.DebugRender", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.DebugRender\Stride.BepuPhysics.DebugRender.csproj", "{7715D094-DF59-4D91-BC9A-9A5118039ECB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.DebugRender", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.DebugRender\Stride.BepuPhysics.DebugRender.csproj", "{7715D094-DF59-4D91-BC9A-9A5118039ECB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics.Demo", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Demo\Stride.BepuPhysics.Demo.csproj", "{E56FFD91-590E-442A-910B-CC88C92AE553}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Demo", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Demo\Stride.BepuPhysics.Demo.csproj", "{E56FFD91-590E-442A-910B-CC88C92AE553}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics.Demo.Windows", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Demo.Windows\Stride.BepuPhysics.Demo.Windows.csproj", "{B7F08BEE-39ED-4F1A-AA06-3BADE320288B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Demo.Windows", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Demo.Windows\Stride.BepuPhysics.Demo.Windows.csproj", "{B7F08BEE-39ED-4F1A-AA06-3BADE320288B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics.Navigation", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Navigation\Stride.BepuPhysics.Navigation.csproj", "{0BC0E590-524E-4311-A3E9-371BE6AFF536}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Navigation", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Navigation\Stride.BepuPhysics.Navigation.csproj", "{0BC0E590-524E-4311-A3E9-371BE6AFF536}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics.Soft", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Soft\Stride.BepuPhysics.Soft.csproj", "{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Soft", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Soft\Stride.BepuPhysics.Soft.csproj", "{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
