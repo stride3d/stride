@@ -11,7 +11,7 @@ if(!$vcpkg_dir)
 }
 
 cmake -B "build" -S . -DCMAKE_TOOLCHAIN_FILE="$vcpkg_dir/scripts/buildsystems/vcpkg.cmake";
-cmake -B;
 cd build;
 make;
+Move-Item -Path ./DxtWrapper.so -Destination ../../../../../deps/TextureWrappers/Release/linux-x64 -Force
 cd ..;
