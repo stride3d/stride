@@ -29,6 +29,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="AssimpNet" />
     <PackageReference Include="ServiceWire" />
     <PackageReference Include="SharpDX" />
     <PackageReference Include="Stride.Metrics" />

@@ -28,6 +28,13 @@ namespace Stride.Rendering
     [DataContract]
     public class Model : IEnumerable
     {
+        public Model()
+        { 
+
+        }
+
+
+
         private Model parent;
 
         /// <summary>

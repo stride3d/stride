@@ -79,6 +79,14 @@ namespace Stride.Rendering
                 var modelComponent = entity.Key;
                 var renderModel = entity.Value;
 
+                if(modelComponent?.MeshInfos?.Count==5)
+                {
+
+                }
+                if (modelComponent?.MeshInfos?.Count > 1)
+                {
+
+                }
 
                 CheckMeshes(modelComponent, renderModel);
                 UpdateRenderModel(modelComponent, renderModel);

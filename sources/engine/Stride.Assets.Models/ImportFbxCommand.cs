@@ -20,7 +20,8 @@ namespace Stride.Assets.Models
 
         public static bool IsSupportingExtensions(string ext)
         {
-            return !String.IsNullOrEmpty(ext) && ext.ToLowerInvariant().Equals(".fbx");
+            return false;
+         //   return !String.IsNullOrEmpty(ext) && ext.ToLowerInvariant().Equals(".fbx");
         }
 
         protected override Model LoadModel(ICommandContext commandContext, ContentManager contentManager)

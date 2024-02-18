@@ -792,9 +792,6 @@ public:
 		mesh->BlendShapeProcessingNecessary = true;
 	}
 
-
-
-
 	// return a boolean indicating whether the built material is transparent or not
 	MaterialAsset^ ProcessMeshMaterialAsset(FbxSurfaceMaterial* lMaterial, std::map<std::string, size_t>& uvElementMapping)
 	{
@@ -2205,6 +2202,6 @@ public:
 
 		return nullptr;
 	}
-};
+};  
 
 } } }

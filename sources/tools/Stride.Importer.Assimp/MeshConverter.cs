@@ -1393,4 +1393,9 @@ namespace Stride.Importer.Assimp
         public List<MaterialInstantiation> Instances = new();
         public string MaterialsName;
     }
+
+
+    
 }
+
+

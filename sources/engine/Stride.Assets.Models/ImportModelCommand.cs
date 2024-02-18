@@ -30,7 +30,7 @@ namespace Stride.Assets.Models
         {
             if (ImportFbxCommand.IsSupportingExtensions(extension))
                 return new ImportFbxCommand();
-            if (ImportAssimpCommand.IsSupportingExtensions(extension))
+           if (ImportAssimpCommand.IsSupportingExtensions(extension))
                 return new ImportAssimpCommand();
 
             return null;

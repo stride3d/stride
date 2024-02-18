@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using Stride.Core.Assets;
@@ -15,7 +16,7 @@ namespace Stride.Assets.Models
     public class AssimpAssetImporter : ModelAssetImporter
     {
         // Supported file extensions for this importer
-        internal const string FileExtensions = ".dae;.3ds;.gltf;.glb;.obj;.blend;.x;.md2;.md3;.dxf;.ply;.stl;.stp";
+        internal const string FileExtensions = ".dae;.3ds;.gltf;.glb;.obj;.blend;.x;.md2;.md3;.dxf;.ply;.stl;.stp;.fbx;";
 
         private static readonly Guid Uid = new Guid("30243FC0-CEC7-4433-977E-95DCA29D846E");
 
@@ -83,3 +84,4 @@ namespace Stride.Assets.Models
         }
     }
 }
+

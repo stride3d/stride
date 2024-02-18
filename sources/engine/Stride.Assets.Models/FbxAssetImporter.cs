@@ -18,7 +18,8 @@ namespace Stride.Assets.Models
         }
 
         // Supported file extensions for this importer
-        private const string FileExtensions = ".fbx";
+        //private const string FileExtensions = ".fbx";
+        private const string FileExtensions = "";
 
         private static readonly Guid Uid = new Guid("a15ae42d-42c5-4a3b-9f7e-f8cd91eda595");
 
