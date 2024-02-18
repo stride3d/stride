@@ -3,29 +3,9 @@
 #include "dxt_wrapper.h"
 
 // Utilities functions
-void dxtComputePitch( DXGI_FORMAT fmt, int width, int height, int& rowPitch, int& slicePitch, DirectX::CP_FLAGS flags = DirectX::CP_FLAGS_NONE )
-{
-	size_t rowPitchT, slicePitchT;
-	DirectX::ComputePitch(fmt, width, height, rowPitchT, slicePitchT, flags);
-	rowPitch = rowPitchT;
-	slicePitch = slicePitchT;
-}
-
-bool dxtIsCompressed(DXGI_FORMAT fmt) { return DirectX::IsCompressed(fmt); }
-
-HRESULT dxtConvert( const DirectX::Image& srcImage, DXGI_FORMAT format, DirectX::TEX_FILTER_FLAGS filter, float threshold, DirectX::ScratchImage& cImage )
-{
-	return DirectX::Convert(srcImage, format, filter, threshold, cImage);
-}
-
 HRESULT dxtConvertArray( const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, DXGI_FORMAT format, DirectX::TEX_FILTER_FLAGS filter, float threshold, DirectX::ScratchImage& cImage )
 {
 	return DirectX::Convert(srcImages, nimages, metadata, format, filter, threshold, cImage);
-}
-
-HRESULT dxtCompress( const DirectX::Image& srcImage, DXGI_FORMAT format, DirectX::TEX_COMPRESS_FLAGS compress, float alphaRef, DirectX::ScratchImage& cImage )
-{
-	return DirectX::Compress(srcImage, format, compress, alphaRef, cImage);
 }
 
 HRESULT dxtCompressArray( const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, DXGI_FORMAT format, DirectX::TEX_COMPRESS_FLAGS compress, float alphaRef, DirectX::ScratchImage& cImages )
@@ -33,29 +13,14 @@ HRESULT dxtCompressArray( const DirectX::Image* srcImages, int nimages, const Di
 	return DirectX::Compress(srcImages, nimages, metadata, format, compress, alphaRef, cImages);
 }
 
-HRESULT dxtDecompress( const DirectX::Image& cImage, DXGI_FORMAT format, DirectX::ScratchImage& image )
-{
-	return DirectX::Decompress(cImage, format, image);
-}
-
 HRESULT dxtDecompressArray( const DirectX::Image* cImages, int nimages, const DirectX::TexMetadata& metadata, DXGI_FORMAT format, DirectX::ScratchImage& images )
 {
 	return DirectX::Decompress(cImages,  nimages, metadata, format, images);
 }
 
-HRESULT dxtGenerateMipMaps( const DirectX::Image& baseImage, DirectX::TEX_FILTER_FLAGS filter, int levels, DirectX::ScratchImage& mipChain, bool allow1D = false)
-{
-	return DirectX::GenerateMipMaps(baseImage, filter, levels, mipChain, allow1D);
-}
-
 HRESULT dxtGenerateMipMapsArray( const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, DirectX::TEX_FILTER_FLAGS filter, int levels, DirectX::ScratchImage& mipChain )
 {
 	return DirectX::GenerateMipMaps(srcImages, nimages, metadata, filter, levels, mipChain);
-}
-
-HRESULT dxtGenerateMipMaps3D( const DirectX::Image* baseImages, int depth, DirectX::TEX_FILTER_FLAGS filter, int levels, DirectX::ScratchImage& mipChain )
-{
-	return DirectX::GenerateMipMaps3D(baseImages, depth, filter, levels, mipChain);
 }
 
 HRESULT dxtGenerateMipMaps3DArray( const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, DirectX::TEX_FILTER_FLAGS filter, int levels, DirectX::ScratchImage& mipChain )
@@ -82,17 +47,12 @@ HRESULT dxtPremultiplyAlpha( const DirectX::Image* srcImages, int nimages, const
 // I/O functions
 HRESULT dxtLoadDDSFile(LPCWSTR szFile, DirectX::DDS_FLAGS flags, DirectX::TexMetadata* metadata, DirectX::ScratchImage& image)
 {
-	return DirectX::LoadFromDDSFile(szFile, flags, metadata, image);
+    return DirectX::LoadFromDDSFile(szFile, flags, metadata, image);
 }
 
 HRESULT dxtLoadTGAFile(LPCWSTR szFile, DirectX::TexMetadata* metadata, DirectX::ScratchImage& image)
 {
 	return DirectX::LoadFromTGAFile(szFile, metadata, image);
-}
-
-HRESULT dxtSaveToDDSFile( const DirectX::Image& image, DirectX::DDS_FLAGS flags, LPCWSTR szFile )
-{
-	return DirectX::SaveToDDSFile(image, flags, szFile);
 }
 
 HRESULT dxtSaveToDDSFileArray( const DirectX::Image* images, int nimages, const DirectX::TexMetadata& metadata, DirectX::DDS_FLAGS flags, LPCWSTR szFile )

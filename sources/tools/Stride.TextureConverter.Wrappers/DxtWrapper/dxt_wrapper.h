@@ -6,17 +6,10 @@
 extern "C" {
 
 	// Utilities functions
-	void dxtComputePitch( DXGI_FORMAT fmt, int width, int height, int& rowPitch, int& slicePitch, int flags );
-	bool dxtIsCompressed(DXGI_FORMAT fmt);
-	HRESULT dxtConvert( const DirectX::Image& srcImage, DXGI_FORMAT format, int filter, float threshold, DirectX::ScratchImage& cImage );
 	HRESULT dxtConvertArray( const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, DXGI_FORMAT format, int filter, float threshold, DirectX::ScratchImage& cImage );
-	HRESULT dxtCompress( const DirectX::Image& srcImage,  DXGI_FORMAT format,  int compress,  float alphaRef, DirectX::ScratchImage& cImage );
-    HRESULT dxtCompressArray( const DirectX::Image* srcImages,  int nimages,  const DirectX::TexMetadata& metadata, DXGI_FORMAT format,  int compress,  float alphaRef,  DirectX::ScratchImage& cImages );
-    HRESULT dxtDecompress(  const DirectX::Image& cImage,  DXGI_FORMAT format,  DirectX::ScratchImage& image );
+	HRESULT dxtCompressArray( const DirectX::Image* srcImages,  int nimages,  const DirectX::TexMetadata& metadata, DXGI_FORMAT format,  int compress,  float alphaRef,  DirectX::ScratchImage& cImages );
     HRESULT dxtDecompressArray( const DirectX::Image* cImages, int nimages, const DirectX::TexMetadata& metadata, DXGI_FORMAT format, DirectX::ScratchImage& images );
-	HRESULT dxtGenerateMipMaps( const DirectX::Image& baseImage, int filter, int levels, DirectX::ScratchImage& mipChain, bool allow1D);
-    HRESULT dxtGenerateMipMapsArray( const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, int filter, int levels, DirectX::ScratchImage& mipChain );
-    HRESULT dxtGenerateMipMaps3D( const DirectX::Image* baseImages, int depth, int filter, int levels, DirectX::ScratchImage& mipChain );
+	HRESULT dxtGenerateMipMapsArray( const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, int filter, int levels, DirectX::ScratchImage& mipChain );
     HRESULT dxtGenerateMipMaps3DArray( const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, int filter, int levels, DirectX::ScratchImage& mipChain );
 	HRESULT dxtResize(const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, int width, int height, int filter, DirectX::ScratchImage& result );
 	HRESULT dxtComputeNormalMap( const DirectX::Image* srcImages, int nimages, const DirectX::TexMetadata& metadata, int flags, float amplitude, DXGI_FORMAT format, DirectX::ScratchImage& normalMaps );
@@ -25,8 +18,7 @@ extern "C" {
 	// I/O functions
 	HRESULT dxtLoadTGAFile(LPCWSTR szFile, DirectX::TexMetadata* metadata, DirectX::ScratchImage& image);
 	HRESULT dxtLoadDDSFile(LPCWSTR szFile, int ddsflags, DirectX::TexMetadata* metadata, DirectX::ScratchImage& image);
-	HRESULT dxtSaveToDDSFile( const DirectX::Image& image, int flags, LPCWSTR szFile );
-    HRESULT dxtSaveToDDSFileArray( const DirectX::Image* images, int nimages, const DirectX::TexMetadata& metadata, int flags, LPCWSTR szFile );
+	HRESULT dxtSaveToDDSFileArray( const DirectX::Image* images, int nimages, const DirectX::TexMetadata& metadata, int flags, LPCWSTR szFile );
 
 	// Scratch Image
 	DirectX::ScratchImage * dxtCreateScratchImage();

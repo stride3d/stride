@@ -475,81 +475,47 @@ namespace Stride.TextureConverter.DxtWrapper
     /// </summary>
     internal class Utilities
     {
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static void dxtComputePitch(DXGI_FORMAT fmt, int width, int height, out int rowPitch, out int slicePitch, CP_FLAGS flags);
+        [DllImport("DxtWrapper", EntryPoint = "_Z14dxtLoadDDSFilePKwN7DirectX9DDS_FLAGSEPNS1_11TexMetadataERNS1_12ScratchImageE", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        private extern static uint dxtLoadDDSFile([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTC32StringMarshaller))] string filePath, DDS_FLAGS flags, out TexMetadata metadata, IntPtr image);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtLoadDDSFile(String filePath, DDS_FLAGS flags, out TexMetadata metadata, IntPtr image);
+        private extern static uint dxtLoadTGAFile([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTC32StringMarshaller))] string filePath, out TexMetadata metadata, IntPtr image);
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtLoadTGAFile(String filePath, out TexMetadata metadata, IntPtr image);
-
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static bool dxtIsCompressed(DXGI_FORMAT fmt);
-
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtConvert(ref DxtImage srcImage, DXGI_FORMAT format, TEX_FILTER_FLAGS filter, float threshold, IntPtr cImage);
-
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        [DllImport("DxtWrapper", EntryPoint="_Z15dxtConvertArrayPKN7DirectX5ImageEiRKNS_11TexMetadataE11DXGI_FORMATNS_16TEX_FILTER_FLAGSEfRNS_12ScratchImageE", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtConvertArray(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, DXGI_FORMAT format, TEX_FILTER_FLAGS filter, float threshold, IntPtr cImages);
-
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtCompress(ref DxtImage srcImage, DXGI_FORMAT format, TEX_COMPRESS_FLAGS compress, float alphaRef, IntPtr cImage);
 
         [DllImport("DxtWrapper", EntryPoint = "_Z16dxtCompressArrayPKN7DirectX5ImageEiRKNS_11TexMetadataE11DXGI_FORMATNS_18TEX_COMPRESS_FLAGSEfRNS_12ScratchImageE", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtCompressArray(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, DXGI_FORMAT format, TEX_COMPRESS_FLAGS compress, float alphaRef, IntPtr cImages);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtDecompress(ref DxtImage cImage, DXGI_FORMAT format, IntPtr image);
-
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtDecompressArray(DxtImage[] cImages, int nimages, ref TexMetadata metadata, DXGI_FORMAT format, IntPtr images);
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtSaveToDDSFile(ref DxtImage dxtImage, DDS_FLAGS flags, string szFile);
+        [DllImport("DxtWrapper", EntryPoint = "_Z21dxtSaveToDDSFileArrayPKN7DirectX5ImageEiRKNS_11TexMetadataENS_9DDS_FLAGSEPKw", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        private extern static uint dxtSaveToDDSFileArray(DxtImage[] dxtImages, int nimages, ref TexMetadata metadata, DDS_FLAGS flags,[MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTC32StringMarshaller))] string szFile);
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtSaveToDDSFileArray(DxtImage[] dxtImages, int nimages, ref TexMetadata metadata, DDS_FLAGS flags, string szFile);
-
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtGenerateMipMaps(ref DxtImage baseImage, TEX_FILTER_FLAGS filter, int levels, IntPtr mipChain, bool allow1D);
-
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        [DllImport("DxtWrapper", EntryPoint = "_Z23dxtGenerateMipMapsArrayPKN7DirectX5ImageEiRKNS_11TexMetadataENS_16TEX_FILTER_FLAGSEiRNS_12ScratchImageE", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtGenerateMipMapsArray(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, TEX_FILTER_FLAGS filter, int levels, IntPtr mipChain);
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtGenerateMipMaps3D(ref DxtImage baseImage, int depth, TEX_FILTER_FLAGS filter, int levels, IntPtr mipChain);
-
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        [DllImport("DxtWrapper", EntryPoint = "_Z25dxtGenerateMipMaps3DArrayPKN7DirectX5ImageEiRKNS_11TexMetadataENS_16TEX_FILTER_FLAGSEiRNS_12ScratchImageE", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtGenerateMipMaps3DArray(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, TEX_FILTER_FLAGS filter, int levels, IntPtr mipChain );
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        [DllImport("DxtWrapper", EntryPoint = "_Z9dxtResizePKN7DirectX5ImageEiRKNS_11TexMetadataEiiNS_16TEX_FILTER_FLAGSERNS_12ScratchImageE", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtResize(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, int width, int height, TEX_FILTER_FLAGS filter, IntPtr result);
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        [DllImport("DxtWrapper", EntryPoint = "_Z19dxtComputeNormalMapPKN7DirectX5ImageEiRKNS_11TexMetadataENS_11CNMAP_FLAGSEf11DXGI_FORMATRNS_12ScratchImageE", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtComputeNormalMap(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, CNMAP_FLAGS flags, float amplitude, DXGI_FORMAT format, IntPtr normalMaps );
 
         [DllImport("DxtWrapper", EntryPoint = "_Z19dxtPremultiplyAlphaPKN7DirectX5ImageEiRKNS_11TexMetadataENS_17TEX_PMALPHA_FLAGSERNS_12ScratchImageE", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtPremultiplyAlpha(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, TEX_PREMULTIPLY_ALPHA_FLAGS flags, IntPtr result);
 
-        public static void ComputePitch(DXGI_FORMAT fmt, int width, int height, out int rowPitch, out int slicePitch, CP_FLAGS flags)
-        {
-            dxtComputePitch(fmt, width, height, out rowPitch, out slicePitch, flags);
-        }
-
-        public static HRESULT LoadDDSFile(String filePath, DDS_FLAGS flags, out TexMetadata metadata, ScratchImage image)
+        public static HRESULT LoadDDSFile(string filePath, DDS_FLAGS flags, out TexMetadata metadata, ScratchImage image)
         {
             return HandleHRESULT(dxtLoadDDSFile(filePath, flags, out metadata, image.ptr));
         }
 
-        public static HRESULT LoadTGAFile(String filePath, out TexMetadata metadata, ScratchImage image)
+        public static HRESULT LoadTGAFile(string filePath, out TexMetadata metadata, ScratchImage image)
         {
             return HandleHRESULT(dxtLoadTGAFile(filePath, out metadata, image.ptr));
-        }
-
-        public static HRESULT SaveToDDSFile(ref DxtImage dxtImage, DDS_FLAGS flags, string szFile)
-        {
-            return HandleHRESULT(dxtSaveToDDSFile(ref dxtImage, flags, szFile));
         }
 
         public static HRESULT SaveToDDSFile(DxtImage[] dxtImages, int nimages, ref TexMetadata metadata, DDS_FLAGS flags, string szFile)
@@ -557,24 +523,9 @@ namespace Stride.TextureConverter.DxtWrapper
             return HandleHRESULT(dxtSaveToDDSFileArray(dxtImages, nimages, ref metadata, flags, szFile));
         }
 
-        public static bool IsCompressed(DXGI_FORMAT fmt)
-        {
-            return dxtIsCompressed(fmt);
-        }
-
-        public static HRESULT Convert(ref DxtImage srcImage, DXGI_FORMAT format, TEX_FILTER_FLAGS filter, float threshold, ScratchImage cImage)
-        {
-            return HandleHRESULT(dxtConvert(ref srcImage, format, filter, threshold, cImage.ptr));
-        }
-
         public static HRESULT Convert(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, DXGI_FORMAT format, TEX_FILTER_FLAGS filter, float threshold, ScratchImage cImages)
         {
             return HandleHRESULT(dxtConvertArray(srcImages, nimages, ref metadata, format, filter, threshold, cImages.ptr));
-        }
-
-        public static HRESULT Compress(ref DxtImage srcImage, DXGI_FORMAT format, TEX_COMPRESS_FLAGS compress, float alphaRef, ScratchImage cImage)
-        {
-            return HandleHRESULT(dxtCompress(ref srcImage, format, compress, alphaRef, cImage.ptr));
         }
 
         public static HRESULT Compress(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, DXGI_FORMAT format, TEX_COMPRESS_FLAGS compress, float alphaRef, ScratchImage cImages)
@@ -582,29 +533,14 @@ namespace Stride.TextureConverter.DxtWrapper
             return HandleHRESULT(dxtCompressArray(srcImages, nimages, ref metadata, format, compress, alphaRef, cImages.ptr));
         }
 
-        public static HRESULT Decompress(ref DxtImage cImage, DXGI_FORMAT format, ScratchImage image)
-        {
-            return HandleHRESULT(dxtDecompress(ref cImage, format, image.ptr));
-        }
-
         public static HRESULT Decompress(DxtImage[] cImages, int nimages, ref TexMetadata metadata, DXGI_FORMAT format, ScratchImage images)
         {
             return HandleHRESULT(dxtDecompressArray(cImages, nimages, ref metadata, format, images.ptr));
         }
 
-        public static HRESULT GenerateMipMaps(ref DxtImage baseImage, TEX_FILTER_FLAGS filter, int levels, ScratchImage mipChain, bool allow1D = false)
-        {
-            return HandleHRESULT(dxtGenerateMipMaps(ref baseImage, filter, levels, mipChain.ptr, allow1D));
-        }
-
         public static HRESULT GenerateMipMaps(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, TEX_FILTER_FLAGS filter, int levels, ScratchImage mipChain)
         {
             return HandleHRESULT(dxtGenerateMipMapsArray(srcImages, nimages, ref metadata, filter, levels, mipChain.ptr));
-        }
-
-        public static HRESULT GenerateMipMaps3D(ref DxtImage baseImage, int depth, TEX_FILTER_FLAGS filter, int levels, ScratchImage mipChain)
-        {
-            return HandleHRESULT(dxtGenerateMipMaps3D(ref baseImage, depth, filter, levels, mipChain.ptr));
         }
 
         public static HRESULT GenerateMipMaps3D(DxtImage[] srcImages, int nimages, ref TexMetadata metadata, TEX_FILTER_FLAGS filter, int levels, ScratchImage mipChain)
