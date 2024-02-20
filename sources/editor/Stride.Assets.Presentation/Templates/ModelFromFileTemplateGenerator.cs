@@ -58,8 +58,6 @@ namespace Stride.Assets.Presentation.Templates
                 return true;
 
             var showDeduplicateMaterialsCheckBox = files.Any(x => ImportThreeDCommand.IsSupportingExtensions(x.GetFileExtension()));
-         /*   var showFbxDedupeNotSupportedWarning = showDeduplicateMaterialsCheckBox && files.Any(x => ImportFbxCommand.IsSupportingExtensions(x.GetFileExtension()));
-          */
             // Load settings from the last time this template was used for this project
             var profile = parameters.Package.UserSettings.Profile;
             var window = new ModelAssetTemplateWindow
