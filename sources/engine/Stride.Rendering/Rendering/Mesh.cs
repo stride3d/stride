@@ -133,9 +133,9 @@ namespace Stride.Rendering
                 if (MATBSHAPE != null)
                 {
                     int index=Shapes.IndexOf(c => c.Key == shape);
-                    for (int i = 0; i < Draw.VertexMapping.Length; i++)
+                    for (int i = 0; i < Draw.VertexCount; i++)
                     {
-                        var shiftedIndex = index * Draw.VertexMapping.Length + i;
+                        var shiftedIndex = index * Draw.VertexCount + i;
                         MATBSHAPE[shiftedIndex][3] = weight;
                     }
                 }
@@ -157,14 +157,16 @@ namespace Stride.Rendering
                 var blendShapesWeights = GetBlendWeights(out float cummulativeWeight); ;
                 BasisKeyWeight = 1 - cummulativeWeight;
 
-                int MATCOUNT = (Draw.VertexMapping.Length * blendShapesWeights.Length / 4 )+( (Draw.VertexMapping.Length * blendShapesWeights.Length) % 4);
+                int VertexCountTimesBlendShapes = (Draw.VertexCount * blendShapesWeights.Length);
+                int quo = VertexCountTimesBlendShapes % 4;
+                int MATCOUNT = (VertexCountTimesBlendShapes / 4)+((VertexCountTimesBlendShapes%4)>0?1:0);
 
                 MATBSHAPE = new Matrix[MATCOUNT];
                 for (int iBendShape = 0; iBendShape < blendShapesWeights.Length; iBendShape++)
                 {
-                    for (int iVert = 0; iVert < Draw.VertexMapping.Length; iVert++)
+                    for (int iVert = 0; iVert < Draw.VertexCount; iVert++)
                     {
-                        var vectorValue = blendShapeVertices.ElementAt(iBendShape * Draw.VertexMapping.Length + iVert);
+                        var vectorValue = blendShapeVertices.ElementAt(iBendShape * Draw.VertexCount + iVert);
 
                         var remainder = iVert % 4;
                         var quotient=iVert / 4;
@@ -223,24 +225,25 @@ namespace Stride.Rendering
             foreach (var shape in Shapes)
             {
                 var posBlend = shape.Key.Position;
-                List<int> originalVerticesIDS = Draw.VCPOLYIN.Select(c => c.Item2).ToList();
+                List<int> originalVerticesIDS = Draw.VCPOLYIN.Select(c => c.Item1).ToList();
                 Dictionary<int, Vector3> mappings = new Dictionary<int, Vector3>();
                 foreach (var tup_id_vec in Draw.VCPOLYIN)
                 {
                     if (!mappings.ContainsKey(tup_id_vec.Item2))
                     {
-                        mappings.TryAdd(tup_id_vec.Item2, tup_id_vec.Item3);
+                        mappings.TryAdd(tup_id_vec.Item2, Draw.VCLIST[tup_id_vec.Item2]);
                     }
                 }
-                var positions = Draw.VCPOLYIN.Select(c => c.Item3).ToArray();
-                List<int> updatedVertexMapping = Draw.VertexMapping.ToList();
+               // var positions = Draw.VCPOLYIN.Select(c => c.Item3).ToArray();
+               // List<int> updatedVertexMapping = Draw.VertexMapping.ToList();
 
 
-                Vector3[] NewVectices = new Vector3[updatedVertexMapping.Count];
-                for (var i = 0; i < updatedVertexMapping.Count; i++)
+                Vector3[] NewVectices = new Vector3[Draw.VCLIST.Count];
+                for (var i = 0; i < NewVectices.Length; i++)
                 {
-                    var v = posBlend[originalVerticesIDS[updatedVertexMapping[i]]];
-                    float x = -1 * v.X; float y = v.Y; float z = -1 * v.Z;
+                   // var v = posBlend[originalVerticesIDS[updatedVertexMapping[i]]];
+                    var v = posBlend[i];
+                    float x = 1 * v.X; float y = v.Y; float z = 1 * v.Z;
                     Vector3 vec3 = new Vector3(x, y, z);
                     NewVectices[i] = vec3;
                 }

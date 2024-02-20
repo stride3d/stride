@@ -17,9 +17,9 @@ using Stride.Rendering.Data;
 namespace Stride.Assets.Models
 {
     [Description("Import Assimp")]
-    public class ImportAssimpCommand : ImportModelCommand
+    public class ImportThreeDCommand : ImportModelCommand
     {
-        private static string[] supportedExtensions = AssimpAssetImporter.FileExtensions.Split(';');
+        private static string[] supportedExtensions = ThreeDAssetImporter.FileExtensions.Split(';');
 
         /// <inheritdoc/>
         public override string Title { get { string title = "Import Assimp "; try { title += Path.GetFileName(SourcePath) ?? "[File]"; } catch { title += "[INVALID PATH]"; } return title; } }
@@ -35,9 +35,9 @@ namespace Stride.Assets.Models
         }
 
 
-        private Stride.Importer.Assimp.MeshConverter CreateMeshConverter(ICommandContext commandContext)
+        private Stride.Importer.ThreeD.MeshConverter CreateMeshConverter(ICommandContext commandContext)
         {
-            return new Stride.Importer.Assimp.MeshConverter(commandContext.Logger)
+            return new Stride.Importer.ThreeD.MeshConverter(commandContext.Logger)
             {
                 AllowUnsignedBlendIndices = this.AllowUnsignedBlendIndices,
             };

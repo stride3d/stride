@@ -77,8 +77,8 @@ namespace Stride.Extensions
             var indexMapping = GenerateIndexMapping(oldVertexBuffer, null);
             var vertices = indexMapping.Vertices;
 
-            meshData.IndexMapping = indexMapping.Indices;
-            meshData.VertexMapping = indexMapping.Vertices;
+         //   meshData.IndexMapping = indexMapping.Indices;
+          //  meshData.VertexMapping = indexMapping.Vertices;
 
             // Generate vertex buffer
             var vertexBufferData = new byte[declaration.VertexStride * indexMapping.Vertices.Length];

@@ -13,7 +13,7 @@ using Stride.Importer.Common;
 
 namespace Stride.Assets.Models
 {
-    public class AssimpAssetImporter : ModelAssetImporter
+    public class ThreeDAssetImporter : ModelAssetImporter
     {
         // Supported file extensions for this importer
         internal const string FileExtensions = ".dae;.3ds;.gltf;.glb;.obj;.blend;.x;.md2;.md3;.dxf;.ply;.stl;.stp;.fbx;";
@@ -29,7 +29,7 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         public override EntityInfo GetEntityInfo(UFile localPath, Logger logger, AssetImporterParameters importParameters)
         {
-            var meshConverter = new Importer.Assimp.MeshConverter(logger);
+            var meshConverter = new Importer.ThreeD.MeshConverter(logger);
 
             if (!importParameters.InputParameters.TryGet(DeduplicateMaterialsKey, out var deduplicateMaterials))
                 deduplicateMaterials = true;    // Dedupe is the default value
@@ -41,7 +41,7 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         public override void GetAnimationDuration(UFile localPath, Logger logger, AssetImporterParameters importParameters, out TimeSpan startTime, out TimeSpan endTime)
         {
-            var meshConverter = new Importer.Assimp.MeshConverter(logger);
+            var meshConverter = new Importer.ThreeD.MeshConverter(logger);
             var sceneData = meshConverter.ConvertAnimation(localPath.FullPath, "", 0);
 
             startTime = CompressedTimeSpan.MaxValue; // This will go down, so we start from positive infinity

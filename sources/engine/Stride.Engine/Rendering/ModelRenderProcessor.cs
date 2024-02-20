@@ -135,7 +135,7 @@ namespace Stride.Rendering
                             renderMesh.MATBSHAPE = mesh.MATBSHAPE;
                             renderMesh.BasisKeyWeight = mesh.BasisKeyWeight;
                             renderMesh.BlendShapesCount=mesh.Shapes.Count;
-                            renderMesh.VerticesCount = mesh.Draw.VertexMapping.Length; 
+                            renderMesh.VerticesCount = mesh.Draw.VertexCount; 
                         }
                     }
                 }
