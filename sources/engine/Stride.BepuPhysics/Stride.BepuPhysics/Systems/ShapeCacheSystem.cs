@@ -179,10 +179,10 @@ internal class ShapeCacheSystem
                 return output;
 
             // Try to load it from disk, a file provider is required, editor does not provide one
-            if (services.GetService<IDatabaseFileProviderService>() is {} provider && provider.FileProvider is not null && bufRef?.Url != null)
+            if (bufRef?.Url != null && services.GetService<IDatabaseFileProviderService>() is {} provider && provider.FileProvider is not null)
             {
-                // We have to create a new one otherwise the serialized data isn't dumped
-                var cleanManager = new ContentManager(services);
+                // We have to create a new one without providing services to ensure that it dumps the graphics buffer data to the attached reference below
+                var cleanManager = new ContentManager(provider);
                 var bufferCopy = cleanManager.Load<Graphics.Buffer>(bufRef.Url);
                 try
                 {

@@ -15,6 +15,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
     <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
   </ItemGroup>

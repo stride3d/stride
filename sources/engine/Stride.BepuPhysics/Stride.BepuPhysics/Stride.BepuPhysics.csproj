@@ -16,8 +16,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\..\Stride.Physics\Stride.Physics.csproj" /><!--For precomputed hulls-->
+    <ProjectReference Include="..\..\Stride.Physics\Stride.Physics.csproj" />
   </ItemGroup>
 
   <ItemGroup>
