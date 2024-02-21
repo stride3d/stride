@@ -28,8 +28,6 @@ namespace Stride.Assets.Models
 
         public static ImportModelCommand Create(string extension)
         {
-           // if (ImportFbxCommand.IsSupportingExtensions(extension))
-            //    return new ImportFbxCommand();
            if (ImportThreeDCommand.IsSupportingExtensions(extension))
                 return new ImportThreeDCommand();
 

@@ -37,8 +37,6 @@
 
   <Target Name="_StrideIncludeNativeLibs">
     <ItemGroup>
-     <!-- <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\libfbxsdk.dll" PackagePath="runtimes\win-x64\native\libfbxsdk.dll" />
-     -->
     </ItemGroup>
   </Target>
 </Project>
