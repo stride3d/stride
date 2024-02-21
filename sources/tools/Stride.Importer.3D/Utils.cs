@@ -5,6 +5,7 @@ using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Core.Mathematics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Importer.ThreeD
 {
@@ -24,7 +25,7 @@ namespace Stride.Importer.ThreeD
         }
 
         public static Core.Mathematics.Vector3 ToStrideVector3(this System.Numerics.Vector3 v)
-            => new Core.Mathematics.Vector3(v.X, v.Y, v.Z);
+            => Unsafe.As<System.Numerics.Vector3, Core.Mathematics.Vector3>(ref v);
 
         public static Color ToStrideColor(this System.Numerics.Vector4 v)
             => new Color(v.X, v.Y, v.Z, v.W);
