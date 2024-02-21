@@ -30,17 +30,13 @@ namespace Stride.Graphics
             bufferDescription = description;
             ViewFlags = viewFlags;
 
-            bool isCompressed;
-            OpenGLConvertExtensions.ConvertPixelFormat(GraphicsDevice, ref viewFormat, out TextureInternalFormat, out TextureFormat, out TextureType, out bufferTextureElementSize, out isCompressed);
+            OpenGLConvertExtensions.ConvertPixelFormat(GraphicsDevice, ref viewFormat, out TextureInternalFormat, out TextureFormat, out TextureType, out bufferTextureElementSize, out var isCompressed);
 
             ViewFormat = viewFormat;
 
             Recreate(dataPointer);
 
-            if (GraphicsDevice != null)
-            {
-                GraphicsDevice.RegisterBufferMemoryUsage(SizeInBytes);
-            }
+            GraphicsDevice?.RegisterBufferMemoryUsage(SizeInBytes);
 
             return this;
         }

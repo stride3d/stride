@@ -417,7 +417,7 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    GL.TexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) ArraySize, border: 0, TextureFormat, TextureType, IntPtr.Zero);
+                    GL.TexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) Description.Depth, border: 0, TextureFormat, TextureType, IntPtr.Zero);
                 }
             }
 

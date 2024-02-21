@@ -96,40 +96,36 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
             {
                 for (int faceIndex = 0; faceIndex < faceCount; faceIndex++)
                 {
-                    using (var outputView = output.ToTextureView(ViewType.Single, faceIndex, mipLevel))
+                    using var outputView = output.ToTextureView(ViewType.Single, faceIndex, mipLevel);
+                    var inputLevel = MathUtil.Log2(input.Width / output.Width);
+                    if (mipLevel == 0 && DoNotFilterHighestLevel)
                     {
-                        var inputLevel = MathUtil.Log2(input.Width / output.Width);
-                        if (mipLevel == 0 && DoNotFilterHighestLevel)
+                        if (input.Width >= output.Width && inputLevel < input.MipLevels && input.Format == output.Format)
                         {
-                            if (input.Width >= output.Width && inputLevel < input.MipLevels && input.Format == output.Format)
-                            {
-                                // Optimization: make a simple copy of the texture when possible
-                                var inputSubresource = inputLevel + faceIndex * input.MipLevels;
-                                var outputSubresource = 0 + faceIndex * output.MipLevels;
-                                context.CommandList.CopyRegion(input, inputSubresource, null, output, outputSubresource);
-                            }
-                            else // otherwise rescale the closest mipmap
-                            {
-                                var inputMipmapLevel = Math.Min(inputLevel, input.MipLevels - 1);
-                                using (var inputView = input.ToTextureView(ViewType.Single, faceIndex, inputMipmapLevel))
-                                {
-                                    scaler.SetInput(inputView);
-                                    scaler.SetOutput(outputView);
-                                    scaler.Draw(context);
-                                }
-                            }
+                            // Optimization: make a simple copy of the texture when possible
+                            var inputSubresource = inputLevel + faceIndex * input.MipLevels;
+                            var outputSubresource = 0 + faceIndex * output.MipLevels;
+                            context.CommandList.CopyRegion(input, inputSubresource, null, output, outputSubresource);
                         }
-                        else
+                        else // otherwise rescale the closest mipmap
                         {
-                            shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.Face, faceIndex);
-                            shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.Roughness, roughness);
-                            shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.MipmapCount, input.MipLevels - 1);
-                            shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.RadianceMap, input);
-                            shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.RadianceMapSize, input.Width);
-                            shader.Parameters.Set(RadiancePrefilteringGGXNoComputeParams.NbOfSamplings, SamplingsCount);
-                            shader.SetOutput(outputView);
-                            shader.Draw(context);
+                            var inputMipmapLevel = Math.Min(inputLevel, input.MipLevels - 1);
+                            using var inputView = input.ToTextureView(ViewType.Single, faceIndex, inputMipmapLevel);
+                            scaler.SetInput(inputView);
+                            scaler.SetOutput(outputView);
+                            scaler.Draw(context);
                         }
+                    }
+                    else
+                    {
+                        shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.Face, faceIndex);
+                        shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.Roughness, roughness);
+                        shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.MipmapCount, input.MipLevels - 1);
+                        shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.RadianceMap, input);
+                        shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.RadianceMapSize, input.Width);
+                        shader.Parameters.Set(RadiancePrefilteringGGXNoComputeParams.NbOfSamplings, SamplingsCount);
+                        shader.SetOutput(outputView);
+                        shader.Draw(context);
                     }
                 }
 
