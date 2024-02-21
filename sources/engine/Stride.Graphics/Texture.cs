@@ -474,10 +474,7 @@ namespace Stride.Graphics
         internal Texture InitializeFrom(Texture parentTexture, TextureDescription description, TextureViewDescription viewDescription, DataBox[] textureDatas = null)
         {
             ParentTexture = parentTexture;
-            if (ParentTexture != null)
-            {
-                ParentTexture.AddReferenceInternal();
-            }
+            ParentTexture?.AddReferenceInternal();
 
             textureDescription = description;
             textureViewDescription = viewDescription;
