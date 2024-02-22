@@ -193,8 +193,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
-            var scale = scene->MRootNode->MTransformation.ToStrideMatrix().ScaleVector; //;.MTransformation->ToStrideMatrix()->ScaleVector;
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);         
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
             {
