@@ -5,11 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using FFmpeg.AutoGen;
 using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Assets.Materials;
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -354,9 +357,8 @@ namespace Stride.Importer.ThreeD
         private unsafe void ProcessAnimationCurveVector(AnimationClip animationClip, VectorKey* keys, uint nbKeys, string partialTargetName, double ticksPerSec, bool isTranslation)
         {
             var animationCurve = new AnimationCurve<Vector3>();
-
-            // Switch to cubic implicit interpolation mode for Vector3
-            animationCurve.InterpolationType = AnimationCurveInterpolationType.Cubic;
+                // Switch to cubic implicit interpolation mode for Vector3
+                animationCurve.InterpolationType = AnimationCurveInterpolationType.Cubic;
 
             var lastKeyTime = new CompressedTimeSpan();
 
@@ -492,6 +494,7 @@ namespace Stride.Importer.ThreeD
             GenerateUniqueNames(meshNames, baseNames, i => (IntPtr)scene->MMeshes[i]);
         }
 
+       
         private unsafe void GenerateAnimationNames(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
             var baseNames = new List<string>();
@@ -504,6 +507,34 @@ namespace Stride.Importer.ThreeD
 
             GenerateUniqueNames(animationNames, baseNames, i => (IntPtr)scene->MAnimations[i]);
         }
+
+        public unsafe Vector2 GetAnimationClipStartEnd(Animation* animation)
+        {
+            double startTime = double.MaxValue;
+            double endTime = double.MinValue;
+            
+          //  for (uint i = 0;i< animation->MNumChannels;i++)
+            {
+                var channel = animation->MChannels[0];
+              //  var channel2 = animation->MMeshChannels[0];
+                if (channel->MNumPositionKeys>0)
+                {
+                    startTime = Math.Min(startTime, channel->MPositionKeys[0].MTime);
+                    endTime = Math.Max(endTime, channel->MPositionKeys[channel->MNumPositionKeys-1].MTime);
+                }
+                if (channel->MNumRotationKeys > 0)
+                {
+                    startTime = Math.Min(startTime, channel->MRotationKeys[0].MTime);
+                    endTime = Math.Max(endTime, channel->MRotationKeys[channel->MNumRotationKeys - 1].MTime);
+                }
+                if (channel->MNumScalingKeys > 0)
+                {
+                    startTime = Math.Min(startTime, channel->MScalingKeys[0].MTime);
+                    endTime = Math.Max(endTime, channel->MScalingKeys[channel->MNumScalingKeys - 1].MTime);
+                }
+            }
+            return new Vector2((float)startTime, (float)endTime);
+      }
 
         private unsafe void GenerateNodeNames(Scene* scene, Dictionary<IntPtr, string> nodeNames)
         {
@@ -1354,11 +1385,11 @@ namespace Stride.Importer.ThreeD
                 GetNodes(node->MChildren[i], depth + 1, nodeNames, allNodes);
         }
 
+       
         private unsafe List<string> ExtractAnimations(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
             if (scene->MNumAnimations == 0)
                 return null;
-
             GenerateAnimationNames(scene, animationNames);
 
             var animationList = new List<string>();
@@ -1366,9 +1397,10 @@ namespace Stride.Importer.ThreeD
             {
                 animationList.Add(animationName.Value);
             }
-
             return animationList;
         }
+
+       
 
         private unsafe List<string> ExtractTextureDependencies(Scene* scene)
         {
