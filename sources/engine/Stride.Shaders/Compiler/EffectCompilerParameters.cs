@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using Stride.Core;
 using Stride.Graphics;
 
@@ -8,13 +9,20 @@ namespace Stride.Shaders.Compiler
     [DataContract]
     public struct EffectCompilerParameters
     {
-        public static readonly EffectCompilerParameters Default = new EffectCompilerParameters
+        public static readonly EffectCompilerParameters Default = new()
         {
-            Platform = GraphicsPlatform.Direct3D11,
+            Platform = ChoosePlatform(),
             Profile = GraphicsProfile.Level_11_0,
             Debug = true,
             OptimizationLevel = 0,
         };
+
+        private static GraphicsPlatform ChoosePlatform()
+        {
+            if(OperatingSystem.IsWindows())
+                return GraphicsPlatform.Direct3D11;
+            return GraphicsPlatform.OpenGL;
+        }
 
         public void ApplyCompilationMode(CompilationMode compilationMode)
         {
