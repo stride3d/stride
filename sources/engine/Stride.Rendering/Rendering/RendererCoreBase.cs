@@ -47,7 +47,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="EntityComponentRendererBase"/> is enabled.
+        /// Gets or sets a value indicating whether this <see cref="RendererCoreBase"/> is enabled.
         /// </summary>
         /// <value><c>true</c> if enabled; otherwise, <c>false</c>.</value>
         /// <userdoc>Enabled if checked, disabled otherwise</userdoc>
