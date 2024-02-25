@@ -415,7 +415,7 @@ namespace Stride.Rendering.Images
         }
 
         /// <summary>
-        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target with the specified description, scoped for the duration of the <see cref="RendererBase.DrawCore"/>.
         /// </summary>
         /// <returns>A new instance of texture.</returns>
         protected Texture NewScopedRenderTarget2D(TextureDescription description)
@@ -426,7 +426,7 @@ namespace Stride.Rendering.Images
         }
 
         /// <summary>
-        /// Gets a render target output for the specified description with a single mipmap, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target output for the specified description with a single mipmap, scoped for the duration of the <see cref="RendererBase.DrawCore"/>.
         /// </summary>
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
@@ -444,7 +444,7 @@ namespace Stride.Rendering.Images
         }
 
         /// <summary>
-        /// Gets a render target output for the specified description, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target output for the specified description, scoped for the duration of the <see cref="RendererBase.DrawCore"/>.
         /// </summary>
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
