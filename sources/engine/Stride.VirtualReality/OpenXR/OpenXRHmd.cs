@@ -11,6 +11,7 @@ using Silk.NET.Core;
 using System.Diagnostics;
 using Silk.NET.Core.Native;
 using System.Runtime.CompilerServices;
+using Stride.Core;
 
 namespace Stride.VirtualReality
 {
@@ -19,7 +20,11 @@ namespace Stride.VirtualReality
         // Public static variable to add extensions to the initialization of the openXR session
         public static List<string> extensions = new List<string>();
 
-        public static OpenXRHmd? New()
+        /// <summary>
+        /// Creates a VR device using OpenXR.
+        /// </summary>
+        /// <param name="requestPassthrough">Whether or not the XR_FB_passthrough extension should be enabled (if available).</param>
+        internal static OpenXRHmd? New(bool requestPassthrough)
         {
             // Create our API object for OpenXR.
             var xr = XR.GetApi();
@@ -30,7 +35,7 @@ namespace Stride.VirtualReality
             }
 
             // Takes ownership on API object
-            return new OpenXRHmd(xr);
+            return new OpenXRHmd(xr, requestPassthrough);
         }
 
         // API Objects for accessing OpenXR
@@ -59,6 +64,10 @@ namespace Stride.VirtualReality
         private bool sessionRunning = false;
         private SessionState state = SessionState.Unknown;
 
+        // Passthrough
+        private OpenXRExt_FB_Passthrough? passthroughExt;
+        private bool passthroughRequested;
+
         private GraphicsDevice? baseDevice;
 
         private Size2 renderSize;
@@ -75,6 +84,7 @@ namespace Stride.VirtualReality
         // array of view_count containers for submitting swapchains with rendered VR frames
         private CompositionLayerProjectionView[]? projection_views;
         private View[]? views;
+        private readonly unsafe List<IntPtr> compositionLayers = new();
 
         public override Size2 ActualRenderFrameSize
         {
@@ -124,12 +134,19 @@ namespace Stride.VirtualReality
 
         public override TrackedItem[]? TrackedItems => null;
 
-        private OpenXRHmd(XR xr)
+        private OpenXRHmd(XR xr, bool requestPassthrough)
         {
             Xr = xr;
             VRApi = VRApi.OpenXR;
-            Instance = OpenXRUtils.CreateRuntime(xr, extensions, Logger);
+            passthroughRequested = requestPassthrough;
+
+            var requestedExtensions = new List<string>(extensions);
+            if (requestPassthrough)
+                requestedExtensions.Add(OpenXRUtils.XR_FB_PASSTHROUGH_EXTENSION_NAME);
+
+            Instance = OpenXRUtils.CreateRuntime(xr, requestedExtensions, Logger);
             SystemId = Instance.Handle != 0 ? OpenXRUtils.GetSystem(xr, Instance, Logger) : default;
+            SupportsPassthrough = requestPassthrough && Xr.IsInstanceExtensionPresent(null, OpenXRUtils.XR_FB_PASSTHROUGH_EXTENSION_NAME);
         }
 
         public override unsafe void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
@@ -348,6 +365,25 @@ namespace Stride.VirtualReality
             Xr.StringToPath(Instance, "/user/hand/left", ref leftHandPath);
         }
 
+        public override IDisposable StartPassthrough()
+        {
+            if (!passthroughRequested)
+                throw new InvalidOperationException("The passthrough mode needs to be enabled at device creation");
+
+            if (!SupportsPassthrough)
+                throw new NotSupportedException("The device does not support passthrough mode");
+
+            if (passthroughExt is null)
+                passthroughExt = new OpenXRExt_FB_Passthrough(Xr, globalSession, Instance);
+
+            if (passthroughExt.Enabled)
+                throw new InvalidOperationException("Passthrough already started");
+
+            passthroughExt.Enabled = true;
+
+            return new AnonymousDisposable(() => passthroughExt.Enabled = false);
+        }
+
         private void EndNullFrame()
         {
             FrameEndInfo frame_end_info = new FrameEndInfo()
@@ -492,7 +528,7 @@ namespace Stride.VirtualReality
             #if STRIDE_GRAPHICS_API_DIRECT3D11
             if (render_targets is null)
                 return;
-            #endif
+#endif
 
             // if we didn't wait a frame, don't commit
             if (begunFrame == false)
@@ -503,18 +539,19 @@ namespace Stride.VirtualReality
             if (swapImageCollected)
             {
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-            Debug.Assert(commandList.NativeDeviceContext == baseDevice.NativeDeviceContext);
-            // Logger.Warning("Blit render target");
-            baseDevice.NativeDeviceContext.CopyResource(renderFrame.NativeRenderTargetView.Resource, render_targets[swapchainPointer].Resource);
+                Debug.Assert(commandList.NativeDeviceContext == baseDevice.NativeDeviceContext);
+                // Logger.Warning("Blit render target");
+                baseDevice.NativeDeviceContext.CopyResource(renderFrame.NativeRenderTargetView.Resource, render_targets[swapchainPointer].Resource);
 #endif
 
-            // Release the swapchain image
-            // Logger.Warning("ReleaseSwapchainImage");
-            var releaseInfo = new SwapchainImageReleaseInfo() { 
-                Type = StructureType.SwapchainImageReleaseInfo,
-                Next = null,
-            };
-            Xr.ReleaseSwapchainImage(globalSwapchain, in releaseInfo).CheckResult();
+                // Release the swapchain image
+                // Logger.Warning("ReleaseSwapchainImage");
+                var releaseInfo = new SwapchainImageReleaseInfo()
+                {
+                    Type = StructureType.SwapchainImageReleaseInfo,
+                    Next = null,
+                };
+                Xr.ReleaseSwapchainImage(globalSwapchain, in releaseInfo).CheckResult();
 
                 for (var eye = 0; eye < 2; eye++)
                 {
@@ -524,28 +561,40 @@ namespace Stride.VirtualReality
 
                 unsafe
                 {
-                fixed (CompositionLayerProjectionView* projection_views_ptr = &projection_views[0])
-                {
-                    var projectionLayer = new CompositionLayerProjection
-                    (
-                        viewCount: (uint)projection_views.Length,
-                        views: projection_views_ptr,
-                        space: globalPlaySpace
-                    );
-
-                    var layerPointer = (CompositionLayerBaseHeader*)&projectionLayer;
-                    var frameEndInfo = new FrameEndInfo()
+                    // Add composition layers from extensions
+                    compositionLayers.Clear();
+                    if (passthroughExt != null && passthroughExt.Enabled)
                     {
-                        Type = StructureType.FrameEndInfo,
-                        DisplayTime = globalFrameState.PredictedDisplayTime,
-                        EnvironmentBlendMode = EnvironmentBlendMode.Opaque,
-                        LayerCount = 1,
-                        Layers = &layerPointer,
-                        Next = null,
-                    };
+                        var layer = passthroughExt.GetCompositionLayer();
+                        compositionLayers.Add(new IntPtr(layer));
+                    }
 
-                    //Logger.Warning("EndFrame");
-                    Xr.EndFrame(globalSession, in frameEndInfo).CheckResult();
+                    fixed (CompositionLayerProjectionView* projection_views_ptr = &projection_views[0])
+                    {
+                        var projectionLayer = new CompositionLayerProjection
+                        (
+                            viewCount: (uint)projection_views.Length,
+                            views: projection_views_ptr,
+                            space: globalPlaySpace,
+                            layerFlags: compositionLayers.Count > 0 ? CompositionLayerFlags.BlendTextureSourceAlphaBit : 0
+                        );
+
+                        compositionLayers.Add(new IntPtr(&projectionLayer));
+                        fixed (nint* layersPtr = CollectionsMarshal.AsSpan(compositionLayers))
+                        {
+                            var frameEndInfo = new FrameEndInfo()
+                            {
+                                Type = StructureType.FrameEndInfo,
+                                DisplayTime = globalFrameState.PredictedDisplayTime,
+                                EnvironmentBlendMode = EnvironmentBlendMode.Opaque,
+                                LayerCount = (uint)compositionLayers.Count,
+                                Layers = (CompositionLayerBaseHeader**)layersPtr,
+                                Next = null,
+                            };
+
+                            //Logger.Warning("EndFrame");
+                            Xr.EndFrame(globalSession, in frameEndInfo).CheckResult();
+                        }
                     }
                 }
             }
@@ -842,6 +891,8 @@ namespace Stride.VirtualReality
 
             if (globalSwapchain.Handle != 0)
                 Xr.DestroySwapchain(globalSwapchain).CheckResult();
+
+            passthroughExt?.Destroy();
 
             if (globalSession.Handle != 0)
                 Xr.DestroySession(globalSession).CheckResult();
