@@ -36,7 +36,7 @@ namespace Stride.Core.CompilerServices.Tests
                     // System.Private.CoreLib.dll
                     MetadataReference.CreateFromFile($"{assembliesDirectory}/System.Private.CoreLib.dll"),
                     // Stride.Core.dll
-                    MetadataReference.CreateFromFile($"{assembliesDirectory}/Stride.Core.dll"),
+                    MetadataReference.CreateFromFile(typeof(Stride.Core.DataContractAttribute).GetTypeInfo().Assembly.Location),
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         public static DiagnosticAnalyzer[] AllAnalyzers => typeof(DiagnosticsAnalyzerHelper).Assembly.GetTypes()

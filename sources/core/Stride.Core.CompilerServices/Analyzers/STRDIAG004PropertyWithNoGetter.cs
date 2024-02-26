@@ -8,7 +8,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG004";
     private const string Title = "Property with no Getter";
-    private const string NonExistentGetterMessageFormat = "The property '{0}' with [DataMember] does not have a getter which is required for serialization.";
+    private const string NonExistentGetterMessageFormat = "The property '{0}' with [DataMember] does not have a getter which is required for serialization";
     private const string InvalidAccessibilityOnGetterMessageFormat = "The property '{0}' with [DataMember] does not have an accessible getter which is required for serialization. A public/internal/internal protected getter is expected.";
     private const string Category = DiagnosticCategory.Serialization;
 

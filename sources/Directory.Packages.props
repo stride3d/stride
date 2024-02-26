@@ -9,6 +9,7 @@
     <PackageVersion Include="Microsoft.Management.Infrastructure" Version="3.0.0-preview.4" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    <PackageVersion Include="PolySharp" Version="1.14.1" />
     <PackageVersion Include="ServiceWire" Version="5.5.4" />
     <PackageVersion Include="SharpDX" Version="4.2.0" />
     <PackageVersion Include="SharpDX.D3DCompiler" Version="4.2.0" />
