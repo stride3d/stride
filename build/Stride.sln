@@ -332,7 +332,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.NuGetResolver", "..\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGetResolver", "NuGetResolver", "{158087CF-AF74-44E9-AA20-A6AEB1E398A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.RestoreHelper", "..\sources\editor\Stride.RestoreHelper\Stride.RestoreHelper.csproj", "{B2AE0143-AAB5-42F3-9214-E678E6393C53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1493,6 +1495,18 @@ Global
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Win32.ActiveCfg = Release|Any CPU
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Win32.Build.0 = Release|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Debug|Win32.Build.0 = Debug|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Release|Win32.ActiveCfg = Release|Any CPU
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1619,6 +1633,7 @@ Global
 		{02FD0BDE-4293-414F-97E6-69FF71105420} = {158087CF-AF74-44E9-AA20-A6AEB1E398A9}
 		{158087CF-AF74-44E9-AA20-A6AEB1E398A9} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6} = {75A820AB-0F21-40F2-9448-5D7F495B97A0}
+		{B2AE0143-AAB5-42F3-9214-E678E6393C53} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

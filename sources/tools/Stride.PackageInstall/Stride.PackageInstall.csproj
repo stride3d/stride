@@ -32,4 +32,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="GetLibReferences" AfterTargets="ResolveFrameworkReferences">
+    <MSBuild Projects="@(ProjectReference)" Targets="GetLibReferences">
+      <Output ItemName="LibReference" TaskParameter="TargetOutputs" />
+    </MSBuild>
+    <ItemGroup>
+      <Reference Include="@(LibReference)" />
+      <Content Include="@(LibReference)" PackagePath="lib/$(TargetFramework)" Pack="true" />
+    </ItemGroup>
+  </Target>
+
 </Project>

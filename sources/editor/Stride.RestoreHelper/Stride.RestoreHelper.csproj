@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.Build.NoTargets/3.7.56">
+  <Import Project="..\..\targets\Stride.Core.props" />
+  <PropertyGroup>
+    <TargetFramework>$(StrideFramework)</TargetFramework>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <RestoreSources>
+      https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json;
+      https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json;
+      https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json;
+      https://api.nuget.org/v3/index.json
+    </RestoreSources>
+    <NoWarn>$(NoWarn);NU1603;NU1605</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="4.8.0-7.23558.1" GeneratePathProperty="true" IncludeAssets="none" PrivateAssets="all" />
+  </ItemGroup>
+  <Target Name="GetLibReferences" Outputs="@(Reference)">
+    <ItemGroup>
+      <Reference Include="$(PkgMicrosoft_CodeAnalysis_LanguageServer_Protocol)/lib/net7.0/*.dll" />
+    </ItemGroup>
+  </Target>
+
+</Project>

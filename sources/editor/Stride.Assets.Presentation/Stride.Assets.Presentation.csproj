@@ -13,16 +13,28 @@
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
   </PropertyGroup>
+  <PropertyGroup>
+    <!-- warning CS0436: IgnoresAccessChecksTo conflict with same attribute from RolsynPad -->
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.RestoreHelper\Stride.RestoreHelper.csproj" Targets="GetLibReferences" PrivateAssets="All" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
     <PackageReference Include="AvalonEdit" />
     <PackageReference Include="System.Reactive.Linq" />
     <PackageReference Include="System.Reactive" />
+    <PackageReference Include="IgnoresAccessChecksToGenerator" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
     <PackageReference Include="RoslynPad.Editor.Windows" />
     <PackageReference Include="RoslynPad.Roslyn.Windows" />
     <PackageReference Include="RoslynPad.Roslyn" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsAssemblyName Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" />
+    <InternalsAssemblyName Include="RoslynPad.Roslyn" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
