@@ -58,7 +58,7 @@ namespace Stride.Assets.Models
         /// <param name="importParameters">The import parameters.</param>
         /// <param name="startTime">Returns the first (start) keyframe's time for the animation</param>
         /// <param name="endTime">Returns the last (end) keyframe's time for the animation</param>
-        public abstract void GetAnimationDuration(UFile localPath, Logger logger, AssetImporterParameters importParameters, out TimeSpan startTime, out TimeSpan endTime);
+        public abstract void GetAnimationDuration(UFile localPath, Logger logger, AssetImporterParameters importParameters, int animIndex, out TimeSpan startTime, out TimeSpan endTime);
 
         /// <summary>
         /// Imports the model.
@@ -98,10 +98,18 @@ namespace Stride.Assets.Models
             // 3. Animation
             if (importParameters.IsTypeSelectedForOutput<AnimationAsset>())
             {
-                TimeSpan startTime, endTime;
-                GetAnimationDuration(localPath, importParameters.Logger, importParameters, out startTime, out endTime);
+                int _iAnimIndex = 0;
+                entityInfo?.AnimationNodes?.ForEach(c => {
+                    TimeSpan startTime, endTime;
+                GetAnimationDuration(localPath, importParameters.Logger, importParameters, _iAnimIndex, out startTime, out endTime);
+                
+              ImportAnimation(rawAssetReferences, localPath, entityInfo.AnimationNodes[_iAnimIndex], _iAnimIndex, skeletonAsset, startTime, endTime);
 
-                ImportAnimation(rawAssetReferences, localPath, entityInfo.AnimationNodes, isImportingModel, skeletonAsset, startTime, endTime);
+                    _iAnimIndex++;
+
+                }); 
+
+                
             }
 
             // 4. Materials
@@ -156,6 +164,22 @@ namespace Stride.Assets.Models
                 assetReferences.Add(new AssetItem(animUrl, asset));
             }
         }
+
+
+        private static void ImportAnimation(List<AssetItem> assetReferences, UFile localPath, string animationNodeName, int animationNodeIndex, AssetItem skeletonAsset, TimeSpan animationStartTime, TimeSpan animationEndTime)
+        {
+            var assetSource = localPath;
+            var asset = new AnimationAsset { Source = assetSource, AnimationTimeMaximum = animationEndTime, AnimationTimeMinimum = animationStartTime };
+            var animUrl = localPath.GetFileNameWithoutExtension() +"_"+ animationNodeName;
+            asset.AnimationStack = animationNodeIndex;
+            if (skeletonAsset != null)
+                asset.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeletonAsset.Id, skeletonAsset.Location);
+
+            assetReferences.Add(new AssetItem(animUrl, asset));
+        }
+        
+
+
 
         private static void ImportModel(List<AssetItem> assetReferences, UFile assetSource, UFile localPath, EntityInfo entityInfo, bool shouldPostFixName, AssetItem skeletonAsset)
         {

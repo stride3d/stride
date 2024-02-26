@@ -5,11 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using FFmpeg.AutoGen;
 using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Assets.Materials;
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -24,7 +27,7 @@ using Mesh = Stride.Rendering.Mesh;
 using PrimitiveType = Stride.Graphics.PrimitiveType;
 using Scene = Silk.NET.Assimp.Scene;
 
-namespace Stride.Importer.Assimp
+namespace Stride.Importer.ThreeD
 {
     public class MeshConverter
     {
@@ -115,7 +118,7 @@ namespace Stride.Importer.Assimp
 
                 return entityInfo;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Error($"Exception has occured during Entity extraction : {ex.Message}");
                 throw;
@@ -191,7 +194,6 @@ namespace Stride.Importer.Assimp
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
             RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
-
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
             {
@@ -199,7 +201,7 @@ namespace Stride.Importer.Assimp
                 {
                     var meshInfo = ProcessMesh(scene, scene->MMeshes[i], meshNames);
 
-                  var shapes=  ProcessBlendShapes(scene, scene->MMeshes[i]);
+                    var shapes = ProcessBlendShapes(scene, scene->MMeshes[i]);
 
                     foreach (var nodeIndex in meshIndexToNodeIndex[i])
                     {
@@ -208,7 +210,7 @@ namespace Stride.Importer.Assimp
                             Draw = meshInfo.Draw,
                             Name = meshInfo.Name,
                             MaterialIndex = meshInfo.MaterialIndex,
-                            NodeIndex = nodeIndex,                           
+                            NodeIndex = nodeIndex,
                         };
 
                         foreach (var shape in shapes)
@@ -229,15 +231,15 @@ namespace Stride.Importer.Assimp
                         if (meshInfo.HasSkinningNormal && meshInfo.TotalClusterCount > 0)
                             nodeMeshData.Parameters.Set(MaterialKeys.HasSkinningNormal, true);
 
-                       
 
-                      modelData.Meshes.Add(nodeMeshData);
-                        nodeMeshData.BlendShapeProcessingNecessary=shapes.Count > 0;
+
+                        modelData.Meshes.Add(nodeMeshData);
+                        nodeMeshData.BlendShapeProcessingNecessary = shapes.Count > 0;
                         nodeMeshData.ProcessBlendShapes();
 
                     }
-                
-                
+
+
                 }
             }
 
@@ -354,9 +356,8 @@ namespace Stride.Importer.Assimp
         private unsafe void ProcessAnimationCurveVector(AnimationClip animationClip, VectorKey* keys, uint nbKeys, string partialTargetName, double ticksPerSec, bool isTranslation)
         {
             var animationCurve = new AnimationCurve<Vector3>();
-
-            // Switch to cubic implicit interpolation mode for Vector3
-            animationCurve.InterpolationType = AnimationCurveInterpolationType.Cubic;
+                // Switch to cubic implicit interpolation mode for Vector3
+                animationCurve.InterpolationType = AnimationCurveInterpolationType.Cubic;
 
             var lastKeyTime = new CompressedTimeSpan();
 
@@ -492,6 +493,7 @@ namespace Stride.Importer.Assimp
             GenerateUniqueNames(meshNames, baseNames, i => (IntPtr)scene->MMeshes[i]);
         }
 
+       
         private unsafe void GenerateAnimationNames(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
             var baseNames = new List<string>();
@@ -504,6 +506,34 @@ namespace Stride.Importer.Assimp
 
             GenerateUniqueNames(animationNames, baseNames, i => (IntPtr)scene->MAnimations[i]);
         }
+
+        public unsafe Vector2 GetAnimationClipStartEnd(Animation* animation)
+        {
+            double startTime = double.MaxValue;
+            double endTime = double.MinValue;
+            
+          //  for (uint i = 0;i< animation->MNumChannels;i++)
+            {
+                var channel = animation->MChannels[0];
+              //  var channel2 = animation->MMeshChannels[0];
+                if (channel->MNumPositionKeys>0)
+                {
+                    startTime = Math.Min(startTime, channel->MPositionKeys[0].MTime);
+                    endTime = Math.Max(endTime, channel->MPositionKeys[channel->MNumPositionKeys-1].MTime);
+                }
+                if (channel->MNumRotationKeys > 0)
+                {
+                    startTime = Math.Min(startTime, channel->MRotationKeys[0].MTime);
+                    endTime = Math.Max(endTime, channel->MRotationKeys[channel->MNumRotationKeys - 1].MTime);
+                }
+                if (channel->MNumScalingKeys > 0)
+                {
+                    startTime = Math.Min(startTime, channel->MScalingKeys[0].MTime);
+                    endTime = Math.Max(endTime, channel->MScalingKeys[channel->MNumScalingKeys - 1].MTime);
+                }
+            }
+            return new Vector2((float)startTime, (float)endTime);
+      }
 
         private unsafe void GenerateNodeNames(Scene* scene, Dictionary<IntPtr, string> nodeNames)
         {
@@ -854,8 +884,8 @@ namespace Stride.Importer.Assimp
                         {
                             *((ushort*)ibPointer) = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
 
-                          var _index=  (ushort)(mesh->MFaces[(int)i].MIndices[j]);
-                            drawData.RES((int)i, (int)_index, 0,0,0);
+                            var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
+                            drawData.RES((int)i, (int)_index, 0, 0, 0);
 
                             ibPointer += sizeof(ushort);
                         }
@@ -868,17 +898,17 @@ namespace Stride.Importer.Assimp
             var vertexBufferBinding = new VertexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.VertexBuffer, vertexBuffer)), vertexDeclaration, (int)mesh->MNumVertices, vertexDeclaration.VertexStride, 0);
             var indexBufferBinding = new IndexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.IndexBuffer, indexBuffer)), is32BitIndex, (int)nbIndices, 0);
 
-           
+
             //drawData.VertexBuffers =;
             //{
-                drawData.VertexBuffers = new VertexBufferBinding[] { vertexBufferBinding };
-                drawData.IndexBuffer = indexBufferBinding;
-                drawData.PrimitiveType = PrimitiveType.TriangleList;
-                drawData.DrawCount = (int)nbIndices;
+            drawData.VertexBuffers = new VertexBufferBinding[] { vertexBufferBinding };
+            drawData.IndexBuffer = indexBufferBinding;
+            drawData.PrimitiveType = PrimitiveType.TriangleList;
+            drawData.DrawCount = (int)nbIndices;
             //}
 
             drawData.CAP();
-        
+
             return new MeshInfo
             {
                 Draw = drawData,
@@ -890,29 +920,29 @@ namespace Stride.Importer.Assimp
                 TotalClusterCount = totalClusterCount
             };
 
-           
+
         }
 
         private unsafe List<Shape> ProcessBlendShapes(Scene* scene, Silk.NET.Assimp.Mesh* mesh)
         {
             List<Shape> shapes = new List<Shape>();
-            var anMeshes=  mesh->MAnimMeshes;
+            var anMeshes = mesh->MAnimMeshes;
             for (int j = 0; j < mesh->MNumAnimMeshes; ++j)
             {
                 var animMesh = mesh->MAnimMeshes[j];
-                var vertices=new List<Vector4>();                
+                var vertices = new List<Vector4>();
                 for (int k = 0; k < animMesh->MNumVertices; ++k)
                 {
                     var vertex = animMesh->MVertices[k];
-                    vertices.Add(new Vector4(vertex.X, vertex.Y, vertex.Z, 1));                
+                    vertices.Add(new Vector4(vertex.X, vertex.Y, vertex.Z, 1));
                 }
 
                 Shape shape = new Shape();
                 shape.Name = animMesh->MName;
                 shape.Position = vertices.ToArray();
-              
-               shapes.Add(shape);
-      
+
+                shapes.Add(shape);
+
             }
             return shapes;
         }
@@ -1039,7 +1069,7 @@ namespace Stride.Importer.Assimp
         }
         private unsafe void SetMaterialFloatArrayFlag(Silk.NET.Assimp.Material* pMaterial, string materialBase, ref bool hasMatProperty, float matColor, bool condition)
         {
-            if(assimp.GetMaterialFloatArray(pMaterial, materialBase, 0, 0, &matColor, (uint*)0x0) == Return.Success && condition)
+            if (assimp.GetMaterialFloatArray(pMaterial, materialBase, 0, 0, &matColor, (uint*)0x0) == Return.Success && condition)
             {
                 hasMatProperty = true;
             }
@@ -1354,11 +1384,11 @@ namespace Stride.Importer.Assimp
                 GetNodes(node->MChildren[i], depth + 1, nodeNames, allNodes);
         }
 
+       
         private unsafe List<string> ExtractAnimations(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
             if (scene->MNumAnimations == 0)
                 return null;
-
             GenerateAnimationNames(scene, animationNames);
 
             var animationList = new List<string>();
@@ -1366,9 +1396,10 @@ namespace Stride.Importer.Assimp
             {
                 animationList.Add(animationName.Value);
             }
-
             return animationList;
         }
+
+       
 
         private unsafe List<string> ExtractTextureDependencies(Scene* scene)
         {
@@ -1448,7 +1479,7 @@ namespace Stride.Importer.Assimp
     }
 
 
-    
+
 }
 
 

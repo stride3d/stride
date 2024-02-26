@@ -229,6 +229,10 @@ namespace Stride.Rendering
                             }                            
                         }
                         if (filePath != null)
+                            if(filePath.ToUpper().Contains("BLENDSHAPE"))
+                            {
+
+                            }
                             directoryWatcher.Track(filePath);
                     }
 #endif

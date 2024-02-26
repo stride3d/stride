@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
@@ -77,6 +79,15 @@ namespace Stride.Rendering
                 var modelComponent = entity.Key;
                 var renderModel = entity.Value;
 
+                if(modelComponent?.MeshInfos?.Count==5)
+                {
+
+                }
+                if (modelComponent?.MeshInfos?.Count > 1)
+                {
+
+                }
+
                 CheckMeshes(modelComponent, renderModel);
                 UpdateRenderModel(modelComponent, renderModel);
             });
@@ -113,10 +124,25 @@ namespace Stride.Rendering
                         renderMesh.IsScalingNegative = nodeTransformations[nodeIndex].IsScalingNegative;
                         renderMesh.BoundingBox = new BoundingBoxExt(meshInfo.BoundingBox);
                         renderMesh.BlendMatrices = meshInfo.BlendMatrices;
+
+                        renderMesh.HasBlendShapes = mesh.GetBlendShapesCount() > 0;
+                        if (renderMesh.HasBlendShapes)
+                        {
+                            if (mesh.MATBSHAPE == null || mesh.BlendShapeProcessingNecessary) 
+                            {
+                                mesh.ProcessBlendShapes();    
+                            }
+                            renderMesh.MATBSHAPE = mesh.MATBSHAPE;
+                            renderMesh.BasisKeyWeight = mesh.BasisKeyWeight;
+                            renderMesh.BlendShapesCount=mesh.Shapes.Count;
+                            renderMesh.VerticesCount = mesh.Draw.VertexCount; 
+                        }
                     }
                 }
             }
         }
+
+       
 
         private void UpdateMaterial(RenderMesh renderMesh, MaterialPass materialPass, MaterialInstance modelMaterialInstance, ModelComponent modelComponent)
         {
@@ -181,7 +207,7 @@ namespace Stride.Rendering
                 return;
             }
 
-        RegenerateMeshes:
+RegenerateMeshes:
             renderModel.Model = model;
 
             // Remove old meshes

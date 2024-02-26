@@ -14,7 +14,7 @@ namespace Stride.Rendering.Materials
         public static readonly PermutationParameterKey<ShaderSource> VertexStageSurfaceShaders = ParameterKeys.NewPermutation<ShaderSource>();
         public static readonly PermutationParameterKey<ShaderSource> DomainStageSurfaceShaders = ParameterKeys.NewPermutation<ShaderSource>();
         public static readonly PermutationParameterKey<ShaderSource> PixelStageSurfaceShaders = ParameterKeys.NewPermutation<ShaderSource>();
-        
+
         public static readonly PermutationParameterKey<ShaderSource> VertexStageStreamInitializer = ParameterKeys.NewPermutation<ShaderSource>();
         public static readonly PermutationParameterKey<ShaderSource> DomainStageStreamInitializer = ParameterKeys.NewPermutation<ShaderSource>();
         public static readonly PermutationParameterKey<ShaderSource> PixelStageStreamInitializer = ParameterKeys.NewPermutation<ShaderSource>();
@@ -50,7 +50,7 @@ namespace Stride.Rendering.Materials
         public static readonly ObjectParameterKey<Texture> SpecularMap = ParameterKeys.NewObject<Texture>();
         public static readonly ValueParameterKey<Color3> SpecularValue = ParameterKeys.NewValue<Color3>();
         public static readonly ValueParameterKey<float> SpecularIntensityValue = ParameterKeys.NewValue<float>();
-        
+
         public static readonly ObjectParameterKey<Texture> GlossinessMap = ParameterKeys.NewObject<Texture>();
         public static readonly ValueParameterKey<float> GlossinessValue = ParameterKeys.NewValue<float>();
 
@@ -125,10 +125,19 @@ namespace Stride.Rendering.Materials
         public static readonly PermutationParameterKey<bool> HasSkinningTangent = ParameterKeys.NewPermutation<bool>();
 
         public static readonly PermutationParameterKey<int> SkinningMaxBones = ParameterKeys.NewPermutation<int>(56);
-        
+
+        public static readonly PermutationParameterKey<int> MAX_VERTICES = ParameterKeys.NewPermutation<int>(1);
+        public static readonly PermutationParameterKey<int> MAX_MORPH_TARGETS = ParameterKeys.NewPermutation<int>(1);
+        public static readonly PermutationParameterKey<int> MAT_COUNT = ParameterKeys.NewPermutation<int>(1);
+
+
         public static readonly PermutationParameterKey<bool> UsePixelShaderWithDepthPass = ParameterKeys.NewPermutation<bool>();
-        
+
         public static readonly PermutationParameterKey<bool> UseDitheredShadows = ParameterKeys.NewPermutation<bool>();
+
+
+        public static readonly PermutationParameterKey<bool> HasBlendShape = ParameterKeys.NewPermutation<bool>();
+
 
         static MaterialKeys()
         {
