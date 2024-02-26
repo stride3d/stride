@@ -69,12 +69,12 @@ namespace Stride.Graphics
         SourceAlphaSaturate = 11,
 
         /// <summary>
-        /// The data source is the blend factor set with <see cref="GraphicsDevice.BlendStates"/>. No pre-blend operation.
+        /// The data source is the blend factor set with <see cref="Stride.Graphics.BlendStates"/>. No pre-blend operation.
         /// </summary>
         BlendFactor = 14,
 
         /// <summary>
-        /// The data source is the blend factor set with <see cref="GraphicsDevice.SetBlendState"/>. The pre-blend operation inverts the blend factor, generating 1 - blend_factor.
+        /// The data source is the blend factor set with <see cref="Stride.Graphics.BlendStates"/>. The pre-blend operation inverts the blend factor, generating 1 - blend_factor.
         /// </summary>
         InverseBlendFactor = 15,
 
