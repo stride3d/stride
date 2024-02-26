@@ -192,7 +192,7 @@ namespace Stride.Graphics.SDL
         }
 
         /// <summary>
-        /// Show window. The first time a window is shown we execute any actions from <see cref="HandleCreated"/>.
+        /// Show window. The first time a window is shown we execute any actions from 'HandleCreated' />.
         /// </summary>
         public void Show()
         {
