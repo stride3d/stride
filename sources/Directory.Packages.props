@@ -23,6 +23,7 @@
     <PackageVersion Include="Silk.NET.OpenGLES" Version="2.20.0" />
     <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.20.0" />
     <PackageVersion Include="Silk.NET.OpenXR" Version="2.20.0" />
+    <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="2.20.0" />
     <PackageVersion Include="Silk.NET.Sdl" Version="2.20.0" />
     <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.19.0" />
     <PackageVersion Include="Stride.SharpFont" Version="1.0.0" />
