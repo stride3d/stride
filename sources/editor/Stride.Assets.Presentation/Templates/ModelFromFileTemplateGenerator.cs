@@ -57,8 +57,9 @@ namespace Stride.Assets.Presentation.Templates
             if (files == null)
                 return true;
 
-            var showDeduplicateMaterialsCheckBox = files.Any(x => ImportAssimpCommand.IsSupportingExtensions(x.GetFileExtension()));
-            var showFbxDedupeNotSupportedWarning = showDeduplicateMaterialsCheckBox && files.Any(x => ImportFbxCommand.IsSupportingExtensions(x.GetFileExtension()));
+            var showDeduplicateMaterialsCheckBox = files.Any(x => ImportThreeDCommand.IsSupportingExtensions(x.GetFileExtension()));
+         /*   var showFbxDedupeNotSupportedWarning = showDeduplicateMaterialsCheckBox && files.Any(x => ImportFbxCommand.IsSupportingExtensions(x.GetFileExtension()));
+          */
             // Load settings from the last time this template was used for this project
             var profile = parameters.Package.UserSettings.Profile;
             var window = new ModelAssetTemplateWindow
@@ -67,7 +68,7 @@ namespace Stride.Assets.Presentation.Templates
                 {
                     ImportMaterials = ModelFromFileTemplateSettings.ImportMaterials.GetValue(profile, true),
                     ShowDeduplicateMaterialsCheckBox = showDeduplicateMaterialsCheckBox,
-                    ShowFbxDedupeNotSupportedWarning = showFbxDedupeNotSupportedWarning,
+                    ShowFbxDedupeNotSupportedWarning = false,
                     DeduplicateMaterials = ModelFromFileTemplateSettings.DeduplicateMaterials.GetValue(profile, true),
                     ImportTextures = ModelFromFileTemplateSettings.ImportTextures.GetValue(profile, true),
                     ImportSkeleton = ModelFromFileTemplateSettings.ImportSkeleton.GetValue(profile, true)

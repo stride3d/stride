@@ -130,6 +130,7 @@ namespace Stride.Rendering.Compositing
                         {
                             new TransformRenderFeature(),
                             new SkinningRenderFeature(),
+                            new BlendShapeRenderFeature(),
                             new MaterialRenderFeature(),
                             new ShadowCasterRenderFeature(),
                             forwardLighting,

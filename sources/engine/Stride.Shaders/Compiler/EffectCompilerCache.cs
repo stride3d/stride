@@ -70,6 +70,9 @@ namespace Stride.Shaders.Compiler
             var compiledUrl = string.Format("{0}/{1}", CompiledShadersKey, mixinObjectId);
 
             var bytecode = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(null, EffectBytecodeCacheLoadSource.JustCompiled);
+
+            goto label_force_compile;
+
             lock (bytecodes)
             {                
                 // ------------------------------------------------------------------------------------------------------------
@@ -119,6 +122,7 @@ namespace Stride.Shaders.Compiler
                 return new EffectBytecodeCompilerResult(bytecode.Key, bytecode.Value);
             }
 
+label_force_compile:;
             // ------------------------------------------------------------------------------------------------------------
             // 3) Compile the shader
             // ------------------------------------------------------------------------------------------------------------
