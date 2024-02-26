@@ -57,7 +57,7 @@ namespace Stride.Rendering.Images
         /// <param name="context">The context.</param>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ArgumentNullException">context</exception>
-        protected ImageEffect(RenderContext context, string name = null) 
+        protected ImageEffect(RenderContext context, string name = null)
             : this(name)
         {
             Initialize(context);
@@ -169,7 +169,7 @@ namespace Stride.Rendering.Images
         /// Binds a set of viewports to the rasterizer stage.
         /// </summary>
         /// <param name="values">The set of viewports to bind.</param>
-        /// <remarks>Only <see cref="CommandList.MaxViewportAndScissorRectangleCount"/> scissors can be used simultaneously</remarks>
+        /// <remarks>Only <see cref="CommandList"/>'s `MaxViewportAndScissorRectangleCount` scissors can be used simultaneously</remarks>
         public void SetViewports(ReadOnlySpan<Viewport> values)
         {
             if (values.Length > CommandList.MaxViewportAndScissorRectangleCount)
@@ -202,7 +202,7 @@ namespace Stride.Rendering.Images
         /// Binds a set of scissor rectangles to the rasterizer stage.
         /// </summary>
         /// <param name="values">The set of scissor rectangles to bind.</param>
-        /// <remarks>Only <see cref="CommandList.MaxViewportAndScissorRectangleCount"/> viewports can be used simultaneously</remarks>
+        /// <remarks>Only <see cref="CommandList"/>'s `MaxViewportAndScissorRectangleCount` viewports can be used simultaneously</remarks>
         public void SetScissorRectangles(ReadOnlySpan<Rectangle> values)
         {
             if (values.Length > CommandList.MaxViewportAndScissorRectangleCount)
