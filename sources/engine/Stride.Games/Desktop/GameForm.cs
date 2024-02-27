@@ -51,6 +51,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using static Stride.Games.TouchUtils;
 
 namespace Stride.Games
 {
@@ -165,6 +166,11 @@ namespace Stride.Games
         public bool IsProcessingKeys { get; set; }
 
         internal bool IsFullScreen { get; set; }
+
+        internal delegate void TouchFingerDelegate(POINTER_TOUCH_INFO e);
+        internal event TouchFingerDelegate FingerMoveActions;
+        internal event TouchFingerDelegate FingerPressActions;
+        internal event TouchFingerDelegate FingerReleaseActions;
 
         /// <summary>
         /// Raises the <see cref="E:System.Windows.Forms.Form.ResizeBegin"/> event.
@@ -412,6 +418,27 @@ namespace Stride.Games
                         if (!enableFullscreenToggle) return;
                         OnFullscreenToggle(new EventArgs()); //we handle alt enter manually
                         isSwitchingFullScreen = false;
+                    }
+                    break;
+                // https://devblogs.microsoft.com/oldnewthing/20210728-00/?p=105487
+                case TouchUtils.WM_POINTERDOWN:
+                case TouchUtils.WM_POINTERUPDATE:
+                case TouchUtils.WM_POINTERUP:
+                    var pointerId = TouchUtils.GET_POINTERID_WPARAM((ulong)m.WParam);
+                    if (TouchUtils.GetPointerType(pointerId, out var type) && type == TouchUtils.PointerInputType.PT_TOUCH)
+                    {
+                        TouchUtils.GetPointerTouchInfo(pointerId, out var touchInfo);
+
+                        if (m.Msg == TouchUtils.WM_POINTERDOWN)
+                            FingerPressActions?.Invoke(touchInfo);
+                        else if (m.Msg == TouchUtils.WM_POINTERUP)
+                            FingerReleaseActions?.Invoke(touchInfo);
+                        else
+                            FingerMoveActions?.Invoke(touchInfo);
+
+                        //to signal that there should not be a mouse event created
+                        m.Result = new IntPtr(1);
+                        return;
                     }
                     break;
             }
