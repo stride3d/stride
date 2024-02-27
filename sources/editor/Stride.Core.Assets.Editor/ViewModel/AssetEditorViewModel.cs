@@ -29,7 +29,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         public IUndoRedoService UndoRedoService => ServiceProvider.Get<IUndoRedoService>();
 
-        /// <inheritdoc/>
         [NotNull]
         public SessionObjectPropertiesViewModel EditorProperties => Asset.Session.AssetViewProperties;
 
@@ -41,6 +40,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         /// <inheritdoc/>
         public AssetViewModel Asset { get; }
+
+        /// <inheritdoc/>
+        public virtual Task EditorInitialized => Task.CompletedTask; // FIXME might not be necessary, but implementing editor might have different initialization logic
 
         /// <inheritdoc/>
         public abstract Task<bool> Initialize();

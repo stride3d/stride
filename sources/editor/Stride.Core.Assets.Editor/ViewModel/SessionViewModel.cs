@@ -1523,7 +1523,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             RenameDirectoryOrPackageCommand.IsEnabled = canRename;
             NewDirectoryCommand.IsEnabled = packageSelected || directorySelected;
             ActivatePackagePropertiesCommand.IsEnabled = packageSelected || directorySelected;
-            EditSelectedContentCommand.IsEnabled = ActiveAssetView.SingleSelectedContent is DirectoryViewModel || asset != null && asset.HasEditor;
+            EditSelectedContentCommand.IsEnabled = ActiveAssetView.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(this, asset.AssetType);
             OpenWithTextEditorCommand.IsEnabled = OpenAssetFileCommand.IsEnabled = OpenSourceFileCommand.IsEnabled = asset != null;
             ToggleIsRootOnSelectedAssetCommand.IsEnabled = ActiveAssetView.SelectedAssets.Count > 0 && ActiveAssetView.SelectedAssets.All(x => !x.Dependencies.ForcedRoot);
             UpdateSelectionCommands();

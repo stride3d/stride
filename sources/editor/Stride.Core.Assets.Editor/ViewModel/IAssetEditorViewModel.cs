@@ -18,6 +18,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         AssetViewModel Asset { get; }
 
         /// <summary>
+        /// A task that completes only when the editor has been successfully initialized;
+        /// </summary>
+        Task EditorInitialized { get; }
+
+        /// <summary>
         /// Initializes this editor asynchronously.
         /// </summary>
         /// <returns>A task that completes when the editor initialization has ended. This task result indicates if the initialization was successful.</returns>

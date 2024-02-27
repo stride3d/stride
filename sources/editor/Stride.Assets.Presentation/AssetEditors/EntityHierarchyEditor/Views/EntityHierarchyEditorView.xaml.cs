@@ -17,7 +17,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views
     /// </summary>
     public abstract partial class EntityHierarchyEditorView : IEditorView
     {
-        private readonly TaskCompletionSource<bool> editorInitializationNotifier = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource editorInitializationNotifier = new TaskCompletionSource();
 
         static EntityHierarchyEditorView()
         {
@@ -44,7 +44,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views
             SceneView.Content = editor.Controller.EditorHost;
             SceneView.InvalidateVisual();
 
-            editorInitializationNotifier.SetResult(result);
+            editorInitializationNotifier.SetResult();
             if (result)
                 return editor;
 

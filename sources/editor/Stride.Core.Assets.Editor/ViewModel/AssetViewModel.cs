@@ -14,7 +14,6 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Quantum;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -82,7 +81,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private ThumbnailData thumbnailData;
         private AssetItem assetItem;
         private IAssetEditorViewModel editor;
-        private TaskCompletionSource<int> editorInitialized = new TaskCompletionSource<int>();
         /// <summary>
         /// Initializes a new instance of the <see cref="AssetViewModel"/> class.
         /// </summary>
@@ -166,38 +164,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Gets whether this asset can provide an <see cref="GraphViewModel"/> representing its properties.
         /// </summary>
         public virtual bool CanProvidePropertiesViewModel => !IsDeleted && IsEditable;
-
-        /// <summary>
-        /// Gets the view model used in the editor of this asset. This property is null if the asset is not opened in an editor.
-        /// </summary>
-        [Obsolete]
-        public IAssetEditorViewModel Editor
-        {
-            get => editor;
-            internal set
-            {
-                SetValueUncancellable(ref editor, value, () =>
-                {
-                    if (value != null)
-                        editorInitialized.SetResult(1);
-                    else
-                        editorInitialized = new TaskCompletionSource<int>();
-                    Session?.UpdateSessionState();
-                });
-            }
-        }
-
-        /// <summary>
-        /// Gets whether this asset can be opened in an editor.
-        /// </summary>
-        [Obsolete]
-        public bool HasEditor => IsEditable && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(Session, AssetType);
-
-        /// <summary>
-        /// Gets a task that completes when the editor is initialized and is reset when the editor is disposed.
-        /// </summary>
-        [Obsolete]
-        public Task EditorInitialized => editorInitialized.Task;
 
         /// <summary>
         /// Gets the type of this asset.
@@ -538,7 +504,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var assetReferenceAnalysis = new PackageSessionAnalysis(package.Session, new PackageAnalysisParameters
                 {
                     // TODO: Check view model dirty flag after such an operation! Are we up-to-date?
-                    IsProcessingAssetReferences = true, SetDirtyFlagOnAssetWhenFixingUFile = true, IsLoggingAssetNotFoundAsError = true,
+                    IsProcessingAssetReferences = true,
+                    SetDirtyFlagOnAssetWhenFixingUFile = true,
+                    IsLoggingAssetNotFoundAsError = true,
                 });
                 var log = assetReferenceAnalysis.Run();
                 // TODO: what should we do with this log?

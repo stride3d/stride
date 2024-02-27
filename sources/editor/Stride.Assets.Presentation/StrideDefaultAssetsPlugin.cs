@@ -183,15 +183,15 @@ namespace Stride.Assets.Presentation
             session.AssetViewProperties.RegisterNodePresenterCommand(new SetEntityReferenceCommand());
             session.AssetViewProperties.RegisterNodePresenterCommand(new SetComponentReferenceCommand());
             session.AssetViewProperties.RegisterNodePresenterCommand(new SetSymbolReferenceCommand());
-            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityCommand(session));
-            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityComponentCommand(session));
+            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityCommand());
+            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityComponentCommand());
             session.AssetViewProperties.RegisterNodePresenterCommand(new EditCurveCommand(session));
             session.AssetViewProperties.RegisterNodePresenterCommand(new SkeletonNodePreserveAllCommand());
             //TODO: Add back once properly implemented.
             //session.AssetViewProperties.RegisterNodePresenterCommand(new AddNewScriptComponentCommand());
 
             session.AssetViewProperties.RegisterNodePresenterUpdater(new AnimationAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new CameraSlotNodeUpdater(session));
+            session.AssetViewProperties.RegisterNodePresenterUpdater(new CameraSlotNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new EntityHierarchyAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new EntityHierarchyEditorNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new GameSettingsAssetNodeUpdater());
