@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Assets;
 using Stride.Editor.Preview.ViewModel;
 
 namespace Stride.Editor.Preview
@@ -26,7 +25,7 @@ namespace Stride.Editor.Preview
         /// Gets the rendering mode for this preview;
         /// </summary>
         /// <value>The rendering mode.</value>
-        RenderingMode RenderingMode { get; }
+        Assets.RenderingMode RenderingMode { get; } // FIXME xplat-editor RenderingMode shouldn't be in Stride.Assets assembly
 
         /// <summary>
         /// Initializes the preview of an asset.
