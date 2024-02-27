@@ -2,7 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Windows;
+using Stride.Core.Annotations;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
@@ -18,13 +21,38 @@ namespace Stride.Core.Assets.Editor
         /// <inheritdoc />
         public override void InitializePlugin(ILogger logger)
         {
-            if (imageDictionary == null)
-                imageDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Core.Assets.Editor;component/View/ImageDictionary.xaml", UriKind.RelativeOrAbsolute));
+            imageDictionary ??= (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Core.Assets.Editor;component/View/ImageDictionary.xaml", UriKind.RelativeOrAbsolute));
         }
 
         /// <inheritdoc />
         public override void InitializeSession(SessionViewModel session)
         {
+        }
+
+        public void RegisterAssetEditorViewModelTypes([NotNull] IDictionary<Type, Type> assetEditorViewModelTypes)
+        {
+            var pluginAssembly = GetType().Assembly;
+            foreach (var type in pluginAssembly.GetTypes())
+            {
+                if (typeof(IAssetEditorViewModel).IsAssignableFrom(type) &&
+                    type.GetCustomAttribute<AssetEditorViewModelAttribute>() is { } attribute)
+                {
+                    assetEditorViewModelTypes.Add(attribute.ViewModelType, type);
+                }
+            }
+        }
+
+        public void RegisterAssetEditorViewTypes(IDictionary<Type, Type> assetEditorViewTypes)
+        {
+            var pluginAssembly = GetType().Assembly;
+            foreach (var type in pluginAssembly.GetTypes())
+            {
+                if (typeof(IEditorView).IsAssignableFrom(type) &&
+                    type.GetCustomAttribute<AssetEditorViewAttribute>() is { } attribute)
+                {
+                    assetEditorViewTypes.Add(attribute.EditorViewModelType, type);
+                }
+            }
         }
 
         /// <inheritdoc />

@@ -1,25 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Graph.Behaviors;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Scripts;
 using Block = Stride.Assets.Scripts.Block;
 
@@ -30,7 +20,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
     /// </summary>
     public partial class VisualScriptEditorView : IEditorView, IVisualScriptViewModelService
     {
-        private readonly TaskCompletionSource<bool> editorInitializationNotifier = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource editorInitializationNotifier = new();
 
         private DropVariableContextMenuChoice? dropVariableContextMenuChoice;
 
@@ -45,20 +35,16 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
         public Task EditorInitialization => editorInitializationNotifier.Task;
 
         /// <inheritdoc/>
-        public async Task<IAssetEditorViewModel> InitializeEditor(AssetViewModel asset)
+        public async Task<bool> InitializeEditor(IAssetEditorViewModel editor)
         {
-            var visualScript = (VisualScriptViewModel)asset;
-
-            var editor = new VisualScriptEditorViewModel(this, visualScript);
-
-            // Don't set the actual Editor property until the editor object is fully initialized - we don't want data bindings to access uninitialized properties
             var result = await editor.Initialize();
-            editorInitializationNotifier.SetResult(result);
-            if (result)
-                return editor;
+            if (!result)
+            {
+                editor.Destroy();
+            }
 
-            editor.Destroy();
-            return null;
+            editorInitializationNotifier.SetResult();
+            return result;
         }
 
         protected override void OnPreviewMouseDown(MouseButtonEventArgs e)

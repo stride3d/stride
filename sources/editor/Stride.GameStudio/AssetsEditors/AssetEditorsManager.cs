@@ -293,59 +293,64 @@ namespace Stride.GameStudio.AssetsEditors
                     return;
                 }
 
-                // Create a new editor view
-                view = asset.ServiceProvider.Get<IAssetsPluginService>().ConstructEditionView(asset);
-                if (view != null)
+                var editorType = session.PluginService.GetEditorViewModelType(asset.GetType());
+                if (editorType is not null)
                 {
-                    // Pane may already exists (e.g. created from layout saving)
-                    editorPane = AvalonDockHelper.GetAllAnchorables(dockingLayoutManager.DockingManager).FirstOrDefault(p => p.Title == asset.Url);
-                    if (editorPane == null)
+                    var viewType = session.PluginService.GetEditorViewType(editorType);
+                    if (viewType is not null)
                     {
-                        editorPane = new LayoutAnchorable { CanClose = true };
-                        // Stack the asset in the dictionary of editor to prevent double-opening while double-clicking twice on the asset, since the initialization is async
-                        AvalonDockHelper.GetDocumentPane(dockingLayoutManager.DockingManager).Children.Add(editorPane);
-                    }
-                    editorPane.IsActiveChanged += EditorPaneIsActiveChanged;
-                    editorPane.IsSelectedChanged += EditorPaneIsSelectedChanged;
-                    editorPane.Closing += EditorPaneClosing;
-                    editorPane.Closed += EditorPaneClosed;
-                    editorPane.Content = view;
-                    // Make the pane visible immediately
-                    MakeActiveVisible(editorPane);
+                        view = (IEditorView)Activator.CreateInstance(viewType);
 
-                    // Create a binding for the title
-                    var binding = new Binding(nameof(AssetViewModel.Url)) { Mode = BindingMode.OneWay, Source = asset };
-                    BindingOperations.SetBinding(editorPane, LayoutContent.TitleProperty, binding);
-
-                    var viewModel = await view.InitializeEditor(asset);
-                    if (viewModel == null)
-                    {
-                        // Could not initialize editor
-                        CleanEditorPane(editorPane);
-                        RemoveEditorPane(editorPane);
-                    }
-                    else
-                    {
-                        // Initialize the editor view
-                        view.DataContext = viewModel;
-
-                        assetEditors[viewModel] = editorPane;
-                        if (viewModel is IMultipleAssetEditorViewModel multiEditor)
+                        // Pane may already exists (e.g. created from layout saving)
+                        editorPane = AvalonDockHelper.GetAllAnchorables(dockingLayoutManager.DockingManager).FirstOrDefault(p => p.Title == asset.Url);
+                        if (editorPane == null)
                         {
-                            foreach (var item in multiEditor.OpenedAssets)
-                            {
-                                // FIXME: do we still have this case after decoupling asset and editor?
-                                if (openedAssets.TryGetValue(asset, out var otherEditor))
-                                {
-                                    // Note: this could happen in some case after undo/redo that involves parenting of scenes
-                                    RemoveAssetEditor(item);
-                                }
-                            }
-                            NotifyCollectionChangedEventHandler handler = (_, e) => MultiEditorOpenAssetsChanged(multiEditor, e);
-                            registeredHandlers.Add(multiEditor, handler);
-                            multiEditor.OpenedAssets.CollectionChanged += handler;
+                            editorPane = new LayoutAnchorable { CanClose = true };
+                            // Stack the asset in the dictionary of editor to prevent double-opening while double-clicking twice on the asset, since the initialization is async
+                            AvalonDockHelper.GetDocumentPane(dockingLayoutManager.DockingManager).Children.Add(editorPane);
                         }
-                        openedAssets.Add(asset, viewModel);
+                        editorPane.IsActiveChanged += EditorPaneIsActiveChanged;
+                        editorPane.IsSelectedChanged += EditorPaneIsSelectedChanged;
+                        editorPane.Closing += EditorPaneClosing;
+                        editorPane.Closed += EditorPaneClosed;
+                        editorPane.Content = view;
+                        // Make the pane visible immediately
+                        MakeActiveVisible(editorPane);
+
+                        // Create a binding for the title
+                        var binding = new Binding(nameof(AssetViewModel.Url)) { Mode = BindingMode.OneWay, Source = asset };
+                        BindingOperations.SetBinding(editorPane, LayoutContent.TitleProperty, binding);
+
+                        editor = (AssetEditorViewModel)Activator.CreateInstance(editorType, asset);
+                        if (!await view.InitializeEditor(editor))
+                        {
+                            // Could not initialize editor
+                            CleanEditorPane(editorPane);
+                            RemoveEditorPane(editorPane);
+                        }
+                        else
+                        {
+                            // Initialize the editor view
+                            view.DataContext = editor;
+
+                            assetEditors[editor] = editorPane;
+                            if (editor is IMultipleAssetEditorViewModel multiEditor)
+                            {
+                                foreach (var item in multiEditor.OpenedAssets)
+                                {
+                                    // FIXME: do we still have this case after decoupling asset and editor?
+                                    if (openedAssets.TryGetValue(asset, out var otherEditor))
+                                    {
+                                        // Note: this could happen in some case after undo/redo that involves parenting of scenes
+                                        RemoveAssetEditor(item);
+                                    }
+                                }
+                                NotifyCollectionChangedEventHandler handler = (_, e) => MultiEditorOpenAssetsChanged(multiEditor, e);
+                                registeredHandlers.Add(multiEditor, handler);
+                                multiEditor.OpenedAssets.CollectionChanged += handler;
+                            }
+                            openedAssets.Add(asset, editor);
+                        }
                     }
                 }
             }

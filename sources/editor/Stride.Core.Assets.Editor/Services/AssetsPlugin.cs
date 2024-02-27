@@ -15,11 +15,11 @@ namespace Stride.Core.Assets.Editor.Services
 {
     public abstract class AssetsPlugin
     {
-        protected static readonly Dictionary<Type, object> TypeImages = new Dictionary<Type, object>();
-        internal static readonly List<AssetsPlugin> RegisteredPlugins = new List<AssetsPlugin>();
+        protected static readonly Dictionary<Type, object> TypeImages = [];
+        internal static readonly List<AssetsPlugin> RegisteredPlugins = [];
 
         // TODO: give access to this differently
-        public readonly List<PackageSettingsEntry> ProfileSettings = new List<PackageSettingsEntry>();
+        public readonly List<PackageSettingsEntry> ProfileSettings = [];
 
         public static IReadOnlyDictionary<Type, object> TypeImagesDictionary => TypeImages;
 
@@ -43,30 +43,10 @@ namespace Stride.Core.Assets.Editor.Services
             var pluginAssembly = GetType().Assembly;
             foreach (var type in pluginAssembly.GetTypes())
             {
-                if (typeof(AssetViewModel).IsAssignableFrom(type))
+                if (typeof(AssetViewModel).IsAssignableFrom(type) &&
+                    type.GetCustomAttribute<AssetViewModelAttribute>() is { } attribute)
                 {
-                    var attribute = type.GetCustomAttribute<AssetViewModelAttribute>();
-                    if (attribute != null)
-                    {
-                        Type closureType = type;
-                        assetViewModelTypes.Add(attribute.AssetType, closureType);
-                    }
-                }
-            }
-        }
-
-        public void RegisterAssetEditorViewModelTypes([NotNull] IDictionary<Type, Type> assetEditorViewModelTypes)
-        {
-            var pluginAssembly = GetType().Assembly;
-            foreach (var type in pluginAssembly.GetTypes())
-            {
-                if (typeof(IAssetEditorViewModel).IsAssignableFrom(type))
-                {
-                    var attribute = type.GetCustomAttribute<AssetEditorViewModelAttribute>();
-                    if (attribute != null)
-                    {
-                        assetEditorViewModelTypes.Add(attribute.AssetType, type);
-                    }
+                    assetViewModelTypes.Add(attribute.AssetType, type);
                 }
             }
         }

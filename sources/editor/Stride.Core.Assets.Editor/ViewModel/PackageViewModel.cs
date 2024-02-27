@@ -332,16 +332,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             AssetCollectionItemIdHelper.GenerateMissingItemIds(assetItem.Asset);
             var parameters = new AssetViewModelConstructionParameters(ServiceProvider, directory, Package, assetItem, directory.Session.AssetNodeContainer, canUndoRedoCreation);
             Session.GraphContainer.InitializeAsset(assetItem, loggerResult);
-            var assetType = assetItem.Asset.GetType();
-            var assetViewModelType = typeof(AssetViewModel<>);
-            while (assetType != null)
-            {
-                if (Session.AssetViewModelTypes.TryGetValue(assetType, out assetViewModelType))
-                    break;
-
-                assetViewModelType = typeof(AssetViewModel<>);
-                assetType = assetType.BaseType;
-            }
+            var assetViewModelType = Session.GetAssetViewModelType(assetItem);
             if (assetViewModelType.IsGenericType)
             {
                 assetViewModelType = assetViewModelType.MakeGenericType(assetItem.Asset.GetType());

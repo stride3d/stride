@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,13 +19,14 @@ using Stride.Assets.Presentation.AssetEditors.SceneEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Views;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Core.Assets.Editor.Annotations;
 
 namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
 {
     /// <summary>
     /// View model of a <see cref="SceneViewModel"/> editor.
     /// </summary>
-    [AssetEditorViewModel(typeof(SceneAsset), typeof(SceneEditorView))]
+    [AssetEditorViewModel<SceneViewModel>]
     public sealed class SceneEditorViewModel : EntityHierarchyEditorViewModel, IMultipleAssetEditorViewModel
     {
         private readonly ObservableSet<SceneViewModel> allScenes = new ObservableSet<SceneViewModel>();
@@ -41,12 +41,20 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
         /// Initializes a new instance of the <see cref="SceneEditorViewModel"/> class.
         /// </summary>
         /// <param name="asset">The asset related to this editor.</param>
+        public SceneEditorViewModel([NotNull] SceneViewModel asset)
+            : this(asset, x => new SceneEditorController(asset.GetRoot(), (SceneEditorViewModel)x))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SceneEditorViewModel"/> class.
+        /// </summary>
+        /// <param name="asset">The asset related to this editor.</param>
         /// <param name="controllerFactory">A factory to create the associated <see cref="IEditorGameController"/>.</param>
-        /// <seealso cref="Create(SceneViewModel)"/>
         private SceneEditorViewModel([NotNull] SceneViewModel asset, [NotNull] Func<GameEditorViewModel, IEditorGameController> controllerFactory)
             : base(asset, controllerFactory)
         {
-
+            mainScene = asset;
         }
 
         [NotNull]
@@ -71,13 +79,6 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
 
         [NotNull]
         internal new SceneEditorController Controller => (SceneEditorController)base.Controller;
-
-        [NotNull]
-        public static SceneEditorViewModel Create([NotNull] SceneViewModel asset)
-        {
-            var rootScene = asset.GetRoot();
-            return new SceneEditorViewModel(rootScene, x => new SceneEditorController(rootScene, (SceneEditorViewModel)x)) { mainScene = asset };
-        }
 
         /// <inheritdoc />
         protected override AssetCompositeItemViewModel CreateRootPartViewModel()

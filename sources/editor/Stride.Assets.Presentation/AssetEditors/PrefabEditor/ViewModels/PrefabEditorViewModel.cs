@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Assets.Entities;
@@ -15,21 +14,30 @@ using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Views;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Core.Assets.Editor.Annotations;
 
 namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels
 {
     /// <summary>
     /// View model of a <see cref="PrefabViewModel"/> editor.
     /// </summary>
-    [AssetEditorViewModel(typeof(PrefabAsset), typeof(PrefabEditorView))]
+    [AssetEditorViewModel<PrefabViewModel>]
     public sealed class PrefabEditorViewModel : EntityHierarchyEditorViewModel
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PrefabEditorViewModel"/> class.
         /// </summary>
         /// <param name="asset">The asset related to this editor.</param>
+        public PrefabEditorViewModel([NotNull] PrefabViewModel asset)
+            : this(asset, x => new PrefabEditorController(asset, (PrefabEditorViewModel)x))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PrefabEditorViewModel"/> class.
+        /// </summary>
+        /// <param name="asset">The asset related to this editor.</param>
         /// <param name="controllerFactory">A factory to create the associated <see cref="IEditorGameController"/>.</param>
-        /// <seealso cref="Create(PrefabViewModel)"/>
         private PrefabEditorViewModel([NotNull] PrefabViewModel asset, [NotNull] Func<GameEditorViewModel, IEditorGameController> controllerFactory)
             : base(asset, controllerFactory)
         {
@@ -40,12 +48,6 @@ namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels
 
         [NotNull]
         internal new PrefabEditorController Controller => (PrefabEditorController)base.Controller;
-
-        [NotNull]
-        public static PrefabEditorViewModel Create([NotNull] PrefabViewModel prefabAsset)
-        {
-            return new PrefabEditorViewModel(prefabAsset, x => new PrefabEditorController(prefabAsset, (PrefabEditorViewModel)x));
-        }
 
         /// <inheritdoc />
         protected override AssetCompositeItemViewModel CreateRootPartViewModel()

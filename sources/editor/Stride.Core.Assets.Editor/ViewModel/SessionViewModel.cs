@@ -200,6 +200,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         public IAssetDependencyManager DependencyManager => session.DependencyManager;
 
+        internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
+
         /// <summary>
         /// Raised when some assets are modified.
         /// </summary>
@@ -219,8 +221,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Raised when the active assets collection changed.
         /// </summary>
         public event EventHandler<ActiveAssetsChangedArgs> ActiveAssetsChanged;
-
-        internal readonly IDictionary<Type, Type> AssetViewModelTypes = new Dictionary<Type, Type>();
 
         /// <summary>
         /// Gets whether the session is currently in a special context to fix up assets.
@@ -534,8 +534,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             undoRedoService = ServiceProvider.Get<IUndoRedoService>();
 
             // Gather all data from plugins
-            var pluginService = ServiceProvider.Get<PluginService>();
-            pluginService.RegisterSession(this, logger);
+            PluginService.RegisterSession(this, logger);
 
             // Initialize the undo/redo debug view model
             undoRedoStackPage = EditorDebugTools.CreateUndoRedoDebugPage(undoRedoService, "Undo/redo stack");
@@ -1008,6 +1007,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
             AssetViewModel result;
             assetIdMap.TryGetValue(id, out result);
             return result;
+        }
+
+        public Type GetAssetViewModelType(AssetItem assetItem)
+        {
+            var assetType = assetItem.Asset.GetType();
+            return PluginService.GetAssetViewModelType(assetType) ?? typeof(AssetViewModel<>);
         }
 
         /// <summary>
@@ -1523,7 +1528,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             RenameDirectoryOrPackageCommand.IsEnabled = canRename;
             NewDirectoryCommand.IsEnabled = packageSelected || directorySelected;
             ActivatePackagePropertiesCommand.IsEnabled = packageSelected || directorySelected;
-            EditSelectedContentCommand.IsEnabled = ActiveAssetView.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(this, asset.AssetType);
+            EditSelectedContentCommand.IsEnabled = ActiveAssetView.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(this, asset.GetType());
             OpenWithTextEditorCommand.IsEnabled = OpenAssetFileCommand.IsEnabled = OpenSourceFileCommand.IsEnabled = asset != null;
             ToggleIsRootOnSelectedAssetCommand.IsEnabled = ActiveAssetView.SelectedAssets.Count > 0 && ActiveAssetView.SelectedAssets.All(x => !x.Dependencies.ForcedRoot);
             UpdateSelectionCommands();
