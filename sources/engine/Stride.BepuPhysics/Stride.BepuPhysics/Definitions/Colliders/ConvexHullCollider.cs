@@ -60,7 +60,9 @@ public sealed class ConvexHullCollider : ColliderBase
                     points = copy;
                 }
 
-                builder.Add(new ConvexHull(points, pool, out _), localPose, Mass);
+                var convex = new ConvexHull(points, pool, out var center);
+                localPose.Position += center;
+                builder.Add(convex, localPose, Mass);
             }
         }
     }
