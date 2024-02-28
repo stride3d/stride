@@ -15,9 +15,6 @@ namespace Stride.Core.Shaders.Grammar
     /// <remarks>
     /// This grammar provides the core grammar for a shading language including expressions (binary, unary, methods...), statements (if, for, while...).
     /// </remarks>
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:ElementsMustBeDocumented", Justification = "Reviewed. Suppression is OK here.")]
-    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:FieldNamesMustNotContainUnderscore", Justification = "Reviewed. Suppression is OK here.")]
-    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1304:NonPrivateReadonlyFieldsMustBeginWithUpperCaseLetter", Justification = "Reviewed. Suppression is OK here.")]
     public abstract partial class ShaderGrammar : Irony.Parsing.Grammar
     {
         // ReSharper disable InconsistentNaming
