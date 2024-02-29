@@ -6,10 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
-using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;

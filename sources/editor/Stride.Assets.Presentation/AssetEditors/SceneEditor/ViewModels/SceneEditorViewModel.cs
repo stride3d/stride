@@ -9,14 +9,12 @@ using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Threading;
 using Stride.Core.Presentation.Collections;
-using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.SceneEditor.Views;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Editor.Annotations;
@@ -57,8 +55,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
             mainScene = asset;
         }
 
-        [NotNull]
-        public new SceneViewModel Asset => (SceneViewModel)base.Asset;
+        public override SceneViewModel Asset => (SceneViewModel)base.Asset;
 
         public bool DisplayCameraPreview { get => Preview.IsActive; set { SetValue(Preview.IsActive != value, () => Preview.IsActive = value); } }
 

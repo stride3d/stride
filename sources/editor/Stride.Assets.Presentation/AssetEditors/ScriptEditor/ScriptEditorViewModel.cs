@@ -29,7 +29,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         /// <summary>
         /// The asset being edited.
         /// </summary>
-        public new ScriptSourceFileAssetViewModel Asset => (ScriptSourceFileAssetViewModel)base.Asset;
+        public override ScriptSourceFileAssetViewModel Asset => (ScriptSourceFileAssetViewModel)base.Asset;
 
         /// <summary>
         /// The code view model that manages roslyn states.

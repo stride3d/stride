@@ -63,7 +63,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
             RemoveSelectedCameraSlotsCommand = new AnonymousCommand(ServiceProvider, RemoveSelectedCameraSlots);
         }
 
-        public new GraphicsCompositorViewModel Asset => (GraphicsCompositorViewModel)base.Asset;
+        public override GraphicsCompositorViewModel Asset => (GraphicsCompositorViewModel)base.Asset;
 
         public ObservableList<RenderStageViewModel> RenderStages { get; } = new ObservableList<RenderStageViewModel>();
 

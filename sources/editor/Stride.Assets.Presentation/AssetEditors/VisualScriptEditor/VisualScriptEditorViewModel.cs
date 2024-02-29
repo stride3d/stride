@@ -166,7 +166,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 
         public BlockTemplateDescriptionCollectionViewModel BlockTemplateDescriptionCollection => blockTemplateDescriptionCollection.Value;
 
-        public new VisualScriptViewModel Asset => (VisualScriptViewModel)base.Asset;
+        public override VisualScriptViewModel Asset => (VisualScriptViewModel)base.Asset;
 
         public string BaseType { get { return baseTypeNodeBinding.Value; } set { baseTypeNodeBinding.Value = value; } }
 

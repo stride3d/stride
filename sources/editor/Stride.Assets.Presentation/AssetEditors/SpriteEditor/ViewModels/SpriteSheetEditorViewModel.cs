@@ -23,7 +23,6 @@ using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.AssetEditors.SpriteEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor.Annotations;
@@ -97,7 +96,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
             spritesNode.ItemChanged += SpritesContentChanged;
         }
 
-        public new SpriteSheetViewModel Asset => (SpriteSheetViewModel)base.Asset;
+        public override SpriteSheetViewModel Asset => (SpriteSheetViewModel)base.Asset;
 
         public SpriteSheetType Type { get => typeNodeBinding.Value; set => typeNodeBinding.Value = value; }
 

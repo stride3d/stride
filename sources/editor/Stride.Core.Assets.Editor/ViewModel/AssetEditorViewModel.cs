@@ -39,7 +39,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public SessionViewModel Session => Asset.Session;
 
         /// <inheritdoc/>
-        public AssetViewModel Asset { get; }
+        public virtual AssetViewModel Asset { get; }
 
         /// <inheritdoc/>
         public virtual Task EditorInitialized => Task.CompletedTask; // FIXME might not be necessary, but implementing editor might have different initialization logic

@@ -80,8 +80,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
         [NotNull]
         public ICommandBase PasteCommand { get; }
 
-        [NotNull]
-        public new AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart> Asset => (AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>)base.Asset;
+        public override AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart> Asset => (AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>)base.Asset;
 
         [NotNull]
         protected FuncClipboardMonitor<bool> PasteAsRootMonitor { get; } = new FuncClipboardMonitor<bool>();

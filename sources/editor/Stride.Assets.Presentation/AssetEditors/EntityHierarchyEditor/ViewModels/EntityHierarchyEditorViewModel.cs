@@ -151,12 +151,10 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         [NotNull]
         public ICommandBase CreatePrefabFromSelectionCommand { get; }
 
-        [NotNull]
-        public new EntityHierarchyViewModel Asset => (EntityHierarchyViewModel)base.Asset;
+        public override EntityHierarchyViewModel Asset => (EntityHierarchyViewModel)base.Asset;
 
         // TODO: turn private, create a service getter that accepts only IEditorGameViewModelService
-        [NotNull]
-        protected internal new EntityHierarchyEditorController Controller => (EntityHierarchyEditorController)base.Controller;
+        protected internal override EntityHierarchyEditorController Controller => (EntityHierarchyEditorController)base.Controller;
 
         private IEditorGameMaterialHighlightViewModelService MaterialHighlight => Controller.GetService<IEditorGameMaterialHighlightViewModelService>();
 

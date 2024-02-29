@@ -4,14 +4,12 @@ using System;
 using System.Threading.Tasks;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
-using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Views;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Editor.Annotations;
@@ -43,11 +41,9 @@ namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels
         {
         }
 
-        [NotNull]
-        public new PrefabViewModel Asset => (PrefabViewModel)base.Asset;
+        public override PrefabViewModel Asset => (PrefabViewModel)base.Asset;
 
-        [NotNull]
-        internal new PrefabEditorController Controller => (PrefabEditorController)base.Controller;
+        protected internal override PrefabEditorController Controller => (PrefabEditorController)base.Controller;
 
         /// <inheritdoc />
         protected override AssetCompositeItemViewModel CreateRootPartViewModel()
