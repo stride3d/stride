@@ -11,7 +11,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 namespace Stride.Core.Assets.Editor.Services;
 public interface IAssetsPluginService
 {
-    IReadOnlyCollection<AssetsPlugin> Plugins { get; }
+    IReadOnlyList<AssetsPlugin> Plugins { get; }
 
     bool HasImagesForEnum(SessionViewModel session, Type enumType);
 

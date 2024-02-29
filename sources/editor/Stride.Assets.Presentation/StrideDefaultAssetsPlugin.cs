@@ -36,7 +36,7 @@ namespace Stride.Assets.Presentation
         /// </summary>
         private class ComponentTypeComparer : EqualityComparer<Type>
         {
-            public new static readonly ComponentTypeComparer Default = new ComponentTypeComparer();
+            public static new readonly ComponentTypeComparer Default = new ComponentTypeComparer();
 
             /// <summary>
             /// Compares two component types and returns <c>true</c> if the types match, i.e.:

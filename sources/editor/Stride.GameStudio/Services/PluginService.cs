@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -23,7 +22,7 @@ public class PluginService : IAssetsPluginService
     private readonly Dictionary<Type, Type> editorViewModelTypes = [];
     private readonly Dictionary<Type, Type> editorViewTypes = [];
 
-    public IReadOnlyCollection<AssetsPlugin> Plugins => AssetsPlugin.RegisteredPlugins;
+    public IReadOnlyList<AssetsPlugin> Plugins => AssetsPlugin.RegisteredPlugins;
 
     private readonly Dictionary<object, object> enumImages = [];
 
@@ -49,13 +48,6 @@ public class PluginService : IAssetsPluginService
             plugin.RegisterPrimitiveTypes(registeredPrimitiveTypes);
             primitiveTypes.AddRange(registeredPrimitiveTypes);
 
-            // Enum images
-            var images = new Dictionary<object, object>();
-            plugin.RegisterEnumImages(images);
-            AssertType(typeof(Enum), images.Select(x => x.Key.GetType()));
-            enumImages.AddRange(images);
-            enumTypesWithImages.AddRange(images.Select(x => x.Key.GetType()));
-
             if (plugin is AssetsEditorPlugin editorPlugin)
             {
                 // Asset editor view models types
@@ -71,39 +63,46 @@ public class PluginService : IAssetsPluginService
                 AssertType(typeof(AssetEditorViewModel), registeredAssetEditorViewTypes.Select(x => x.Key));
                 AssertType(typeof(IEditorView), registeredAssetEditorViewTypes.Select(x => x.Value));
                 editorViewTypes.AddRange(registeredAssetEditorViewTypes);
-            }
 
-            // Editor and property item template providers
-            var providers = new List<ITemplateProvider>();
-            plugin.RegisterTemplateProviders(providers);
-            var dialogService = session.ServiceProvider.Get<IEditorDialogService>();
-            foreach (var provider in providers)
-            {
-                dialogService.RegisterAdditionalTemplateProvider(provider);
-            }
+                // Enum images
+                var images = new Dictionary<object, object>();
+                editorPlugin.RegisterEnumImages(images);
+                AssertType(typeof(Enum), images.Select(x => x.Key.GetType()));
+                enumImages.AddRange(images);
+                enumTypesWithImages.AddRange(images.Select(x => x.Key.GetType()));
 
-            if (session.ServiceProvider.TryGet<ICopyPasteService>() is { } copyPasteService)
-            {
-                // Copy processors
-                var copyProcessors = new List<ICopyProcessor>();
-                plugin.RegisterCopyProcessors(copyProcessors, session);
-                foreach (var processor in copyProcessors)
+                // Editor and property item template providers
+                var providers = new List<ITemplateProvider>();
+                editorPlugin.RegisterTemplateProviders(providers);
+                var dialogService = session.ServiceProvider.Get<IEditorDialogService>();
+                foreach (var provider in providers)
                 {
-                    copyPasteService.RegisterProcessor(processor);
+                    dialogService.RegisterAdditionalTemplateProvider(provider);
                 }
-                // Paste processors
-                var pasteProcessors = new List<IPasteProcessor>();
-                plugin.RegisterPasteProcessors(pasteProcessors, session);
-                foreach (var processor in pasteProcessors)
+
+                if (session.ServiceProvider.TryGet<ICopyPasteService>() is { } copyPasteService)
                 {
-                    copyPasteService.RegisterProcessor(processor);
-                }
-                // Post paste processors
-                var postPasteProcessors = new List<IAssetPostPasteProcessor>();
-                plugin.RegisterPostPasteProcessors(postPasteProcessors, session);
-                foreach (var processor in postPasteProcessors)
-                {
-                    copyPasteService.RegisterProcessor(processor);
+                    // Copy processors
+                    var copyProcessors = new List<ICopyProcessor>();
+                    editorPlugin.RegisterCopyProcessors(copyProcessors, session);
+                    foreach (var processor in copyProcessors)
+                    {
+                        copyPasteService.RegisterProcessor(processor);
+                    }
+                    // Paste processors
+                    var pasteProcessors = new List<IPasteProcessor>();
+                    editorPlugin.RegisterPasteProcessors(pasteProcessors, session);
+                    foreach (var processor in pasteProcessors)
+                    {
+                        copyPasteService.RegisterProcessor(processor);
+                    }
+                    // Post paste processors
+                    var postPasteProcessors = new List<IAssetPostPasteProcessor>();
+                    editorPlugin.RegisterPostPasteProcessors(postPasteProcessors, session);
+                    foreach (var processor in postPasteProcessors)
+                    {
+                        copyPasteService.RegisterProcessor(processor);
+                    }
                 }
             }
         }

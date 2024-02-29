@@ -20,7 +20,7 @@ using Stride.GameStudio.ViewModels;
 
 namespace Stride.GameStudio.Plugin
 {
-    public class StrideEditorPlugin : StrideAssetsPlugin
+    internal sealed class StrideEditorPlugin : StrideAssetsPlugin
     {
         protected override void Initialize(ILogger logger)
         {

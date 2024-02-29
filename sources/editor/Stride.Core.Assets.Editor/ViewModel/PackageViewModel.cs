@@ -243,7 +243,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
 
             var pluginService = Session.ServiceProvider.Get<IAssetsPluginService>();
-            foreach (var plugin in pluginService.Plugins)
+            foreach (var plugin in pluginService.Plugins.OfType<AssetsEditorPlugin>())
             {
                 foreach (var property in plugin.ProfileSettings)
                 {

@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
@@ -22,10 +22,10 @@ namespace Stride.Editor
 {
     public delegate IAssetPreview AssetPreviewFactory(IPreviewBuilder builder, PreviewGame game, AssetItem asset);
 
-    public abstract class StrideAssetsPlugin : AssetsPlugin
+    public abstract class StrideAssetsPlugin : AssetsEditorPlugin
     {
-        private readonly Dictionary<object, object> enumImagesDictionary = new Dictionary<object, object>();
-        private readonly List<ITemplateProvider> templateProviderList = new List<ITemplateProvider>();
+        private readonly Dictionary<object, object> enumImagesDictionary = [];
+        private readonly List<ITemplateProvider> templateProviderList = [];
 
         protected virtual void RegisterResourceDictionary(ResourceDictionary dictionary)
         {
