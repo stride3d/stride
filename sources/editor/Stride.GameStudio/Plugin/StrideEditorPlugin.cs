@@ -11,6 +11,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Editor;
+using Stride.Editor.Annotations;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.Editor.Thumbnails;
@@ -86,6 +87,11 @@ namespace Stride.GameStudio.Plugin
 
             GameStudioViewModel.GameStudio.Preview = new PreviewViewModel(session);
             GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, strideDebugService);
+        }
+
+        public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
+        {
+            // nothing for now
         }
     }
 }

@@ -15,6 +15,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.View;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.ViewModel;
 
@@ -105,18 +106,16 @@ namespace Stride.Editor
             templateProviders.AddRange(templateProviderList);
         }
 
-        public void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
+        /// <inheritdoc />
+        public override void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
         {
             var pluginAssembly = GetType().Assembly;
             foreach (var type in pluginAssembly.GetTypes())
             {
-                if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type))
+                if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type) &&
+                    type.GetCustomAttribute<AssetPreviewViewModelAttribute>() is { } attribute)
                 {
-                    var attribute = type.GetCustomAttribute<AssetPreviewViewModelAttribute>();
-                    if (attribute != null)
-                    {
-                        assetPreviewViewModelTypes.Add(attribute.AssetPreviewType, type);
-                    }
+                    assetPreviewViewModelTypes.Add(attribute.AssetPreviewType, type);
                 }
             }
         }

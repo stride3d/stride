@@ -26,6 +26,8 @@ using Stride.Editor;
 using Stride.Engine;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Packages;
+using Stride.Editor.Annotations;
+using Stride.Editor.Preview.View;
 
 namespace Stride.Assets.Presentation
 {
@@ -231,6 +233,24 @@ namespace Stride.Assets.Presentation
         public override void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
         {
             primitiveTypes.Add(typeof(AssetReference));
+        }
+
+        /// <inheritdoc />
+        public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
+        {
+            var pluginAssembly = GetType().Assembly;
+            foreach (var type in pluginAssembly.GetTypes())
+            {
+                if (!typeof(IPreviewView).IsAssignableFrom(type))
+                {
+                    continue;
+                }
+
+                foreach (var attribute in type.GetCustomAttributes<AssetPreviewViewAttribute>())
+                {
+                    assetPreviewViewTypes.Add(attribute.AssetPreviewType, type);
+                }
+            }
         }
 
         /// <inheritdoc />

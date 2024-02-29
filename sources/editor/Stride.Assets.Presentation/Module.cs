@@ -11,6 +11,8 @@ using Stride.Assets.SpriteFont;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Editor.Preview;
+using Stride.Editor.Preview.View;
 
 namespace Stride.Assets.Presentation
 {
@@ -26,6 +28,7 @@ namespace Stride.Assets.Presentation
             AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
             // We need access to the AssetQuantumRegistry from the SessionTemplateGenerator so for now we register graph types in the module initializer.
             AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
+            AssetPreview.DefaultViewType = typeof(StridePreviewView);
             AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
             // Register default template
             StrideTemplates.Register();

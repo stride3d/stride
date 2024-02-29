@@ -35,6 +35,16 @@ internal sealed class CoreAssetsEditorPlugin : AssetsEditorPlugin
     }
 
     /// <inheritdoc />
+    public override void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
+    {
+    }
+
+    /// <inheritdoc />
+    public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
+    {
+    }
+
+    /// <inheritdoc />
     public override void RegisterEnumImages(IDictionary<object, object> enumImages)
     {
         if (imageDictionary is null) return;

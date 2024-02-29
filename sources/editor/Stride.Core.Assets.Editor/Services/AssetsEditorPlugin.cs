@@ -48,6 +48,10 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
         }
     }
 
+    public abstract void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes);
+
+    public abstract void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes);
+
     public abstract void RegisterEnumImages(IDictionary<object, object> enumImages);
 
     public abstract void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, SessionViewModel session);

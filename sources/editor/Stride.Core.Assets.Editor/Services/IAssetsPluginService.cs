@@ -13,9 +13,9 @@ public interface IAssetsPluginService
 {
     IReadOnlyList<AssetsPlugin> Plugins { get; }
 
-    bool HasImagesForEnum(SessionViewModel session, Type enumType);
+    bool HasImagesForEnum(SessionViewModel? session, Type enumType);
 
-    object GetImageForEnum(SessionViewModel session, object value);
+    object? GetImageForEnum(SessionViewModel? session, object value);
 
     IEnumerable<Type> GetPrimitiveTypes(SessionViewModel session);
 
@@ -26,6 +26,10 @@ public interface IAssetsPluginService
     Type? GetEditorViewModelType(Type viewModelType);
 
     Type? GetEditorViewType(Type editorViewModelType);
+
+    Type? GetPreviewViewModelType(Type previewType);
+
+    Type? GetPreviewViewType(Type previewType);
 
     void RegisterSession(SessionViewModel session, ILogger logger);
 }

@@ -13,6 +13,9 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.View;
+using Stride.Editor.Preview.View;
+using Stride.Editor.Preview.ViewModel;
+using Stride.Editor.Preview;
 
 namespace Stride.GameStudio.Services;
 
@@ -21,6 +24,8 @@ public class PluginService : IAssetsPluginService
     private readonly Dictionary<Type, Type> assetViewModelTypes = [];
     private readonly Dictionary<Type, Type> editorViewModelTypes = [];
     private readonly Dictionary<Type, Type> editorViewTypes = [];
+    private readonly Dictionary<Type, Type> previewViewModelTypes = [];
+    private readonly Dictionary<Type, Type> previewViewViewTypes = [];
 
     public IReadOnlyList<AssetsPlugin> Plugins => AssetsPlugin.RegisteredPlugins;
 
@@ -63,6 +68,20 @@ public class PluginService : IAssetsPluginService
                 AssertType(typeof(AssetEditorViewModel), registeredAssetEditorViewTypes.Select(x => x.Key));
                 AssertType(typeof(IEditorView), registeredAssetEditorViewTypes.Select(x => x.Value));
                 editorViewTypes.AddRange(registeredAssetEditorViewTypes);
+
+                // Asset preview view model types
+                var registeredAssetPreviewViewModelTypes = new Dictionary<Type, Type>();
+                editorPlugin.RegisterAssetPreviewViewModelTypes(registeredAssetPreviewViewModelTypes);
+                AssertType(typeof(IAssetPreview), registeredAssetPreviewViewModelTypes.Select(x => x.Key));
+                AssertType(typeof(IAssetPreviewViewModel), registeredAssetPreviewViewModelTypes.Select(x => x.Value));
+                previewViewModelTypes.AddRange(registeredAssetPreviewViewModelTypes);
+
+                // Asset preview view types
+                var registeredAssetPreviewViewTypes = new Dictionary<Type, Type>();
+                editorPlugin.RegisterAssetPreviewViewTypes(registeredAssetPreviewViewTypes);
+                AssertType(typeof(IAssetPreview), registeredAssetPreviewViewTypes.Select(x => x.Key));
+                AssertType(typeof(IPreviewView), registeredAssetPreviewViewTypes.Select(x => x.Value));
+                previewViewViewTypes.AddRange(registeredAssetPreviewViewTypes);
 
                 // Enum images
                 var images = new Dictionary<object, object>();
@@ -108,18 +127,17 @@ public class PluginService : IAssetsPluginService
         }
     }
 
-    public bool HasImagesForEnum(SessionViewModel session, Type enumType)
+    public bool HasImagesForEnum(SessionViewModel? session, Type enumType)
     {
         return session != null && enumTypesWithImages.Contains(enumType);
     }
 
-    public object GetImageForEnum(SessionViewModel session, object value)
+    public object? GetImageForEnum(SessionViewModel? session, object value)
     {
         if (session == null)
             return null;
 
-        object image;
-        enumImages.TryGetValue(value, out image);
+        enumImages.TryGetValue(value, out var image);
         return image;
     }
 
@@ -138,6 +156,10 @@ public class PluginService : IAssetsPluginService
     public Type? GetEditorViewModelType(Type viewModelType) => TypeHelpers.TryGetTypeOrBase(viewModelType, editorViewModelTypes);
 
     public Type? GetEditorViewType(Type editorViewModelType) => TypeHelpers.TryGetTypeOrBase(editorViewModelType, editorViewTypes);
+
+    public Type? GetPreviewViewModelType(Type previewType) => TypeHelpers.TryGetTypeOrBase(previewType, previewViewModelTypes);
+
+    public Type? GetPreviewViewType(Type previewType) => TypeHelpers.TryGetTypeOrBase(previewType, previewViewViewTypes);
 
     private static void AssertType(Type baseType, Type specificType)
     {
