@@ -10,6 +10,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Graphics;
+using Stride.Graphics.Data;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 
@@ -79,21 +80,12 @@ namespace Stride.Rendering
                 var modelComponent = entity.Key;
                 var renderModel = entity.Value;
 
-                if(modelComponent?.MeshInfos?.Count==5)
-                {
-
-                }
-                if (modelComponent?.MeshInfos?.Count > 1)
-                {
-
-                }
-
                 CheckMeshes(modelComponent, renderModel);
                 UpdateRenderModel(modelComponent, renderModel);
             });
         }
 
-        private void UpdateRenderModel(ModelComponent modelComponent, RenderModel renderModel)
+        private unsafe void UpdateRenderModel(ModelComponent modelComponent, RenderModel renderModel)
         {
             if (modelComponent.Model == null)
                 return;
@@ -125,17 +117,9 @@ namespace Stride.Rendering
                         renderMesh.BoundingBox = new BoundingBoxExt(meshInfo.BoundingBox);
                         renderMesh.BlendMatrices = meshInfo.BlendMatrices;
 
-                        renderMesh.HasBlendShapes = mesh.GetBlendShapesCount() > 0;
-                        if (renderMesh.HasBlendShapes)
+                        if (renderMesh.HasBlendShapes = mesh.GetBlendShapesCount() > 0)
                         {
-                            if (mesh.MATBSHAPE == null || mesh.BlendShapeProcessingNecessary) 
-                            {
-                                mesh.ProcessBlendShapes();    
-                            }
-                            renderMesh.MATBSHAPE = mesh.MATBSHAPE;
-                            renderMesh.BasisKeyWeight = mesh.BasisKeyWeight;
-                            renderMesh.BlendShapesCount=mesh.Shapes.Count;
-                            renderMesh.VerticesCount = mesh.Draw.VertexCount; 
+                          renderMesh.Mesh.UpdateBlendShapeImpact();                    
                         }
                     }
                 }

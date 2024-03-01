@@ -13,6 +13,9 @@ using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Buffer = Stride.Graphics.Buffer;
+using SharpDX;
+using System.Runtime.CompilerServices;
+using System.Collections;
 
 namespace Stride.Rendering
 {
@@ -155,7 +158,7 @@ namespace Stride.Rendering
         }
 
         /// <inheritdoc/>
-        public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
+        public unsafe override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
         {
             using var _ = Profiler.Begin(DrawKey);
             var commandList = context.CommandList;
@@ -187,14 +190,23 @@ namespace Stride.Rendering
                 var renderEffect = renderNode.RenderEffect;
                 if (renderEffect.Effect == null)
                     continue;
-
+            
                 // Bind VB
                 if (currentDrawData != drawData)
                 {
                     for (int slot = 0; slot < drawData.VertexBuffers.Length; slot++)
                     {
                         var vertexBuffer = drawData.VertexBuffers[slot];
+
+                       
+
+
                         commandList.SetVertexBuffer(slot, vertexBuffer.Buffer, vertexBuffer.Offset, vertexBuffer.Stride);
+
+
+             
+
+
                     }
 
                     // If the mesh's vertex buffers miss any input streams, an additional input binding will have been added to the pipeline state.

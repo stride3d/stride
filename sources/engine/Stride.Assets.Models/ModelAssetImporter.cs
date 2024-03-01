@@ -315,7 +315,8 @@ namespace Stride.Assets.Models
 
             foreach (var textureFullPath in textureDependencies.Distinct(x => x))
             {
-                var texturePath = new UFile(textureFullPath);
+                if (!System.IO.File.Exists(textureFullPath)) { continue; }
+                var texturePath = new UFile(textureFullPath);      
 
                 var source = texturePath;
                 var texture = new TextureAsset { Source = source, Type = new ColorTextureType { PremultiplyAlpha = false } };

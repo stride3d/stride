@@ -24,12 +24,11 @@ namespace Stride.Graphics
             if (vertexBuffer == null) throw new ArgumentNullException("vertexBuffer");
             if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
 
-            Buffer = vertexBuffer;
+            Buffer = vertexBuffer;           
             Stride = vertexStride != -1 ? vertexStride : vertexDeclaration.VertexStride;
             Offset = vertexOffset;
             Count = vertexCount;
-            Declaration = vertexDeclaration;
-
+            Declaration = vertexDeclaration;         
             unchecked
             {
                 hashCode = Buffer.GetHashCode();

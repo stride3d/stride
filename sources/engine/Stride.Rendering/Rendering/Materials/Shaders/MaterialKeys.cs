@@ -126,10 +126,9 @@ namespace Stride.Rendering.Materials
 
         public static readonly PermutationParameterKey<int> SkinningMaxBones = ParameterKeys.NewPermutation<int>(56);
 
-        public static readonly PermutationParameterKey<int> MAX_VERTICES = ParameterKeys.NewPermutation<int>(1);
-        public static readonly PermutationParameterKey<int> MAX_MORPH_TARGETS = ParameterKeys.NewPermutation<int>(1);
         public static readonly PermutationParameterKey<int> MAT_COUNT = ParameterKeys.NewPermutation<int>(1);
 
+        public static readonly PermutationParameterKey<int> MORPH_TARGETS_COUNT= ParameterKeys.NewPermutation<int>(1);
 
         public static readonly PermutationParameterKey<bool> UsePixelShaderWithDepthPass = ParameterKeys.NewPermutation<bool>();
 

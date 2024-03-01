@@ -108,7 +108,7 @@ namespace Stride.Rendering
             // Compute LocalMatrix
             if ((node.Flags & ModelNodeFlags.EnableTransform) == ModelNodeFlags.EnableTransform)
             {
-                UpdateLocalMatrix(ref node);
+               UpdateLocalMatrix(ref node);
             }
 
             var nodeTransformationsLocal = this.nodeTransformations;

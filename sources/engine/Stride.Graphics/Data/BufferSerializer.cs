@@ -35,7 +35,7 @@ namespace Stride.Graphics.Data
                     var graphicsDeviceService = services.GetSafeServiceAs<IGraphicsDeviceService>();
 
                     buffer.AttachToGraphicsDevice(graphicsDeviceService.GraphicsDevice);
-                    buffer.InitializeFrom(bufferData.Content, bufferData.StructureByteStride, bufferData.BufferFlags, PixelFormat.None, bufferData.Usage);
+                    buffer.InitializeFrom(bufferData.Content, bufferData.StructureByteStride, bufferData.BufferFlags, PixelFormat.None, GraphicsResourceUsage.Dynamic);
 
                     // Setup reload callback (reload from asset manager)
                     var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);

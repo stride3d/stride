@@ -18,6 +18,8 @@ namespace Stride.Rendering
     public static partial class TransformationBlendShape
     {
            public static readonly ValueParameterKey<Matrix> BSHAPEDATA = ParameterKeys.NewValue<Matrix>();
-           public static readonly ValueParameterKey<Matrix> LOOKUP = ParameterKeys.NewValue<Matrix>();
+        
+       // public static readonly ValueParameterKey<float> Lift = ParameterKeys.NewValue<float>();
+
     }
 }

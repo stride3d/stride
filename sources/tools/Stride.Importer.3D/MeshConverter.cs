@@ -213,10 +213,10 @@ namespace Stride.Importer.ThreeD
                             NodeIndex = nodeIndex,
                         };
 
-                        foreach (var shape in shapes)
-                        {
-                            nodeMeshData.AddBlendShapes(shape, 1);
-                        }
+                        Dictionary<Shape, float> shapesDict = new Dictionary<Shape, float>();
+                        shapes?.ForEach(c => shapesDict.Add(c, 1));
+                        if (shapesDict?.Count>0) { nodeMeshData.Shapes = shapesDict; }
+                        
                         if (meshInfo.Bones != null)
                         {
                             nodeMeshData.Skinning = new MeshSkinningDefinition
@@ -231,12 +231,7 @@ namespace Stride.Importer.ThreeD
                         if (meshInfo.HasSkinningNormal && meshInfo.TotalClusterCount > 0)
                             nodeMeshData.Parameters.Set(MaterialKeys.HasSkinningNormal, true);
 
-
-
                         modelData.Meshes.Add(nodeMeshData);
-                        nodeMeshData.BlendShapeProcessingNecessary = shapes.Count > 0;
-                        nodeMeshData.ProcessBlendShapes();
-
                     }
 
 
@@ -248,7 +243,6 @@ namespace Stride.Importer.ThreeD
             {
                 ExtractEmbededTexture(scene->MTextures[i]);
             }
-
             return modelData;
         }
 
@@ -331,7 +325,6 @@ namespace Stride.Importer.ThreeD
                     }
                 }
             }
-
             return animationData;
         }
 
@@ -634,6 +627,8 @@ namespace Stride.Importer.ThreeD
                     vertexIndexToBoneIdWeight.Add(new List<(short, float)>());
                 }
 
+
+                
                 // Build skinning clusters and fill controls points data stutcture
                 for (uint boneId = 0; boneId < mesh->MNumBones; ++boneId)
                 {
@@ -871,10 +866,7 @@ namespace Stride.Importer.ThreeD
                         for (int j = 0; j < 3; ++j)
                         {
                             *((uint*)ibPointer) = mesh->MFaces[(int)i].MIndices[j];
-
                             var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
-                            drawData.RES((int)i, (int)_index, 0, 0, 0);
-
                             ibPointer += sizeof(uint);
                         }
                     }
@@ -883,21 +875,23 @@ namespace Stride.Importer.ThreeD
                         for (int j = 0; j < 3; ++j)
                         {
                             *((ushort*)ibPointer) = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
-
                             var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
-                            drawData.RES((int)i, (int)_index, 0, 0, 0);
-
                             ibPointer += sizeof(ushort);
                         }
                     }
                 }
             }
 
+
             // Build the mesh data
             var vertexDeclaration = new VertexDeclaration(vertexElements.ToArray());
             var vertexBufferBinding = new VertexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.VertexBuffer, vertexBuffer)), vertexDeclaration, (int)mesh->MNumVertices, vertexDeclaration.VertexStride, 0);
+
             var indexBufferBinding = new IndexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.IndexBuffer, indexBuffer)), is32BitIndex, (int)nbIndices, 0);
 
+
+            drawData.VertexData = vertexBuffer;
+            drawData.VertexDeclaration=vertexDeclaration;
 
             //drawData.VertexBuffers =;
             //{
@@ -905,10 +899,7 @@ namespace Stride.Importer.ThreeD
             drawData.IndexBuffer = indexBufferBinding;
             drawData.PrimitiveType = PrimitiveType.TriangleList;
             drawData.DrawCount = (int)nbIndices;
-            //}
-
-            drawData.CAP();
-
+ 
             return new MeshInfo
             {
                 Draw = drawData,

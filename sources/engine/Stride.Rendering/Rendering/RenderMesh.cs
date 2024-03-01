@@ -41,13 +41,5 @@ namespace Stride.Rendering
 
         public bool HasBlendShapes;
 
-        public int BlendShapesCount;
-
-        public int VerticesCount;
-
-        public Matrix[] MATBSHAPE;
-
-        public float BasisKeyWeight;
-
     }
 }
