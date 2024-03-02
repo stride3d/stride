@@ -899,7 +899,7 @@ namespace Stride.Importer.ThreeD
             drawData.IndexBuffer = indexBufferBinding;
             drawData.PrimitiveType = PrimitiveType.TriangleList;
             drawData.DrawCount = (int)nbIndices;
- 
+
             return new MeshInfo
             {
                 Draw = drawData,
@@ -910,10 +910,20 @@ namespace Stride.Importer.ThreeD
                 HasSkinningNormal = hasSkinningNormal,
                 TotalClusterCount = totalClusterCount
             };
-
-
         }
 
+        private unsafe List<String> ExtractBlendShapeName(Silk.NET.Assimp.Mesh* mesh)
+        {
+            List<string> result = new List<string>();
+            var anMeshes = mesh->MAnimMeshes;
+            for (int j = 0; j < mesh->MNumAnimMeshes; ++j)
+            {
+                var animMesh = mesh->MAnimMeshes[j];
+                result.Add(animMesh->MName);
+            }
+            return result; 
+        }
+        
         private unsafe List<Shape> ProcessBlendShapes(Scene* scene, Silk.NET.Assimp.Mesh* mesh)
         {
             List<Shape> shapes = new List<Shape>();
@@ -937,6 +947,8 @@ namespace Stride.Importer.ThreeD
             }
             return shapes;
         }
+
+
 
         private void NormalizeVertexWeights(List<List<(short, float)>> controlPts, int nbBoneByVertex)
         {
@@ -1327,7 +1339,8 @@ namespace Stride.Importer.ThreeD
                 {
                     MeshName = meshNames[(IntPtr)mesh],
                     MaterialName = materialNames[(IntPtr)lMaterial],
-                    NodeName = SearchMeshNode(scene->MRootNode, i, nodeNames)
+                    NodeName = SearchMeshNode(scene->MRootNode, i, nodeNames),
+                    BlendShapeName = ExtractBlendShapeName(mesh);
                 };
 
                 meshList.Add(meshParams);
@@ -1335,7 +1348,7 @@ namespace Stride.Importer.ThreeD
 
             return meshList;
         }
-
+        
         private unsafe string SearchMeshNode(Node* node, uint meshIndex, Dictionary<IntPtr, string> nodeNames)
         {
             for (uint i = 0; i < node->MNumMeshes; ++i)

@@ -11,5 +11,6 @@ namespace Stride.Importer.Common
         public string MeshName;
         public string NodeName;
         public HashSet<string> BoneNodes;
+        public List<string> BlendShapeName;
     }
 }

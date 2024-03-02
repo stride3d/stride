@@ -94,5 +94,8 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         [DataMemberIgnore]
         public override UFile MainSource => Source;
+        
+        [DataMember(55)]
+        public bool ContainsBlendShapes { get; set; }
     }
 }
