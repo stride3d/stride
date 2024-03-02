@@ -10,7 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-StrideRuntime", "20-Stri
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
-		..\Directory.Packages.props = ..\Directory.Packages.props
+		..\sources\Directory.Packages.props = ..\sources\Directory.Packages.props
+		..\nuget.config = ..\nuget.config
 		..\sources\targets\Stride.Core.CompilerServices.props = ..\sources\targets\Stride.Core.CompilerServices.props
 		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
 		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
@@ -93,7 +94,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stride.Importer.FBX", "..\s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Shaders", "..\sources\shaders\Stride.Core.Shaders\Stride.Core.Shaders.csproj", "{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{47AFCC2E-E9F0-47D6-9D75-9E646546A92B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Wpf", "..\sources\presentation\Stride.Core.Presentation.Wpf\Stride.Core.Presentation.Wpf.csproj", "{47AFCC2E-E9F0-47D6-9D75-9E646546A92B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Tests", "..\sources\presentation\Stride.Core.Presentation.Tests\Stride.Core.Presentation.Tests.csproj", "{C223FCD7-CDCC-4943-9E11-9C2CC8FA9FC4}"
 EndProject
@@ -330,6 +331,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.NuGetResolver", "..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.csproj", "{02FD0BDE-4293-414F-97E6-69FF71105420}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGetResolver", "NuGetResolver", "{158087CF-AF74-44E9-AA20-A6AEB1E398A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1478,6 +1481,18 @@ Global
 		{02FD0BDE-4293-414F-97E6-69FF71105420}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{02FD0BDE-4293-414F-97E6-69FF71105420}.Release|Win32.ActiveCfg = Release|Any CPU
 		{02FD0BDE-4293-414F-97E6-69FF71105420}.Release|Win32.Build.0 = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Win32.Build.0 = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Win32.ActiveCfg = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1603,6 +1618,7 @@ Global
 		{79F7B3CE-A22F-426D-8DAB-2F692F167210} = {158087CF-AF74-44E9-AA20-A6AEB1E398A9}
 		{02FD0BDE-4293-414F-97E6-69FF71105420} = {158087CF-AF74-44E9-AA20-A6AEB1E398A9}
 		{158087CF-AF74-44E9-AA20-A6AEB1E398A9} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6} = {75A820AB-0F21-40F2-9448-5D7F495B97A0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

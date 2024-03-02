@@ -463,7 +463,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             string error;
             if (!IsNewNameValid(newName, out error))
             {
-                ServiceProvider.Get<IDialogService>().BlockingMessageBox(error, MessageBoxButton.OK, MessageBoxImage.Information);
+                ServiceProvider.Get<IDialogService2>().BlockingMessageBox(error, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 

@@ -1,23 +1,30 @@
-<Project InitialTargets="_StrideCheckVisualCRuntime2013" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Check if Visual C++ Runtime 2013 is properly installed -->
+<Project InitialTargets="_StrideCheckVisualCRuntime2019" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Check if Visual C++ Runtime 2019 is properly installed -->
   <!-- Should be moved to Stride.Assets as soon as transitive build dependencies are enabled by default in VS2019 (https://github.com/NuGet/Home/issues/6091#issuecomment-438073285) -->
-  <Target Name="_StrideCheckVisualCRuntime2013" Condition="'$(MSBuildRuntimeType)' == 'Full'">
+  <Target Name="_StrideCheckVisualCRuntime2019" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <ItemGroup>
-      <_StrideVisualCRuntime2013 Include="Visual C++ Redistributable for Visual Studio 2013 x86">
-        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\12.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
-        <ExpectedVersion>12.0.21005</ExpectedVersion>
-        <DownloadUrl>http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x86.exe</DownloadUrl>
-      </_StrideVisualCRuntime2013>
-      <_StrideVisualCRuntime2013 Include="Visual C++ Redistributable for Visual Studio 2013 x64">
-        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\12.0\RuntimeMinimum', 'Version', null, RegistryView.Registry64))</Version>
-        <ExpectedVersion>12.0.21005</ExpectedVersion>
-        <DownloadUrl>http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x64.exe</DownloadUrl>
-      </_StrideVisualCRuntime2013>
+      <!-- VC++ versions:
+        - 2015: Bld = 23026
+        - 2017: Bld = 26020
+        - 2019: Bld = 27820
+        - 2022: Bld = 33130
+        See also https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files?#install-the-redistributable-packages
+      -->
+      <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 x86">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\X86', 'Bld', null, RegistryView.Registry32))</Version>
+        <ExpectedVersion>27820</ExpectedVersion>
+        <DownloadUrl>https://aka.ms/vs/17/release/vc_redist.x86.exe</DownloadUrl>
+      </_StrideVisualCRuntime2019>
+      <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 x64">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\X64', 'Bld', null, RegistryView.Registry64))</Version>
+        <ExpectedVersion>27820</ExpectedVersion>
+        <DownloadUrl>https://aka.ms/vs/17/release/vc_redist.x64.exe</DownloadUrl>
+      </_StrideVisualCRuntime2019>
 
-      <_StrideVisualCRuntime2013NotInstalled Include="@(_StrideVisualCRuntime2013)" Condition="'%(_StrideVisualCRuntime2013.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_StrideVisualCRuntime2013.ExpectedVersion)')))) &lt; 0" />
+      <_StrideVisualCRuntime2019NotInstalled Include="@(_StrideVisualCRuntime2019)" Condition="'%(_StrideVisualCRuntime2019.Version)' == '' Or $([System.Int32]::Parse('%(Version)').CompareTo($([System.Int32]::Parse('%(_StrideVisualCRuntime2019.ExpectedVersion)')))) &lt; 0" />
     </ItemGroup>
 
-    <Error Condition="'@(_StrideVisualCRuntime2013NotInstalled)' != ''" Text="@(_StrideVisualCRuntime2013NotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
+    <Error Condition="'@(_StrideVisualCRuntime2019NotInstalled)' != ''" Text="@(_StrideVisualCRuntime2019NotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
   </Target>
   <!-- 
   *****************************************************************************************************************************
@@ -118,8 +125,8 @@
   <Target Name="_StridePrepareAssetCompiler">
     <PropertyGroup>
       <!-- First try NuGet layout, then git checkout -->
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net8.0-windows7.0\')">$(MSBuildThisFileDirectory)..\lib\net8.0-windows7.0\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net8.0-windows7.0\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net8.0\')">$(MSBuildThisFileDirectory)..\lib\net8.0\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net8.0\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>

@@ -56,7 +56,7 @@ namespace Stride.Rendering
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
             //foreach (var objectNodeReference in RootRenderFeature.ObjectNodeReferences)
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).ObjectNodeReferences, objectNodeReference =>
+            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
             {
                 var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = (RenderMesh)objectNode.RenderObject;
@@ -116,25 +116,29 @@ namespace Stride.Rendering
         {
             var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
 
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
             {
-                var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
-                if (perDrawLayout == null)
-                    return;
-
-                var blendMatricesOffset = perDrawLayout.GetConstantBufferOffset(blendMatrices);
-                if (blendMatricesOffset == -1)
-                    return;
-
-                var renderModelObjectInfo = renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
-                if (renderModelObjectInfo == null)
-                    return;
-
-                var mappedCB = (byte*)renderNode.Resources.ConstantBuffer.Data + blendMatricesOffset;
-
-                fixed (Matrix* blendMatricesPtr = renderModelObjectInfo)
+                for (int i = from; i < toExclusive; i++)
                 {
-                    Unsafe.CopyBlockUnaligned(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
+                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
+                    if (perDrawLayout == null)
+                        continue;
+
+                    var blendMatricesOffset = perDrawLayout.GetConstantBufferOffset(blendMatrices);
+                    if (blendMatricesOffset == -1)
+                        continue;
+
+                    var renderModelObjectInfo = renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
+                    if (renderModelObjectInfo == null)
+                        continue;
+
+                    var mappedCB = (byte*)renderNode.Resources.ConstantBuffer.Data + blendMatricesOffset;
+
+                    fixed (Matrix* blendMatricesPtr = renderModelObjectInfo)
+                    {
+                        Unsafe.CopyBlockUnaligned(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
+                    }
                 }
             });
         }

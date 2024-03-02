@@ -1,30 +1,27 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
-using RoslynPad.Roslyn;
-using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Extensions;
-using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Assets.Presentation.AssetEditors;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
-using RoslynWorkspace = Stride.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace;
-using System.Collections.Generic;
-using System.IO;
+using Stride.Assets.Scripts;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Dirtiables;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Translation;
-using Stride.Assets.Scripts;
-using System.Collections.Specialized;
+using RoslynWorkspace = Stride.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
@@ -43,91 +40,17 @@ namespace Stride.Assets.Presentation.ViewModel
         /// </summary>
         public const int MaximumEditorFontSize = 72;
 
-        private readonly Task<ProjectWatcher> projectWatcherTask;
-        private readonly Task<RoslynWorkspace> workspaceTask;
+        private readonly TaskCompletionSource<ProjectWatcher> projectWatcherCompletion = new();
+        private readonly TaskCompletionSource<RoslynWorkspace> workspaceCompletion = new();
         private int editorFontSize = ScriptEditorSettings.FontSize.GetValue(); // default size
 
-        private Brush keywordBrush;
-        private Brush typeBrush;
+        private readonly Brush keywordBrush;
+        private readonly Brush typeBrush;
 
-        public CodeViewModel(StrideAssetsViewModel strideAssetsViewModel) : base(strideAssetsViewModel.SafeArgument(nameof(strideAssetsViewModel)).ServiceProvider)
+        public CodeViewModel(StrideAssetsViewModel strideAssetsViewModel)
+            : base(strideAssetsViewModel.SafeArgument(nameof(strideAssetsViewModel)).ServiceProvider)
         {
-            projectWatcherTask = Task.Run(async () =>
-            {
-                var result = new ProjectWatcher(strideAssetsViewModel.Session);
-                await result.Initialize();
-                return result;
-            });
-
-            workspaceTask = projectWatcherTask.Result.RoslynHost.ContinueWith(roslynHost => roslynHost.Result.Workspace);
-
-            workspaceTask = workspaceTask.ContinueWith(workspaceTask =>
-            {
-                var projectWatcher = projectWatcherTask.Result;
-                var workspace = workspaceTask.Result;
-
-                // Load and update roslyn workspace with latest compiled version
-                foreach (var trackedAssembly in projectWatcher.TrackedAssemblies)
-                {
-                    var project = trackedAssembly.Project;
-                    if (project != null)
-                        workspace.AddOrUpdateProject(project);
-                }
-
-                void TrackedAssemblies_CollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs e)
-                {
-                    var project = ((ProjectWatcher.TrackedAssembly)e.Item).Project;
-                    if (project != null)
-                    {
-                        switch (e.Action)
-                        {
-                            case NotifyCollectionChangedAction.Add:
-                            {
-                                workspace.AddOrUpdateProject(project);
-                                break;
-                            }
-                            case NotifyCollectionChangedAction.Remove:
-                            {
-                                workspace.RemoveProject(project.Id);
-                                break;
-                            }
-                        }
-                    }
-                }
-                projectWatcher.TrackedAssemblies.CollectionChanged += TrackedAssemblies_CollectionChanged;
-
-                // TODO: Right now, we simply replace the solution with newly loaded one
-                // Ideally, we should keep our existing solution and update it to follow external changes after initial loading (similar to VisualStudioWorkspace)
-                // This should provide better integration with background changes and local changes
-                projectWatcher.AssembliesChangedBroadcast.LinkTo(new ActionBlock<List<AssemblyChangedEvent>>(events =>
-                {
-                    if (events.Count == 0)
-                        return;
-
-                    Dispatcher.InvokeAsync(async () =>
-                    {
-                        // Update projects
-                        foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Project))
-                        {
-                            var project = e.Project;
-                            if (project != null)
-                            {
-                                await ReloadProject(strideAssetsViewModel.Session, project);
-                            }
-                        }
-
-                        // Update files
-                        foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Source))
-                        {
-                            var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(e.ChangedFile).FirstOrDefault();
-                            if (documentId != null)
-                                workspace.HostDocumentTextLoaderChanged(documentId, new FileTextLoader(e.ChangedFile, null));
-                        }
-                    }).Wait();
-                }), new DataflowLinkOptions());
-
-                return workspace;
-            });
+            _ = InitializeAsync(strideAssetsViewModel);
 
             // Apply syntax highlighting for tooltips
             keywordBrush = new SolidColorBrush(ClassificationHighlightColorsDark.KeywordColor);
@@ -140,15 +63,82 @@ namespace Stride.Assets.Presentation.ViewModel
             //SymbolDisplayPartExtensions.StyleRunFromTextTag = StyleRunFromTextTag;
         }
 
+        private async Task InitializeAsync(StrideAssetsViewModel strideAssetsViewModel)
+        {
+            var projectWatcher = new ProjectWatcher(strideAssetsViewModel.Session);
+            await projectWatcher.Initialize();
+            var workspace = (await projectWatcher.RoslynHost).Workspace;
+
+            // Load and update roslyn workspace with latest compiled version
+            foreach (var trackedAssembly in projectWatcher.TrackedAssemblies)
+            {
+                if (trackedAssembly.Project is { } project)
+                    workspace.AddOrUpdateProject(project);
+            }
+            projectWatcher.TrackedAssemblies.CollectionChanged += TrackedAssembliesCollectionChanged;
+
+            _ = UpdateProjects(projectWatcher, workspace, strideAssetsViewModel);
+
+            projectWatcherCompletion.SetResult(projectWatcher);
+            workspaceCompletion.SetResult(workspace);
+
+            void TrackedAssembliesCollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs e)
+            {
+                if (((ProjectWatcher.TrackedAssembly)e.Item).Project is { } project)
+                {
+                    switch (e.Action)
+                    {
+                        case NotifyCollectionChangedAction.Add:
+                            {
+                                workspace.AddOrUpdateProject(project);
+                                break;
+                            }
+                        case NotifyCollectionChangedAction.Remove:
+                            {
+                                workspace.RemoveProject(project.Id);
+                                break;
+                            }
+                    }
+                }
+            }
+        }
+
+        private async Task UpdateProjects(ProjectWatcher projectWatcher, RoslynWorkspace workspace, StrideAssetsViewModel strideAssetsViewModel)
+        {
+            await foreach (var events in projectWatcher.BatchChange)
+            {
+                await Dispatcher.InvokeAsync(async () =>
+                {
+                    // Update projects
+                    foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Project))
+                    {
+                        var project = e.Project;
+                        if (project != null)
+                        {
+                            await ReloadProject(strideAssetsViewModel.Session, project);
+                        }
+                    }
+
+                    // Update files
+                    foreach (var e in events.Where(x => x.ChangeType == AssemblyChangeType.Source))
+                    {
+                        var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(e.ChangedFile).FirstOrDefault();
+                        if (documentId != null)
+                            workspace.HostDocumentTextLoaderChanged(documentId, new FileTextLoader(e.ChangedFile, null));
+                    }
+                });
+            }
+        }
+
         /// <summary>
         /// Gets the project watcher which tracks source code changes on the disk; it is created asychronously.
         /// </summary>
-        public Task<ProjectWatcher> ProjectWatcher => projectWatcherTask;
+        public Task<ProjectWatcher> ProjectWatcher => projectWatcherCompletion.Task;
 
         /// <summary>
         /// Gets the roslyn workspace; it is created asynchronously.
         /// </summary>
-        public Task<RoslynWorkspace> Workspace => workspaceTask;
+        public Task<RoslynWorkspace> Workspace => workspaceCompletion.Task;
 
         /// <summary>
         /// The editor current font size. It will be saved in the settings.
@@ -364,7 +354,7 @@ namespace Stride.Assets.Presentation.ViewModel
 
         private void Cleanup()
         {
-            projectWatcherTask.Dispose();
+            // nothing for now
         }
 
         private void StyleRunFromSymbolDisplayPartKind(SymbolDisplayPartKind partKind, Run run)

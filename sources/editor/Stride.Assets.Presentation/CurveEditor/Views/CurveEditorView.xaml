@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Stride.Assets.Presentation.CurveEditor.Views.CurveEditorView"
+<UserControl x:Class="Stride.Assets.Presentation.CurveEditor.Views.CurveEditorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -7,6 +7,7 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:behaviors="clr-namespace:Stride.Assets.Presentation.View.Behaviors"
              xmlns:behaviors1="clr-namespace:Stride.Assets.Presentation.CurveEditor.Views.Behaviors"
+             xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
              xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
              xmlns:viewModels="clr-namespace:Stride.Assets.Presentation.CurveEditor.ViewModels"
              mc:Ignorable="d"
@@ -21,9 +22,9 @@
   </FrameworkElement.Resources>
 
   <i:Interaction.Behaviors>
-    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Save" Command="{Binding Session.SaveSessionCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
-    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Undo" Command="{Binding Session.ActionHistory.UndoCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
-    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Redo" Command="{Binding Session.ActionHistory.RedoCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Save" Command="{Binding Session.SaveSessionCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Undo" Command="{Binding Session.ActionHistory.UndoCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Redo" Command="{Binding Session.ActionHistory.RedoCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
   </i:Interaction.Behaviors>
 
   <Grid>

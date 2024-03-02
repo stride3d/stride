@@ -9,7 +9,7 @@ using Stride.Core.Annotations;
 namespace Stride.Core.Collections
 {
     /// <summary>
-    /// A pool of objects allocated and can be cleared without loosing previously allocated instance.
+    /// A pool of objects allocated and can be cleared without losing previously allocated instance.
     /// </summary>
     /// <typeparam name="T">Type of the pooled object</typeparam>
     public struct PoolListStruct<T> : IEnumerable<T> where T : class
