@@ -71,8 +71,6 @@ namespace Stride.Shaders.Compiler
 
             var bytecode = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(null, EffectBytecodeCacheLoadSource.JustCompiled);
 
-            goto label_force_compile;
-
             lock (bytecodes)
             {                
                 // ------------------------------------------------------------------------------------------------------------

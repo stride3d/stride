@@ -23,9 +23,6 @@ namespace Stride.Rendering
 
         public string Shapeindex { get; set; }
 
-        //Index Of control points in shape
-        public int[] Indices { get; set; }
-
 
         private Core.Mathematics.Vector4[] position;
 
