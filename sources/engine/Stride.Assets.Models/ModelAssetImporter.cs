@@ -99,14 +99,14 @@ namespace Stride.Assets.Models
             if (importParameters.IsTypeSelectedForOutput<AnimationAsset>())
             {
                 int _iAnimIndex = 0;
-                entityInfo?.AnimationNodes?.ForEach(c => {
+                entityInfo?.AnimationNodes?.ForEach(c =>
+                {
                     TimeSpan startTime, endTime;
-                GetAnimationDuration(localPath, importParameters.Logger, importParameters, _iAnimIndex, out startTime, out endTime);
-                
-              ImportAnimation(rawAssetReferences, localPath, entityInfo.AnimationNodes[_iAnimIndex], _iAnimIndex, skeletonAsset, startTime, endTime);
+                    GetAnimationDuration(localPath, importParameters.Logger, importParameters, _iAnimIndex, out startTime, out endTime);
+
+                    ImportAnimation(rawAssetReferences, localPath, entityInfo.AnimationNodes[_iAnimIndex], _iAnimIndex, skeletonAsset, startTime, endTime);
 
                     _iAnimIndex++;
-
                 }); 
 
                 

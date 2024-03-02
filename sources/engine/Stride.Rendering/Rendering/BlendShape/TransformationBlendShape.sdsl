@@ -4,8 +4,7 @@ shader TransformationBlendShape : TransformationBase, PositionStream4, Transform
 {
     cbuffer PerDraw
     {
-       stage float4x4 BSHAPEDATA[MAT_COUNT];
-    
+       stage float4x4 BSHAPEDATA[MAT_COUNT]; 
     }
  
   stage stream uint VertexID : SV_VertexID;
@@ -24,10 +23,8 @@ float4x4 CreateTranslation(float4 translation) {
 
  void DivideAndModulo(int dividend, int divisor, out int quotient, out int remainder)
 {
-	quotient = 20;
-     remainder=2;
-     //quotient = dividend / divisor;
-     //remainder=dividend- (quotient*divisor);
+     quotient = dividend / divisor;
+     remainder=dividend- (quotient*divisor);
 }
 
  float4 GetValueInBMAT(int counter)
@@ -51,7 +48,7 @@ float4x4 CreateTranslation(float4 translation) {
    //  float4x4 transMat= ApplyBlendshapes(streams.VertexID, streams.Position);
     // float4 blendPos = mul(float4(streams.Position.xyz, 1.0f),transMat);    
     // streams.Position = blendPos; 
-    streams.Position=float4(streams.Position[0],streams.Position[1],streams.Position[2],streams.Position[3]);
+    //streams.Position=float4(streams.Position[0],streams.Position[1],streams.Position[2],streams.Position[3]);
 	base.PreTransformPosition();
     }
 };

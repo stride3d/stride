@@ -31,7 +31,7 @@
     <ItemGroup>
       <!-- Needed by .NET Core runtime to be able to load C++/CLI assemblies -->
       <BuildOutputInPackage Include="$(OutputPath)ijwhost.dll" Condition="Exists('$(OutputPath)ijwhost.dll')" />
-            <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Common.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Common.dll" />
     </ItemGroup>
   </Target>
 
