@@ -25,6 +25,8 @@ namespace Stride.VirtualReality
         private Vector2 currentThumbstick;
         private const float TriggerAndGripDeadzone = 0.00001f;
         IntPtr OvrSession { get; }
+        //Number of calls to vibrate that are currently executing
+        protected int ConcurrentVibratingCallCount { get; set; }
 
         public override Vector3 Position => currentPos;
 
@@ -403,7 +405,6 @@ namespace Stride.VirtualReality
             }
         }
 
-        protected int ConcurrentVibratingCallCount { get; set; }
         /// <summary>
         /// Vibrate for a number of milliseconds
         /// </summary>
