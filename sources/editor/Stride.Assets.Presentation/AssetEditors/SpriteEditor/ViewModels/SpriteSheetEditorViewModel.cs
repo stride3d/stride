@@ -181,7 +181,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
         {
             Cache = new SpriteEditorImageCache();
             Initialized?.Invoke(this, EventArgs.Empty);
-            return Task.FromResult(false);
+            return Task.FromResult(true);
         }
 
         /// <inheritdoc />
