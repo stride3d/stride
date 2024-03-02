@@ -235,8 +235,7 @@ public static class Program
             var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
             mru.LoadFromSettings();
             var editor = new GameStudioViewModel(serviceProvider, mru);
-            // HACK force loading the default plugin first
-            var _ = typeof(StrideDefaultAssetsPlugin).Name; // FIXME load plugin assemblies from folders in a defined order (config file?)
+            AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
             AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
 
             // Attempt to load the startup session, if available
