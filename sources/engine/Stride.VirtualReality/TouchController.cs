@@ -20,7 +20,7 @@ namespace Stride.VirtualReality
         public abstract DeviceState State { get; }
 
         public virtual void Update(GameTime time)
-        {           
+        {
         }
 
         public abstract float Trigger { get; }
@@ -86,10 +86,10 @@ namespace Stride.VirtualReality
         /// </summary>
         /// <param name="duration">Vibration duration, in milliseconds</param>
         /// <returns></returns>
-        public abstract Task Vibrate(int duration);
+        public abstract Task Vibrate(int durationMs);
 
         public virtual void Dispose()
-        {          
+        {
         }
     }
 }

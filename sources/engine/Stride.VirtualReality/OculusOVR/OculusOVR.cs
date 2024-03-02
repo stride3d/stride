@@ -227,9 +227,16 @@ namespace Stride.VirtualReality
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnOvrSetLeftVibration", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetLeftVibration(IntPtr session, float frequency, float amplitude);
+        static extern void SetLeftVibration(IntPtr session, float frequency, float amplitude);
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnOvrSetRightVibration", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetRightVibration(IntPtr session, float frequency, float amplitude);
+        static extern void SetRightVibration(IntPtr session, float frequency, float amplitude);
+        public static void SetVibration(IntPtr session, TouchControllerHand hand, float frequency, float amplitude)
+        {
+            if (hand == TouchControllerHand.Left)
+                SetLeftVibration(session, frequency, amplitude);
+            else
+                SetRightVibration(session, frequency, amplitude);
+        }
     }
 }

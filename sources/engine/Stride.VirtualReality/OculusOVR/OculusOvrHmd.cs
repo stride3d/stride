@@ -9,7 +9,6 @@ using SharpDX.Direct3D11;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
-using Stride.VirtualReality.OculusOVR;
 using CommandList = Stride.Graphics.CommandList;
 
 namespace Stride.VirtualReality
@@ -84,10 +83,8 @@ namespace Stride.VirtualReality
 
             ActualRenderFrameSize = new Size2(textures[0].Width, textures[0].Height);
 
-            var leftVibrator = new OculusVibratorLeft(ovrSession);
-            leftHandController = new OculusTouchController(TouchControllerHand.Left, leftVibrator);
-            var rightVibrator = new OculusVibratorRight(ovrSession);
-            rightHandController = new OculusTouchController(TouchControllerHand.Right, rightVibrator);
+            leftHandController = new OculusTouchController(TouchControllerHand.Left, ovrSession);
+            rightHandController = new OculusTouchController(TouchControllerHand.Right, ovrSession);
         }
 
         private OculusOvr.PosesProperties currentPoses;
@@ -165,7 +162,7 @@ namespace Stride.VirtualReality
                 return initDone;
             }
         }
-        
+
         public override void Recenter()
         {
             OculusOvr.Recenter(ovrSession);

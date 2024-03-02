@@ -1,12 +1,10 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 using Silk.NET.OpenXR;
 using Stride.Core.Mathematics;
 using Stride.Games;
-using System.Threading.Tasks;
 
 namespace Stride.VirtualReality
 {
@@ -171,36 +169,11 @@ namespace Stride.VirtualReality
                 currentRot.W = handLocation.Pose.Orientation.W;
             }
         }
-        
+
+        //TODO: Make controller vibrate for duration
         public override async Task Vibrate(int duration)
         {
-            SendVibrate(duration);
-            await Task.Delay(duration);
-        }
-        //TODO: This does not make controllers vibrate
-        private unsafe void SendVibrate(int duration)
-        {
-            var action = OpenXRInput.GetHapticAction(myHand);
-            HapticActionInfo hapticActionInfo = new HapticActionInfo()
-            {
-                Type = StructureType.HapticActionInfo,
-                Next = null,
-                Action = action,
-            };
-            HapticVibration vibration = new HapticVibration()
-            {
-                Type = StructureType.HapticVibration,
-                Next = null,
-                Duration = duration * 1000,
-                Amplitude = 1,
-                Frequency = 10
-            };
-            HapticBaseHeader hapticBaseHeader = new HapticBaseHeader()
-            {
-                Type = StructureType.HapticVibration,
-                Next = &vibration
-            };
-            baseHMD.Xr.ApplyHapticFeedback(baseHMD.globalSession, &hapticActionInfo, &vibration);
+            throw new NotImplementedException("Controller vibration is not implemented for OpenXr runtime.");
         }
     }
 }
