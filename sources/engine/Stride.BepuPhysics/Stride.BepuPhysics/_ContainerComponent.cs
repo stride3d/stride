@@ -30,6 +30,8 @@ public abstract class ContainerComponent : EntityComponent
     private ICollider _collider;
     private IContactEventHandler? _trigger;
 
+    private static uint VersioningCounter;
+
     [DataMemberIgnore]
     public BepuSimulation? Simulation { get; private set; }
 
@@ -38,6 +40,9 @@ public abstract class ContainerComponent : EntityComponent
 
     [DataMemberIgnore]
     protected TypedIndex ShapeIndex { get; private set; }
+
+    [DataMemberIgnore]
+    internal uint Versioning { get; private set; }
 
     [MemberRequired, Display(Expand = ExpandRule.Always)]
     public required ICollider Collider
@@ -175,6 +180,7 @@ public abstract class ContainerComponent : EntityComponent
 
     internal void ReAttach(BepuSimulation onSimulation)
     {
+        Versioning = Interlocked.Increment(ref VersioningCounter);
         Detach();
 
         Debug.Assert(Processor is not null);
@@ -208,6 +214,7 @@ public abstract class ContainerComponent : EntityComponent
         if (Simulation is null)
             return;
 
+        Versioning = Interlocked.Increment(ref VersioningCounter);
         Processor?.OnPreRemove?.Invoke(this);
 
         CenterOfMass = new();

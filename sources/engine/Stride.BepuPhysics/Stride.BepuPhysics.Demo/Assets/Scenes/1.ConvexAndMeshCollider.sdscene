@@ -118,7 +118,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -203,7 +203,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -232,8 +232,8 @@ Hierarchy:
                                     Mass: 1.0
                                     PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                    Hull: efc10e7c-7d44-4b96-9cf2-716337903373:Models/ColliderHull
                                     Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                                    Hull: efc10e7c-7d44-4b96-9cf2-716337903373:Models/ColliderHull
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -247,7 +247,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -302,7 +302,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None

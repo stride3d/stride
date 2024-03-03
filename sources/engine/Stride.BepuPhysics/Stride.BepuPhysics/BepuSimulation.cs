@@ -1,16 +1,22 @@
 ﻿using BepuPhysics.Collidables;
+using BepuPhysics.CollisionDetection;
 using BepuPhysics;
+using BepuUtilities.Collections;
 using BepuUtilities.Memory;
 using BepuUtilities;
 using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Definitions.Raycast;
+using Stride.BepuPhysics.Definitions.SimTests;
 using Stride.BepuPhysics.Definitions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Core;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
+using NVector3 = System.Numerics.Vector3;
+using BRigidPose = BepuPhysics.RigidPose;
 using SRigidPose = Stride.BepuPhysics.Definitions.RigidPose;
 using SBodyVelocity = Stride.BepuPhysics.Definitions.BodyVelocity;
 
@@ -217,18 +223,13 @@ public class BepuSimulation
         //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ContainerComponent GetContainer(CollidableReference collidable)
     {
-        if (collidable.Mobility == CollidableMobility.Static)
-        {
-            return GetContainer(collidable.StaticHandle);
-        }
-        else
-        {
-            return GetContainer(collidable.BodyHandle);
-        }
+        return collidable.Mobility == CollidableMobility.Static ? GetContainer(collidable.StaticHandle) : GetContainer(collidable.BodyHandle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public BodyComponent GetContainer(BodyHandle handle)
     {
         var body = Bodies[handle.Value];
@@ -268,27 +269,34 @@ public class BepuSimulation
     }
 
     /// <summary>
-    /// Collect intersections between the given ray and shapes in this simulation. Hits are NOT sorted.
+    /// Collect intersections between the given ray and shapes in this simulation.
     /// </summary>
+    /// <remarks>
+    /// When there are more hits than <paramref name="buffer"/> can accomodate, returns only the closest hits.<br/>
+    /// There are no guarantees as to the order hits are returned in.
+    /// </remarks>
     /// <param name="origin">The start position for this ray</param>
     /// <param name="dir">The normalized direction the ray is facing</param>
     /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
     /// <param name="buffer">
-    /// The collection used to store hits into,
-    /// feel free to rent it from <see cref="System.Buffers.ArrayPool{T}"/> and return it after you processed <paramref name="hits"/>
+    /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
+    /// It is used by the returned enumerator as its backing array from which you read
     /// </param>
-    /// <param name="hits">Intersections are pushed to <see cref="buffer"/>, this is the subset of <paramref name="buffer"/> that contains valid/assigned values</param>
     /// <param name="collisionMask"></param>
-    public void RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, HitInfo[] buffer, out Span<HitInfo> hits, CollisionMask collisionMask = CollisionMask.Everything)
+    public unsafe ConversionEnum<ManagedConverter, HitInfoStack, HitInfo> RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, Span<HitInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything)
     {
-        var handler = new RayHitsArrayHandler(this, buffer, collisionMask);
-        Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
-        hits = new(buffer, 0, handler.Count);
+        fixed (HitInfoStack* ptr = &buffer[0])
+        {
+            var handler = new RayHitsStackHandler(ptr, buffer.Length, this, collisionMask);
+            Simulation.RayCast(origin.ToNumericVector(), dir.ToNumericVector(), maxDistance, ref handler);
+            return new (buffer[..handler.Head], new(this));
+        }
     }
 
     /// <summary>
     /// Collect intersections between the given ray and shapes in this simulation. Hits are NOT sorted.
     /// </summary>
+    /// <remarks> There are no guarantees as to the order hits are returned in. </remarks>
     /// <param name="origin">The start position for this ray</param>
     /// <param name="dir">The normalized direction the ray is facing</param>
     /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
@@ -328,28 +336,34 @@ public class BepuSimulation
     /// <summary>
     /// Finds contacts between <paramref name="shape"/> and other shapes in the simulation when thrown in <paramref name="velocity"/> direction.
     /// </summary>
+    /// <remarks>
+    /// When there are more hits than <paramref name="buffer"/> can accomodate, returns only the closest hits <br/>
+    /// There are no guarantees as to the order hits are returned in.
+    /// </remarks>
     /// <param name="shape">The shape thrown at the scene</param>
     /// <param name="pose">Initial position for the shape</param>
     /// <param name="velocity">Velocity used to throw the shape</param>
     /// <param name="maxDistance">The maximum distance, or amount of time along the path of the <paramref name="velocity"/></param>
     /// <param name="buffer">
-    /// The collection used to store hits into,
-    /// feel free to rent it from <see cref="System.Buffers.ArrayPool{T}"/> and return it after you processed <paramref name="contacts"/>
+    /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
+    /// It is used by the returned enumerator as its backing array from which you read
     /// </param>
-    /// <param name="contacts">Contacts are pushed to <see cref="buffer"/>, this is the subset of <paramref name="buffer"/> that contains valid/assigned values</param>
     /// <param name="collisionMask"></param>
     /// <typeparam name="TShape"></typeparam>
-    /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
-    public void SweepCastPenetrating<TShape>(in TShape shape, in SRigidPose pose, in SBodyVelocity velocity, float maxDistance, HitInfo[] buffer, out Span<HitInfo> contacts, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    public unsafe ConversionEnum<ManagedConverter, HitInfoStack, HitInfo> SweepCastPenetrating<TShape>(in TShape shape, in SRigidPose pose, in SBodyVelocity velocity, float maxDistance, Span<HitInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
     {
-        var handler = new RayHitsArrayHandler(this, buffer, collisionMask);
-        Simulation.Sweep(shape, pose.ToNumericRigidPose(), velocity.ToNumericBodyVelocity(), maxDistance, BufferPool, ref handler);
-        contacts = new(buffer, 0, handler.Count);
+        fixed (HitInfoStack* ptr = &buffer[0])
+        {
+            var handler = new RayHitsStackHandler(ptr, buffer.Length, this, collisionMask);
+            Simulation.Sweep(shape, pose.ToNumericRigidPose(), velocity.ToNumericBodyVelocity(), maxDistance, BufferPool, ref handler);
+            return new (buffer[..handler.Head], new(this));
+        }
     }
 
     /// <summary>
     /// Finds contacts between <paramref name="shape"/> and other shapes in the simulation when thrown in <paramref name="velocity"/> direction.
     /// </summary>
+    /// <remarks> There are no guarantees as to the order hits are returned in. </remarks>
     /// <param name="shape">The shape thrown at the scene</param>
     /// <param name="pose">Initial position for the shape</param>
     /// <param name="velocity">Velocity used to throw the shape</param>
@@ -365,51 +379,198 @@ public class BepuSimulation
     }
 
     /// <summary>
-    /// Returns true when this shape overlaps with any physics object in this simulation
+    /// Appends any physics object into <paramref name="collection"/> if it was found to be overlapping with <paramref name="shape"/>
     /// </summary>
-    /// <param name="shape">The shape used to test for overlap</param>
-    /// <param name="pose">Position the shape is on for this test</param>
-    /// <param name="collisionMask"></param>
-    /// <typeparam name="TShape"></typeparam>
-    /// <returns>True when the given shape overlaps with any physics object in the simulation</returns>
-    public bool Overlap<TShape>(in TShape shape, in SRigidPose pose, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
-    {
-        var handler = new OverlapAnyHandler(this, collisionMask);
-        Simulation.Sweep(shape, pose.ToNumericRigidPose(), default, 0f, BufferPool, ref handler);
-        return handler.Any;
-    }
-
-    /// <summary>
-    /// Fills <paramref name="buffer"/> with any physics object in the simulation that overlaps with this shape
-    /// </summary>
-    /// <param name="shape">The shape used to test for overlap</param>
-    /// <param name="pose">Position the shape is on for this test</param>
-    /// <param name="buffer">
-    /// The collection used to store hits into,
-    /// feel free to rent it from <see cref="System.Buffers.ArrayPool{T}"/> and return it after you processed <paramref name="overlaps"/>
-    /// </param>
-    /// <param name="overlaps">Containers are pushed to <see cref="buffer"/>, this is the subset of <paramref name="buffer"/> that contains valid/assigned containers</param>
-    /// <param name="collisionMask"></param>
-    /// <typeparam name="TShape"></typeparam>
-    public void Overlap<TShape>(in TShape shape, in SRigidPose pose, ContainerComponent[] buffer, out Span<ContainerComponent> overlaps, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
-    {
-        var handler = new OverlapArrayHandler(this, buffer, collisionMask);
-        Simulation.Sweep(shape, pose.ToNumericRigidPose(), default, 0f, BufferPool, ref handler);
-        overlaps = new(buffer, 0, handler.Count);
-    }
-
-    /// <summary>
-    /// Fills <paramref name="collection"/> with any physics object in the simulation that overlaps with this shape
-    /// </summary>
+    /// <remarks>The collection is not cleared before appending items into it</remarks>
     /// <param name="shape">The shape used to test for overlap</param>
     /// <param name="pose">Position the shape is on for this test</param>
     /// <param name="collection">The collection used to store containers into, the collection is not cleared before usage, containers are appended to it</param>
-    /// <param name="collisionMask"></param>
-    /// <typeparam name="TShape"></typeparam>
-    public void Overlap<TShape>(in TShape shape, in SRigidPose pose, ICollection<ContainerComponent> collection, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
+    /// <param name="collisionMask">The mask used to improve performance by masking only what you intend to detect</param>
+    public void Overlap<TShape>(in TShape shape, in SRigidPose pose, ICollection<OverlapInfo> collection, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
-        var handler = new OverlapCollectionHandler(this, collection, collisionMask);
-        Simulation.Sweep(shape, pose.ToNumericRigidPose(), default, 0f, BufferPool, ref handler);
+        var collector = new CollectionCollector(collection);
+        OverlapInner(shape, pose, collisionMask, ref collector);
+    }
+
+    /// <summary>
+    /// Enumerates any physics object found to be overlapping with <paramref name="shape"/>
+    /// </summary>
+    /// <typeparam name="TShape">A bepu <see cref="IConvexShape"/> representing the shape that will be used when testing for overlap</typeparam>
+    /// <param name="shape">The shape used to test for overlap</param>
+    /// <param name="pose">Position the shape is on for this test</param>
+    /// <param name="buffer">
+    /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
+    /// It is used by the returned enumerator as its backing array from which you read
+    /// </param>
+    /// <param name="collisionMask">Mask used to ignore containers assigned to certain layers</param>
+    public ConversionEnum<ManagedConverter, CollidableStack, ContainerComponent> Overlap<TShape>(in TShape shape, in SRigidPose pose, Span<CollidableStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
+    {
+        unsafe
+        {
+            fixed (CollidableStack* ptr = buffer)
+            {
+                var collector = new SpanCollidableCollector(ptr, buffer.Length, this);
+                OverlapInner(shape, pose, collisionMask, ref collector);
+                buffer = buffer[..collector.Head]; // Only include data that has been written to
+            }
+
+            return new(buffer, new(this));
+        }
+    }
+
+    /// <summary>
+    /// Enumerates all overlap info for any shape and sub-shapes found to be overlapping with <paramref name="shape"/>
+    /// </summary>
+    /// <remarks> Multiple info may come from the same <see cref="ContainerComponent"/> when it is a compound shape </remarks>
+    /// <typeparam name="TShape">A bepu <see cref="IConvexShape"/> representing the shape that will be used when testing for overlap</typeparam>
+    /// <param name="shape">The shape used to test for overlap</param>
+    /// <param name="pose">Position the shape is on for this test</param>
+    /// <param name="buffer">
+    /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
+    /// It is used by the returned enumerator as its backing array from which you read
+    /// </param>
+    /// <param name="collisionMask">Mask used to ignore containers assigned to certain layers</param>
+    public ConversionEnum<ManagedConverter, OverlapInfoStack, OverlapInfo> OverlapInfo<TShape>(in TShape shape, in SRigidPose pose, Span<OverlapInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
+    {
+        unsafe
+        {
+            fixed (OverlapInfoStack* ptr = buffer)
+            {
+                var collector = new SpanManifoldCollector(ptr, buffer.Length, this);
+                OverlapInner(shape, pose, collisionMask, ref collector);
+                buffer = buffer[..collector.Head]; // Only include data that has been written to
+            }
+
+            return new(buffer, new(this));
+        }
+    }
+
+    /// <summary>
+    /// Called by the BroadPhase.GetOverlaps to collect all encountered collidables.
+    /// </summary>
+    struct BroadPhaseOverlapEnumerator : IBreakableForEach<CollidableReference>
+    {
+        public QuickList<CollidableReference> References;
+        //The enumerator never gets stored into unmanaged memory, so it's safe to include a reference type instance.
+        public BufferPool Pool;
+        public bool LoopBody(CollidableReference reference)
+        {
+            References.Allocate(Pool) = reference;
+            //If you wanted to do any top-level filtering, this would be a good spot for it.
+            //The CollidableReference tells you whether it's a body or a static object and the associated handle. You can look up metadata with that.
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Provides callbacks for filtering and data collection to the CollisionBatcher we'll be using to test query shapes against the detected environment.
+    /// </summary>
+    struct BatcherCallbacks<T> : ICollisionCallbacks where T : IOverlapCollector
+    {
+        #warning remove this once we've confirmed that the structure is written to inline
+        public bool RanIfAtAll;
+        public required CollisionMask CollisionMask;
+        public required QuickList<CollidableReference> References;
+        public required CollidableProperty<MaterialProperties> CollidableMaterials;
+        public required T Collector;
+        public required BepuSimulation Simulation;
+
+        //These callbacks provide filtering and reporting for pairs being processed by the collision batcher.
+        //"Pair id" refers to the identifier given to the pair when it was added to the batcher.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AllowCollisionTesting(int pairId, int childA, int childB)
+        {
+            RanIfAtAll = true;
+            var matA = CollidableMaterials[References[pairId]];
+            return CollisionMask.Collide(matA.ColliderCollisionMask);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void OnChildPairCompleted(int pairId, int childA, int childB, ref ConvexContactManifold manifold)
+        {
+            RanIfAtAll = true;
+            //If you need to do any processing on a child manifold before it goes back to a nonconvex processing pass, this is the place to do it.
+            //Convex-convex pairs won't invoke this function at all.
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void OnPairCompleted<TManifold>(int pairId, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+        {
+            Collector.OnPairCompleted(Simulation, References[pairId], ref manifold);
+            RanIfAtAll = true;
+        }
+    }
+
+    unsafe void OverlapInner<TShape, TCollector>(in TShape shape, in SRigidPose pose, CollisionMask collisionMask, ref TCollector collector) where TShape : unmanaged, IConvexShape where TCollector : IOverlapCollector
+    {
+        fixed (TShape* queryShapeData = &shape)
+        {
+            var queryShapeSize = Unsafe.SizeOf<TShape>();
+            var bepuPose = pose.ToNumericRigidPose();
+            queryShapeData->ComputeBounds(bepuPose.Orientation, out var boundingBoxMin, out var boundingBoxMax);
+            boundingBoxMin += bepuPose.Position;
+            boundingBoxMax += bepuPose.Position;
+            var broadPhaseEnumerator = new BroadPhaseOverlapEnumerator
+            {
+                Pool = BufferPool,
+                References = new QuickList<CollidableReference>(16, BufferPool)
+            };
+
+            try
+            {
+                Simulation.BroadPhase.GetOverlaps(boundingBoxMin, boundingBoxMax, ref broadPhaseEnumerator);
+
+                var batcher = new CollisionBatcher<BatcherCallbacks<TCollector>>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, new()
+                {
+                    CollisionMask = collisionMask,
+                    References = broadPhaseEnumerator.References,
+                    CollidableMaterials = CollidableMaterials,
+                    Collector = collector,
+                    Simulation = this
+                });
+
+                int i = 0;
+                foreach (CollidableReference reference in broadPhaseEnumerator.References)
+                {
+                    BRigidPose poseOther;
+                    TypedIndex shapeIndexOther;
+                    //Collidables can be associated with either bodies or statics. We have to look in a different place depending on which it is.
+                    if (reference.Mobility == CollidableMobility.Static)
+                    {
+                        var collidable = Simulation.Statics[reference.StaticHandle];
+                        poseOther = collidable.Pose;
+                        shapeIndexOther = collidable.Shape;
+                    }
+                    else
+                    {
+                        var bodyReference = Simulation.Bodies[reference.BodyHandle];
+                        poseOther = bodyReference.Pose;
+                        shapeIndexOther = bodyReference.Collidable.Shape;
+                    }
+
+                    Simulation.Shapes[shapeIndexOther.Type].GetShapeData(shapeIndexOther.Index, out var shapeData, out _);
+                    //In this path, we assume that the incoming shape data is ephemeral. The collision batcher may last longer than the data pointer.
+                    //To avoid undefined access, we cache the query data into the collision batcher and use a pointer to the cache instead.
+                    batcher.Callbacks.References.Add(reference, BufferPool);
+                    batcher.CacheShapeB(shapeIndexOther.Type, TShape.TypeId, queryShapeData, queryShapeSize, out var cachedQueryShapeData);
+                    batcher.AddDirectly(shapeIndexOther.Type, TShape.TypeId, shapeData, cachedQueryShapeData,
+                        //Because we're using this as a boolean query, we use a speculative margin of 0. Don't care about negative depths.
+                        bepuPose.Position - poseOther.Position, poseOther.Orientation, bepuPose.Orientation, 0, new PairContinuation(i));
+                    i++;
+                }
+
+                //While the collision batcher may flush batches here and there when a new test is added if it fills a batch,
+                //it's likely that there remain leftover pairs that didn't fill up a batch completely. Force a complete flush.
+                //Note that this also returns all resources used by the batcher to the BufferPool.
+                batcher.Flush();
+                Debug.Assert(batcher.Callbacks.RanIfAtAll);
+                collector = batcher.Callbacks.Collector;
+            }
+            finally
+            {
+                broadPhaseEnumerator.References.Dispose(BufferPool);
+            }
+        }
     }
 
     /// <summary>

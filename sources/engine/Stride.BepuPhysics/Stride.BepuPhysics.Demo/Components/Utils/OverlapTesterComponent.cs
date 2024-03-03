@@ -10,7 +10,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
     {
         public override void Update()
         {
-            var buffer = System.Buffers.ArrayPool<ContainerComponent>.Shared.Rent(16);
+            System.Span<CollidableStack> buffer = stackalloc CollidableStack[16];
             var bepuConfig = Services.GetService<BepuConfiguration>();
             var rot = Entity.Transform.GetWorldRot();
             var pos = Entity.Transform.GetWorldPos();
@@ -24,17 +24,16 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 DebugText.Print("No sweep", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 700));
             }
 
-            bepuConfig.BepuSimulations[0].Overlap(new Box(0.25f, 0.25f, 0.25f), new RigidPose(pos, rot), buffer, out var containers);
-            for (int j = 0; j < containers.Length; j++)
+            int j = 0;
+            foreach (var hit in bepuConfig.BepuSimulations[0].Overlap(new Box(0.25f, 0.25f, 0.25f), new RigidPose(pos, rot), buffer))
             {
-                var hitInfo = containers[j];
-                DebugText.Print($"Overlap : {hitInfo.Entity.Name}", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 430 + 25 * j));
+                DebugText.Print($"Overlap : {hit.Entity.Name}", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 430 + 25 * j));
+                j++;
             }
-            if (containers.Length == 0)
+            if (j == 0)
             {
                 DebugText.Print("no overlap", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 430));
             }
-            System.Buffers.ArrayPool<ContainerComponent>.Shared.Return(buffer);
         }
     }
 }
