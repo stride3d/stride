@@ -1,0 +1,20 @@
+!Model
+Id: eadda2d3-c404-49c9-b6f3-e50cf4660c81
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/Models/Hex.obj
+Skeleton: null
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    12e38931683e8e674bbe6d8913f40f45:
+        Name: DefaultMaterial
+        MaterialInstance:
+            Material: null
+    53cba43c8ca3bf37a2aba97dfa5979b6:
+        Name: "Acier_-_Satiné"
+        MaterialInstance:
+            Material: null
+DeduplicateMaterials: false
+Modifiers: {}
+~SourceHashes:
+    52f0b69ef94ee41b3fac79a35e67bcce~../../Resources/Models/Hex.obj: f2da46b286c3a3da9b479beafcc7af9c

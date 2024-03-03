@@ -6,7 +6,6 @@ using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Quantum;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
 {
@@ -27,30 +26,26 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         public override bool CanAttach(INodePresenter nodePresenter)
         {
             // We are in a collection...
-            var collectionDescriptor = nodePresenter.Descriptor as CollectionDescriptor;
-            if (collectionDescriptor == null)
+            if (nodePresenter.ValueIsAnyCollection(out bool hasAdd, out var itemType, out var descriptor) == false)
                 return false;
 
             // ... that is not read-only...
             var memberCollection = (nodePresenter as MemberNodePresenter)?.MemberAttributes.OfType<MemberCollectionAttribute>().FirstOrDefault()
-                                   ?? nodePresenter.Descriptor.Attributes.OfType<MemberCollectionAttribute>().FirstOrDefault();
+                                    ?? descriptor.Attributes.OfType<MemberCollectionAttribute>().FirstOrDefault();
             if (memberCollection?.ReadOnly == true)
                 return false;
 
             // ... supports add...
-            if (!collectionDescriptor.HasAdd)
+            if (!hasAdd)
                 return false;
 
-            // ... and can construct element
-            var elementType = collectionDescriptor.ElementType;
-            return CanConstruct(elementType) || elementType.IsAbstract || elementType.IsNullable() || IsReferenceType(elementType);
+            return CanConstruct(itemType) || itemType.IsAbstract || itemType.IsNullable() || IsReferenceType(itemType);
         }
 
         /// <inheritdoc/>
         protected override void ExecuteSync(INodePresenter nodePresenter, object parameter, object preExecuteResult)
         {
             var assetNodePresenter = nodePresenter as IAssetNodePresenter;
-            var collectionDescriptor = (CollectionDescriptor)nodePresenter.Descriptor;
 
             object itemToAdd;
 
@@ -63,12 +58,12 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             // Otherwise, assume it's an object
             else
             {
-                var elementType = collectionDescriptor.ElementType;
+                nodePresenter.ValueIsAnyCollection(out _, out var itemType, out _);
                 itemToAdd = parameter;
                 if (itemToAdd == null)
                 {
-                    var instance = ObjectFactoryRegistry.NewInstance(elementType);
-                    if (!IsReferenceType(elementType) && (assetNodePresenter == null || !assetNodePresenter.IsObjectReference(instance)))
+                    var instance = ObjectFactoryRegistry.NewInstance(itemType);
+                    if (!IsReferenceType(itemType) && (assetNodePresenter == null || !assetNodePresenter.IsObjectReference(instance)))
                         itemToAdd = instance;
                 }
             }

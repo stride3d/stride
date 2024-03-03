@@ -1,0 +1,13 @@
+!ProceduralModelAsset
+Id: fe0cbb35-026d-4bc3-8d56-78a8198eaa0a
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: !CapsuleProceduralModel
+    Length: 1.0
+    Radius: 0.7
+    Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+    UvScale: {X: 1.0, Y: 1.0}
+    LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    NumberOfTextureCoordinates: 10
+    MaterialInstance:
+        Material: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat

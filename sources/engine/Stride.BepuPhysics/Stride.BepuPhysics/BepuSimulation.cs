@@ -1,0 +1,789 @@
+﻿using BepuPhysics.Collidables;
+using BepuPhysics.CollisionDetection;
+using BepuPhysics;
+using BepuUtilities.Collections;
+using BepuUtilities.Memory;
+using BepuUtilities;
+using Stride.BepuPhysics.Components;
+using Stride.BepuPhysics.Definitions.Contacts;
+using Stride.BepuPhysics.Definitions.Raycast;
+using Stride.BepuPhysics.Definitions.SimTests;
+using Stride.BepuPhysics.Definitions;
+using Stride.Core.Mathematics;
+using Stride.Core.Threading;
+using Stride.Core;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
+using NVector3 = System.Numerics.Vector3;
+using BRigidPose = BepuPhysics.RigidPose;
+using SRigidPose = Stride.BepuPhysics.Definitions.RigidPose;
+using SBodyVelocity = Stride.BepuPhysics.Definitions.BodyVelocity;
+
+namespace Stride.BepuPhysics;
+
+[DataContract]
+public class BepuSimulation
+{
+    const string CATEGORY_TIME = "Time";
+    const string CATEGORY_CONSTRAINTS = "Constraints";
+    const string CATEGORY_FORCES = "Forces";
+
+    private TimeSpan _fixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60);
+    private readonly List<ISimulationUpdate> _simulationUpdateComponents = new();
+    private readonly List<BodyComponent> _interpolatedBodies = new();
+    private readonly ThreadDispatcher _threadDispatcher;
+    private TimeSpan _remainingUpdateTime;
+    private TimeSpan _softStartRemainingDuration;
+    private bool _softStartScheduled = false;
+
+    internal BufferPool BufferPool { get; }
+
+    internal CollidableProperty<MaterialProperties> CollidableMaterials { get; } = new();
+    internal ContactEventsManager ContactEvents { get; }
+
+    internal List<BodyComponent?> Bodies { get; } = new();
+    internal List<StaticComponent?> Statics { get; } = new();
+
+    /// <summary>
+    /// Get the bepu Simulation /!\
+    /// </summary>
+    [DataMemberIgnore]
+    public Simulation Simulation { get; }
+
+    /// <summary>
+    /// Whether to update the simulation
+    /// </summary>
+    /// <remarks>
+    /// False also disables contact processing but won't prevent re-synchronization of static physics bodies to their engine counterpart
+    /// </remarks>
+    [Display(0, "Enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Allow entity synchronization to occur across multiple threads instead of just the main thread
+    /// </summary>
+    [Display(1, "Parallel Update")]
+    public bool ParallelUpdate { get; set; } = true;
+
+    /// <summary>
+    /// Whether to use a deterministic time step when using multithreading. When set to true, additional time is spent sorting constraint additions and transfers.
+    /// </summary>
+    /// <remarks>
+    /// This can only affect determinism locally- different processor architectures may implement instructions differently.
+    /// There is also some performance cost
+    /// </remarks>
+    [Display(2, "Deterministic")]
+    public bool Deterministic
+    {
+        get => Simulation.Deterministic;
+        set => Simulation.Deterministic = value;
+    }
+
+    /// <summary>
+    /// The number of seconds per step to simulate. Lossy, prefer <see cref="FixedTimeStep"/>.
+    /// </summary>
+    [Display(3, "Fixed Time Step (s)", CATEGORY_TIME)]
+    public double FixedTimeStepSeconds
+    {
+        get => FixedTimeStep.TotalSeconds;
+        set => FixedTimeStep = TimeSpan.FromSeconds(value);
+    }
+
+    /// <summary>
+    /// The speed of the simulation compared to real-time.
+    /// </summary>
+    /// <remarks>
+    /// This stacks with <see cref="Stride.Games.GameTime"/>.<see cref="Stride.Games.GameTime.Factor"/>,
+    /// changing that one already affects the simulation speed.
+    /// </remarks>
+    [Display(4, "Time Scale", CATEGORY_TIME)]
+    public float TimeScale { get; set; } = 1f;
+
+    /// <summary>
+    /// Represents the maximum number of steps per frame to avoid a death loop
+    /// </summary>
+    [Display(5, "Max steps/frame", CATEGORY_TIME)]
+    public int MaxStepPerFrame { get; set; } = 3;
+
+    /// <summary>
+    /// Allows for per-body features like <see cref="BodyComponent.Gravity"/> at a cost to the simulation's performance
+    /// </summary>
+    /// <remarks>
+    /// <see cref="BodyComponent.Gravity"/> will be ignored if this is false.
+    /// </remarks>
+    [Display(6, "Per Body Attributes", CATEGORY_FORCES)]
+    public bool UsePerBodyAttributes
+    {
+        get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.UsePerBodyAttributes;
+        set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.UsePerBodyAttributes = value;
+    }
+
+    /// <summary>
+    /// Global gravity settings. This gravity will be applied to all bodies in the simulations that are not kinematic.
+    /// </summary>
+    [Display(7, "Gravity", CATEGORY_FORCES)]
+    public Vector3 PoseGravity
+    {
+        get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.Gravity.ToStride();
+        set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.Gravity = value.ToNumeric();
+    }
+
+    /// <summary>
+    /// Controls linear damping, how fast object loose their linear velocity
+    /// </summary>
+    [Display(8, "Linear Damping", CATEGORY_FORCES)]
+    public float PoseLinearDamping
+    {
+        get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.LinearDamping;
+        set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.LinearDamping = value;
+    }
+
+    /// <summary>
+    /// Controls angular damping, how fast object loose their angular velocity
+    /// </summary>
+    [Display(9, "Angular Damping", CATEGORY_FORCES)]
+    public float PoseAngularDamping
+    {
+        get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.AngularDamping;
+        set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.AngularDamping = value;
+    }
+
+    /// <summary>
+    /// The number of iterations for the solver
+    /// </summary>
+    /// <remarks>
+    /// Smaller values improve performance at the cost of stability and precision.
+    /// </remarks>
+    [Display(10, "Solver Iteration", CATEGORY_CONSTRAINTS)]
+    public int SolverIteration { get => Simulation.Solver.VelocityIterationCount; init => Simulation.Solver.VelocityIterationCount = value; }
+
+    /// <summary>
+    /// The number of sub-steps used when solving constraints
+    /// </summary>
+    /// <remarks>
+    /// Smaller values improve performance at the cost of stability and precision.
+    /// </remarks>
+    [Display(11, "Solver SubStep", CATEGORY_CONSTRAINTS)]
+    public int SolverSubStep { get => Simulation.Solver.SubstepCount; init => Simulation.Solver.SubstepCount = value; }
+
+    /// <summary>
+    /// The duration for the SoftStart; when the simulation starts up, more <see cref="SolverSubStep"/>
+    /// run to improve constraints stability and let them come to rest sooner.
+    /// </summary>
+    /// <remarks>
+    /// Negative or 0 disables this feature.
+    /// </remarks>
+    [Display(12, "SoftStart Duration", CATEGORY_CONSTRAINTS)]
+    public TimeSpan SoftStartDuration { get; set; } = TimeSpan.FromSeconds(1);
+
+    /// <summary>
+    /// Multiplier over <see cref="SolverSubStep"/> during Soft Start
+    /// </summary>
+    [Display(13, "SoftStart Substep factor", CATEGORY_CONSTRAINTS)]
+    public int SoftStartSubstepFactor { get; set; } = 4;
+
+    /// <summary>
+    /// The amount of time between individual simulation steps/ticks, by default ~16.67 milliseconds which would run 60 ticks per second
+    /// </summary>
+    /// <remarks>
+    /// Larger values improve performance at the cost of stability and precision.
+    /// </remarks>
+    [DataMemberIgnore]
+    public TimeSpan FixedTimeStep
+    {
+        get => _fixedTimeStep;
+        set
+        {
+            if (value.Ticks <= 0)
+                throw new ArgumentException("Duration provided must be greater than zero");
+            _fixedTimeStep = value;
+        }
+    }
+
+    public BepuSimulation()
+    {
+        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
+
+        #warning Consider wrapping stride's threadpool/dispatcher into an IThreadDispatcher and passing that over to bepu instead of using their dispatcher
+        _threadDispatcher = new ThreadDispatcher(targetThreadCount);
+        BufferPool = new BufferPool();
+        ContactEvents = new ContactEventsManager(_threadDispatcher, BufferPool);
+
+        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials, ContactEvents = ContactEvents };
+        var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks() { CollidableMaterials = CollidableMaterials };
+        var _solveDescription = new SolveDescription(1, 1);
+
+        Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
+        Simulation.Solver.VelocityIterationCount = 8;
+        Simulation.Solver.SubstepCount = 1;
+
+        CollidableMaterials.Initialize(Simulation);
+        ContactEvents.Initialize(this);
+        //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ContainerComponent GetContainer(CollidableReference collidable)
+    {
+        return collidable.Mobility == CollidableMobility.Static ? GetContainer(collidable.StaticHandle) : GetContainer(collidable.BodyHandle);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public BodyComponent GetContainer(BodyHandle handle)
+    {
+        var body = Bodies[handle.Value];
+#warning disabled for soft
+        //Debug.Assert(body is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
+        return body;
+    }
+
+    public StaticComponent GetContainer(StaticHandle handle)
+    {
+        var statics = Statics[handle.Value];
+        Debug.Assert(statics is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
+        return statics;
+    }
+
+    /// <summary>
+    /// Finds the closest intersection between this ray and shapes in the simulation.
+    /// </summary>
+    /// <param name="origin">The start position for this ray</param>
+    /// <param name="dir">The normalized direction the ray is facing</param>
+    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="result">An intersection in the world when this method returns true, an undefined value when this method returns false</param>
+    /// <param name="collisionMask"></param>
+    /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
+    public bool RayCast(in Vector3 origin, in Vector3 dir, float maxDistance, out HitInfo result, CollisionMask collisionMask = CollisionMask.Everything)
+    {
+        var handler = new RayClosestHitHandler(this, collisionMask);
+        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
+        if (handler.HitInformation.HasValue)
+        {
+            result = handler.HitInformation.Value;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Collect intersections between the given ray and shapes in this simulation.
+    /// </summary>
+    /// <remarks>
+    /// When there are more hits than <paramref name="buffer"/> can accomodate, returns only the closest hits.<br/>
+    /// There are no guarantees as to the order hits are returned in.
+    /// </remarks>
+    /// <param name="origin">The start position for this ray</param>
+    /// <param name="dir">The normalized direction the ray is facing</param>
+    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="buffer">
+    /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
+    /// It is used by the returned enumerator as its backing array from which you read
+    /// </param>
+    /// <param name="collisionMask"></param>
+    public unsafe ConversionEnum<ManagedConverter, HitInfoStack, HitInfo> RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, Span<HitInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything)
+    {
+        fixed (HitInfoStack* ptr = &buffer[0])
+        {
+            var handler = new RayHitsStackHandler(ptr, buffer.Length, this, collisionMask);
+            Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
+            return new (buffer[..handler.Head], new(this));
+        }
+    }
+
+    /// <summary>
+    /// Collect intersections between the given ray and shapes in this simulation. Hits are NOT sorted.
+    /// </summary>
+    /// <remarks> There are no guarantees as to the order hits are returned in. </remarks>
+    /// <param name="origin">The start position for this ray</param>
+    /// <param name="dir">The normalized direction the ray is facing</param>
+    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
+    /// <param name="collisionMask"></param>
+    public void RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything)
+    {
+        var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
+        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
+    }
+
+    /// <summary>
+    /// Finds the closest contact between <paramref name="shape"/> and other shapes in the simulation when thrown in <paramref name="velocity"/> direction.
+    /// </summary>
+    /// <param name="shape">The shape thrown at the scene</param>
+    /// <param name="pose">Initial position for the shape</param>
+    /// <param name="velocity">Velocity used to throw the shape</param>
+    /// <param name="maxDistance">The maximum distance, or amount of time along the path of the <paramref name="velocity"/></param>
+    /// <param name="result">The resulting contact when this method returns true, an undefined value when this method returns false</param>
+    /// <param name="collisionMask"></param>
+    /// <typeparam name="TShape"></typeparam>
+    /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
+    public bool SweepCast<TShape>(in TShape shape, in SRigidPose pose, in SBodyVelocity velocity, float maxDistance, out HitInfo result, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    {
+        var handler = new RayClosestHitHandler(this, collisionMask);
+        Simulation.Sweep(shape, pose.ToBepu(), velocity.ToBepu(), maxDistance, BufferPool, ref handler);
+        if (handler.HitInformation.HasValue)
+        {
+            result = handler.HitInformation.Value;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Finds contacts between <paramref name="shape"/> and other shapes in the simulation when thrown in <paramref name="velocity"/> direction.
+    /// </summary>
+    /// <remarks>
+    /// When there are more hits than <paramref name="buffer"/> can accomodate, returns only the closest hits <br/>
+    /// There are no guarantees as to the order hits are returned in.
+    /// </remarks>
+    /// <param name="shape">The shape thrown at the scene</param>
+    /// <param name="pose">Initial position for the shape</param>
+    /// <param name="velocity">Velocity used to throw the shape</param>
+    /// <param name="maxDistance">The maximum distance, or amount of time along the path of the <paramref name="velocity"/></param>
+    /// <param name="buffer">
+    /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
+    /// It is used by the returned enumerator as its backing array from which you read
+    /// </param>
+    /// <param name="collisionMask"></param>
+    /// <typeparam name="TShape"></typeparam>
+    public unsafe ConversionEnum<ManagedConverter, HitInfoStack, HitInfo> SweepCastPenetrating<TShape>(in TShape shape, in SRigidPose pose, in SBodyVelocity velocity, float maxDistance, Span<HitInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    {
+        fixed (HitInfoStack* ptr = &buffer[0])
+        {
+            var handler = new RayHitsStackHandler(ptr, buffer.Length, this, collisionMask);
+            Simulation.Sweep(shape, pose.ToBepu(), velocity.ToBepu(), maxDistance, BufferPool, ref handler);
+            return new (buffer[..handler.Head], new(this));
+        }
+    }
+
+    /// <summary>
+    /// Finds contacts between <paramref name="shape"/> and other shapes in the simulation when thrown in <paramref name="velocity"/> direction.
+    /// </summary>
+    /// <remarks> There are no guarantees as to the order hits are returned in. </remarks>
+    /// <param name="shape">The shape thrown at the scene</param>
+    /// <param name="pose">Initial position for the shape</param>
+    /// <param name="velocity">Velocity used to throw the shape</param>
+    /// <param name="maxDistance">The maximum distance, or amount of time along the path of the <paramref name="velocity"/></param>
+    /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
+    /// <param name="collisionMask"></param>
+    /// <typeparam name="TShape"></typeparam>
+    /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
+    public void SweepCastPenetrating<TShape>(in TShape shape, in SRigidPose pose, in SBodyVelocity velocity, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
+    {
+        var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
+        Simulation.Sweep(shape, pose.ToBepu(), velocity.ToBepu(), maxDistance, BufferPool, ref handler);
+    }
+
+    /// <summary>
+    /// Appends any physics object into <paramref name="collection"/> if it was found to be overlapping with <paramref name="shape"/>
+    /// </summary>
+    /// <remarks>The collection is not cleared before appending items into it</remarks>
+    /// <param name="shape">The shape used to test for overlap</param>
+    /// <param name="pose">Position the shape is on for this test</param>
+    /// <param name="collection">The collection used to store containers into, the collection is not cleared before usage, containers are appended to it</param>
+    /// <param name="collisionMask">The mask used to improve performance by masking only what you intend to detect</param>
+    public void Overlap<TShape>(in TShape shape, in SRigidPose pose, ICollection<OverlapInfo> collection, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
+    {
+        var collector = new CollectionCollector(collection);
+        OverlapInner(shape, pose, collisionMask, ref collector);
+    }
+
+    /// <summary>
+    /// Enumerates any physics object found to be overlapping with <paramref name="shape"/>
+    /// </summary>
+    /// <typeparam name="TShape">A bepu <see cref="IConvexShape"/> representing the shape that will be used when testing for overlap</typeparam>
+    /// <param name="shape">The shape used to test for overlap</param>
+    /// <param name="pose">Position the shape is on for this test</param>
+    /// <param name="buffer">
+    /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
+    /// It is used by the returned enumerator as its backing array from which you read
+    /// </param>
+    /// <param name="collisionMask">Mask used to ignore containers assigned to certain layers</param>
+    public ConversionEnum<ManagedConverter, CollidableStack, ContainerComponent> Overlap<TShape>(in TShape shape, in SRigidPose pose, Span<CollidableStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
+    {
+        unsafe
+        {
+            fixed (CollidableStack* ptr = buffer)
+            {
+                var collector = new SpanCollidableCollector(ptr, buffer.Length, this);
+                OverlapInner(shape, pose, collisionMask, ref collector);
+                buffer = buffer[..collector.Head]; // Only include data that has been written to
+            }
+
+            return new(buffer, new(this));
+        }
+    }
+
+    /// <summary>
+    /// Enumerates all overlap info for any shape and sub-shapes found to be overlapping with <paramref name="shape"/>
+    /// </summary>
+    /// <remarks> Multiple info may come from the same <see cref="ContainerComponent"/> when it is a compound shape </remarks>
+    /// <typeparam name="TShape">A bepu <see cref="IConvexShape"/> representing the shape that will be used when testing for overlap</typeparam>
+    /// <param name="shape">The shape used to test for overlap</param>
+    /// <param name="pose">Position the shape is on for this test</param>
+    /// <param name="buffer">
+    /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
+    /// It is used by the returned enumerator as its backing array from which you read
+    /// </param>
+    /// <param name="collisionMask">Mask used to ignore containers assigned to certain layers</param>
+    public ConversionEnum<ManagedConverter, OverlapInfoStack, OverlapInfo> OverlapInfo<TShape>(in TShape shape, in SRigidPose pose, Span<OverlapInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
+    {
+        unsafe
+        {
+            fixed (OverlapInfoStack* ptr = buffer)
+            {
+                var collector = new SpanManifoldCollector(ptr, buffer.Length, this);
+                OverlapInner(shape, pose, collisionMask, ref collector);
+                buffer = buffer[..collector.Head]; // Only include data that has been written to
+            }
+
+            return new(buffer, new(this));
+        }
+    }
+
+    /// <summary>
+    /// Called by the BroadPhase.GetOverlaps to collect all encountered collidables.
+    /// </summary>
+    struct BroadPhaseOverlapEnumerator : IBreakableForEach<CollidableReference>
+    {
+        public QuickList<CollidableReference> References;
+        //The enumerator never gets stored into unmanaged memory, so it's safe to include a reference type instance.
+        public BufferPool Pool;
+        public bool LoopBody(CollidableReference reference)
+        {
+            References.Allocate(Pool) = reference;
+            //If you wanted to do any top-level filtering, this would be a good spot for it.
+            //The CollidableReference tells you whether it's a body or a static object and the associated handle. You can look up metadata with that.
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Provides callbacks for filtering and data collection to the CollisionBatcher we'll be using to test query shapes against the detected environment.
+    /// </summary>
+    struct BatcherCallbacks<T> : ICollisionCallbacks where T : IOverlapCollector
+    {
+        #warning remove this once we've confirmed that the structure is written to inline
+        public bool RanIfAtAll;
+        public required CollisionMask CollisionMask;
+        public required QuickList<CollidableReference> References;
+        public required CollidableProperty<MaterialProperties> CollidableMaterials;
+        public required T Collector;
+        public required BepuSimulation Simulation;
+
+        //These callbacks provide filtering and reporting for pairs being processed by the collision batcher.
+        //"Pair id" refers to the identifier given to the pair when it was added to the batcher.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AllowCollisionTesting(int pairId, int childA, int childB)
+        {
+            RanIfAtAll = true;
+            var matA = CollidableMaterials[References[pairId]];
+            return CollisionMask.Collide(matA.ColliderCollisionMask);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void OnChildPairCompleted(int pairId, int childA, int childB, ref ConvexContactManifold manifold)
+        {
+            RanIfAtAll = true;
+            //If you need to do any processing on a child manifold before it goes back to a nonconvex processing pass, this is the place to do it.
+            //Convex-convex pairs won't invoke this function at all.
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void OnPairCompleted<TManifold>(int pairId, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+        {
+            Collector.OnPairCompleted(Simulation, References[pairId], ref manifold);
+            RanIfAtAll = true;
+        }
+    }
+
+    unsafe void OverlapInner<TShape, TCollector>(in TShape shape, in SRigidPose pose, CollisionMask collisionMask, ref TCollector collector) where TShape : unmanaged, IConvexShape where TCollector : IOverlapCollector
+    {
+        fixed (TShape* queryShapeData = &shape)
+        {
+            var queryShapeSize = Unsafe.SizeOf<TShape>();
+            var bepuPose = pose.ToBepu();
+            queryShapeData->ComputeBounds(bepuPose.Orientation, out var boundingBoxMin, out var boundingBoxMax);
+            boundingBoxMin += bepuPose.Position;
+            boundingBoxMax += bepuPose.Position;
+            var broadPhaseEnumerator = new BroadPhaseOverlapEnumerator
+            {
+                Pool = BufferPool,
+                References = new QuickList<CollidableReference>(16, BufferPool)
+            };
+
+            try
+            {
+                Simulation.BroadPhase.GetOverlaps(boundingBoxMin, boundingBoxMax, ref broadPhaseEnumerator);
+
+                var batcher = new CollisionBatcher<BatcherCallbacks<TCollector>>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, new()
+                {
+                    CollisionMask = collisionMask,
+                    References = broadPhaseEnumerator.References,
+                    CollidableMaterials = CollidableMaterials,
+                    Collector = collector,
+                    Simulation = this
+                });
+
+                int i = 0;
+                foreach (CollidableReference reference in broadPhaseEnumerator.References)
+                {
+                    BRigidPose poseOther;
+                    TypedIndex shapeIndexOther;
+                    //Collidables can be associated with either bodies or statics. We have to look in a different place depending on which it is.
+                    if (reference.Mobility == CollidableMobility.Static)
+                    {
+                        var collidable = Simulation.Statics[reference.StaticHandle];
+                        poseOther = collidable.Pose;
+                        shapeIndexOther = collidable.Shape;
+                    }
+                    else
+                    {
+                        var bodyReference = Simulation.Bodies[reference.BodyHandle];
+                        poseOther = bodyReference.Pose;
+                        shapeIndexOther = bodyReference.Collidable.Shape;
+                    }
+
+                    Simulation.Shapes[shapeIndexOther.Type].GetShapeData(shapeIndexOther.Index, out var shapeData, out _);
+                    //In this path, we assume that the incoming shape data is ephemeral. The collision batcher may last longer than the data pointer.
+                    //To avoid undefined access, we cache the query data into the collision batcher and use a pointer to the cache instead.
+                    batcher.Callbacks.References.Add(reference, BufferPool);
+                    batcher.CacheShapeB(shapeIndexOther.Type, TShape.TypeId, queryShapeData, queryShapeSize, out var cachedQueryShapeData);
+                    batcher.AddDirectly(shapeIndexOther.Type, TShape.TypeId, shapeData, cachedQueryShapeData,
+                        //Because we're using this as a boolean query, we use a speculative margin of 0. Don't care about negative depths.
+                        bepuPose.Position - poseOther.Position, poseOther.Orientation, bepuPose.Orientation, 0, new PairContinuation(i));
+                    i++;
+                }
+
+                //While the collision batcher may flush batches here and there when a new test is added if it fills a batch,
+                //it's likely that there remain leftover pairs that didn't fill up a batch completely. Force a complete flush.
+                //Note that this also returns all resources used by the batcher to the BufferPool.
+                batcher.Flush();
+                Debug.Assert(batcher.Callbacks.RanIfAtAll);
+                collector = batcher.Callbacks.Collector;
+            }
+            finally
+            {
+                broadPhaseEnumerator.References.Dispose(BufferPool);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reset the SoftStart to SoftStartDuration.
+    /// </summary>
+    public void ResetSoftStart()
+    {
+        _softStartScheduled = true;
+    }
+
+    internal void Update(TimeSpan elapsed)
+    {
+        if (!Enabled)
+            return;
+
+        // TimeSpan multiplication is lossy, skipping mult when we can
+        _remainingUpdateTime += TimeScale == 1f ? elapsed : elapsed * TimeScale;
+
+        for (int stepCount = 0; _remainingUpdateTime >= FixedTimeStep && (stepCount < MaxStepPerFrame || MaxStepPerFrame != -1); stepCount++, _remainingUpdateTime -= FixedTimeStep)
+        {
+            if (_softStartScheduled)
+            {
+                _softStartScheduled = false;
+                if (SoftStartDuration > TimeSpan.Zero)
+                {
+                    _softStartRemainingDuration = SoftStartDuration;
+                    Simulation.Solver.SubstepCount = SolverSubStep * SoftStartSubstepFactor;
+                }
+            }
+
+            bool turnOffSoftStart = false;
+            if (_softStartRemainingDuration > TimeSpan.Zero)
+            {
+                turnOffSoftStart = _softStartRemainingDuration <= FixedTimeStep;
+                _softStartRemainingDuration -= FixedTimeStep;
+            }
+
+            var simTimeStepInSec = (float)FixedTimeStep.TotalSeconds;
+            foreach (var updateComponent in _simulationUpdateComponents)
+            {
+                updateComponent.SimulationUpdate(simTimeStepInSec);
+            }
+
+            Simulation.Timestep(simTimeStepInSec, _threadDispatcher); //perform physic simulation using SimulationFixedStep
+            ContactEvents.Flush(); //Fire event handler stuff.
+
+            if (turnOffSoftStart)
+            {
+                Simulation.Solver.SubstepCount = SolverSubStep / SoftStartSubstepFactor;
+                _softStartRemainingDuration = TimeSpan.Zero;
+            }
+
+            SyncActiveTransformsWithPhysics();
+
+            foreach (var updateComponent in _simulationUpdateComponents)
+            {
+                updateComponent.AfterSimulationUpdate(simTimeStepInSec);
+            }
+
+            foreach (var body in _interpolatedBodies)
+            {
+                body.PreviousPose = body.CurrentPose;
+                if (body.BodyReference is {} bRef)
+                    body.CurrentPose = bRef.Pose;
+            }
+        }
+
+        InterpolateTransforms();
+    }
+
+    private void SyncActiveTransformsWithPhysics()
+    {
+        if (ParallelUpdate)
+        {
+            Dispatcher.For(0, Simulation.Bodies.ActiveSet.Count, (i) => SyncTransformsWithPhysics(Simulation.Bodies.GetBodyReference(Simulation.Bodies.ActiveSet.IndexToHandle[i]), this));
+        }
+        else
+        {
+            for (int i = 0; i < Simulation.Bodies.ActiveSet.Count; i++)
+            {
+                SyncTransformsWithPhysics(Simulation.Bodies.GetBodyReference(Simulation.Bodies.ActiveSet.IndexToHandle[i]), this);
+            }
+        }
+
+        static void SyncTransformsWithPhysics(in BodyReference body, BepuSimulation bepuSim)
+        {
+            var bodyContainer = bepuSim.GetContainer(body.Handle);
+
+#warning temp fix for softs
+            if (bodyContainer == null)
+                return;
+
+            for (var containerParent = bodyContainer.Parent; containerParent != null; containerParent = containerParent.Parent)
+            {
+                if (containerParent.BodyReference is { } bRef)
+                {
+                    // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
+                    // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
+                    SyncTransformsWithPhysics(bRef, bepuSim);
+                    // This can be slower than expected when we have multiple containers as parents recursively since we would recompute the topmost container n times, the second topmost n-1 etc.
+                    // It's not that likely but should still be documented as suboptimal somewhere
+                    containerParent.Entity.Transform.Parent.UpdateWorldMatrix();
+                }
+            }
+
+            var localPosition = body.Pose.Position.ToStride();
+            var localRotation = body.Pose.Orientation.ToStride();
+
+            var entityTransform = bodyContainer.Entity.Transform;
+            if (entityTransform.Parent is { } parent)
+            {
+                parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
+                var iRotation = Quaternion.Invert(parentEntityRotation);
+                localPosition = Vector3.Transform(localPosition - parentEntityPosition, iRotation);
+                localRotation = localRotation * iRotation;
+            }
+
+            entityTransform.Rotation = localRotation;
+            entityTransform.Position = localPosition - Vector3.Transform(bodyContainer.CenterOfMass, localRotation);
+        }
+    }
+
+    private void InterpolateTransforms()
+    {
+        // Find the interpolation factor, a value [0,1] which represents the ratio of the current time relative to the previous and the next physics step,
+        // a value of 0.5 means that we're halfway to the next physics update, just have to wait for the same amount of time.
+        var interpolationFactor = (float)(_remainingUpdateTime.TotalSeconds / FixedTimeStep.TotalSeconds);
+        interpolationFactor = MathF.Min(interpolationFactor, 1f);
+        if (ParallelUpdate)
+        {
+            Dispatcher.For(0, _interpolatedBodies.Count, (i) => InterpolateContainer(_interpolatedBodies[i], interpolationFactor));
+        }
+        else
+        {
+            foreach (var body in _interpolatedBodies)
+            {
+                InterpolateContainer(body, interpolationFactor);
+            }
+        }
+
+        static void InterpolateContainer(BodyComponent body, float interpolationFactor)
+        {
+            // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
+            // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
+            for (var containerParent = body.Parent; containerParent != null; containerParent = containerParent.Parent)
+            {
+                if (containerParent is BodyComponent parentBody && parentBody.InterpolationMode != InterpolationMode.None)
+                {
+                    InterpolateContainer(parentBody, interpolationFactor); // That guy will take care of his parents too
+                    // This can be slower than expected when we have multiple containers as parents recursively since we would recompute the topmost container n times, the second topmost n-1 etc.
+                    // It's not that likely but should still be documented as suboptimal somewhere
+                    parentBody.Entity.Transform.Parent.UpdateWorldMatrix();
+                    break;
+                }
+            }
+
+            if (body.InterpolationMode == InterpolationMode.Extrapolated)
+                interpolationFactor += 1f;
+
+            var interpolatedPosition = System.Numerics.Vector3.Lerp(body.PreviousPose.Position, body.CurrentPose.Position, interpolationFactor).ToStride();
+            // We may be able to get away with just a Lerp instead of Slerp, not sure if it needs to be normalized though at which point it may not be that much faster
+            var interpolatedRotation = System.Numerics.Quaternion.Slerp(body.PreviousPose.Orientation, body.CurrentPose.Orientation, interpolationFactor).ToStride();
+
+            var entityTransform = body.Entity.Transform;
+            if (entityTransform.Parent is { } parent)
+            {
+                parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
+                var iRotation = Quaternion.Invert(parentEntityRotation);
+                interpolatedPosition = Vector3.Transform(interpolatedPosition - parentEntityPosition, iRotation);
+                interpolatedRotation = interpolatedRotation * iRotation;
+            }
+
+            entityTransform.Rotation = interpolatedRotation;
+            entityTransform.Position = interpolatedPosition - Vector3.Transform(body.CenterOfMass, interpolatedRotation);
+        }
+    }
+
+    //private void Setup()
+    //{
+       
+    //}
+    //private void Clear()
+    //{
+    //    //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
+    //    BufferPool.Clear();
+    //    BodiesContainers.Clear();
+    //    StaticsContainers.Clear();
+    //    ContactEvents.Dispose();
+    //    Setup();
+    //}
+
+    internal void Register(ISimulationUpdate simulationUpdateComponent)
+    {
+        _simulationUpdateComponents.Add(simulationUpdateComponent);
+    }
+    internal void Unregister(ISimulationUpdate simulationUpdateComponent)
+    {
+        _simulationUpdateComponents.Remove(simulationUpdateComponent);
+    }
+
+    internal void RegisterInterpolated(BodyComponent body)
+    {
+        _interpolatedBodies.Add(body);
+
+        body.Entity.Transform.UpdateWorldMatrix();
+        body.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
+        body.CurrentPose.Position = (containerWorldTranslation + body.CenterOfMass).ToNumeric();
+        body.CurrentPose.Orientation = containerWorldRotation.ToNumeric();
+        body.PreviousPose = body.CurrentPose;
+    }
+
+    internal void UnregisterInterpolated(BodyComponent body)
+    {
+        _interpolatedBodies.Remove(body);
+    }
+}
