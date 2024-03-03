@@ -48,8 +48,8 @@ public class BodyComponent : ContainerComponent
         }
     }
 
-    /// <summary> Whether gravity should affect the simulation's <see cref="Configurations.BepuSimulation.PoseGravity"/> </summary>
-    /// <remarks> Gravity is always active if <see cref="Configurations.BepuSimulation.UsePerBodyAttributes"/> is false </remarks>
+    /// <summary> Whether gravity should affect the simulation's <see cref="BepuSimulation.PoseGravity"/> </summary>
+    /// <remarks> Gravity is always active if <see cref="BepuSimulation.UsePerBodyAttributes"/> is false </remarks>
     public bool Gravity
     {
         get => _gravity;
