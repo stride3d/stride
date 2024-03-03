@@ -95,10 +95,10 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static HitInfoStack GenerateHitInfo(in RayData ray, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetContainer(collidable).Versioning), (ray.Origin + ray.Direction * t).ToStrideVector(), normal.ToStrideVector(), t);
+    static HitInfoStack GenerateHitInfo(in RayData ray, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetContainer(collidable).Versioning), (ray.Origin + ray.Direction * t).ToStride(), normal.ToStride(), t);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetContainer(collidable).Versioning), location.ToStrideVector(), normal.ToStrideVector(), t);
+    static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetContainer(collidable).Versioning), location.ToStride(), normal.ToStride(), t);
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
     {

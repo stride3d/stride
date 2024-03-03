@@ -22,11 +22,11 @@ public sealed class HingeConstraintComponent : TwoBodyConstraintComponent<Hinge>
     {
         get
         {
-            return BepuConstraint.LocalOffsetA.ToStrideVector();
+            return BepuConstraint.LocalOffsetA.ToStride();
         }
         set
         {
-            BepuConstraint.LocalOffsetA = value.ToNumericVector();
+            BepuConstraint.LocalOffsetA = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -35,11 +35,11 @@ public sealed class HingeConstraintComponent : TwoBodyConstraintComponent<Hinge>
     {
         get
         {
-            return BepuConstraint.LocalHingeAxisA.ToStrideVector();
+            return BepuConstraint.LocalHingeAxisA.ToStride();
         }
         set
         {
-            BepuConstraint.LocalHingeAxisA = value.ToNumericVector();
+            BepuConstraint.LocalHingeAxisA = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -48,11 +48,11 @@ public sealed class HingeConstraintComponent : TwoBodyConstraintComponent<Hinge>
     {
         get
         {
-            return BepuConstraint.LocalOffsetB.ToStrideVector();
+            return BepuConstraint.LocalOffsetB.ToStride();
         }
         set
         {
-            BepuConstraint.LocalOffsetB = value.ToNumericVector();
+            BepuConstraint.LocalOffsetB = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -61,11 +61,11 @@ public sealed class HingeConstraintComponent : TwoBodyConstraintComponent<Hinge>
     {
         get
         {
-            return BepuConstraint.LocalHingeAxisB.ToStrideVector();
+            return BepuConstraint.LocalHingeAxisB.ToStride();
         }
         set
         {
-            BepuConstraint.LocalHingeAxisB = value.ToNumericVector();
+            BepuConstraint.LocalHingeAxisB = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

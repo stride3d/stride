@@ -19,11 +19,11 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
     {
         get
         {
-            return BepuConstraint.LocalSwivelAxisA.ToStrideVector();
+            return BepuConstraint.LocalSwivelAxisA.ToStride();
         }
         set
         {
-            BepuConstraint.LocalSwivelAxisA = value.ToNumericVector();
+            BepuConstraint.LocalSwivelAxisA = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -32,11 +32,11 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
     {
         get
         {
-            return BepuConstraint.LocalHingeAxisB.ToStrideVector();
+            return BepuConstraint.LocalHingeAxisB.ToStride();
         }
         set
         {
-            BepuConstraint.LocalHingeAxisB = value.ToNumericVector();
+            BepuConstraint.LocalHingeAxisB = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

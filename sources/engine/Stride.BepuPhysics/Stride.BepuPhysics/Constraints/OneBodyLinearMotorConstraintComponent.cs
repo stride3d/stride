@@ -19,11 +19,11 @@ public sealed class OneBodyLinearMotorConstraintComponent : OneBodyConstraintCom
     {
         get
         {
-            return BepuConstraint.LocalOffset.ToStrideVector();
+            return BepuConstraint.LocalOffset.ToStride();
         }
         set
         {
-            BepuConstraint.LocalOffset = value.ToNumericVector();
+            BepuConstraint.LocalOffset = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -32,11 +32,11 @@ public sealed class OneBodyLinearMotorConstraintComponent : OneBodyConstraintCom
     {
         get
         {
-            return BepuConstraint.TargetVelocity.ToStrideVector();
+            return BepuConstraint.TargetVelocity.ToStride();
         }
         set
         {
-            BepuConstraint.TargetVelocity = value.ToNumericVector();
+            BepuConstraint.TargetVelocity = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

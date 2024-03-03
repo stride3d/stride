@@ -19,11 +19,11 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
     {
         get
         {
-            return BepuConstraint.LocalBasisA.ToStrideQuaternion();
+            return BepuConstraint.LocalBasisA.ToStride();
         }
         set
         {
-            BepuConstraint.LocalBasisA = value.ToNumericQuaternion();
+            BepuConstraint.LocalBasisA = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -32,11 +32,11 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
     {
         get
         {
-            return BepuConstraint.LocalBasisB.ToStrideQuaternion();
+            return BepuConstraint.LocalBasisB.ToStride();
         }
         set
         {
-            BepuConstraint.LocalBasisB = value.ToNumericQuaternion();
+            BepuConstraint.LocalBasisB = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

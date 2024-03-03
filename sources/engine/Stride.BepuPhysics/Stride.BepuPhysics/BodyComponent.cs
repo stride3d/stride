@@ -148,44 +148,44 @@ public class BodyComponent : ContainerComponent
     [DataMemberIgnore]
     public Vector3 LinearVelocity
     {
-        get => BodyReference?.Velocity.Linear.ToStrideVector() ?? default;
+        get => BodyReference?.Velocity.Linear.ToStride() ?? default;
         set
         {
             if (BodyReference is { } bodyRef)
-                bodyRef.Velocity.Linear = value.ToNumericVector();
+                bodyRef.Velocity.Linear = value.ToNumeric();
         }
     }
 
     [DataMemberIgnore]
     public Vector3 AngularVelocity
     {
-        get => BodyReference?.Velocity.Angular.ToStrideVector() ?? default;
+        get => BodyReference?.Velocity.Angular.ToStride() ?? default;
         set
         {
             if (BodyReference is { } bodyRef)
-                bodyRef.Velocity.Angular = value.ToNumericVector();
+                bodyRef.Velocity.Angular = value.ToNumeric();
         }
     }
 
     [DataMemberIgnore]
     public Vector3 Position
     {
-        get => BodyReference?.Pose.Position.ToStrideVector() ?? default;
+        get => BodyReference?.Pose.Position.ToStride() ?? default;
         set
         {
             if (BodyReference is { } bodyRef)
-                bodyRef.Pose.Position = value.ToNumericVector();
+                bodyRef.Pose.Position = value.ToNumeric();
         }
     }
 
     [DataMemberIgnore]
     public Quaternion Orientation
     {
-        get => BodyReference?.Pose.Orientation.ToStrideQuaternion() ?? Quaternion.Identity;
+        get => BodyReference?.Pose.Orientation.ToStride() ?? Quaternion.Identity;
         set
         {
             if (BodyReference is { } bodyRef)
-                bodyRef.Pose.Orientation = value.ToNumericQuaternion();
+                bodyRef.Pose.Orientation = value.ToNumeric();
         }
     }
 
@@ -225,17 +225,17 @@ public class BodyComponent : ContainerComponent
 
     public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
     {
-        BodyReference?.ApplyImpulse(impulse.ToNumericVector(), impulseOffset.ToNumericVector());
+        BodyReference?.ApplyImpulse(impulse.ToNumeric(), impulseOffset.ToNumeric());
     }
 
     public void ApplyAngularImpulse(Vector3 impulse)
     {
-        BodyReference?.ApplyAngularImpulse(impulse.ToNumericVector());
+        BodyReference?.ApplyAngularImpulse(impulse.ToNumeric());
     }
 
     public void ApplyLinearImpulse(Vector3 impulse)
     {
-        BodyReference?.ApplyLinearImpulse(impulse.ToNumericVector());
+        BodyReference?.ApplyLinearImpulse(impulse.ToNumeric());
     }
 
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[BodyReference!.Value];

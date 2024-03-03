@@ -54,8 +54,8 @@ public class ContainerProcessor : EntityProcessor<ContainerComponent>
             {
                 var description = sRef.GetDescription();
                 container.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out Vector3 translation);
-                description.Pose.Position = (translation + container.CenterOfMass).ToNumericVector();
-                description.Pose.Orientation = rotation.ToNumericQuaternion();
+                description.Pose.Position = (translation + container.CenterOfMass).ToNumeric();
+                description.Pose.Orientation = rotation.ToNumeric();
                 sRef.ApplyDescription(description);
             }
         }

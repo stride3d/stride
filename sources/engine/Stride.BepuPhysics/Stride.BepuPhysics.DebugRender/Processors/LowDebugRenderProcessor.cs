@@ -105,8 +105,8 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 for (int i = 0; i < count; i++)
                 {
                     var body = _sim.Simulation.Bodies[new(i)];
-                    var bodyPos = body.Pose.Position.ToStrideVector();
-                    var bodyRot = body.Pose.Orientation.ToStrideQuaternion();
+                    var bodyPos = body.Pose.Position.ToStride();
+                    var bodyRot = body.Pose.Orientation.ToStride();
 
                     GetBasicMeshBuffers(body, out var Buffers);
 
@@ -169,9 +169,9 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                     break;
                 case 3:
                     var triangle = _sim.Simulation.Shapes.GetShape<Triangle>(shapeIndex);
-                    var a = new VertexPosition3(triangle.A.ToStrideVector());
-                    var b = new VertexPosition3(triangle.B.ToStrideVector());
-                    var c = new VertexPosition3(triangle.C.ToStrideVector());
+                    var a = new VertexPosition3(triangle.A.ToStride());
+                    var b = new VertexPosition3(triangle.B.ToStride());
+                    var c = new VertexPosition3(triangle.C.ToStride());
                     shapeData = new BasicMeshBuffers() { Vertices = [a, b, c], Indices = [0, 1, 2] };
                     break;
                 case 4:
@@ -236,7 +236,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 {
                     for (int iii = 0; iii < shapeData[ii].Vertices.Length; iii++)
                     {
-                        shapeData[ii].Vertices[iii].Position = Vector3.Transform(shapeData[ii].Vertices[iii].Position, child.LocalOrientation.ToStrideQuaternion()) + child.LocalPosition.ToStrideVector();
+                        shapeData[ii].Vertices[iii].Position = Vector3.Transform(shapeData[ii].Vertices[iii].Position, child.LocalOrientation.ToStride()) + child.LocalPosition.ToStride();
                     }
                 }
             }

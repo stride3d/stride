@@ -23,11 +23,11 @@ public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintCom
     {
         get
         {
-            return BepuConstraint.LocalOffset.ToStrideVector();
+            return BepuConstraint.LocalOffset.ToStride();
         }
         set
         {
-            BepuConstraint.LocalOffset = value.ToNumericVector();
+            BepuConstraint.LocalOffset = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -36,11 +36,11 @@ public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintCom
     {
         get
         {
-            return BepuConstraint.Target.ToStrideVector();
+            return BepuConstraint.Target.ToStride();
         }
         set
         {
-            BepuConstraint.Target = value.ToNumericVector();
+            BepuConstraint.Target = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

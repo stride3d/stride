@@ -22,11 +22,11 @@ public sealed class OneBodyAngularMotorConstraintComponent : OneBodyConstraintCo
     {
         get
         {
-            return BepuConstraint.TargetVelocity.ToStrideVector();
+            return BepuConstraint.TargetVelocity.ToStride();
         }
         set
         {
-            BepuConstraint.TargetVelocity = value.ToNumericVector();
+            BepuConstraint.TargetVelocity = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

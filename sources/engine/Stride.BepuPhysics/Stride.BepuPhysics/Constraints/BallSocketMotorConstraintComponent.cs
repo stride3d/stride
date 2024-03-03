@@ -22,11 +22,11 @@ public sealed class BallSocketMotorConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalOffsetB.ToStrideVector();
+            return BepuConstraint.LocalOffsetB.ToStride();
         }
         set
         {
-            BepuConstraint.LocalOffsetB = value.ToNumericVector();
+            BepuConstraint.LocalOffsetB = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -35,11 +35,11 @@ public sealed class BallSocketMotorConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.TargetVelocityLocalA.ToStrideVector();
+            return BepuConstraint.TargetVelocityLocalA.ToStride();
         }
         set
         {
-            BepuConstraint.TargetVelocityLocalA = value.ToNumericVector();
+            BepuConstraint.TargetVelocityLocalA = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

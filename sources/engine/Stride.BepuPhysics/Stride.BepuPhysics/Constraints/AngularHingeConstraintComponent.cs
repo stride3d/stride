@@ -19,11 +19,11 @@ public sealed class AngularHingeConstraintComponent : TwoBodyConstraintComponent
     {
         get
         {
-            return BepuConstraint.LocalHingeAxisA.ToStrideVector();
+            return BepuConstraint.LocalHingeAxisA.ToStride();
         }
         set
         {
-            BepuConstraint.LocalHingeAxisA = value.ToNumericVector();
+            BepuConstraint.LocalHingeAxisA = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -32,11 +32,11 @@ public sealed class AngularHingeConstraintComponent : TwoBodyConstraintComponent
     {
         get
         {
-            return BepuConstraint.LocalHingeAxisB.ToStrideVector();
+            return BepuConstraint.LocalHingeAxisB.ToStride();
         }
         set
         {
-            BepuConstraint.LocalHingeAxisB = value.ToNumericVector();
+            BepuConstraint.LocalHingeAxisB = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

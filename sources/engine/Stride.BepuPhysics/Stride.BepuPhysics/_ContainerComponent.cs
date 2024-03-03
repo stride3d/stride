@@ -197,7 +197,7 @@ public abstract class ContainerComponent : EntityComponent
 
         Entity.Transform.UpdateWorldMatrix();
         Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
-        var containerPose = new NRigidPose((containerWorldTranslation + containerWorldRotation * CenterOfMass).ToNumericVector(), containerWorldRotation.ToNumericQuaternion());
+        var containerPose = new NRigidPose((containerWorldTranslation + containerWorldRotation * CenterOfMass).ToNumeric(), containerWorldRotation.ToNumeric());
 
         AttachInner(containerPose, shapeInertia, ShapeIndex);
 

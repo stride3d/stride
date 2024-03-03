@@ -96,11 +96,11 @@ public class MeshCollider : ICollider
         centerOfMass = Vector3.Zero;
         //if (_containerComponent is BodyMeshContainerComponent _b)
         //{
-        //    CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();
+        //    CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStride();
         //}
         //else if (_containerComponent is StaticMeshContainerComponent _s)
         //{
-        //    CenterOfMass = (_s.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStrideVector();
+        //    CenterOfMass = (_s.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStride();
         //}
         return true;
     }

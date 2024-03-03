@@ -51,7 +51,7 @@ public sealed class ConvexHullCollider : ColliderBase
                 if (_scale != Vector3.One) // Bepu doesn't support scaling on the collider itself, we have to create a temporary array and scale the points before passing it on
                 {
                     var copy = points.ToArray();
-                    var scaleAsNumerics = _scale.ToNumericVector();
+                    var scaleAsNumerics = _scale.ToNumeric();
                     for (int i = 0; i < copy.Length; i++)
                     {
                         copy[i] *= scaleAsNumerics;

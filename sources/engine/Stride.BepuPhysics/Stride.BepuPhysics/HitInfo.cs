@@ -20,7 +20,7 @@ public readonly record struct HitInfo(SVector3 Point, SVector3 Normal, float Dis
     /// <summary> The container hit </summary>
     public ContainerComponent Container { get; init; } = Container;
 
-    public HitInfo(NVector3 point, NVector3 normal, float distance, ContainerComponent container) : this(point.ToStrideVector(), normal.ToStrideVector(), distance, container) { }
+    public HitInfo(NVector3 point, NVector3 normal, float distance, ContainerComponent container) : this(point.ToStride(), normal.ToStride(), distance, container) { }
 
     public int CompareTo(HitInfo other)
     {

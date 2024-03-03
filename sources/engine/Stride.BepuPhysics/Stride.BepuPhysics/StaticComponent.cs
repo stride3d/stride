@@ -22,22 +22,22 @@ public class StaticComponent : ContainerComponent
     [DataMemberIgnore]
     public Vector3 Position
     {
-        get => StaticReference?.Pose.Position.ToStrideVector() ?? default;
+        get => StaticReference?.Pose.Position.ToStride() ?? default;
         set
         {
             if (StaticReference is {} staticRef)
-                staticRef.Pose.Position = value.ToNumericVector();
+                staticRef.Pose.Position = value.ToNumeric();
         }
     }
 
     [DataMemberIgnore]
     public Quaternion Orientation
     {
-        get => StaticReference?.Pose.Orientation.ToStrideQuaternion() ?? default;
+        get => StaticReference?.Pose.Orientation.ToStride() ?? default;
         set
         {
             if (StaticReference is {} staticRef)
-                staticRef.Pose.Orientation = value.ToNumericQuaternion();
+                staticRef.Pose.Orientation = value.ToNumeric();
         }
     }
 

@@ -23,11 +23,11 @@ public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintCo
     {
         get
         {
-            return BepuConstraint.TargetOrientation.ToStrideQuaternion();
+            return BepuConstraint.TargetOrientation.ToStride();
         }
         set
         {
-            BepuConstraint.TargetOrientation = value.ToNumericQuaternion();
+            BepuConstraint.TargetOrientation = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

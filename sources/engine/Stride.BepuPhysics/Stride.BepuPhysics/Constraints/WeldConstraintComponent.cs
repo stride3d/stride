@@ -19,11 +19,11 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
     {
         get
         {
-            return BepuConstraint.LocalOffset.ToStrideVector();
+            return BepuConstraint.LocalOffset.ToStride();
         }
         set
         {
-            BepuConstraint.LocalOffset = value.ToNumericVector();
+            BepuConstraint.LocalOffset = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -32,11 +32,11 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
     {
         get
         {
-            return BepuConstraint.LocalOrientation.ToStrideQuaternion();
+            return BepuConstraint.LocalOrientation.ToStride();
         }
         set
         {
-            BepuConstraint.LocalOrientation = value.ToNumericQuaternion();
+            BepuConstraint.LocalOrientation = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

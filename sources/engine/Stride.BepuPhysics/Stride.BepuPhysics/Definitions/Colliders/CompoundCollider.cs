@@ -74,7 +74,7 @@ public class CompoundCollider : ICollider
                 var localTranslation = collider.PositionLocal;
                 var localRotation = collider.RotationLocal;
 
-                var compoundChildLocalPose = new NRigidPose(localTranslation.ToNumericVector(), localRotation.ToNumericQuaternion());
+                var compoundChildLocalPose = new NRigidPose(localTranslation.ToNumeric(), localRotation.ToNumeric());
                 collider.AddToCompoundBuilder(shapeCache, pool, ref compoundBuilder, compoundChildLocalPose);
                 collider.Container = _container;
             }
@@ -84,7 +84,7 @@ public class CompoundCollider : ICollider
             compoundBuilder.BuildDynamicCompound(out compoundChildren, out inertia, out shapeCenter);
 
             index = IsBig ? shapes.Add(new BigCompound(compoundChildren, shapes, pool)) : shapes.Add(new Compound(compoundChildren));
-            centerOfMass = shapeCenter.ToStrideVector();
+            centerOfMass = shapeCenter.ToStride();
         }
         finally
         {

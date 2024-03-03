@@ -22,11 +22,11 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalOffsetA.ToStrideVector();
+            return BepuConstraint.LocalOffsetA.ToStride();
         }
         set
         {
-            BepuConstraint.LocalOffsetA = value.ToNumericVector();
+            BepuConstraint.LocalOffsetA = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -35,11 +35,11 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalOffsetB.ToStrideVector();
+            return BepuConstraint.LocalOffsetB.ToStride();
         }
         set
         {
-            BepuConstraint.LocalOffsetB = value.ToNumericVector();
+            BepuConstraint.LocalOffsetB = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -48,11 +48,11 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalAxis.ToStrideVector();
+            return BepuConstraint.LocalAxis.ToStride();
         }
         set
         {
-            BepuConstraint.LocalAxis = value.ToNumericVector();
+            BepuConstraint.LocalAxis = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }

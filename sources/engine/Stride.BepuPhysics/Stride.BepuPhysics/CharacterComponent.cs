@@ -93,7 +93,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         if (Simulation == null || Contacts.Count == 0)
             return;
 
-        var gravity = Simulation.PoseGravity.ToNumericVector();
+        var gravity = Simulation.PoseGravity.ToNumeric();
         foreach (var contact in Contacts)
         {
             var contactNormal = contact.Contact.Normal;
@@ -112,7 +112,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
     {
         var otherContainer = bepuSimulation.GetContainer(other);
         contactManifold.GetContact(contactIndex, out var contact);
-        contact.Offset = contact.Offset + Entity.Transform.WorldMatrix.TranslationVector.ToNumericVector() + CenterOfMass.ToNumericVector();
+        contact.Offset = contact.Offset + Entity.Transform.WorldMatrix.TranslationVector.ToNumeric() + CenterOfMass.ToNumeric();
         Contacts.Add((otherContainer, contact));
     }
 

@@ -102,8 +102,8 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                         case SynchronizationMode.Physics:
                             if (container.Pose is { } pose)
                             {
-                                var worldPosition = pose.Position.ToStrideVector();
-                                var worldRotation = pose.Orientation.ToStrideQuaternion();
+                                var worldPosition = pose.Position.ToStride();
+                                var worldRotation = pose.Orientation.ToStride();
                                 var scale = Vector3.One;
                                 worldPosition -= Vector3.Transform(container.CenterOfMass, worldRotation);
                                 Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);

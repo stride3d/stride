@@ -125,7 +125,7 @@ internal class ShapeCacheSystem
 
                 int vertMappingStart = vertexWriteHead;
                 for (int i = 0; i < hullClass.Points.Length; i++)
-                    outPointsWithAutoCast[vertexWriteHead++] = hullClass.Points[i].ToNumericVector();
+                    outPointsWithAutoCast[vertexWriteHead++] = hullClass.Points[i].ToNumeric();
 
                 for (int i = 0; i < hullClass.Indices.Length; i++)
                     outIndices[indexWriteHead++] = vertMappingStart + (int)hullClass.Indices[i];
@@ -398,7 +398,7 @@ internal class ShapeCacheSystem
             }
 
             _bepuMesh = newMesh;
-            newMesh.Scale = scale.ToNumericVector();
+            newMesh.Scale = scale.ToNumeric();
             return newMesh;
         }
 

@@ -48,7 +48,7 @@ namespace Stride.BepuPhysics.Soft
             base.Start();
             Simulation = Services.GetService<BepuConfiguration>().BepuSimulations[_simulationIndex];
             var modelData = ShapeCacheSystem.ExtractBepuMesh(Model, Game.Services, Simulation.BufferPool);
-            Newt.Create(Simulation, modelData, Entity.Transform.WorldMatrix.TranslationVector.ToNumericVector(), out var bodies);
+            Newt.Create(Simulation, modelData, Entity.Transform.WorldMatrix.TranslationVector.ToNumeric(), out var bodies);
             _bodies = bodies;
         }
 

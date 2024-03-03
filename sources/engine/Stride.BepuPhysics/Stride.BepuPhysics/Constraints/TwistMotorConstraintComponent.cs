@@ -19,11 +19,11 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
     {
         get
         {
-            return BepuConstraint.LocalAxisA.ToStrideVector();
+            return BepuConstraint.LocalAxisA.ToStride();
         }
         set
         {
-            BepuConstraint.LocalAxisA = value.ToNumericVector();
+            BepuConstraint.LocalAxisA = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
@@ -32,11 +32,11 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
     {
         get
         {
-            return BepuConstraint.LocalAxisB.ToStrideVector();
+            return BepuConstraint.LocalAxisB.ToStride();
         }
         set
         {
-            BepuConstraint.LocalAxisB = value.ToNumericVector();
+            BepuConstraint.LocalAxisB = value.ToNumeric();
             ConstraintData?.TryUpdateDescription();
         }
     }
