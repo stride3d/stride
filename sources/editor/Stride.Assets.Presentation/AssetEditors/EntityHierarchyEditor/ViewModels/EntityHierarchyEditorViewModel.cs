@@ -81,6 +81,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             UpdateCommands();
             debugPage = new DebugEntityHierarchyEditorUserControl(this);
             EditorDebugTools.RegisterDebugPage(debugPage);
+
+            DependentProperties.Add(nameof(RootPart), [nameof(HierarchyRoot)]);
         }
 
         public EntityHierarchyRootViewModel ActiveRoot { get => activeRoot; protected internal set => SetValue(ref activeRoot, value); }

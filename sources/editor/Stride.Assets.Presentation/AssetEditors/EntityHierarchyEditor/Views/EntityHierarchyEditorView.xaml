@@ -164,12 +164,12 @@
     <sd:CommandBindingBehavior RoutedCommand="{x:Static ehv:EntityHierarchyEditorView.FocusOnSelection}" Command="{Binding EntityWithGizmo.FocusOnEntityCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
   </i:Interaction.Behaviors>
   <Grid>
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}, Parameter2={sd:False}}}">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding SceneInitialized, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}}">
       <TextBlock Text="{sd:Localize Loading scene...}" Margin="20" HorizontalAlignment="Center"/>
       <TextBlock Text="{sd:Localize This might take a few minutes the first time.}" Margin="20" HorizontalAlignment="Center"/>
       <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="20" BorderThickness="1"/>
     </StackPanel>
-    <Grid Visibility="{Binding Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
+    <Grid Visibility="{Binding SceneInitialized, Converter={sd:VisibleOrCollapsed}}">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="5"/>

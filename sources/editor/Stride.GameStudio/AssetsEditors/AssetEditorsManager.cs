@@ -322,6 +322,8 @@ namespace Stride.GameStudio.AssetsEditors
                         BindingOperations.SetBinding(editorPane, LayoutContent.TitleProperty, binding);
 
                         editor = (AssetEditorViewModel)Activator.CreateInstance(editorType, asset);
+                        // Initialize the editor view
+                        view.DataContext = editor;
                         if (!await view.InitializeEditor(editor))
                         {
                             // Could not initialize editor
@@ -330,9 +332,6 @@ namespace Stride.GameStudio.AssetsEditors
                         }
                         else
                         {
-                            // Initialize the editor view
-                            view.DataContext = editor;
-
                             assetEditors[editor] = editorPane;
                             if (editor is IMultipleAssetEditorViewModel multiEditor)
                             {
