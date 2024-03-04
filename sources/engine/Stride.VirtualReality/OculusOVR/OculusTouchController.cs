@@ -415,7 +415,8 @@ namespace Stride.VirtualReality
             void SetOvrVibration(bool enable)
             {
                 float frequency = enable ? 1 : 0;
-                OculusOvr.SetVibration(OvrSession, hand, frequency, 1);
+                float amplitude = enable ? 1 : 0;
+                OculusOvr.SetVibration(OvrSession, hand, frequency, amplitude);
             }
             ConcurrentVibratingCallCount++;
             while (durationMs > 2000)
