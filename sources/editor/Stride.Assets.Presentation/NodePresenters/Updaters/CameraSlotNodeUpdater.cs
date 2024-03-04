@@ -1,35 +1,26 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
-using Stride.Core.Serialization;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Assets.Presentation.NodePresenters.Keys;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Rendering;
-using Stride.Editor.Build;
 using Stride.Rendering.Compositing;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
     internal sealed class CameraSlotNodeUpdater : AssetNodePresenterUpdaterBase
     {
-        private readonly SessionViewModel session;
-
         /// <summary>
-        /// Creates a new instance of <see cref="UIAssetNodeUpdater"/>.
+        /// Creates a new instance of <see cref="CameraSlotNodeUpdater"/>.
         /// </summary>
-        /// <param name="session"></param>
-        public CameraSlotNodeUpdater(SessionViewModel session)
+        public CameraSlotNodeUpdater()
         {
-            if (session == null) throw new ArgumentNullException(nameof(session));
-            this.session = session;
         }
 
         protected override void UpdateNode(IAssetNodePresenter node)

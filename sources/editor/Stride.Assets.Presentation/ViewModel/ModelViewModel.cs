@@ -1,29 +1,27 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using Stride.Assets.Models;
+using Stride.Assets.Presentation.Templates;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
-using Stride.Core.Reflection;
-using Stride.Assets.Models;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.Quantum;
-using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Quantum;
-using Stride.Assets.Presentation.Templates;
+using Stride.Core.Reflection;
 using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
-    [AssetViewModel(typeof(ModelAsset))]
+    [AssetViewModel<ModelAsset>]
     public class ModelViewModel : ImportedAssetViewModel<ModelAsset>
     {
         public ModelViewModel(AssetViewModelConstructionParameters parameters)

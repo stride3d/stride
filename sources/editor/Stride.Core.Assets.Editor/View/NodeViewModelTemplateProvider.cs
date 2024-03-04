@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.View;
 
-namespace Stride.Core.Presentation.Quantum.View
+namespace Stride.Core.Assets.Editor.View
 {
     /// <summary>
     /// A base class for implementations of <see cref="ITemplateProvider"/> that can provide templates for <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel"/> instances.

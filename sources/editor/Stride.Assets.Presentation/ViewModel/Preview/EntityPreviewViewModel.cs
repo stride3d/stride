@@ -2,12 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets.Presentation.Preview;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
-using Stride.Editor.Preview.ViewModel;
 
 namespace Stride.Assets.Presentation.ViewModel.Preview
 {
-    [AssetPreviewViewModel(typeof(EntityPreview))]
+    [AssetPreviewViewModel<EntityPreview>]
     public class EntityPreviewViewModel : AssetPreviewViewModel
     {
         public EntityPreviewViewModel(SessionViewModel session)

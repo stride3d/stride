@@ -3,7 +3,7 @@
 using System;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
-namespace Stride.Core.Presentation.Quantum.View
+namespace Stride.Core.Assets.Editor.View
 {
     /// <summary>
     /// An implementation of the <see cref="NodeViewModelTemplateProvider"/> that matches <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel"/> of a specific type.

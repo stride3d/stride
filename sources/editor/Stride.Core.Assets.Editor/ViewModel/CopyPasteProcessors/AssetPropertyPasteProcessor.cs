@@ -12,7 +12,6 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
 using Stride.Core.Assets.Serializers;
 using Stride.Core.Assets.Yaml;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
