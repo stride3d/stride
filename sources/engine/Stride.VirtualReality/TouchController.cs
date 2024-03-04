@@ -94,7 +94,7 @@ namespace Stride.VirtualReality
             Vibrate();
             await Task.Delay(durationMs);
             Interlocked.Decrement(ref _vibrationCounter);
-            if (_vibrationCounter == 0)
+            if (_vibrationCounter <= 0)
                 await StopVibration();
         }
         /// <summary>
