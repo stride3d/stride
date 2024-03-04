@@ -25,8 +25,6 @@ namespace Stride.VirtualReality
         private Vector2 currentThumbstick;
         private const float TriggerAndGripDeadzone = 0.00001f;
         IntPtr OvrSession { get; }
-        //Number of calls to vibrate that are currently executing
-        protected int ConcurrentVibratingCallCount { get; set; }
 
         public override Vector3 Position => currentPos;
 
@@ -141,7 +139,6 @@ namespace Stride.VirtualReality
         public override Vector2 ThumbAxis => currentThumbstick;
 
         public override Vector2 ThumbstickAxis => currentThumbstick;
-
         public OculusTouchController(TouchControllerHand hand, IntPtr OvrSession)
         {
             this.hand = hand;
@@ -404,31 +401,14 @@ namespace Stride.VirtualReality
                     return false;
             }
         }
-
-        /// <summary>
-        /// Vibrate for a number of milliseconds
-        /// </summary>
-        /// <param name="duration">The number of milliseconds to vibrate for</param>
-        /// <returns></returns>
-        public override async Task Vibrate(int durationMs)
+        protected override async Task EnableVibration()
         {
-            void SetOvrVibration(bool enable)
-            {
-                float frequency = enable ? 1 : 0;
-                OculusOvr.SetVibration(OvrSession, hand, frequency, 1);
-            }
-            ConcurrentVibratingCallCount++;
-            while (durationMs > 2000)
-            {
-                SetOvrVibration(true);
-                durationMs -= 2000;
-                await Task.Delay(2000);
-            }
-            SetOvrVibration(true);
-            await Task.Delay(durationMs);
-            ConcurrentVibratingCallCount--;
-            if (ConcurrentVibratingCallCount == 0)
-                SetOvrVibration(false);
+            OculusOvr.SetVibration(OvrSession, hand, 1, 1);
+            await Task.Delay(2400);
+        }
+        protected override async Task DisableVibration()
+        {
+            OculusOvr.SetVibration(OvrSession, hand, 0, 1);
         }
     }
 }

@@ -122,16 +122,15 @@ namespace Stride.VirtualReality
         {
             return controller?.GetTouchUp(ToOpenVrButton(button)) ?? false;
         }
-
-        public override async Task Vibrate(int durationMs)
+        protected override async Task EnableVibration()
         {
-            while (durationMs > 45)
-            {
-                Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex + 1, 0, 1000 * 50);
-                durationMs -= 45;
-                await Task.Delay(45);
-            }
-            Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex + 1, 0, (ushort)(1000 * durationMs));
+            Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex + 1, 0, 1000 * 5);
+            await Task.Delay(5);
+        }
+        protected override async Task DisableVibration()
+        {
+            //Vibration cannot be stopped, but does not continue for more than 5 milliseconds.
+            await Task.Delay(5);
         }
 
         public override Vector3 Position => currentPos;
