@@ -408,7 +408,7 @@ namespace Stride.VirtualReality
         }
         protected override async Task DisableVibration()
         {
-            OculusOvr.SetVibration(OvrSession, hand, 0, 1);
+            OculusOvr.SetVibration(OvrSession, hand, 0, 0);
         }
     }
 }
