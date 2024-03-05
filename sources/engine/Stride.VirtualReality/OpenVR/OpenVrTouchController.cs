@@ -126,8 +126,6 @@ namespace Stride.VirtualReality
 
         public override async Task Vibrate(int durationMs, float frequency, float amplitude)
         {
-            if (frequency <= 0 || amplitude <= 0)
-                return;
             while (durationMs > 60)
             {
                 Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex + 1, 0, 1000 * 60);

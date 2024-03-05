@@ -142,7 +142,7 @@ namespace Stride.VirtualReality
         public override Vector2 ThumbAxis => currentThumbstick;
 
         public override Vector2 ThumbstickAxis => currentThumbstick;
-        public override ControllerHaptics HapticsSupport => ControllerHaptics.Full;
+        public override ControllerHaptics HapticsSupport => ControllerHaptics.LimitedFrequency;
 
         public OculusTouchController(TouchControllerHand hand, IntPtr OvrSession)
         {

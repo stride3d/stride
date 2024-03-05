@@ -50,7 +50,7 @@ namespace Stride.VirtualReality
         /// <summary>
         /// Degree to which this touch controller type supports haptics.
         /// None: no haptics support, controller does not vibrate.
-        /// Limited: cannot vibrate at any specific frequency or amplitude. Does not vibrate if corresponding parameter is not positive.
+        /// Limited: cannot vibrate at any specific frequency or amplitude. Corresponding parameter is ignored.
         /// Full: vibrate method respects both frequency and vibration parameters
         /// </summary>
         /// <param name="button"></param>
