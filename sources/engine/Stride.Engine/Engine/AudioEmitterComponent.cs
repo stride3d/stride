@@ -39,6 +39,10 @@ namespace Stride.Engine
         /// The controller a valid as long as the corresponding SoundBase is present in the dictionary.
         /// </summary>
         internal readonly Dictionary<SoundBase, AudioEmitterSoundController> SoundToController = new Dictionary<SoundBase, AudioEmitterSoundController>();
+        /// <summary>
+        /// Dictionary associating each SoundBase to its names in Sounds.
+        /// </summary>
+        internal readonly Dictionary<SoundBase, HashSet<string>> SoundKeys = [];
 
         /// <summary>
         /// Event argument class used to signal the <see cref="AudioEmitterProcessor"/> that a new AudioEmitterSoundController has new added or removed to the component.
@@ -163,16 +167,28 @@ namespace Stride.Engine
             SoundToController.Remove(sound);
             ControllerCollectionChanged?.Invoke(this, new ControllerCollectionChangedEventArgs(Entity, oldController, this, NotifyCollectionChangedAction.Remove));
         }
-
+        private void AddSoundKey(string key, SoundBase sound)
+        {
+            AttachSound(sound);
+            if (!SoundKeys.ContainsKey(sound))
+                SoundKeys[sound] = [];
+            SoundKeys[sound].Add(key);
+        }
+        private void RemoveSoundKey(string key, SoundBase sound)
+        {
+            SoundKeys[sound].Remove(key);
+            if (SoundKeys[sound].Count == 0)
+                DetachSound(sound);
+        }
         private void OnSoundsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs args)
         {
             switch (args.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    AttachSound((SoundBase)args.Item);
+                    AddSoundKey((string)args.Key, (SoundBase)args.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    DetachSound((SoundBase)args.Item);
+                    RemoveSoundKey((string)args.Key, (SoundBase)args.Item);
                     break;
             }
         }
@@ -185,7 +201,7 @@ namespace Stride.Engine
             {
                 if (sound.Value != null)
                 {
-                    AttachSound(sound.Value);
+                    AddSoundKey(sound.Key, sound.Value);
                 }
             }
         }
@@ -196,7 +212,7 @@ namespace Stride.Engine
             {
                 if (sound.Value != null)
                 {
-                    DetachSound(sound.Value);
+                    RemoveSoundKey(sound.Key, sound.Value);
                 }
             }
 
