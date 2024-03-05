@@ -24,9 +24,10 @@ namespace Stride.VirtualReality
         private uint previousButtonsState;
         private Vector2 currentThumbstick;
         private const float TriggerAndGripDeadzone = 0.00001f;
-        IntPtr OvrSession { get; }
+        private IntPtr OvrSession { get; }
         //Number of calls to vibrate that are currently executing
-        protected int ConcurrentVibratingCallCount { get; set; }
+        private int vibrationCount;
+        private readonly object vibrationLock = new();
 
         public override Vector3 Position => currentPos;
 
@@ -141,6 +142,7 @@ namespace Stride.VirtualReality
         public override Vector2 ThumbAxis => currentThumbstick;
 
         public override Vector2 ThumbstickAxis => currentThumbstick;
+        public override ControllerHaptics HapticsSupport => ControllerHaptics.Full;
 
         public OculusTouchController(TouchControllerHand hand, IntPtr OvrSession)
         {
@@ -405,30 +407,31 @@ namespace Stride.VirtualReality
             }
         }
 
-        /// <summary>
-        /// Vibrate for a number of milliseconds
-        /// </summary>
-        /// <param name="duration">The number of milliseconds to vibrate for</param>
-        /// <returns></returns>
-        public override async Task Vibrate(int durationMs)
+        public override async Task Vibrate(int durationMs, float frequency, float amplitude)
         {
             void SetOvrVibration(bool enable)
             {
-                float frequency = enable ? 1 : 0;
-                OculusOvr.SetVibration(OvrSession, hand, frequency, 1);
+                float freqParam = enable ? frequency : 0;
+                float ampParam = enable ? amplitude : 0;
+                OculusOvr.SetVibration(OvrSession, hand, freqParam, ampParam);
             }
-            ConcurrentVibratingCallCount++;
-            while (durationMs > 2000)
+            lock (vibrationLock)
+            {
+                vibrationCount++;
+            }
+            while (durationMs > 2400)
             {
                 SetOvrVibration(true);
-                durationMs -= 2000;
-                await Task.Delay(2000);
+                durationMs -= 2400;
+                await Task.Delay(2400);
             }
             SetOvrVibration(true);
             await Task.Delay(durationMs);
-            ConcurrentVibratingCallCount--;
-            if (ConcurrentVibratingCallCount == 0)
-                SetOvrVibration(false);
+            lock (vibrationLock)
+            {
+                if (--vibrationCount == 0)
+                    SetOvrVibration(false);
+            }
         }
     }
 }

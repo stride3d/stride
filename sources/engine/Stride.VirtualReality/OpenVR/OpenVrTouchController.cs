@@ -75,6 +75,7 @@ namespace Stride.VirtualReality
         public override Vector2 ThumbAxis => controller?.GetAxis() ?? Vector2.Zero;
 
         public override Vector2 ThumbstickAxis => controller?.GetAxis() ?? Vector2.Zero;
+        public override ControllerHaptics HapticsSupport => ControllerHaptics.Limited;
 
         private OpenVR.Controller.ButtonId ToOpenVrButton(TouchControllerButton button)
         {
@@ -123,13 +124,15 @@ namespace Stride.VirtualReality
             return controller?.GetTouchUp(ToOpenVrButton(button)) ?? false;
         }
 
-        public override async Task Vibrate(int durationMs)
+        public override async Task Vibrate(int durationMs, float frequency, float amplitude)
         {
-            while (durationMs > 45)
+            if (frequency <= 0 || amplitude <= 0)
+                return;
+            while (durationMs > 60)
             {
-                Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex + 1, 0, 1000 * 50);
-                durationMs -= 45;
-                await Task.Delay(45);
+                Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex + 1, 0, 1000 * 60);
+                durationMs -= 60;
+                await Task.Delay(60);
             }
             Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex + 1, 0, (ushort)(1000 * durationMs));
         }

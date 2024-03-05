@@ -39,6 +39,24 @@ namespace Stride.VirtualReality
 
         public abstract Vector2 ThumbstickAxis { get; }
 
+        public enum ControllerHaptics
+        {
+            None,
+            Limited,
+            LimitedFrequency,
+            LimitedAmplitude,
+            Full
+        }
+        /// <summary>
+        /// Degree to which this touch controller type supports haptics.
+        /// None: no haptics support, controller does not vibrate.
+        /// Limited: cannot vibrate at any specific frequency or amplitude. Does not vibrate if corresponding parameter is not positive.
+        /// Full: vibrate method respects both frequency and vibration parameters
+        /// </summary>
+        /// <param name="button"></param>
+        /// <returns></returns>
+        public abstract ControllerHaptics HapticsSupport { get; }
+
         /// <summary>
         /// Returns true if in this frame the button switched to pressed state
         /// </summary>
@@ -82,11 +100,16 @@ namespace Stride.VirtualReality
         public abstract bool IsTouchReleased(TouchControllerButton button);
 
         /// <summary>
-        /// Vibrate the controller for a fixed duration.
+        /// Vibrate the controller for a fixed duration. Do so at specified frequency/amplitude if supported by runtime.
+        /// Oculus runtime supports vibrating at frequency 0.0, 0.5, or 1.0, and amplitude in range [0.0, 1.0]
+        /// openVR supports vibrating, but does not support frequency or amplitude
+        /// openXR and WindowsMixedReality currently do not support vibration.
         /// </summary>
-        /// <param name="duration">Vibration duration, in milliseconds</param>
+        /// <param name="durationMs">Vibration duration, in milliseconds</param>
+        /// <param name="frequency">Frequency of vibration in range [0.0, 1.0]</param>
+        /// <param name="amplitude">Amplitude of vibration in range [0.0, 1.0]</param>
         /// <returns></returns>
-        public abstract Task Vibrate(int durationMs);
+        public abstract Task Vibrate(int durationMs, float frequency = 1, float amplitude = 1);
 
         public virtual void Dispose()
         {
