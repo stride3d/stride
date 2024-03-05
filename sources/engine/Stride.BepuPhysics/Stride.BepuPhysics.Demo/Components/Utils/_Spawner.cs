@@ -27,7 +27,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             Entity.AddChild(entity);
 
-            if (entity.Get<ContainerComponent>() is BodyComponent body)
+            if (entity.Get<CollidableComponent>() is BodyComponent body)
             {
                 body.SimulationIndex = SimulationIndex;
                 body?.ApplyImpulse(Impulse, ImpulsePos);

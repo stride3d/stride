@@ -24,7 +24,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
     private IGame _game;
     private SceneSystem _sceneSystem;
     private InputManager _input;
-    private ContainerProcessor _containerProcessor;
+    private CollidableProcessor collidableProcessor;
     private ShapeCacheSystem _shapeCache;
 
     private DtNavMesh? _navMesh;
@@ -46,7 +46,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         _game = Services.GetService<IGame>();
         _sceneSystem = Services.GetService<SceneSystem>();
         _input = Services.GetService<InputManager>();
-        _containerProcessor = _sceneSystem.SceneInstance.Processors.Get<ContainerProcessor>();
+        collidableProcessor = _sceneSystem.SceneInstance.Processors.Get<CollidableProcessor>();
         _shapeCache = Services.GetService<ShapeCacheSystem>();
     }
 
@@ -99,21 +99,21 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         // There are a couple of avenues we could go down into to fix this but none of them are easy
         // Something we'll have to investigate later.
         var asyncInput = new AsyncInput();
-        for (var e = _containerProcessor.ComponentDataEnumerator; e.MoveNext(); )
+        for (var e = collidableProcessor.ComponentDataEnumerator; e.MoveNext(); )
         {
-            var container = e.Current.Value;
+            var collidable = e.Current.Value;
 
 #warning should we really ignore all bodies ?
-            if (container is BodyComponent)
+            if (collidable is BodyComponent)
                 continue;
 
             // No need to store cache, nav mesh recompute should be rare enough were it would waste more memory than necessary
-            container.Collider.AppendModel(asyncInput.shapeData, _shapeCache, out object? cache);
-            var shapeCount = container.Collider.Transforms;
+            collidable.Collider.AppendModel(asyncInput.shapeData, _shapeCache, out object? cache);
+            var shapeCount = collidable.Collider.Transforms;
             for (int i = shapeCount - 1; i >= 0; i--)
                 asyncInput.transformsOut.Add(default);
-            container.Collider.GetLocalTransforms(container, CollectionsMarshal.AsSpan(asyncInput.transformsOut)[^shapeCount..]);
-            asyncInput.matrices.Add((container.Entity.Transform.WorldMatrix, shapeCount));
+            collidable.Collider.GetLocalTransforms(collidable, CollectionsMarshal.AsSpan(asyncInput.transformsOut)[^shapeCount..]);
+            asyncInput.matrices.Add((collidable.Entity.Transform.WorldMatrix, shapeCount));
         }
 
         var settingsCopy = new RcNavMeshBuildSettings
@@ -152,10 +152,10 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 
         var verts = new List<VertexPosition3>();
         var indices = new List<int>();
-        for (int containerI = 0, shapeI = 0; containerI < input.matrices.Count; containerI++)
+        for (int collidableI = 0, shapeI = 0; collidableI < input.matrices.Count; collidableI++)
         {
-            var (containerMatrix, shapeCount) = input.matrices[containerI];
-            containerMatrix.Decompose(out _, out Matrix worldMatrix, out var translation);
+            var (collidableMatrix, shapeCount) = input.matrices[collidableI];
+            collidableMatrix.Decompose(out _, out Matrix worldMatrix, out var translation);
             worldMatrix.TranslationVector = translation;
 
             for (int j = 0; j < shapeCount; j++, shapeI++)

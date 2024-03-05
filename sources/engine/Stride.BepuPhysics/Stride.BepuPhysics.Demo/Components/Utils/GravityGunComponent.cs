@@ -35,7 +35,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             if (_body != null || Camera == null)
                 return;
 
-            if (info.Container is not BodyComponent body)
+            if (info.Collidable is not BodyComponent body)
                 return;
 
             _oblscc = new OneBodyLinearServoConstraintComponent();

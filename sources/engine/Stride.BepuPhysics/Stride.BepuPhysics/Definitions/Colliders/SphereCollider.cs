@@ -18,7 +18,7 @@ public sealed class SphereCollider : ColliderBase
         set
         {
             _radius = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 

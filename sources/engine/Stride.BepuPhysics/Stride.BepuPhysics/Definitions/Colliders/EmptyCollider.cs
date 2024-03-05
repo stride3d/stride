@@ -10,8 +10,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 [DataContract]
 public class EmptyCollider : ICollider
 {
-    private ContainerComponent? _container;
-    ContainerComponent? ICollider.Container { get => _container; set => _container = value; }
+    CollidableComponent? ICollider.Component { get; set; }
 
     [DataMemberIgnore]
     public Action OnEditCallBack { get; set; } = () => { };
@@ -28,7 +27,7 @@ public class EmptyCollider : ICollider
     {
     }
 
-    void ICollider.GetLocalTransforms(ContainerComponent container, Span<ShapeTransform> transforms)
+    void ICollider.GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
     {
         transforms[0].PositionLocal = Vector3.Zero;
         transforms[0].RotationLocal = Quaternion.Identity;

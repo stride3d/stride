@@ -22,7 +22,7 @@ namespace Stride.BepuPhysics._2D
             for (int i = 0; i < BepuSimulation.Simulation.Bodies.ActiveSet.Count; i++)
             {
                 var handle = BepuSimulation.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                var body = BepuSimulation.GetContainer(handle);
+                var body = BepuSimulation.GetComponent(handle);
 
                 if (body is not Body2DComponent)
                     continue;

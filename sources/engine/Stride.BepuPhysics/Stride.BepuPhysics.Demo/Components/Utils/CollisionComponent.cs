@@ -15,21 +15,21 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         private MyCustomContactEventHandler MyCustomContactEventHandler3 = new();
         private MyCustomContactEventHandler MyCustomContactEventHandler4 = new();
 
-        public BodyComponent? Container1 { get; set; }
-        public BodyComponent? Container2 { get; set; }
-        public BodyComponent? Container3 { get; set; }
-        public BodyComponent? Container4 { get; set; }
+        public BodyComponent? Collidable1 { get; set; }
+        public BodyComponent? Collidable2 { get; set; }
+        public BodyComponent? Collidable3 { get; set; }
+        public BodyComponent? Collidable4 { get; set; }
 
         public override void Start()
         {
-            if (Container1 != null)
-                Container1.ContactEventHandler = MyCustomContactEventHandler1;
-            if (Container2 != null)
-                Container2.ContactEventHandler = MyCustomContactEventHandler2;
-            if (Container3 != null)
-                Container3.ContactEventHandler = MyCustomContactEventHandler3;
-            if (Container4 != null)
-                Container4.ContactEventHandler = MyCustomContactEventHandler4;
+            if (Collidable1 != null)
+                Collidable1.ContactEventHandler = MyCustomContactEventHandler1;
+            if (Collidable2 != null)
+                Collidable2.ContactEventHandler = MyCustomContactEventHandler2;
+            if (Collidable3 != null)
+                Collidable3.ContactEventHandler = MyCustomContactEventHandler3;
+            if (Collidable4 != null)
+                Collidable4.ContactEventHandler = MyCustomContactEventHandler4;
         }
 
         public override void Update()

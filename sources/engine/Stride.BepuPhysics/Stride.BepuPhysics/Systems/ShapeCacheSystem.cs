@@ -133,27 +133,6 @@ internal class ShapeCacheSystem
         }
     }
 
-    //internal void ClearShape(ContainerComponent component)
-    //{
-    //    if (component is ContainerComponentWithMesh withMesh)
-    //    {
-    //        if (withMesh.Model != null)
-    //        {
-    //            _modelsShapeData.Remove(withMesh.Model);
-    //        }
-    //    }
-    //    else if (component is ContainerComponentWithColliders withColliders)
-    //    {
-    //        foreach (var collider in withColliders.Colliders)
-    //        {
-    //            if (collider is ConvexHullCollider con && con.Hull != null)
-    //            {
-    //                _hullShapeData.Remove(con.Hull);
-    //            }
-    //        }
-    //    }
-    //}
-
     internal static IEnumerable<(Stride.Rendering.Mesh mesh, byte[] verticesBytes, byte[] indicesBytes)> ExtractMeshes(Model model, IServiceRegistry services)
     {
         foreach (var meshData in model.Meshes)

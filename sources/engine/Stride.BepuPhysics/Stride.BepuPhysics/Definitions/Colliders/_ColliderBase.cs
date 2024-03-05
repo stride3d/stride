@@ -1,5 +1,4 @@
-﻿using BepuPhysics;
-using BepuPhysics.Collidables;
+﻿using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
@@ -21,7 +20,7 @@ public abstract class ColliderBase
         set
         {
             _mass = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -35,7 +34,7 @@ public abstract class ColliderBase
         set
         {
             _positionLocal = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -48,12 +47,12 @@ public abstract class ColliderBase
         set
         {
             _rotationLocal = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
     [DataMemberIgnore]
-    public ContainerComponent? Container { get; internal set; }
+    public CollidableComponent? Component { get; internal set; }
 
     internal abstract void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose);
 }

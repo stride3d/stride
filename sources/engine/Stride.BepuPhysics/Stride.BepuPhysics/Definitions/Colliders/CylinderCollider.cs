@@ -19,7 +19,7 @@ public sealed class CylinderCollider : ColliderBase
         set
         {
             _radius = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -29,7 +29,7 @@ public sealed class CylinderCollider : ColliderBase
         set
         {
             _length = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 

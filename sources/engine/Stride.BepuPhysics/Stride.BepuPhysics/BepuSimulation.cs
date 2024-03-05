@@ -224,13 +224,13 @@ public class BepuSimulation
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ContainerComponent GetContainer(CollidableReference collidable)
+    public CollidableComponent GetComponent(CollidableReference collidable)
     {
-        return collidable.Mobility == CollidableMobility.Static ? GetContainer(collidable.StaticHandle) : GetContainer(collidable.BodyHandle);
+        return collidable.Mobility == CollidableMobility.Static ? GetComponent(collidable.StaticHandle) : GetComponent(collidable.BodyHandle);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public BodyComponent GetContainer(BodyHandle handle)
+    public BodyComponent GetComponent(BodyHandle handle)
     {
         var body = Bodies[handle.Value];
 #warning disabled for soft
@@ -238,7 +238,7 @@ public class BepuSimulation
         return body;
     }
 
-    public StaticComponent GetContainer(StaticHandle handle)
+    public StaticComponent GetComponent(StaticHandle handle)
     {
         var statics = Statics[handle.Value];
         Debug.Assert(statics is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
@@ -384,7 +384,7 @@ public class BepuSimulation
     /// <remarks>The collection is not cleared before appending items into it</remarks>
     /// <param name="shape">The shape used to test for overlap</param>
     /// <param name="pose">Position the shape is on for this test</param>
-    /// <param name="collection">The collection used to store containers into, the collection is not cleared before usage, containers are appended to it</param>
+    /// <param name="collection">The collection used to store overlapped shapes into. Note that the collection is not cleared before items are added to it</param>
     /// <param name="collisionMask">The mask used to improve performance by masking only what you intend to detect</param>
     public void Overlap<TShape>(in TShape shape, in SRigidPose pose, ICollection<OverlapInfo> collection, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
@@ -402,8 +402,8 @@ public class BepuSimulation
     /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
     /// It is used by the returned enumerator as its backing array from which you read
     /// </param>
-    /// <param name="collisionMask">Mask used to ignore containers assigned to certain layers</param>
-    public ConversionEnum<ManagedConverter, CollidableStack, ContainerComponent> Overlap<TShape>(in TShape shape, in SRigidPose pose, Span<CollidableStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
+    /// <param name="collisionMask">Mask used to ignore shapes assigned to certain layers</param>
+    public ConversionEnum<ManagedConverter, CollidableStack, CollidableComponent> Overlap<TShape>(in TShape shape, in SRigidPose pose, Span<CollidableStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
         unsafe
         {
@@ -421,7 +421,7 @@ public class BepuSimulation
     /// <summary>
     /// Enumerates all overlap info for any shape and sub-shapes found to be overlapping with <paramref name="shape"/>
     /// </summary>
-    /// <remarks> Multiple info may come from the same <see cref="ContainerComponent"/> when it is a compound shape </remarks>
+    /// <remarks> Multiple info may come from the same <see cref="CollidableComponent"/> when it is a compound shape </remarks>
     /// <typeparam name="TShape">A bepu <see cref="IConvexShape"/> representing the shape that will be used when testing for overlap</typeparam>
     /// <param name="shape">The shape used to test for overlap</param>
     /// <param name="pose">Position the shape is on for this test</param>
@@ -429,7 +429,7 @@ public class BepuSimulation
     /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
     /// It is used by the returned enumerator as its backing array from which you read
     /// </param>
-    /// <param name="collisionMask">Mask used to ignore containers assigned to certain layers</param>
+    /// <param name="collisionMask">Mask used to ignore shapes assigned to certain layers</param>
     public ConversionEnum<ManagedConverter, OverlapInfoStack, OverlapInfo> OverlapInfo<TShape>(in TShape shape, in SRigidPose pose, Span<OverlapInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
         unsafe
@@ -657,29 +657,29 @@ public class BepuSimulation
 
         static void SyncTransformsWithPhysics(in BodyReference body, BepuSimulation bepuSim)
         {
-            var bodyContainer = bepuSim.GetContainer(body.Handle);
+            var collidable = bepuSim.GetComponent(body.Handle);
 
 #warning temp fix for softs
-            if (bodyContainer == null)
+            if (collidable == null)
                 return;
 
-            for (var containerParent = bodyContainer.Parent; containerParent != null; containerParent = containerParent.Parent)
+            for (var item = collidable.Parent; item != null; item = item.Parent)
             {
-                if (containerParent.BodyReference is { } bRef)
+                if (item.BodyReference is { } bRef)
                 {
                     // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
                     // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
                     SyncTransformsWithPhysics(bRef, bepuSim);
-                    // This can be slower than expected when we have multiple containers as parents recursively since we would recompute the topmost container n times, the second topmost n-1 etc.
+                    // This can be slower than expected when we have multiple collidables as parents recursively since we would recompute the topmost collidable n times, the second topmost n-1 etc.
                     // It's not that likely but should still be documented as suboptimal somewhere
-                    containerParent.Entity.Transform.Parent.UpdateWorldMatrix();
+                    item.Entity.Transform.Parent.UpdateWorldMatrix();
                 }
             }
 
             var localPosition = body.Pose.Position.ToStride();
             var localRotation = body.Pose.Orientation.ToStride();
 
-            var entityTransform = bodyContainer.Entity.Transform;
+            var entityTransform = collidable.Entity.Transform;
             if (entityTransform.Parent is { } parent)
             {
                 parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
@@ -689,7 +689,7 @@ public class BepuSimulation
             }
 
             entityTransform.Rotation = localRotation;
-            entityTransform.Position = localPosition - Vector3.Transform(bodyContainer.CenterOfMass, localRotation);
+            entityTransform.Position = localPosition - Vector3.Transform(collidable.CenterOfMass, localRotation);
         }
     }
 
@@ -701,26 +701,26 @@ public class BepuSimulation
         interpolationFactor = MathF.Min(interpolationFactor, 1f);
         if (ParallelUpdate)
         {
-            Dispatcher.For(0, _interpolatedBodies.Count, (i) => InterpolateContainer(_interpolatedBodies[i], interpolationFactor));
+            Dispatcher.For(0, _interpolatedBodies.Count, i => InterpolateBody(_interpolatedBodies[i], interpolationFactor));
         }
         else
         {
             foreach (var body in _interpolatedBodies)
             {
-                InterpolateContainer(body, interpolationFactor);
+                InterpolateBody(body, interpolationFactor);
             }
         }
 
-        static void InterpolateContainer(BodyComponent body, float interpolationFactor)
+        static void InterpolateBody(BodyComponent body, float interpolationFactor)
         {
-            // Have to go through our parents to make sure they're up to date since we're reading from the parent's world matrix
+            // Have to go through our parents to make sure they're up-to-date since we're reading from the parent's world matrix
             // This means that we're potentially updating bodies that are not part of the active set but checking that may be more costly than just doing the thing
-            for (var containerParent = body.Parent; containerParent != null; containerParent = containerParent.Parent)
+            for (var item = body.Parent; item != null; item = item.Parent)
             {
-                if (containerParent is BodyComponent parentBody && parentBody.InterpolationMode != InterpolationMode.None)
+                if (item is BodyComponent parentBody && parentBody.InterpolationMode != InterpolationMode.None)
                 {
-                    InterpolateContainer(parentBody, interpolationFactor); // That guy will take care of his parents too
-                    // This can be slower than expected when we have multiple containers as parents recursively since we would recompute the topmost container n times, the second topmost n-1 etc.
+                    InterpolateBody(parentBody, interpolationFactor); // This one will take care of his parents too.
+                    // This can be slower than expected when we have multiple collidables as parents recursively since we would recompute the topmost collidable n times, the second topmost n-1 etc.
                     // It's not that likely but should still be documented as suboptimal somewhere
                     parentBody.Entity.Transform.Parent.UpdateWorldMatrix();
                     break;
@@ -748,20 +748,6 @@ public class BepuSimulation
         }
     }
 
-    //private void Setup()
-    //{
-       
-    //}
-    //private void Clear()
-    //{
-    //    //Warning, calling this can lead to exceptions if there are entities with Bepu components since the ref is destroyed.
-    //    BufferPool.Clear();
-    //    BodiesContainers.Clear();
-    //    StaticsContainers.Clear();
-    //    ContactEvents.Dispose();
-    //    Setup();
-    //}
-
     internal void Register(ISimulationUpdate simulationUpdateComponent)
     {
         _simulationUpdateComponents.Add(simulationUpdateComponent);
@@ -776,9 +762,9 @@ public class BepuSimulation
         _interpolatedBodies.Add(body);
 
         body.Entity.Transform.UpdateWorldMatrix();
-        body.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
-        body.CurrentPose.Position = (containerWorldTranslation + body.CenterOfMass).ToNumeric();
-        body.CurrentPose.Orientation = containerWorldRotation.ToNumeric();
+        body.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion collidableWorldRotation, out Vector3 collidableWorldTranslation);
+        body.CurrentPose.Position = (collidableWorldTranslation + body.CenterOfMass).ToNumeric();
+        body.CurrentPose.Orientation = collidableWorldRotation.ToNumeric();
         body.PreviousPose = body.CurrentPose;
     }
 

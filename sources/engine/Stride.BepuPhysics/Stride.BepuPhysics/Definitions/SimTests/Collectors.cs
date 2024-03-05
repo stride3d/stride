@@ -24,14 +24,14 @@ internal unsafe struct SpanManifoldCollector(OverlapInfoStack* Ptr, int Length, 
             return;
 
 #warning should short circuit the whole overlap test in the caller as soon as head is filled
-        ContainerComponent? container = null;
+        CollidableComponent? collidable = null;
         for (int i = 0; i < manifold.Count; ++i)
         {
             if (manifold.GetDepth(i) < 0)
                 continue;
 
-            container ??= BepuSimulation.GetContainer(reference);
-            Ptr[Head++] = new(new(reference, container.Versioning), manifold.GetNormal(i).ToStride(), manifold.GetDepth(i));
+            collidable ??= BepuSimulation.GetComponent(reference);
+            Ptr[Head++] = new(new(reference, collidable.Versioning), manifold.GetNormal(i).ToStride(), manifold.GetDepth(i));
             if (Head >= Length)
                 return;
         }
@@ -54,7 +54,7 @@ internal unsafe struct SpanCollidableCollector(CollidableStack* Ptr, int Length,
             if (manifold.GetDepth(i) < 0)
                 continue;
 
-            Ptr[Head++] = new(reference, BepuSimulation.GetContainer(reference).Versioning);
+            Ptr[Head++] = new(reference, BepuSimulation.GetComponent(reference).Versioning);
             break;
         }
     }
@@ -68,7 +68,7 @@ internal readonly struct CollectionCollector(ICollection<OverlapInfo> Collection
         for (int i = 0; i < manifold.Count; ++i)
         {
             if (manifold.GetDepth(i) >= 0)
-                Collection.Add(new (simulation.GetContainer(reference), manifold.GetNormal(i).ToStride(), manifold.GetDepth(i)));
+                Collection.Add(new (simulation.GetComponent(reference), manifold.GetNormal(i).ToStride(), manifold.GetDepth(i)));
         }
     }
 }

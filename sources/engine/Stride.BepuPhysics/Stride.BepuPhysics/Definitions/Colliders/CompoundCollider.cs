@@ -13,7 +13,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 public class CompoundCollider : ICollider
 {
     private readonly ListOfColliders _colliders;
-    private ContainerComponent? _container;
+    private CollidableComponent? _component;
 
     [DataMember]
     public IList<ColliderBase> Colliders => _colliders;
@@ -25,18 +25,18 @@ public class CompoundCollider : ICollider
     public int Transforms => _colliders.Count;
 
     [DataMemberIgnore]
-    ContainerComponent? ICollider.Container { get => _container; set => _container = value; }
+    CollidableComponent? ICollider.Component { get => _component; set => _component = value; }
 
 #warning shouldn't we build heuristics to swap automatically instead of querying users, is there a definite case where it always performs better as a BigCompound instead of a normal one ? We can't really expect users to choose the right one by themselves
     public bool IsBig => false;
 
     public CompoundCollider()
     {
-        OnEditCallBack = () => _container?.TryUpdateContainer();
+        OnEditCallBack = () => _component?.TryUpdateFeatures();
         _colliders = new() { Owner = this };
     }
 
-    public void GetLocalTransforms(ContainerComponent container, Span<ShapeTransform> transforms)
+    public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
     {
         for (int i = 0; i < _colliders.Count; i++)
         {
@@ -76,7 +76,7 @@ public class CompoundCollider : ICollider
 
                 var compoundChildLocalPose = new NRigidPose(localTranslation.ToNumeric(), localRotation.ToNumeric());
                 collider.AddToCompoundBuilder(shapeCache, pool, ref compoundBuilder, compoundChildLocalPose);
-                collider.Container = _container;
+                collider.Component = _component;
             }
 
             Buffer<CompoundChild> compoundChildren;
@@ -112,7 +112,7 @@ public class CompoundCollider : ICollider
                 SphereCollider sph => shapeCache._sphereShapeData,
                 TriangleCollider tri => shapeCache.BuildTriangle(tri),
                 ConvexHullCollider con => shapeCache.BorrowHull(con),
-                _ => throw new NotImplementedException($"collider type {collider.GetType()} is missing in ContainerShapeProcessor, please fill an issue or fix it"),
+                _ => throw new NotImplementedException($"{nameof(ICollider.AppendModel)} could not handle '{collider.GetType()}', please file an issue or fix this"),
             });
         }
     }

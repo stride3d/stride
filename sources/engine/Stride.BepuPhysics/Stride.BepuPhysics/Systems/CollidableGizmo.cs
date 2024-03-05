@@ -12,11 +12,11 @@ using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.BepuPhysics.Systems;
 
-[GizmoComponent(typeof(ContainerComponent), false)]
-public class ContainerGizmo : IEntityGizmo
+[GizmoComponent(typeof(CollidableComponent), false)]
+public class CollidableGizmo : IEntityGizmo
 {
     private bool _selected, _enabled;
-    private ContainerComponent _component;
+    private CollidableComponent _component;
     private object? _cache;
     private List<(ModelComponent model, Matrix baseMatrix)>? _models;
     private Material? _material, _materialOnSelect;
@@ -71,7 +71,7 @@ public class ContainerGizmo : IEntityGizmo
         }
     }
 
-    public ContainerGizmo(ContainerComponent component)
+    public CollidableGizmo(CollidableComponent component)
     {
         _component = component;
     }
@@ -182,7 +182,7 @@ public class ContainerGizmo : IEntityGizmo
                 Enabled = _selected || _enabled
             };
 
-            var entity = new Entity($"{nameof(ContainerGizmo)} for {_component.Entity.Name}"){ model };
+            var entity = new Entity($"{nameof(CollidableGizmo)} for {_component.Entity.Name}"){ model };
             Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out var matrix);
             entity.Transform.UseTRS = false;
             entity.Scene = _editorScene;

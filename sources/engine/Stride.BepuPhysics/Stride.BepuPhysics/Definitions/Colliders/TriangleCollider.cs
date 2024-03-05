@@ -1,5 +1,4 @@
-﻿using BepuPhysics;
-using BepuPhysics.Collidables;
+﻿using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
@@ -21,7 +20,7 @@ public sealed class TriangleCollider : ColliderBase
         set
         {
             _a = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -31,7 +30,7 @@ public sealed class TriangleCollider : ColliderBase
         set
         {
             _b = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -41,7 +40,7 @@ public sealed class TriangleCollider : ColliderBase
         set
         {
             _c = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 

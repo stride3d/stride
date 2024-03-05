@@ -806,10 +806,10 @@ Hierarchy:
                         AutomaticStart: true
                     603bff52fc6e7f59455267d440229f50: !Stride.BepuPhysics.Demo.Components.Utils.CollisionComponent,Stride.BepuPhysics.Demo
                         Id: 4bb45d95-e29a-4bfb-9fb6-3d416a622611
-                        Container1: ref!! 59e4ebf6-14b1-4911-bc4b-66063fafa34a
-                        Container2: ref!! c1d32a7a-610f-48d6-84d8-b68762b119b8
-                        Container3: ref!! 68c75021-31aa-43d1-9be2-be63b703ed83
-                        Container4: ref!! b013e2de-4def-42c8-9d3a-d9cd5d29e664
+                        Collidable1: ref!! 59e4ebf6-14b1-4911-bc4b-66063fafa34a
+                        Collidable2: ref!! c1d32a7a-610f-48d6-84d8-b68762b119b8
+                        Collidable3: ref!! 68c75021-31aa-43d1-9be2-be63b703ed83
+                        Collidable4: ref!! b013e2de-4def-42c8-9d3a-d9cd5d29e664
         -   Entity:
                 Id: a41abb91-43d7-46b3-908f-4f6ef69fc3ae
                 Name: BepuPhysics

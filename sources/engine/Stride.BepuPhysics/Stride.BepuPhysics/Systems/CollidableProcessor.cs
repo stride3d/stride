@@ -11,21 +11,21 @@ using Stride.BepuPhysics.Definitions;
 
 namespace Stride.BepuPhysics.Systems;
 
-public class ContainerProcessor : EntityProcessor<ContainerComponent>
+public class CollidableProcessor : EntityProcessor<CollidableComponent>
 {
     internal readonly UnsortedO1List<StaticComponent, Matrix4x4> Statics = new();
 
     internal ShapeCacheSystem ShapeCache { get; private set; } = null!;
-    internal Dictionary<ContainerComponent, ContainerComponent>.Enumerator ComponentDataEnumerator => base.ComponentDatas.GetEnumerator();
+    internal Dictionary<CollidableComponent, CollidableComponent>.Enumerator ComponentDataEnumerator => base.ComponentDatas.GetEnumerator();
 
     public BepuConfiguration BepuConfiguration { get; private set; } = null!;
 
-    public Action<ContainerComponent>? OnPostAdd;
-    public Action<ContainerComponent>? OnPreRemove;
+    public Action<CollidableComponent>? OnPostAdd;
+    public Action<CollidableComponent>? OnPreRemove;
 
-    public ContainerProcessor()
+    public CollidableProcessor()
     {
-        Order = SystemsOrderHelper.ORDER_OF_CONTAINER_P;
+        Order = SystemsOrderHelper.ORDER_OF_COLLIDABLE_P;
     }
 
     protected override void OnSystemAdd()
@@ -43,25 +43,25 @@ public class ContainerProcessor : EntityProcessor<ContainerComponent>
         var span = Statics.UnsafeGetSpan();
         for (int i = 0; i < span.Length; i++)
         {
-            var container = span[i].Key;
-            ref Matrix4x4 numericMatrix = ref Unsafe.As<Matrix, Matrix4x4>(ref container.Entity.Transform.WorldMatrix); // Casting to numerics, stride's equality comparison is ... not great
+            var collidable = span[i].Key;
+            ref Matrix4x4 numericMatrix = ref Unsafe.As<Matrix, Matrix4x4>(ref collidable.Entity.Transform.WorldMatrix); // Casting to numerics, stride's equality comparison is ... not great
             if (span[i].Value == numericMatrix)
                 continue; // This static did not move
 
             span[i].Value = numericMatrix;
 
-            if (container.StaticReference is { } sRef)
+            if (collidable.StaticReference is { } sRef)
             {
                 var description = sRef.GetDescription();
-                container.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out Vector3 translation);
-                description.Pose.Position = (translation + container.CenterOfMass).ToNumeric();
+                collidable.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out Vector3 translation);
+                description.Pose.Position = (translation + collidable.CenterOfMass).ToNumeric();
                 description.Pose.Orientation = rotation.ToNumeric();
                 sRef.ApplyDescription(description);
             }
         }
     }
 
-    protected override void OnEntityComponentAdding(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
+    protected override void OnEntityComponentAdding(Entity entity, CollidableComponent component, CollidableComponent data)
     {
         Debug.Assert(BepuConfiguration is not null);
 
@@ -74,7 +74,7 @@ public class ContainerProcessor : EntityProcessor<ContainerComponent>
             targetSimulation.Register(simulationUpdate);
     }
 
-    protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ContainerComponent component, [NotNull] ContainerComponent data)
+    protected override void OnEntityComponentRemoved(Entity entity, [NotNull] CollidableComponent component, [NotNull] CollidableComponent data)
     {
         if (component is ISimulationUpdate simulationUpdate)
             component.Simulation?.Unregister(simulationUpdate);

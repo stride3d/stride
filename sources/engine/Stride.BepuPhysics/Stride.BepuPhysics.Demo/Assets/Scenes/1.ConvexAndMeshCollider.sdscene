@@ -26,7 +26,7 @@ Hierarchy:
                         Speed: 20.0
                     c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
                         Id: 6ff686e3-426e-4b7d-a2ab-0ed41327399a
-                        Description: 'SimIndex : 0. Sample usages of convex colliders & mesh containers.'
+                        Description: 'SimIndex : 0. Sample usages of convex colliders & mesh collidable.'
                     4082eead088a8122a68e86af53d3eb11: !TransformComponent
                         Id: 534dcfc4-b033-4dc4-8ca6-aa1787f24f04
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -86,7 +86,7 @@ Hierarchy:
                             ZAxis: 0
         -   Entity:
                 Id: 653a8a5f-3a25-494f-9335-b38f1d853f59
-                Name: BridgeMeshContainer
+                Name: BridgeMeshCollidable
                 Components:
                     66cac410afc07a16ebb76822d8064ccb: !TransformComponent
                         Id: 54515d4f-6db5-42f7-84e7-9b1023ee5e67
@@ -169,7 +169,7 @@ Hierarchy:
                         Intensity: 0.2
         -   Entity:
                 Id: bc2ec41b-e7cd-49b4-b447-705e2d840f59
-                Name: CarMeshContainer
+                Name: CarMeshCollidable
                 Components:
                     fa564e5e1414da68022c2e0e89cc0edd: !TransformComponent
                         Id: f424efd2-8a25-41c5-8fa7-917fc2fe8671
@@ -269,7 +269,7 @@ Hierarchy:
                             c7e5954a32fc50377c413bbd91784fac: ref!! daae391d-82fd-4c12-8ebb-e610f51495cb
         -   Entity:
                 Id: ebf4c5b5-32de-47a3-8acb-4cb55cb42ea6
-                Name: HexMeshContainer
+                Name: HexMeshCollidable
                 Components:
                     66cac410afc07a16ebb76822d8064ccb: !TransformComponent
                         Id: daae391d-82fd-4c12-8ebb-e610f51495cb

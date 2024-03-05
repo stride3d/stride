@@ -21,7 +21,7 @@ public sealed class ConvexHullCollider : ColliderBase
         set
         {
             _scale = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -35,7 +35,7 @@ public sealed class ConvexHullCollider : ColliderBase
         set
         {
             _hull = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 

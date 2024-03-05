@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics;
 
 
 [ComponentCategory("Bepu")]
-public class StaticComponent : ContainerComponent
+public class StaticComponent : CollidableComponent
 {
     /// <summary> Can be null when it isn't part of a simulation yet/anymore </summary>
     internal StaticReference? StaticReference { get; private set; } = null;
@@ -55,12 +55,12 @@ public class StaticComponent : ContainerComponent
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[StaticReference!.Value.Handle];
     protected internal override NRigidPose? Pose => StaticReference?.Pose;
 
-    protected override void AttachInner(NRigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
+    protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         Debug.Assert(Processor is not null);
         Debug.Assert(Simulation is not null);
 
-        var sDescription = new StaticDescription(containerPose, shapeIndex);
+        var sDescription = new StaticDescription(pose, shapeIndex);
 
         if (StaticReference is { } sRef)
         {

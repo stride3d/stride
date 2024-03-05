@@ -4,7 +4,7 @@ using Stride.Core;
 
 namespace Stride.BepuPhysics.Definitions;
 
-public delegate void TriggerDelegate(ContainerComponent @this, ContainerComponent other);
+public delegate void TriggerDelegate(CollidableComponent @this, CollidableComponent other);
 
 /// <summary>
 /// A contact event handler without collision response, which runs delegates on enter and exit
@@ -17,10 +17,10 @@ public class Trigger : IContactEventHandler
 
     void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
     {
-        OnEnter?.Invoke(bepuSimulation.GetContainer(eventSource), bepuSimulation.GetContainer(other));
+        OnEnter?.Invoke(bepuSimulation.GetComponent(eventSource), bepuSimulation.GetComponent(other));
     }
     void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
     {
-        OnLeave?.Invoke(bepuSimulation.GetContainer(eventSource), bepuSimulation.GetContainer(other));
+        OnLeave?.Invoke(bepuSimulation.GetComponent(eventSource), bepuSimulation.GetComponent(other));
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace Stride.BepuPhysics.Components;
 
 /// <summary>
-/// Only usable on Containers,
-/// This interface will register containers and call theses functions.
+/// Only usable on <see cref="CollidableComponent"/>,
+/// Used to let the simulation know to call pre- and post-simulation update events
 /// </summary>
 internal interface ISimulationUpdate
 {

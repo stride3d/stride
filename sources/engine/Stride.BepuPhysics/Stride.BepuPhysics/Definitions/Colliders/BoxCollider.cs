@@ -19,7 +19,7 @@ public sealed class BoxCollider : ColliderBase
         set
         {
             _size = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 

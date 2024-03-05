@@ -12,7 +12,7 @@ Check out the Docs in the [wiki](https://github.com/Nicogo1705/Stride.BepuPhysic
 
 1. Simulations: Highly configurable simulation & multi-simulation.
 2. Bodies: Static, dynamic, and kinematic.
-3. Colliders: MeshCollider, ConvexHullCollider, Box, Sphere, Cylinder, Capsule, Triangle (Note: MeshCollider is categorized as a container; further details are available in the documentation).
+3. Colliders: MeshCollider, ConvexHullCollider, Box, Sphere, Cylinder, Capsule, Triangle (Note: MeshCollider is categorized as a collidable; further details are available in the documentation).
 4. Constraints: All *(Refer to [Bepu Docs](https://github.com/bepu/bepuphysics2) for more details.)*.
 5. Collision Handler by body, Trigger, RayCast & SweepCast.
 6. CharacterBuilder/Controller & CarBuilder/Controller.

@@ -8,10 +8,7 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
 {
     internal T BepuConstraint;
 
-    /// <summary>
-    /// ContainerData is the bridge to Bepu.
-    /// Set through the processor when it calls <see cref="CreateProcessorData"/>.
-    /// </summary>
+    /// <summary> Bridge with Bepu, set through the processor when it calls <see cref="CreateProcessorData"/>. </summary>
     [DataMemberIgnore]
     internal ConstraintData<T>? ConstraintData { get; set; }
 

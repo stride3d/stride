@@ -7,11 +7,11 @@ namespace Stride.BepuPhysics.Definitions.Raycast;
 internal struct OverlapCollectionHandler : ISweepHitHandler
 {
     private readonly BepuSimulation _sim;
-    private readonly ICollection<ContainerComponent> _collection;
+    private readonly ICollection<CollidableComponent> _collection;
 
     public CollisionMask CollisionMask { get; set; }
 
-    public OverlapCollectionHandler(BepuSimulation sim, ICollection<ContainerComponent> collection, CollisionMask collisionMask)
+    public OverlapCollectionHandler(BepuSimulation sim, ICollection<CollidableComponent> collection, CollisionMask collisionMask)
     {
         _sim = sim;
         _collection = collection;
@@ -31,19 +31,19 @@ internal struct OverlapCollectionHandler : ISweepHitHandler
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
     {
-        _collection.Add(_sim.GetContainer(collidable));
+        _collection.Add(_sim.GetComponent(collidable));
     }
 }
 
 internal struct OverlapArrayHandler : ISweepHitHandler
 {
     private readonly BepuSimulation _sim;
-    private readonly ContainerComponent[] _collection;
+    private readonly CollidableComponent[] _collection;
 
     public CollisionMask CollisionMask { get; set; }
     public int Count { get; set; }
 
-    public OverlapArrayHandler(BepuSimulation sim, ContainerComponent[] collection, CollisionMask collisionMask)
+    public OverlapArrayHandler(BepuSimulation sim, CollidableComponent[] collection, CollisionMask collisionMask)
     {
         _sim = sim;
         _collection = collection;
@@ -66,7 +66,7 @@ internal struct OverlapArrayHandler : ISweepHitHandler
         if (Count >= _collection.Length)
             return;
 
-        _collection[Count++] = _sim.GetContainer(collidable);
+        _collection[Count++] = _sim.GetComponent(collidable);
 
         if (Count == _collection.Length)
             maximumT = -1f; // We want to notify bepu that we don't care about any subsequent collision, not sure that works in the process breaking out early but whatever

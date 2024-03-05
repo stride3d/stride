@@ -28,9 +28,9 @@ internal sealed class ConstraintData<T> : ConstraintDataBase where T : unmanaged
         if (!_constraintComponent.Enabled)
             return;
 
-        foreach (var container in _constraintComponent.Bodies)
+        foreach (var body in _constraintComponent.Bodies)
         {
-            if (container is null || container.BodyReference.HasValue == false)
+            if (body is null || body.BodyReference.HasValue == false)
                 return; // need to wait for a body to be attached or instanced
         }
 

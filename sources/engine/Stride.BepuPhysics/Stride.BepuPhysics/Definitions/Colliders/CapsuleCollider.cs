@@ -19,7 +19,7 @@ public sealed class CapsuleCollider : ColliderBase
         set
         {
             _radius = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -29,7 +29,7 @@ public sealed class CapsuleCollider : ColliderBase
         set
         {
             _length = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 

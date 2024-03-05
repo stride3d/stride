@@ -116,7 +116,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                         var data = Buffers[i2];
                         wireframes[i2] = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
                         wireframes[i2].Color = Color.Red;
-                        Matrix.Transformation(in Vector3.One, in Quaternion.Identity, in Vector3.Zero, out wireframes[i2].ContainerBaseMatrix);
+                        Matrix.Transformation(in Vector3.One, in Quaternion.Identity, in Vector3.Zero, out wireframes[i2].CollidableBaseMatrix);
                         Matrix.Transformation(in Vector3.One, ref bodyRot, ref bodyPos, out wireframes[i2].WorldMatrix);
                         _visibilityGroup.RenderObjects.Add(wireframes[i2]);
                     }
