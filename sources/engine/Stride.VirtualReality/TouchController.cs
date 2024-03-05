@@ -53,8 +53,6 @@ namespace Stride.VirtualReality
         /// Limited: cannot vibrate at any specific frequency or amplitude. Corresponding parameter is ignored.
         /// Full: vibrate method respects both frequency and vibration parameters
         /// </summary>
-        /// <param name="button"></param>
-        /// <returns></returns>
         public abstract ControllerHaptics HapticsSupport { get; }
 
         /// <summary>
