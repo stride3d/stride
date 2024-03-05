@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using System.Threading.Tasks;
 using Silk.NET.OpenXR;
 using Stride.Core.Mathematics;
@@ -71,6 +70,7 @@ namespace Stride.VirtualReality
         public override Vector2 ThumbstickAxis => GetAxis((int)TouchControllerButton.Thumbstick);
 
         public override Vector2 ThumbAxis => GetAxis((int)TouchControllerButton.Touchpad);
+        public override ControllerHaptics HapticsSupport => ControllerHaptics.None;
 
         public Vector2 GetAxis(int index)
         {
@@ -169,15 +169,8 @@ namespace Stride.VirtualReality
                 currentRot.W = handLocation.Pose.Orientation.W;
             }
         }
-        //TODO: Make controller vibrate
-        protected override async Task EnableVibration()
-        {
-            throw new NotImplementedException("Controller vibration is not implemented for OpenXr runtime.");
-        }
-        //TODO: Make controller stop vibrating
-        protected override async Task DisableVibration()
-        {
-            throw new NotImplementedException("Controller vibration is not implemented for OpenXr runtime.");
-        }
+
+        //TODO: Make controller vibrate for duration
+        public override async Task Vibrate(int duration, float frequency, float amplitude) { }
     }
 }

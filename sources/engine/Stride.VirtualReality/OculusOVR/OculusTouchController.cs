@@ -24,7 +24,10 @@ namespace Stride.VirtualReality
         private uint previousButtonsState;
         private Vector2 currentThumbstick;
         private const float TriggerAndGripDeadzone = 0.00001f;
-        IntPtr OvrSession { get; }
+        private IntPtr OvrSession { get; }
+        //Number of calls to vibrate that are currently executing
+        private int vibrationCount;
+        private readonly object vibrationLock = new();
 
         public override Vector3 Position => currentPos;
 
@@ -139,6 +142,8 @@ namespace Stride.VirtualReality
         public override Vector2 ThumbAxis => currentThumbstick;
 
         public override Vector2 ThumbstickAxis => currentThumbstick;
+        public override ControllerHaptics HapticsSupport => ControllerHaptics.Full;
+
         public OculusTouchController(TouchControllerHand hand, IntPtr OvrSession)
         {
             this.hand = hand;
@@ -401,14 +406,32 @@ namespace Stride.VirtualReality
                     return false;
             }
         }
-        protected override async Task EnableVibration()
+
+        public override async Task Vibrate(int durationMs, float frequency, float amplitude)
         {
-            OculusOvr.SetVibration(OvrSession, hand, 1, 1);
-            await Task.Delay(2400);
-        }
-        protected override async Task DisableVibration()
-        {
-            OculusOvr.SetVibration(OvrSession, hand, 0, 0);
+            void SetOvrVibration(bool enable)
+            {
+                float freqParam = enable ? frequency : 0;
+                float ampParam = enable ? amplitude : 0;
+                OculusOvr.SetVibration(OvrSession, hand, freqParam, ampParam);
+            }
+            lock (vibrationLock)
+            {
+                vibrationCount++;
+            }
+            while (durationMs > 2400)
+            {
+                SetOvrVibration(true);
+                durationMs -= 2400;
+                await Task.Delay(2400);
+            }
+            SetOvrVibration(true);
+            await Task.Delay(durationMs);
+            lock (vibrationLock)
+            {
+                if (--vibrationCount == 0)
+                    SetOvrVibration(false);
+            }
         }
     }
 }
