@@ -168,22 +168,27 @@ namespace Stride.Engine
             ControllerCollectionChanged?.Invoke(this, new ControllerCollectionChangedEventArgs(Entity, oldController, this, NotifyCollectionChangedAction.Remove));
         }
 
-        void SoundAdded(SoundBase sound)
+        private void SoundAdded(SoundBase sound)
         {
             AttachSound(sound);
-            if (!SoundMultiplicities.ContainsKey(sound))
-                SoundMultiplicities[sound] = 0;
-            SoundMultiplicities[sound]++;
+            SoundMultiplicities.TryGetValue(sound, out var v);
+            SoundMultiplicities[sound] = v+1;
         }
-        void SoundRemoved(SoundBase sound)
+
+        private void SoundRemoved(SoundBase sound)
         {
-            SoundMultiplicities[sound]--;
-            if (SoundMultiplicities[sound] == 0)
+            var val = SoundMultiplicities[sound];
+            if (val == 1)
             {
                 DetachSound(sound);
                 SoundMultiplicities.Remove(sound);
             }
+            else
+            {
+                SoundMultiplicities[sound] = val-1;
+            }
         }
+
         private void OnSoundsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs args)
         {
             switch (args.Action)
