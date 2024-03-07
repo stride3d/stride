@@ -125,6 +125,43 @@ namespace Stride.Importer.ThreeD
             }
         }
 
+        public unsafe uint GetUpAxis(Scene* scene)
+        {
+            var metatDataCount = scene->MMetaData->MNumProperties;
+            uint upAxis = 0; 
+            for (int i = 0; i < metatDataCount; i++)
+            {
+                var keyVal = scene->MMetaData->MKeys[i];
+                var keyValue = scene->MMetaData->MValues[i];
+                if (keyVal.AsString.ToLower() == "upaxis")
+                {
+                    void* dataa = scene->MMetaData->MValues[i].MData;
+                    uint* ival1 = (uint*)dataa;
+                    upAxis = *ival1;
+                }
+            }
+            return upAxis;
+        }
+
+
+        public unsafe uint GetUpAxisSign(Scene* scene)
+        {
+            var metatDataCount = scene->MMetaData->MNumProperties;
+            uint upAxisSign = 5;
+            for (int i = 0; i < metatDataCount; i++)
+            {
+                var keyVal = scene->MMetaData->MKeys[i];
+                var keyValue = scene->MMetaData->MValues[i];
+                if (keyVal.AsString.ToLower() == "upaxissign")
+                {
+                    void* dataa = scene->MMetaData->MValues[i].MData;
+                    uint* ival1 = (uint*)dataa;
+                    upAxisSign = *ival1;
+                }
+            }
+            return upAxisSign;
+        }
+
         public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials)
         {
             uint importFlags = 0;
@@ -143,7 +180,11 @@ namespace Stride.Importer.ThreeD
                 postProcessFlags |= PostProcessSteps.RemoveRedundantMaterials;
             }
 
+            
+
             var scene = Initialize(inputFilename, outputFilename, importFlags, (uint)postProcessFlags);
+            uint ox1 = GetUpAxis(scene);
+            uint ox2 = GetUpAxisSign(scene);
             return ConvertAssimpScene(scene);
         }
 
@@ -153,7 +194,8 @@ namespace Stride.Importer.ThreeD
             var postProcessFlags = PostProcessSteps.None;
 
             var scene = Initialize(inputFilename, outputFilename, importFlags, (uint)postProcessFlags);
-
+            uint ox1 = GetUpAxis(scene);
+            uint ox2 = GetUpAxisSign(scene);
             return ProcessAnimations(scene, animationIndex);
         }
 
@@ -912,7 +954,7 @@ namespace Stride.Importer.ThreeD
             };
         }
 
-        private unsafe List<String> ExtractBlendShapeName(Silk.NET.Assimp.Mesh* mesh)
+        private unsafe List<String> ExtractBlendShapeNames(Silk.NET.Assimp.Mesh* mesh)
         {
             List<string> result = new List<string>();
             var anMeshes = mesh->MAnimMeshes;
@@ -1340,7 +1382,7 @@ namespace Stride.Importer.ThreeD
                     MeshName = meshNames[(IntPtr)mesh],
                     MaterialName = materialNames[(IntPtr)lMaterial],
                     NodeName = SearchMeshNode(scene->MRootNode, i, nodeNames),
-                    BlendShapeName = ExtractBlendShapeName(mesh);
+                    BlendShapeName = ExtractBlendShapeNames(mesh)
                 };
 
                 meshList.Add(meshParams);
