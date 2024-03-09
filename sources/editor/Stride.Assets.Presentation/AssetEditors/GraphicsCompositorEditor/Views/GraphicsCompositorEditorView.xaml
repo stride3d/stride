@@ -10,8 +10,8 @@
              xmlns:vm="clr-namespace:Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels"
              xmlns:v="clr-namespace:Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views"
              Focusable="True"
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance vm:GraphicsCompositorEditorViewModel}">
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -177,9 +177,9 @@
     </ResourceDictionary>
   </UserControl.Resources>
   <i:Interaction.Behaviors>
-    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Editor.DeleteSelectionCommand}" />
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding DeleteSelectionCommand}" />
   </i:Interaction.Behaviors>
-  <Grid DataContext="{Binding Editor}" d:DataContext="{d:DesignInstance vm:GraphicsCompositorEditorViewModel}">
+  <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="5"/>

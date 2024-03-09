@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.Quantum;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -15,17 +14,10 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
     public abstract class PickupSceneObjectCommandBase : ChangeValueWithPickerCommandBase
     {
         /// <summary>
-        /// The current session.
-        /// </summary>
-        protected readonly SessionViewModel Session;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="PickupSceneObjectCommandBase"/> class.
         /// </summary>
-        /// <param name="session">The current session.</param>
-        protected PickupSceneObjectCommandBase(SessionViewModel session)
+        protected PickupSceneObjectCommandBase()
         {
-            Session = session;
         }
 
         /// <inheritdoc/>
@@ -35,7 +27,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
             var asset = (AssetViewModel)parameters.Item1;
             var targetType = (Type)parameters.Item2;
             var picker = CreatePicker(asset, targetType);
-            var result = await picker.ShowModal();
+            var result = await picker?.ShowModal();
 
             var pickerResult = new PickerResult
             {

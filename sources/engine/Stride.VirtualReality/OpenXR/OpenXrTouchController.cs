@@ -1,8 +1,6 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 using Silk.NET.OpenXR;
 using Stride.Core.Mathematics;
 using Stride.Games;
@@ -72,6 +70,7 @@ namespace Stride.VirtualReality
         public override Vector2 ThumbstickAxis => GetAxis((int)TouchControllerButton.Thumbstick);
 
         public override Vector2 ThumbAxis => GetAxis((int)TouchControllerButton.Touchpad);
+        public override ControllerHaptics HapticsSupport => ControllerHaptics.None;
 
         public Vector2 GetAxis(int index)
         {
@@ -170,5 +169,8 @@ namespace Stride.VirtualReality
                 currentRot.W = handLocation.Pose.Orientation.W;
             }
         }
+
+        //TODO: Make controller vibrate for duration
+        public override async Task Vibrate(int duration, float frequency, float amplitude) { }
     }
 }

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
 
@@ -218,9 +217,9 @@ namespace Stride.VirtualReality
         private static unsafe void Initialize(OpenXRHmd hmd)
         {
             // make actions
-            for (int i=0; i<HAND_PATH_COUNT; i++)
+            for (int i = 0; i < HAND_PATH_COUNT; i++)
             {
-                for (int j=0; j<2; j++)
+                for (int j = 0; j < 2; j++)
                 {
                     ActionCreateInfo action_info = new ActionCreateInfo()
                     {
@@ -240,21 +239,21 @@ namespace Stride.VirtualReality
             }
 
             // probe bindings for all profiles
-            for (int i=0; i<InteractionProfiles.Length; i++)
+            for (int i = 0; i < InteractionProfiles.Length; i++)
             {
                 ulong profile = 0;
                 hmd.Xr.StringToPath(hmd.Instance, InteractionProfiles[i], ref profile);
 
                 List<ActionSuggestedBinding> bindings = new List<ActionSuggestedBinding>();
                 // for each hand...
-                for (int hand=0; hand<2; hand++)
+                for (int hand = 0; hand < 2; hand++)
                 {
                     // for each path we want to bind...
-                    for (int path=0; path<HAND_PATH_COUNT; path++)
+                    for (int path = 0; path < HAND_PATH_COUNT; path++)
                     {
                         // list all possible paths that might be valid and pick the first one
                         List<string> possiblePaths = PathPriorities[path];
-                        for (int pathattempt=0; pathattempt<possiblePaths.Count; pathattempt++)
+                        for (int pathattempt = 0; pathattempt < possiblePaths.Count; pathattempt++)
                         {
                             // get the hand at the start, then put in the attempt
                             string final_path = hand == (int)TouchControllerHand.Left ? "/user/hand/left" : "/user/hand/right";
