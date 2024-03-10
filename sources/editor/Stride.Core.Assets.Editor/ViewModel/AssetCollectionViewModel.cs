@@ -598,7 +598,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                         Directory.CreateDirectory(Path.GetDirectoryName(finalPath));
                         if (File.Exists(finalPath))
                         {
-                            message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(file.FullPath);
+                            message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(finalPath);
 
                             copyResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
