@@ -13,16 +13,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Collections;
 using Stride.Graphics;
-/*using SharpDX.Direct3D11;
-using Stride.Graphics.Data;
-using Silk.NET.OpenGL;
-using Microsoft.VisualBasic;
-using SharpDX.Direct3D12;
-*/
+
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Computes and uploads skinning info.
+    /// Computes and uploads Blendshape info.
     /// </summary>
     public class BlendShapeRenderFeature : SubRenderFeature
     {
