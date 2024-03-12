@@ -15,6 +15,7 @@ using Stride.Assets.Materials;
 using Stride.Assets.Textures;
 using Stride.Rendering;
 using Stride.Importer.Common;
+using System.IO;
 
 namespace Stride.Assets.Models
 {
@@ -85,7 +86,7 @@ namespace Stride.Assets.Models
             // 1. Textures
             if (isImportingTexture)
             {
-                ImportTextures(entityInfo.TextureDependencies, rawAssetReferences);
+                ImportTextures(entityInfo.TextureDependencies, rawAssetReferences, importParameters.Logger);
             }
 
             // 2. Skeleton
@@ -308,14 +309,19 @@ namespace Stride.Assets.Models
             //}
         }
 
-        private static void ImportTextures(IEnumerable<string> textureDependencies, List<AssetItem> assetReferences)
+        private static void ImportTextures(IEnumerable<string> textureDependencies, List<AssetItem> assetReferences, Logger logger)
         {
             if (textureDependencies == null)
                 return;
 
             foreach (var textureFullPath in textureDependencies.Distinct(x => x))
             {
-                if (!System.IO.File.Exists(textureFullPath)) { continue; }
+                if (!System.IO.File.Exists(textureFullPath)) 
+                {
+                    string texName = Path.GetFileNameWithoutExtension(textureFullPath)??"<unknown>";
+                    logger.Error($"Texture with name {texName} not found");
+                    continue; 
+                }
                 var texturePath = new UFile(textureFullPath);      
 
                 var source = texturePath;

@@ -120,7 +120,6 @@ namespace Stride.Shaders.Compiler
                 return new EffectBytecodeCompilerResult(bytecode.Key, bytecode.Value);
             }
 
-label_force_compile:;
             // ------------------------------------------------------------------------------------------------------------
             // 3) Compile the shader
             // ------------------------------------------------------------------------------------------------------------
