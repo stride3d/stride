@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Silk.NET.Assimp;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 
 namespace Stride.Importer.ThreeD.Material
@@ -76,7 +77,7 @@ namespace Stride.Importer.ThreeD.Material
             MappingMode.Decal        // aiTextureMapMode_Decal
         };
 
-        public static unsafe MaterialStack ConvertAssimpStackCppToCs(Silk.NET.Assimp.Assimp assimp, Silk.NET.Assimp.Material* material, Silk.NET.Assimp.TextureType type)
+        public static unsafe MaterialStack ConvertAssimpStackCppToCs(Silk.NET.Assimp.Assimp assimp, Silk.NET.Assimp.Material* material, Silk.NET.Assimp.TextureType type, Logger logger)
         {
             var ret = new MaterialStack();
             var count = (int)assimp.GetMaterialTextureCount(material, type);
@@ -110,13 +111,18 @@ namespace Stride.Importer.ThreeD.Material
                 {
                     case StackElementType.Operation:
                         if (assimp.GetMaterialIntegerArray(material, Silk.NET.Assimp.Assimp.MaterialTexopBase, (uint)type, (uint)iEl, ref elOp, ref pMax) != Return.Success)
+                        {
+                            logger?.Error("Material not found");
                             continue; // error !
-
+                        }
                         el = new StackOperation(ConvertAssimpStackOperationCppToCs[elOp], elAlpha, elBlend, elFlags);
                         break;
                     case StackElementType.Color:
                         if (assimp.GetMaterialColor(material, MatKeyTexColorBase, (uint)type, (uint)iEl, ref elColor) != Return.Success)
+                        {
+                            logger?.Error("Material with index not found");
                             continue; // error !
+                        }
                         el = new StackColor(new Color3(elColor.X, elColor.Y, elColor.Z), elAlpha, elBlend, elFlags);
                         break;
                     case StackElementType.Texture:

@@ -128,16 +128,6 @@ namespace Stride.Rendering
                     }
                 }
 
-
-                if (context.GetParam(MaterialKeys.HasBlendShape))
-                {
-                    mixin.AddMacro("MAT_COUNT", context.GetParam(MaterialKeys.MAT_COUNT));
-                    mixin.AddMacro("MORPH_TARGETS_COUNT", context.GetParam(MaterialKeys.MORPH_TARGETS_COUNT));
-                    context.Mixin(mixin, "TransformationBlendShape");
-                }
-
-
-
                 if (extensionTessellationShader != null)
                 {
                     context.Mixin(mixin, (extensionTessellationShader));

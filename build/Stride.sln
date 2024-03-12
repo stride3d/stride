@@ -332,10 +332,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.3D", "..\sources\tools\Stride.Importer.3D\Stride.Importer.3D.csproj", "{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TEST_BLENDSHAPES", "..\..\..\Stride Projects\TEST_BLENDSHAPES\TEST_BLENDSHAPES\TEST_BLENDSHAPES.csproj", "{C08D307E-7B20-4947-84A7-8ACB0E259518}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TEST_BLENDSHAPES.Windows", "..\..\..\Stride Projects\TEST_BLENDSHAPES\TEST_BLENDSHAPES.Windows\TEST_BLENDSHAPES.Windows.csproj", "{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1485,30 +1481,6 @@ Global
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Release|Win32.ActiveCfg = Release|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Release|Win32.Build.0 = Release|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Debug|Win32.Build.0 = Debug|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Release|Win32.ActiveCfg = Release|Any CPU
-		{C08D307E-7B20-4947-84A7-8ACB0E259518}.Release|Win32.Build.0 = Release|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Debug|Win32.Build.0 = Debug|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Release|Win32.ActiveCfg = Release|Any CPU
-		{28F346A3-0E96-4C9C-B8FD-8F699FEA21CB}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

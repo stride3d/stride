@@ -64,7 +64,7 @@ namespace Stride.Importer.ThreeD
 
         public MeshConverter(Logger logger)
         {
-            Logger = logger ?? GlobalLogger.GetLogger("Import Assimp");
+            Logger = logger ?? GlobalLogger.GetLogger("Importer3D");
         }
 
         private void ResetConversionData()
@@ -805,14 +805,15 @@ namespace Stride.Importer.ThreeD
             fixed (byte* vertexBufferPtr = &vertexBuffer[0])
             {
                 var vbPointer = vertexBufferPtr;
+                List<Vector3> OriginalVertices = new List<Vector3>();
                 for (uint i = 0; i < mesh->MNumVertices; i++)
                 {
                     var positionPointer = (Vector3*)(vbPointer + positionOffset);
                     *positionPointer = mesh->MVertices[i].ToStrideVector3();
 
                     Vector3.TransformCoordinate(ref *positionPointer, ref rootTransform, out *positionPointer);
-                    drawData.AV(positionPointer->X, positionPointer->Y, positionPointer->Z);
-
+                    TransformaToStrideUnits(ref *positionPointer);
+                    OriginalVertices.Add(new Vector3(positionPointer->X, positionPointer->Y, positionPointer->Z));
                     if (mesh->MNormals != null)
                     {
                         var normalPointer = (Vector3*)(vbPointer + normalOffset);
@@ -886,6 +887,7 @@ namespace Stride.Importer.ThreeD
 
                     vbPointer += vertexStride;
                 }
+                drawData.VerticesOriginal = OriginalVertices;
             }
 
             // Build the indices data buffer
@@ -954,6 +956,12 @@ namespace Stride.Importer.ThreeD
             };
         }
 
+
+        private unsafe void TransformaToStrideUnits(ref Vector3 inoutVal)
+        {
+            //Transforms to cm units
+            inoutVal = inoutVal / 100f;
+        }
         private unsafe List<String> ExtractBlendShapeNames(Silk.NET.Assimp.Mesh* mesh)
         {
             List<string> result = new List<string>();
@@ -976,7 +984,8 @@ namespace Stride.Importer.ThreeD
                 var vertices = new List<Vector4>();
                 for (int k = 0; k < animMesh->MNumVertices; ++k)
                 {
-                    var vertex = animMesh->MVertices[k];
+                    var vertex = (animMesh->MVertices[k]).ToStrideVector3();
+                    TransformaToStrideUnits(ref vertex);
                     vertices.Add(new Vector4(vertex.X, vertex.Y, vertex.Z, 1));
                 }
 
@@ -1223,7 +1232,7 @@ namespace Stride.Importer.ThreeD
 
         private unsafe IComputeColor GenerateOneTextureTypeLayers(Silk.NET.Assimp.Material* pMat, TextureType textureType, int textureCount, MaterialAsset finalMaterial)
         {
-            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, pMat, textureType);
+            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, pMat, textureType, Logger);
 
             var compositionFathers = new Stack<IComputeColor>();
 

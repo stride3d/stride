@@ -27,15 +27,7 @@ namespace Stride.Rendering
 
         public IndexBufferBinding IndexBuffer;
 
-        public List<Vector3> VCLIST = new List<Vector3>();
-
-        public List<Tuple<int, int, Vector3>> VCPOLYIN = new List<Tuple<int, int, Vector3>>();
-
-        public int VertexCount { get { return VCLIST.Count; } }
-
-        public void AV(float X, float Y, float Z)
-        {
-            VCLIST.Add(new Vector3(X, Y, Z));
-        }
+        public List<Vector3> VerticesOriginal = new List<Vector3>();
+        public int VertexCount { get { return VerticesOriginal.Count; } }
     }
 }

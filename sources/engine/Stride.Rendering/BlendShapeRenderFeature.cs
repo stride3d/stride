@@ -26,94 +26,6 @@ namespace Stride.Rendering
     /// </summary>
     public class BlendShapeRenderFeature : SubRenderFeature
     {
-        private StaticObjectPropertyKey<RenderEffect> renderEffectKey;
-
-        private ObjectPropertyKey<Matrix[]> renderModelObjectInfoKey;
-
-        private ConstantBufferOffsetReference BshpDataOffssetRef;
-    
-        /// <inheritdoc/>
-        protected override void InitializeCore()
-        {
-            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
-            renderModelObjectInfoKey = RootRenderFeature.RenderData.CreateObjectKey<Matrix[]>();
-            BshpDataOffssetRef = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationBlendShape.BSHAPEDATA.Name);
-        }
-
-        /// <inheritdoc/>
-        public override void PrepareEffectPermutations(RenderDrawContext context)
-        {
-            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
-            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
-
-
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).ObjectNodeReferences, objectNodeReference =>
-            {
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
-                var renderMesh = (RenderMesh)objectNode.RenderObject;
-                var staticObjectNode = renderMesh.StaticObjectNode;
-
-                for (int i = 0; i < effectSlotCount; ++i)
-                {
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
-                    if (renderEffect == null) { continue; }
-                    if (renderMesh.HasBlendShapes)
-                    {
-
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.HasBlendShape, renderMesh.HasBlendShapes);
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.MAT_COUNT, 1);
-                    }
-                }
-
-            });
-        }
-
-
-        /// <inheritdoc/>
-        public override void Extract()
-        {
-            var renderModelObjectInfo4 = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
-            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
-            {
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
-                var renderMesh = (RenderMesh)objectNode.RenderObject;
-            });
-            
-        }
-
-
-        
-        /// <inheritdoc/>
-        public override unsafe void Prepare(RenderDrawContext context)
-        {
-            var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
-
-
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
-            {
-                var renderMesh = (RenderMesh)renderNode.RenderObject;
-
-                if (!renderMesh.HasBlendShapes) { return; }
-
-                var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
-                if (perDrawLayout == null)
-                    return;
-
-                var bdataVerticesOffset = perDrawLayout.GetConstantBufferOffset(BshpDataOffssetRef);
-                if (bdataVerticesOffset == -1)
-                {
-                    return;
-                }
-
-                var renderModelObjectInfo = renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
-                if (renderModelObjectInfo == null)
-                {
-                    return;
-                }
-            });
-        }
-
         public override unsafe void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
         {
             base.Draw(context, renderView, renderViewStage, startIndex, endIndex);
@@ -136,14 +48,16 @@ namespace Stride.Rendering
                 for (int slot = 0; slot < drawData.VertexBuffers.Length; slot++)
                 {
                     var vertexBuffer = drawData.VertexBuffers[slot];
-                    var mappedVertices = context.CommandList.MapSubresource(vertexBuffer.Buffer, 0, Graphics.MapMode.WriteDiscard);                  
-                    var pointer = (byte*)mappedVertices.DataBox.DataPointer; 
-                    if (drawData!=null)
-                    fixed (byte* matPtr = drawData.VertexData)
+                    var mappedVertices = context.CommandList.MapSubresource(vertexBuffer.Buffer, 0, Graphics.MapMode.WriteDiscard);
+                    var pointer = (byte*)mappedVertices.DataBox.DataPointer;
+                    if (drawData != null)
                     {
-                        Unsafe.CopyBlockUnaligned(pointer, matPtr, (uint)drawData.VertexData.Length);
+                        fixed (byte* matPtr = drawData.VertexData)
+                        {
+                            Unsafe.CopyBlockUnaligned(pointer, matPtr, (uint)drawData.VertexData.Length);
+                        }
+                        context.CommandList.UnmapSubresource(mappedVertices);
                     }
-                    context.CommandList.UnmapSubresource(mappedVertices);
                 }
             }
         }

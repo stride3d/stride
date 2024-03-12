@@ -13,7 +13,6 @@ using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Buffer = Stride.Graphics.Buffer;
-using SharpDX;
 using System.Runtime.CompilerServices;
 using System.Collections;
 
@@ -197,16 +196,7 @@ namespace Stride.Rendering
                     for (int slot = 0; slot < drawData.VertexBuffers.Length; slot++)
                     {
                         var vertexBuffer = drawData.VertexBuffers[slot];
-
-                       
-
-
                         commandList.SetVertexBuffer(slot, vertexBuffer.Buffer, vertexBuffer.Offset, vertexBuffer.Stride);
-
-
-             
-
-
                     }
 
                     // If the mesh's vertex buffers miss any input streams, an additional input binding will have been added to the pipeline state.

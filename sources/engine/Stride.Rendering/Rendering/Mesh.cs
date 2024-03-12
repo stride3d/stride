@@ -11,9 +11,6 @@ using Silk.NET.Maths;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
-using Stride.Rendering.Materials;
-using Vortice.Vulkan;
-using Matrix = Stride.Core.Mathematics.Matrix;
 
 namespace Stride.Rendering
 {
@@ -91,7 +88,13 @@ namespace Stride.Rendering
 
         public Dictionary<Shape, float> _Shapes=new Dictionary<Shape, float>();
         public Dictionary<Shape, float> Shapes 
-        { get { return _Shapes; } set { _Shapes = value; OnShapesUpdated(); } }
+        { 
+            get { return _Shapes; } 
+            set { 
+                _Shapes = value; 
+                OnShapesUpdated(); 
+            } 
+        }
 
         public float[] GetBlendShapeWeights()
         {
@@ -154,8 +157,6 @@ namespace Stride.Rendering
             IsVertexDataUpdated2BlendShapeWeight = true;
         }
 
-        public Matrix[] MATBSHAPE { get; set; }
-
    
         /// <summary>
         /// CORE BLENDSHAPE PROCESSING, CAN BE EXPENSIVE THEREFORE DONE A BLEND SHAPE IS ADDED THROUGH A FILE IMPORT OR PROGRAMATICALLY, OR THE SHAPE DEFINITION UPDATES PROGRAMATICALLY
@@ -176,16 +177,16 @@ namespace Stride.Rendering
                         {
                             ++_counter;
                             var position = shape.Key.Position;
-                            var impact = new Vector3(position[i].X - Draw.VCLIST[i].X, position[i].Y - Draw.VCLIST[i].Y, position[i].Z - Draw.VCLIST[i].Z);
+                            var impact = new Vector3(position[i].X - Draw.VerticesOriginal[i].X, position[i].Y - Draw.VerticesOriginal[i].Y, position[i].Z - Draw.VerticesOriginal[i].Z);
                             var impactWeighted = impact * shape.Value;
                             netImpact += impactWeighted;
                         }
                     }
 
                     Vector3* v = (Vector3*)(bp+ i*56);
-                    v->X = Draw.VCLIST[i].X + netImpact.X;
-                    v->Y = Draw.VCLIST[i].Y + netImpact.Y;
-                    v->Z = Draw.VCLIST[i].Z + netImpact.Z;
+                    v->X = Draw.VerticesOriginal[i].X + netImpact.X;
+                    v->Y = Draw.VerticesOriginal[i].Y + netImpact.Y;
+                    v->Z = Draw.VerticesOriginal[i].Z + netImpact.Z;
                 }
             }
         }
@@ -198,7 +199,6 @@ namespace Stride.Rendering
 
         public void OnShapesUpdated()
         {
-            Parameters.Set(MaterialKeys.HasBlendShape, Shapes!=null && Shapes.Count>0);
             Shapes?.Keys?.ForEach(c => c.SetVextexImpacted(Draw));
             IsVertexDataUpdated2BlendShapeData = false;
         }
