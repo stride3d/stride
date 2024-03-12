@@ -410,6 +410,7 @@ namespace Stride.Importer.ThreeD
                 {
                     // Change of basis: key.Value = (rootTransformInverse * Matrix::Translation(key.Value) * rootTransform).TranslationVector;
                     Vector3.TransformCoordinate(ref key.Value, ref rootTransform, out key.Value);
+                    TransformaToStrideUnits(ref key.Value);
                 }
                 else
                 {
@@ -418,6 +419,7 @@ namespace Stride.Importer.ThreeD
                     Vector3.TransformNormal(ref scale, ref rootTransformInverse, out scale);
                     scale *= key.Value;
                     Vector3.TransformNormal(ref scale, ref rootTransform, out key.Value);
+                    TransformaToStrideUnits(ref key.Value);
                 }
 
                 animationCurve.KeyFrames.Add(key);
