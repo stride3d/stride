@@ -67,15 +67,13 @@ namespace Stride.Assets.Models
 
                     int counterLenCheck = 1;
                     string rootNode1 = null;
-lable1CounterCheck:;
-                    ++counterLenCheck;
-                    if(modelSkeleton.Nodes.Length <counterLenCheck) { goto labelbreak; }
-                    rootNode1 = modelSkeleton.Nodes.Length >= counterLenCheck ? modelSkeleton.Nodes[counterLenCheck-1].Name : null;
-                    if(rootNode1 == null || rootNode1.ToLower().Contains("$assimp")) 
-                    { 
-                        goto lable1CounterCheck; 
-                    }
-labelbreak:;
+
+                    do
+                    {
+                        ++counterLenCheck;
+                        if (modelSkeleton.Nodes.Length < counterLenCheck) { break; }
+                        rootNode1 = modelSkeleton.Nodes.Length >= counterLenCheck ? modelSkeleton.Nodes[counterLenCheck - 1].Name : null;
+                    } while (rootNode1 == null || rootNode1.ToLower().Contains("$assimp"));
 
                     if ((rootNode0 != null && animationClips.TryGetValue(rootNode0, out rootMotionAnimationClip))
                         || (rootNode1 != null && animationClips.TryGetValue(rootNode1, out rootMotionAnimationClip)))
