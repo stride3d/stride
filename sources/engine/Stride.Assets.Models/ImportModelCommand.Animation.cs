@@ -12,6 +12,9 @@ using Stride.Core.Serialization.Contents;
 using Stride.Updater;
 using Stride.Animations;
 using Stride.Rendering;
+using System.Configuration;
+using SharpDX.Direct3D12;
+using System.IO;
 
 namespace Stride.Assets.Models
 {
@@ -30,6 +33,8 @@ namespace Stride.Assets.Models
         {
             // Read from model file
             var modelSkeleton = LoadSkeleton(commandContext, contentManager); // we get model skeleton to compare it to real skeleton we need to map to
+        //    modelSkeleton.Nodes = modelSkeleton.Nodes.Where(c => !c.Name.ToLower().Contains("$assimp")).ToArray();
+         //   modelSkeleton.Nodes = modelSkeleton.Nodes.Where(c => !c.Name.ToLower().Contains("rootnode")).ToArray();
             AdjustSkeleton(modelSkeleton);
 
             TimeSpan duration;
@@ -73,7 +78,7 @@ namespace Stride.Assets.Models
                         ++counterLenCheck;
                         if (modelSkeleton.Nodes.Length < counterLenCheck) { break; }
                         rootNode1 = modelSkeleton.Nodes.Length >= counterLenCheck ? modelSkeleton.Nodes[counterLenCheck - 1].Name : null;
-                    } while (rootNode1 == null || rootNode1.ToLower().Contains("$assimp"));
+                    }while (rootNode1 == null || rootNode1.ToLower().Contains("$assimp"));
 
                     if ((rootNode0 != null && animationClips.TryGetValue(rootNode0, out rootMotionAnimationClip))
                         || (rootNode1 != null && animationClips.TryGetValue(rootNode1, out rootMotionAnimationClip)))
@@ -104,7 +109,7 @@ namespace Stride.Assets.Models
                 {
                     var skeleton = contentManager.Load<Skeleton>(SkeletonUrl);
                     var skeletonMapping = new SkeletonMapping(skeleton, modelSkeleton);
-
+                    SavetocSV(skeletonMapping, "testdata");
                     // Process missing nodes
                     foreach (var nodeAnimationClipEntry in animationClips)
                     {
@@ -305,5 +310,19 @@ namespace Stride.Assets.Models
             }
             return animationClip;
         }
+
+        void SavetocSV(SkeletonMapping sm, string fileName)
+        {
+            int len = sm.SourceToTarget.Length;
+            string strCSV = "";
+            for(int i=0;i<len;i++)
+            {
+                strCSV += $"{i},{sm.SourceToTarget[i]},{sm.SourceToSource[i]},{sm.NodeNames[i]}";
+                strCSV += "\r\n";
+            }
+            System.IO.File.WriteAllText(Path.Combine("C:\\Users\\Noah\\Desktop\\testdata", fileName), strCSV);
+        }
+
+
     }
 }

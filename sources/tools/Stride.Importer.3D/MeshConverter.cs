@@ -962,7 +962,7 @@ namespace Stride.Importer.ThreeD
         private unsafe void TransformaToStrideUnits(ref Vector3 inoutVal)
         {
             //Transforms to cm units
-            inoutVal = inoutVal / 100f;
+          //  inoutVal = inoutVal / 100f;
         }
         private unsafe List<String> ExtractBlendShapeNames(Silk.NET.Assimp.Mesh* mesh)
         {
