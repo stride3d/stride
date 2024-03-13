@@ -117,24 +117,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             if (duplicating)
                 return;
 
-            var isAnyMouseButtonDown = (Game.Input.IsMouseButtonDown(MouseButton.Left) || Game.Input.IsMouseButtonDown(MouseButton.Middle) || Game.Input.IsMouseButtonDown(MouseButton.Right));
-            var shouldControlMouse = IsMouseAvailable && isAnyMouseButtonDown;
-            if (shouldControlMouse != IsControllingMouse)
-            {
-                IsControllingMouse = shouldControlMouse;
-
-                if (IsControllingMouse)
-                {
-                    Game.Input.LockMousePosition();
-                    Game.IsMouseVisible = false;
-                }
-                else
-                {
-                    Game.Input.UnlockMousePosition();
-                    Game.IsMouseVisible = true;
-                }
-            }
-
             if (!IsMouseAvailable)
                 return;
 
@@ -156,6 +138,24 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             SetCurrentPosition(position);
             SetCurrentYaw(yaw);
             UpdateViewMatrix();
+
+            var isAnyMouseButtonDown = (Game.Input.IsMouseButtonDown(MouseButton.Left) || Game.Input.IsMouseButtonDown(MouseButton.Middle) || Game.Input.IsMouseButtonDown(MouseButton.Right));
+            var shouldControlMouse = IsMouseAvailable && isAnyMouseButtonDown && (input.isMoving || input.isPanning || input.isRotating || input.isOrbiting || input.isZooming);
+            if (shouldControlMouse != IsControllingMouse)
+            {
+                IsControllingMouse = shouldControlMouse;
+
+                if (IsControllingMouse)
+                {
+                    Game.Input.LockMousePosition();
+                    Game.IsMouseVisible = false;
+                }
+                else
+                {
+                    Game.Input.UnlockMousePosition();
+                    Game.IsMouseVisible = true;
+                }
+            }
         }
 
         private Input GetInput()
