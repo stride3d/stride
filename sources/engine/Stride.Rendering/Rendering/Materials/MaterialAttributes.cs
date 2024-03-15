@@ -36,6 +36,17 @@ namespace Stride.Rendering.Materials
         public bool Enabled { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets the shader.
+        /// </summary>
+        /// <value>The shader.</value>
+        /// <userdoc>The method used to determine the customer shader this material using, when used other feathers will be disabled
+        /// </userdoc>
+        [Display("Shader", "Custom Shader")]
+        [DefaultValue(null)]
+        [DataMember(0)]
+        public IMaterialShaderFeature Shader { get; set; }
+
+        /// <summary>
         /// Gets or sets the tessellation.
         /// </summary>
         /// <value>The tessellation.</value>
@@ -189,51 +200,61 @@ namespace Stride.Rendering.Materials
             // Push overrides of this attributes
             context.PushOverrides(Overrides);
 
-            // Order is important, as some features are dependent on other
-            // (For example, Specular can depend on Diffuse in case of Metalness)
-            // We may be able to describe a dependency system here, but for now, assume 
-            // that it won't change much so it is hardcoded
-
-            // If Specular has energy conservative, copy this to the diffuse lambertian model
-            // TODO: Should we apply it to any Diffuse Model?
-            var isEnergyConservative = (Specular as MaterialSpecularMapFeature)?.IsEnergyConservative ?? false;
-
-            var lambert = DiffuseModel as IEnergyConservativeDiffuseModelFeature;
-            if (lambert != null)
+            if (Shader != null && Shader.Enabled)
             {
-                lambert.IsEnergyConservative = isEnergyConservative;
+                // When custom shader is set, no need to visit other feathers whose effect will be replaced
+
+                // Custom shader we will use
+                context.Visit(Shader);
             }
-
-            // Diffuse - these 2 features are always used as a pair
-            context.Visit(Diffuse);
-            if (Diffuse != null)
-                context.Visit(DiffuseModel);
-
-            // Surface Geometry
-            context.Visit(Tessellation);
-            context.Visit(Displacement);
-            context.Visit(Surface);
-            context.Visit(MicroSurface);
-
-            // Specular - these 2 features are always used as a pair
-            context.Visit(Specular);
-            if (Specular != null)
-                context.Visit(SpecularModel);
-
-            // Misc
-            context.Visit(Occlusion);
-            context.Visit(Emissive);
-            context.Visit(SubsurfaceScattering);
-
-            // If hair shading is enabled, ignore the transparency feature to avoid errors during shader compilation.
-            // Allowing the transparency feature while hair shading is on makes no sense anyway.
-            if (!(SpecularModel is MaterialSpecularHairModelFeature) &&
-                !(DiffuseModel is MaterialDiffuseHairModelFeature))
+            else
             {
-                context.Visit(Transparency);
-            }
+                // Order is important, as some features are dependent on other
+                // (For example, Specular can depend on Diffuse in case of Metalness)
+                // We may be able to describe a dependency system here, but for now, assume 
+                // that it won't change much so it is hardcoded
 
-            context.Visit(ClearCoat);
+                // If Specular has energy conservative, copy this to the diffuse lambertian model
+                // TODO: Should we apply it to any Diffuse Model?
+                var isEnergyConservative = (Specular as MaterialSpecularMapFeature)?.IsEnergyConservative ?? false;
+
+                var lambert = DiffuseModel as IEnergyConservativeDiffuseModelFeature;
+                if (lambert != null)
+                {
+                    lambert.IsEnergyConservative = isEnergyConservative;
+                }
+
+                // Diffuse - these 2 features are always used as a pair
+                context.Visit(Diffuse);
+                if (Diffuse != null)
+                    context.Visit(DiffuseModel);
+
+                // Surface Geometry
+                context.Visit(Tessellation);
+                context.Visit(Displacement);
+                context.Visit(Surface);
+                context.Visit(MicroSurface);
+
+                // Specular - these 2 features are always used as a pair
+                context.Visit(Specular);
+                if (Specular != null)
+                    context.Visit(SpecularModel);
+
+                // Misc
+                context.Visit(Occlusion);
+                context.Visit(Emissive);
+                context.Visit(SubsurfaceScattering);
+
+                // If hair shading is enabled, ignore the transparency feature to avoid errors during shader compilation.
+                // Allowing the transparency feature while hair shading is on makes no sense anyway.
+                if (!(SpecularModel is MaterialSpecularHairModelFeature) &&
+                    !(DiffuseModel is MaterialDiffuseHairModelFeature))
+                {
+                    context.Visit(Transparency);
+                }
+
+                context.Visit(ClearCoat);
+            }
 
             // Pop overrides
             context.PopOverrides();

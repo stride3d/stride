@@ -247,6 +247,13 @@ namespace Stride.Rendering.Materials
             }
         }
 
+        public void AddCustomShaderSource(ShaderSource shaderSource)
+        {
+            EnsureStep(MaterialGeneratorStep.GenerateShader);
+            if (shaderSource == null) throw new ArgumentNullException(nameof(shaderSource));
+            currentLayerContext.CustomShaderContext.ShaderSources.Add(shaderSource);
+        }
+
         public void AddShaderSource(MaterialShaderStage stage, ShaderSource shaderSource)
         {
             EnsureStep(MaterialGeneratorStep.GenerateShader);
@@ -264,6 +271,12 @@ namespace Stride.Rendering.Materials
         {
             EnsureStep(MaterialGeneratorStep.GenerateShader);
             return currentLayerContext.GetContextPerStage(stage).ShaderSources.Count > 0;
+        }
+
+        public ShaderSource ComputeCustomShaderSource()
+        {
+            EnsureStep(MaterialGeneratorStep.GenerateShader);
+            return currentLayerContext.ComputeCustomShaderSource();
         }
 
         public ShaderSource ComputeShaderSource(MaterialShaderStage stage)
