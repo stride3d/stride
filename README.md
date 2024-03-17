@@ -64,12 +64,12 @@ Ask for help or report issues:
 2. [DotNet SDK 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
    - Run `dotnet --info` in a console or powershell window to see which versions you have installed  
 3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
-   - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
+   - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack` (should be enabled by default)
    - `Desktop development with C++` with
-     - `Windows 10 SDK (10.0.18362.0)` (it's currently enabled by default but it might change)
-     - `MSVC v143 - VS2022 C++ x64/x86 build tools (v14.30)` or later version (should be enabled by default)
-     - `C++/CLI support for v143 build tools (v14.30)` or later version **(not enabled by default)**
-   - Optional (to target iOS/Android): `Mobile development with .NET` and `Android SDK setup (API level 27)` individual component, then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 19+) from `Tools` tab.
+     - `Windows 10 SDK (10.0.18362.0)` or later version (should be enabled by default)
+     - `MSVC v143 - VS2022 C++ x64/x86 build tools (Latest)` (should be enabled by default)
+     - `C++/CLI support for v143 build tools (Latest)` **(not enabled by default)**
+   - Optional (to target iOS/Android): `.NET Multi-paltform App UI development` and `Android SDK setup` individual component (enabled by default), then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 20.1+) from `Tools` tab.
 4. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
 
 ### Build Stride
