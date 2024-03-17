@@ -70,6 +70,7 @@ Ask for help or report issues:
      - `MSVC v143 - VS2022 C++ x64/x86 build tools (Latest)` (should be enabled by default)
      - `C++/CLI support for v143 build tools (Latest)` **(not enabled by default)**
    - Optional (to target iOS/Android): `.NET Multi-paltform App UI development` and `Android SDK setup` individual component (enabled by default), then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 20.1+) from `Tools` tab.
+   - Optional (to build VSIX package): `Visual Studio extension development`
 4. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
 
 ### Build Stride
