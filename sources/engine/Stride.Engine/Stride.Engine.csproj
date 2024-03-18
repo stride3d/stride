@@ -33,6 +33,9 @@
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />
     <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj" />
   </ItemGroup>
+   <ItemGroup>
+    <Folder Include="Rendering\Spline\" />
+  </ItemGroup>
   <Import Project="..\Stride.Shared\Refactor\Stride.Refactor.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
