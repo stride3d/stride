@@ -17,6 +17,8 @@ namespace Stride.Core.Assets.Editor
             AssetsPlugin.RegisterPlugin(typeof(CoreAssetsEditorPlugin));
             // Initialize translation
             TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider());
+            // HACK
+            Presentation.Quantum.ViewModels.NodeViewModel.UnsetValue = System.Windows.DependencyProperty.UnsetValue;
         }
     }
 }

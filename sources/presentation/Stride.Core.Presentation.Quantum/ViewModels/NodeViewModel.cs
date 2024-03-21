@@ -47,6 +47,8 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
 
         public static readonly object DifferentValues = new DifferentValuesObject();
 
+        public static object UnsetValue;
+
         static NodeViewModel()
         {
             typeof(NodeViewModel).GetProperties().Select(x => x.Name).ForEach(x => ReservedNames.Add(x));
@@ -317,7 +319,7 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         public object GetDynamicObject(string name)
         {
             name = EscapeName(name);
-            return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name);
+            return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name) ?? UnsetValue;
         }
 
         /// <inheritdoc/>
