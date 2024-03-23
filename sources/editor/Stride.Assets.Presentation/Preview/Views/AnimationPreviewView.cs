@@ -7,6 +7,7 @@ using System.Windows.Controls.Primitives;
 using Microsoft.Xaml.Behaviors;
 using Stride.Core.Presentation.Controls;
 using Stride.Core.Presentation.Core;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview.View;
 
 namespace Stride.Assets.Presentation.Preview.Views
@@ -41,6 +42,7 @@ namespace Stride.Assets.Presentation.Preview.Views
         }
     }
 
+    [AssetPreviewView<AnimationPreview>]
     public class AnimationPreviewView : StridePreviewView
     {
         static AnimationPreviewView()

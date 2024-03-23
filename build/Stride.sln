@@ -332,7 +332,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.NuGetResolver", "..\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGetResolver", "NuGetResolver", "{158087CF-AF74-44E9-AA20-A6AEB1E398A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

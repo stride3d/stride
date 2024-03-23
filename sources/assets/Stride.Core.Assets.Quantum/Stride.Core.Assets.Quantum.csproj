@@ -1,15 +1,14 @@
 <Project>
   <Import Project="..\..\targets\Stride.props" />
+
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <RestorePackages>true</RestorePackages>
-    <UseWindowsForms>true</UseWindowsForms>
-    <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
@@ -31,5 +30,6 @@
     <ProjectReference Include="..\..\presentation\Stride.Core.Quantum\Stride.Core.Quantum.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets\Stride.Core.Assets.csproj" />
   </ItemGroup>
+
   <Import Project="$(StrideSdkTargets)" />
 </Project>

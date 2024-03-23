@@ -44,17 +44,10 @@ namespace Stride.TextureConverter.TexLibraries
     {
         private static Logger Log = GlobalLogger.GetLogger("DxtTexLib");
 
-        private static HashSet<string> SupportedExtensions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        private static HashSet<string> SupportedExtensions = new(StringComparer.InvariantCultureIgnoreCase)
         {
             ".dds",
-            ".bmp",
             ".tga",
-            ".jpg",
-            ".jpeg",
-            ".jpe",
-            ".png",
-            ".tiff",
-            ".tif",
         };
 
         /// <summary>
@@ -229,11 +222,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 hr = Utilities.LoadTGAFile(loader.FilePath, out libraryData.Metadata, libraryData.Image);
             }
-            else
-            {
-                hr = Utilities.LoadWICFile(loader.FilePath, WIC_FLAGS.WIC_FLAGS_NONE, out libraryData.Metadata, libraryData.Image);
-            }
-
+            
             if (hr != HRESULT.S_OK)
             {
                 Log.Error("Loading dds file " + loader.FilePath + " failed: " + hr);
@@ -742,13 +731,15 @@ namespace Stride.TextureConverter.TexLibraries
             image.SubImageArray = new TexImage.SubImage[libraryData.DxtImages.Length];
             for (int i = 0; i < libraryData.DxtImages.Length; ++i)
             {
-                image.SubImageArray[i] = new TexImage.SubImage();
-                image.SubImageArray[i].Data = libraryData.DxtImages[i].pixels;
-                image.SubImageArray[i].DataSize = libraryData.DxtImages[i].SlicePitch;
-                image.SubImageArray[i].Width = libraryData.DxtImages[i].Width;
-                image.SubImageArray[i].Height = libraryData.DxtImages[i].Height;
-                image.SubImageArray[i].RowPitch = libraryData.DxtImages[i].RowPitch;
-                image.SubImageArray[i].SlicePitch = libraryData.DxtImages[i].SlicePitch;
+                image.SubImageArray[i] = new TexImage.SubImage
+                {
+                    Data = libraryData.DxtImages[i].pixels,
+                    DataSize = libraryData.DxtImages[i].SlicePitch,
+                    Width = libraryData.DxtImages[i].Width,
+                    Height = libraryData.DxtImages[i].Height,
+                    RowPitch = libraryData.DxtImages[i].RowPitch,
+                    SlicePitch = libraryData.DxtImages[i].SlicePitch
+                };
                 dataSize += image.SubImageArray[i].SlicePitch;
             }
 

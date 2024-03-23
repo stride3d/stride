@@ -190,6 +190,14 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://pa.rh.am/"><img src="https://avatars.githubusercontent.com/u/7075456?v=4?s=100" width="100px;" alt="Parham Gholami"/><br /><sub><b>Parham Gholami</b></sub></a><br /><a href="#design-parhamgholami" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/adrsch"><img src="https://avatars.githubusercontent.com/u/35346279?v=4?s=100" width="100px;" alt="adrsch"/><br /><sub><b>adrsch</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=adrsch" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dotlogix"><img src="https://avatars.githubusercontent.com/u/16420200?v=4?s=100" width="100px;" alt="Alexander Schill"/><br /><sub><b>Alexander Schill</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=dotlogix" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/froce"><img src="https://avatars.githubusercontent.com/u/8515865?v=4?s=100" width="100px;" alt="froce"/><br /><sub><b>froce</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=froce" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://anthonymarmont.com/"><img src="https://avatars.githubusercontent.com/u/19309165?v=4?s=100" width="100px;" alt="Anthony Marmont"/><br /><sub><b>Anthony Marmont</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=fydar" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MaximilianEmel"><img src="https://avatars.githubusercontent.com/u/19846453?v=4?s=100" width="100px;" alt="MaximilianEmel"/><br /><sub><b>MaximilianEmel</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MaximilianEmel" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Schossi"><img src="https://avatars.githubusercontent.com/u/8679168?v=4?s=100" width="100px;" alt="Schossi"/><br /><sub><b>Schossi</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Schossi" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ch3mbot"><img src="https://avatars.githubusercontent.com/u/110746303?v=4?s=100" width="100px;" alt="Dagan Hartmann"/><br /><sub><b>Dagan Hartmann</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ch3mbot" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 

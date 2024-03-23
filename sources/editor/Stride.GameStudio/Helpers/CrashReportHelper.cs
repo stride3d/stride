@@ -21,6 +21,7 @@ using Stride.Editor.CrashReport;
 using Stride.Graphics;
 using DialogResult = System.Windows.Forms.DialogResult;
 using Stride.GameStudio.AssetsEditors;
+using Stride.Core.Assets.Editor.Services;
 
 namespace Stride.GameStudio.Helpers
 {
@@ -80,7 +81,7 @@ namespace Stride.GameStudio.Helpers
             // opened assets
             try
             {
-                if (SessionViewModel.Instance?.Dialogs?.AssetEditorsManager is AssetEditorsManager manager)
+                if (SessionViewModel.Instance?.ServiceProvider.TryGet<IAssetEditorsManager>() is AssetEditorsManager manager)
                 {
                     var sb = new StringBuilder();
                     foreach (var asset in manager.GetCurrentlyOpenedAssets())

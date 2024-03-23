@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
-using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.TemplateProviders

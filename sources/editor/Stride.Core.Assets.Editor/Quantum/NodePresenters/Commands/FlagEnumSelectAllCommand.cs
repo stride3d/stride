@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core.Extensions;
-using Stride.Core.Presentation.Extensions;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
 {

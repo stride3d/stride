@@ -41,6 +41,9 @@ namespace Stride.Rendering.Compositing
         [DataMember(40)]
         public List<VROverlayRenderer> Overlays { get; } = new List<VROverlayRenderer>();
 
+        [DataMember(50)]
+        public bool RequestPassthrough { get; set; }
+
         [DataMemberIgnore]
         public RenderView[] RenderViews = { new RenderView(), new RenderView() };
 

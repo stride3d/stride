@@ -1,15 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Linq;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Quantum;
 using Stride.SpriteStudio.Offline;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
     // FIXME: this view model should be in the SpriteStudio offline assembly! Can't be done now, because of a circular reference in CompilerApp referencing SpriteStudio, and Editor referencing CompilerApp
-    [AssetViewModel(typeof(SpriteStudioModelAsset))]
+    [AssetViewModel<SpriteStudioModelAsset>]
     public class SpriteStudioModelViewModel : ImportedAssetViewModel<SpriteStudioModelAsset>
     {
         public SpriteStudioModelViewModel(AssetViewModelConstructionParameters parameters)

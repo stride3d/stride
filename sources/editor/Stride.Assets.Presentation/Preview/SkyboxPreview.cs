@@ -1,19 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.Preview.Views;
 using Stride.Assets.Skyboxes;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Engine;
 using Stride.Rendering.Skyboxes;
-using Stride.Graphics;
-using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
-using Stride.Rendering.Colors;
 using Stride.Rendering.Lights;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
@@ -24,7 +18,7 @@ namespace Stride.Assets.Presentation.Preview
     /// <summary>
     /// An implementation of the <see cref="AssetPreview"/> that can preview models.
     /// </summary>
-    [AssetPreview(typeof(SkyboxAsset), typeof(SkyboxPreviewView))]
+    [AssetPreview<SkyboxAsset>]
     public class SkyboxPreview : PreviewFromEntity<SkyboxAsset>
     {
         private Entity targetEntity;

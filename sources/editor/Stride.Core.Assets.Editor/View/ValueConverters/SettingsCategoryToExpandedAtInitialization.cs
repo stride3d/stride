@@ -3,7 +3,6 @@
 using System;
 using System.Globalization;
 using Stride.Core.Assets.Editor.Settings.ViewModels;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.ValueConverters;
 
 namespace Stride.Core.Assets.Editor.View.ValueConverters

@@ -4,12 +4,12 @@ using System;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets.Presentation.Preview;
 using Stride.Core.Presentation.Commands;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
-using Stride.Editor.Preview.ViewModel;
 
 namespace Stride.Assets.Presentation.ViewModel.Preview
 {
-    [AssetPreviewViewModel(typeof(SoundPreview))]
+    [AssetPreviewViewModel<SoundPreview>]
     public class SoundPreviewViewModel : AssetPreviewViewModel
     {
         private SoundPreview soundPreview;

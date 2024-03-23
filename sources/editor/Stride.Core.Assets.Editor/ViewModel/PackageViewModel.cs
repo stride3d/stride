@@ -11,12 +11,10 @@ using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Templates;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -25,11 +23,8 @@ using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Quantum;
-using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
-using Stride.Core.Quantum.References;
 using Stride.Core.Translation;
 using System.IO;
 using Stride.Core.Packages;
@@ -248,7 +243,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
 
             var pluginService = Session.ServiceProvider.Get<IAssetsPluginService>();
-            foreach (var plugin in pluginService.Plugins)
+            foreach (var plugin in pluginService.Plugins.OfType<AssetsEditorPlugin>())
             {
                 foreach (var property in plugin.ProfileSettings)
                 {
@@ -337,16 +332,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             AssetCollectionItemIdHelper.GenerateMissingItemIds(assetItem.Asset);
             var parameters = new AssetViewModelConstructionParameters(ServiceProvider, directory, Package, assetItem, directory.Session.AssetNodeContainer, canUndoRedoCreation);
             Session.GraphContainer.InitializeAsset(assetItem, loggerResult);
-            var assetType = assetItem.Asset.GetType();
-            var assetViewModelType = typeof(AssetViewModel<>);
-            while (assetType != null)
-            {
-                if (Session.AssetViewModelTypes.TryGetValue(assetType, out assetViewModelType))
-                    break;
-
-                assetViewModelType = typeof(AssetViewModel<>);
-                assetType = assetType.BaseType;
-            }
+            var assetViewModelType = Session.GetAssetViewModelType(assetItem);
             if (assetViewModelType.IsGenericType)
             {
                 assetViewModelType = assetViewModelType.MakeGenericType(assetItem.Asset.GetType());

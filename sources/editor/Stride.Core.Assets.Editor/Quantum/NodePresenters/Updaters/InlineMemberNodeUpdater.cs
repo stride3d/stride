@@ -3,7 +3,6 @@
 using System;
 using System.Reflection;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;

@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
@@ -15,6 +15,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.View;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.ViewModel;
 
@@ -22,10 +23,10 @@ namespace Stride.Editor
 {
     public delegate IAssetPreview AssetPreviewFactory(IPreviewBuilder builder, PreviewGame game, AssetItem asset);
 
-    public abstract class StrideAssetsPlugin : AssetsPlugin
+    public abstract class StrideAssetsPlugin : AssetsEditorPlugin
     {
-        private readonly Dictionary<object, object> enumImagesDictionary = new Dictionary<object, object>();
-        private readonly List<ITemplateProvider> templateProviderList = new List<ITemplateProvider>();
+        private readonly Dictionary<object, object> enumImagesDictionary = [];
+        private readonly List<ITemplateProvider> templateProviderList = [];
 
         protected virtual void RegisterResourceDictionary(ResourceDictionary dictionary)
         {
@@ -105,18 +106,16 @@ namespace Stride.Editor
             templateProviders.AddRange(templateProviderList);
         }
 
-        public void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
+        /// <inheritdoc />
+        public override void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
         {
             var pluginAssembly = GetType().Assembly;
             foreach (var type in pluginAssembly.GetTypes())
             {
-                if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type))
+                if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type) &&
+                    type.GetCustomAttribute<AssetPreviewViewModelAttribute>() is { } attribute)
                 {
-                    var attribute = type.GetCustomAttribute<AssetPreviewViewModelAttribute>();
-                    if (attribute != null)
-                    {
-                        assetPreviewViewModelTypes.Add(attribute.AssetPreviewType, type);
-                    }
+                    assetPreviewViewModelTypes.Add(attribute.AssetPreviewType, type);
                 }
             }
         }

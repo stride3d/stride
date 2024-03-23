@@ -327,8 +327,8 @@ namespace Stride.Input.Tests
 
         internal static void Main(string[] args)
         {
-            using (var game = new AdvancedInputTest())
-                game.Run();
+            using var game = new AdvancedInputTest();
+            game.Run();
         }
     }
 }

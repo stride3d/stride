@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
-using Stride.Core;
 using Stride.Core.Presentation.Quantum.Presenters;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys

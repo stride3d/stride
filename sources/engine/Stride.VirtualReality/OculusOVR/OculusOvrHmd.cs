@@ -83,8 +83,8 @@ namespace Stride.VirtualReality
 
             ActualRenderFrameSize = new Size2(textures[0].Width, textures[0].Height);
 
-            leftHandController = new OculusTouchController(TouchControllerHand.Left);
-            rightHandController = new OculusTouchController(TouchControllerHand.Right);
+            leftHandController = new OculusTouchController(TouchControllerHand.Left, ovrSession);
+            rightHandController = new OculusTouchController(TouchControllerHand.Right, ovrSession);
         }
 
         private OculusOvr.PosesProperties currentPoses;
@@ -162,7 +162,7 @@ namespace Stride.VirtualReality
                 return initDone;
             }
         }
-        
+
         public override void Recenter()
         {
             OculusOvr.Recenter(ovrSession);

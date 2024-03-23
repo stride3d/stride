@@ -19,10 +19,12 @@ using Stride.Core.IO;
 using Stride.Core.Packages;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
+using static Stride.Core.Assets.PackageSession;
 using ILogger = Stride.Core.Diagnostics.ILogger;
 
 namespace Stride.Core.Assets
 {
+    record AssetLoadingInfo(PackageSession session, ILogger log, Package package, PackageLoadParameters loadParameters, List<PendingPackageUpgrade> pendingPackageUpgrades, PackageLoadParameters newLoadParameters);
     public abstract class PackageContainer
     {
         public PackageContainer([NotNull] Package package)
@@ -955,7 +957,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
             var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
 
             var cancelToken = loadParameters.CancelToken;
-
+            List<AssetLoadingInfo> assetLoadInfos = [];
             // Make a copy of Packages as it can be modified by PreLoadPackageDependencies
             foreach (var package in packages)
             {
@@ -964,8 +966,12 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                 {
                     return;
                 }
-
-                TryLoadAssets(this, log, package, loadParameters);
+                if(TryLoadAssemblies(this, log, package, loadParameters,out var assetInfo))
+                    assetLoadInfos.Add(assetInfo);
+            }
+            foreach (AssetLoadingInfo assetInfo in assetLoadInfos)
+            {
+                LoadAssets(assetInfo.session,assetInfo.log,assetInfo.package, assetInfo.loadParameters,assetInfo.pendingPackageUpgrades,assetInfo.newLoadParameters);
             }
         }
 
@@ -1389,11 +1395,12 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
             return null;
         }
 
-        private bool TryLoadAssets(PackageSession session, ILogger log, Package package, PackageLoadParameters loadParameters)
+        private bool TryLoadAssemblies(PackageSession session, ILogger log, Package package, PackageLoadParameters loadParameters, out AssetLoadingInfo info)
         {
+            info = null;
             // Already loaded
             if (package.State >= PackageState.AssetsReady)
-                return true;
+                return false;
 
             // Dependencies could not properly be loaded
             if (package.State < PackageState.DependenciesReady)
@@ -1405,16 +1412,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
 
             try
             {
-                // First, check that dependencies have their assets loaded
-                bool dependencyError = false;
-                foreach (var dependency in package.FindDependencies(false))
-                {
-                    if (!TryLoadAssets(session, log, dependency, loadParameters))
-                        dependencyError = true;
-                }
 
-                if (dependencyError)
-                    return false;
 
                 // Get pending package upgrades
                 if (!pendingPackageUpgradesPerPackage.TryGetValue(package, out var pendingPackageUpgrades))
@@ -1502,37 +1500,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                     // Mark package as dirty
                     package.IsDirty = true;
                 }
-
-                // Load assets
-                package.LoadAssets(log, newLoadParameters);
-
-                // Validate assets from package
-                package.ValidateAssets(newLoadParameters.GenerateNewAssetIds, newLoadParameters.RemoveUnloadableObjects, log);
-
-                if (pendingPackageUpgrades.Count > 0)
-                {
-                    // Perform post asset load upgrade
-                    foreach (var pendingPackageUpgrade in pendingPackageUpgrades)
-                    {
-                        var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
-                        var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
-                        if (!packageUpgrader.UpgradeAfterAssetsLoaded(loadParameters, session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage, pendingPackageUpgrade.DependencyVersionBeforeUpgrade))
-                        {
-                            log.Error($"Error while upgrading package [{package.Meta.Name}] for [{dependencyPackage.Meta.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{dependencyPackage.Meta.Version}]");
-                            return false;
-                        }
-                    }
-
-                    // Mark package as dirty
-                    package.IsDirty = true;
-                }
-
-                // Mark package as ready
-                package.State = PackageState.AssetsReady;
-
-                // Freeze the package after loading the assets
-                session.FreezePackage(package);
-
+                info = new AssetLoadingInfo(session, log, package, loadParameters, pendingPackageUpgrades, newLoadParameters);
                 return true;
             }
             catch (Exception ex)
@@ -1540,6 +1508,39 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                 log.Error($"Error while pre-loading package [{package}]", ex);
                 return false;
             }
+        }
+
+        private static void LoadAssets(PackageSession session, ILogger log, Package package, PackageLoadParameters loadParameters, List<PendingPackageUpgrade> pendingPackageUpgrades, PackageLoadParameters newLoadParameters)
+        {
+            // Load assets
+            package.LoadAssets(log, newLoadParameters);
+
+            // Validate assets from package
+            package.ValidateAssets(newLoadParameters.GenerateNewAssetIds, newLoadParameters.RemoveUnloadableObjects, log);
+
+            if (pendingPackageUpgrades.Count > 0)
+            {
+                // Perform post asset load upgrade
+                foreach (var pendingPackageUpgrade in pendingPackageUpgrades)
+                {
+                    var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
+                    var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
+                    if (!packageUpgrader.UpgradeAfterAssetsLoaded(loadParameters, session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage, pendingPackageUpgrade.DependencyVersionBeforeUpgrade))
+                    {
+                        log.Error($"Error while upgrading package [{package.Meta.Name}] for [{dependencyPackage.Meta.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{dependencyPackage.Meta.Version}]");
+                        return;
+                    }
+                }
+
+                // Mark package as dirty
+                package.IsDirty = true;
+            }
+
+            // Mark package as ready
+            package.State = PackageState.AssetsReady;
+
+            // Freeze the package after loading the assets
+            session.FreezePackage(package);
         }
 
         private static PackageUpgrader CheckPackageUpgrade(ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)

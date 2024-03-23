@@ -3,13 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using Stride.Core.Extensions;
-using Stride.Core.Presentation.Extensions;
 
 namespace Stride.Core.Assets.Editor.View
 {

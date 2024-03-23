@@ -10,6 +10,8 @@ using Stride.Core.Serialization.Contents;
 using Stride.Animations;
 using Stride.Rendering;
 
+
+#if STRIDE_UI_WPF
 namespace Stride.Assets.Models
 {
     [Description("Import FBX")]
@@ -65,3 +67,4 @@ namespace Stride.Assets.Models
         }
     }
 }
+#endif

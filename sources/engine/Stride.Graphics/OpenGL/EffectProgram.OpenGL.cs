@@ -116,19 +116,12 @@ void main()
                 // Attach shaders
                 foreach (var shader in effectBytecode.Stages)
                 {
-                    ShaderType shaderStage;
-                    switch (shader.Stage)
+                    var shaderStage = shader.Stage switch
                     {
-                        case ShaderStage.Vertex:
-                            shaderStage = ShaderType.VertexShader;
-                            break;
-                        case ShaderStage.Pixel:
-                            shaderStage = ShaderType.FragmentShader;
-                            break;
-                        default:
-                            throw new Exception("Unsupported shader stage");
-                    }
-
+                        ShaderStage.Vertex => ShaderType.VertexShader,
+                        ShaderStage.Pixel => ShaderType.FragmentShader,
+                        _ => throw new Exception("Unsupported shader stage"),
+                    };
                     var shaderSource = shader.GetDataAsString();
 
                     //edit the source a little to emulateDepthClamp
@@ -162,8 +155,7 @@ void main()
                     GL.ShaderSource(shaderId, shaderSource);
                     GL.CompileShader(shaderId);
 
-                    int compileStatus;
-                    GL.GetShader(shaderId, ShaderParameterName.CompileStatus, out compileStatus);
+                    GL.GetShader(shaderId, ShaderParameterName.CompileStatus, out var compileStatus);
                     if (compileStatus != 1)
                     {
                         var glErrorMessage = GL.GetShaderInfoLog(shaderId);
@@ -175,15 +167,14 @@ void main()
 
 #if !STRIDE_GRAPHICS_API_OPENGLES
                 // Mark program as retrievable (necessary for later GL.GetProgramBinary).
-                GL.ProgramParameter(ProgramId, ProgramParameterPName.ProgramBinaryRetrievableHint, 1);
+                GL.ProgramParameter(ProgramId, ProgramParameterPName.BinaryRetrievableHint, 1);
 #endif
 
                 // Link OpenGL program
                 GL.LinkProgram(ProgramId);
 
                 // Check link results
-                int linkStatus;
-                GL.GetProgram(ProgramId, ProgramPropertyARB.LinkStatus, out linkStatus);
+                GL.GetProgram(ProgramId, ProgramPropertyARB.LinkStatus, out var linkStatus);
                 if (linkStatus != 1)
                 {
                     var infoLog = GL.GetProgramInfoLog(ProgramId);
@@ -193,8 +184,7 @@ void main()
                 if (Attributes.Count == 0) // the shader wasn't analyzed yet // TODO Is it possible?
                 {
                     // Build attributes list for shader signature
-                    int activeAttribCount;
-                    GL.GetProgram(ProgramId, ProgramPropertyARB.ActiveAttributes, out activeAttribCount);
+                    GL.GetProgram(ProgramId, ProgramPropertyARB.ActiveAttributes, out var activeAttribCount);
 
                     for (uint activeAttribIndex = 0; activeAttribIndex < activeAttribCount; ++activeAttribIndex)
                     {

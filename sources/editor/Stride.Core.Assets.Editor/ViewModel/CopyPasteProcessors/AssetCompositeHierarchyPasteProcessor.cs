@@ -9,7 +9,6 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
 using Stride.Core.Assets.Serializers;
 using Stride.Core.Assets.Yaml;
-using Stride.Core;
 using Stride.Core.Reflection;
 
 namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors

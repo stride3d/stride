@@ -62,7 +62,7 @@ namespace Stride.GameStudio.View
 
             dockingLayout = new DockingLayoutManager(this, editor.Session);
             assetEditorsManager = new AssetEditorsManager(dockingLayout, editor.Session);
-            editor.ServiceProvider.Get<IEditorDialogService>().AssetEditorsManager = assetEditorsManager;
+            editor.ServiceProvider.RegisterService(assetEditorsManager);
 
             OpenDebugWindowCommand = new AnonymousCommand(editor.ServiceProvider, OpenDebugWindow);
             CreateTestAssetCommand = new AnonymousCommand(editor.ServiceProvider, CreateTestAsset);
@@ -338,7 +338,7 @@ namespace Stride.GameStudio.View
             if (assetIds.Count == 0)
             {
                 // If no data, try to open the default scene
-                OpenDefaultScene(Editor.Session);
+                await OpenDefaultScene(Editor.Session);
                 return;
             }
             // Open assets
@@ -355,7 +355,7 @@ namespace Stride.GameStudio.View
             dockingLayout.SaveOpenAssets(assetEditorsManager.OpenedAssets);
         }
 
-        private async void OpenDefaultScene(SessionViewModel session)
+        private async Task OpenDefaultScene(SessionViewModel session)
         {
             var startupPackage = session.LocalPackages.OfType<ProjectViewModel>().SingleOrDefault(x => x.IsCurrentProject);
             if (startupPackage == null)

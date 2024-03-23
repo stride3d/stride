@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 

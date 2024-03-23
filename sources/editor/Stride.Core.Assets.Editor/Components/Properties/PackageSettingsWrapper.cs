@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Settings;
 

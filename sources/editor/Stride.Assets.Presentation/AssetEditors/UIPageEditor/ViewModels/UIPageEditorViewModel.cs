@@ -5,43 +5,45 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.UIPageEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.UIPageEditor.Views;
 using Stride.Assets.Presentation.ViewModel;
-using Stride.Assets.UI;
+using Stride.Core.Assets.Editor.Annotations;
+using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.UIPageEditor.ViewModels
 {
     /// <summary>
     /// View model for a <see cref="UIPageViewModel"/> editor.
     /// </summary>
-    [AssetEditorViewModel(typeof(UIPageAsset), typeof(UIPageEditorView))]
+    [AssetEditorViewModel<UIPageViewModel>]
     public sealed class UIPageEditorViewModel : UIEditorBaseViewModel
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UIPageViewModel"/> class.
+        /// Initializes a new instance of the <see cref="UIPageEditorViewModel"/> class.
+        /// </summary>
+        /// <param name="asset">The asset related to this editor.</param>
+        public UIPageEditorViewModel([NotNull] UIPageViewModel asset)
+            : this(asset, x => new UIPageEditorController(asset, (UIPageEditorViewModel)x))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UIPageEditorViewModel"/> class.
         /// </summary>
         /// <param name="asset">The asset related to this editor.</param>
         /// <param name="controllerFactory">A factory to create the associated <see cref="IEditorGameController"/>.</param>
-        /// <seealso cref="Create(UIPageViewModel)"/>
-        public UIPageEditorViewModel([NotNull] UIPageViewModel asset, [NotNull] Func<GameEditorViewModel, IEditorGameController> controllerFactory)
+        private UIPageEditorViewModel([NotNull] UIPageViewModel asset, [NotNull] Func<GameEditorViewModel, IEditorGameController> controllerFactory)
             : base(asset, controllerFactory)
         {
         }
 
         private UIPageRootViewModel UIPage => (UIPageRootViewModel)RootPart;
-
-        [NotNull]
-        public static UIPageEditorViewModel Create([NotNull] UIPageViewModel asset)
-        {
-            return new UIPageEditorViewModel(asset, x => new UIPageEditorController(asset, (UIPageEditorViewModel)x));
-        }
 
         /// <inheritdoc/>
         protected override bool CanPaste(bool asRoot)

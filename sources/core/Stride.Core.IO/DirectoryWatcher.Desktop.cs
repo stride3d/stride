@@ -69,8 +69,7 @@ namespace Stride.Core.IO
 
             lock (watchers)
             {
-                DirectoryWatcherItem watcher;
-                if (!watchers.TryGetValue(info.FullName, out watcher))
+                if (!watchers.TryGetValue(info.FullName, out var watcher))
                 {
                     return;
                 }
@@ -135,7 +134,7 @@ namespace Stride.Core.IO
 
             if (path != null && Directory.Exists(path))
             {
-                info = new DirectoryInfo(path.ToLowerInvariant());
+                info = new DirectoryInfo(OperatingSystem.IsWindows() ? path.ToLowerInvariant() : path);
             }
             else
             {
@@ -149,8 +148,7 @@ namespace Stride.Core.IO
         {
             foreach (var directoryInfo in directories)
             {
-                DirectoryWatcherItem watcher;
-                if (watchers.TryGetValue(directoryInfo.FullName, out watcher))
+                if (watchers.TryGetValue(directoryInfo.FullName, out var watcher))
                 {
                     yield return watcher;
                 }
@@ -169,8 +167,7 @@ namespace Stride.Core.IO
 
         private DirectoryWatcherItem Track(DirectoryInfo info, bool watcherNode)
         {
-            DirectoryWatcherItem watcher;
-            if (watchers.TryGetValue(info.FullName, out watcher))
+            if (watchers.TryGetValue(info.FullName, out var watcher))
             {
                 if (watcher.Watcher == null && watcherNode)
                 {
@@ -322,16 +319,11 @@ namespace Stride.Core.IO
         }
 
         [DebuggerDisplay("Active: {IsActive}, Path: {Path}")]
-        private sealed class DirectoryWatcherItem
+        private sealed class DirectoryWatcherItem(DirectoryInfo path)
         {
-            public DirectoryWatcherItem(DirectoryInfo path)
-            {
-                Path = path.FullName.ToLowerInvariant();
-            }
-
             public DirectoryWatcherItem Parent;
 
-            public string Path { get; private set; }
+            public string Path { get; private set; } = OperatingSystem.IsWindows() ? path.FullName.ToLowerInvariant() : path.FullName;
 
             public bool IsPathExist()
             {

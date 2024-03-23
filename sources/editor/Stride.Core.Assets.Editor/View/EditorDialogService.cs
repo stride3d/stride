@@ -12,14 +12,12 @@ using Stride.Core.Assets.Editor.Components.AddAssets;
 using Stride.Core.Assets.Editor.Components.AddAssets.View;
 using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.FixAssetReferences.Views;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Templates;
-using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Settings;
 using Stride.Core.Presentation.Commands;
@@ -31,9 +29,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {
-    using MessageBoxButton = Presentation.Services.MessageBoxButton;
     using MessageBoxImage = Presentation.Services.MessageBoxImage;
-    using MessageBoxResult = Presentation.Services.MessageBoxResult;
 
     public class EditorDialogService : DialogService, IEditorDialogService
     {
@@ -61,8 +57,6 @@ namespace Stride.Core.Assets.Editor.View
             : base(dispatcher, applicationName)
         {
         }
-
-        public IAssetEditorsManager AssetEditorsManager { get; set; }
 
         public void ShowNotificationWindow(string title, string message, ICommandBase command, object commandParameter)
         {

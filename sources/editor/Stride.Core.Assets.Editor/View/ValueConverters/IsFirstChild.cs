@@ -3,8 +3,6 @@
 using System;
 using System.Globalization;
 using System.Linq;
-
-using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.ValueConverters;
 

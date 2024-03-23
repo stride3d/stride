@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using Stride.Core;
-using Stride.Core.Presentation.Quantum.Presenters;
+
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Core;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Engine;
 
 namespace Stride.Assets.Presentation.NodePresenters.Commands
@@ -41,21 +41,13 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
         /// <param name="content">The entity to fetch, or one of its components.</param>
         public static void Fetch(EntityHierarchyViewModel scene, object content)
         {
-            Entity entity;
-            var component = content as EntityComponent;
-
-            if (component != null)
-                entity = component.Entity;
-            else
-                entity = content as Entity;
-
-            if (entity == null)
+            Entity entity = content is EntityComponent component ? component.Entity : content as Entity;
+            if (entity is null)
                 return;
 
-            var editor = scene.Editor;
+            scene.ServiceProvider.Get<IAssetEditorsManager>().TryGetAssetEditor<EntityHierarchyEditorViewModel>(scene, out var editor);
             var partId = new AbsoluteId(scene.Id, entity.Id);
-            var viewModel = editor.FindPartViewModel(partId) as EntityViewModel;
-            if (viewModel == null)
+            if (editor.FindPartViewModel(partId) is not EntityViewModel viewModel)
                 return;
 
             editor.SelectedItems.Clear();

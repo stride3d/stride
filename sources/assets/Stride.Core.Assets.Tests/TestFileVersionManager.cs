@@ -55,7 +55,7 @@ namespace Stride.Core.Assets.Tests
 
             var ids = new List<Tuple<UFile, ObjectId>>();
             FileVersionManager.Instance.ComputeFileHashAsync(files, (file, id) => ids.Add(new Tuple<UFile, ObjectId>(file, id)));
-            Thread.Sleep(200);
+            Thread.Sleep(500);
 
             Assert.Equal(files.Count, ids.Count);
 

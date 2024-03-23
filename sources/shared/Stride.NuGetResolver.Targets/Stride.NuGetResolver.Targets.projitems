@@ -32,7 +32,7 @@
   </Target>
   <Target Name="_StrideIncludeNuGetResolver">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).exe" />
+      <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).dll" />
       <BuildOutputInPackage Include="$(OutputPath)NuGet*.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.FileProviders.Abstractions.dll" />

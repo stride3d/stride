@@ -539,7 +539,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             var path = directory.Path;
             var message = Tr._p("Message", "Do you want to place the resource in the default location ?");
-            var finalPath = Path.Combine(directory.Package.Package.ResourceFolders[0], path, file.GetFileName());
+            var finalPath = Path.GetFullPath(Path.Combine(directory.Package.Package.ResourceFolders[0], path, file.GetFileName()));
             var pathResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (pathResult == MessageBoxResult.No)
             {
@@ -598,7 +598,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                         Directory.CreateDirectory(Path.GetDirectoryName(finalPath));
                         if (File.Exists(finalPath))
                         {
-                            message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(file.FullPath);
+                            message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(finalPath);
 
                             copyResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
 

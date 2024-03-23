@@ -345,14 +345,6 @@ namespace Stride.Core.Reflection
                     return false;
             }
 
-            if (member.Mode == DataMemberMode.Binary)
-            {
-                if (!memberType.IsArray)
-                    throw new InvalidOperationException($"{memberType.FullName} {member.OriginalName} of {Type.FullName} is not an array. Can not be serialized as binary.");
-                if (!memberType.GetElementType().IsPureValueType())
-                    throw new InvalidOperationException($"{memberType.GetElementType()} is not a pure ValueType. {memberType.FullName} {member.OriginalName} of {Type.FullName} can not serialize as binary.");
-            }
-
             // If this member cannot be serialized, remove it from the list
             if (member.Mode == DataMemberMode.Never)
             {

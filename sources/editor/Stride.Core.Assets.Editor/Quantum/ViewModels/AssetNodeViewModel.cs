@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Serialization;
-using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;

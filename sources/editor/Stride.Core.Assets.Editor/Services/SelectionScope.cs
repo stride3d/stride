@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
-using Stride.Core;
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Assets.Editor.Services

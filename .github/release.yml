@@ -1,0 +1,65 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+  categories:
+    - title: 💥 Breaking Changes
+      labels:
+        - breaking-change
+    - title: 🎉 New Features
+      labels:
+        - enhancement
+        - new-feature
+    - title: 🐞 Bug Fixes
+      labels:
+        - bug-fix
+    - title: 🚀 Performance Improvements
+      labels:
+        - performance
+    - title: 🔧 Engineering
+      labels:
+        - engineering
+    - title: 📦 Assets
+      labels:
+        - area-Asset
+    - title: 🔊 Audio
+      labels:
+        - area-Audio
+    - title: 🔨 Build
+      labels:
+        - area-Build
+    - title: 📄 Docs
+      labels:
+        - area-Doc
+    - title: 🛠️ GameStudio
+      labels:
+        - area-GameStudio
+    - title: 🖌️ Graphics
+      labels:
+        - area-Graphics
+    - title: ⌨️ Input
+      labels:
+        - area-Input
+    - title: 🚀 Launcher
+      labels:
+        - area-Launcher
+    - title: ⚙️ Physics
+      labels:
+        - area-Physics
+    - title: 📚 Samples
+      labels:
+        - area-Samples
+    - title: 🌈 Shaders
+      labels:
+        - area-Shaders
+    - title: 🖼️ UI
+      labels:
+        - area-UI
+    - title: 🎨 Rendering
+      labels:
+        - area-Rendering
+    - title: 💪 Other Changes
+      labels:
+        - "*"

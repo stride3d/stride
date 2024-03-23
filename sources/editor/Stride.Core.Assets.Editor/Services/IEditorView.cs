@@ -24,11 +24,10 @@ namespace Stride.Core.Assets.Editor.Services
         Task EditorInitialization { get; }
 
         /// <summary>
-        /// Initializes the editor view with the given asset.
+        /// Initializes the editor view with the editor.
         /// </summary>
-        /// <param name="asset">The asset for which to initialize the editor view.</param>
-        /// <returns>A task that completes when the initialization is done and contains the <see cref="IAssetEditorViewModel"/> as result.</returns>
-        [ItemCanBeNull]
-        Task<IAssetEditorViewModel> InitializeEditor([NotNull] AssetViewModel asset);
+        /// <param name="editor">The editor for which to initialize the editor view.</param>
+        /// <returns>A task that completes when the initialization is done.</returns>
+        Task<bool> InitializeEditor([NotNull] IAssetEditorViewModel editor);
     }
 }

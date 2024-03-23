@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Yaml;
-using Stride.Core;
 using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 

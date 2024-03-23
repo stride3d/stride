@@ -1,6 +1,5 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:view="clr-namespace:Stride.Core.Presentation.Quantum.View;assembly=Stride.Core.Presentation.Quantum"
                     xmlns:ui="clr-namespace:Stride.UI;assembly=Stride.UI"
                     xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.UIEditor.Views"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation">
@@ -9,16 +8,16 @@
     <ResourceDictionary Source="ImageDictionary.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
-  <view:TypeMatchTemplateProvider x:Key="StripDefinitionTemplateProvider" Type="{x:Type ui:StripDefinition}" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <sd:TypeMatchTemplateProvider x:Key="StripDefinitionTemplateProvider" Type="{x:Type ui:StripDefinition}" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate>
       <UniformGrid Rows="1">
         <ContentPresenter Content="{Binding SizeValue}" ContentTemplateSelector="{x:Static sd:PropertyViewHelper.EditorProviders}" />
         <ContentPresenter Content="{Binding Type_}" ContentTemplateSelector="{x:Static sd:PropertyViewHelper.EditorProviders}" />
       </UniformGrid>
     </DataTemplate>
-  </view:TypeMatchTemplateProvider>
+  </sd:TypeMatchTemplateProvider>
 
-  <view:TypeMatchTemplateProvider x:Key="ThicknessTemplateProvider" Type="{x:Type ui:Thickness}" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <sd:TypeMatchTemplateProvider x:Key="ThicknessTemplateProvider" Type="{x:Type ui:Thickness}" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate>
       <DataTemplate.Resources>
         <Style TargetType="views:ThicknessEditor">
@@ -83,7 +82,7 @@
       </DataTemplate.Resources>
       <views:ThicknessEditor Value="{Binding NodeValue}" DecimalPlaces="3" />
     </DataTemplate>
-  </view:TypeMatchTemplateProvider>
+  </sd:TypeMatchTemplateProvider>
 
 </ResourceDictionary>
 

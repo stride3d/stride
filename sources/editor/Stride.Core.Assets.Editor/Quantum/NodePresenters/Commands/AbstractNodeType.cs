@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;

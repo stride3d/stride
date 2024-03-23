@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -50,8 +50,8 @@ namespace CSharpIntermediate.Code
                 // We store the contents of the response in a string
                 string responseContent = await response.Content.ReadAsStringAsync();
 
-                // We serialze the string in to an object
-                openCollectiveEvents = JsonConvert.DeserializeObject<List<OpenCollectiveEvent>>(responseContent);
+                // We deserialze the string into an object
+                openCollectiveEvents = JsonSerializer.Deserialize<List<OpenCollectiveEvent>>(responseContent);
             }
         }
 

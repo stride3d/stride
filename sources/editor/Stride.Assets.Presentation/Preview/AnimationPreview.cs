@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using Stride.Core.Assets.Compiler;
 using Stride.Animations;
 using Stride.Assets.Models;
-using Stride.Assets.Presentation.Preview.Views;
 using Stride.Assets.Presentation.ViewModel.Preview;
+using Stride.Editor.Annotations;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.Engine;
@@ -16,7 +16,7 @@ using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.Preview
 {
-    [AssetPreview(typeof(AnimationAsset), typeof(AnimationPreviewView))]
+    [AssetPreview<AnimationAsset>]
     public class AnimationPreview : PreviewFromEntity<AnimationAsset>
     {
         private readonly object animLock = new object();

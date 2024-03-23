@@ -3,8 +3,6 @@
 using System;
 using System.Windows;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.View;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.FixAssetReferences.Views

@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -19,7 +18,11 @@ namespace Stride.Rendering
     /// <summary>
     /// The effect system.
     /// </summary>
-    public class EffectSystem : GameSystemBase
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="EffectSystem"/> class.
+    /// </remarks>
+    /// <param name="services">The services.</param>
+    public class EffectSystem(IServiceRegistry services) : GameSystemBase(services)
     {
         private static readonly Logger Log = GlobalLogger.GetLogger("EffectSystem");
 
@@ -50,22 +53,13 @@ namespace Stride.Rendering
         /// </value>
         public IVirtualFileProvider FileProvider => compiler.FileProvider;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EffectSystem"/> class.
-        /// </summary>
-        /// <param name="services">The services.</param>
-        public EffectSystem(IServiceRegistry services)
-            : base(services)
-        {
-        }
-
         public override void Initialize()
         {
             base.Initialize();
 
 
             // Get graphics device service
-            base.InitGraphicsDeviceService();
+            InitGraphicsDeviceService();
 
 #if STRIDE_PLATFORM_DESKTOP
             Enabled = true;
@@ -193,8 +187,7 @@ namespace Stride.Rendering
                 if (effectBytecodeCompilerResult.CompilationLog.HasErrors)
                 {
                     // Unregister result (or should we keep it so that failure never change?)
-                    List<CompilerResults> effectCompilerResults;
-                    if (earlyCompilerCache.TryGetValue(effectName, out effectCompilerResults))
+                    if (earlyCompilerCache.TryGetValue(effectName, out var effectCompilerResults))
                     {
                         effectCompilerResults.Remove(compilerResult);
                     }
@@ -202,10 +195,7 @@ namespace Stride.Rendering
 
                 CheckResult(effectBytecodeCompilerResult.CompilationLog);
 
-                var bytecode = effectBytecodeCompilerResult.Bytecode;
-                if (bytecode == null)
-                    throw new InvalidOperationException("EffectCompiler returned no shader and no compilation error.");
-
+                var bytecode = effectBytecodeCompilerResult.Bytecode ?? throw new InvalidOperationException("EffectCompiler returned no shader and no compilation error.");
                 if (!cachedEffects.TryGetValue(bytecode, out effect))
                 {
                     effect = new Effect(GraphicsDevice, bytecode) { Name = effectName };
@@ -221,11 +211,9 @@ namespace Stride.Rendering
                             var pathUrl = storagePath + "/path";
                             if (FileProvider.FileExists(pathUrl))
                             {
-                                using (var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
-                                using (var reader = new StreamReader(pathStream))
-                                {
-                                    filePath = reader.ReadToEnd();
-                                }
+                                using var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read);
+                                using var reader = new StreamReader(pathStream);
+                                filePath = reader.ReadToEnd();
                             }                            
                         }
                         if (filePath != null)

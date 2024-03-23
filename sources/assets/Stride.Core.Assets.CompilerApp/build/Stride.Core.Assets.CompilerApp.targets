@@ -125,8 +125,8 @@
   <Target Name="_StridePrepareAssetCompiler">
     <PropertyGroup>
       <!-- First try NuGet layout, then git checkout -->
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net8.0\')">$(MSBuildThisFileDirectory)..\lib\net8.0\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net8.0\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net8.0\')">$(MSBuildThisFileDirectory)..\lib\net8.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net8.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
@@ -139,7 +139,7 @@
   <!--Compile assets for all StridePackage items and only for an executable-->
   <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
     <PropertyGroup>
-      <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
 
       <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>

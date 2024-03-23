@@ -2,11 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Threading.Tasks;
-using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core;
-using Stride.Core.IO;
 using Stride.Assets.SpriteFont;
+using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
@@ -15,7 +16,7 @@ using Stride.Graphics;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
-    [AssetViewModel(typeof(SpriteFontAsset))]
+    [AssetViewModel<SpriteFontAsset>]
     public class SpriteFontViewModel : AssetViewModel<SpriteFontAsset>
     {
         /// <summary>

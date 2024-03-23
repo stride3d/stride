@@ -2,13 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Runtime.CompilerServices;
 using Stride.Core.Assets.Quantum;
-using Stride.Core;
 using Stride.Core.Reflection;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.Templates;
 using Stride.Assets.SpriteFont;
+using Stride.Editor.Preview;
+using Stride.Editor.Preview.View;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 
@@ -26,6 +27,7 @@ namespace Stride.Assets.Presentation
             AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
             // We need access to the AssetQuantumRegistry from the SessionTemplateGenerator so for now we register graph types in the module initializer.
             AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
+            AssetPreview.DefaultViewType = typeof(StridePreviewView);
             // Register default template
             StrideTemplates.Register();
             // Initialize translation

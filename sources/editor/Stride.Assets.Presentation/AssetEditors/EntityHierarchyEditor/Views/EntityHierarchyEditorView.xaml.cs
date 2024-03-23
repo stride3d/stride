@@ -6,7 +6,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Annotations;
 using Stride.Core.Presentation.Controls;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 
@@ -17,7 +16,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views
     /// </summary>
     public abstract partial class EntityHierarchyEditorView : IEditorView
     {
-        private readonly TaskCompletionSource<bool> editorInitializationNotifier = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource editorInitializationNotifier = new();
 
         static EntityHierarchyEditorView()
         {
@@ -34,22 +33,22 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views
 
         public Task EditorInitialization => editorInitializationNotifier.Task;
 
-        public async Task<IAssetEditorViewModel> InitializeEditor(AssetViewModel asset)
+        /// <inheritdoc/>
+        public async Task<bool> InitializeEditor(IAssetEditorViewModel editor)
         {
-            var editor = CreateEditorViewModel(asset);
+            var hierarchyEditor = (EntityHierarchyEditorViewModel)editor;
+            if (!await editor.Initialize())
+            {
+                editor.Destroy();
+                editorInitializationNotifier.SetResult();
+                return false;
+            }
 
-            // Don't set the actual Editor property until the editor object is fully initialized - we don't want data bindings to access uninitialized properties
-            var result = await editor.Initialize();
-
-            SceneView.Content = editor.Controller.EditorHost;
+            SceneView.Content = hierarchyEditor.Controller.EditorHost;
             SceneView.InvalidateVisual();
 
-            editorInitializationNotifier.SetResult(result);
-            if (result)
-                return editor;
-
-            editor.Destroy();
-            return null;
+            editorInitializationNotifier.SetResult();
+            return true;
         }
 
         protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
@@ -61,9 +60,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views
                 Keyboard.Focus(this);
             }
         }
-
-        [NotNull]
-        protected abstract EntityHierarchyEditorViewModel CreateEditorViewModel([NotNull] AssetViewModel asset);
 
         private void EditorPreviewKeyDown(object sender, KeyEventArgs e)
         {

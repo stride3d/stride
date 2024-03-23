@@ -70,16 +70,16 @@ namespace Stride.Editor.EditorGame.ContentLoader
         /// <param name="gameDispatcher">The dispatcher to the game thread.</param>
         /// <param name="logger">The logger to use to log operations.</param>
         /// <param name="asset">The asset associated with this instance.</param>
+        /// <param name="editor">The editor associated with this instance.</param>
         /// <param name="game">The editor game associated with this instance.</param>
-        public EditorContentLoader(IDispatcherService gameDispatcher, ILogger logger, AssetViewModel asset, EditorServiceGame game)
+        public EditorContentLoader(IDispatcherService gameDispatcher, ILogger logger, AssetViewModel asset, AssetEditorViewModel editor, EditorServiceGame game)
         {
-            if (asset == null) throw new ArgumentNullException(nameof(asset));
-
+            Asset = asset ?? throw new ArgumentNullException(nameof(asset));
+            Editor = editor ?? throw new ArgumentNullException(nameof(editor));
             GameDispatcher = gameDispatcher ?? throw new ArgumentNullException(nameof(gameDispatcher));
             Session = asset.Session;
             Session.AssetPropertiesChanged += AssetPropertiesChanged;
             Game = game ?? throw new ArgumentNullException(nameof(game));
-            Asset = asset;
             Manager = new LoaderReferenceManager(GameDispatcher, this);
             this.logger = logger;
             database = asset.ServiceProvider.Get<GameStudioDatabase>();
@@ -91,10 +91,16 @@ namespace Stride.Editor.EditorGame.ContentLoader
         }
 
         public LoaderReferenceManager Manager { get; }
+
         /// <summary>
         /// The asset view model associated to this instance.
         /// </summary>
         private AssetViewModel Asset { get; }
+
+        /// <summary>
+        /// The editor view model associated to this instance.
+        /// </summary>
+        private AssetEditorViewModel Editor { get; }
 
         /// <summary>
         /// A dictionary storing the urls used to load an asset, to use the same at unload, in case the asset has been renamed.
@@ -476,7 +482,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
             var allAssetsToRebuild = new HashSet<AssetViewModel>();
 
             // Don't propagate property changes until we're fully initialized.
-            await Asset.EditorInitialized;
+            await Editor.EditorInitialized;
 
             // If GameSettingsAssets.ColorSpace was changed, rebuild the whole scene
             var assets = e.Assets.ToList();
@@ -551,7 +557,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
             {
                 currentNavigationGroupsHash = navigationGroupsHash;
 
-                await BuildAndReloadAssets(Session.AllAssets.Where(x => x.AssetType == typeof(NavigationMeshAsset)).Select(x=>x.AssetItem));
+                await BuildAndReloadAssets(Session.AllAssets.Where(x => x.AssetType == typeof(NavigationMeshAsset)).Select(x => x.AssetItem));
             }
         }
 

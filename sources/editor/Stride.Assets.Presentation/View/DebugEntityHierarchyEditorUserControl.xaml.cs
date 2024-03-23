@@ -84,7 +84,7 @@ namespace Stride.Assets.Presentation.View
         public DebugEntityHierarchyEditorUserControl([NotNull] EntityHierarchyEditorViewModel editor)
         {
             DataContext = new DebugEntityHierarchyEditorViewModel(editor.ServiceProvider, editor);
-            Title = $"Scene '{((IAssetEditorViewModel)editor).Asset.Url}'";
+            Title = $"Scene '{editor.Asset.Url}'";
             InitializeComponent();
         }
 

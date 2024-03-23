@@ -8,8 +8,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DxtWrapper", "DxtWrapper\Dx
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77} = {371B9FA9-4C90-4AC6-A123-ACED756D6C77}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeImage.NET", "FreeImage.Net\FreeImage.NET.csproj", "{6598A7CD-8F27-4D3F-A675-5AE63113A7C3}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PvrttWrapper", "PvrttWrapperC++\PvrttWrapperC++.vcxproj", "{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTex", "DirectXTex\DirectXTex_Desktop_2017.vcxproj", "{371B9FA9-4C90-4AC6-A123-ACED756D6C77}"

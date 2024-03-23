@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Stride.Data;
-using Stride.Core.Presentation.Quantum.View;
+using Stride.Core.Assets.Editor.View;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Data;
 
 namespace Stride.Assets.Presentation.TemplateProviders
 {

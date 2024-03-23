@@ -21,11 +21,6 @@ namespace Stride.Core.Assets.Editor.Services
     public interface IEditorDialogService : IDialogService2
     {
         /// <summary>
-        /// Gets or sets the <see cref="IAssetEditorsManager"/> instance used to open/close asset editor instances.
-        /// </summary>
-        IAssetEditorsManager AssetEditorsManager { get; set; }
-
-        /// <summary>
         /// Shows a notification window in the lower right corner of the primary screen.
         /// </summary>
         /// <param name="title">The title of the window.</param>

@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -43,6 +43,7 @@
     <PackageReference Include="System.Xml.XmlDocument" />
     <PackageReference Include="System.Xml.XPath" />
     <PackageReference Include="System.Xml.XPath.XDocument" />
+    <PackageReference Include="SixLabors.Fonts"/>
     <Reference Include="VHACDSharp">
       <HintPath>..\..\..\deps\VHACD\VHACDSharp.dll</HintPath>
     </Reference>
@@ -90,7 +91,7 @@
     <Analyzer Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
   </ItemGroup-->
   <ItemGroup>
-    <StrideNativeLib Include="..\..\..\deps\VHACD\**\VHACD.dll">
+    <StrideNativeLib Include="..\..\..\deps\VHACD\**\VHACD.*">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
     <Content Include="..\..\..\deps\FFmpeg\ffmpeg.exe">

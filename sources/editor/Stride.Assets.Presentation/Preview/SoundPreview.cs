@@ -4,16 +4,15 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Stride.Core.IO;
-using Stride.Assets.Presentation.Preview.Views;
 using Stride.Core.Presentation.Services;
 using Stride.Assets.Media;
 using Stride.Audio;
-using Stride.Editor.Preview;
+using Stride.Editor.Annotations;
 using Stride.Media;
 
 namespace Stride.Assets.Presentation.Preview
 {
-    [AssetPreview(typeof(SoundAsset), typeof(SoundPreviewView))]
+    [AssetPreview<SoundAsset>]
     public class SoundPreview : BuildAssetPreview<SoundAsset>
     {
         private IDispatcherService dispatcher;
