@@ -41,7 +41,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="typeDescriptorFactory">The type descriptor factory.</param>
         /// <exception cref="ArgumentNullException">typeDescriptorFactory</exception>
-        protected DataVisitorBase([NotNull] ITypeDescriptorFactory typeDescriptorFactory)
+        protected DataVisitorBase([NotNull] IStrideTypeDescriptorFactory typeDescriptorFactory)
         {
             if (typeDescriptorFactory == null) throw new ArgumentNullException(nameof(typeDescriptorFactory));
             TypeDescriptorFactory = typeDescriptorFactory;
@@ -56,7 +56,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <value>The type descriptor factory.</value>
         [NotNull]
-        public ITypeDescriptorFactory TypeDescriptorFactory { get; }
+        public IStrideTypeDescriptorFactory TypeDescriptorFactory { get; }
 
         /// <summary>
         /// Gets or sets the custom visitors.
@@ -205,7 +205,7 @@ namespace Stride.Core.Reflection
         }
 
         /// <inheritdoc />
-        public virtual void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
+        public virtual void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IStrideMemberDescriptor member, object value)
         {
             Visit(value, member.TypeDescriptor);
         }

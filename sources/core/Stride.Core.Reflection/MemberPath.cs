@@ -73,7 +73,7 @@ namespace Stride.Core.Reflection
         }
 
         /// <summary>
-        /// Ensures the capacity of the paths definition when using <see cref="Push(Stride.Core.Reflection.IMemberDescriptor)"/> methods.
+        /// Ensures the capacity of the paths definition when using <see cref="Push(Stride.Core.Reflection.IStrideMemberDescriptor)"/> methods.
         /// </summary>
         /// <param name="pathCount">The path count.</param>
         public void EnsureCapacity(int pathCount)
@@ -134,10 +134,10 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="descriptor">The descriptor of the member.</param>
         /// <exception cref="System.ArgumentNullException">descriptor</exception>
-        public void Push(IMemberDescriptor descriptor)
+        public void Push(IStrideMemberDescriptor descriptor)
         {
             if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
-            AddItem(descriptor is FieldDescriptor ? (MemberPathItem)new FieldPathItem((FieldDescriptor)descriptor) : new PropertyPathItem((PropertyDescriptor)descriptor));
+            AddItem(descriptor is StrideFieldDescriptor ? (MemberPathItem)new FieldPathItem((StrideFieldDescriptor)descriptor) : new PropertyPathItem((StridePropertyDescriptor)descriptor));
         }
 
         public void Push(ITypeDescriptor descriptor, object key)
@@ -472,7 +472,7 @@ namespace Stride.Core.Reflection
         {
             public MemberPathItem Parent { get; set; }
 
-            public abstract IMemberDescriptor MemberDescriptor { get; }
+            public abstract IStrideMemberDescriptor MemberDescriptor { get; }
 
             public virtual ITypeDescriptor TypeDescriptor => MemberDescriptor.TypeDescriptor;
 
@@ -489,17 +489,17 @@ namespace Stride.Core.Reflection
 
         public sealed class PropertyPathItem : MemberPathItem, IEquatable<PropertyPathItem>
         {
-            private readonly PropertyDescriptor descriptor;
+            private readonly StridePropertyDescriptor descriptor;
             private readonly bool isValueType;
 
-            public PropertyPathItem(PropertyDescriptor descriptor)
+            public PropertyPathItem(StridePropertyDescriptor descriptor)
             {
                 if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
                 this.descriptor = descriptor;
                 isValueType = descriptor.DeclaringType.IsValueType;
             }
 
-            public override IMemberDescriptor MemberDescriptor => descriptor;
+            public override IStrideMemberDescriptor MemberDescriptor => descriptor;
 
             public override object GetValue(object thisObj)
             {
@@ -551,17 +551,17 @@ namespace Stride.Core.Reflection
 
         public sealed class FieldPathItem : MemberPathItem, IEquatable<FieldPathItem>
         {
-            private readonly FieldDescriptor descriptor;
+            private readonly StrideFieldDescriptor descriptor;
             private readonly bool isValueType;
  
-            public FieldPathItem(FieldDescriptor descriptor)
+            public FieldPathItem(StrideFieldDescriptor descriptor)
             {
                 if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
                 this.descriptor = descriptor;
                 isValueType = descriptor.DeclaringType.IsValueType;
             }
 
-            public override IMemberDescriptor MemberDescriptor => descriptor;
+            public override IStrideMemberDescriptor MemberDescriptor => descriptor;
 
             public override object GetValue(object thisObj)
             {
@@ -613,7 +613,7 @@ namespace Stride.Core.Reflection
 
         public abstract class SpecialMemberPathItemBase : MemberPathItem
         {
-            public override IMemberDescriptor MemberDescriptor => null;
+            public override IStrideMemberDescriptor MemberDescriptor => null;
         }
 
         public sealed class ArrayPathItem : SpecialMemberPathItemBase, IEquatable<ArrayPathItem>

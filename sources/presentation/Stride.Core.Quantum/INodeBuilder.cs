@@ -21,7 +21,7 @@ namespace Stride.Core.Quantum
         /// Gets the type descriptor factory.
         /// </summary>
         /// <value>The type descriptor factory.</value>
-        ITypeDescriptorFactory TypeDescriptorFactory { get; }
+        IStrideTypeDescriptorFactory TypeDescriptorFactory { get; }
 
         /// <summary>
         /// Gets or sets the factory that will create instances of <see cref="IGraphNode"/> for nodes.

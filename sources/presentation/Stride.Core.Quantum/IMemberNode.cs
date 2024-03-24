@@ -34,7 +34,7 @@ namespace Stride.Core.Quantum
         /// Gets the member descriptor corresponding to this member node.
         /// </summary>
         [NotNull]
-        IMemberDescriptor MemberDescriptor { get; }
+        IStrideMemberDescriptor MemberDescriptor { get; }
 
         /// <summary>
         /// Updates the value of this content with the given value.

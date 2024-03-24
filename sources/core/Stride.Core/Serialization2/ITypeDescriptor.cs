@@ -27,7 +27,7 @@ namespace Stride.Core.Reflection
         /// Gets the members of this type.
         /// </summary>
         /// <value>The members.</value>
-        IEnumerable<IMemberDescriptor> Members { get; }
+        IEnumerable<IStrideMemberDescriptor> Members { get; }
 
         /// <summary>
         /// Gets the member count.
@@ -48,19 +48,19 @@ namespace Stride.Core.Reflection
         bool HasMembers { get; }
 
         /// <summary>
-        /// Gets the <see cref="IMemberDescriptor"/> with the specified name.
+        /// Gets the <see cref="IStrideMemberDescriptor"/> with the specified name.
         /// </summary>
         /// <param name="name">The name of the member.</param>
         /// <returns>The member.</returns>
         /// <exception cref="KeyNotFoundException">Thrown when a member </exception>
-        IMemberDescriptor this[string name] { get; }
+        IStrideMemberDescriptor this[string name] { get; }
 
         /// <summary>
         /// Tries to get a member with the specified name. If nothing could be found, returns null.
         /// </summary>
         /// <param name="name">The name of the member.</param>
         /// <returns>The member if found, otherwise [null].</returns>
-        IMemberDescriptor TryGetMember(string name);
+        IStrideMemberDescriptor TryGetMember(string name);
 
         /// <summary>
         /// Gets a value indicating whether this instance is a compiler generated type.

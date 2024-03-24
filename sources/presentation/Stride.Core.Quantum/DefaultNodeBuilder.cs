@@ -147,7 +147,7 @@ namespace Stride.Core.Quantum
         }
 
         /// <inheritdoc/>
-        public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
+        public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IStrideMemberDescriptor member, object value)
         {
             // If this member should contains a reference, create it now.
             var containerNode = (IInitializingObjectNode)GetContextNode();

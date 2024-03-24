@@ -17,7 +17,7 @@ namespace Stride.Core.Assets.Quantum.Internal
 
         private OverrideType contentOverride;
 
-        public AssetMemberNode([NotNull] INodeBuilder nodeBuilder, Guid guid, [NotNull] IObjectNode parent, [NotNull] IMemberDescriptor memberDescriptor, IReference reference)
+        public AssetMemberNode([NotNull] INodeBuilder nodeBuilder, Guid guid, [NotNull] IObjectNode parent, [NotNull] IStrideMemberDescriptor memberDescriptor, IReference reference)
             : base(nodeBuilder, guid, parent, memberDescriptor, reference)
         {
             ValueChanged += ContentChanged;

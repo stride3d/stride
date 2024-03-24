@@ -287,7 +287,7 @@ namespace Stride.Core.Assets.Analysis
                 }
             }
 
-            public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
+            public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IStrideMemberDescriptor member, object value)
             {
                 base.VisitObjectMember(container, containerDescriptor, member, value);
                 var assetReference = value as AssetReference;

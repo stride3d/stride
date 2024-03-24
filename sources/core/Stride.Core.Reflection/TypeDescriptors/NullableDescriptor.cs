@@ -11,7 +11,7 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class NullableDescriptor : ObjectDescriptor
     {
-        private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
+        private static readonly List<IStrideMemberDescriptor> EmptyMembers = new List<IStrideMemberDescriptor>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectDescriptor" /> class.
@@ -19,7 +19,7 @@ namespace Stride.Core.Reflection
         /// <param name="factory">The factory.</param>
         /// <param name="type">The type.</param>
         /// <exception cref="System.ArgumentException">Type [{0}] is not a primitive</exception>
-        public NullableDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public NullableDescriptor(IStrideTypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsNullable(type))
@@ -46,7 +46,7 @@ namespace Stride.Core.Reflection
             return type.IsNullable();
         }
 
-        protected override List<IMemberDescriptor> PrepareMembers()
+        protected override List<IStrideMemberDescriptor> PrepareMembers()
         {
             return EmptyMembers;
         }

@@ -17,13 +17,13 @@ namespace Stride.Core.Yaml
     /// </summary>
     public class AssetYamlSerializer : YamlSerializerBase
     {
-        private event Action<ObjectDescriptor, List<IMemberDescriptor>> PrepareMembersEvent;
+        private event Action<ObjectDescriptor, List<IStrideMemberDescriptor>> PrepareMembersEvent;
 
         private Serializer serializer;
 
         public static AssetYamlSerializer Default { get; set; } = new AssetYamlSerializer();
 
-        public event Action<ObjectDescriptor, List<IMemberDescriptor>> PrepareMembers
+        public event Action<ObjectDescriptor, List<IStrideMemberDescriptor>> PrepareMembers
         {
             add
             {
@@ -194,7 +194,7 @@ namespace Stride.Core.Yaml
                         }
                     };
 
-                    config.Attributes.PrepareMembersCallback += (objDesc, members) => PrepareMembersEvent?.Invoke(objDesc, members);
+                    // config.Attributes.PrepareMembersCallback += (objDesc, members) => PrepareMembersEvent?.Invoke(objDesc, members);
 
                     for (var index = RegisteredAssemblies.Count - 1; index >= 0; index--)
                     {

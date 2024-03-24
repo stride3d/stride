@@ -25,7 +25,7 @@ namespace Stride.Core.Reflection
         private readonly MethodInfo containsKeyMethod;
         private readonly MethodInfo addMethod;
 
-        public DictionaryDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public DictionaryDescriptor(IStrideTypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsDictionary(type))
@@ -296,10 +296,10 @@ namespace Stride.Core.Reflection
             return dictionary.Select(keyValue => new KeyValuePair<object, object>(keyValue.Key, keyValue.Value));
         }
 
-        protected override bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
+        protected override bool PrepareMember(StrideMemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
         {
             // Filter members
-            if (member is PropertyDescriptor && ListOfMembersToRemove.Contains(member.OriginalName))
+            if (member is StridePropertyDescriptor && ListOfMembersToRemove.Contains(member.OriginalName))
             //if (member is PropertyDescriptor && (member.DeclaringType.Namespace ?? string.Empty).StartsWith(SystemCollectionsNamespace) && ListOfMembersToRemove.Contains(member.Name))
             {
                 return false;

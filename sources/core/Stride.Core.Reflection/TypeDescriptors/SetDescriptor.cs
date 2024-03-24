@@ -20,7 +20,7 @@ namespace Stride.Core.Reflection
         private readonly MethodInfo countMethod;
         private readonly MethodInfo isReadOnlyMethod;
 
-        public SetDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public SetDescriptor(IStrideTypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsSet(type))
@@ -251,10 +251,10 @@ namespace Stride.Core.Reflection
             return false;
         }
 
-        protected override bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
+        protected override bool PrepareMember(StrideMemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
         {
             // Filter members
-            if (member is PropertyDescriptor && ListOfMembersToRemove.Contains(member.OriginalName))
+            if (member is StridePropertyDescriptor && ListOfMembersToRemove.Contains(member.OriginalName))
             {
                 return false;
             }

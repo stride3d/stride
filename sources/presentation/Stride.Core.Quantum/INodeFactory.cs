@@ -40,10 +40,10 @@ namespace Stride.Core.Quantum
         /// <param name="nodeBuilder">The node builder.</param>
         /// <param name="guid">The unique identifier of the node to build.</param>
         /// <param name="parent">The node representing the parent container.</param>
-        /// <param name="member">The <see cref="IMemberDescriptor"/> of the member.</param>
+        /// <param name="member">The <see cref="IStrideMemberDescriptor"/> of the member.</param>
         /// <param name="value">The value of this object.</param>
         /// <returns>A new <see cref="IGraphNode"/> instance representing the given member property.</returns>
         [NotNull]
-        IMemberNode CreateMemberNode([NotNull] INodeBuilder nodeBuilder, Guid guid, [NotNull] IObjectNode parent, [NotNull] IMemberDescriptor member, object value);
+        IMemberNode CreateMemberNode([NotNull] INodeBuilder nodeBuilder, Guid guid, [NotNull] IObjectNode parent, [NotNull] IStrideMemberDescriptor member, object value);
     }
 }

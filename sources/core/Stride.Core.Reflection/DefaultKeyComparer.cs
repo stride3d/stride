@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,8 @@ namespace Stride.Core.Reflection
     {
         public int Compare(object x, object y)
         {
-            var left = x as IMemberDescriptor;
-            var right = y as IMemberDescriptor;
+            var left = x as IStrideMemberDescriptor;
+            var right = y as IStrideMemberDescriptor;
             if (left != null && right != null)
             {
                 // If order is defined, first order by order

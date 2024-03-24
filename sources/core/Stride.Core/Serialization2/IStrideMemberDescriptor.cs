@@ -6,12 +6,12 @@ using System.Reflection;
 
 namespace Stride.Core.Reflection
 {
-    public delegate bool ShouldSerializePredicate(object value, IMemberDescriptor parentTypeMemberDescriptor);
+    public delegate bool ShouldSerializePredicate(object value, IStrideMemberDescriptor parentTypeMemberDescriptor);
 
     /// <summary>
     /// Describe a member of an object.
     /// </summary>
-    public interface IMemberDescriptor
+    public interface IStrideMemberDescriptor
     {
         /// <summary>
         /// Gets the name.

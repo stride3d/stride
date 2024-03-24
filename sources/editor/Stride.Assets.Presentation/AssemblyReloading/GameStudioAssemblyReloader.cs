@@ -263,7 +263,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 base.VisitArrayItem(array, descriptor, index, item, itemDescriptor);
             }
 
-            public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
+            public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IStrideMemberDescriptor member, object value)
             {
                 if (ProcessObject(value, member.TypeDescriptor.Type)) return;
 

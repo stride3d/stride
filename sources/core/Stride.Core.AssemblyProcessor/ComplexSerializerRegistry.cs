@@ -335,7 +335,7 @@ namespace Stride.Core.AssemblyProcessor
                 flags = ComplexTypeSerializerFlags.SerializePublicProperties;
 
             // Find default member mode (find DataContractAttribute in the hierarchy)
-            var defaultMemberMode = DataMemberMode.Default;
+            var defaultMemberMode = DataMemberModeAlias.Default;
             var currentType = type;
             while (currentType != null)
             {
@@ -345,7 +345,7 @@ namespace Stride.Core.AssemblyProcessor
                     var dataMemberModeArg = dataContractAttribute.Properties.FirstOrDefault(x => x.Name == "DefaultMemberMode").Argument;
                     if (dataMemberModeArg.Value != null)
                     {
-                        defaultMemberMode = (DataMemberMode)(int)dataMemberModeArg.Value;
+                        defaultMemberMode = (DataMemberModeAlias)(int)dataMemberModeArg.Value;
                         break;
                     }
                 }
@@ -410,7 +410,7 @@ namespace Stride.Core.AssemblyProcessor
             return false;
         }
 
-        internal static bool IsMemberIgnored(ICollection<CustomAttribute> customAttributes, ComplexTypeSerializerFlags flags, DataMemberMode dataMemberMode)
+        internal static bool IsMemberIgnored(ICollection<CustomAttribute> customAttributes, ComplexTypeSerializerFlags flags, DataMemberModeAlias dataMemberMode)
         {
             // Check for DataMemberIgnore
             if (customAttributes.Any(x => x.AttributeType.FullName == "Stride.Core.DataMemberIgnoreAttribute"))
@@ -423,20 +423,20 @@ namespace Stride.Core.AssemblyProcessor
             var dataMemberAttribute = customAttributes.FirstOrDefault(x => x.AttributeType.FullName == "Stride.Core.DataMemberAttribute");
             if (dataMemberAttribute != null)
             {
-                var dataMemberModeArg = dataMemberAttribute.ConstructorArguments.FirstOrDefault(x => x.Type.Name == nameof(DataMemberMode));
+                var dataMemberModeArg = dataMemberAttribute.ConstructorArguments.FirstOrDefault(x => x.Type.Name == nameof(DataMemberModeAlias));
                 if (dataMemberModeArg.Value != null)
                 {
-                    dataMemberMode = (DataMemberMode)(int)dataMemberModeArg.Value;
+                    dataMemberMode = (DataMemberModeAlias)(int)dataMemberModeArg.Value;
                 }
                 else
                 {
                     // Default value if not specified in .ctor
-                    dataMemberMode = DataMemberMode.Default;
+                    dataMemberMode = DataMemberModeAlias.Default;
                 }
             }
 
             // Ignored?
-            if (dataMemberMode == DataMemberMode.Never)
+            if (dataMemberMode == DataMemberModeAlias.Never)
                 return true;
 
             return false;

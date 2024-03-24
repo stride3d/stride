@@ -17,7 +17,7 @@ namespace Stride.Core.Reflection
         /// <param name="factory">The factory.</param>
         /// <param name="type">The type.</param>
         /// <exception cref="System.ArgumentException">Type [{0}] is not a primitive</exception>
-        public NotSupportedObjectDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public NotSupportedObjectDescriptor(IStrideTypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
         }

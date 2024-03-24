@@ -18,11 +18,11 @@ namespace Stride.Core.Reflection
     {
         protected static readonly string SystemCollectionsNamespace = typeof(int).Namespace;
         public static readonly ShouldSerializePredicate ShouldSerializeDefault = (obj, parentTypeMemberDesc) => true;
-        private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
+        private static readonly List<IStrideMemberDescriptor> EmptyMembers = new List<IStrideMemberDescriptor>();
 
-        private readonly ITypeDescriptorFactory factory;
-        private IMemberDescriptor[] members;
-        private Dictionary<string, IMemberDescriptor> mapMembers;
+        private readonly IStrideTypeDescriptorFactory factory;
+        private IStrideMemberDescriptor[] members;
+        private Dictionary<string, IStrideMemberDescriptor> mapMembers;
         private HashSet<string> remapMembers;
         private static readonly object[] EmptyObjectArray = new object[0];
         private readonly bool emitDefaultValues;
@@ -30,7 +30,7 @@ namespace Stride.Core.Reflection
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectDescriptor" /> class.
         /// </summary>
-        public ObjectDescriptor(ITypeDescriptorFactory factory, [NotNull] Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public ObjectDescriptor(IStrideTypeDescriptorFactory factory, [NotNull] Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
         {
             if (factory == null) throw new ArgumentNullException(nameof(factory));
             if (type == null) throw new ArgumentNullException(nameof(type));
@@ -74,7 +74,7 @@ namespace Stride.Core.Reflection
         [NotNull]
         public Type Type { get; }
 
-        public IEnumerable<IMemberDescriptor> Members => members;
+        public IEnumerable<IStrideMemberDescriptor> Members => members;
 
         public int Count => members?.Length ?? 0;
 
@@ -104,7 +104,7 @@ namespace Stride.Core.Reflection
             return remapMembers != null && remapMembers.Contains(name);
         }
 
-        public IMemberDescriptor this[string name]
+        public IStrideMemberDescriptor this[string name]
         {
             get
             {
@@ -114,11 +114,11 @@ namespace Stride.Core.Reflection
             }
         }
 
-        public IMemberDescriptor TryGetMember(string name)
+        public IStrideMemberDescriptor TryGetMember(string name)
         {
             if (mapMembers == null)
                 return null;
-            IMemberDescriptor member;
+            IStrideMemberDescriptor member;
             mapMembers.TryGetValue(name, out member);
             return member;
         }
@@ -150,11 +150,11 @@ namespace Stride.Core.Reflection
             if (members.Length <= 0)
                 return;
 
-            mapMembers = new Dictionary<string, IMemberDescriptor>(members.Length);
+            mapMembers = new Dictionary<string, IStrideMemberDescriptor>(members.Length);
 
             foreach (var member in members)
             {
-                IMemberDescriptor existingMember;
+                IStrideMemberDescriptor existingMember;
                 if (mapMembers.TryGetValue(member.Name, out existingMember))
                 {
                     throw new InvalidOperationException("Failed to get ObjectDescriptor for type [{0}]. The member [{1}] cannot be registered as a member with the same name is already registered [{2}]".ToFormat(Type.FullName, member, existingMember));
@@ -188,7 +188,7 @@ namespace Stride.Core.Reflection
             return mapMembers != null && mapMembers.ContainsKey(memberName);
         }
 
-        protected virtual List<IMemberDescriptor> PrepareMembers()
+        protected virtual List<IStrideMemberDescriptor> PrepareMembers()
         {
             if (Type == typeof(Type))
             {
@@ -219,16 +219,16 @@ namespace Stride.Core.Reflection
             var memberList = (from propertyInfo in Type.GetProperties(bindingFlags)
                               where Type.IsAnonymous() || IsAccessibleThroughAccessModifiers(propertyInfo)
                               where propertyInfo.GetIndexParameters().Length == 0 && IsMemberToVisit(propertyInfo)
-                              select new PropertyDescriptor(factory.Find(propertyInfo.PropertyType), propertyInfo, NamingConvention.Comparer)
+                              select new StridePropertyDescriptor(factory.Find(propertyInfo.PropertyType), propertyInfo, NamingConvention.Comparer)
                               into member
                               where PrepareMember(member, metadataClassMemberInfos?.FirstOrDefault(x => x.MemberInfo.Name == member.OriginalName && x.MemberType == member.Type).MemberInfo)
-                              select member as IMemberDescriptor).ToList();
+                              select member as IStrideMemberDescriptor).ToList();
 
             // Add all public fields
             memberList.AddRange(from fieldInfo in Type.GetFields(bindingFlags)
                                 where (fieldInfo.IsPublic || (fieldInfo.IsAssembly && fieldInfo.GetCustomAttribute<DataMemberAttribute>() != null))
                                 where IsMemberToVisit(fieldInfo)
-                                select new FieldDescriptor(factory.Find(fieldInfo.FieldType), fieldInfo, NamingConvention.Comparer)
+                                select new StrideFieldDescriptor(factory.Find(fieldInfo.FieldType), fieldInfo, NamingConvention.Comparer)
                                 into member
                                 where PrepareMember(member, metadataClassMemberInfos?.FirstOrDefault(x => x.MemberInfo.Name == member.OriginalName && x.MemberType == member.Type).MemberInfo)
                                 select member);
@@ -266,7 +266,7 @@ namespace Stride.Core.Reflection
             return backingField != null;
         }
 
-        protected virtual bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
+        protected virtual bool PrepareMember(StrideMemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
         {
             var memberType = member.Type;
 
@@ -292,7 +292,7 @@ namespace Stride.Core.Reflection
             var memberAttribute = attributes.FirstOrDefault(x => x is DataMemberAttribute) as DataMemberAttribute;
             if (memberAttribute != null)
             {
-                ((IMemberDescriptor)member).Mask = memberAttribute.Mask;
+                ((IStrideMemberDescriptor)member).Mask = memberAttribute.Mask;
                 member.Mode = memberAttribute.Mode;
                 if (!member.HasSet)
                 {

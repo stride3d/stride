@@ -7,23 +7,25 @@ using System.Reflection;
 namespace Stride.Core.Reflection
 {
     /// <summary>
-    /// A <see cref="IMemberDescriptor"/> for a <see cref="PropertyInfo"/>
+    /// A <see cref="IStrideMemberDescriptor"/> for a <see cref="PropertyInfo"/>
     /// </summary>
-    public class PropertyDescriptor : MemberDescriptorBase
+    public class StridePropertyDescriptor : StrideMemberDescriptorBase
     {
         private readonly MethodInfo getMethod;
         private readonly MethodInfo setMethod;
 
-        public PropertyDescriptor(ITypeDescriptor typeDescriptor, PropertyInfo propertyInfo, StringComparer defaultNameComparer)
+        public StridePropertyDescriptor(ITypeDescriptor typeDescriptor, PropertyInfo propertyInfo, StringComparer defaultNameComparer)
             : base(propertyInfo, defaultNameComparer)
         {
             if (propertyInfo == null) throw new ArgumentNullException(nameof(propertyInfo));
 
             PropertyInfo = propertyInfo;
 
-            getMethod = propertyInfo.GetMethod;
-            setMethod = propertyInfo.SetMethod;
-
+            getMethod = propertyInfo.GetGetMethod(false) ?? propertyInfo.GetGetMethod(true);
+            if (propertyInfo.CanWrite && propertyInfo.GetSetMethod(!IsPublic) != null)
+            {
+                setMethod = propertyInfo.GetSetMethod(!IsPublic);
+            }
             TypeDescriptor = typeDescriptor;
         }
 

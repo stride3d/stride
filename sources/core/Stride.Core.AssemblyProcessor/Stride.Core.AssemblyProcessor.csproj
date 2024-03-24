@@ -41,9 +41,6 @@
   
   <!-- Compiled Items -->
   <ItemGroup>
-    <Compile Include="..\Stride.Core\DataMemberMode.cs">
-      <Link>Core\DataMemberMode.cs</Link>
-    </Compile>
     <Compile Include="..\Stride.Core\PlatformType.cs">
       <Link>Core\PlatformType.cs</Link>
     </Compile>
@@ -100,17 +97,14 @@
   <!-- ======================================================================================== -->
   
   <!-- Define a custom task for writing text to a file -->
-  <UsingTask
-    TaskName="WriteAllText"
-    TaskFactory="RoslynCodeTaskFactory"
-    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+  <UsingTask TaskName="WriteAllText" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
-      <Path ParameterType="System.String"/>
-      <Contents ParameterType="System.String"/>
+      <Path ParameterType="System.String" />
+      <Contents ParameterType="System.String" />
     </ParameterGroup>
     <Task>
-      <Using Namespace="System"/>
-      <Using Namespace="System.IO"/>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[
           File.WriteAllText(Path, Contents);
@@ -121,10 +115,7 @@
 
   <!-- Copies the built items to the deps folder -->
   <Target Name="CopyFiles" AfterTargets="PostBuildEvent">
-    <Copy
-      SourceFiles="@(BuiltItems)"
-      DestinationFolder="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)"
-    />
+    <Copy SourceFiles="@(BuiltItems)" DestinationFolder="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)" />
   </Target>
   
   <!-- Packs the BuildItems into a single  DLL and generates a .hash file from it -->

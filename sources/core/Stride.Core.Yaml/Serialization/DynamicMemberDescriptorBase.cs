@@ -28,7 +28,7 @@ namespace Stride.Core.Yaml.Serialization
     /// <summary>
     /// A dynamic member to allow adding dynamic members to objects (that could store additional properties outside of the instance).
     /// </summary>
-    public abstract class DynamicMemberDescriptorBase : IMemberDescriptor
+    public abstract class DynamicMemberDescriptorBase : IStrideMemberDescriptor
     {
         protected DynamicMemberDescriptorBase(string name, Type type, Type declaringType)
         {

@@ -7,7 +7,7 @@ namespace Stride.Core.Reflection
     /// <summary>
     /// A factory to create an instance of a <see cref="ITypeDescriptor"/>
     /// </summary>
-    public interface ITypeDescriptorFactory
+    public interface IStrideTypeDescriptorFactory
     {
         /// <summary>
         /// Gets the attribute registry used by this factory.

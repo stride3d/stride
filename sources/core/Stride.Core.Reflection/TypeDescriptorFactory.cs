@@ -2,14 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using Stride.Core.Serialization2;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Reflection
 {
     /// <summary>
-    /// A default implementation for the <see cref="ITypeDescriptorFactory"/>.
+    /// A default implementation for the <see cref="IStrideTypeDescriptorFactory"/>.
     /// </summary>
-    public class TypeDescriptorFactory : ITypeDescriptorFactory
+    public class TypeDescriptorFactory : IStrideTypeDescriptorFactory
     {
         private readonly IComparer<object> keyComparer;
         private readonly Dictionary<Type, ITypeDescriptor> registeredDescriptors = new Dictionary<Type, ITypeDescriptor>();
@@ -123,8 +124,11 @@ namespace Stride.Core.Reflection
             }
             else
             {
-                // standard object (class or value type)
-                descriptor = new ObjectDescriptor(this, type, emitDefaultValues, namingConvention);
+                var typ = ObjectDescriptorRegistry.Find(type);
+                if (typ == null)
+                    descriptor = new ObjectDescriptor(this, type, emitDefaultValues, namingConvention);
+                else
+                    descriptor = (ITypeDescriptor)Activator.CreateInstance(typ, this, emitDefaultValues, namingConvention);
             }
 
             return descriptor;

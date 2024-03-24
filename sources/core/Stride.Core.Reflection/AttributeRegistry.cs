@@ -20,7 +20,7 @@ namespace Stride.Core.Reflection
         private readonly Dictionary<MemberInfo, List<Attribute>> registeredAttributes = new Dictionary<MemberInfo, List<Attribute>>();
 
         // TODO: move this in a different location
-        public Action<ObjectDescriptor, List<IMemberDescriptor>> PrepareMembersCallback { get; set; }
+        public Action<ObjectDescriptor, List<IStrideMemberDescriptor>> PrepareMembersCallback { get; set; }
 
         /// <summary>
         /// Gets the attributes associated with the specified member.

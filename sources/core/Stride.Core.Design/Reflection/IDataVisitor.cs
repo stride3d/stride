@@ -38,7 +38,7 @@ namespace Stride.Core.Reflection
         /// <param name="containerDescriptor">The container descriptor.</param>
         /// <param name="member">The member.</param>
         /// <param name="value">The value.</param>
-        void VisitObjectMember([NotNull] object container, [NotNull] ObjectDescriptor containerDescriptor, [NotNull] IMemberDescriptor member, object value);
+        void VisitObjectMember([NotNull] object container, [NotNull] ObjectDescriptor containerDescriptor, [NotNull] IStrideMemberDescriptor member, object value);
 
         /// <summary>
         /// Visits an array.

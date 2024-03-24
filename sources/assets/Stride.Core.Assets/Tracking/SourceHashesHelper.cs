@@ -68,7 +68,7 @@ namespace Stride.Core.Assets.Tracking
             shadow[key] = dictionary;
         }
 
-        internal static void AddSourceHashesMember(ObjectDescriptor objectDescriptor, List<IMemberDescriptor> memberDescriptors)
+        internal static void AddSourceHashesMember(ObjectDescriptor objectDescriptor, List<IStrideMemberDescriptor> memberDescriptors)
         {
             var type = objectDescriptor.Type;
             if (!typeof(Asset).IsAssignableFrom(type))

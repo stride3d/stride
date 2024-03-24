@@ -6,7 +6,7 @@ namespace Stride.Core.Reflection
     {
         public IDataVisitor Visitor { get; set; }
 
-        public ITypeDescriptorFactory DescriptorFactory { get; set; }
+        public IStrideTypeDescriptorFactory DescriptorFactory { get; set; }
 
         public object Instance { get; set; }
 
