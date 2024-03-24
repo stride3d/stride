@@ -493,23 +493,13 @@ namespace Stride.Shaders.Compiler.Direct3D
 
         private static string ShaderProfileFromGraphicsProfile(GraphicsProfile graphicsProfile)
         {
-            switch (graphicsProfile)
+            return graphicsProfile switch
             {
-                case GraphicsProfile.Level_9_1:
-                    return "4_0_level_9_1";
-                case GraphicsProfile.Level_9_2:
-                    return "4_0_level_9_2";
-                case GraphicsProfile.Level_9_3:
-                    return "4_0_level_9_3";
-                case GraphicsProfile.Level_10_0:
-                    return "4_0";
-                case GraphicsProfile.Level_10_1:
-                    return "4_1";
-                case GraphicsProfile.Level_11_0:
-                case GraphicsProfile.Level_11_1:
-                    return "5_0";
-            }
-            throw new ArgumentException("graphicsProfile");
+                GraphicsProfile.Level_10_0 => "4_0",
+                GraphicsProfile.Level_10_1 => "4_1",
+                GraphicsProfile.Level_11_0 or GraphicsProfile.Level_11_1 => "5_0",
+                _ => throw new ArgumentException("graphicsProfile"),
+            };
         }
         private static readonly Dictionary<ShaderVariableType, EffectParameterType> MapTypes = new Dictionary<ShaderVariableType,EffectParameterType>()
             {
