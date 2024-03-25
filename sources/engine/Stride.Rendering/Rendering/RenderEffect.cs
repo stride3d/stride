@@ -7,7 +7,7 @@ using Stride.Graphics;
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Instantiation of an Effect for a given <see cref="StaticEffectObjectNodeReference"/>.
+    /// Instantiation of an Effect for a given <see cref="EffectObjectNodeReference"/>.
     /// </summary>
     public class RenderEffect
     {

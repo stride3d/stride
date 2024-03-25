@@ -86,7 +86,7 @@ namespace Stride.Graphics
         /// <dd> <p>Structure that specifies multisampling parameters for the texture. See <strong><see cref="SharpDX.DXGI.SampleDescription"/></strong>.</p> </dd>
         /// </summary>
         /// <remarks>
-        /// This field is only valid for <see cref="Texture2D"/>.
+        /// This field is only valid for <see cref="TextureDimension.Texture2D"/>.
         /// </remarks>
         public MultisampleCount MultisampleCount;
 

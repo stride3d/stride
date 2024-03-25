@@ -88,7 +88,7 @@ namespace Stride.Rendering.Lights
         public sealed class PartitionManual : PartitionModeBase
         {
             /// <summary>
-            /// Initializes a new instance of the <see cref="LightDirectionalManualPartitionMode"/> class.
+            /// Initializes a new instance of the <see cref="PartitionManual"/> class.
             /// </summary>
             public PartitionManual()
             {

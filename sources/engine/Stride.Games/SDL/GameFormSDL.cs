@@ -17,14 +17,14 @@ namespace Stride.Games
     {
 #region Initialization
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameForm"/> class.
+        /// Initializes a new instance of the 'GameForm' class.
         /// </summary>
         public GameFormSDL() : this(GameContext.ProductName)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameForm"/> class.
+        /// Initializes a new instance of the 'GameForm' class.
         /// </summary>
         /// <param name="text">The text.</param>
         public GameFormSDL(string text) : base(text)

@@ -9,7 +9,7 @@ namespace Stride.Core.Assets.Serializers
     /// An implementation of <see cref="IAssetPartReference"/> that represents an asset part implementing <see cref="IIdentifiable"/>.
     /// </summary>
     /// <remarks>
-    /// This type is the default type used when <see cref="AssetPartReferenceAttribute.ReferenceType"/> is undefined.
+    /// This type is the default type used when `AssetPartReferenceAttribute.ReferenceType` is undefined.
     /// </remarks>
     [DataContract]
     [DataStyle(DataStyle.Compact)]

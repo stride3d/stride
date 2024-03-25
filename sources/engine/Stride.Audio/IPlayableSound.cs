@@ -6,10 +6,10 @@ namespace Stride.Audio
 {
     /// <summary>
     /// Interface for a playable sound.
-    /// A playable sound can loop (ref <see cref="IsLooped"/>), be played (ref <see cref="Play"/>), be paused (ref <see cref="Pause"/>), be resumed (ref <see cref="Play"/>), 
+    /// A playable sound can loop (ref <see cref="IsLooping"/>), be played (ref <see cref="Play"/>), be paused (ref <see cref="Pause"/>), be resumed (ref <see cref="Play"/>),
     /// be stopped (ref <see cref="Stop()"/>) and be attenuated (ref <see cref="Volume"/>).
     /// To query the current state of a sound use the <see cref="PlayState"/> property. 
-    /// To stop a sound after its currently loop use <see cref="ExitLoop"/>
+    /// To stop a sound after its currently loop set `IsLooping = false;`
     /// </summary>
     public interface IPlayableSound
     {

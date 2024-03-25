@@ -55,7 +55,7 @@ namespace Stride.Core.Storage
         /// <summary>
         /// Creates a stream that will be saved to database when closed and/or disposed.
         /// </summary>
-        /// <returns>a stream writer that should be passed to <see cref="SaveStream"/> in order to be stored in the database</returns>
+        /// <returns>a stream writer that should be passed to <see cref="Write"/> in order to be stored in the database</returns>
         OdbStreamWriter CreateStream();
 
         /// <summary>

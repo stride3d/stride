@@ -47,7 +47,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="EntityComponentRendererBase"/> is enabled.
+        /// Gets or sets a value indicating whether this <see cref="RendererCoreBase"/> is enabled.
         /// </summary>
         /// <value><c>true</c> if enabled; otherwise, <c>false</c>.</value>
         /// <userdoc>Enabled if checked, disabled otherwise</userdoc>
@@ -151,7 +151,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.Draw"/>.
         /// </summary>
         /// <param name="description">The description of the buffer to allocate</param>
         /// <param name="viewFormat">The pixel format seen in shader</param>
@@ -163,7 +163,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.Draw"/>.
         /// </summary>
         /// <returns>A new instance of texture.</returns>
         protected Buffer NewScopedTypedBuffer(int count, PixelFormat viewFormat, bool isUnorderedAccess, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)

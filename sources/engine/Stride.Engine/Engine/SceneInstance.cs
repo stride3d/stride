@@ -23,17 +23,17 @@ namespace Stride.Engine
     public sealed class SceneInstance : EntityManager
     {
         /// <summary>
-        /// A property key to get the current scene from the <see cref="RenderContext.Tags"/>.
+        /// A property key to get the current scene from the <see cref="ComponentBase.Tags"/>.
         /// </summary>
         public static readonly PropertyKey<SceneInstance> Current = new PropertyKey<SceneInstance>("SceneInstance.Current", typeof(SceneInstance));
 
         /// <summary>
-        /// A property key to get the current render system from the <see cref="RenderContext.Tags"/>.
+        /// A property key to get the current render system from the <see cref="ComponentBase.Tags"/>.
         /// </summary>
         public static readonly PropertyKey<RenderSystem> CurrentRenderSystem = new PropertyKey<RenderSystem>("SceneInstance.CurrentRenderSystem", typeof(SceneInstance));
 
         /// <summary>
-        /// A property key to get the current visibility group from the <see cref="RenderContext.Tags"/>.
+        /// A property key to get the current visibility group from the <see cref="ComponentBase.Tags"/>.
         /// </summary>
         public static readonly PropertyKey<VisibilityGroup> CurrentVisibilityGroup = new PropertyKey<VisibilityGroup>("SceneInstance.CurrentVisibilityGroup", typeof(SceneInstance));
 

@@ -13,7 +13,7 @@ namespace Stride.Graphics
         /// Creates a none buffer.
         /// </summary>
         /// <remarks>
-        /// This is equivalent to <see cref="BindFlags.None"/>.
+        /// This is equivalent to <see cref="SharpDX.Direct3D11.BindFlags.None"/>.
         /// </remarks>
         None = 0,
 

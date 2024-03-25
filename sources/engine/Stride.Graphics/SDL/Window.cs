@@ -192,7 +192,7 @@ namespace Stride.Graphics.SDL
         }
 
         /// <summary>
-        /// Show window. The first time a window is shown we execute any actions from <see cref="HandleCreated"/>.
+        /// Show window. The first time a window is shown we execute any actions from 'HandleCreated' />.
         /// </summary>
         public void Show()
         {
@@ -358,7 +358,7 @@ namespace Stride.Graphics.SDL
                 // FIXME: We need to adapt the ClientSize to an actual Size to take into account borders.
                 // FIXME: On Windows you do this by using AdjustWindowRect.
                 // SDL.SDL_GetWindowBordersSize(sdlHandle, out var top, out var left, out var bottom, out var right);
-                // From SDL documentaion: Use this function to set the size of a window's client area.
+                // From SDL documentation: Use this function to set the size of a window's client area.
                 SDL.SetWindowSize(sdlHandle, value.Width, value.Height);
             }
         }
@@ -381,7 +381,7 @@ namespace Stride.Graphics.SDL
             }
             set
             {
-                // From SDL documentaion: Use this function to set the size of a window's client area.
+                // From SDL documentation: Use this function to set the size of a window's client area.
                 SDL.SetWindowSize(sdlHandle, value.Width, value.Height);
                 SDL.SetWindowPosition(sdlHandle, value.X, value.Y);
             }

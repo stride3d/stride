@@ -20,8 +20,8 @@ namespace Stride.Graphics
         /// <param name="rotation">The rotation to apply on the sprite</param>
         /// <param name="depthLayer">The depth layer to which draw the sprite</param>
         /// <param name="spriteEffects">The sprite effect to apply on the sprite</param>
-        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin(Stride.Graphics.SpriteSortMode,Stride.Graphics.Effect)"/> 
-        /// and <see cref="SpriteBatch.End()"/> calls of the provided <paramref name="spriteBatch"/></remarks>
+        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin"/>
+        /// and `SpriteBatch.End()` calls of the provided <paramref name="spriteBatch"/></remarks>
         /// <exception cref="ArgumentException">The provided frame index is not valid.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The provided spriteBatch is null</exception>
         public static void Draw(this Sprite sprite, SpriteBatch spriteBatch, Vector2 position, float rotation = 0, float depthLayer = 0, SpriteEffects spriteEffects = SpriteEffects.None)
@@ -40,8 +40,8 @@ namespace Stride.Graphics
         /// <param name="scales">The scale factors to apply on the sprite</param>
         /// <param name="depthLayer">The depth layer to which draw the sprite</param>
         /// <param name="spriteEffects">The sprite effect to apply on the sprite</param>
-        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin(Stride.Graphics.SpriteSortMode,Stride.Graphics.Effect)"/> 
-        /// and <see cref="SpriteBatch.End()"/> calls of the provided <paramref name="spriteBatch"/></remarks>
+        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin"/>
+        /// and `SpriteBatch.End()` calls of the provided <paramref name="spriteBatch"/></remarks>
         /// <exception cref="ArgumentException">The provided frame index is not valid.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The provided spriteBatch is null</exception>
         public static void Draw(this Sprite sprite, SpriteBatch spriteBatch, Vector2 position, Color color, Vector2 scales, float rotation = 0f, float depthLayer = 0, SpriteEffects spriteEffects = SpriteEffects.None)
@@ -61,8 +61,8 @@ namespace Stride.Graphics
         /// <param name="spriteBatch">The sprite batch used to draw the sprite.</param>
         /// <param name="worldMatrix">The world matrix of the sprite</param>
         /// <param name="color">The color to apply on the sprite</param>
-        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin(Stride.Graphics.SpriteSortMode,Stride.Graphics.Effect)"/> 
-        /// and <see cref="SpriteBatch.End()"/> calls of the provided <paramref name="spriteBatch"/></remarks>
+        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin"/>
+        /// and `SpriteBatch.End()` calls of the provided <paramref name="spriteBatch"/></remarks>
         /// <exception cref="ArgumentException">The provided frame index is not valid.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The provided spriteBatch is null</exception>
         public static void Draw3D(this Sprite sprite, Sprite3DBatch spriteBatch, ref Matrix worldMatrix, ref Color4 color)
