@@ -59,7 +59,7 @@ namespace Stride.Graphics
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
 
-            ReleaseComObject(ref nativeDeviceChild);
+            TryReleaseComObject(ref nativeDeviceChild);
             NativeResource = null;
         }
 
@@ -107,6 +107,21 @@ namespace Stride.Graphics
                 Debug.Assert(refCountResult >= 0);
                 comObject = null;
             }
+        }
+
+        /// <summary> Returns true if the object was previously allocated and has been released </summary>
+        internal static bool TryReleaseComObject<T>(ref T comObject) where T : CppObject, IUnknown
+        {
+            if(comObject != null && comObject.NativePointer != IntPtr.Zero)
+            {
+                var refCountResult = comObject.Release();
+                Debug.Assert(refCountResult >= 0);
+                comObject = null;
+                return true;
+            }
+            
+            comObject = null;
+            return false;
         }
     }
 }
