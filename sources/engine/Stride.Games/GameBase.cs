@@ -68,7 +68,7 @@ namespace Stride.Games
         /// <summary>
         /// Initializes a new instance of the <see cref="GameBase" /> class.
         /// </summary>
-        protected GameBase()
+        protected GameBase(GamePlatform platform = null)
         {
             // Internals
             Log = GlobalLogger.GetLogger(GetType().GetTypeInfo().Name);
@@ -78,7 +78,7 @@ namespace Stride.Games
             IsFixedTimeStep = false;
             maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
             TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
-            
+
             TreatNotFocusedLikeMinimized = true;
             WindowMinimumUpdateRate = new ThreadThrottler(TimeSpan.FromSeconds(0d));
             MinimizedMinimumUpdateRate = new ThreadThrottler(15); // by default 15 updates per second while minimized
@@ -96,7 +96,7 @@ namespace Stride.Games
             Services.AddService<IGameSystemCollection>(GameSystems);
 
             // Create Platform
-            gamePlatform = GamePlatform.Create(this);
+            gamePlatform = platform ?? GamePlatform.Create(this);
             gamePlatform.Activated += GamePlatform_Activated;
             gamePlatform.Deactivated += GamePlatform_Deactivated;
             gamePlatform.Exiting += GamePlatform_Exiting;
@@ -203,7 +203,7 @@ namespace Stride.Games
         /// Gets a value indicating whether this instance is exiting.
         /// </summary>
         /// <value><c>true</c> if this instance is exiting; otherwise, <c>false</c>.</value>
-        public bool IsExiting{ get; private set; }
+        public bool IsExiting { get; private set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the elapsed time between each update should be constant,
@@ -430,7 +430,7 @@ namespace Stride.Games
                     c = AppContextType.DesktopSDL;
                 gameContext = GameContextFactory.NewGameContext(c);
             }
-            
+
             Context = gameContext;
 
             PrepareContext();
