@@ -28,6 +28,7 @@ namespace Stride.Importer.ThreeD
 {
     public class MeshConverter
     {
+
         static class PostProcessActions
         {
             public const uint CalculateTangentSpace = 1;
@@ -248,14 +249,8 @@ namespace Stride.Importer.ThreeD
                             nodeMeshData.Parameters.Set(MaterialKeys.HasSkinningNormal, true);
 
 
-
-                        modelData.Meshes.Add(nodeMeshData);
-                        nodeMeshData.BlendShapeProcessingNecessary = shapes.Count > 0;
-                        nodeMeshData.ProcessBlendShapes();
-
+                        modelData.Meshes.Add(nodeMeshData);            
                     }
-
-
                 }
             }
 
@@ -762,7 +757,6 @@ namespace Stride.Importer.ThreeD
                     *positionPointer = mesh->MVertices[i].ToStrideVector3();
 
                     Vector3.TransformCoordinate(ref *positionPointer, ref rootTransform, out *positionPointer);
-                    drawData.AV(positionPointer->X, positionPointer->Y, positionPointer->Z);
 
                     if (mesh->MNormals != null)
                     {
@@ -860,9 +854,7 @@ namespace Stride.Importer.ThreeD
                         {
                             *((uint*)ibPointer) = mesh->MFaces[(int)i].MIndices[j];
 
-                            var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
-                            drawData.RES((int)i, (int)_index, 0, 0, 0);
-
+                            var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);                  
                             ibPointer += sizeof(uint);
                         }
                     }
@@ -871,10 +863,7 @@ namespace Stride.Importer.ThreeD
                         for (int j = 0; j < 3; ++j)
                         {
                             *((ushort*)ibPointer) = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
-
                             var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
-                            drawData.RES((int)i, (int)_index, 0, 0, 0);
-
                             ibPointer += sizeof(ushort);
                         }
                     }
@@ -887,15 +876,11 @@ namespace Stride.Importer.ThreeD
             var indexBufferBinding = new IndexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.IndexBuffer, indexBuffer)), is32BitIndex, (int)nbIndices, 0);
 
 
-            //drawData.VertexBuffers =;
-            //{
             drawData.VertexBuffers = new VertexBufferBinding[] { vertexBufferBinding };
             drawData.IndexBuffer = indexBufferBinding;
             drawData.PrimitiveType = PrimitiveType.TriangleList;
             drawData.DrawCount = (int)nbIndices;
-            //}
-
-            drawData.CAP();
+           
 
             return new MeshInfo
             {
@@ -1166,7 +1151,7 @@ namespace Stride.Importer.ThreeD
 
         private unsafe IComputeColor GenerateOneTextureTypeLayers(Silk.NET.Assimp.Material* pMat, TextureType textureType, int textureCount, MaterialAsset finalMaterial)
         {
-            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, pMat, textureType);
+            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, pMat, textureType, Logger);
 
             var compositionFathers = new Stack<IComputeColor>();
 
