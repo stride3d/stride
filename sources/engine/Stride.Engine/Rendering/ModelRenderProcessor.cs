@@ -116,11 +116,6 @@ namespace Stride.Rendering
                         renderMesh.IsScalingNegative = nodeTransformations[nodeIndex].IsScalingNegative;
                         renderMesh.BoundingBox = new BoundingBoxExt(meshInfo.BoundingBox);
                         renderMesh.BlendMatrices = meshInfo.BlendMatrices;
-
-                        if (renderMesh.HasBlendShapes = mesh.GetBlendShapesCount() > 0)
-                        {
-                          renderMesh.Mesh.UpdateBlendShapeImpact();                    
-                        }
                     }
                 }
             }

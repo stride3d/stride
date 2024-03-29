@@ -13,8 +13,6 @@ namespace Stride.Rendering
     [DataContract]
     public class MeshDraw
     {
-        public byte[] VertexData;
-
         public VertexDeclaration VertexDeclaration;
 
         public PrimitiveType PrimitiveType;
@@ -26,8 +24,5 @@ namespace Stride.Rendering
         public VertexBufferBinding[] VertexBuffers;
 
         public IndexBufferBinding IndexBuffer;
-
-        public List<Vector3> VerticesOriginal = new List<Vector3>();
-        public int VertexCount { get { return VerticesOriginal.Count; } }
     }
 }

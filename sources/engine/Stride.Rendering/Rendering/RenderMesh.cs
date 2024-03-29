@@ -39,7 +39,5 @@ namespace Stride.Rendering
 
         public int InstanceCount;
 
-        public bool HasBlendShapes;
-
     }
 }
