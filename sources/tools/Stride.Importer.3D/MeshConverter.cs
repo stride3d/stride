@@ -218,8 +218,6 @@ namespace Stride.Importer.ThreeD
                 {
                     var meshInfo = ProcessMesh(scene, scene->MMeshes[i], meshNames);
 
-                    var shapes = ProcessBlendShapes(scene, scene->MMeshes[i]);
-
                     foreach (var nodeIndex in meshIndexToNodeIndex[i])
                     {
                         var nodeMeshData = new Mesh
@@ -229,11 +227,7 @@ namespace Stride.Importer.ThreeD
                             MaterialIndex = meshInfo.MaterialIndex,
                             NodeIndex = nodeIndex,
                         };
-
-                        foreach (var shape in shapes)
-                        {
-                            nodeMeshData.AddBlendShapes(shape, 1);
-                        }
+                     
                         if (meshInfo.Bones != null)
                         {
                             nodeMeshData.Skinning = new MeshSkinningDefinition
@@ -894,30 +888,6 @@ namespace Stride.Importer.ThreeD
             };
 
 
-        }
-
-        private unsafe List<Shape> ProcessBlendShapes(Scene* scene, Silk.NET.Assimp.Mesh* mesh)
-        {
-            List<Shape> shapes = new List<Shape>();
-            var anMeshes = mesh->MAnimMeshes;
-            for (int j = 0; j < mesh->MNumAnimMeshes; ++j)
-            {
-                var animMesh = mesh->MAnimMeshes[j];
-                var vertices = new List<Vector4>();
-                for (int k = 0; k < animMesh->MNumVertices; ++k)
-                {
-                    var vertex = animMesh->MVertices[k];
-                    vertices.Add(new Vector4(vertex.X, vertex.Y, vertex.Z, 1));
-                }
-
-                Shape shape = new Shape();
-                shape.Name = animMesh->MName;
-                shape.Position = vertices.ToArray();
-
-                shapes.Add(shape);
-
-            }
-            return shapes;
         }
 
         private void NormalizeVertexWeights(List<List<(short, float)>> controlPts, int nbBoneByVertex)
