@@ -13,8 +13,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\Desktop\REMOTEDEBUG\REMOTEDEBUG\REMOTEDEBUG.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\Desktop\SUI\stride\sources\tools\Stride.Importer.3D\Stride.Importer.3D.csproj" />
     <ProjectReference Include="..\..\tools\Stride.Importer.Common\Stride.Importer.Common.csproj" />
-    <ProjectReference Include="..\..\tools\Stride.Importer.3D\Stride.Importer.3D.csproj" />
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
   </ItemGroup>
   <ItemGroup>
