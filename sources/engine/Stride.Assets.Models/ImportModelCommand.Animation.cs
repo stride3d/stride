@@ -29,25 +29,6 @@ namespace Stride.Assets.Models
             var modelSkeleton = LoadSkeleton(commandContext, contentManager); // we get model skeleton to compare it to real skeleton we need to map to
             AdjustSkeleton(modelSkeleton);
 
-            #region RDV model skeleton
-            {
-
-                List<List<string>> RDV_MODELSKELETON = new List<List<string>>();
-                RDV_MODELSKELETON.Add(new List<string>() { "NODES COUNT", modelSkeleton.Nodes.Count().ToString() });
-                foreach (var node in modelSkeleton.Nodes)
-                {
-                    // TransformTRS originaltrs = node.Transform;
-                    //TransformTRS scale = new TransformTRS() { Scale = new Vector3(.01f, .01f, .01f), Rotation = Quaternion.Identity, Position = Vector3.Zero };
-                    var matFinalTRS = node.Transform;
-                    RDV_MODELSKELETON.Add(new List<string>() { node.Name, node.ParentIndex.ToString(), matFinalTRS.Position.ToString(), matFinalTRS.Rotation.ToString(), matFinalTRS.Scale.ToString() });
-                }
-                 if (this.SourcePath.FullPath.ToUpper().Contains("RUN"))
-                {
-                    GoogleSheetsCreateExample.Program.AddValuesToTab(RDV_MODELSKELETON, "MODEL SKELETON");
-                }
-            }
-            #endregion 
-
             TimeSpan duration;
             var animationClips = LoadAnimation(commandContext, contentManager, out duration);
 
@@ -55,40 +36,13 @@ namespace Stride.Assets.Models
             double startFrameSeconds = StartFrame.TotalSeconds;
             double endFrameSeconds = EndFrame.TotalSeconds;
             var startTime = CompressedTimeSpan.FromSeconds(-startFrameSeconds);
-
-            #region RDV model skeleton
-            {
-                List<List<string>> RDV_TIMESETUP = new List<List<string>>();
-                RDV_TIMESETUP.Add(new List<string>() { "startFrameSeconds", startFrameSeconds.ToString() });
-                RDV_TIMESETUP.Add(new List<string>() { "endFrameSeconds", endFrameSeconds.ToString() });
-                RDV_TIMESETUP.Add(new List<string>() { "startTime", startTime.ToString() });
-                   if (this.SourcePath.FullPath.ToUpper().Contains("RUN"))
-                {
-                    GoogleSheetsCreateExample.Program.AddValuesToTab(RDV_TIMESETUP, "RDV_TIMESETUP");
-                }
-            }
-            #endregion
-
-
-
-
-            var RDV_animationCurve = new List<List<string>>();
-            RDV_animationCurve.Add(new List<string>() { "CLIPCOUNT", animationClips.Count.ToString() });
             foreach (var clip in animationClips)
             {
-                RDV_animationCurve.Add(new List<string>() { clip.Key, clip.Value.Curves.Count.ToString() });
                 foreach (var animationCurve in clip.Value.Curves)
                 {
                     animationCurve.ShiftKeys(startTime);
-                    RDV_animationCurve.Add(new List<string>() { animationCurve.ToStringSafe(), animationCurve.ElementType.Name, animationCurve.ElementSize.ToString(), animationCurve.Keys.Count.ToString() });
                 }
             }
-
-            if (this.SourcePath.FullPath.ToUpper().Contains("RUN"))
-            {
-                GoogleSheetsCreateExample.Program.AddValuesToTab(RDV_animationCurve, "ANIMATIONCLIPS");
-            }
-
 
             var durationTimeSpan = TimeSpan.FromSeconds((endFrameSeconds - startFrameSeconds));
             if (duration > durationTimeSpan)
@@ -136,45 +90,6 @@ namespace Stride.Assets.Models
                 {
                     var skeleton = contentManager.Load<Skeleton>(SkeletonUrl);
                     var skeletonMapping = new SkeletonMapping(skeleton, modelSkeleton);
-
-
-                    #region RDV TARGET SKELETON
-                    {
-                        List<List<string>> RDV_TARGETSKELETON = new List<List<string>>();
-                        RDV_TARGETSKELETON.Add(new List<string>() { "NODES COUNT", skeleton.Nodes.Count().ToString() });
-                        foreach (var node in skeleton.Nodes)
-                        {
-                            RDV_TARGETSKELETON.Add(new List<string>() { node.Name, node.ParentIndex.ToString(), node.Transform.Position.ToString(), node.Transform.Rotation.ToString(), node.Transform.Scale.ToString() });
-                        }
-                         if (this.SourcePath.FullPath.ToUpper().Contains("RUN"))
-                        {
-                            GoogleSheetsCreateExample.Program.AddValuesToTab(RDV_TARGETSKELETON, "TARGET SKELETON");
-                        }
-                    }
-                    #endregion
-
-
-                    #region SKELETON MAPPING
-                    {
-                        List<List<string>> RDV_SKELETONMAPPING = new List<List<string>>();
-                        RDV_SKELETONMAPPING.Add(new List<string>() { "SOURCETOSKELETON", skeletonMapping.SourceToTarget.Count().ToString() });
-                        foreach (var val in skeletonMapping.SourceToTarget)
-                        {
-                            RDV_SKELETONMAPPING.Add(new List<string>() { val.ToString() }); ;
-                        }
-                        RDV_SKELETONMAPPING.Add(new List<string>() { "SOURCETOSOURCE", skeletonMapping.SourceToSource.Count().ToString() });
-                        foreach (var val in skeletonMapping.SourceToSource)
-                        {
-                            RDV_SKELETONMAPPING.Add(new List<string>() { val.ToString() }); ;
-                        }
-                          if (this.SourcePath.FullPath.ToUpper().Contains("RUN"))
-                        {
-                            GoogleSheetsCreateExample.Program.AddValuesToTab(RDV_SKELETONMAPPING, "SKELETON MAPPING");
-                        }
-                    }
-                    #endregion
-
-                    var RDV_OUTANIMATIONCURVES = new List<List<string>>();
 
                     // Process missing nodes
                     foreach (var nodeAnimationClipEntry in animationClips)
@@ -327,13 +242,8 @@ namespace Stride.Assets.Models
                                     }
                                 }
                                 animationClip.AddCurve($"[ModelComponent.Key].Skeleton.NodeTransformations[{skeletonMapping.SourceToTarget[nodeIndex]}]." + channelName, curve);
-                                RDV_OUTANIMATIONCURVES.Add(new List<string>() { $"[ModelComponent.Key].Skeleton.NodeTransformations[{skeletonMapping.SourceToTarget[nodeIndex]}]." + channelName, curve.ElementType.ToString(), curve.ElementSize.ToString(), curve.Keys.Count.ToString() });
                             }
                         }
-                    }
-                       if (this.SourcePath.FullPath.ToUpper().Contains("RUN"))
-                    {
-                        GoogleSheetsCreateExample.Program.AddValuesToTab(RDV_OUTANIMATIONCURVES, "OUTCURVES");
                     }
                 }
 

@@ -332,8 +332,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.3D", "..\..\..\..\Desktop\SUI\stride\sources\tools\Stride.Importer.3D\Stride.Importer.3D.csproj", "{926C1CE7-713B-4DED-A852-FC5EDF3625F8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "REMOTEDEBUG", "..\..\..\..\Desktop\REMOTEDEBUG\REMOTEDEBUG\REMOTEDEBUG.csproj", "{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1483,18 +1481,6 @@ Global
 		{926C1CE7-713B-4DED-A852-FC5EDF3625F8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{926C1CE7-713B-4DED-A852-FC5EDF3625F8}.Release|Win32.ActiveCfg = Release|Any CPU
 		{926C1CE7-713B-4DED-A852-FC5EDF3625F8}.Release|Win32.Build.0 = Release|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Debug|Win32.Build.0 = Debug|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Release|Win32.ActiveCfg = Release|Any CPU
-		{C5C74AC1-BA6D-49EA-8EE5-C31B81B721CE}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
