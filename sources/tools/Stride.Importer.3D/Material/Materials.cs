@@ -127,9 +127,15 @@ namespace Stride.Importer.ThreeD.Material
                         break;
                     case StackElementType.Texture:
                         if (assimp.GetMaterialString(material, Silk.NET.Assimp.Assimp.MaterialTextureBase, (uint)type, (uint)iEl, ref elTexPath) != Return.Success)
+                        {
+                            logger?.Error("Material texture item not found);
                             continue; // error !
+                        }
                         if (assimp.GetMaterialIntegerArray(material, Silk.NET.Assimp.Assimp.MaterialUvwsrcBase, (uint)type, (uint)iEl, ref elTexChannel, ref pMax) != Return.Success)
-                            elTexChannel = 0; // default channel
+                        {
+                            logger?.Error("Material integer item not found);
+                            continue; // error !
+                        }
                         if (assimp.GetMaterialIntegerArray(material, Silk.NET.Assimp.Assimp.MaterialMappingmodeUBase, (uint)type, (uint)iEl, ref elMappingModeU, ref pMax) != Return.Success)
                             elMappingModeU = (int)TextureMapMode.Wrap; // default mapping mode
                         if (assimp.GetMaterialIntegerArray(material, Silk.NET.Assimp.Assimp.MaterialMappingmodeVBase, (uint)type, (uint)iEl, ref elMappingModeV, ref pMax) != Return.Success)
