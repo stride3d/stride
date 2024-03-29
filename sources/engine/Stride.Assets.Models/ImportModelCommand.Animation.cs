@@ -12,9 +12,6 @@ using Stride.Core.Serialization.Contents;
 using Stride.Updater;
 using Stride.Animations;
 using Stride.Rendering;
-using System.Configuration;
-using SharpDX.Direct3D12;
-using System.IO;
 
 namespace Stride.Assets.Models
 {
@@ -24,34 +21,22 @@ namespace Stride.Assets.Models
         public bool AnimationRootMotion { get; set; }
         public TimeSpan StartFrame { get; set; } = TimeSpan.Zero;
         public TimeSpan EndFrame { get; set; } = AnimationAsset.LongestTimeSpan;
-
         public bool ImportCustomAttributes { get; set; }
-
         public int AnimationStack { get; set; }
-
         private unsafe object ExportAnimation(ICommandContext commandContext, ContentManager contentManager, bool failOnEmptyAnimation)
         {
             // Read from model file
             var modelSkeleton = LoadSkeleton(commandContext, contentManager); // we get model skeleton to compare it to real skeleton we need to map to
-        //    modelSkeleton.Nodes = modelSkeleton.Nodes.Where(c => !c.Name.ToLower().Contains("$assimp")).ToArray();
-         //   modelSkeleton.Nodes = modelSkeleton.Nodes.Where(c => !c.Name.ToLower().Contains("rootnode")).ToArray();
             AdjustSkeleton(modelSkeleton);
 
             TimeSpan duration;
             var animationClips = LoadAnimation(commandContext, contentManager, out duration);
 
-            // Fix the animation frames
+            // Fix the animation frames\|
             double startFrameSeconds = StartFrame.TotalSeconds;
             double endFrameSeconds = EndFrame.TotalSeconds;
             var startTime = CompressedTimeSpan.FromSeconds(-startFrameSeconds);
 
-            foreach (var clip in animationClips)
-            {
-                foreach (var animationCurve in clip.Value.Curves)
-                {
-                    animationCurve.ShiftKeys(startTime);
-                }
-            }
 
             var durationTimeSpan = TimeSpan.FromSeconds((endFrameSeconds - startFrameSeconds));
             if (duration > durationTimeSpan)
@@ -69,17 +54,7 @@ namespace Stride.Assets.Models
                     // No skeleton, map root node only
                     // TODO: For now, it seems to be located on node 1 in FBX files. Need to check if always the case, and what happens with Assimp
                     var rootNode0 = modelSkeleton.Nodes.Length >= 1 ? modelSkeleton.Nodes[0].Name : null;
-
-                    int counterLenCheck = 1;
-                    string rootNode1 = null;
-
-                    do
-                    {
-                        ++counterLenCheck;
-                        if (modelSkeleton.Nodes.Length < counterLenCheck) { break; }
-                        rootNode1 = modelSkeleton.Nodes.Length >= counterLenCheck ? modelSkeleton.Nodes[counterLenCheck - 1].Name : null;
-                    }while (rootNode1 == null || rootNode1.ToLower().Contains("$assimp"));
-
+                    var rootNode1 = modelSkeleton.Nodes.Length >= 2 ? modelSkeleton.Nodes[1].Name : null;
                     if ((rootNode0 != null && animationClips.TryGetValue(rootNode0, out rootMotionAnimationClip))
                         || (rootNode1 != null && animationClips.TryGetValue(rootNode1, out rootMotionAnimationClip)))
                     {
@@ -109,7 +84,7 @@ namespace Stride.Assets.Models
                 {
                     var skeleton = contentManager.Load<Skeleton>(SkeletonUrl);
                     var skeletonMapping = new SkeletonMapping(skeleton, modelSkeleton);
-                    SavetocSV(skeletonMapping, "testdata");
+
                     // Process missing nodes
                     foreach (var nodeAnimationClipEntry in animationClips)
                     {
@@ -157,13 +132,13 @@ namespace Stride.Assets.Models
                             foreach (var node in nodesToMerge)
                             {
                                 if (node.Item3 != null)
-                                foreach (var curve in node.Item3.Clip.Curves)
-                                {
-                                    foreach (CompressedTimeSpan time in curve.Keys)
+                                    foreach (var curve in node.Item3.Clip.Curves)
                                     {
-                                        animationKeysSet.Add(time);
+                                        foreach (CompressedTimeSpan time in curve.Keys)
+                                        {
+                                            animationKeysSet.Add(time);
+                                        }
                                     }
-                                }
                             }
 
                             // Sort key times
@@ -187,7 +162,7 @@ namespace Stride.Assets.Models
                                 foreach (var node in nodesToMerge)
                                 {
                                     // Needs to be an array in order for it to be modified by the UpdateEngine, otherwise it would get passed by value
-                                    var modelNodeDefinitions = new ModelNodeDefinition[1] {node.Item1};
+                                    var modelNodeDefinitions = new ModelNodeDefinition[1] { node.Item1 };
 
                                     if (node.Item2 != null && node.Item3 != null)
                                     {
@@ -266,6 +241,7 @@ namespace Stride.Assets.Models
                     }
                 }
 
+
                 if (ImportCustomAttributes)
                 {
                     // Add clips clips animating other properties than node transformations
@@ -310,19 +286,5 @@ namespace Stride.Assets.Models
             }
             return animationClip;
         }
-
-        void SavetocSV(SkeletonMapping sm, string fileName)
-        {
-            int len = sm.SourceToTarget.Length;
-            string strCSV = "";
-            for(int i=0;i<len;i++)
-            {
-                strCSV += $"{i},{sm.SourceToTarget[i]},{sm.SourceToSource[i]},{sm.NodeNames[i]}";
-                strCSV += "\r\n";
-            }
-            System.IO.File.WriteAllText(Path.Combine("C:\\Users\\Noah\\Desktop\\testdata", fileName), strCSV);
-        }
-
-
     }
 }

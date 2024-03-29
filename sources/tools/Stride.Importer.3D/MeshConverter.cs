@@ -5,14 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using FFmpeg.AutoGen;
 using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Assets.Materials;
 using Stride.Core;
 using Stride.Core.Diagnostics;
-using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -31,6 +28,24 @@ namespace Stride.Importer.ThreeD
 {
     public class MeshConverter
     {
+        static class PostProcessActions
+        {
+            public const uint CalculateTangentSpace = 1;
+            public const uint Triangulate = 8;
+            public const uint GenerateNormals = 32;
+            public const uint JoinIdenticalVertices = 2;
+            public const uint LimitBoneWeights = 512;
+            public const uint SortByPrimitiveType = 32768;
+            public const uint FlipWindingOrder = 16777216;
+            public const uint FlipUVs = 8388608;
+            public const uint GenSmoothNormals = 64;
+            public const uint ImproveCacheLocality = 2048;
+            public const uint RemoveRedundantMaterials = 4096;
+            public const uint SplitLargeMeshes = 128;
+            public const uint GenUVCoords = 262144;
+            public const uint GlobalScaling = 134217728;
+        }
+
         static MeshConverter()
         {
             if (Platform.Type == PlatformType.Windows)
@@ -47,7 +62,6 @@ namespace Stride.Importer.ThreeD
 
         public bool AllowUnsignedBlendIndices { get; set; }
 
-        // Conversion data
 
         private string vfsInputFilename;
         private string vfsOutputFilename;
@@ -64,7 +78,7 @@ namespace Stride.Importer.ThreeD
 
         public MeshConverter(Logger logger)
         {
-            Logger = logger ?? GlobalLogger.GetLogger("Importer3D");
+            Logger = logger ?? GlobalLogger.GetLogger("Import Assimp");
         }
 
         private void ResetConversionData()
@@ -84,7 +98,7 @@ namespace Stride.Importer.ThreeD
                     postProcessFlags |= PostProcessSteps.RemoveRedundantMaterials;
                 }
 
-                var scene = Initialize(inputFilename, outputFilename, importFlags, (uint)postProcessFlags);
+                var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
 
                 // If scene is null, something went wrong inside Assimp
                 if (scene == null)
@@ -125,77 +139,19 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        public unsafe uint GetUpAxis(Scene* scene)
-        {
-            var metatDataCount = scene->MMetaData->MNumProperties;
-            uint upAxis = 0; 
-            for (int i = 0; i < metatDataCount; i++)
-            {
-                var keyVal = scene->MMetaData->MKeys[i];
-                var keyValue = scene->MMetaData->MValues[i];
-                if (keyVal.AsString.ToLower() == "upaxis")
-                {
-                    void* dataa = scene->MMetaData->MValues[i].MData;
-                    uint* ival1 = (uint*)dataa;
-                    upAxis = *ival1;
-                }
-            }
-            return upAxis;
-        }
-
-
-        public unsafe uint GetUpAxisSign(Scene* scene)
-        {
-            var metatDataCount = scene->MMetaData->MNumProperties;
-            uint upAxisSign = 5;
-            for (int i = 0; i < metatDataCount; i++)
-            {
-                var keyVal = scene->MMetaData->MKeys[i];
-                var keyValue = scene->MMetaData->MValues[i];
-                if (keyVal.AsString.ToLower() == "upaxissign")
-                {
-                    void* dataa = scene->MMetaData->MValues[i].MData;
-                    uint* ival1 = (uint*)dataa;
-                    upAxisSign = *ival1;
-                }
-            }
-            return upAxisSign;
-        }
-
         public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials)
         {
             uint importFlags = 0;
-            var postProcessFlags =
-                  PostProcessSteps.CalculateTangentSpace
-                | PostProcessSteps.Triangulate
-                | PostProcessSteps.GenerateNormals
-                | PostProcessSteps.JoinIdenticalVertices
-                | PostProcessSteps.LimitBoneWeights
-                | PostProcessSteps.SortByPrimitiveType
-                | PostProcessSteps.FlipWindingOrder
-                | PostProcessSteps.FlipUVs;
 
-            if (deduplicateMaterials)
-            {
-                postProcessFlags |= PostProcessSteps.RemoveRedundantMaterials;
-            }
-
-            
-
-            var scene = Initialize(inputFilename, outputFilename, importFlags, (uint)postProcessFlags);
-            uint ox1 = GetUpAxis(scene);
-            uint ox2 = GetUpAxisSign(scene);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
             return ConvertAssimpScene(scene);
         }
 
         public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename, int animationIndex)
         {
             uint importFlags = 0;
-            var postProcessFlags = PostProcessSteps.None;
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, (uint)postProcessFlags);
-            uint ox1 = GetUpAxis(scene);
-            uint ox2 = GetUpAxisSign(scene);
             return ProcessAnimations(scene, animationIndex);
         }
 
@@ -204,7 +160,7 @@ namespace Stride.Importer.ThreeD
             uint importFlags = 0;
             var postProcessFlags = PostProcessSteps.None;
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, (uint)postProcessFlags);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
 
             return ProcessSkeleton(scene);
         }
@@ -217,9 +173,26 @@ namespace Stride.Importer.ThreeD
             vfsOutputFilename = outputFilename;
             vfsInputPath = VirtualFileSystem.GetParentFolder(inputFilename);
 
-            var scene = assimp.ImportFile(inputFilename, importFlags);
-            scene = assimp.ApplyPostProcessing(scene, postProcessFlags);
+            var propStore = assimp.CreatePropertyStore();
+            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0);
+            assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
+            var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
 
+            var postProcessFlags1 = PostProcessActions.CalculateTangentSpace
+              | PostProcessActions.Triangulate
+            | PostProcessActions.GenerateNormals
+            | PostProcessActions.JoinIdenticalVertices
+            | PostProcessActions.LimitBoneWeights
+            | PostProcessActions.SortByPrimitiveType
+            | PostProcessActions.FlipWindingOrder
+            | PostProcessActions.FlipUVs
+            | PostProcessActions.SplitLargeMeshes
+            | PostProcessActions.ImproveCacheLocality
+            | PostProcessActions.GenUVCoords
+            | PostProcessActions.GlobalScaling;
+
+            scene = assimp.ApplyPostProcessing(scene, postProcessFlags1);
+            assimp.ReleasePropertyStore(propStore);
             return scene;
         }
 
@@ -236,6 +209,7 @@ namespace Stride.Importer.ThreeD
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
             RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
+
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
             {
@@ -255,10 +229,10 @@ namespace Stride.Importer.ThreeD
                             NodeIndex = nodeIndex,
                         };
 
-                        Dictionary<Shape, float> shapesDict = new Dictionary<Shape, float>();
-                        shapes?.ForEach(c => shapesDict.Add(c, 1));
-                        if (shapesDict?.Count>0) { nodeMeshData.Shapes = shapesDict; }
-                        
+                        foreach (var shape in shapes)
+                        {
+                            nodeMeshData.AddBlendShapes(shape, 1);
+                        }
                         if (meshInfo.Bones != null)
                         {
                             nodeMeshData.Skinning = new MeshSkinningDefinition
@@ -273,7 +247,12 @@ namespace Stride.Importer.ThreeD
                         if (meshInfo.HasSkinningNormal && meshInfo.TotalClusterCount > 0)
                             nodeMeshData.Parameters.Set(MaterialKeys.HasSkinningNormal, true);
 
+
+
                         modelData.Meshes.Add(nodeMeshData);
+                        nodeMeshData.BlendShapeProcessingNecessary = shapes.Count > 0;
+                        nodeMeshData.ProcessBlendShapes();
+
                     }
 
 
@@ -285,6 +264,7 @@ namespace Stride.Importer.ThreeD
             {
                 ExtractEmbededTexture(scene->MTextures[i]);
             }
+
             return modelData;
         }
 
@@ -367,6 +347,7 @@ namespace Stride.Importer.ThreeD
                     }
                 }
             }
+
             return animationData;
         }
 
@@ -391,8 +372,9 @@ namespace Stride.Importer.ThreeD
         private unsafe void ProcessAnimationCurveVector(AnimationClip animationClip, VectorKey* keys, uint nbKeys, string partialTargetName, double ticksPerSec, bool isTranslation)
         {
             var animationCurve = new AnimationCurve<Vector3>();
-                // Switch to cubic implicit interpolation mode for Vector3
-                animationCurve.InterpolationType = AnimationCurveInterpolationType.Cubic;
+
+            // Switch to cubic implicit interpolation mode for Vector3
+            animationCurve.InterpolationType = AnimationCurveInterpolationType.Cubic;
 
             var lastKeyTime = new CompressedTimeSpan();
 
@@ -410,7 +392,6 @@ namespace Stride.Importer.ThreeD
                 {
                     // Change of basis: key.Value = (rootTransformInverse * Matrix::Translation(key.Value) * rootTransform).TranslationVector;
                     Vector3.TransformCoordinate(ref key.Value, ref rootTransform, out key.Value);
-                    TransformaToStrideUnits(ref key.Value);
                 }
                 else
                 {
@@ -419,7 +400,6 @@ namespace Stride.Importer.ThreeD
                     Vector3.TransformNormal(ref scale, ref rootTransformInverse, out scale);
                     scale *= key.Value;
                     Vector3.TransformNormal(ref scale, ref rootTransform, out key.Value);
-                    TransformaToStrideUnits(ref key.Value);
                 }
 
                 animationCurve.KeyFrames.Add(key);
@@ -530,7 +510,6 @@ namespace Stride.Importer.ThreeD
             GenerateUniqueNames(meshNames, baseNames, i => (IntPtr)scene->MMeshes[i]);
         }
 
-       
         private unsafe void GenerateAnimationNames(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
             var baseNames = new List<string>();
@@ -543,34 +522,6 @@ namespace Stride.Importer.ThreeD
 
             GenerateUniqueNames(animationNames, baseNames, i => (IntPtr)scene->MAnimations[i]);
         }
-
-        public unsafe Vector2 GetAnimationClipStartEnd(Animation* animation)
-        {
-            double startTime = double.MaxValue;
-            double endTime = double.MinValue;
-            
-          //  for (uint i = 0;i< animation->MNumChannels;i++)
-            {
-                var channel = animation->MChannels[0];
-              //  var channel2 = animation->MMeshChannels[0];
-                if (channel->MNumPositionKeys>0)
-                {
-                    startTime = Math.Min(startTime, channel->MPositionKeys[0].MTime);
-                    endTime = Math.Max(endTime, channel->MPositionKeys[channel->MNumPositionKeys-1].MTime);
-                }
-                if (channel->MNumRotationKeys > 0)
-                {
-                    startTime = Math.Min(startTime, channel->MRotationKeys[0].MTime);
-                    endTime = Math.Max(endTime, channel->MRotationKeys[channel->MNumRotationKeys - 1].MTime);
-                }
-                if (channel->MNumScalingKeys > 0)
-                {
-                    startTime = Math.Min(startTime, channel->MScalingKeys[0].MTime);
-                    endTime = Math.Max(endTime, channel->MScalingKeys[channel->MNumScalingKeys - 1].MTime);
-                }
-            }
-            return new Vector2((float)startTime, (float)endTime);
-      }
 
         private unsafe void GenerateNodeNames(Scene* scene, Dictionary<IntPtr, string> nodeNames)
         {
@@ -671,8 +622,6 @@ namespace Stride.Importer.ThreeD
                     vertexIndexToBoneIdWeight.Add(new List<(short, float)>());
                 }
 
-
-                
                 // Build skinning clusters and fill controls points data stutcture
                 for (uint boneId = 0; boneId < mesh->MNumBones; ++boneId)
                 {
@@ -807,15 +756,14 @@ namespace Stride.Importer.ThreeD
             fixed (byte* vertexBufferPtr = &vertexBuffer[0])
             {
                 var vbPointer = vertexBufferPtr;
-                List<Vector3> OriginalVertices = new List<Vector3>();
                 for (uint i = 0; i < mesh->MNumVertices; i++)
                 {
                     var positionPointer = (Vector3*)(vbPointer + positionOffset);
                     *positionPointer = mesh->MVertices[i].ToStrideVector3();
 
                     Vector3.TransformCoordinate(ref *positionPointer, ref rootTransform, out *positionPointer);
-                    TransformaToStrideUnits(ref *positionPointer);
-                    OriginalVertices.Add(new Vector3(positionPointer->X, positionPointer->Y, positionPointer->Z));
+                    drawData.AV(positionPointer->X, positionPointer->Y, positionPointer->Z);
+
                     if (mesh->MNormals != null)
                     {
                         var normalPointer = (Vector3*)(vbPointer + normalOffset);
@@ -889,7 +837,6 @@ namespace Stride.Importer.ThreeD
 
                     vbPointer += vertexStride;
                 }
-                drawData.VerticesOriginal = OriginalVertices;
             }
 
             // Build the indices data buffer
@@ -912,7 +859,10 @@ namespace Stride.Importer.ThreeD
                         for (int j = 0; j < 3; ++j)
                         {
                             *((uint*)ibPointer) = mesh->MFaces[(int)i].MIndices[j];
+
                             var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
+                            drawData.RES((int)i, (int)_index, 0, 0, 0);
+
                             ibPointer += sizeof(uint);
                         }
                     }
@@ -921,23 +871,21 @@ namespace Stride.Importer.ThreeD
                         for (int j = 0; j < 3; ++j)
                         {
                             *((ushort*)ibPointer) = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
+
                             var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
+                            drawData.RES((int)i, (int)_index, 0, 0, 0);
+
                             ibPointer += sizeof(ushort);
                         }
                     }
                 }
             }
 
-
             // Build the mesh data
             var vertexDeclaration = new VertexDeclaration(vertexElements.ToArray());
             var vertexBufferBinding = new VertexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.VertexBuffer, vertexBuffer)), vertexDeclaration, (int)mesh->MNumVertices, vertexDeclaration.VertexStride, 0);
-
             var indexBufferBinding = new IndexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.IndexBuffer, indexBuffer)), is32BitIndex, (int)nbIndices, 0);
 
-
-            drawData.VertexData = vertexBuffer;
-            drawData.VertexDeclaration=vertexDeclaration;
 
             //drawData.VertexBuffers =;
             //{
@@ -945,6 +893,9 @@ namespace Stride.Importer.ThreeD
             drawData.IndexBuffer = indexBufferBinding;
             drawData.PrimitiveType = PrimitiveType.TriangleList;
             drawData.DrawCount = (int)nbIndices;
+            //}
+
+            drawData.CAP();
 
             return new MeshInfo
             {
@@ -956,26 +907,10 @@ namespace Stride.Importer.ThreeD
                 HasSkinningNormal = hasSkinningNormal,
                 TotalClusterCount = totalClusterCount
             };
-        }
 
 
-        private unsafe void TransformaToStrideUnits(ref Vector3 inoutVal)
-        {
-            //Transforms to cm units
-          //  inoutVal = inoutVal / 100f;
         }
-        private unsafe List<String> ExtractBlendShapeNames(Silk.NET.Assimp.Mesh* mesh)
-        {
-            List<string> result = new List<string>();
-            var anMeshes = mesh->MAnimMeshes;
-            for (int j = 0; j < mesh->MNumAnimMeshes; ++j)
-            {
-                var animMesh = mesh->MAnimMeshes[j];
-                result.Add(animMesh->MName);
-            }
-            return result; 
-        }
-        
+
         private unsafe List<Shape> ProcessBlendShapes(Scene* scene, Silk.NET.Assimp.Mesh* mesh)
         {
             List<Shape> shapes = new List<Shape>();
@@ -986,8 +921,7 @@ namespace Stride.Importer.ThreeD
                 var vertices = new List<Vector4>();
                 for (int k = 0; k < animMesh->MNumVertices; ++k)
                 {
-                    var vertex = (animMesh->MVertices[k]).ToStrideVector3();
-                    TransformaToStrideUnits(ref vertex);
+                    var vertex = animMesh->MVertices[k];
                     vertices.Add(new Vector4(vertex.X, vertex.Y, vertex.Z, 1));
                 }
 
@@ -1000,8 +934,6 @@ namespace Stride.Importer.ThreeD
             }
             return shapes;
         }
-
-
 
         private void NormalizeVertexWeights(List<List<(short, float)>> controlPts, int nbBoneByVertex)
         {
@@ -1234,7 +1166,7 @@ namespace Stride.Importer.ThreeD
 
         private unsafe IComputeColor GenerateOneTextureTypeLayers(Silk.NET.Assimp.Material* pMat, TextureType textureType, int textureCount, MaterialAsset finalMaterial)
         {
-            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, pMat, textureType, Logger);
+            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, pMat, textureType);
 
             var compositionFathers = new Stack<IComputeColor>();
 
@@ -1392,8 +1324,7 @@ namespace Stride.Importer.ThreeD
                 {
                     MeshName = meshNames[(IntPtr)mesh],
                     MaterialName = materialNames[(IntPtr)lMaterial],
-                    NodeName = SearchMeshNode(scene->MRootNode, i, nodeNames),
-                    BlendShapeName = ExtractBlendShapeNames(mesh)
+                    NodeName = SearchMeshNode(scene->MRootNode, i, nodeNames)
                 };
 
                 meshList.Add(meshParams);
@@ -1401,7 +1332,7 @@ namespace Stride.Importer.ThreeD
 
             return meshList;
         }
-        
+
         private unsafe string SearchMeshNode(Node* node, uint meshIndex, Dictionary<IntPtr, string> nodeNames)
         {
             for (uint i = 0; i < node->MNumMeshes; ++i)
@@ -1441,11 +1372,11 @@ namespace Stride.Importer.ThreeD
                 GetNodes(node->MChildren[i], depth + 1, nodeNames, allNodes);
         }
 
-       
         private unsafe List<string> ExtractAnimations(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
             if (scene->MNumAnimations == 0)
                 return null;
+
             GenerateAnimationNames(scene, animationNames);
 
             var animationList = new List<string>();
@@ -1453,10 +1384,9 @@ namespace Stride.Importer.ThreeD
             {
                 animationList.Add(animationName.Value);
             }
+
             return animationList;
         }
-
-       
 
         private unsafe List<string> ExtractTextureDependencies(Scene* scene)
         {
@@ -1534,8 +1464,6 @@ namespace Stride.Importer.ThreeD
         public List<MaterialInstantiation> Instances = new();
         public string MaterialsName;
     }
-
-
 
 }
 
