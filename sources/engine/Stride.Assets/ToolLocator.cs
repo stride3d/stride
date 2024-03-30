@@ -23,6 +23,7 @@ static class ToolLocator
                 if (File.Exists(toolPath))
                     return new UFile(toolPath);
             }
+            return null;
         }
 
         var tool = UPath.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), new UFile($"{toolName}.exe"));
