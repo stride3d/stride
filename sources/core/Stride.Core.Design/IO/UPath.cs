@@ -54,6 +54,9 @@ namespace Stride.Core.IO
         /// </summary>
         public const string DirectorySeparatorStringAlt = "\\";
 
+        public static char[] InvalidChars = { '<', '>', ':', '|', '?', '*' };
+
+
         /// <summary>
         /// Initializes a new instance of the <see cref="UPath" /> class from a file path.
         /// </summary>
@@ -599,7 +602,7 @@ namespace Stride.Core.IO
 
                     state = NormalizationState.VolumeSeparator; // We are expecting to read a directory separator now
                 }
-                else if (Path.GetInvalidFileNameChars().Contains('|'))
+                else if (InvalidChars.Contains(pathItem))
                 {
                     builder.Append("_");
                 }
