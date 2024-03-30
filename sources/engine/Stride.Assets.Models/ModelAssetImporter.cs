@@ -16,6 +16,7 @@ using Stride.Assets.Textures;
 using Stride.Rendering;
 using Stride.Importer.Common;
 using System.IO;
+using System.Text;
 
 namespace Stride.Assets.Models
 {
@@ -171,7 +172,21 @@ namespace Stride.Assets.Models
         {
             var assetSource = localPath;
             var asset = new AnimationAsset { Source = assetSource, AnimationTimeMaximum = animationEndTime, AnimationTimeMinimum = animationStartTime };
-            var animUrl = localPath.GetFileNameWithoutExtension() +"_"+ animationNodeName;
+
+            var animNodePostFix = new StringBuilder();
+            foreach (var charNodeName in animationNodeName)
+            {
+                if (Path.GetInvalidFileNameChars().Contains(charNodeName))
+                {
+                    animNodePostFix.Append("_");
+                }
+                else
+                {
+                    animNodePostFix.Append(charNodeName);
+                }
+            }
+
+            var animUrl = localPath.GetFileNameWithoutExtension() + "_" + animNodePostFix.ToString();
             asset.AnimationStack = animationNodeIndex;
             if (skeletonAsset != null)
                 asset.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeletonAsset.Id, skeletonAsset.Location);
