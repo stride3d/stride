@@ -599,7 +599,7 @@ namespace Stride.Core.IO
 
                     state = NormalizationState.VolumeSeparator; // We are expecting to read a directory separator now
                 }
-                else if (pathItem=='|')
+                else if (Path.GetInvalidFileNameChars().Contains('|'))
                 {
                     builder.Append("_");
                 }
