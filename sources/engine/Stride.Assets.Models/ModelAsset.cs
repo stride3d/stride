@@ -94,6 +94,5 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         [DataMemberIgnore]
         public override UFile MainSource => Source;
-        
     }
 }
