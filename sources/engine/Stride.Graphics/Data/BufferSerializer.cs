@@ -35,7 +35,7 @@ namespace Stride.Graphics.Data
                     var graphicsDeviceService = services.GetSafeServiceAs<IGraphicsDeviceService>();
 
                     buffer.AttachToGraphicsDevice(graphicsDeviceService.GraphicsDevice);
-                    buffer.InitializeFrom(bufferData.Content, bufferData.StructureByteStride, bufferData.BufferFlags, PixelFormat.None, GraphicsResourceUsage.Dynamic);
+                    buffer.InitializeFrom(bufferData.Content, bufferData.StructureByteStride, bufferData.BufferFlags, PixelFormat.None, bufferData.Usage);
 
                     // Setup reload callback (reload from asset manager)
                     var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);
@@ -45,12 +45,12 @@ namespace Stride.Graphics.Data
                         {
                             var assetManager = services.GetService<ContentManager>();
                             assetManager.TryGetAssetUrl(graphicsResource, out var url);
-                            
+
                             // When service isn't provided to the ContentManager, deserialized data is stored in a cache instead
                             // of being sent right away to GPU. 
                             // See 'SetSerializationData()' above
                             assetManager = new ContentManager(services.GetService<IDatabaseFileProviderService>());
-                            
+
                             // TODO: Avoid loading/unloading the same data
                             //       ^ perhaps out of date, will need to be discussed
                             var loadedBufferData = assetManager.Load<Buffer>(url);

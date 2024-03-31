@@ -2,14 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Linq.Expressions;
-using SharpFont;
-using Silk.NET.Maths;
+
 using Stride.Core;
-using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 
 namespace Stride.Rendering
@@ -22,7 +17,7 @@ namespace Stride.Rendering
         /// </summary>
         public Mesh()
         {
-            Parameters = new ParameterCollection();         
+            Parameters = new ParameterCollection();
         }
 
         /// <summary>
@@ -81,7 +76,5 @@ namespace Stride.Rendering
 
         // TODO: Skinning could be shared between multiple Mesh inside a ModelView (multimaterial, etc...)
         public MeshSkinningDefinition Skinning;
-
     }
-
 }
