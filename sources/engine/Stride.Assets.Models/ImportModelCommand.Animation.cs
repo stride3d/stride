@@ -12,6 +12,8 @@ using Stride.Core.Serialization.Contents;
 using Stride.Updater;
 using Stride.Animations;
 using Stride.Rendering;
+using System.IO;
+using System.Text;
 
 namespace Stride.Assets.Models
 {
@@ -92,8 +94,22 @@ namespace Stride.Assets.Models
                     foreach (var nodeAnimationClipEntry in animationClips)
                     {
                         var nodeName = nodeAnimationClipEntry.Key;
+
+                        StringBuilder sbnodeName=new StringBuilder();
+                        nodeName.ToCharArray().ForEach(c => 
+                        {
+                            if (Path.GetInvalidFileNameChars().Contains(c))
+                            {
+                                sbnodeName.Append('_');
+                            }
+                            else 
+                            {
+                                sbnodeName.Append(c);
+                            }
+                        });
+                        
                         var nodeAnimationClip = nodeAnimationClipEntry.Value;
-                        var nodeIndex = modelSkeleton.Nodes.IndexOf(x => x.Name == nodeName);
+                        var nodeIndex = modelSkeleton.Nodes.IndexOf(x => x.Name == sbnodeName.ToString());
 
                         // Node doesn't exist in skeleton? skip it
                         if (nodeIndex == -1 || skeletonMapping.SourceToSource[nodeIndex] != nodeIndex)
