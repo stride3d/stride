@@ -56,7 +56,7 @@ namespace Stride.Rendering
         public int MaterialIndex { get; set; }
 
         public ParameterCollection Parameters { get; }
-
+        
         /// <summary>
         /// Index of the transformation node in <see cref="Model"/>.
         /// </summary>

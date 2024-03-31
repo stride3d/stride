@@ -13,8 +13,6 @@ using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Buffer = Stride.Graphics.Buffer;
-using System.Runtime.CompilerServices;
-using System.Collections;
 
 namespace Stride.Rendering
 {
@@ -157,7 +155,7 @@ namespace Stride.Rendering
         }
 
         /// <inheritdoc/>
-        public unsafe override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
+        public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
         {
             using var _ = Profiler.Begin(DrawKey);
             var commandList = context.CommandList;
@@ -189,7 +187,7 @@ namespace Stride.Rendering
                 var renderEffect = renderNode.RenderEffect;
                 if (renderEffect.Effect == null)
                     continue;
-            
+
                 // Bind VB
                 if (currentDrawData != drawData)
                 {

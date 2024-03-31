@@ -1,7 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -33,7 +31,6 @@ namespace Stride.Assets.Models
 
             return supportedExtensions.Any(supExt => supExt.Equals(extToLower));
         }
-
 
         private Stride.Importer.ThreeD.MeshConverter CreateMeshConverter(ICommandContext commandContext)
         {
@@ -76,4 +73,3 @@ namespace Stride.Assets.Models
         }
     }
 }
-

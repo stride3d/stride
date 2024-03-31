@@ -70,7 +70,6 @@ namespace Stride.Shaders.Compiler
             var compiledUrl = string.Format("{0}/{1}", CompiledShadersKey, mixinObjectId);
 
             var bytecode = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(null, EffectBytecodeCacheLoadSource.JustCompiled);
-
             lock (bytecodes)
             {                
                 // ------------------------------------------------------------------------------------------------------------

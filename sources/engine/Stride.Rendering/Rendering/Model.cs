@@ -28,7 +28,6 @@ namespace Stride.Rendering
     [DataContract]
     public class Model : IEnumerable
     {
-
         private Model parent;
 
         /// <summary>
@@ -164,8 +163,5 @@ namespace Stride.Rendering
                     break;
             }
         }
-
-
-
     }
 }

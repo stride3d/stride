@@ -1,16 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Graphics;
-using Stride.Graphics.Data;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 
@@ -85,7 +82,7 @@ namespace Stride.Rendering
             });
         }
 
-        private unsafe void UpdateRenderModel(ModelComponent modelComponent, RenderModel renderModel)
+        private void UpdateRenderModel(ModelComponent modelComponent, RenderModel renderModel)
         {
             if (modelComponent.Model == null)
                 return;
@@ -120,8 +117,6 @@ namespace Stride.Rendering
                 }
             }
         }
-
-       
 
         private void UpdateMaterial(RenderMesh renderMesh, MaterialPass materialPass, MaterialInstance modelMaterialInstance, ModelComponent modelComponent)
         {
@@ -186,7 +181,7 @@ namespace Stride.Rendering
                 return;
             }
 
-RegenerateMeshes:
+        RegenerateMeshes:
             renderModel.Model = model;
 
             // Remove old meshes

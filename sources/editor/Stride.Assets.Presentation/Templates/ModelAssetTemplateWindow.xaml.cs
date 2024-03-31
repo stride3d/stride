@@ -65,7 +65,6 @@ namespace Stride.Assets.Presentation.Templates
 
         public bool ImportAnimations { get { return importAnimations; } set { SetValue(ref importAnimations, value); } }
 
-        
         public bool ImportSkeleton { get { return importSkeleton; } set { SetValue(ref importSkeleton, value); } }
 
         public bool DontImportSkeleton { get { return dontImportSkeleton; } set { SetValue(ref dontImportSkeleton, value); } }

@@ -199,7 +199,7 @@ namespace Stride.Importer.Assimp
                 {
                     var meshInfo = ProcessMesh(scene, scene->MMeshes[i], meshNames);
 
-                  var shapes=  ProcessBlendShapes(scene, scene->MMeshes[i]);
+                    var shapes = ProcessBlendShapes(scene, scene->MMeshes[i]);
 
                     foreach (var nodeIndex in meshIndexToNodeIndex[i])
                     {
@@ -208,7 +208,7 @@ namespace Stride.Importer.Assimp
                             Draw = meshInfo.Draw,
                             Name = meshInfo.Name,
                             MaterialIndex = meshInfo.MaterialIndex,
-                            NodeIndex = nodeIndex,                           
+                            NodeIndex = nodeIndex,
                         };
 
                         foreach (var shape in shapes)
@@ -229,15 +229,10 @@ namespace Stride.Importer.Assimp
                         if (meshInfo.HasSkinningNormal && meshInfo.TotalClusterCount > 0)
                             nodeMeshData.Parameters.Set(MaterialKeys.HasSkinningNormal, true);
 
-                       
-
                       modelData.Meshes.Add(nodeMeshData);
-                        nodeMeshData.BlendShapeProcessingNecessary=shapes.Count > 0;
-                        nodeMeshData.ProcessBlendShapes();
-
+                      nodeMeshData.BlendShapeProcessingNecessary = shapes.Count > 0;
+                      nodeMeshData.ProcessBlendShapes();
                     }
-                
-                
                 }
             }
 
@@ -854,7 +849,7 @@ namespace Stride.Importer.Assimp
                         {
                             *((ushort*)ibPointer) = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
 
-                          var _index=  (ushort)(mesh->MFaces[(int)i].MIndices[j]);
+                            var _index=  (ushort)(mesh->MFaces[(int)i].MIndices[j]);
                             drawData.RES((int)i, (int)_index, 0,0,0);
 
                             ibPointer += sizeof(ushort);
@@ -868,17 +863,13 @@ namespace Stride.Importer.Assimp
             var vertexBufferBinding = new VertexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.VertexBuffer, vertexBuffer)), vertexDeclaration, (int)mesh->MNumVertices, vertexDeclaration.VertexStride, 0);
             var indexBufferBinding = new IndexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.IndexBuffer, indexBuffer)), is32BitIndex, (int)nbIndices, 0);
 
-           
-            //drawData.VertexBuffers =;
-            //{
-                drawData.VertexBuffers = new VertexBufferBinding[] { vertexBufferBinding };
-                drawData.IndexBuffer = indexBufferBinding;
-                drawData.PrimitiveType = PrimitiveType.TriangleList;
-                drawData.DrawCount = (int)nbIndices;
-            //}
+            drawData.VertexBuffers = new VertexBufferBinding[] { vertexBufferBinding };
+            drawData.IndexBuffer = indexBufferBinding;
+            drawData.PrimitiveType = PrimitiveType.TriangleList;
+            drawData.DrawCount = (int)nbIndices;
 
             drawData.CAP();
-        
+
             return new MeshInfo
             {
                 Draw = drawData,
@@ -889,8 +880,6 @@ namespace Stride.Importer.Assimp
                 HasSkinningNormal = hasSkinningNormal,
                 TotalClusterCount = totalClusterCount
             };
-
-           
         }
 
         private unsafe List<Shape> ProcessBlendShapes(Scene* scene, Silk.NET.Assimp.Mesh* mesh)
@@ -900,7 +889,7 @@ namespace Stride.Importer.Assimp
             for (int j = 0; j < mesh->MNumAnimMeshes; ++j)
             {
                 var animMesh = mesh->MAnimMeshes[j];
-                var vertices=new List<Vector4>();                
+                var vertices = new List<Vector4>();
                 for (int k = 0; k < animMesh->MNumVertices; ++k)
                 {
                     var vertex = animMesh->MVertices[k];
@@ -1446,9 +1435,4 @@ namespace Stride.Importer.Assimp
         public List<MaterialInstantiation> Instances = new();
         public string MaterialsName;
     }
-
-
-    
 }
-
-

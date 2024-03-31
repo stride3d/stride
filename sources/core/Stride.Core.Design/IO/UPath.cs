@@ -52,7 +52,7 @@ namespace Stride.Core.IO
         /// <summary>
         /// The directory separator string '\' used to separate directory in an url.
         /// </summary>
-        public const string DirectorySeparatorStringAlt = "\\";      
+        public const string DirectorySeparatorStringAlt = "\\";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UPath" /> class from a file path.
@@ -598,7 +598,7 @@ namespace Stride.Core.IO
                     hasDriveSpan = true;
 
                     state = NormalizationState.VolumeSeparator; // We are expecting to read a directory separator now
-                }              
+                }
                 else if (!InvalidFileNameChars.Contains(pathItem))
                 {
                     if (state == NormalizationState.VolumeSeparator)

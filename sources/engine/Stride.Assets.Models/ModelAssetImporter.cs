@@ -331,13 +331,13 @@ namespace Stride.Assets.Models
 
             foreach (var textureFullPath in textureDependencies.Distinct(x => x))
             {
-                if (!System.IO.File.Exists(textureFullPath)) 
+                if (!File.Exists(textureFullPath))
                 {
                     string texName = Path.GetFileNameWithoutExtension(textureFullPath)??"<unknown>";
                     logger.Error($"Texture with name {texName} not found");
                     continue; 
                 }
-                var texturePath = new UFile(textureFullPath);      
+                var texturePath = new UFile(textureFullPath);
 
                 var source = texturePath;
                 var texture = new TextureAsset { Source = source, Type = new ColorTextureType { PremultiplyAlpha = false } };

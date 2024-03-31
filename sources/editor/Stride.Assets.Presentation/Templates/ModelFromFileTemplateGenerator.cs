@@ -131,7 +131,7 @@ namespace Stride.Assets.Presentation.Templates
             importParameters.SelectedOutputTypes.Add(typeof(TextureAsset), importTextures);
             importParameters.SelectedOutputTypes.Add(typeof(AnimationAsset), importAnimations);
             importParameters.SelectedOutputTypes.Add(typeof(SkeletonAsset), importSkeleton);
-           
+
             var importedAssets = new List<AssetItem>();
 
             foreach (var file in files)

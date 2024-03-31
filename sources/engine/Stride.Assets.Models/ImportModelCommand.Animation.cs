@@ -21,8 +21,11 @@ namespace Stride.Assets.Models
         public bool AnimationRootMotion { get; set; }
         public TimeSpan StartFrame { get; set; } = TimeSpan.Zero;
         public TimeSpan EndFrame { get; set; } = AnimationAsset.LongestTimeSpan;
+
         public bool ImportCustomAttributes { get; set; }
+
         public int AnimationStack { get; set; }
+
         private unsafe object ExportAnimation(ICommandContext commandContext, ContentManager contentManager, bool failOnEmptyAnimation)
         {
             // Read from model file
@@ -32,7 +35,7 @@ namespace Stride.Assets.Models
             TimeSpan duration;
             var animationClips = LoadAnimation(commandContext, contentManager, out duration);
 
-            // Fix the animation frames\|
+            // Fix the animation frames
             double startFrameSeconds = StartFrame.TotalSeconds;
             double endFrameSeconds = EndFrame.TotalSeconds;
             var startTime = CompressedTimeSpan.FromSeconds(-startFrameSeconds);
@@ -240,7 +243,6 @@ namespace Stride.Assets.Models
                         }
                     }
                 }
-
 
                 if (ImportCustomAttributes)
                 {
