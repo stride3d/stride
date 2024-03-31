@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -626,6 +626,10 @@ namespace Stride.Importer.ThreeD
                     // find the node where the bone is mapped - based on the name(?)
                     var nodeIndex = -1;
                     var boneName = bone->MName.AsString;
+                    foreach (char c in Path.GetInvalidFileNameChars())
+                    {
+                        boneName = boneName.Replace(c, '_');
+                    }
                     for (var nodeDefId = 0; nodeDefId < nodes.Count; ++nodeDefId)
                     {
                         var nodeDef = nodes[nodeDefId];
