@@ -47,21 +47,24 @@ namespace Stride.Assets.Models
             if (duration > durationTimeSpan)
                 duration = durationTimeSpan;
 
+            // Incase of no mapping or only root mapping use source skeleton
             var animationClip = new AnimationClip { Duration = duration };
+            var skeleton = contentManager.Load<Skeleton>(SkeletonUrl);
+            var skeletonMapping = new SkeletonMapping(skeleton, modelSkeleton);
 
             if (animationClips.Count > 0)
             {
                 AnimationClip rootMotionAnimationClip = null;
 
                 // If root motion is explicitely enabled, or if there is no skeleton, try to find root node and apply animation directly on TransformComponent
-                if ((AnimationRootMotion || SkeletonUrl == null) && modelSkeleton.Nodes.Length >= 1)
+                if ((AnimationRootMotion || skeleton == null||skeletonMapping.mapCount<2) && modelSkeleton.Nodes.Length >= 1)
                 {
                     // No skeleton, map root node only
                     // TODO: For now, it seems to be located on node 1 in FBX files. Need to check if always the case, and what happens with Assimp
                     var rootNode0 = modelSkeleton.Nodes.Length >= 1 ? modelSkeleton.Nodes[0].Name : null;
                     var rootNode1 = modelSkeleton.Nodes.Length >= 2 ? modelSkeleton.Nodes[1].Name : null;
                     if ((rootNode0 != null && animationClips.TryGetValue(rootNode0, out rootMotionAnimationClip))
-                        || (rootNode1 != null && animationClips.TryGetValue(rootNode1, out rootMotionAnimationClip)))
+                       || (rootNode1 != null && animationClips.TryGetValue(rootNode1, out rootMotionAnimationClip)))
                     {
                         foreach (var channel in rootMotionAnimationClip.Channels)
                         {
@@ -86,10 +89,7 @@ namespace Stride.Assets.Models
 
                 // Load asset reference skeleton
                 if (SkeletonUrl != null)
-                {
-                    var skeleton = contentManager.Load<Skeleton>(SkeletonUrl);
-                    var skeletonMapping = new SkeletonMapping(skeleton, modelSkeleton);
-
+                {                  
                     // Process missing nodes
                     foreach (var nodeAnimationClipEntry in animationClips)
                     {
@@ -97,11 +97,9 @@ namespace Stride.Assets.Models
                         foreach (char c in Path.GetInvalidFileNameChars())
                         {
                             nodeName = nodeName.Replace(c, '_');
-                        }
-                                   
+                        }   
                         var nodeAnimationClip = nodeAnimationClipEntry.Value;
                         var nodeIndex = modelSkeleton.Nodes.IndexOf(x => x.Name == nodeName.ToString());
-
                         // Node doesn't exist in skeleton? skip it
                         if (nodeIndex == -1 || skeletonMapping.SourceToSource[nodeIndex] != nodeIndex)
                             continue;
@@ -110,11 +108,11 @@ namespace Stride.Assets.Models
                         if (nodeAnimationClip == rootMotionAnimationClip)
                             continue;
 
-                        // Find parent node
+                        // Find parent node                     
                         var parentNodeIndex = modelSkeleton.Nodes[nodeIndex].ParentIndex;
 
                         if (parentNodeIndex != -1 && skeletonMapping.SourceToSource[parentNodeIndex] != parentNodeIndex)
-                        {
+                        {                 
                             // Some nodes were removed, we need to concat the anim curves
                             var currentNodeIndex = nodeIndex;
                             var nodesToMerge = new List<Tuple<ModelNodeDefinition, AnimationBlender, AnimationClipEvaluator>>();
@@ -122,9 +120,10 @@ namespace Stride.Assets.Models
                             {
                                 AnimationClip animationClipToMerge;
                                 AnimationClipEvaluator animationClipEvaluator = null;
-                                AnimationBlender animationBlender = null;
-                                if (animationClips.TryGetValue(modelSkeleton.Nodes[currentNodeIndex].Name, out animationClipToMerge))
+                                AnimationBlender animationBlender = null;                
+                                if(GetAnimationKeyVirtualKey(modelSkeleton.Nodes[currentNodeIndex].Name, animationClips, out animationClipToMerge))
                                 {
+                                     s35 += $"[{modelSkeleton.Nodes[currentNodeIndex].Name}found]";
                                     animationBlender = new AnimationBlender();
                                     animationClipEvaluator = animationBlender.CreateEvaluator(animationClipToMerge);
                                 }
@@ -273,9 +272,9 @@ namespace Stride.Assets.Models
             if (animationClip.Channels.Count == 0)
             {
                 var logString = $"File {SourcePath} doesn't have any animation information.";
-
                 if (failOnEmptyAnimation)
                 {
+                    commandContext.Logger.Error(logString);
                     commandContext.Logger.Error(logString);
                     return null;
                 }
@@ -294,6 +293,26 @@ namespace Stride.Assets.Models
                 animationClip.Optimize();
             }
             return animationClip;
+        }
+
+
+        public bool GetAnimationKeyVirtualKey(string vKey, Dictionary<string, AnimationClip> animationClips, out AnimationClip clip)
+        {
+            bool isFound = false;
+            AnimationClip outClip = null;
+            animationClips.ForEach(c =>
+            {
+                string _lineItem = c.Key;
+                Path.GetInvalidFileNameChars().ForEach(x => { _lineItem = _lineItem.Replace(x, '_'); });
+                if (_lineItem == vKey)
+                {
+                    outClip = c.Value;
+                    isFound = true;
+                    return;
+                }
+            });
+            clip = outClip;
+            return isFound;
         }
     }
 }
