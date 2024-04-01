@@ -16,7 +16,6 @@
     <AssemblyName>StrideEngineTests</AssemblyName>
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
     <StridePlatform>iOS</StridePlatform>
-    <StrideBuildProfile>iOS</StrideBuildProfile>
     <StridePackageGuid>{c6c57562-42df-42ad-be2d-8d5889211366}</StridePackageGuid>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">OpenGLES</StrideGraphicsApi>
     <StrideOutputFolder>Tests\$(StrideGraphicsApi)\$(AssemblyName)</StrideOutputFolder>
