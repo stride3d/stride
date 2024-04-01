@@ -123,7 +123,6 @@ namespace Stride.Assets.Models
                                 AnimationBlender animationBlender = null;                
                                 if(GetAnimationKeyVirtualKey(modelSkeleton.Nodes[currentNodeIndex].Name, animationClips, out animationClipToMerge))
                                 {
-                                     s35 += $"[{modelSkeleton.Nodes[currentNodeIndex].Name}found]";
                                     animationBlender = new AnimationBlender();
                                     animationClipEvaluator = animationBlender.CreateEvaluator(animationClipToMerge);
                                 }
