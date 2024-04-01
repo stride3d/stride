@@ -14,6 +14,7 @@ using Stride.Animations;
 using Stride.Rendering;
 using System.IO;
 using System.Text;
+using SharpDX.DirectWrite;
 
 namespace Stride.Assets.Models
 {
@@ -60,8 +61,15 @@ namespace Stride.Assets.Models
                     // TODO: For now, it seems to be located on node 1 in FBX files. Need to check if always the case, and what happens with Assimp
                     var rootNode0 = modelSkeleton.Nodes.Length >= 1 ? modelSkeleton.Nodes[0].Name : null;
                     var rootNode1 = modelSkeleton.Nodes.Length >= 2 ? modelSkeleton.Nodes[1].Name : null;
-                    if ((rootNode0 != null && animationClips.TryGetValue(rootNode0, out rootMotionAnimationClip))
-                        || (rootNode1 != null && animationClips.TryGetValue(rootNode1, out rootMotionAnimationClip)))
+                    var rootNode3 = modelSkeleton.Nodes.Length >= 3 ? modelSkeleton.Nodes[2].Name : null;
+                    var rootNode4 = modelSkeleton.Nodes.Length >= 4 ? modelSkeleton.Nodes[3].Name : null;
+
+
+                    if ((rootNode0 != null && GetAnimationKeyVirtualKey(rootNode0, animationClips, out rootMotionAnimationClip))
+                        || (rootNode1 != null && GetAnimationKeyVirtualKey(rootNode1, animationClips, out rootMotionAnimationClip))
+                        || (rootNode3 != null && GetAnimationKeyVirtualKey(rootNode3, animationClips, out rootMotionAnimationClip))
+                        || (rootNode4 != null && GetAnimationKeyVirtualKey(rootNode4, animationClips, out rootMotionAnimationClip))
+                        )
                     {
                         foreach (var channel in rootMotionAnimationClip.Channels)
                         {
@@ -295,5 +303,25 @@ namespace Stride.Assets.Models
             }
             return animationClip;
         }
+   
+        public bool GetAnimationKeyVirtualKey(string vKey, Dictionary<string, AnimationClip> animationClips, out AnimationClip clip)
+        {
+            bool isFound=false;
+            AnimationClip outClip=null;
+            animationClips.ForEach(c => 
+            {
+                string _lineItem = c.Key;
+                Path.GetInvalidFileNameChars().ForEach(x => { _lineItem = _lineItem.Replace(x, '_'); });
+                if(_lineItem==vKey)
+                {
+                    outClip = c.Value;
+                    isFound = true;
+                    return;
+                }
+            });
+            clip= outClip;
+            return isFound; 
+        }
+
     }
 }
