@@ -26,11 +26,6 @@ namespace Stride.Rendering
         /// </summary>
         public string Name;
 
-       /// <summary>
-       // Original non altered name for reference comparision
-       /// </summary>
-        public string OriginalName;
-
         /// <summary>
         /// The flags of this node.
         /// </summary>

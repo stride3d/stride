@@ -174,8 +174,6 @@ namespace Stride.Assets.Models
             var asset = new AnimationAsset { Source = assetSource, AnimationTimeMaximum = animationEndTime, AnimationTimeMinimum = animationStartTime };
 
             var animNodePostFix = new StringBuilder();
-
-            /*
             foreach (var charNodeName in animationNodeName)
             {
                 if (Path.GetInvalidFileNameChars().Contains(charNodeName))
@@ -187,7 +185,7 @@ namespace Stride.Assets.Models
                     animNodePostFix.Append(charNodeName);
                 }
             }
-            */
+
             var animUrl = localPath.GetFileNameWithoutExtension() + "_" + animNodePostFix.ToString();
             asset.AnimationStack = animationNodeIndex;
             if (skeletonAsset != null)
