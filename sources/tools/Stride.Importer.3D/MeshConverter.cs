@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Silk.NET.Assimp;
+using Silk.NET.Core;
 using Stride.Animations;
 using Stride.Assets.Materials;
 using Stride.Core;
@@ -117,8 +118,8 @@ namespace Stride.Importer.ThreeD
                 var meshNames = new Dictionary<IntPtr, string>();
                 var animationNames = new Dictionary<IntPtr, string>();
                 var nodeNames = new Dictionary<IntPtr, string>();
-
-                GenerateNodeNames(scene, nodeNames);
+                var baseNames=new Dictionary<IntPtr, string>();
+                GenerateNodeNames(scene, nodeNames, baseNames);
 
                 var entityInfo = new EntityInfo
                 {
@@ -205,11 +206,12 @@ namespace Stride.Importer.ThreeD
             GenerateMeshNames(scene, meshNames);
 
             var nodeNames = new Dictionary<IntPtr, string>();
-            GenerateNodeNames(scene, nodeNames);
+            var baseNames = new Dictionary<IntPtr, string>();
+            GenerateNodeNames(scene, nodeNames, baseNames);
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
+            RegisterNodes(scene->MRootNode, -1, nodeNames, baseNames, meshIndexToNodeIndex);
 
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
@@ -260,11 +262,12 @@ namespace Stride.Importer.ThreeD
         private unsafe Rendering.Skeleton ProcessSkeleton(Scene* scene)
         {
             var nodeNames = new Dictionary<IntPtr, string>();
-            GenerateNodeNames(scene, nodeNames);
+            var baseNames=new Dictionary<IntPtr, string>();
+            GenerateNodeNames(scene, nodeNames, baseNames);
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
+            RegisterNodes(scene->MRootNode, -1, nodeNames, baseNames, meshIndexToNodeIndex);
 
             return new Rendering.Skeleton
             {
@@ -278,11 +281,12 @@ namespace Stride.Importer.ThreeD
             var visitedNodeNames = new HashSet<string>();
 
             var nodeNames = new Dictionary<IntPtr, string>();
-            GenerateNodeNames(scene, nodeNames);
+            var baseNames = new Dictionary<IntPtr, string>();
+            GenerateNodeNames(scene, nodeNames, baseNames);
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
+            RegisterNodes(scene->MRootNode, -1, nodeNames, baseNames, meshIndexToNodeIndex);
 
             if (scene->MNumAnimations > 0)
             {
@@ -432,16 +436,18 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe void GenerateUniqueNames(Dictionary<IntPtr, string> finalNames, List<string> baseNames, Func<int, IntPtr> objectToName)
+        private unsafe void GenerateUniqueNames(Dictionary<IntPtr, string> finalNames, Dictionary<IntPtr, string> baseNames, List<string> baseNamesList, Func<int, IntPtr> objectToName)
         {
             var itemNameTotalCount = new Dictionary<string, int>();
             var itemNameCurrentCount = new Dictionary<string, int>();
             var tempNames = new List<string>();
+            var tempNamesOriginal = new List<string>();
 
-            for (var i = 0; i < baseNames.Count; ++i)
+            for (var i = 0; i < baseNamesList.Count; ++i)
             {
                 // Clean the name by removing unwanted characters
-                var itemName = baseNames[i];
+                var itemName = baseNamesList[i];
+                tempNamesOriginal.Add(baseNamesList[i]);
 
                 var itemNameSplitPosition = itemName.IndexOf('#');
                 if (itemNameSplitPosition != -1)
@@ -456,8 +462,11 @@ namespace Stride.Importer.ThreeD
                 }
 
                 // remove all bad characters
-                itemName = itemName.Replace(':', '_');
-                itemName = itemName.Replace(" ", string.Empty);
+                foreach (char c in Path.GetInvalidFileNameChars())
+                {
+                    itemName = itemName.Replace(c, '_');
+                }
+                
 
                 tempNames.Add(itemName);
 
@@ -468,7 +477,7 @@ namespace Stride.Importer.ThreeD
                     itemNameTotalCount[itemName]++;
             }
 
-            for (var i = 0; i < baseNames.Count; ++i)
+            for (var i = 0; i < baseNamesList.Count; ++i)
             {
                 var lItem = objectToName(i);
                 var itemName = tempNames[i];
@@ -482,43 +491,45 @@ namespace Stride.Importer.ThreeD
 
                     itemName = itemName + "_" + itemNameCurrentCount[itemName].ToString(CultureInfo.InvariantCulture);
                 }
-
+                baseNames.Add(lItem, tempNamesOriginal[i]);
                 finalNames.Add(lItem, itemName);
             }
         }
 
+
+
         private unsafe void GenerateMeshNames(Scene* scene, Dictionary<IntPtr, string> meshNames)
         {
-            var baseNames = new List<string>();
+            var baseNamesList = new List<string>();
             for (uint i = 0; i < scene->MNumMeshes; i++)
             {
                 var lMesh = scene->MMeshes[i];
-                baseNames.Add(lMesh->MName.AsString);
+                baseNamesList.Add(lMesh->MName.AsString);
             }
-
-            GenerateUniqueNames(meshNames, baseNames, i => (IntPtr)scene->MMeshes[i]);
+            var baseNames=new Dictionary<IntPtr, string>(); 
+            GenerateUniqueNames(meshNames,baseNames, baseNamesList, i => (IntPtr)scene->MMeshes[i]);
         }
 
         private unsafe void GenerateAnimationNames(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
-            var baseNames = new List<string>();
+            var baseNamesList = new List<string>();
             for (uint i = 0; i < scene->MNumAnimations; i++)
             {
                 var lAnimation = scene->MAnimations[i];
                 var animationName = lAnimation->MName.AsString;
-                baseNames.Add(animationName);
+                baseNamesList.Add(animationName);
             }
-
-            GenerateUniqueNames(animationNames, baseNames, i => (IntPtr)scene->MAnimations[i]);
+          var baseNames=new Dictionary<nint,  string>();   
+            GenerateUniqueNames(animationNames, baseNames, baseNamesList, i => (IntPtr)scene->MAnimations[i]);
         }
 
-        private unsafe void GenerateNodeNames(Scene* scene, Dictionary<IntPtr, string> nodeNames)
+        private unsafe void GenerateNodeNames(Scene* scene, Dictionary<IntPtr, string> nodeNames, Dictionary<IntPtr, string> baseNames)
         {
-            var baseNames = new List<string>();
+            var baseNamesList = new List<string>();
             var orderedNodes = new List<IntPtr>();
 
-            GetNodeNames(scene->MRootNode, baseNames, orderedNodes);
-            GenerateUniqueNames(nodeNames, baseNames, i => orderedNodes[i]);
+            GetNodeNames(scene->MRootNode, baseNamesList, orderedNodes);
+            GenerateUniqueNames(nodeNames, baseNames, baseNamesList, i => orderedNodes[i]);
         }
 
         private unsafe void GetNodeNames(Node* node, List<string> nodeNames, List<IntPtr> orderedNodes)
@@ -532,7 +543,7 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex)
+        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<IntPtr, string> baseNames, Dictionary<int, List<int>> meshIndexToNodeIndex)
         {
             var nodeIndex = nodes.Count;
 
@@ -555,6 +566,7 @@ namespace Stride.Importer.ThreeD
             {
                 ParentIndex = parentIndex,
                 Name = nodeNames[(IntPtr)fromNode],
+                OriginalName = baseNames[(IntPtr)fromNode],
                 Flags = ModelNodeFlags.Default
             };
 
@@ -583,7 +595,7 @@ namespace Stride.Importer.ThreeD
             // register the children
             for (uint child = 0; child < fromNode->MNumChildren; ++child)
             {
-                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex);
+                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, baseNames, meshIndexToNodeIndex);
             }
         }
 
@@ -626,14 +638,11 @@ namespace Stride.Importer.ThreeD
                     // find the node where the bone is mapped - based on the name(?)
                     var nodeIndex = -1;
                     var boneName = bone->MName.AsString;
-                    foreach (char c in Path.GetInvalidFileNameChars())
-                    {
-                        boneName = boneName.Replace(c, '_');
-                    }
+                   
                     for (var nodeDefId = 0; nodeDefId < nodes.Count; ++nodeDefId)
                     {
                         var nodeDef = nodes[nodeDefId];
-                        if (nodeDef.Name == boneName)
+                        if (nodeDef.OriginalName == boneName)
                         {
                             nodeIndex = nodeDefId;
                             break;
@@ -950,17 +959,17 @@ namespace Stride.Importer.ThreeD
 
         private unsafe void GenerateMaterialNames(Scene* scene, Dictionary<IntPtr, string> materialNames)
         {
-            var baseNames = new List<string>();
+            var baseNamesList = new List<string>();
             for (uint i = 0; i < scene->MNumMaterials; i++)
             {
                 var lMaterial = scene->MMaterials[i];
 
                 var aiMaterial = new AssimpString();
                 var materialName = assimp.GetMaterialString(lMaterial, Silk.NET.Assimp.Assimp.MaterialNameBase, 0, 0, ref aiMaterial) == Return.Success ? aiMaterial.AsString : "Material";
-                baseNames.Add(materialName);
+                baseNamesList.Add(materialName);
             }
-
-            GenerateUniqueNames(materialNames, baseNames, i => (IntPtr)scene->MMaterials[i]);
+            var baseNames = new Dictionary<nint, string>();
+            GenerateUniqueNames(materialNames, baseNames, baseNamesList, i => (IntPtr)scene->MMaterials[i]);
         }
 
         private unsafe MaterialAsset ProcessMeshMaterial(Silk.NET.Assimp.Material* pMaterial)
