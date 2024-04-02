@@ -633,22 +633,11 @@ namespace Stride.Importer.ThreeD
                         nodeIndex = 0;
                     }
 
-                    string n3Naem = "notKnin";
-
-                    if (bone != null)
-                    {
-                        string boneNameClean = bone->MName.AsString.CleanNodeName();
-                        n3Naem=boneNameClean;
-                    }
-
-
                     bones.Add(new MeshBoneDefinition
                     {
-                        NNName=n3Naem,
                         NodeIndex = nodeIndex,
                         LinkToMeshMatrix = bone->MOffsetMatrix.ToStrideMatrix()
-                        //  LinkToMeshMatrix = rootTransformInverse * bone->MOffsetMatrix.ToStrideMatrix() * rootTransform
-                        
+                        //  LinkToMeshMatrix = rootTransformInverse * bone->MOffsetMatrix.ToStrideMatrix() * rootTransform                       
                     });
                 }
 
