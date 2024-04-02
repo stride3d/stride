@@ -274,7 +274,6 @@ namespace Stride.Assets.Models
                 if (failOnEmptyAnimation)
                 {
                     commandContext.Logger.Error(logString);
-                    commandContext.Logger.Error(logString);
                     return null;
                 }
 
