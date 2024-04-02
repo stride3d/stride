@@ -12,8 +12,6 @@ using Stride.Core.Serialization.Contents;
 using Stride.Updater;
 using Stride.Animations;
 using Stride.Rendering;
-using System.IO;
-using System.Text;
 
 namespace Stride.Assets.Models
 {
