@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Stride.Core.Diagnostics;
@@ -105,13 +107,12 @@ namespace Stride
         {
             var process = new Process
             {
-                StartInfo = new ProcessStartInfo(command)
+                StartInfo = new ProcessStartInfo($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}/{command}")
                 {
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardError = true,
                     RedirectStandardOutput = true,
-                    WorkingDirectory = workingDirectory,
                     Arguments = parameters,
                 },
             };

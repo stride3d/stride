@@ -113,25 +113,9 @@ namespace Stride.Shaders.Compiler.OpenGL
 
                 // Write shader source to disk
                 File.WriteAllBytes(inputFileName, Encoding.ASCII.GetBytes(shader));
-
-                // Run shader compiler
-                string filename;
-                switch (Platform.Type)
-                {
-                    case PlatformType.Windows:
-                    case PlatformType.UWP:
-                        filename = @"win-x64\glslangValidator.exe";
-                        break;
-                    case PlatformType.Linux:
-                        filename = @"linux-x64/glslangValidator.bin";
-                        break;
-                    case PlatformType.macOS:
-                        filename = @"osx-x64/glslangValidator.bin";
-                        break;
-                    default:
-                        throw new PlatformNotSupportedException();
-                }
-                ShellHelper.RunProcessAndRedirectToLogger(filename, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
+                var glslangValidatorPath = GetGlslangValidatorPath();
+                 // Run shader compiler
+                ShellHelper.RunProcessAndRedirectToLogger(glslangValidatorPath, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
 
                 if (!File.Exists(outputFileName))
                 {
@@ -171,6 +155,17 @@ namespace Stride.Shaders.Compiler.OpenGL
             shaderBytecodeResult.Bytecode = bytecode;
             
             return shaderBytecodeResult;
+        }
+
+        private static string GetGlslangValidatorPath()
+        {
+            return Platform.Type switch
+            {
+                PlatformType.Windows or PlatformType.UWP => @"win-x64\glslangValidator.exe",
+                PlatformType.Linux => @"linux-x64/glslangValidator.bin",
+                PlatformType.macOS => @"osx-x64/glslangValidator.bin",
+                _ => throw new PlatformNotSupportedException(),
+            };
         }
 
         private string Compile(string shaderSource, string entryPoint, ShaderStage stage, GlslShaderPlatform shaderPlatform, int shaderVersion, ShaderBytecodeResult shaderBytecodeResult, EffectReflection reflection, IDictionary<int, string> inputAttributeNames, Dictionary<string, int> resourceBindings, string sourceFilename = null)
