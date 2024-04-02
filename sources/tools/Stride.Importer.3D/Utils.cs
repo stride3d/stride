@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Core.Mathematics;
+using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -59,6 +60,39 @@ namespace Stride.Importer.ThreeD
         {
             var sdTime = CompressedTimeSpan.TicksPerSecond / aiTickPerSecond * time;
             return new CompressedTimeSpan((int)sdTime);
+        }
+
+        public static string CleanNodeName(this string itemName)
+        {
+            if (string.IsNullOrWhiteSpace(itemName)) { return itemName; }                                                                                                                                                                      
+            var itemNameSplitPosition = itemName.IndexOf('#');
+            if (itemNameSplitPosition != -1)
+            {
+                itemName = itemName.Substring(0, itemNameSplitPosition);
+            }
+
+            itemNameSplitPosition = itemName.IndexOf("__", StringComparison.Ordinal);
+            if (itemNameSplitPosition != -1)
+            {
+                itemName = itemName.Substring(0, itemNameSplitPosition);
+            }
+
+            itemNameSplitPosition = itemName.LastIndexOf(":", StringComparison.Ordinal);
+            if (itemNameSplitPosition != -1)
+            {
+                if (itemName.Length > itemNameSplitPosition + 1)
+                {
+                    itemName = itemName.Substring(itemNameSplitPosition + 1);
+                }
+            }
+
+
+
+            // remove all bad characters
+            itemName = itemName.Replace(':', '_');
+            itemName = itemName.Replace(" ", string.Empty);
+
+            return itemName;
         }
     }
 }

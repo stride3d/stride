@@ -227,7 +227,7 @@ namespace Stride.Importer.ThreeD
                             MaterialIndex = meshInfo.MaterialIndex,
                             NodeIndex = nodeIndex,
                         };
-                     
+
                         if (meshInfo.Bones != null)
                         {
                             nodeMeshData.Skinning = new MeshSkinningDefinition
@@ -243,7 +243,7 @@ namespace Stride.Importer.ThreeD
                             nodeMeshData.Parameters.Set(MaterialKeys.HasSkinningNormal, true);
 
 
-                        modelData.Meshes.Add(nodeMeshData);            
+                        modelData.Meshes.Add(nodeMeshData);
                     }
                 }
             }
@@ -309,7 +309,7 @@ namespace Stride.Importer.ThreeD
                 // Nevertheless the second one do not seems to be usable in assimp 3.0 so it will be ignored here.
 
                 // name of the animation (dropped)
-                var animName = aiAnim->MName.AsString; // used only be the logger
+                var animName = aiAnim->MName.AsString.CleanNodeName(); // used only be the logger
 
                 // animation using meshes (not supported)
                 for (uint meshAnimId = 0; meshAnimId < aiAnim->MNumMeshChannels; ++meshAnimId)
@@ -322,7 +322,7 @@ namespace Stride.Importer.ThreeD
                 for (uint nodeAnimId = 0; nodeAnimId < aiAnim->MNumChannels; ++nodeAnimId)
                 {
                     var nodeAnim = aiAnim->MChannels[nodeAnimId];
-                    var nodeName = nodeAnim->MNodeName.AsString;
+                    var nodeName = nodeAnim->MNodeName.AsString.CleanNodeName();
 
                     if (!visitedNodeNames.Contains(nodeName))
                     {
@@ -343,7 +343,7 @@ namespace Stride.Importer.ThreeD
         private unsafe void ProcessNodeAnimation(Dictionary<string, AnimationClip> animationClips, NodeAnim* nodeAnim, double ticksPerSec)
         {
             // Find the nodes on which the animation is performed
-            var nodeName = nodeAnim->MNodeName.AsString;
+            var nodeName = nodeAnim->MNodeName.AsString.CleanNodeName();
 
             var animationClip = new AnimationClip();
 
@@ -441,23 +441,7 @@ namespace Stride.Importer.ThreeD
             for (var i = 0; i < baseNames.Count; ++i)
             {
                 // Clean the name by removing unwanted characters
-                var itemName = baseNames[i];
-
-                var itemNameSplitPosition = itemName.IndexOf('#');
-                if (itemNameSplitPosition != -1)
-                {
-                    itemName = itemName.Substring(0, itemNameSplitPosition);
-                }
-
-                itemNameSplitPosition = itemName.IndexOf("__", StringComparison.Ordinal);
-                if (itemNameSplitPosition != -1)
-                {
-                    itemName = itemName.Substring(0, itemNameSplitPosition);
-                }
-
-                // remove all bad characters
-                itemName = itemName.Replace(':', '_');
-                itemName = itemName.Replace(" ", string.Empty);
+                var itemName = baseNames[i].CleanNodeName();
 
                 tempNames.Add(itemName);
 
@@ -487,13 +471,15 @@ namespace Stride.Importer.ThreeD
             }
         }
 
+
+
         private unsafe void GenerateMeshNames(Scene* scene, Dictionary<IntPtr, string> meshNames)
         {
             var baseNames = new List<string>();
             for (uint i = 0; i < scene->MNumMeshes; i++)
             {
                 var lMesh = scene->MMeshes[i];
-                baseNames.Add(lMesh->MName.AsString);
+                baseNames.Add(lMesh->MName.AsString.CleanNodeName());
             }
 
             GenerateUniqueNames(meshNames, baseNames, i => (IntPtr)scene->MMeshes[i]);
@@ -505,7 +491,7 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumAnimations; i++)
             {
                 var lAnimation = scene->MAnimations[i];
-                var animationName = lAnimation->MName.AsString;
+                var animationName = lAnimation->MName.AsString.CleanNodeName();
                 baseNames.Add(animationName);
             }
 
@@ -523,7 +509,7 @@ namespace Stride.Importer.ThreeD
 
         private unsafe void GetNodeNames(Node* node, List<string> nodeNames, List<IntPtr> orderedNodes)
         {
-            nodeNames.Add(node->MName.AsString);
+            nodeNames.Add(node->MName.AsString.CleanNodeName());
             orderedNodes.Add((IntPtr)node);
 
             for (uint i = 0; i < node->MNumChildren; ++i)
@@ -560,7 +546,7 @@ namespace Stride.Importer.ThreeD
 
             // Extract scene scaling and rotation from the root node.
             // Bake scaling into all node's positions and rotation into the 1st-level nodes.
-            if (parentIndex == -1)
+            if (parentIndex == 0)
             {
                 rootTransform = fromNode->MTransformation.ToStrideMatrix();
 
@@ -574,7 +560,9 @@ namespace Stride.Importer.ThreeD
             }
             else
             {
-                var transform = rootTransformInverse * fromNode->MTransformation.ToStrideMatrix() * rootTransform;
+                
+                //var transform = rootTransformInverse * fromNode->MTransformation.ToStrideMatrix() * rootTransform;
+                var transform = fromNode->MTransformation.ToStrideMatrix();
                 transform.Decompose(out modelNodeDefinition.Transform.Scale, out modelNodeDefinition.Transform.Rotation, out modelNodeDefinition.Transform.Position);
             }
 
@@ -625,7 +613,7 @@ namespace Stride.Importer.ThreeD
 
                     // find the node where the bone is mapped - based on the name(?)
                     var nodeIndex = -1;
-                    var boneName = bone->MName.AsString;
+                    var boneName = bone->MName.AsString.CleanNodeName();
                     foreach (char c in Path.GetInvalidFileNameChars())
                     {
                         boneName = boneName.Replace(c, '_');
@@ -646,10 +634,22 @@ namespace Stride.Importer.ThreeD
                         nodeIndex = 0;
                     }
 
+                    string n3Naem = "notKnin";
+
+                    if (bone != null)
+                    {
+                        string boneNameClean = bone->MName.AsString.CleanNodeName();
+                        n3Naem=boneNameClean;
+                    }
+
+
                     bones.Add(new MeshBoneDefinition
                     {
+                        NNName=n3Naem,
                         NodeIndex = nodeIndex,
-                        LinkToMeshMatrix = rootTransformInverse * bone->MOffsetMatrix.ToStrideMatrix() * rootTransform
+                        LinkToMeshMatrix = bone->MOffsetMatrix.ToStrideMatrix()
+                        //  LinkToMeshMatrix = rootTransformInverse * bone->MOffsetMatrix.ToStrideMatrix() * rootTransform
+                        
                     });
                 }
 
@@ -852,7 +852,7 @@ namespace Stride.Importer.ThreeD
                         {
                             *((uint*)ibPointer) = mesh->MFaces[(int)i].MIndices[j];
 
-                            var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);                  
+                            var _index = (ushort)(mesh->MFaces[(int)i].MIndices[j]);
                             ibPointer += sizeof(uint);
                         }
                     }
@@ -878,7 +878,7 @@ namespace Stride.Importer.ThreeD
             drawData.IndexBuffer = indexBufferBinding;
             drawData.PrimitiveType = PrimitiveType.TriangleList;
             drawData.DrawCount = (int)nbIndices;
-           
+
 
             return new MeshInfo
             {
