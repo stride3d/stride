@@ -19,7 +19,7 @@
   </Window.Resources>
   <StackPanel>
     <Border Background="{StaticResource EmphasisColorBrush}" Margin="20,20,20,0">
-      <TextBlock Text="{sd:Localize Materials textures and animations}" Margin="20,10" FontSize="16"/>
+      <TextBlock Text="{sd:Localize Materials and textures}" Margin="20,10" FontSize="16"/>
     </Border>
     <Border Margin="20,10,20,20">
       <StackPanel>
