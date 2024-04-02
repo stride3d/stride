@@ -191,7 +191,7 @@ namespace Stride.Graphics
             DestroySwapchain();
 
             vk.TryGetDeviceExtension(GraphicsDevice.NativeInstance, GraphicsDevice.NativeDevice, out KhrSurface surf);
-            surf.DestroySurface(GraphicsDevice.NativeInstance, surface, null);
+            surf?.DestroySurface(GraphicsDevice.NativeInstance, surface, null);
             surface = new SurfaceKHR();
 
             base.OnDestroyed();
