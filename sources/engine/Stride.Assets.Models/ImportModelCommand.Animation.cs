@@ -49,7 +49,7 @@ namespace Stride.Assets.Models
 
             // Incase of no mapping or only root mapping use source skeleton
             var animationClip = new AnimationClip { Duration = duration };
-            var skeleton = contentManager.Load<Skeleton>(SkeletonUrl);
+            var skeleton = string.IsNullOrWhiteSpace(SkeletonUrl)?null:contentManager.Load<Skeleton>(SkeletonUrl);
             var skeletonMapping = new SkeletonMapping(skeleton, modelSkeleton);
 
             if (animationClips.Count > 0)
