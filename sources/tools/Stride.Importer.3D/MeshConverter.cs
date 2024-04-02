@@ -99,7 +99,7 @@ namespace Stride.Importer.ThreeD
                     postProcessFlags |= PostProcessSteps.RemoveRedundantMaterials;
                 }
 
-                var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
+                var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 1);
 
                 // If scene is null, something went wrong inside Assimp
                 if (scene == null)
@@ -144,14 +144,14 @@ namespace Stride.Importer.ThreeD
         {
             uint importFlags = 0;
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 1);
             return ConvertAssimpScene(scene);
         }
 
         public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename, int animationIndex)
         {
             uint importFlags = 0;
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 1);
 
             return ProcessAnimations(scene, animationIndex);
         }
@@ -161,12 +161,12 @@ namespace Stride.Importer.ThreeD
             uint importFlags = 0;
             var postProcessFlags = PostProcessSteps.None;
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 1);
 
             return ProcessSkeleton(scene);
         }
 
-        private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, uint postProcessFlags)
+        private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, uint postProcessFlags, int preservePivots=1)
         {
             ResetConversionData();
 
@@ -175,6 +175,7 @@ namespace Stride.Importer.ThreeD
             vfsInputPath = VirtualFileSystem.GetParentFolder(inputFilename);
 
             var propStore = assimp.CreatePropertyStore();
+            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", preservePivots);
             assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
 
@@ -560,8 +561,8 @@ namespace Stride.Importer.ThreeD
             else
             {
                 
-                //var transform = rootTransformInverse * fromNode->MTransformation.ToStrideMatrix() * rootTransform;
-                var transform = fromNode->MTransformation.ToStrideMatrix();
+                var transform = rootTransformInverse * fromNode->MTransformation.ToStrideMatrix() * rootTransform;
+                //var transform = fromNode->MTransformation.ToStrideMatrix();
                 transform.Decompose(out modelNodeDefinition.Transform.Scale, out modelNodeDefinition.Transform.Rotation, out modelNodeDefinition.Transform.Position);
             }
 

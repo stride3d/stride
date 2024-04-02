@@ -25,7 +25,6 @@ namespace Stride.Assets.Models
                 SourceToSource = new int[sourceSkeleton.Nodes.Length]; // model => model mapping
                 NodeNames = new string[sourceSkeleton.Nodes.Length];
 
-
                 if (targetSkeleton == null)
                 {
                     // No skeleton, we can compact everything
