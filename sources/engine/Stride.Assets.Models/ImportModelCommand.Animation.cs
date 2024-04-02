@@ -42,6 +42,13 @@ namespace Stride.Assets.Models
             double endFrameSeconds = EndFrame.TotalSeconds;
             var startTime = CompressedTimeSpan.FromSeconds(-startFrameSeconds);
 
+            foreach (var clip in animationClips)
+            {
+                foreach (var animationCurve in clip.Value.Curves)
+                {
+                    animationCurve.ShiftKeys(startTime);
+                }
+            }
 
             var durationTimeSpan = TimeSpan.FromSeconds((endFrameSeconds - startFrameSeconds));
             if (duration > durationTimeSpan)
