@@ -99,7 +99,7 @@ namespace Stride.Assets.Models
                     foreach (var nodeAnimationClipEntry in animationClips)
                     {
                         var nodeName = nodeAnimationClipEntry.Key;
-                        foreach (char c in Path.GetInvalidFileNameChars())
+                        foreach (char c in System.IO.Path.GetInvalidFileNameChars())
                         {
                             nodeName = nodeName.Replace(c, '_');
                         }   
@@ -306,7 +306,7 @@ namespace Stride.Assets.Models
             animationClips.ForEach(c =>
             {
                 string _lineItem = c.Key;
-                Path.GetInvalidFileNameChars().ForEach(x => { _lineItem = _lineItem.Replace(x, '_'); });
+                System.IO.Path.GetInvalidFileNameChars().ForEach(x => { _lineItem = _lineItem.Replace(x, '_'); });
                 if (_lineItem == vKey)
                 {
                     outClip = c.Value;

@@ -99,7 +99,7 @@ namespace Stride.Importer.ThreeD
                     postProcessFlags |= PostProcessSteps.RemoveRedundantMaterials;
                 }
 
-                var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 1);
+                var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 0);
 
                 // If scene is null, something went wrong inside Assimp
                 if (scene == null)
@@ -144,14 +144,14 @@ namespace Stride.Importer.ThreeD
         {
             uint importFlags = 0;
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 1);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 0);
             return ConvertAssimpScene(scene);
         }
 
         public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename, int animationIndex)
         {
             uint importFlags = 0;
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 1);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 0);
 
             return ProcessAnimations(scene, animationIndex);
         }
@@ -161,7 +161,7 @@ namespace Stride.Importer.ThreeD
             uint importFlags = 0;
             var postProcessFlags = PostProcessSteps.None;
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 1);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 0);
 
             return ProcessSkeleton(scene);
         }
@@ -176,19 +176,15 @@ namespace Stride.Importer.ThreeD
 
             var propStore = assimp.CreatePropertyStore();
             assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", preservePivots);
-            assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
+           assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
 
             var postProcessFlags1 = PostProcessActions.CalculateTangentSpace
               | PostProcessActions.Triangulate
             | PostProcessActions.GenerateNormals
-            | PostProcessActions.JoinIdenticalVertices
-            | PostProcessActions.LimitBoneWeights
             | PostProcessActions.SortByPrimitiveType
             | PostProcessActions.FlipWindingOrder
             | PostProcessActions.FlipUVs
-            | PostProcessActions.SplitLargeMeshes
-            | PostProcessActions.ImproveCacheLocality
             | PostProcessActions.GenUVCoords
             | PostProcessActions.GlobalScaling;
 
