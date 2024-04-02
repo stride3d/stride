@@ -18,7 +18,7 @@ namespace Stride.Assets.Models
 
             public readonly string[] NodeNames;
 
-            public int mapCount=0;
+            public int MapCount=0;
             public SkeletonMapping(Skeleton targetSkeleton, Skeleton sourceSkeleton)
             {
                 SourceToTarget = new int[sourceSkeleton.Nodes.Length]; // model => skeleton mapping
@@ -57,7 +57,7 @@ namespace Stride.Assets.Models
                     }
                     else
                     {
-                        ++mapCount;
+                        ++MapCount;
                     }
 
                     // TODO: Check hierarchy for inconsistencies
