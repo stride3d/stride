@@ -3,8 +3,8 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using Silk.NET.Vulkan;
+using static Silk.NET.Vulkan.Vk;
 
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -20,7 +20,7 @@ namespace Stride.Graphics
     /// <unmanaged-short>IDXGIOutput</unmanaged-short>	
     public partial class GraphicsOutput
     {
-        private readonly VkDisplayPropertiesKHR displayProperties;
+        private readonly DisplayPropertiesKHR displayProperties;
         private readonly int outputIndex;
 
         /// <summary>
@@ -30,14 +30,14 @@ namespace Stride.Graphics
         /// <param name="outputIndex">Index of the output.</param>
         /// <exception cref="System.ArgumentNullException">output</exception>
         /// <exception cref="ArgumentOutOfRangeException">output</exception>
-        internal GraphicsOutput(GraphicsAdapter adapter, VkDisplayPropertiesKHR displayProperties, int outputIndex)
+        internal GraphicsOutput(GraphicsAdapter adapter, DisplayPropertiesKHR displayProperties, int outputIndex)
         {
-            if (adapter == null) throw new ArgumentNullException("adapter");
+            ArgumentNullException.ThrowIfNull(adapter);
 
             this.outputIndex = outputIndex;
             this.displayProperties = displayProperties;
 
-            desktopBounds = new Rectangle(0, 0, (int)displayProperties.physicalResolution.Width, (int)displayProperties.physicalResolution.Height);
+            desktopBounds = new Rectangle(0, 0, (int)displayProperties.PhysicalResolution.Width, (int)displayProperties.PhysicalResolution.Height);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Stride.Graphics
         /// <remarks>Direct3D devices require UNORM formats. This method finds the closest matching available display mode to the mode specified in pModeToMatch. Similarly ranked fields (i.e. all specified, or all unspecified, etc) are resolved in the following order.  ScanlineOrdering Scaling Format Resolution RefreshRate  When determining the closest value for a particular field, previously matched fields are used to filter the display mode list choices, and  other fields are ignored. For example, when matching Resolution, the display mode list will have already been filtered by a certain ScanlineOrdering,  Scaling, and Format, while RefreshRate is ignored. This ordering doesn't define the absolute ordering for every usage scenario of FindClosestMatchingMode, because  the application can choose some values initially, effectively changing the order that fields are chosen. Fields of the display mode are matched one at a time, generally in a specified order. If a field is unspecified, FindClosestMatchingMode gravitates toward the values for the desktop related to this output.  If this output is not part of the desktop, then the default desktop output is used to find values. If an application uses a fully unspecified  display mode, FindClosestMatchingMode will typically return a display mode that matches the desktop settings for this output.   Unspecified fields are lower priority than specified fields and will be resolved later than specified fields.</remarks>
         public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] targetProfiles, DisplayMode mode)
         {
-            if (targetProfiles == null) throw new ArgumentNullException("targetProfiles");
+            ArgumentNullException.ThrowIfNull(targetProfiles);
 
             // TODO VULKAN
 
@@ -180,7 +180,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="format">The format to match with.</param>
         /// <returns>A matched <see cref="DisplayMode"/> or null if nothing is found.</returns>
-        private DisplayMode TryFindMatchingDisplayMode(VkFormat format)
+        private DisplayMode TryFindMatchingDisplayMode(Format format)
         {
             //var desktopBounds = outputDescription.DesktopBounds;
 

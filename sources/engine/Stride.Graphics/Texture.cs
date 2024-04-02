@@ -435,10 +435,7 @@ namespace Stride.Graphics
         protected override void Destroy()
         {
             base.Destroy();
-            if (ParentTexture != null)
-            {
-                ParentTexture.ReleaseInternal();
-            }
+            ParentTexture?.ReleaseInternal();
         }
 
         protected internal override bool OnRecreate()
@@ -732,8 +729,8 @@ namespace Stride.Graphics
             else
             {
                 // Unefficient way to use the Copy method using dynamic staging texture
-                using (var throughStaging = this.ToStaging())
-                    return GetData(commandList, throughStaging, toData, arraySlice, mipSlice, doNotWait);
+                using var throughStaging = ToStaging();
+                return GetData(commandList, throughStaging, toData, arraySlice, mipSlice, doNotWait);
             }
         }
 
@@ -793,12 +790,10 @@ namespace Stride.Graphics
         /// </remarks>
         public unsafe bool GetData(CommandList commandList, Texture stagingTexture, DataPointer toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false)
         {
-            if (stagingTexture == null) throw new ArgumentNullException("stagingTexture");
-            var device = GraphicsDevice;
-            //var deviceContext = device.NativeDeviceContext;
+            ArgumentNullException.ThrowIfNull(stagingTexture);
 
             // Get mipmap description for the specified mipSlice
-            var mipmap = this.GetMipMapDescription(mipSlice);
+            var mipmap = GetMipMapDescription(mipSlice);
 
             // Copy height, depth
             int height = mipmap.HeightPacked;
@@ -822,7 +817,7 @@ namespace Stride.Graphics
                 commandList.Copy(this, stagingTexture);
 
             // Calculate the subResourceIndex for a Texture
-            int subResourceIndex = this.GetSubResourceIndex(arraySlice, mipSlice);
+            int subResourceIndex = GetSubResourceIndex(arraySlice, mipSlice);
 
             // Map the staging resource to a CPU accessible memory
             var mappedResource = commandList.MapSubresource(stagingTexture, subResourceIndex, MapMode.Read, doNotWait);
@@ -835,7 +830,7 @@ namespace Stride.Graphics
             }
 
             // If depth == 1 (Texture, Texture or TextureCube), then depthStride is not used
-            var boxDepthStride = this.Depth == 1 ? box.SlicePitch : textureDepthStride;
+            var boxDepthStride = Depth == 1 ? box.SlicePitch : textureDepthStride;
 
             var isFlippedTexture = IsFlipped();
 
@@ -901,7 +896,7 @@ namespace Stride.Graphics
         /// </remarks>
         public unsafe void SetData(CommandList commandList, DataPointer fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null)
         {
-            if (commandList == null) throw new ArgumentNullException("commandList");
+            ArgumentNullException.ThrowIfNull(commandList);
             if (region.HasValue && this.Usage != GraphicsResourceUsage.Default)
                 throw new ArgumentException("Region is only supported for textures with ResourceUsage.Default");
 
@@ -1038,7 +1033,7 @@ namespace Stride.Graphics
         /// <returns>The equivalent staging texture.</returns>
         public Texture ToStaging()
         {
-            return new Texture(this.GraphicsDevice).InitializeFrom(textureDescription.ToStagingDescription(), ViewDescription.ToStagingDescription());
+            return new Texture(GraphicsDevice).InitializeFrom(textureDescription.ToStagingDescription(), ViewDescription.ToStagingDescription());
         }
 
         /// <summary>
@@ -1052,8 +1047,8 @@ namespace Stride.Graphics
         /// <returns>A texture</returns>
         public static Texture Load(GraphicsDevice device, Stream stream, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, bool loadAsSRGB = false)
         {
-            using (var image = Image.Load(stream, loadAsSRGB))
-                return New(device, image, textureFlags, usage);
+            using var image = Image.Load(stream, loadAsSRGB);
+            return New(device, image, textureFlags, usage);
         }
 
         /// <summary>
@@ -1067,8 +1062,8 @@ namespace Stride.Graphics
         /// <exception cref="System.InvalidOperationException">Dimension not supported</exception>
         public static Texture New(GraphicsDevice device, Image image, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
         {
-            if (device == null) throw new ArgumentNullException("device");
-            if (image == null) throw new ArgumentNullException("image");
+            ArgumentNullException.ThrowIfNull(device);
+            ArgumentNullException.ThrowIfNull(image);
 
             return New(device, image.Description, image.ToDataBox());
         }
@@ -1097,10 +1092,7 @@ namespace Stride.Graphics
         /// <exception cref="System.ArgumentNullException">graphicsDevice</exception>
         public static Texture New(GraphicsDevice graphicsDevice, TextureDescription description, TextureViewDescription viewDescription, params DataBox[] boxes)
         {
-            if (graphicsDevice == null)
-            {
-                throw new ArgumentNullException("graphicsDevice");
-            }
+            ArgumentNullException.ThrowIfNull(graphicsDevice);
 
             return new Texture(graphicsDevice).InitializeFrom(description, viewDescription, boxes);
         }
@@ -1127,9 +1119,9 @@ namespace Stride.Graphics
         /// <param name="fileType">Type of the image file.</param>
         public void Save(CommandList commandList, Stream stream, ImageFileType fileType)
         {
-            if (stream == null) throw new ArgumentNullException("stream");
-            using (var staging = ToStaging())
-                Save(commandList, stream, staging, fileType);
+            ArgumentNullException.ThrowIfNull(stream);
+            using var staging = ToStaging();
+            Save(commandList, stream, staging, fileType);
         }
 
         /// <summary>
@@ -1140,8 +1132,8 @@ namespace Stride.Graphics
             if (Usage == GraphicsResourceUsage.Staging)
                 return GetDataAsImage(commandList, this); // Directly if this is a staging resource
 
-            using (var stagingTexture = ToStaging())
-                return GetDataAsImage(commandList, stagingTexture);
+            using var stagingTexture = ToStaging();
+            return GetDataAsImage(commandList, stagingTexture);
         }
 
         /// <summary>
@@ -1152,9 +1144,9 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentException">If stagingTexture is not a staging texture.</exception>
         public Image GetDataAsImage(CommandList commandList, Texture stagingTexture)
         {
-            if (stagingTexture == null) throw new ArgumentNullException("stagingTexture");
+            ArgumentNullException.ThrowIfNull(stagingTexture);
             if (stagingTexture.Usage != GraphicsResourceUsage.Staging)
-                throw new ArgumentException("Invalid texture used as staging. Must have Usage = GraphicsResourceUsage.Staging", "stagingTexture");
+                throw new ArgumentException("Invalid texture used as staging. Must have Usage = GraphicsResourceUsage.Staging", nameof(stagingTexture));
 
             var image = Image.New(stagingTexture.Description);
             try
@@ -1187,8 +1179,8 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentException">If stagingTexture is not a staging texture.</exception>
         public void Save(CommandList commandList, Stream stream, Texture stagingTexture, ImageFileType fileType)
         {
-            using (var image = GetDataAsImage(commandList, stagingTexture))
-                image.Save(stream, fileType);
+            using var image = GetDataAsImage(commandList, stagingTexture);
+            image.Save(stream, fileType);
         }
 
         /// <summary>
@@ -1211,7 +1203,7 @@ namespace Stride.Graphics
         private static DataBox GetDataBox<T>(PixelFormat format, int width, int height, int depth, T[] textureData, IntPtr fixedPointer) where T : unmanaged
         {
             // Check that the textureData size is correct
-            if (textureData == null) throw new ArgumentNullException("textureData");
+            ArgumentNullException.ThrowIfNull(textureData);
             Image.ComputePitch(format, width, height, out var rowPitch, out var slicePitch, out _, out _);
             if (Unsafe.SizeOf<T>() * textureData.Length != (slicePitch * depth)) throw new ArgumentException("Invalid size for Image");
 

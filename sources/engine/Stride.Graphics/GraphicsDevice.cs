@@ -4,9 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Stride.Core;
-using Stride.Core.Diagnostics;
-using Stride.Core.Mathematics;
-using Stride.Rendering;
 
 namespace Stride.Graphics
 {
@@ -15,21 +12,21 @@ namespace Stride.Graphics
     /// </summary>
     public partial class GraphicsDevice : ComponentBase
     {
-        internal readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> CachedPipelineStates = new Dictionary<PipelineStateDescriptionWithHash, PipelineState>();
+        internal readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> CachedPipelineStates = [];
 
-        internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = new Dictionary<SamplerStateDescription, SamplerState>();
+        internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = [];
 
         /// <summary>
         ///     Gets the features supported by this graphics device.
         /// </summary>
         public GraphicsDeviceFeatures Features;
 
-        internal HashSet<GraphicsResourceBase> Resources = new HashSet<GraphicsResourceBase>();
+        internal HashSet<GraphicsResourceBase> Resources = [];
 
         internal readonly bool NeedWorkAroundForUpdateSubResource;
         internal Effect CurrentEffect;
 
-        private readonly List<IDisposable> sharedDataToDispose = new List<IDisposable>();
+        private readonly List<IDisposable> sharedDataToDispose = [];
         private readonly Dictionary<object, IDisposable> sharedDataPerDevice;
         private GraphicsPresenter presenter;
 
@@ -72,7 +69,7 @@ namespace Stride.Graphics
         protected GraphicsDevice(GraphicsAdapter adapter, GraphicsProfile[] profile, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
         {
             // Create shared data
-            sharedDataPerDevice = new Dictionary<object, IDisposable>();
+            sharedDataPerDevice = [];
 
             Recreate(adapter, profile, deviceCreationFlags, windowHandle);
 
@@ -82,15 +79,15 @@ namespace Stride.Graphics
 
         public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
         {
-            if (adapter == null) throw new ArgumentNullException("adapter");
-            if (graphicsProfiles == null) throw new ArgumentNullException("graphicsProfiles");
+            ArgumentNullException.ThrowIfNull(adapter);
+            ArgumentNullException.ThrowIfNull(graphicsProfiles);
 
             Adapter = adapter;
             IsDebugMode = (deviceCreationFlags & DeviceCreationFlags.Debug) != 0;
 
             // Default fallback
             if (graphicsProfiles.Length == 0)
-                graphicsProfiles = new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
+                graphicsProfiles = [GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1];
 
             // Initialize this instance
             InitializePlatformDevice(graphicsProfiles, deviceCreationFlags, windowHandle);

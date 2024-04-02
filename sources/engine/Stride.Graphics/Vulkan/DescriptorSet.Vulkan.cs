@@ -3,15 +3,14 @@
 #if STRIDE_GRAPHICS_API_VULKAN && !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
 using System;
 using System.Collections.Generic;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using Vk = Silk.NET.Vulkan;
 using Stride.Shaders;
 
 namespace Stride.Graphics
 {
     public partial struct DescriptorSet
     {
-        internal readonly VkDescriptorSet NativeDescriptorSet;
+        internal readonly Vk.DescriptorSet NativeDescriptorSet;
         internal readonly GraphicsDevice GraphicsDevice;
         
         public bool IsValid => NativeDescriptorSet != VkDescriptorSet.Null;

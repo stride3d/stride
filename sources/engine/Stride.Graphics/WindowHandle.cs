@@ -17,11 +17,11 @@ namespace Stride.Graphics
         /// <param name="context">The context.</param>
         /// <param name="nativeWindow">The native window instance (Winforms, SDLWindow, ...).</param>
         /// <param name="handle">The associated handle of <paramref name="nativeWindow"/>.</param>
-        public WindowHandle(AppContextType context, object nativeWindow, IntPtr handle)
+        public WindowHandle(AppContextType context, SDL.Window nativeWindow)
         {
             Context = context;
             NativeWindow = nativeWindow;
-            Handle = handle;
+            Handle = nativeWindow.Handle;
         }
 
         /// <summary>

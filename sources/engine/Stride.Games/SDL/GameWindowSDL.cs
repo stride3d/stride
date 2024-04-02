@@ -105,7 +105,7 @@ namespace Stride.Games
                 height = window.ClientSize.Height;
             }
 
-            windowHandle = new WindowHandle(AppContextType.Desktop, window, window.Handle);
+            windowHandle = new WindowHandle(AppContextType.Desktop, window);
 
             window.ClientSize = new Size2(width, height);
 

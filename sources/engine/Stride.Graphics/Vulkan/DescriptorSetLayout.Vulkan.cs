@@ -3,12 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using Stride.Core;
-using Stride.Core.Collections;
-using Stride.Shaders;
 #if STRIDE_GRAPHICS_API_VULKAN
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using Silk.NET.Vulkan;
+using static Silk.NET.Vulkan.Vk;
 
 namespace Stride.Graphics
 {
@@ -51,16 +48,16 @@ namespace Stride.Graphics
         }
 #endif
 
-        internal static unsafe VkDescriptorSetLayout CreateNativeDescriptorSetLayout(GraphicsDevice device, IList<DescriptorSetLayoutBuilder.Entry> entries, out uint[] typeCounts)
+        internal static unsafe Silk.NET.Vulkan.DescriptorSetLayout CreateNativeDescriptorSetLayout(GraphicsDevice device, IList<DescriptorSetLayoutBuilder.Entry> entries, out uint[] typeCounts)
         {
-            var bindings = new VkDescriptorSetLayoutBinding[entries.Count];
-            var immutableSamplers = new VkSampler[entries.Count];
+            var bindings = new Silk.NET.Vulkan.DescriptorSetLayoutBinding[entries.Count];
+            var immutableSamplers = new Sampler[entries.Count];
 
             int usedBindingCount = 0;
 
             typeCounts = new uint[DescriptorTypeCount];
 
-            fixed (VkSampler* immutableSamplersPointer = &immutableSamplers[0])
+            fixed (Sampler* immutableSamplersPointer = &immutableSamplers[0])
             {
                 for (int i = 0; i < entries.Count; i++)
                 {
@@ -70,12 +67,12 @@ namespace Stride.Graphics
                     if (entry.ArraySize == 0)
                         continue;
 
-                    bindings[usedBindingCount] = new VkDescriptorSetLayoutBinding
+                    bindings[usedBindingCount] = new Silk.NET.Vulkan.DescriptorSetLayoutBinding
                     {
-                        descriptorType = VulkanConvertExtensions.ConvertDescriptorType(entry.Class, entry.Type),
-                        stageFlags = VkShaderStageFlags.All, // TODO VULKAN: Filter?
-                        binding = (uint)i,
-                        descriptorCount = (uint)entry.ArraySize
+                        DescriptorType = VulkanConvertExtensions.ConvertDescriptorType(entry.Class, entry.Type),
+                        StageFlags = ShaderStageFlags.All, // TODO VULKAN: Filter?
+                        Binding = (uint)i,
+                        DescriptorCount = (uint)entry.ArraySize
                     };
 
                     if (entry.ImmutableSampler != null)
@@ -89,22 +86,22 @@ namespace Stride.Graphics
                         // Remember this, so we can choose the right VkDescriptorType in DescriptorSet.SetShaderResourceView
                         immutableSamplers[i] = entry.ImmutableSampler.NativeSampler;
                         //bindings[i].VkDescriptorType = VkDescriptorType.CombinedImageSampler;
-                        bindings[usedBindingCount].pImmutableSamplers = immutableSamplersPointer + i;
+                        bindings[usedBindingCount].PImmutableSamplers = immutableSamplersPointer + i;
                     }
 
-                    typeCounts[(int)bindings[usedBindingCount].descriptorType] += bindings[usedBindingCount].descriptorCount;
+                    typeCounts[(int)bindings[usedBindingCount].DescriptorType] += bindings[usedBindingCount].DescriptorCount;
 
                     usedBindingCount++;
                 }
 
-                fixed (VkDescriptorSetLayoutBinding* fBindings = bindings) { // null if array is empty or null
-                    var createInfo = new VkDescriptorSetLayoutCreateInfo
+                fixed (DescriptorSetLayoutBinding* fBindings = bindings) { // null if array is empty or null
+                    var createInfo = new DescriptorSetLayoutCreateInfo
                     {
-                        sType = VkStructureType.DescriptorSetLayoutCreateInfo,
-                        bindingCount = (uint)usedBindingCount,
-                        pBindings = usedBindingCount > 0 ? fBindings : null,
+                        SType = StructureType.DescriptorSetLayoutCreateInfo,
+                        BindingCount = (uint)usedBindingCount,
+                        PBindings = usedBindingCount > 0 ? fBindings : null,
                     };
-                    vkCreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout);
+                    GetApi().CreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout);
                     return descriptorSetLayout;
                 }
             }

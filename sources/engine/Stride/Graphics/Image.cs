@@ -557,7 +557,7 @@ namespace Stride.Graphics
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
         public static Image Load(Stream imageStream, bool loadAsSRGB = false)
         {
-            if (imageStream == null) throw new ArgumentNullException("imageStream");
+            ArgumentNullException.ThrowIfNull(imageStream);
             // Read the whole stream into memory.
             return Load(Utilities.ReadStream(imageStream), loadAsSRGB);
         }
@@ -570,7 +570,7 @@ namespace Stride.Graphics
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
         public void Save(Stream imageStream, ImageFileType fileType)
         {
-            if (imageStream == null) throw new ArgumentNullException("imageStream");
+            ArgumentNullException.ThrowIfNull(imageStream);
             Save(PixelBuffers, this.PixelBuffers.Length, Description, imageStream, fileType);
         }
 
@@ -920,9 +920,7 @@ namespace Stride.Graphics
 
         internal static MipMapDescription[] CalculateMipMapDescription(ImageDescription metadata, PitchFlags cpFlags = PitchFlags.None)
         {
-            int nImages;
-            int pixelSize;
-            return CalculateMipMapDescription(metadata, cpFlags, out nImages, out pixelSize);
+            return CalculateMipMapDescription(metadata, cpFlags, out var nImages, out var pixelSize);
         }
 
         internal static MipMapDescription[] CalculateMipMapDescription(ImageDescription metadata, PitchFlags cpFlags, out int nImages, out int pixelSize)
