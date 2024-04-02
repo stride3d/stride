@@ -175,7 +175,7 @@ namespace Stride.Importer.ThreeD
             vfsInputPath = VirtualFileSystem.GetParentFolder(inputFilename);
 
             var propStore = assimp.CreatePropertyStore();
-            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", preservePivots);
+            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 1);
            assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
 
@@ -542,7 +542,7 @@ namespace Stride.Importer.ThreeD
 
             // Extract scene scaling and rotation from the root node.
             // Bake scaling into all node's positions and rotation into the 1st-level nodes.
-            if (parentIndex == 0)
+            if (parentIndex == -1)
             {
                 rootTransform = fromNode->MTransformation.ToStrideMatrix();
 
@@ -557,8 +557,8 @@ namespace Stride.Importer.ThreeD
             else
             {
                 
-                var transform = rootTransformInverse * fromNode->MTransformation.ToStrideMatrix() * rootTransform;
-                //var transform = fromNode->MTransformation.ToStrideMatrix();
+                //var transform = rootTransformInverse * fromNode->MTransformation.ToStrideMatrix() * rootTransform;
+                var transform = fromNode->MTransformation.ToStrideMatrix();
                 transform.Decompose(out modelNodeDefinition.Transform.Scale, out modelNodeDefinition.Transform.Rotation, out modelNodeDefinition.Transform.Position);
             }
 
