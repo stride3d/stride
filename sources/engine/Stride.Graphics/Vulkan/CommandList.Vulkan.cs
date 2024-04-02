@@ -1484,10 +1484,10 @@ namespace Stride.Graphics
                         if (resource.StagingBuilder == this)
                             FlushInternal();
 
-                        if (!resource.StagingFenceValue.HasValue)
-                            throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
-
-                        GraphicsDevice.WaitForFenceInternal(resource.StagingFenceValue.Value);
+                        if (resource.StagingFenceValue.HasValue)
+                        {
+                            GraphicsDevice.WaitForFenceInternal(resource.StagingFenceValue.Value);
+                        }
                     }
                 }
             }
