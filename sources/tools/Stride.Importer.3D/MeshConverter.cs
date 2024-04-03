@@ -207,7 +207,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetDePivotedBoneNames(scene));
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetBoneList(scene));
 
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
@@ -262,7 +262,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetDePivotedBoneNames(scene));
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetBoneList(scene));
 
             return new Rendering.Skeleton
             {
@@ -280,7 +280,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetDePivotedBoneNames(scene));
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetBoneList(scene));
 
             if (scene->MNumAnimations > 0)
             {
@@ -469,9 +469,9 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe List<string> GetDePivotedBoneNames(Scene* scene)
+        private unsafe HashSet<string> GetBoneList(Scene* scene)
         {
-            List<string> bones = new List<string>(); 
+            HashSet<string> bones = new HashSet<string>(); 
             for (uint i = 0; i < scene->MNumMeshes; i++)
             {
                 var lMesh = scene->MMeshes[i];
@@ -533,7 +533,7 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex, List<string> filterInNodes)
+        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex, HashSet<string> filterInNodes)
         {
             var nodeIndex = nodes.Count;
 
