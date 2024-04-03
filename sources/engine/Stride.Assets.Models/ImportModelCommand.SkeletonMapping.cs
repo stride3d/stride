@@ -61,7 +61,6 @@ namespace Stride.Assets.Models
                     }
 
                     // TODO: Check hierarchy for inconsistencies
-
                     // Name match
                     SourceToTarget[modelIndex] = skeletonIndex;
                     targetToSource[skeletonIndex] = modelIndex;

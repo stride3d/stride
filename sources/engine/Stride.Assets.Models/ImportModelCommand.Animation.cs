@@ -113,11 +113,11 @@ namespace Stride.Assets.Models
                         if (nodeAnimationClip == rootMotionAnimationClip)
                             continue;
 
-                        // Find parent node                     
+                        // Find parent node  
                         var parentNodeIndex = modelSkeleton.Nodes[nodeIndex].ParentIndex;
 
                         if (parentNodeIndex != -1 && skeletonMapping.SourceToSource[parentNodeIndex] != parentNodeIndex)
-                        {                 
+                        {
                             // Some nodes were removed, we need to concat the anim curves
                             var currentNodeIndex = nodeIndex;
                             var nodesToMerge = new List<Tuple<ModelNodeDefinition, AnimationBlender, AnimationClipEvaluator>>();
@@ -125,7 +125,7 @@ namespace Stride.Assets.Models
                             {
                                 AnimationClip animationClipToMerge;
                                 AnimationClipEvaluator animationClipEvaluator = null;
-                                AnimationBlender animationBlender = null;                
+                                AnimationBlender animationBlender = null;           
                                 if(GetAnimationKeyVirtualKey(modelSkeleton.Nodes[currentNodeIndex].Name, animationClips, out animationClipToMerge))
                                 {
                                     animationBlender = new AnimationBlender();
