@@ -20,7 +20,7 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
             object result = null;
             while (type != null)
             {
-                if (AssetsPlugin.TypeImagesDictionary.TryGetValue(type, out result))
+                if (AssetsEditorPlugin.TypeImagesDictionary.TryGetValue(type, out result))
                     break;
 
                 type = type.BaseType;

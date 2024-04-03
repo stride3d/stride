@@ -3,12 +3,12 @@
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Commands;
 using Stride.Assets.Presentation.Preview;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
-using Stride.Editor.Preview.ViewModel;
 
 namespace Stride.Assets.Presentation.ViewModel.Preview
 {
-    [AssetPreviewViewModel(typeof(ProceduralModelPreview))]
+    [AssetPreviewViewModel<ProceduralModelPreview>]
     public class ProceduralModelPreviewViewModel : AssetPreviewViewModel
     {
         private ProceduralModelPreview modelPreview;

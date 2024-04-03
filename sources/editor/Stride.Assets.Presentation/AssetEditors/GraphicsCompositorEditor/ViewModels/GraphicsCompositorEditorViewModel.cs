@@ -18,12 +18,13 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Rendering;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
 namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
 {
-    [AssetEditorViewModel(typeof(GraphicsCompositorAsset), typeof(Views.GraphicsCompositorEditorView))]
+    [AssetEditorViewModel<GraphicsCompositorViewModel>]
     public class GraphicsCompositorEditorViewModel : AssetEditorViewModel
     {
         protected readonly GraphViewModelService ViewModelService;
@@ -62,7 +63,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
             RemoveSelectedCameraSlotsCommand = new AnonymousCommand(ServiceProvider, RemoveSelectedCameraSlots);
         }
 
-        public new GraphicsCompositorViewModel Asset => (GraphicsCompositorViewModel)base.Asset;
+        public override GraphicsCompositorViewModel Asset => (GraphicsCompositorViewModel)base.Asset;
 
         public ObservableList<RenderStageViewModel> RenderStages { get; } = new ObservableList<RenderStageViewModel>();
 

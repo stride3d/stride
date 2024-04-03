@@ -3,13 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.Preview.Views;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
-using Stride.Editor.Preview;
+using Stride.Editor.Annotations;
 using Stride.Graphics;
 
 namespace Stride.Assets.Presentation.Preview
@@ -25,7 +23,7 @@ namespace Stride.Assets.Presentation.Preview
     /// <summary>
     /// A base preview implementation for all asset inheriting from <see cref="SpriteSheetAsset"/>.
     /// </summary>
-    [AssetPreview(typeof(SpriteSheetAsset), typeof(SpriteSheetPreviewView))]
+    [AssetPreview<SpriteSheetAsset>]
     public class SpriteSheetPreview : PreviewFromSpriteBatch<SpriteSheetAsset>
     {
         protected SpriteSheet SpriteSheet;

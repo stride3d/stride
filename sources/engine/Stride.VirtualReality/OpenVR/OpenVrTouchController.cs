@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
-using System;
+using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games;
 
@@ -75,13 +75,14 @@ namespace Stride.VirtualReality
         public override Vector2 ThumbAxis => controller?.GetAxis() ?? Vector2.Zero;
 
         public override Vector2 ThumbstickAxis => controller?.GetAxis() ?? Vector2.Zero;
+        public override ControllerHaptics HapticsSupport => ControllerHaptics.Limited;
 
         private OpenVR.Controller.ButtonId ToOpenVrButton(TouchControllerButton button)
         {
             switch (button)
             {
                 case TouchControllerButton.Thumbstick:
-                    return OpenVR.Controller.ButtonId.ButtonSteamVrTouchpad;              
+                    return OpenVR.Controller.ButtonId.ButtonSteamVrTouchpad;
                 case TouchControllerButton.Trigger:
                     return OpenVR.Controller.ButtonId.ButtonSteamVrTrigger;
                 case TouchControllerButton.Grip:
@@ -121,6 +122,17 @@ namespace Stride.VirtualReality
         public override bool IsTouchReleased(TouchControllerButton button)
         {
             return controller?.GetTouchUp(ToOpenVrButton(button)) ?? false;
+        }
+
+        public override async Task Vibrate(int durationMs, float frequency, float amplitude)
+        {
+            while (durationMs > 60)
+            {
+                Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex + 1, 0, 1000 * 60);
+                durationMs -= 60;
+                await Task.Delay(60);
+            }
+            Valve.VR.OpenVR.System.TriggerHapticPulse((uint)controllerIndex + 1, 0, (ushort)(1000 * durationMs));
         }
 
         public override Vector3 Position => currentPos;
