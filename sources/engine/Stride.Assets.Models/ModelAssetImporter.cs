@@ -167,7 +167,6 @@ namespace Stride.Assets.Models
             }
         }
 
-
         private static void ImportAnimation(List<AssetItem> assetReferences, UFile localPath, string animationNodeName, int animationNodeIndex, AssetItem skeletonAsset, TimeSpan animationStartTime, TimeSpan animationEndTime)
         {
             var assetSource = localPath;
@@ -193,9 +192,6 @@ namespace Stride.Assets.Models
 
             assetReferences.Add(new AssetItem(animUrl, asset));
         }
-        
-
-
 
         private static void ImportModel(List<AssetItem> assetReferences, UFile assetSource, UFile localPath, EntityInfo entityInfo, bool shouldPostFixName, AssetItem skeletonAsset)
         {

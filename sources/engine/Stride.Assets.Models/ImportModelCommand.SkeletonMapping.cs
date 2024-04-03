@@ -19,6 +19,7 @@ namespace Stride.Assets.Models
             public readonly string[] NodeNames;
 
             public int MapCount=0;
+
             public SkeletonMapping(Skeleton targetSkeleton, Skeleton sourceSkeleton)
             {
                 SourceToTarget = new int[sourceSkeleton.Nodes.Length]; // model => skeleton mapping
