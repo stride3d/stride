@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Assets.Materials;
@@ -45,6 +46,7 @@ namespace Stride.Importer.ThreeD
             public const uint SplitLargeMeshes = 128;
             public const uint GenUVCoords = 262144;
             public const uint GlobalScaling = 134217728;
+            public const uint OptimizeGraph = 4194304;
         }
 
         static MeshConverter()
@@ -161,12 +163,12 @@ namespace Stride.Importer.ThreeD
             uint importFlags = 0;
             var postProcessFlags = PostProcessSteps.None;
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 0);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 00);
 
             return ProcessSkeleton(scene);
         }
 
-        private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, uint postProcessFlags, int preservePivots=1)
+        private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, uint postProcessFlags, int preservePivots)
         {
             ResetConversionData();
 
@@ -175,7 +177,12 @@ namespace Stride.Importer.ThreeD
             vfsInputPath = VirtualFileSystem.GetParentFolder(inputFilename);
 
             var propStore = assimp.CreatePropertyStore();
-           assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS",0);
+
+
+          //  int valp = int.Parse(System.IO.File.ReadAllText(@"C:\Users\Shadow\Desktop\valp.txt"));
+
+            //valp = preservePivots;
+            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS",0);
            assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
 
@@ -205,7 +212,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetDePivotedBoneNames(scene));
 
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
@@ -260,7 +267,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetDePivotedBoneNames(scene));
 
             return new Rendering.Skeleton
             {
@@ -278,7 +285,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetDePivotedBoneNames(scene));
 
             if (scene->MNumAnimations > 0)
             {
@@ -467,7 +474,24 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-
+        private unsafe List<string> GetDePivotedBoneNames(Scene* scene)
+        {
+            List<string> bones = new List<string>(); 
+            for (uint i = 0; i < scene->MNumMeshes; i++)
+            {
+                var lMesh = scene->MMeshes[i];
+                var boneCount = lMesh->MNumBones;
+                for (int j = 0; j < boneCount; j++)
+                {
+                    string boneName = lMesh->MBones[j]->MName.AsString;
+                    if(!bones.Contains(boneName))
+                    {
+                        bones.Add(boneName);
+                    }
+                }
+            }
+            return bones;
+        }
 
         private unsafe void GenerateMeshNames(Scene* scene, Dictionary<IntPtr, string> meshNames)
         {
@@ -476,8 +500,8 @@ namespace Stride.Importer.ThreeD
             {
                 var lMesh = scene->MMeshes[i];
                 baseNames.Add(lMesh->MName.AsString.CleanNodeName());
+                
             }
-
             GenerateUniqueNames(meshNames, baseNames, i => (IntPtr)scene->MMeshes[i]);
         }
 
@@ -514,7 +538,7 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex)
+        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex, List<string> filterInNodes)
         {
             var nodeIndex = nodes.Count;
 
@@ -540,8 +564,10 @@ namespace Stride.Importer.ThreeD
                 Flags = ModelNodeFlags.Default
             };
 
+            var meshes = fromNode->MMeshes;
             // Extract scene scaling and rotation from the root node.
             // Bake scaling into all node's positions and rotation into the 1st-level nodes.
+
             if (parentIndex == -1)
             {
                 rootTransform = fromNode->MTransformation.ToStrideMatrix();
@@ -556,10 +582,20 @@ namespace Stride.Importer.ThreeD
             }
             else
             {
-                
-                //var transform = rootTransformInverse * fromNode->MTransformation.ToStrideMatrix() * rootTransform;
                 var transform = fromNode->MTransformation.ToStrideMatrix();
                 transform.Decompose(out modelNodeDefinition.Transform.Scale, out modelNodeDefinition.Transform.Rotation, out modelNodeDefinition.Transform.Position);
+
+            }
+
+          
+            if (filterInNodes!=null&&filterInNodes.Count>0)
+            {
+                if(!filterInNodes.Contains(fromNode->MName.AsString))         
+                {
+                    modelNodeDefinition.Transform.Rotation = Quaternion.Identity;
+                    modelNodeDefinition.Transform.Scale = Vector3.One;
+                    modelNodeDefinition.Transform.Position = Vector3.Zero;
+                }
             }
 
             nodes.Add(modelNodeDefinition);
@@ -567,7 +603,7 @@ namespace Stride.Importer.ThreeD
             // register the children
             for (uint child = 0; child < fromNode->MNumChildren; ++child)
             {
-                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex);
+                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex, filterInNodes);
             }
         }
 
