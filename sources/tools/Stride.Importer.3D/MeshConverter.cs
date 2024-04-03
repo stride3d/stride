@@ -177,13 +177,8 @@ namespace Stride.Importer.ThreeD
             vfsInputPath = VirtualFileSystem.GetParentFolder(inputFilename);
 
             var propStore = assimp.CreatePropertyStore();
-
-
-          //  int valp = int.Parse(System.IO.File.ReadAllText(@"C:\Users\Shadow\Desktop\valp.txt"));
-
-            //valp = preservePivots;
-            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS",0);
-           assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
+            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0);
+            assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
 
             var postProcessFlags1 = PostProcessActions.CalculateTangentSpace
