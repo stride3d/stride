@@ -46,11 +46,12 @@
         Condition="'$(StrideEnableCodeAnalysis)' != 'true'">
     <ItemGroup>
       <!-- We want to include Stride analyzers by default -->
-      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$(FullPath.Contains('Stride'))" />
+      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Stride'))" />
       <!-- We want to include source generators by default -->
-      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$(FullPath.Contains('Generator'))" />
-      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$(FullPath.Contains('SourceGeneration'))" />
+      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Generator'))" />
+      <AnalyzersNotToRemove Include="@(Analyzer)" Condition="$([System.String]::Copy(%(FullPath)).Contains('SourceGeneration'))" />
       <AnalyzersToRemove Include="@(Analyzer)" Exclude="@(AnalyzersNotToRemove)" />
+      <Analyzer Remove="@(AnalyzersToRemove)"/>
     </ItemGroup>
   </Target>
 
