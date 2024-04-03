@@ -101,7 +101,7 @@ namespace Stride.Importer.ThreeD
                     postProcessFlags |= PostProcessSteps.RemoveRedundantMaterials;
                 }
 
-                var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 0);
+                var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
 
                 // If scene is null, something went wrong inside Assimp
                 if (scene == null)
@@ -146,14 +146,14 @@ namespace Stride.Importer.ThreeD
         {
             uint importFlags = 0;
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 0);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
             return ConvertAssimpScene(scene);
         }
 
         public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename, int animationIndex)
         {
             uint importFlags = 0;
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 0);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
 
             return ProcessAnimations(scene, animationIndex);
         }
@@ -163,12 +163,12 @@ namespace Stride.Importer.ThreeD
             uint importFlags = 0;
             var postProcessFlags = PostProcessSteps.None;
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, 0, 00);
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
 
             return ProcessSkeleton(scene);
         }
 
-        private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, uint postProcessFlags, int preservePivots)
+        private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, uint postProcessFlags)
         {
             ResetConversionData();
 
@@ -579,11 +579,10 @@ namespace Stride.Importer.ThreeD
             {
                 var transform = fromNode->MTransformation.ToStrideMatrix();
                 transform.Decompose(out modelNodeDefinition.Transform.Scale, out modelNodeDefinition.Transform.Rotation, out modelNodeDefinition.Transform.Position);
-
             }
-
           
-            if (filterInNodes!=null&&filterInNodes.Count>0)
+            if (filterInNodes!=null 
+                && filterInNodes.Count>0)
             {
                 if(!filterInNodes.Contains(fromNode->MName.AsString))         
                 {
