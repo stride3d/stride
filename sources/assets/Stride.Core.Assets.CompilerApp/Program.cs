@@ -4,37 +4,22 @@
 using System;
 using System.IO;
 
-namespace Stride.Core.Assets.CompilerApp
+namespace Stride.Core.Assets.CompilerApp;
+class Program
 {
-    class Program
+    private static int Main(string[] args)
     {
-        private static int Main(string[] args)
+        try
         {
-            try
-            {
-                // Running first time? If yes, create nuget redirect package.
-                //var packageVersion = new PackageVersion(StrideVersion.NuGetVersion);
-                //if (PackageStore.Instance.IsDevelopmentStore)
-                //{
-                //    PackageStore.Instance.CheckDeveloperTargetRedirects("Stride", packageVersion, PackageStore.Instance.InstallationPath).Wait();
-                //}
+            var packageBuilder = new PackageBuilderApp();
+            var returnValue =  packageBuilder.Run(args);
 
-                var packageBuilder = new PackageBuilderApp();
-                var returnValue =  packageBuilder.Run(args);
-
-                return returnValue;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Unexpected exception in AssetCompiler: {0}", ex);
-                return 1;
-            }
-            finally
-            {
-                // Free all native library loaded from the process
-                // We cannot free native libraries are some of them are loaded from static module initializer
-                // NativeLibrary.UnLoadAll();
-            }
+            return returnValue;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Unexpected exception in AssetCompiler: {0}", ex);
+            return 1;
         }
     }
 }
