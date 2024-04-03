@@ -187,7 +187,6 @@ namespace Stride.Importer.ThreeD
             | PostProcessActions.SortByPrimitiveType
             | PostProcessActions.FlipWindingOrder
             | PostProcessActions.FlipUVs
-            | PostProcessActions.GenUVCoords
             | PostProcessActions.GlobalScaling;
 
             scene = assimp.ApplyPostProcessing(scene, postProcessFlags1);
