@@ -43,8 +43,12 @@ namespace Stride.Graphics
 
             if (enableValidation)
             {
-                Span<LayerProperties> layers = new LayerProperties[32];
-                vk.EnumerateInstanceLayerProperties((uint*)null, layers);
+                uint layerCount = 0;
+                vk.EnumerateInstanceLayerProperties(ref layerCount, null);
+
+                Span<LayerProperties> layers = stackalloc LayerProperties[(int)layerCount];
+
+                vk.EnumerateInstanceLayerProperties(&layerCount, layers);
 
                 var availableLayerNames = new HashSet<string>();
 
