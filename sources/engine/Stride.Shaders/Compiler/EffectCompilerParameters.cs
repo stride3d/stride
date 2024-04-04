@@ -21,6 +21,9 @@ namespace Stride.Shaders.Compiler
         {
             if(OperatingSystem.IsWindows())
                 return GraphicsPlatform.Direct3D11;
+            #if STRIDE_GRAPHICS_API_VULKAN
+                return GraphicsPlatform.Vulkan;
+            #endif
             return GraphicsPlatform.OpenGL;
         }
 
