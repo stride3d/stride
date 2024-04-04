@@ -197,9 +197,9 @@ namespace Stride.Graphics
             var fenceValue = NextFenceValue++;
 
             // Create a fence
-            var fenceCreateInfo = new VK.FenceCreateInfo { SType = VK.StructureType.FenceCreateInfo };
+            var fenceCreateInfo = new FenceCreateInfo { SType = StructureType.FenceCreateInfo };
             vk.CreateFence(nativeDevice, &fenceCreateInfo, null, out var fence);
-            nativeFences.Enqueue(new KeyValuePair<long, VK.Fence>(fenceValue, fence));
+            nativeFences.Enqueue(new KeyValuePair<long, Fence>(fenceValue, fence));
 
             // Collect resources
             var commandBuffers = stackalloc VK.CommandBuffer[count];
@@ -212,9 +212,9 @@ namespace Stride.Graphics
             // Submit commands
             var pipelineStageFlags = VK.PipelineStageFlags.BottomOfPipeBit;
             var presentSemaphoreCopy = presentSemaphore;
-            var submitInfo = new VK.SubmitInfo
+            var submitInfo = new SubmitInfo
             {
-                SType = VK.StructureType.SubmitInfo,
+                SType = StructureType.SubmitInfo,
                 CommandBufferCount = (uint)count,
                 PCommandBuffers = commandBuffers,
                 WaitSemaphoreCount = presentSemaphore.Handle != 0 ? 1U : 0U,
@@ -273,15 +273,15 @@ namespace Stride.Graphics
             // TODO VULKAN
             // Create Vulkan device based on profile
             float queuePriorities = 0;
-            var queueCreateInfo = new VK.DeviceQueueCreateInfo
+            var queueCreateInfo = new DeviceQueueCreateInfo
             {
-                SType = VK.StructureType.DeviceQueueCreateInfo,
+                SType = StructureType.DeviceQueueCreateInfo,
                 QueueFamilyIndex = 0,
                 QueueCount = 1,
                 PQueuePriorities = &queuePriorities,
             };
 
-            var enabledFeature = new VK.PhysicalDeviceFeatures
+            var enabledFeature = new PhysicalDeviceFeatures
             {
                 FillModeNonSolid = true,
                 ShaderClipDistance = true,
@@ -324,9 +324,9 @@ namespace Stride.Graphics
             {
                 // fixed yields null if array is empty or null
                 fixed (void* fEnabledExtensionNames = enabledExtensionNames) {
-                var deviceCreateInfo = new VK.DeviceCreateInfo
+                var deviceCreateInfo = new DeviceCreateInfo
                 {
-                    SType = VK.StructureType.DeviceCreateInfo,
+                    SType = StructureType.DeviceCreateInfo,
                     QueueCreateInfoCount = 1,
                     PQueueCreateInfos = &queueCreateInfo,
                     EnabledExtensionCount = (uint)enabledExtensionNames.Length,
@@ -350,11 +350,11 @@ namespace Stride.Graphics
             NativeCopyCommandPools = new ThreadLocal<VK.CommandPool>(() =>
             {
                 //// Prepare copy command list (start it closed, so that every new use start with a Reset)
-                var commandPoolCreateInfo = new VK.CommandPoolCreateInfo
+                var commandPoolCreateInfo = new CommandPoolCreateInfo
                 {
-                    SType = VK.StructureType.CommandPoolCreateInfo,
+                    SType = StructureType.CommandPoolCreateInfo,
                     QueueFamilyIndex = 0, //device.NativeCommandQueue.FamilyIndex
-                    Flags = VK.CommandPoolCreateFlags.ResetCommandBufferBit
+                    Flags = CommandPoolCreateFlags.ResetCommandBufferBit
                 };
 
                 vk.CreateCommandPool(NativeDevice, &commandPoolCreateInfo, null, out var result);
@@ -388,12 +388,12 @@ namespace Stride.Graphics
                 // TODO D3D12 ResourceStates.CopySource not working?
                 nativeUploadBufferSize = Math.Max(4 * 1024 * 1024, size);
 
-                var bufferCreateInfo = new VK.BufferCreateInfo
+                var bufferCreateInfo = new BufferCreateInfo
                 {
-                    SType = VK.StructureType.BufferCreateInfo,
+                    SType = StructureType.BufferCreateInfo,
                     Size = (ulong)nativeUploadBufferSize,
                     Flags = BufferCreateFlags.None,
-                    Usage = VK.BufferUsageFlags.TransferSrcBit,
+                    Usage = BufferUsageFlags.TransferSrcBit,
                 };
                 vk.CreateBuffer(NativeDevice, &bufferCreateInfo, null, out nativeUploadBuffer);
                 AllocateMemory(VK.MemoryPropertyFlags.HostVisibleBit | VK.MemoryPropertyFlags.HostCoherentBit);
@@ -417,9 +417,9 @@ namespace Stride.Graphics
             if (memoryRequirements.Size == 0)
                 return;
 
-            var allocateInfo = new VK.MemoryAllocateInfo
+            var allocateInfo = new MemoryAllocateInfo
             {
-                SType = VK.StructureType.MemoryAllocateInfo,
+                SType = StructureType.MemoryAllocateInfo,
                 AllocationSize = memoryRequirements.Size,
             };
 
@@ -509,9 +509,9 @@ namespace Stride.Graphics
             var fenceValue = NextFenceValue++;
 
             // Create new fence
-            var fenceCreateInfo = new VK.FenceCreateInfo { SType = VK.StructureType.FenceCreateInfo };
+            var fenceCreateInfo = new FenceCreateInfo { SType = StructureType.FenceCreateInfo };
             vk.CreateFence(nativeDevice, &fenceCreateInfo, null, out var fence);
-            nativeFences.Enqueue(new KeyValuePair<long, VK.Fence>(fenceValue, fence));
+            nativeFences.Enqueue(new KeyValuePair<long, Fence>(fenceValue, fence));
 
             // Collect resources
             RecycleCommandListResources(commandList, fenceValue);
@@ -621,7 +621,7 @@ namespace Stride.Graphics
 
         public unsafe VK.Semaphore GetNextPresentSemaphore()
         {
-            var createInfo = new VK.SemaphoreCreateInfo { SType = VK.StructureType.SemaphoreCreateInfo };
+            var createInfo = new SemaphoreCreateInfo { SType = StructureType.SemaphoreCreateInfo };
             vk.CreateSemaphore(NativeDevice, &createInfo, null, out presentSemaphore);
             Collect(presentSemaphore);
             return presentSemaphore;

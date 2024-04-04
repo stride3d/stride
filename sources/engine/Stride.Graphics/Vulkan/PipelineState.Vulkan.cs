@@ -459,7 +459,7 @@ namespace Stride.Graphics
             return reader.Read<ShaderInputBytecode>();
         }
 
-        private PipelineRasterizationStateCreateInfo CreateRasterizationState(RasterizerStateDescription description)
+        private static PipelineRasterizationStateCreateInfo CreateRasterizationState(RasterizerStateDescription description)
         {
             return new PipelineRasterizationStateCreateInfo
             {
@@ -477,7 +477,7 @@ namespace Stride.Graphics
             };
         }
 
-        private PipelineDepthStencilStateCreateInfo CreateDepthStencilState(PipelineStateDescription pipelineStateDescription)
+        private static PipelineDepthStencilStateCreateInfo CreateDepthStencilState(PipelineStateDescription pipelineStateDescription)
         {
             var description = pipelineStateDescription.DepthStencilState;
 

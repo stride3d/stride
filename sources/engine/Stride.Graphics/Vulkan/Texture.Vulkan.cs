@@ -315,6 +315,7 @@ namespace Stride.Graphics
                 var bufferBarriers = stackalloc BufferMemoryBarrier[2];
                 bufferBarriers[0] = new BufferMemoryBarrier
                 {
+                    SType = StructureType.BufferMemoryBarrier,
                     Buffer = uploadResource,
                     SrcAccessMask = AccessFlags.HostWriteBit,
                     DstAccessMask = AccessFlags.TransferReadBit,
@@ -326,6 +327,7 @@ namespace Stride.Graphics
                 {
                     bufferBarriers[1] = new BufferMemoryBarrier
                     {
+                        SType = StructureType.BufferMemoryBarrier,
                         Buffer = NativeBuffer, 
                         SrcAccessMask = NativeAccessMask, 
                         DstAccessMask = AccessFlags.TransferWriteBit
@@ -337,6 +339,7 @@ namespace Stride.Graphics
                     // Image barrier
                     var initialBarrier = new ImageMemoryBarrier
                     {
+                        SType = StructureType.ImageMemoryBarrier,
                         Image = NativeImage, 
                         SubresourceRange = new ImageSubresourceRange(NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
                         SrcAccessMask = AccessFlags.NoneKhr, 
@@ -398,6 +401,7 @@ namespace Stride.Graphics
                 {
                     bufferBarriers[0] = new BufferMemoryBarrier
                     {
+                        SType = StructureType.BufferMemoryBarrier,
                         Buffer = NativeBuffer, 
                         SrcAccessMask = AccessFlags.TransferWriteBit, 
                         DstAccessMask = NativeAccessMask
@@ -413,6 +417,7 @@ namespace Stride.Graphics
                 // Transition to default layout
                 var imageMemoryBarrier = new ImageMemoryBarrier
                 {
+                    SType = StructureType.ImageMemoryBarrier,
                     Image = NativeImage,
                     SubresourceRange = new ImageSubresourceRange
                     {

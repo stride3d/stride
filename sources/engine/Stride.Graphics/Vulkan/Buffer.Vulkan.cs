@@ -198,6 +198,7 @@ namespace Stride.Graphics
                         // Barrier
                         var memoryBarrier = new BufferMemoryBarrier
                         {
+                            SType = StructureType.BufferMemoryBarrier,
                             Buffer = uploadResource,
                             SrcAccessMask = AccessFlags.HostWriteBit,
                             DstAccessMask = AccessFlags.TransferReadBit,
@@ -224,6 +225,7 @@ namespace Stride.Graphics
                 // Barrier
                 var bufferMemoryBarrier = new BufferMemoryBarrier
                 {
+                    SType = StructureType.BufferMemoryBarrier,
                     Buffer = NativeBuffer, 
                     SrcAccessMask = AccessFlags.TransferWriteBit, 
                     DstAccessMask = NativeAccessMask

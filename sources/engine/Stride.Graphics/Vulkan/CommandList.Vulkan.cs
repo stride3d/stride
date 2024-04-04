@@ -478,6 +478,7 @@ namespace Stride.Graphics
 
                 var memoryBarrier = new ImageMemoryBarrier
                 {
+                    SType = StructureType.ImageMemoryBarrier,
                     Image = texture.NativeImage,
                     SubresourceRange = new ImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
                     SrcAccessMask = oldAccessMask,
@@ -721,6 +722,7 @@ namespace Stride.Graphics
 
             var memoryBarrier = new ImageMemoryBarrier
             {
+                SType = StructureType.ImageMemoryBarrier,
                 Image = depthStencilBuffer.NativeImage,
                 SubresourceRange = barrierRange,
                 SrcAccessMask = depthStencilBuffer.NativeAccessMask,
@@ -735,6 +737,7 @@ namespace Stride.Graphics
 
             memoryBarrier = new ImageMemoryBarrier
                 {
+                    SType = StructureType.ImageMemoryBarrier,
                     Image = depthStencilBuffer.NativeImage,
                     SubresourceRange =  barrierRange, 
                     SrcAccessMask = AccessFlags.TransferWriteBit,
@@ -763,6 +766,7 @@ namespace Stride.Graphics
 
             var memoryBarrier = new ImageMemoryBarrier
             {
+                SType = StructureType.ImageMemoryBarrier,
                 Image = renderTarget.NativeImage,
                 SubresourceRange = clearRange,
                 SrcAccessMask = renderTarget.NativeAccessMask,
@@ -775,13 +779,14 @@ namespace Stride.Graphics
             vk.CmdClearColorImage(currentCommandList.NativeCommandBuffer, renderTarget.NativeImage, ImageLayout.TransferDstOptimal, (ClearColorValue*)&color, 1, &clearRange);
 
             memoryBarrier = new ImageMemoryBarrier
-                {
-                    Image = renderTarget.NativeImage, 
-                    SubresourceRange = clearRange, 
-                    SrcAccessMask= AccessFlags.TransferWriteBit,
-                    DstAccessMask= renderTarget.NativeAccessMask,
-                    OldLayout = ImageLayout.TransferDstOptimal,
-                    NewLayout = renderTarget.NativeLayout
+            {
+                SType = StructureType.ImageMemoryBarrier,
+                Image = renderTarget.NativeImage, 
+                SubresourceRange = clearRange, 
+                SrcAccessMask= AccessFlags.TransferWriteBit,
+                DstAccessMask= renderTarget.NativeAccessMask,
+                OldLayout = ImageLayout.TransferDstOptimal,
+                NewLayout = renderTarget.NativeLayout
             };
             vk.CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, PipelineStageFlags.TransferBit, renderTarget.NativePipelineStageMask, 0, 0, null, 0, null, 1, &memoryBarrier);
 
@@ -889,7 +894,8 @@ namespace Stride.Graphics
                 {
                     bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier
                     {
-                        Buffer= sourceParent.NativeBuffer,
+                        SType = StructureType.BufferMemoryBarrier,
+                        Buffer = sourceParent.NativeBuffer,
                         SrcAccessMask = sourceTexture.NativeAccessMask,
                         DstAccessMask = AccessFlags.TransferReadBit
                     };
@@ -898,6 +904,7 @@ namespace Stride.Graphics
                 {
                     imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier
                     {
+                        SType = StructureType.ImageMemoryBarrier,
                         Image = sourceParent.NativeImage,
                         SubresourceRange = new ImageSubresourceRange(sourceParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
                         SrcAccessMask = sourceTexture.NativeAccessMask,
@@ -911,6 +918,7 @@ namespace Stride.Graphics
                 {
                     bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier
                     {
+                        SType = StructureType.BufferMemoryBarrier,
                         Buffer = destinationParent.NativeBuffer,
                         SrcAccessMask = destinationTexture.NativeAccessMask,
                         DstAccessMask = AccessFlags.TransferWriteBit
@@ -920,6 +928,7 @@ namespace Stride.Graphics
                 {
                     imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier
                     {
+                        SType = StructureType.ImageMemoryBarrier,
                         Image = destinationParent.NativeImage,
                         SubresourceRange = new ImageSubresourceRange(destinationParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
                         SrcAccessMask = destinationTexture.NativeAccessMask,
@@ -1041,12 +1050,14 @@ namespace Stride.Graphics
                 var bufferBarriers = stackalloc BufferMemoryBarrier[2];
                 bufferBarriers[0] = new BufferMemoryBarrier
                 {
+                    SType = StructureType.BufferMemoryBarrier,
                     Buffer = sourceBuffer.NativeBuffer,
                     SrcAccessMask = sourceBuffer.NativeAccessMask,
                     DstAccessMask = AccessFlags.TransferReadBit
                 };
                 bufferBarriers[1] = new BufferMemoryBarrier
                 {
+                    SType = StructureType.BufferMemoryBarrier,
                     Buffer = destinationBuffer.NativeBuffer,
                     SrcAccessMask = destinationBuffer.NativeAccessMask,
                     DstAccessMask = AccessFlags.TransferWriteBit
@@ -1065,12 +1076,14 @@ namespace Stride.Graphics
 
                 bufferBarriers[0] = new BufferMemoryBarrier
                 {
+                    SType = StructureType.BufferMemoryBarrier,
                     Buffer = sourceBuffer.NativeBuffer,
                     SrcAccessMask = AccessFlags.TransferReadBit,
                     DstAccessMask = sourceBuffer.NativeAccessMask
                 };
                 bufferBarriers[1] = new BufferMemoryBarrier
                 {
+                    SType = StructureType.BufferMemoryBarrier,
                     Buffer = destinationBuffer.NativeBuffer, 
                     SrcAccessMask = AccessFlags.TransferWriteBit, 
                     DstAccessMask = destinationBuffer.NativeAccessMask
@@ -1117,6 +1130,7 @@ namespace Stride.Graphics
                 {
                     bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier
                     {
+                        SType = StructureType.BufferMemoryBarrier,
                         Buffer = sourceParent.NativeBuffer,
                         SrcAccessMask = sourceParent.NativeAccessMask,
                         DstAccessMask = AccessFlags.TransferReadBit
@@ -1126,6 +1140,7 @@ namespace Stride.Graphics
                 {
                     imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier
                     {
+                        SType = StructureType.ImageMemoryBarrier,
                         Image = sourceParent.NativeImage,
                         SubresourceRange = new ImageSubresourceRange(sourceParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
                         SrcAccessMask = sourceParent.NativeAccessMask,
@@ -1139,6 +1154,7 @@ namespace Stride.Graphics
                 {
                     bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier
                     {
+                        SType = StructureType.BufferMemoryBarrier,
                         Buffer = destinationParent.NativeBuffer, 
                         SrcAccessMask = destinationParent.NativeAccessMask, 
                         DstAccessMask = AccessFlags.TransferWriteBit
@@ -1148,6 +1164,7 @@ namespace Stride.Graphics
                 {
                     imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier
                     {
+                        SType = StructureType.ImageMemoryBarrier,
                         Image = destinationParent.NativeImage, 
                         SubresourceRange = new ImageSubresourceRange(destinationParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), 
                         SrcAccessMask = destinationParent.NativeAccessMask, 
@@ -1328,6 +1345,7 @@ namespace Stride.Graphics
 
             var uploadBufferMemoryBarrier = new BufferMemoryBarrier
             {
+                SType = StructureType.BufferMemoryBarrier,
                 Buffer = uploadResource,
                 SrcAccessMask = AccessFlags.HostWriteBit,
                 DstAccessMask = AccessFlags.TransferReadBit,
@@ -1343,6 +1361,7 @@ namespace Stride.Graphics
 
                 var memoryBarrier = new ImageMemoryBarrier
                 {
+                    SType = StructureType.ImageMemoryBarrier,
                     Image = texture.NativeImage,
                     SubresourceRange = subresourceRange,
                     SrcAccessMask = texture.NativeAccessMask,
@@ -1367,6 +1386,7 @@ namespace Stride.Graphics
 
                 memoryBarrier = new ImageMemoryBarrier
                 {
+                    SType = StructureType.ImageMemoryBarrier,
                     Image = texture.NativeImage,
                     SubresourceRange = subresourceRange,
                     SrcAccessMask = AccessFlags.TransferWriteBit,
@@ -1393,6 +1413,7 @@ namespace Stride.Graphics
                     memoryBarriers[0] = uploadBufferMemoryBarrier;
                     memoryBarriers[1] = new BufferMemoryBarrier
                     {
+                        SType = StructureType.BufferMemoryBarrier,
                         Buffer = buffer.NativeBuffer,
                         SrcAccessMask = buffer.NativeAccessMask,
                         DstAccessMask = AccessFlags.TransferWriteBit,
@@ -1405,6 +1426,7 @@ namespace Stride.Graphics
 
                     var memoryBarrier = new BufferMemoryBarrier
                     {
+                        SType = StructureType.BufferMemoryBarrier,
                         Buffer = buffer.NativeBuffer, 
                         SrcAccessMask = AccessFlags.TransferWriteBit, 
                         DstAccessMask = buffer.NativeAccessMask, 
