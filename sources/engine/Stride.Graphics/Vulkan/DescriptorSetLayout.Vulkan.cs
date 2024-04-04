@@ -50,61 +50,55 @@ namespace Stride.Graphics
 
         internal static unsafe Silk.NET.Vulkan.DescriptorSetLayout CreateNativeDescriptorSetLayout(GraphicsDevice device, IList<DescriptorSetLayoutBuilder.Entry> entries, out uint[] typeCounts)
         {
-            var bindings = new Silk.NET.Vulkan.DescriptorSetLayoutBinding[entries.Count];
-            var immutableSamplers = new Sampler[entries.Count];
+            var bindings = stackalloc DescriptorSetLayoutBinding[entries.Count];
+            var immutableSamplers = stackalloc Sampler[entries.Count];
 
             int usedBindingCount = 0;
 
             typeCounts = new uint[DescriptorTypeCount];
-
-            fixed (Sampler* immutableSamplersPointer = &immutableSamplers[0])
+            for (int i = 0; i < entries.Count; i++)
             {
-                for (int i = 0; i < entries.Count; i++)
+                var entry = entries[i];
+
+                // TODO VULKAN: Special case for unused bindings in PipelineState. Handle more nicely.
+                if (entry.ArraySize == 0)
+                    continue;
+
+                bindings[usedBindingCount] = new DescriptorSetLayoutBinding
                 {
-                    var entry = entries[i];
+                    DescriptorType = VulkanConvertExtensions.ConvertDescriptorType(entry.Class, entry.Type),
+                    StageFlags = ShaderStageFlags.All, // TODO VULKAN: Filter?
+                    Binding = (uint)i,
+                    DescriptorCount = (uint)entry.ArraySize
+                };
 
-                    // TODO VULKAN: Special case for unused bindings in PipelineState. Handle more nicely.
-                    if (entry.ArraySize == 0)
-                        continue;
-
-                    bindings[usedBindingCount] = new Silk.NET.Vulkan.DescriptorSetLayoutBinding
+                if (entry.ImmutableSampler != null)
+                {
+                    // TODO VULKAN: Handle immutable samplers for DescriptorCount > 1
+                    if (entry.ArraySize > 1)
                     {
-                        DescriptorType = VulkanConvertExtensions.ConvertDescriptorType(entry.Class, entry.Type),
-                        StageFlags = ShaderStageFlags.All, // TODO VULKAN: Filter?
-                        Binding = (uint)i,
-                        DescriptorCount = (uint)entry.ArraySize
-                    };
-
-                    if (entry.ImmutableSampler != null)
-                    {
-                        // TODO VULKAN: Handle immutable samplers for DescriptorCount > 1
-                        if (entry.ArraySize > 1)
-                        {
-                            throw new NotImplementedException();
-                        }
-
-                        // Remember this, so we can choose the right VkDescriptorType in DescriptorSet.SetShaderResourceView
-                        immutableSamplers[i] = entry.ImmutableSampler.NativeSampler;
-                        //bindings[i].VkDescriptorType = VkDescriptorType.CombinedImageSampler;
-                        bindings[usedBindingCount].PImmutableSamplers = immutableSamplersPointer + i;
+                        throw new NotImplementedException();
                     }
 
-                    typeCounts[(int)bindings[usedBindingCount].DescriptorType] += bindings[usedBindingCount].DescriptorCount;
-
-                    usedBindingCount++;
+                    // Remember this, so we can choose the right VkDescriptorType in DescriptorSet.SetShaderResourceView
+                    immutableSamplers[i] = entry.ImmutableSampler.NativeSampler;
+                    //bindings[i].VkDescriptorType = VkDescriptorType.CombinedImageSampler;
+                    bindings[usedBindingCount].PImmutableSamplers = immutableSamplers + i;
                 }
 
-                fixed (DescriptorSetLayoutBinding* fBindings = bindings) { // null if array is empty or null
-                    var createInfo = new DescriptorSetLayoutCreateInfo
-                    {
-                        SType = StructureType.DescriptorSetLayoutCreateInfo,
-                        BindingCount = (uint)usedBindingCount,
-                        PBindings = usedBindingCount > 0 ? fBindings : null,
-                    };
-                    GetApi().CreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout);
-                    return descriptorSetLayout;
-                }
+                typeCounts[(int)bindings[usedBindingCount].DescriptorType] += bindings[usedBindingCount].DescriptorCount;
+
+                usedBindingCount++;
             }
+
+            var createInfo = new DescriptorSetLayoutCreateInfo
+            {
+                SType = StructureType.DescriptorSetLayoutCreateInfo,
+                BindingCount = (uint)usedBindingCount,
+                PBindings = usedBindingCount > 0 ? bindings : null,
+            };
+            GetApi().CreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout);
+            return descriptorSetLayout;            
         }
     }
 }

@@ -11,18 +11,12 @@ using Silk.NET.Vulkan.Extensions.KHR;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 
-using VK = Silk.NET.Vulkan;
-using static Silk.NET.Vulkan.Vk;
-
 
 namespace Stride.Graphics
 {
     internal class GraphicsAdapterFactoryInstance : IDisposable
     {
-        private VK.DebugUtilsMessengerCallbackDataEXT debugReportCallback;
-        private VK.DebugUtilsMessengerEXT debugReport;
-
-        internal VK.Instance NativeInstance;
+        internal Instance NativeInstance;
         internal bool HasXlibSurfaceSupport;
         internal Vk vk;
 
@@ -31,11 +25,11 @@ namespace Stride.Graphics
 
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
-            vk = GetApi();
+            vk = Vk.GetApi();
 
-            var applicationInfo = new VK.ApplicationInfo
+            var applicationInfo = new ApplicationInfo
             {
-                SType = VK.StructureType.ApplicationInfo,
+                SType = StructureType.ApplicationInfo,
                 ApiVersion = Vk.Version10,
                 PEngineName = (byte*)Marshal.StringToHGlobalAnsi("Stride")
             };
@@ -78,9 +72,9 @@ namespace Stride.Graphics
                 fixed (void* enabledExtensionNamesPointer = &enabledExtensionNames[0])
                 fixed (void* fEnabledLayerNames = enabledLayerNames) // null if array is empty or null
                 {
-                    var instanceCreateInfo = new VK.InstanceCreateInfo
+                    var instanceCreateInfo = new InstanceCreateInfo
                     {
-                        SType = VK.StructureType.InstanceCreateInfo,
+                        SType = StructureType.InstanceCreateInfo,
                         PApplicationInfo = &applicationInfo,
                         EnabledLayerCount = enabledLayerNames != null ? (uint)enabledLayerNames.Length : 0,
                         PpEnabledLayerNames = (byte**)fEnabledLayerNames,
@@ -92,19 +86,17 @@ namespace Stride.Graphics
 
                 }
                 // Check if validation layer was available (otherwise detected count is 0)
-                if (enableValidation)
+                if (enableValidation && vk.TryGetInstanceExtension(NativeInstance, out ExtDebugUtils debugUtils))
                 {
-                    // TODO : CHeck debug report
-                    //debugReport = DebugReport;
-                    var createInfo = new VK.DebugUtilsMessengerCreateInfoEXT
+                    var createInfo = new DebugUtilsMessengerCreateInfoEXT
                     {
-                        SType = VK.StructureType.DebugUtilsMessengerCreateInfoExt,
-                        MessageSeverity = VK.DebugUtilsMessageSeverityFlagsEXT.VerboseBitExt | VK.DebugUtilsMessageSeverityFlagsEXT.ErrorBitExt | VK.DebugUtilsMessageSeverityFlagsEXT.WarningBitExt,
-                        MessageType = VK.DebugUtilsMessageTypeFlagsEXT.GeneralBitExt | VK.DebugUtilsMessageTypeFlagsEXT.ValidationBitExt | VK.DebugUtilsMessageTypeFlagsEXT.PerformanceBitExt,
-                        //PfnUserCallback = SilkMarshal.DelegateToPtr(debugReport)
+                        SType = StructureType.DebugUtilsMessengerCreateInfoExt,
+                        MessageSeverity = DebugUtilsMessageSeverityFlagsEXT.VerboseBitExt | DebugUtilsMessageSeverityFlagsEXT.ErrorBitExt | DebugUtilsMessageSeverityFlagsEXT.WarningBitExt,
+                        MessageType = DebugUtilsMessageTypeFlagsEXT.GeneralBitExt | DebugUtilsMessageTypeFlagsEXT.ValidationBitExt | DebugUtilsMessageTypeFlagsEXT.PerformanceBitExt,
+                        PfnUserCallback = new PfnDebugUtilsMessengerCallbackEXT(DebugReport),
                     };
 
-                    //vk.CreateDebugUtilsMessenger(NativeInstance, &createInfo, null, out debugReportCallback).CheckResult();
+                    debugUtils.CreateDebugUtilsMessenger(NativeInstance, &createInfo, null, out _);
                 }
             }
             finally
@@ -143,6 +135,8 @@ namespace Stride.Graphics
 
             desiredExtensionNames.Add(KhrSurface.ExtensionName);
             desiredExtensionNames.Add(KhrGetSurfaceCapabilities2.ExtensionName);
+            if (enableValidation)
+                desiredExtensionNames.Add("VK_EXT_debug_utils");
             if (!availableExtensionNames.Contains(KhrSurface.ExtensionName))
                 throw new InvalidOperationException($"Required extension {KhrSurface.ExtensionName} is not available");
 
@@ -187,39 +181,33 @@ namespace Stride.Graphics
             return enabledExtensionNames;
         }
 
-        private static unsafe bool DebugReport(VK.DebugUtilsMessageSeverityFlagsEXT severity, VK.DebugUtilsMessageTypeFlagsEXT types, VK.DebugUtilsMessengerCallbackDataEXT* pCallbackData, IntPtr userData)
+        private static unsafe uint DebugReport(DebugUtilsMessageSeverityFlagsEXT severity, DebugUtilsMessageTypeFlagsEXT types, DebugUtilsMessengerCallbackDataEXT* pCallbackData, void* userData)
         {
             var message = new string((sbyte*)pCallbackData->PMessage);
 
             // Redirect to log
-            if (severity == VK.DebugUtilsMessageSeverityFlagsEXT.ErrorBitExt)
+            if (severity == DebugUtilsMessageSeverityFlagsEXT.ErrorBitExt)
             {
                 Log.Error(message);
             }
-            else if (severity == VK.DebugUtilsMessageSeverityFlagsEXT.WarningBitExt)
+            else if (severity == DebugUtilsMessageSeverityFlagsEXT.WarningBitExt)
             {
                 Log.Warning(message);
             }
-            else if (severity == VK.DebugUtilsMessageSeverityFlagsEXT.InfoBitExt)
+            else if (severity == DebugUtilsMessageSeverityFlagsEXT.InfoBitExt)
             {
                 Log.Info(message);
             }
-            else if (severity == VK.DebugUtilsMessageSeverityFlagsEXT.VerboseBitExt)
+            else if (severity == DebugUtilsMessageSeverityFlagsEXT.VerboseBitExt)
             {
                 Log.Verbose(message);
             }
 
-            return false;
+            return Vk.False;
         }
 
         public unsafe void Dispose()
         {
-            //if (debugReportCallback != VK.DebugUtilsMessengerEXT)
-            //{
-            //    VK.DestroyDebugUtilsMessengerEXT(NativeInstance, debugReportCallback, null);
-            //    debugReportCallback = VK.DebugUtilsMessengerEXT.Null;
-            //}
-
             vk.DestroyInstance(NativeInstance, null);
         }
     }
