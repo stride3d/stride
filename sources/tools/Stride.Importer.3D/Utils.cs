@@ -4,9 +4,11 @@
 using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Core.Mathematics;
+using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
-namespace Stride.Importer.Assimp
+namespace Stride.Importer.ThreeD
 {
     public static class Utils
     {
@@ -24,13 +26,13 @@ namespace Stride.Importer.Assimp
         }
 
         public static Core.Mathematics.Vector3 ToStrideVector3(this System.Numerics.Vector3 v)
-            => new Core.Mathematics.Vector3(v.X, v.Y, v.Z);
+            => Unsafe.As<System.Numerics.Vector3, Core.Mathematics.Vector3>(ref v);
 
         public static Color ToStrideColor(this System.Numerics.Vector4 v)
             => new Color(v.X, v.Y, v.Z, v.W);
 
         public static Core.Mathematics.Quaternion ToStrideQuaternion(this AssimpQuaternion q)
-            => new Core.Mathematics.Quaternion(q.X, q.Y, q.Z, q.W); 
+            => new Core.Mathematics.Quaternion(q.X, q.Y, q.Z, q.W);
 
         public static unsafe uint GetNumUVChannels(Silk.NET.Assimp.Mesh* mesh)
         {
@@ -58,6 +60,37 @@ namespace Stride.Importer.Assimp
         {
             var sdTime = CompressedTimeSpan.TicksPerSecond / aiTickPerSecond * time;
             return new CompressedTimeSpan((int)sdTime);
+        }
+
+        public static string CleanNodeName(this string itemName)
+        {
+            if (string.IsNullOrWhiteSpace(itemName)) { return itemName; }
+            var itemNameSplitPosition = itemName.IndexOf('#');
+            if (itemNameSplitPosition != -1)
+            {
+                itemName = itemName.Substring(0, itemNameSplitPosition);
+            }
+
+            itemNameSplitPosition = itemName.IndexOf("__", StringComparison.Ordinal);
+            if (itemNameSplitPosition != -1)
+            {
+                itemName = itemName.Substring(0, itemNameSplitPosition);
+            }
+
+            itemNameSplitPosition = itemName.LastIndexOf(":", StringComparison.Ordinal);
+            if (itemNameSplitPosition != -1)
+            {
+                if (itemName.Length > itemNameSplitPosition + 1)
+                {
+                    itemName = itemName.Substring(itemNameSplitPosition + 1);
+                }
+            }
+
+            // remove all bad characters
+            itemName = itemName.Replace(':', '_');
+            itemName = itemName.Replace(" ", string.Empty);
+
+            return itemName;
         }
     }
 }
