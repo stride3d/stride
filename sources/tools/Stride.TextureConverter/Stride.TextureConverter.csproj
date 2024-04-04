@@ -27,7 +27,7 @@
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="sixlabors.imagesharp" />
+    <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>
