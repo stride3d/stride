@@ -486,6 +486,10 @@ namespace Stride.Graphics
                     OldLayout = oldLayout,
                     NewLayout = texture.NativeLayout
                 };
+                if(currentCommandList.NativeCommandBuffer.Handle == 0)
+                {
+                    currentCommandList.NativeCommandBuffer = CommandBufferPool.GetObject();
+                }
                 vk.CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceStages, texture.NativePipelineStageMask, 0, 0, null, 0, null, 1, &memoryBarrier);
             }
             else
