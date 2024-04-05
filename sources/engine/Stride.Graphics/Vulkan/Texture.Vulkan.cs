@@ -319,8 +319,8 @@ namespace Stride.Graphics
                     Buffer = uploadResource,
                     SrcAccessMask = AccessFlags.HostWriteBit,
                     DstAccessMask = AccessFlags.TransferReadBit,
-                    SrcQueueFamilyIndex = (uint)uploadOffset,
-                    DstQueueFamilyIndex = (uint)totalSize
+                    Offset = (uint)uploadOffset,
+                    Size = (uint)totalSize
                 };
 
                 if (Usage == GraphicsResourceUsage.Staging)
