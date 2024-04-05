@@ -306,22 +306,20 @@ namespace Stride.Graphics
             {
                 backBufferFormat = surfaceFormats[0].Format;
             }
-
+            
             // Create swapchain
             var info = new PhysicalDeviceSurfaceInfo2KHR
             {
                 Surface = surface,
-                SType = StructureType.DisplaySurfaceCreateInfoKhr,
+                SType = StructureType.PhysicalDeviceSurfaceInfo2Khr,
                 PNext = null
             };
 
             vk.TryGetInstanceExtension(GraphicsDevice.NativeInstance, out KhrGetSurfaceCapabilities2 sc);
-            SurfaceCapabilities2KHR surf;
+            SurfaceCapabilities2KHR surf = new(){ SType = StructureType.SurfaceCapabilities2Khr };
 
             sc.GetPhysicalDeviceSurfaceCapabilities2(GraphicsDevice.NativePhysicalDevice, &info, &surf);
             var surfaceCapabilities = surf.SurfaceCapabilities;
-
-
 
             // Buffer count
             uint desiredImageCount = Math.Max(surfaceCapabilities.MinImageCount, 2);
