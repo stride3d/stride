@@ -17,7 +17,7 @@ namespace Stride.Rendering.Lights
     /// </summary>
     [DataContract("LightSpot")]
     [Display("Spot")]
-    public class LightSpot : DirectLightBase
+    public class LightSpot : ColorLightBase, IDirectLight
     {
         // These values have to match the ones defined in "TextureProjectionReceiverBase.sdsl".
         public enum FlipModeEnum
@@ -158,7 +158,15 @@ namespace Stride.Rendering.Lights
             return true;
         }
 
-        public override bool HasBoundingBox
+        /// <summary>
+        /// Gets or sets the shadow.
+        /// </summary>
+        /// <value>The shadow.</value>
+        /// <userdoc>The settings of the light shadow</userdoc>
+        [DataMember(200)]
+        public LightStandardShadowMap Shadow { get; set; }
+
+        public bool HasBoundingBox
         {
             get
             {
@@ -166,7 +174,7 @@ namespace Stride.Rendering.Lights
             }
         }
 
-        public override BoundingBox ComputeBounds(Vector3 position, Vector3 direction)
+        public BoundingBox ComputeBounds(Vector3 position, Vector3 direction)
         {
             // Calculates the bouding box of the spot target
             var spotTarget = position + direction * Range;
@@ -178,7 +186,7 @@ namespace Stride.Rendering.Lights
             return box;
         }
 
-        public override float ComputeScreenCoverage(RenderView renderView, Vector3 position, Vector3 direction)
+        public float ComputeScreenCoverage(RenderView renderView, Vector3 position, Vector3 direction)
         {
             // TODO: We could improve this by calculating a screen-aligned triangle and a sphere at the end of the cone.
             //       With the screen-aligned triangle we would cover the entire spotlight, not just its end.
@@ -204,5 +212,7 @@ namespace Stride.Rendering.Lights
             // Size on screen
             return (float)pr * Math.Max(renderView.ViewSize.X, renderView.ViewSize.Y);
         }
+
+        LightShadowMap IDirectLight.Shadow => Shadow;
     }
 }
