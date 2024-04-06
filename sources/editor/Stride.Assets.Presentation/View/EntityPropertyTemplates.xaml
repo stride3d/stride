@@ -2,7 +2,6 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:tp="clr-namespace:Stride.Assets.Presentation.TemplateProviders"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-                    xmlns:view="clr-namespace:Stride.Core.Presentation.Quantum.View;assembly=Stride.Core.Presentation.Quantum"
                     xmlns:system="clr-namespace:System;assembly=mscorlib"
                     xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors;assembly=Stride.Core.Assets.Editor"
                     xmlns:valueConverters="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor"
@@ -20,7 +19,7 @@
     <ResourceDictionary Source="/Stride.Assets.Presentation;component/View/ImageDictionary.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
-  <view:TypeMatchTemplateProvider x:Key="EntityComponentTemplateProvider" Type="engine:EntityComponent"
+  <sd:TypeMatchTemplateProvider x:Key="EntityComponentTemplateProvider" Type="engine:EntityComponent"
                                   Template="{StaticResource HeaderReadOnlyProperty}" OverrideRule="Most"
                                   sd:PropertyViewHelper.TemplateCategory="PropertyHeader"/>
 
@@ -141,7 +140,7 @@
     <Setter Property="Visibility" Value="Visible"/>
   </Style>
 
-  <view:TypeMatchTemplateProvider x:Key="SceneCameraSlotIndexTemplateProvider" sd:PropertyViewHelper.TemplateCategory="PropertyEditor"
+  <sd:TypeMatchTemplateProvider x:Key="SceneCameraSlotIndexTemplateProvider" sd:PropertyViewHelper.TemplateCategory="PropertyEditor"
                                   OverrideRule="Some" Type="composers:SceneCameraSlotId">
     <DataTemplate>
       <DockPanel>
@@ -157,7 +156,7 @@
                     Margin="5,0" IsHitTestVisible="False" VerticalAlignment="Center"/>
       </DockPanel>
     </DataTemplate>
-  </view:TypeMatchTemplateProvider>
+  </sd:TypeMatchTemplateProvider>
 
   <tp:ModelComponentMaterialTemplateProvider x:Key="ModelComponentMaterialPropertyTemplateProvider" DynamicThumbnail="True" sd:PropertyViewHelper.TemplateCategory="PropertyEditor"
                                              OverrideRule="Most">

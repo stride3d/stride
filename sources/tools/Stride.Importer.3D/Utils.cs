@@ -64,7 +64,7 @@ namespace Stride.Importer.ThreeD
 
         public static string CleanNodeName(this string itemName)
         {
-            if (string.IsNullOrWhiteSpace(itemName)) { return itemName; }                                                                                                                                                                      
+            if (string.IsNullOrWhiteSpace(itemName)) { return itemName; }
             var itemNameSplitPosition = itemName.IndexOf('#');
             if (itemNameSplitPosition != -1)
             {
@@ -85,8 +85,6 @@ namespace Stride.Importer.ThreeD
                     itemName = itemName.Substring(itemNameSplitPosition + 1);
                 }
             }
-
-
 
             // remove all bad characters
             itemName = itemName.Replace(':', '_');

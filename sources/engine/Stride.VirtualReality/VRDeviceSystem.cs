@@ -33,6 +33,8 @@ namespace Stride.VirtualReality
 
         public int MirrorHeight;
 
+        public bool RequestPassthrough;
+
         public bool PreviousUseCustomProjectionMatrix;
 
         public bool PreviousUseCustomViewMatrix;
@@ -83,7 +85,7 @@ namespace Stride.VirtualReality
                         case VRApi.OpenXR:
                             {
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-                                Device = OpenXRHmd.New();
+                                Device = OpenXRHmd.New(RequestPassthrough);
 #endif
                                 break;
                             }

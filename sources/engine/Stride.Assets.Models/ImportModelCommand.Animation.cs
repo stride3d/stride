@@ -62,14 +62,14 @@ namespace Stride.Assets.Models
                 AnimationClip rootMotionAnimationClip = null;
 
                 // If root motion is explicitely enabled, or if there is no skeleton, try to find root node and apply animation directly on TransformComponent
-                if ((AnimationRootMotion || skeleton == null||skeletonMapping.MapCount<2) && modelSkeleton.Nodes.Length >= 1)
+                if ((AnimationRootMotion || skeleton == null || skeletonMapping.MapCount < 2) && modelSkeleton.Nodes.Length >= 1)
                 {
                     // No skeleton, map root node only
                     // TODO: For now, it seems to be located on node 1 in FBX files. Need to check if always the case, and what happens with Assimp
                     var rootNode0 = modelSkeleton.Nodes.Length >= 1 ? modelSkeleton.Nodes[0].Name : null;
                     var rootNode1 = modelSkeleton.Nodes.Length >= 2 ? modelSkeleton.Nodes[1].Name : null;
                     if ((rootNode0 != null && animationClips.TryGetValue(rootNode0, out rootMotionAnimationClip))
-                       || (rootNode1 != null && animationClips.TryGetValue(rootNode1, out rootMotionAnimationClip)))
+                        || (rootNode1 != null && animationClips.TryGetValue(rootNode1, out rootMotionAnimationClip)))
                     {
                         foreach (var channel in rootMotionAnimationClip.Channels)
                         {
@@ -113,7 +113,7 @@ namespace Stride.Assets.Models
                         if (nodeAnimationClip == rootMotionAnimationClip)
                             continue;
 
-                        // Find parent node  
+                        // Find parent node
                         var parentNodeIndex = modelSkeleton.Nodes[nodeIndex].ParentIndex;
 
                         if (parentNodeIndex != -1 && skeletonMapping.SourceToSource[parentNodeIndex] != parentNodeIndex)
@@ -297,7 +297,6 @@ namespace Stride.Assets.Models
             }
             return animationClip;
         }
-
 
         public bool GetAnimationKeyVirtualKey(string vKey, Dictionary<string, AnimationClip> animationClips, out AnimationClip clip)
         {

@@ -18,6 +18,7 @@ namespace Stride.VirtualReality
     internal static unsafe class OpenXRUtils
     {
         public const string XR_KHR_D3D11_ENABLE_EXTENSION_NAME = "XR_KHR_D3D11_enable";
+        public const string XR_FB_PASSTHROUGH_EXTENSION_NAME = "XR_FB_passthrough";
 
         public static bool Success(this Result result) => result >= 0;
 

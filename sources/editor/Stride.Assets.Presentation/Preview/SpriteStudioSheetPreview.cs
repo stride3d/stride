@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.IO;
-using Stride.Assets.Presentation.Preview.Views;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Engine;
 using Stride.SpriteStudio.Offline;
@@ -13,7 +13,7 @@ namespace Stride.Assets.Presentation.Preview
     /// An implementation of the <see cref="AssetPreview"/> that can preview models.
     /// </summary>
     // FIXME: this view model should be in the SpriteStudio offline assembly! Can't be done now, because of a circular reference in CompilerApp referencing SpriteStudio, and Editor referencing CompilerApp
-    [AssetPreview(typeof(SpriteStudioModelAsset), typeof(ModelPreviewView))]
+    [AssetPreview<SpriteStudioModelAsset>]
     public class SpriteStudioSheetPreview : PreviewFromEntity<SpriteStudioModelAsset>
     {
         /// <inheritdoc/>

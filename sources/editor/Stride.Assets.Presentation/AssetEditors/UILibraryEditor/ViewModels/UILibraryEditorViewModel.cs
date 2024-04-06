@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Quantum;
@@ -16,36 +15,38 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.UILibraryEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.UILibraryEditor.Views;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.UI;
+using Stride.Core.Assets.Editor.Annotations;
 
 namespace Stride.Assets.Presentation.AssetEditors.UILibraryEditor.ViewModels
 {
     /// <summary>
     /// View model for a <see cref="UILibraryViewModel"/> editor.
     /// </summary>
-    [AssetEditorViewModel(typeof(UILibraryAsset), typeof(UILibraryEditorView))]
+    [AssetEditorViewModel<UILibraryViewModel>]
     public sealed class UILibraryEditorViewModel : UIEditorBaseViewModel
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="UILibraryEditorViewModel"/> class.
         /// </summary>
         /// <param name="asset">The asset related to this editor.</param>
+        public UILibraryEditorViewModel([NotNull] UILibraryViewModel asset)
+            : this(asset, x => new UILibraryEditorController(asset, (UILibraryEditorViewModel)x))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UILibraryEditorViewModel"/> class.
+        /// </summary>
+        /// <param name="asset">The asset related to this editor.</param>
         /// <param name="controllerFactory">A factory to create the associated <see cref="IEditorGameController"/>.</param>
-        /// <seealso cref="Create(UILibraryViewModel)"/>
         private UILibraryEditorViewModel([NotNull] UILibraryViewModel asset, [NotNull] Func<GameEditorViewModel, IEditorGameController> controllerFactory)
             : base(asset, controllerFactory)
         {
         }
 
         private UILibraryRootViewModel UILibrary => (UILibraryRootViewModel)RootPart;
-
-        [NotNull]
-        public static UILibraryEditorViewModel Create([NotNull] UILibraryViewModel asset)
-        {
-            return new UILibraryEditorViewModel(asset, x => new UILibraryEditorController(asset, (UILibraryEditorViewModel)x));
-        }
 
         /// <inheritdoc/>
         public override void Destroy()

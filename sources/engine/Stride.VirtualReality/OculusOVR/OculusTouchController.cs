@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 
 namespace Stride.VirtualReality
@@ -23,6 +24,10 @@ namespace Stride.VirtualReality
         private uint previousButtonsState;
         private Vector2 currentThumbstick;
         private const float TriggerAndGripDeadzone = 0.00001f;
+        private IntPtr OvrSession { get; }
+        //Number of calls to vibrate that are currently executing
+        private int vibrationCount;
+        private readonly object vibrationLock = new();
 
         public override Vector3 Position => currentPos;
 
@@ -137,10 +142,12 @@ namespace Stride.VirtualReality
         public override Vector2 ThumbAxis => currentThumbstick;
 
         public override Vector2 ThumbstickAxis => currentThumbstick;
+        public override ControllerHaptics HapticsSupport => ControllerHaptics.LimitedFrequency;
 
-        public OculusTouchController(TouchControllerHand hand)
+        public OculusTouchController(TouchControllerHand hand, IntPtr OvrSession)
         {
             this.hand = hand;
+            this.OvrSession = OvrSession;
             currentState = DeviceState.Invalid;
         }
 
@@ -397,6 +404,33 @@ namespace Stride.VirtualReality
                     return (previousTouchesState & 0x00100000) == 0x00100000 && (currentTouchesState & 0x00100000) != 0x00100000;
                 default:
                     return false;
+            }
+        }
+
+        public override async Task Vibrate(int durationMs, float frequency, float amplitude)
+        {
+            void SetOvrVibration(bool enable)
+            {
+                float freqParam = enable ? frequency : 0;
+                float ampParam = enable ? amplitude : 0;
+                OculusOvr.SetVibration(OvrSession, hand, freqParam, ampParam);
+            }
+            lock (vibrationLock)
+            {
+                vibrationCount++;
+            }
+            while (durationMs > 2400)
+            {
+                SetOvrVibration(true);
+                durationMs -= 2400;
+                await Task.Delay(2400);
+            }
+            SetOvrVibration(true);
+            await Task.Delay(durationMs);
+            lock (vibrationLock)
+            {
+                if (--vibrationCount == 0)
+                    SetOvrVibration(false);
             }
         }
     }
