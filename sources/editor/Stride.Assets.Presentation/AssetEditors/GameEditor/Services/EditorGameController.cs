@@ -107,7 +107,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             sceneGameThread.SetApartmentState(ApartmentState.STA);
 
             Debug = new EditorGameDebugService();
-            Loader = new EditorContentLoader(this, Logger, asset, Game);
+            Loader = new EditorContentLoader(this, Logger, asset, editor, Game);
         }
 
         /// <inheritdoc/>

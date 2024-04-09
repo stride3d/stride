@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;

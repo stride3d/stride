@@ -6,10 +6,8 @@ using System.Linq;
 using System.Windows;
 using Microsoft.Xaml.Behaviors;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
-using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Controls;
-using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors

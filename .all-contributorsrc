@@ -445,6 +445,60 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dotlogix",
+      "name": "Alexander Schill",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16420200?v=4",
+      "profile": "https://github.com/dotlogix",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "froce",
+      "name": "froce",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8515865?v=4",
+      "profile": "https://github.com/froce",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "fydar",
+      "name": "Anthony Marmont",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19309165?v=4",
+      "profile": "https://anthonymarmont.com/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "MaximilianEmel",
+      "name": "MaximilianEmel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19846453?v=4",
+      "profile": "https://github.com/MaximilianEmel",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Schossi",
+      "name": "Schossi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8679168?v=4",
+      "profile": "https://github.com/Schossi",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ch3mbot",
+      "name": "Dagan Hartmann",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110746303?v=4",
+      "profile": "https://github.com/ch3mbot",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

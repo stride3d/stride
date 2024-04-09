@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Stride.Assets.Effect;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
-using Stride.Core.Presentation.Dirtiables;
-using Stride.Assets.Effect;
 using Stride.Editor.Build;
 
 namespace Stride.Assets.Presentation.ViewModel
@@ -40,7 +41,7 @@ namespace Stride.Assets.Presentation.ViewModel
         public UFile FullPath => AssetItem.FullPath;
     }
 
-    [AssetViewModel(typeof(SourceCodeAsset))]
+    [AssetViewModel<SourceCodeAsset>]
     public class CodeAssetViewModel : CodeAssetViewModel<SourceCodeAsset>
     {
         public CodeAssetViewModel(AssetViewModelConstructionParameters parameters) : base(parameters)

@@ -3,13 +3,13 @@
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Commands;
 using Stride.Assets.Presentation.Preview;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
-using Stride.Editor.Preview.ViewModel;
 
 namespace Stride.Assets.Presentation.ViewModel.Preview
 {
     // FIXME: this view model should be in the SpriteStudio offline assembly! Can't be done now, because of a circular reference in CompilerApp referencing SpriteStudio, and Editor referencing CompilerApp
-    [AssetPreviewViewModel(typeof(SpriteStudioSheetPreview))]
+    [AssetPreviewViewModel<SpriteStudioSheetPreview>]
     public class SpriteStudioSheetPreviewViewModel : AssetPreviewViewModel
     {
         private SpriteStudioSheetPreview spriteStudioSheetPreview;

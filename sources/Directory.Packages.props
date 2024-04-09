@@ -29,6 +29,7 @@
     <PackageVersion Include="Silk.NET.OpenGLES" Version="2.20.0" />
     <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.20.0" />
     <PackageVersion Include="Silk.NET.OpenXR" Version="2.20.0" />
+    <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="2.20.0" />
     <PackageVersion Include="Silk.NET.Sdl" Version="2.20.0" />
     <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.19.0" />
     <PackageVersion Include="Stride.SharpFont" Version="1.0.0" />
@@ -41,9 +42,9 @@
   <!-- Other dependencies -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
-    <PackageVersion Include="Microsoft.Build" Version="17.8.3" />
+    <PackageVersion Include="Microsoft.Build" Version="17.0.0" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.8.3" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0" />
@@ -98,8 +99,8 @@
   </ItemGroup>
   <!-- Visual Studio dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.8.37222" />
-    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.8.2365" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" />
+    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232" />
   </ItemGroup>
   <!-- Test dependencies -->
   <ItemGroup>
@@ -136,6 +137,5 @@
   <ItemGroup>
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.7.0" PrivateAssets="all" />
-    <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" />
   </ItemGroup>
 </Project>

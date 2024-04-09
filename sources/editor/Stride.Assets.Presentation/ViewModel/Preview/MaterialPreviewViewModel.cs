@@ -3,12 +3,12 @@
 using System;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets.Presentation.Preview;
+using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
-using Stride.Editor.Preview.ViewModel;
 
 namespace Stride.Assets.Presentation.ViewModel.Preview
 {
-    [AssetPreviewViewModel(typeof(MaterialPreview))]
+    [AssetPreviewViewModel<MaterialPreview>]
     public class MaterialPreviewViewModel : AssetPreviewViewModel
     {
         private MaterialPreview materialPreview;
