@@ -25,7 +25,7 @@ namespace Stride.Rendering.Compositing
     public class GraphicsCompositor : RendererBase
     {
         /// <summary>
-        /// A property key to get the current <see cref="GraphicsCompositor"/> from the <see cref="RenderContext.Tags"/>.
+        /// A property key to get the current <see cref="GraphicsCompositor"/> from the <see cref="ComponentBase.Tags"/>.
         /// </summary>
         public static readonly PropertyKey<GraphicsCompositor> Current = new PropertyKey<GraphicsCompositor>("GraphicsCompositor.Current", typeof(GraphicsCompositor));
 
