@@ -65,25 +65,6 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel10.sdgfxcomp" />
-    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel9.sdgfxcomp" />
-    <None Include="AssetPackage\Assets\Shared\StrideClearCoatMetalFlakesNM.sdtex" />
-    <None Include="AssetPackage\Assets\Shared\StrideClearCoatOrangePeelNM.sdtex" />
-    <None Include="AssetPackage\Assets\Shared\StrideDebugSpriteFont.sdtex" />
-    <None Include="AssetPackage\Assets\Shared\StrideDefaultFont.sdfnt" />
-    <None Include="AssetPackage\Assets\Shared\StrideDefaultSplashScreen.sdtex" />
-    <None Include="AssetPackage\Assets\Shared\StrideEnvironmentLightingDFGLUT16.sdtex" />
-    <None Include="AssetPackage\Assets\Shared\StrideEnvironmentLightingDFGLUT8.sdtex" />
-    <None Include="AssetPackage\Assets\Shared\StrideUIDesigns.sdsheet" />
-    <None Include="AssetPackage\Assets\Shared\StrideUILibrary.sduilib" />
-    <None Include="AssetPackage\Workfiles\UIDesigns.pdn" />
-    <None Include="AssetPackage\StrideAssetPackage.sdpkg" />
-    <None Include="UI\Resources\UIDesigns.dds" />
-    <None Include="UI\Resources\UIDesigns.pdn" />
-    <None Include="UI\StrideUIDesigns.sdsheet" />
-    <None Include="UI\StrideUILibrary.sduilib" />
-  </ItemGroup>
   <!--ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="1.1.0" />
     <Analyzer Include="Microsoft.CodeAnalysis.Analyzers" />
@@ -101,13 +82,6 @@
     <Content Include="..\..\..\deps\msdfgen\msdfgen.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="AssetPackage\Resources\ClearCoatMetalFlakesNM.dds" />
-    <None Include="AssetPackage\Resources\ClearCoatOrangePeelNM.dds" />
-    <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT16.dds" />
-    <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT8.dds" />
-    <None Include="AssetPackage\Resources\UIDesigns.dds" />
-    <None Include="AssetPackage\Resources\StrideDebugSpriteFont.png" />
-    <None Include="AssetPackage\Resources\StrideDefaultSplashScreen.png" />
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
