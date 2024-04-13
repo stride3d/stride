@@ -4,8 +4,7 @@ using Stride.BepuPhysics.DebugRender.Components;
 using Stride.BepuPhysics.DebugRender.Effects;
 using Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 using Stride.BepuPhysics.Definitions;
-using Stride.BepuPhysics.Definitions.Colliders;
-using Stride.BepuPhysics.Systems;
+using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -15,11 +14,6 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using cMesh = BepuPhysics.Collidables.Mesh;
-using static Stride.Rendering.Shadows.LightDirectionalShadowMapRenderer;
-using SharpFont;
-using System.ComponentModel;
-using static Stride.BepuPhysics.Systems.ShapeCacheSystem;
-using Silk.NET.OpenGL;
 
 namespace Stride.BepuPhysics.DebugRender.Processors
 {
@@ -46,12 +40,12 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         protected override void OnSystemAdd()
         {
-            ServicesHelper.LoadBepuServices(Services);
-            _game = Services.GetService<IGame>();
-            _sceneSystem = Services.GetService<SceneSystem>();
-            _input = Services.GetService<InputManager>();
+            ServicesHelper.LoadBepuServices(Services, out var config, out _, out _);
+            _game = Services.GetSafeServiceAs<IGame>();
+            _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
+            _input = Services.GetSafeServiceAs<InputManager>();
 #warning Sim0
-            _sim = Services.GetService<BepuConfiguration>().BepuSimulations[0];
+            _sim = config.BepuSimulations[0];
 
             if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is { } wireframeFeature)
             {

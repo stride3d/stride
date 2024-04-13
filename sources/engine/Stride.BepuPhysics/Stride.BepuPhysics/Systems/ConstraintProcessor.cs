@@ -16,16 +16,15 @@ public class ConstraintProcessor : EntityProcessor<ConstraintComponentBase>
 
     protected override void OnSystemAdd()
     {
-        ServicesHelper.LoadBepuServices(Services);
-        _bepuConfiguration = Services.GetService<BepuConfiguration>();
+        ServicesHelper.LoadBepuServices(Services, out _bepuConfiguration, out _, out _);
     }
 
-    protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponentBase component, [NotNull] ConstraintComponentBase data)
+    protected override void OnEntityComponentAdding(Entity entity, ConstraintComponentBase component, ConstraintComponentBase data)
     {
         base.OnEntityComponentAdding(entity, component, data);
         component.CreateProcessorData(_bepuConfiguration).RebuildConstraint();
     }
-    protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponentBase component, [NotNull] ConstraintComponentBase data)
+    protected override void OnEntityComponentRemoved(Entity entity, ConstraintComponentBase component, ConstraintComponentBase data)
     {
         base.OnEntityComponentRemoved(entity, component, data);
         component.UntypedConstraintData?.DestroyConstraint();

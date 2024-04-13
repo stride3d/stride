@@ -16,7 +16,7 @@ using Mesh = BepuPhysics.Collidables.Mesh;
 
 namespace Stride.BepuPhysics.Systems;
 
-internal class ShapeCacheSystem
+internal class ShapeCacheSystem : IDisposable
 {
     internal readonly BasicMeshBuffers _boxShapeData;
     internal readonly BasicMeshBuffers _cylinderShapeData;
@@ -37,6 +37,11 @@ internal class ShapeCacheSystem
         _boxShapeData = new() { Vertices = box.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = box.Indices };
         _cylinderShapeData = new() { Vertices = cylinder.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = cylinder.Indices };
         _sphereShapeData = new() { Vertices = sphere.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = sphere.Indices };
+    }
+
+    public void Dispose()
+    {
+        _sharedPool.Clear();
     }
 
     /// <summary>
@@ -77,12 +82,12 @@ internal class ShapeCacheSystem
     }
     internal BasicMeshBuffers BuildTriangle(TriangleCollider tri)
     {
-        return new() { Vertices = new VertexPosition3[] { new(tri.A), new(tri.B), new(tri.C) }, Indices = new[]{0, 1, 2} };
+        return new() { Vertices = [new(tri.A), new(tri.B), new(tri.C)], Indices = [0, 1, 2] };
     }
 
     public BasicMeshBuffers BorrowHull(ConvexHullCollider convex)
     {
-        if (convex.Hull == null)
+        if (convex.Hull == null!) // Can be null in editor if the user hasn't specified a reference yet
         {
             return new();
         }

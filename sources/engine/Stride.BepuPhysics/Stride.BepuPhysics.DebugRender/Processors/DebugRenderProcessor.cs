@@ -4,6 +4,7 @@ using Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Systems;
+using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -35,11 +36,10 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         protected override void OnSystemAdd()
         {
-            ServicesHelper.LoadBepuServices(Services);
-            _game = Services.GetService<IGame>();
-            _sceneSystem = Services.GetService<SceneSystem>();
-            _shapeCacheSystem = Services.GetService<ShapeCacheSystem>();
-            _input = Services.GetService<InputManager>();
+            ServicesHelper.LoadBepuServices(Services, out _, out _shapeCacheSystem, out _);
+            _game = Services.GetSafeServiceAs<IGame>();
+            _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
+            _input = Services.GetSafeServiceAs<InputManager>();
 
             if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is { } wireframeFeature)
             {

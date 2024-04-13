@@ -32,8 +32,8 @@ public abstract class SimulationUpdateComponent : SyncScript, ISimulationUpdate
     {
         _started = true;
         base.Start();
-        ServicesHelper.LoadBepuServices(Services);
-        BepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[SimulationIndex];
+        ServicesHelper.LoadBepuServices(Services, out var config, out _, out _);
+        BepuSimulation = config.BepuSimulations[SimulationIndex];
         BepuSimulation.Register(this);
     }
     public override void Cancel()

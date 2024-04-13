@@ -8,7 +8,7 @@ using Stride.Core.Mathematics;
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
 [DataContract]
-public class EmptyCollider : ICollider
+public sealed class EmptyCollider : ICollider
 {
     CollidableComponent? ICollider.Component { get; set; }
 

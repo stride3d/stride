@@ -50,12 +50,12 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         _shapeCache = Services.GetService<ShapeCacheSystem>();
     }
 
-    protected override void OnEntityComponentAdding(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
+    protected override void OnEntityComponentAdding(Entity entity, BepuNavigationBoundingBoxComponent component, BepuNavigationBoundingBoxComponent data)
     {
         _boundingBoxes.Add(data);
     }
 
-    protected override void OnEntityComponentRemoved(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
+    protected override void OnEntityComponentRemoved(Entity entity, BepuNavigationBoundingBoxComponent component, BepuNavigationBoundingBoxComponent data)
     {
         _boundingBoxes.Remove(data);
     }

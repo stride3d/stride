@@ -1,4 +1,5 @@
-﻿using Stride.BepuPhysics.Definitions;
+﻿using System.Diagnostics.CodeAnalysis;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -13,15 +14,16 @@ using Buffer = Stride.Graphics.Buffer;
 namespace Stride.BepuPhysics.Systems;
 
 [GizmoComponent(typeof(CollidableComponent), false)]
-public class CollidableGizmo : IEntityGizmo
+public sealed class CollidableGizmo : IEntityGizmo
 {
     private bool _selected, _enabled;
     private CollidableComponent _component;
     private object? _cache;
     private List<(ModelComponent model, Matrix baseMatrix)>? _models;
     private Material? _material, _materialOnSelect;
-    private IServiceRegistry _services;
-    private Scene _editorScene;
+    private IServiceRegistry _services = null!;
+    [SuppressMessage("Usage", "CA2213:Disposable fields should be disposed")]
+    private Scene _editorScene = null!;
     private bool _latent;
 
     public bool IsEnabled
@@ -207,7 +209,7 @@ public class CollidableGizmo : IEntityGizmo
         if (_models is null)
             return;
 
-        _component.Collider.OnEditCallBack -= OnEditCallBack;
+        _component.Collider.OnEditCallBack = (_component.Collider.OnEditCallBack - OnEditCallBack)!;
         foreach ((ModelComponent comp, _) in _models)
         {
             comp.Entity.Scene = null;

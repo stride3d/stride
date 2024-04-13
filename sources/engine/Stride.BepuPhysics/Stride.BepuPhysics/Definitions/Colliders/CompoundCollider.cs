@@ -10,7 +10,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 
 
 [DataContract]
-public class CompoundCollider : ICollider
+public sealed class CompoundCollider : ICollider
 {
     private readonly ListOfColliders _colliders;
     private CollidableComponent? _component;

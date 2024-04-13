@@ -106,9 +106,14 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         }
     }
 
-    bool IContactEventHandler.NoContactResponse => false;
+    bool IContactEventHandler.NoContactResponse => NoContactResponse;
+    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStartedTouching(eventSource, other, ref contactManifold, contactIndex, bepuSimulation);
+    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStoppedTouching(eventSource, other, ref contactManifold, contactIndex, bepuSimulation);
 
-    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
+
+    protected bool NoContactResponse => false;
+
+    protected void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         var otherCollidable = bepuSimulation.GetComponent(other);
         contactManifold.GetContact(contactIndex, out var contact);
@@ -116,7 +121,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         Contacts.Add((otherCollidable, contact));
     }
 
-    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
+    protected void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         var otherCollidable = bepuSimulation.GetComponent(other);
         for (int i = Contacts.Count - 1; i >= 0; i--)

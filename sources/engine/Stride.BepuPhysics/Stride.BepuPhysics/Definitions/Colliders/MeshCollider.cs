@@ -11,7 +11,7 @@ using Stride.BepuPhysics.Systems;
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
 [DataContract]
-public class MeshCollider : ICollider
+public sealed class MeshCollider : ICollider
 {
     private float _mass = 1f;
     private bool _closed = true;

@@ -23,7 +23,7 @@ using SBodyVelocity = Stride.BepuPhysics.Definitions.BodyVelocity;
 namespace Stride.BepuPhysics;
 
 [DataContract]
-public class BepuSimulation
+public sealed class BepuSimulation : IDisposable
 {
     const string CATEGORY_TIME = "Time";
     const string CATEGORY_CONSTRAINTS = "Constraints";
@@ -210,17 +210,23 @@ public class BepuSimulation
         BufferPool = new BufferPool();
         ContactEvents = new ContactEventsManager(_threadDispatcher, BufferPool);
 
-        var _strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials, ContactEvents = ContactEvents };
-        var _stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks() { CollidableMaterials = CollidableMaterials };
-        var _solveDescription = new SolveDescription(1, 1);
+        var strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials, ContactEvents = ContactEvents };
+        var stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks() { CollidableMaterials = CollidableMaterials };
+        var solveDescription = new SolveDescription(1, 1);
 
-        Simulation = Simulation.Create(BufferPool, _strideNarrowPhaseCallbacks, _stridePoseIntegratorCallbacks, _solveDescription);
+        Simulation = Simulation.Create(BufferPool, strideNarrowPhaseCallbacks, stridePoseIntegratorCallbacks, solveDescription);
         Simulation.Solver.VelocityIterationCount = 8;
         Simulation.Solver.SubstepCount = 1;
 
         CollidableMaterials.Initialize(Simulation);
         ContactEvents.Initialize(this);
         //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
+    }
+
+    public void Dispose()
+    {
+        _threadDispatcher.Dispose();
+        BufferPool.Clear();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
