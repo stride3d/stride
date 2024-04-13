@@ -24,12 +24,12 @@
 namespace Stride.Games
 {
     /// <summary>
-    /// Type of a <see cref="GameContext"/>.
+    /// Type of a `GameContext`.
     /// </summary>
     public enum AppContextType
     {
         /// <summary>
-        /// Game running on desktop in a form or <see cref="System.Windows.Forms.Control"/>.
+        /// Game running on desktop in a form or <see cref="System.Windows.Forms"/> Control.
         /// </summary>
         Desktop,
 

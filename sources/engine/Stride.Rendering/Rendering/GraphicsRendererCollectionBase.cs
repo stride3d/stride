@@ -14,7 +14,7 @@ namespace Stride.Rendering
 {
     /// <summary>
     /// A collection of <see cref="IGraphicsRenderer"/> that is itself a <see cref="IGraphicsRenderer"/> handling automatically
-    /// <see cref="IGraphicsRenderer.Initialize"/> and <see cref="IGraphicsRenderer.Unload"/>.
+    /// <see cref="IGraphicsRendererCore.Initialize"/> and <see cref="RendererCoreBase.Unload"/>.
     /// </summary>
     /// <typeparam name="T">Type of the <see cref="IGraphicsRenderer"/></typeparam>.
     [DataSerializer(typeof(ListAllSerializer<,>), Mode = DataSerializerGenericMode.TypeAndGenericArguments)]
