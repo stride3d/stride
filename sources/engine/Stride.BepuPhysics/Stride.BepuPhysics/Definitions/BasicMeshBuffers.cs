@@ -2,9 +2,8 @@
 
 public struct BasicMeshBuffers
 {
-    #warning maybe get rid of this ?
-    public VertexPosition3[] Vertices = Array.Empty<VertexPosition3>();
-    public int[] Indices = Array.Empty<int>();
+    public VertexPosition3[] Vertices = [];
+    public int[] Indices = [];
 
     public BasicMeshBuffers()
     {

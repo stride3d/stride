@@ -134,7 +134,7 @@ public sealed class CollidableGizmo : IEntityGizmo
             if (meshBuffer.Vertices.Length == 0)
                 continue;
 
-            #warning we should cache those buffers through the cache system
+            #warning we should cache those buffers through the cache system ... for meshes collider we could just get the actual mesh buffer
             var vertexBuffer = Buffer.Vertex.New(graphicsDevice, meshBuffer.Vertices);
             var indexBuffer = Buffer.Index.New(graphicsDevice, meshBuffer.Indices);
             var vertexBufferBinding = new VertexBufferBinding(vertexBuffer, meshBuffer.Vertices[0].GetLayout(), vertexBuffer.ElementCount);

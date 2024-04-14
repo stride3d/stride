@@ -41,7 +41,7 @@ internal class ShapeCacheSystem : IDisposable
 
     public void Dispose()
     {
-        _sharedPool.Clear();
+        ((IDisposable)_sharedPool).Dispose();
     }
 
     /// <summary>
@@ -74,7 +74,6 @@ internal class ShapeCacheSystem : IDisposable
         }
     }
 
-#warning that's slow, we could consider build a dictionary<float LenRadRatio, BodyShapeData>.
     internal BasicMeshBuffers BuildCapsule(CapsuleCollider cap)
     {
         var capGeo = GeometricPrimitive.Capsule.New(cap.Length, cap.Radius, 8);

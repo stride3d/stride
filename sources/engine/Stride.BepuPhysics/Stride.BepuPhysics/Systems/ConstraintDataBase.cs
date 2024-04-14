@@ -1,7 +1,11 @@
-﻿namespace Stride.BepuPhysics.Systems;
+﻿using Stride.Core.Diagnostics;
+
+namespace Stride.BepuPhysics.Systems;
 
 internal abstract class ConstraintDataBase
 {
+    protected static Logger Logger = GlobalLogger.GetLogger(nameof(ConstraintDataBase));
+
     public abstract bool Exist { get; }
 
     internal abstract void RebuildConstraint();

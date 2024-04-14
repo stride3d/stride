@@ -473,8 +473,6 @@ public sealed class BepuSimulation : IDisposable
     /// </summary>
     struct BatcherCallbacks<T> : ICollisionCallbacks where T : IOverlapCollector
     {
-        #warning remove this once we've confirmed that the structure is written to inline
-        public bool RanIfAtAll;
         public required CollisionMask CollisionMask;
         public required QuickList<CollidableReference> References;
         public required CollidableProperty<MaterialProperties> CollidableMaterials;
@@ -486,7 +484,6 @@ public sealed class BepuSimulation : IDisposable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AllowCollisionTesting(int pairId, int childA, int childB)
         {
-            RanIfAtAll = true;
             var matA = CollidableMaterials[References[pairId]];
             return CollisionMask.Collide(matA.ColliderCollisionMask);
         }
@@ -494,7 +491,6 @@ public sealed class BepuSimulation : IDisposable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnChildPairCompleted(int pairId, int childA, int childB, ref ConvexContactManifold manifold)
         {
-            RanIfAtAll = true;
             //If you need to do any processing on a child manifold before it goes back to a nonconvex processing pass, this is the place to do it.
             //Convex-convex pairs won't invoke this function at all.
         }
@@ -503,7 +499,6 @@ public sealed class BepuSimulation : IDisposable
         public void OnPairCompleted<TManifold>(int pairId, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
         {
             Collector.OnPairCompleted(Simulation, References[pairId], ref manifold);
-            RanIfAtAll = true;
         }
     }
 
@@ -569,7 +564,6 @@ public sealed class BepuSimulation : IDisposable
                 //it's likely that there remain leftover pairs that didn't fill up a batch completely. Force a complete flush.
                 //Note that this also returns all resources used by the batcher to the BufferPool.
                 batcher.Flush();
-                Debug.Assert(batcher.Callbacks.RanIfAtAll);
                 collector = batcher.Callbacks.Collector;
             }
             finally

@@ -27,7 +27,7 @@ public sealed class CompoundCollider : ICollider
     [DataMemberIgnore]
     CollidableComponent? ICollider.Component { get => _component; set => _component = value; }
 
-#warning shouldn't we build heuristics to swap automatically instead of querying users, is there a definite case where it always performs better as a BigCompound instead of a normal one ? We can't really expect users to choose the right one by themselves
+#warning Norbo: What would be a good heuristic to automatically swap to big, we can provide an override for users if they know what they are doing, but I would like to have it choose automatically by default, I'm guessing it's not just a case of (child > 5) ? big : small
     public bool IsBig => false;
 
     public CompoundCollider()
