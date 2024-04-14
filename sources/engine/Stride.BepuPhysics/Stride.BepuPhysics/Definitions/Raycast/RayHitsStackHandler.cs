@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using BepuPhysics;

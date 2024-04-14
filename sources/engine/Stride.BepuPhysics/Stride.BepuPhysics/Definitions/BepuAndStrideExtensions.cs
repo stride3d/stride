@@ -1,4 +1,7 @@
-﻿using NVector3 = System.Numerics.Vector3;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using NVector3 = System.Numerics.Vector3;
 using SVector3 = Stride.Core.Mathematics.Vector3;
 
 using NQuaternion = System.Numerics.Quaternion;
