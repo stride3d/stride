@@ -27,4 +27,6 @@ public sealed class BoxCollider : ColliderBase
     {
         builder.Add(new Box(Size.X, Size.Y, Size.Z), localPose, Mass);
     }
+
+    internal override void OnDetach(BufferPool pool) { }
 }

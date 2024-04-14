@@ -16,31 +16,56 @@ namespace Stride.BepuPhysics.Definitions
     [ContentSerializer(typeof(DataContentSerializer<DecomposedHulls>))]
     [DataSerializerGlobal(typeof(CloneSerializer<DecomposedHulls>), Profile = "Clone")]
     [ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<DecomposedHulls>), Profile = "Content")]
-    public class DecomposedHulls
+    public record DecomposedHulls(DecomposedHulls.Hull[][] Hulls)
     {
+        /// <summary>
+        /// The individual convex hulls grouped by meshes.
+        /// </summary>
+        /// <remarks>
+        /// Usage of this type does not expect writing to those arrays after construction.
+        /// Hulls[0][1] would be the second hull generated from the first mesh.
+        /// </remarks>
+        [DataMember]
+        internal Hull[][] Hulls { get; init; } = Hulls;
+
         /// <summary>
         /// The individual convex hulls grouped by meshes.
         /// </summary>
         /// <remarks>
         /// Hulls[0][1] would be the second hull generated from the first mesh.
         /// </remarks>
-        [DataMember]
-        public Hull[][] Hulls { get; init; } = [];
+        public ReadOnlySpan<Hull[]> Meshes => Hulls;
 
         [DataContract]
-        public class Hull
+        public record Hull(Vector3[] Points, uint[] Indices)
         {
             /// <summary>
             /// The points marking the bounds of the hull
             /// </summary>
+            /// <remarks>
+            /// Usage of this type does not expect writing to this array after construction.
+            /// </remarks>
             [DataMember]
-            public Vector3[] Points { get; init; } = [];
+            internal Vector3[] Points { get; init; } = Points;
 
             /// <summary>
             /// Indices used to recreate a 3d mesh from those points
             /// </summary>
+            /// <remarks>
+            /// Usage of this type does not expect writing to this array after construction.
+            /// </remarks>
             [DataMember]
-            public uint[] Indices { get; init; } = [];
+            internal uint[] Indices { get; init; } = Indices;
+
+            /// <summary>
+            /// The points marking the bounds of the hull
+            /// </summary>
+            public ReadOnlySpan<Vector3> HullPoints => Points;
+
+            /// <summary>
+            /// Indices used to recreate a 3d mesh from those points
+            /// </summary>
+            public ReadOnlySpan<uint> HullIndices => Indices;
         }
     }
 }

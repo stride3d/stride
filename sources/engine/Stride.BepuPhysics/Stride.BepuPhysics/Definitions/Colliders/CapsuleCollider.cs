@@ -37,4 +37,6 @@ public sealed class CapsuleCollider : ColliderBase
     {
         builder.Add(new Capsule(Radius, Length), localPose, Mass);
     }
+
+    internal override void OnDetach(BufferPool pool) { }
 }

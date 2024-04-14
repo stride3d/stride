@@ -55,4 +55,5 @@ public abstract class ColliderBase
     public CollidableComponent? Component { get; internal set; }
 
     internal abstract void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose);
+    internal abstract void OnDetach(BufferPool pool);
 }

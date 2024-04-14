@@ -37,4 +37,6 @@ public sealed class CylinderCollider : ColliderBase
     {
         builder.Add(new Cylinder(Radius, Length), localPose, Mass);
     }
+
+    internal override void OnDetach(BufferPool pool){ }
 }

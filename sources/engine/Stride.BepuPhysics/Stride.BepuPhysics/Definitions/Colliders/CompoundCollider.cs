@@ -50,7 +50,7 @@ public sealed class CompoundCollider : ICollider
                 CylinderCollider cyl => new(cyl.Radius, cyl.Length, cyl.Radius),
                 SphereCollider sph => new(sph.Radius),
                 TriangleCollider tri => Vector3.One,
-                ConvexHullCollider convex => convex.Scale,
+                ConvexHullCollider convex => Vector3.One,
                 _ => throw new NotImplementedException($"Collider type {collider.GetType()} is missing in {nameof(GetLocalTransforms)}, please fill an issue or fix it"),
             };
         }
@@ -96,6 +96,8 @@ public sealed class CompoundCollider : ICollider
 
     void ICollider.Detach(Shapes shapes, BufferPool pool, TypedIndex index)
     {
+        foreach (var collider in _colliders)
+            collider.OnDetach(pool);
         shapes.RemoveAndDispose(index, pool);
     }
 

@@ -48,4 +48,6 @@ public sealed class TriangleCollider : ColliderBase
     {
         builder.Add(new Triangle(A.ToNumeric(), B.ToNumeric(), C.ToNumeric()), localPose, Mass);
     }
+
+    internal override void OnDetach(BufferPool pool){ }
 }
