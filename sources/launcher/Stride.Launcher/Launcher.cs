@@ -99,12 +99,6 @@ internal static partial class Launcher
 
         async Task AppMainAsync(CancellationTokenSource cts)
         {
-            if (!await PrerequisitesValidator.Validate(args.Args))
-            {
-                cts.Cancel();
-                return;
-            }
-
             foreach (var action in args.Actions)
             {
                 result = action switch
