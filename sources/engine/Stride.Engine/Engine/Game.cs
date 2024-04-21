@@ -225,6 +225,15 @@ namespace Stride.Engine
 
             VRDeviceSystem = new VRDeviceSystem(Services);
             Services.AddService(VRDeviceSystem);
+            // Add the input manager
+            // Add it first so that it can obtained by the UI system
+            var inputSystem = new InputSystem(Services);
+            Input = inputSystem.Manager;
+            Services.AddService(Input);
+            GameSystems.Add(inputSystem);
+
+            EffectSystem = new EffectSystem(Services);
+            Services.AddService(EffectSystem);
 
             // Creates the graphics device manager
             GraphicsDeviceManager = new GraphicsDeviceManager(this);
@@ -336,13 +345,6 @@ namespace Stride.Engine
             // (Unless overriden by gameSystem.UpdateOrder)
             // ---------------------------------------------------------
 
-            // Add the input manager
-            // Add it first so that it can obtained by the UI system
-            var inputSystem = new InputSystem(Services);
-            Input = inputSystem.Manager;
-            Services.AddService(Input);
-            GameSystems.Add(inputSystem);
-
             // Initialize the systems
             base.Initialize();
 
@@ -362,9 +364,6 @@ namespace Stride.Engine
 
             GameSystems.Add(DebugTextSystem);
             GameSystems.Add(ProfilingSystem);
-
-            EffectSystem = new EffectSystem(Services);
-            Services.AddService(EffectSystem);
 
             // If requested in game settings, compile effects remotely and/or notify new shader requests
             EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageName, Settings?.EffectCompilation ?? EffectCompilationMode.Local, Settings?.RecordUsedEffects ?? false);
