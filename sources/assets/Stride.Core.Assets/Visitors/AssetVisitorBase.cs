@@ -13,7 +13,7 @@ namespace Stride.Core.Assets.Visitors
         {
         }
 
-        protected AssetVisitorBase(ITypeDescriptorFactory typeDescriptorFactory) : base(typeDescriptorFactory)
+        protected AssetVisitorBase(IStrideTypeDescriptorFactory typeDescriptorFactory) : base(typeDescriptorFactory)
         {
             // Add automatically registered custom data visitors
             CustomVisitors.AddRange(AssetRegistry.GetDataVisitNodes());

@@ -16,23 +16,23 @@ namespace Stride.Core.Yaml
     /// </summary>
     public class AssetObjectSerializerBackend : DefaultObjectSerializerBackend
     {
-        private readonly ITypeDescriptorFactory typeDescriptorFactory;
+        private readonly IStrideTypeDescriptorFactory typeDescriptorFactory;
         private static readonly PropertyKey<YamlAssetPath> MemberPathKey = new PropertyKey<YamlAssetPath>("MemberPath", typeof(AssetObjectSerializerBackend));
         public static readonly PropertyKey<YamlAssetMetadata<OverrideType>> OverrideDictionaryKey = new PropertyKey<YamlAssetMetadata<OverrideType>>("OverrideDictionary", typeof(AssetObjectSerializerBackend));
         public static readonly PropertyKey<YamlAssetMetadata<Guid>> ObjectReferencesKey = new PropertyKey<YamlAssetMetadata<Guid>>("ObjectReferences", typeof(AssetObjectSerializerBackend));
 
-        public AssetObjectSerializerBackend(ITypeDescriptorFactory typeDescriptorFactory)
+        public AssetObjectSerializerBackend(IStrideTypeDescriptorFactory typeDescriptorFactory)
         {
             if (typeDescriptorFactory == null)
                 throw new ArgumentNullException(nameof(typeDescriptorFactory));
             this.typeDescriptorFactory = typeDescriptorFactory;
         }
 
-        public override object ReadMemberValue(ref ObjectContext objectContext, IMemberDescriptor memberDescriptor, object memberValue, Type memberType)
+        public override object ReadMemberValue(ref ObjectContext objectContext, IStrideMemberDescriptor memberDescriptor, object memberValue, Type memberType)
         {
             var memberObjectContext = new ObjectContext(objectContext.SerializerContext, memberValue, objectContext.SerializerContext.FindTypeDescriptor(memberType), objectContext.Descriptor, memberDescriptor);
 
-            var member = memberDescriptor as MemberDescriptorBase;
+            var member = memberDescriptor as StrideMemberDescriptorBase;
             if (member != null && objectContext.Settings.Attributes.GetAttribute<NonIdentifiableCollectionItemsAttribute>(member.MemberInfo) != null)
             {
                 memberObjectContext.Properties.Add(CollectionWithIdsSerializerBase.NonIdentifiableCollectionItemsKey, true);
@@ -46,7 +46,7 @@ namespace Stride.Core.Yaml
             return result;
         }
 
-        public override void WriteMemberValue(ref ObjectContext objectContext, IMemberDescriptor memberDescriptor, object memberValue, Type memberType)
+        public override void WriteMemberValue(ref ObjectContext objectContext, IStrideMemberDescriptor memberDescriptor, object memberValue, Type memberType)
         {
             var memberObjectContext = new ObjectContext(objectContext.SerializerContext, memberValue, objectContext.SerializerContext.FindTypeDescriptor(memberType), objectContext.Descriptor, memberDescriptor)
             {
@@ -57,7 +57,7 @@ namespace Stride.Core.Yaml
             // We allow compact style only for collection with non-identifiable items
             var allowCompactStyle = objectContext.SerializerContext.Properties.TryGetValue(CollectionWithIdsSerializerBase.NonIdentifiableCollectionItemsKey, out nonIdentifiableItems) && nonIdentifiableItems;
 
-            var member = memberDescriptor as MemberDescriptorBase;
+            var member = memberDescriptor as StrideMemberDescriptorBase;
             if (member != null && objectContext.Settings.Attributes.GetAttribute<NonIdentifiableCollectionItemsAttribute>(member.MemberInfo) != null)
             {
                 memberObjectContext.Properties.Add(CollectionWithIdsSerializerBase.NonIdentifiableCollectionItemsKey, true);
@@ -103,13 +103,13 @@ namespace Stride.Core.Yaml
             return resultMemberName;
         }
 
-        public override void WriteMemberName(ref ObjectContext objectContext, IMemberDescriptor member, string memberName)
+        public override void WriteMemberName(ref ObjectContext objectContext, IStrideMemberDescriptor member, string memberName)
         {
             // Replace the key with Stride.Core.Reflection IMemberDescriptor
             // Cache previous 
             if (member != null)
             {
-                var customDescriptor = (IMemberDescriptor)member.Tag;
+                var customDescriptor = (IStrideMemberDescriptor)member.Tag;
                 if (customDescriptor == null)
                 {
                     customDescriptor = typeDescriptorFactory.Find(objectContext.Instance.GetType()).TryGetMember(memberName);
@@ -290,7 +290,7 @@ namespace Stride.Core.Yaml
             WriteYaml(ref itemObjectContext);
         }
 
-        public override bool ShouldSerialize(IMemberDescriptor member, ref ObjectContext objectContext)
+        public override bool ShouldSerialize(IStrideMemberDescriptor member, ref ObjectContext objectContext)
         {
             YamlAssetMetadata<OverrideType> overrides;
             if (objectContext.SerializerContext.Properties.TryGetValue(OverrideDictionaryKey, out overrides))

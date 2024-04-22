@@ -7,11 +7,11 @@ using System.Reflection;
 namespace Stride.Core.Reflection
 {
     /// <summary>
-    /// Base class for <see cref="IMemberDescriptor"/> for a <see cref="MemberInfo"/>
+    /// Base class for <see cref="IStrideMemberDescriptor"/> for a <see cref="MemberInfo"/>
     /// </summary>
-    public abstract class MemberDescriptorBase : IMemberDescriptor
+    public abstract class StrideMemberDescriptorBase : IStrideMemberDescriptor
     {
-        protected MemberDescriptorBase(string name)
+        protected StrideMemberDescriptorBase(string name)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
 
@@ -19,7 +19,7 @@ namespace Stride.Core.Reflection
             OriginalName = name;
         }
 
-        protected MemberDescriptorBase(MemberInfo memberInfo, StringComparer defaultNameComparer)
+        protected StrideMemberDescriptorBase(MemberInfo memberInfo, StringComparer defaultNameComparer)
         {
             if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
 

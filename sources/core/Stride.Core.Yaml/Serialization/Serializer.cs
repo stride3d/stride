@@ -58,7 +58,7 @@ namespace Stride.Core.Yaml.Serialization
     {
         internal readonly IYamlSerializable ObjectSerializer;
         internal readonly RoutingSerializer RoutingSerializer;
-        internal readonly ITypeDescriptorFactory TypeDescriptorFactory;
+        internal readonly IStrideTypeDescriptorFactory TypeDescriptorFactory;
 
         private static readonly IYamlSerializableFactory[] DefaultFactories = new IYamlSerializableFactory[]
         {
@@ -581,7 +581,7 @@ namespace Stride.Core.Yaml.Serialization
             return routingSerializer.First;
         }
 
-        private ITypeDescriptorFactory CreateTypeDescriptorFactory()
+        private IStrideTypeDescriptorFactory CreateTypeDescriptorFactory()
         {
             return new TypeDescriptorFactory(Settings.Attributes, Settings.EmitDefaultValues, Settings.NamingConvention, Settings.ComparerForKeySorting);
         }

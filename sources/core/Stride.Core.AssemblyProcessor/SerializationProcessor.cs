@@ -508,7 +508,7 @@ namespace Stride.Core.AssemblyProcessor
             initializeMethodIL.Emit(OpCodes.Newarr, assembly.MainModule.TypeSystem.String);
             initializeMethodIL.Emit(OpCodes.Dup);
             initializeMethodIL.Emit(OpCodes.Ldc_I4_0);
-            initializeMethodIL.Emit(OpCodes.Ldstr, Core.Reflection.AssemblyCommonCategories.Engine);
+            initializeMethodIL.Emit(OpCodes.Ldstr, Reflection.AssemblyCommonCategories.Engine);
             initializeMethodIL.Emit(OpCodes.Stelem_Ref);
 
             var assemblyRegistryRegisterMethodRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Reflection.AssemblyRegistry").Methods.Single(x => x.Name == "Register" && x.Parameters[1].ParameterType.IsArray));

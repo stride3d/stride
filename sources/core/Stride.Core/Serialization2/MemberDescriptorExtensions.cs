@@ -6,7 +6,7 @@ using System.Reflection;
 namespace Stride.Core.Reflection
 {
     /// <summary>
-    /// Extension methods for <see cref="IMemberDescriptor"/>
+    /// Extension methods for <see cref="IStrideMemberDescriptor"/>
     /// </summary>
     public static class MemberDescriptorExtensions
     {

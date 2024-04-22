@@ -10,7 +10,7 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class ArrayDescriptor : ObjectDescriptor
     {
-        public ArrayDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public ArrayDescriptor(IStrideTypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!type.IsArray) throw new ArgumentException(@"Expecting array type", nameof(type));

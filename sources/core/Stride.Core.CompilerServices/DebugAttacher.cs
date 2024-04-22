@@ -5,7 +5,7 @@
 // The ModuleInitializerAttribute had to be defined as it's not present normally for netstandard2.0
 // but the C# compiler understands it anyways.
 
-namespace System.Runtime.CompilerServices
+namespace Stride.Core.CompilerServices
 {
     using System;
 
@@ -15,7 +15,6 @@ namespace System.Runtime.CompilerServices
 
 namespace Stride.Core.CompilerServices
 {
-    using System.Runtime.CompilerServices;
     using System.Diagnostics;
 
     public class DebugAttacher

@@ -15,7 +15,7 @@ namespace Stride.Core.Quantum
     /// </summary>
     public class MemberNode : GraphNodeBase, IMemberNode, IGraphNodeInternal
     {
-        public MemberNode([NotNull] INodeBuilder nodeBuilder, Guid guid, [NotNull] IObjectNode parent, [NotNull] IMemberDescriptor memberDescriptor, IReference reference)
+        public MemberNode([NotNull] INodeBuilder nodeBuilder, Guid guid, [NotNull] IObjectNode parent, [NotNull] IStrideMemberDescriptor memberDescriptor, IReference reference)
             : base(nodeBuilder.SafeArgument(nameof(nodeBuilder)).NodeContainer, guid, nodeBuilder.TypeDescriptorFactory.Find(memberDescriptor.Type))
         {
             if (nodeBuilder == null) throw new ArgumentNullException(nameof(nodeBuilder));
@@ -32,9 +32,9 @@ namespace Stride.Core.Quantum
         public IObjectNode Parent { get; }
 
         /// <summary>
-        /// The <see cref="IMemberDescriptor"/> used to access the member of the container represented by this content.
+        /// The <see cref="IStrideMemberDescriptor"/> used to access the member of the container represented by this content.
         /// </summary>
-        public IMemberDescriptor MemberDescriptor { get; protected set; }
+        public IStrideMemberDescriptor MemberDescriptor { get; protected set; }
 
         public override bool IsReference => TargetReference != null;
 

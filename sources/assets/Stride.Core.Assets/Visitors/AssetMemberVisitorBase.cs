@@ -68,7 +68,7 @@ namespace Stride.Core.Assets.Visitors
         }
 
         /// <inheritdoc/>
-        public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
+        public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IStrideMemberDescriptor member, object value)
         {
             if (CurrentPath.Match(MemberPath))
                 VisitAssetMember(value, member.TypeDescriptor);

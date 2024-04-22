@@ -9,8 +9,8 @@ namespace Stride.Core.Reflection
     {
         public int Compare(object x, object y)
         {
-            var left = x as IMemberDescriptor;
-            var right = y as IMemberDescriptor;
+            var left = x as IStrideMemberDescriptor;
+            var right = y as IStrideMemberDescriptor;
             if (left != null && right != null)
             {
                 // If order is defined, first order by order
@@ -22,8 +22,8 @@ namespace Stride.Core.Reflection
                 }
 
                 // try to order by class hierarchy + token (same as declaration order)
-                var leftMember = (x as MemberDescriptorBase)?.MemberInfo;
-                var rightMember = (y as MemberDescriptorBase)?.MemberInfo;
+                var leftMember = (x as StrideMemberDescriptorBase)?.MemberInfo;
+                var rightMember = (y as StrideMemberDescriptorBase)?.MemberInfo;
                 if (leftMember != null || rightMember != null)
                 {
                     var comparison = leftMember.CompareMetadataTokenWith(rightMember);

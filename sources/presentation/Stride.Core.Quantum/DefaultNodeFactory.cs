@@ -33,7 +33,7 @@ namespace Stride.Core.Quantum
         }
 
         /// <inheritdoc/>
-        public virtual IMemberNode CreateMemberNode(INodeBuilder nodeBuilder, Guid guid, IObjectNode parent, IMemberDescriptor member, object value)
+        public virtual IMemberNode CreateMemberNode(INodeBuilder nodeBuilder, Guid guid, IObjectNode parent, IStrideMemberDescriptor member, object value)
         {
             if (nodeBuilder == null) throw new ArgumentNullException(nameof(nodeBuilder));
             if (parent == null) throw new ArgumentNullException(nameof(parent));

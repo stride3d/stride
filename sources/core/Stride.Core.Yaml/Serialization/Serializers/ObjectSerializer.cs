@@ -338,7 +338,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
             return objectContext.ObjectSerializerBackend.ReadMemberName(ref objectContext, memberName, out skipMember);
         }
 
-        protected virtual object ReadMemberValue(ref ObjectContext objectContext, IMemberDescriptor member,
+        protected virtual object ReadMemberValue(ref ObjectContext objectContext, IStrideMemberDescriptor member,
             object memberValue,
             Type memberType)
         {
@@ -397,7 +397,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         /// </summary>
         /// <param name="objectContext"></param>
         /// <param name="member">The member.</param>
-        protected virtual void WriteMember(ref ObjectContext objectContext, IMemberDescriptor member)
+        protected virtual void WriteMember(ref ObjectContext objectContext, IStrideMemberDescriptor member)
         {
             // Filter members by mask
             if ((member.Mask & objectContext.SerializerContext.MemberMask) == 0)
@@ -428,12 +428,12 @@ namespace Stride.Core.Yaml.Serialization.Serializers
             WriteMemberValue(ref objectContext, member, memberValue, memberType);
         }
 
-        protected virtual void WriteMemberName(ref ObjectContext objectContext, IMemberDescriptor member, string name)
+        protected virtual void WriteMemberName(ref ObjectContext objectContext, IStrideMemberDescriptor member, string name)
         {
             objectContext.ObjectSerializerBackend.WriteMemberName(ref objectContext, member, name);
         }
 
-        protected virtual void WriteMemberValue(ref ObjectContext objectContext, IMemberDescriptor member, object memberValue,
+        protected virtual void WriteMemberValue(ref ObjectContext objectContext, IStrideMemberDescriptor member, object memberValue,
             Type memberType)
         {
             objectContext.ObjectSerializerBackend.WriteMemberValue(ref objectContext, member, memberValue, memberType);
