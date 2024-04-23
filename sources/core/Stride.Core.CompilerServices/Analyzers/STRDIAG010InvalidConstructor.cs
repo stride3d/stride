@@ -37,7 +37,6 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
     {
         var dataContractAttribute = WellKnownReferences.DataContractAttribute(context.Compilation);
 
-
         if (dataContractAttribute is null)
             return;
 
@@ -80,9 +79,13 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
     private static void TryReportDiagnostics(INamedTypeSymbol symbol,SymbolAnalysisContext context)
     {
         if (HasPublicEmptyConstructor(symbol))
+        {
             return;
+        }
         else
+        {
             Rule.ReportDiagnostics(context, symbol);
+        }
     }
     private static bool HasPublicEmptyConstructor(INamedTypeSymbol type) 
         => type.Constructors.Any(x => x.Parameters.Length == 0 && x.DeclaredAccessibility == Accessibility.Public);
