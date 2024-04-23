@@ -160,10 +160,10 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Adds the specified component using the <see cref="EntityComponent.DefaultKey" />.
+        /// Adds the specified component to the entity.
         /// </summary>
-        /// <param name="component">The component.</param>
-        /// <exception cref="System.ArgumentNullException">component</exception>
+        /// <param name="component">The component to add.</param>
+        /// <exception cref="System.ArgumentNullException">Thrown if the component is null.</exception>
         public void Add(EntityComponent component)
         {
             Components.Add(component);

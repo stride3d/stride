@@ -7,11 +7,12 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" FocusManager.FocusedElement="{Binding ElementName=CodeEditor}">
+             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance local:ScriptEditorViewModel}"
+             FocusManager.FocusedElement="{Binding ElementName=CodeEditor}">
   <i:Interaction.Behaviors>
-    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Save" Command="{Binding Editor.SaveDocumentCommand}" />
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Save" Command="{Binding SaveDocumentCommand}" />
   </i:Interaction.Behaviors>
-  <Grid DataContext="{Binding Editor}" d:DataContext="{d:DesignInstance local:ScriptEditorViewModel}">
+  <Grid>
     <local:SimpleCodeTextEditor x:Name="CodeEditor" x:FieldModifier="private" FontSize="{Binding Code.EditorFontSize}" ContextActionsIcon="{StaticResource Bulb}" />
   </Grid>
 </UserControl>

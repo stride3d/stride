@@ -1,13 +1,8 @@
-﻿<Project>
-
+<Project>
   <Import Project="..\..\targets\Stride.Core.props" />
  
   <PropertyGroup>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <UseWPF>true</UseWPF>
-    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,5 +17,4 @@
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />
-
 </Project>

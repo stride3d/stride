@@ -1,13 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.SceneEditor.Services;
-using Stride.Assets.Presentation.ViewModel.Commands;
 using Stride.Engine;
+using Stride.Core.Assets.Editor.Services;
 
 namespace Stride.Assets.Presentation.NodePresenters.Commands
 {
@@ -21,9 +20,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
         /// <summary>
         /// Initializes a new instance of the <see cref="PickupEntityCommand"/> class.
         /// </summary>
-        /// <param name="session">The current session.</param>
-        public PickupEntityCommand(SessionViewModel session)
-            : base(session)
+        public PickupEntityCommand()
         {
         }
 
@@ -46,9 +43,14 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
         /// <inheritdoc/>
         protected override IEntityPickerDialog CreatePicker(AssetViewModel asset, Type targetType)
         {
-            var pickerDialog = Session.ServiceProvider.Get<IStrideDialogService>().CreateEntityPickerDialog((EntityHierarchyEditorViewModel)asset.Editor);
-            pickerDialog.Filter = item => item is EntityHierarchyRootViewModel || item.Asset == asset;
-            return pickerDialog;
+            if (asset.ServiceProvider.Get<IAssetEditorsManager>().TryGetAssetEditor<EntityHierarchyEditorViewModel>(asset, out var editor))
+            {
+                var pickerDialog = asset.ServiceProvider.Get<IStrideDialogService>().CreateEntityPickerDialog(editor);
+                pickerDialog.Filter = item => item is EntityHierarchyRootViewModel || item.Asset == asset;
+                return pickerDialog;
+            }
+
+            return null;
         }
     }
 }

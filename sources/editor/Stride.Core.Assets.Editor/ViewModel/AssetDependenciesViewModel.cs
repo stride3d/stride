@@ -5,10 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Analysis;
-using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {

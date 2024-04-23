@@ -5,7 +5,7 @@ using Stride.Core.Diagnostics;
 namespace Stride.Core.Assets
 {
     /// <summary>
-    /// Result returned when loading a session using <see cref="PackageSession.Load(string,PackageSessionResult,System.Nullable{System.Threading.CancellationToken},bool)"/>
+    /// Result returned when loading a session using <see cref="PackageSession.Load(string, PackageLoadParameters)"/>
     /// </summary>
     public sealed class PackageSessionResult : LoggerResult
     {

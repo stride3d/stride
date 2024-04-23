@@ -1,12 +1,13 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
 
 namespace Stride.VirtualReality
 {
-    class OpenXRInput
+    sealed class OpenXRInput
     {
         // different types of input we are interested in
         public enum HAND_PATHS
@@ -80,7 +81,6 @@ namespace Stride.VirtualReality
             }
         }
 
-        private static OpenXRHmd baseHMD;
         internal static Silk.NET.OpenXR.Action[,] MappedActions = new Silk.NET.OpenXR.Action[2, HAND_PATH_COUNT];
 
         public static string[] InteractionProfiles =
@@ -100,11 +100,21 @@ namespace Stride.VirtualReality
             "/interaction_profiles/microsoft/hand_interaction",
         };
 
-        internal static unsafe bool IsPathSupported(OpenXRHmd hmd, ulong profile, ActionSuggestedBinding* suggested)
+        private readonly OpenXRHmd hmd;
+
+        public OpenXRInput(OpenXRHmd hmd)
+        {
+            this.hmd = hmd;
+            Initialize(hmd);
+        }
+
+        public OpenXRHmd Hmd => hmd;
+
+        private static unsafe bool IsPathSupported(OpenXRHmd hmd, ulong profile, ActionSuggestedBinding* suggested)
         {
             InteractionProfileSuggestedBinding suggested_bindings = new InteractionProfileSuggestedBinding()
             {
-                Type = StructureType.TypeInteractionProfileSuggestedBinding,
+                Type = StructureType.InteractionProfileSuggestedBinding,
                 InteractionProfile = profile,
                 CountSuggestedBindings = 1,
                 SuggestedBindings = suggested
@@ -113,7 +123,7 @@ namespace Stride.VirtualReality
             return hmd.Xr.SuggestInteractionProfileBinding(hmd.Instance, &suggested_bindings) == Result.Success;
         }
 
-        public static Silk.NET.OpenXR.Action GetAction(TouchControllerHand hand, TouchControllerButton button, bool YAxis = false, bool wantBoolean = false)
+        private static Silk.NET.OpenXR.Action GetAction(TouchControllerHand hand, TouchControllerButton button, bool YAxis = false, bool wantBoolean = false)
         {
             switch (button)
             {
@@ -140,20 +150,20 @@ namespace Stride.VirtualReality
             }
         }
 
-        public static bool GetActionBool(TouchControllerHand hand, TouchControllerButton button, out bool wasChangedSinceLast, bool fallback = false)
+        public bool GetActionBool(TouchControllerHand hand, TouchControllerButton button, out bool wasChangedSinceLast, bool fallback = false)
         {
             ActionStateGetInfo getbool = new ActionStateGetInfo()
             {
                 Action = GetAction(hand, button, false, true),
-                Type = StructureType.TypeActionStateGetInfo
+                Type = StructureType.ActionStateGetInfo
             };
 
             ActionStateBoolean boolresult = new ActionStateBoolean()
             {
-                Type = StructureType.TypeActionStateBoolean
+                Type = StructureType.ActionStateBoolean
             };
 
-            baseHMD.Xr.GetActionStateBoolean(baseHMD.globalSession, in getbool, ref boolresult);
+            hmd.Xr.GetActionStateBoolean(hmd.globalSession, in getbool, ref boolresult);
 
             if (boolresult.IsActive == 0)
             {
@@ -172,20 +182,20 @@ namespace Stride.VirtualReality
             return boolresult.CurrentState == 1;
         }
 
-        public static float GetActionFloat(TouchControllerHand hand, TouchControllerButton button, out bool wasChangedSinceLast, bool YAxis = false, bool fallback = false)
+        public float GetActionFloat(TouchControllerHand hand, TouchControllerButton button, out bool wasChangedSinceLast, bool YAxis = false, bool fallback = false)
         {
             ActionStateGetInfo getfloat = new ActionStateGetInfo()
             {
                 Action = GetAction(hand, button, YAxis),
-                Type = StructureType.TypeActionStateGetInfo
+                Type = StructureType.ActionStateGetInfo
             };
 
             ActionStateFloat floatresult = new ActionStateFloat()
             {
-                Type = StructureType.TypeActionStateFloat
+                Type = StructureType.ActionStateFloat
             };
 
-            baseHMD.Xr.GetActionStateFloat(baseHMD.globalSession, in getfloat, ref floatresult);
+            hmd.Xr.GetActionStateFloat(hmd.globalSession, in getfloat, ref floatresult);
 
             if (floatresult.IsActive == 0)
             {
@@ -204,18 +214,16 @@ namespace Stride.VirtualReality
             return floatresult.CurrentState;
         }
 
-        public static unsafe void Initialize(OpenXRHmd hmd)
+        private static unsafe void Initialize(OpenXRHmd hmd)
         {
-            baseHMD = hmd;
-
             // make actions
-            for (int i=0; i<HAND_PATH_COUNT; i++)
+            for (int i = 0; i < HAND_PATH_COUNT; i++)
             {
-                for (int j=0; j<2; j++)
+                for (int j = 0; j < 2; j++)
                 {
                     ActionCreateInfo action_info = new ActionCreateInfo()
                     {
-                        Type = StructureType.TypeActionCreateInfo,
+                        Type = StructureType.ActionCreateInfo,
                         ActionType = GetActionType((HAND_PATHS)i),
                     };
 
@@ -231,21 +239,21 @@ namespace Stride.VirtualReality
             }
 
             // probe bindings for all profiles
-            for (int i=0; i<InteractionProfiles.Length; i++)
+            for (int i = 0; i < InteractionProfiles.Length; i++)
             {
                 ulong profile = 0;
                 hmd.Xr.StringToPath(hmd.Instance, InteractionProfiles[i], ref profile);
 
                 List<ActionSuggestedBinding> bindings = new List<ActionSuggestedBinding>();
                 // for each hand...
-                for (int hand=0; hand<2; hand++)
+                for (int hand = 0; hand < 2; hand++)
                 {
                     // for each path we want to bind...
-                    for (int path=0; path<HAND_PATH_COUNT; path++)
+                    for (int path = 0; path < HAND_PATH_COUNT; path++)
                     {
                         // list all possible paths that might be valid and pick the first one
                         List<string> possiblePaths = PathPriorities[path];
-                        for (int pathattempt=0; pathattempt<possiblePaths.Count; pathattempt++)
+                        for (int pathattempt = 0; pathattempt < possiblePaths.Count; pathattempt++)
                         {
                             // get the hand at the start, then put in the attempt
                             string final_path = hand == (int)TouchControllerHand.Left ? "/user/hand/left" : "/user/hand/right";
@@ -278,13 +286,13 @@ namespace Stride.VirtualReality
                     {
                         InteractionProfileSuggestedBinding suggested_bindings = new InteractionProfileSuggestedBinding()
                         {
-                            Type = StructureType.TypeInteractionProfileSuggestedBinding,
+                            Type = StructureType.InteractionProfileSuggestedBinding,
                             InteractionProfile = profile,
                             CountSuggestedBindings = (uint)final_bindings.Length,
                             SuggestedBindings = asbptr
                         };
 
-                        OpenXRHmd.CheckResult(hmd.Xr.SuggestInteractionProfileBinding(hmd.Instance, &suggested_bindings), "SuggestInteractionProfileBinding");
+                        hmd.Xr.SuggestInteractionProfileBinding(hmd.Instance, &suggested_bindings).CheckResult();
                     }
                 }
             }
