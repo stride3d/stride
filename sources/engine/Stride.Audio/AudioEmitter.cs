@@ -2,9 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Native;
 
 namespace Stride.Audio
 {
@@ -95,7 +93,7 @@ namespace Stride.Audio
             Up = new Vector3(0, 1, 0);
         }
 
-        internal void Apply3D(AudioLayer.Source source)
+        internal void Apply3D(Source source)
         {
             AudioLayer.SourcePush3D(source, ref Position, ref forward, ref up, ref Velocity, ref WorldTransform);
         }
