@@ -32,6 +32,7 @@
     <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.Sdl" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.22.0" />
+    <PackageVersion Include="Silk.NET.OpenAL" Version="2.22.0" />
     <PackageVersion Include="Stride.SharpFont" Version="1.0.1" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />

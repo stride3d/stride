@@ -33,17 +33,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Native\Common.h" />
+    <PackageReference Include="Silk.NET.OpenAL" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Native\OpenAL.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Native\OpenSLES.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Native\XAudio2.cpp" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(StrideSdkTargets)" />
 </Project>

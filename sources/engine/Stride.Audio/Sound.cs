@@ -27,7 +27,7 @@ namespace Stride.Audio
         internal string CompressedDataUrl { get; set; }
 
         [DataMemberIgnore]
-        internal AudioLayer.Buffer PreloadedBuffer;
+        internal AudioBuffer PreloadedBuffer;
 
         internal IVirtualFileProvider FileProvider;
 
@@ -75,34 +75,32 @@ namespace Stride.Audio
 
         internal void LoadSoundInMemory()
         {
-            if (PreloadedBuffer.Ptr != IntPtr.Zero) return;
+            if (PreloadedBuffer.Initialized) return;
 
-            using (var soundStream = FileProvider.OpenStream(CompressedDataUrl, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read, StreamFlags.Seekable))
-            using (var decoder = new Celt(SampleRate, CompressedSoundSource.SamplesPerFrame, Channels, true))
+            using var soundStream = FileProvider.OpenStream(CompressedDataUrl, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read, StreamFlags.Seekable);
+            using var decoder = new Celt(SampleRate, CompressedSoundSource.SamplesPerFrame, Channels, true);
+            var reader = new BinarySerializationReader(soundStream);
+            var samplesPerPacket = CompressedSoundSource.SamplesPerFrame * Channels;
+
+            PreloadedBuffer = AudioLayer.BufferCreate(samplesPerPacket * NumberOfPackets * sizeof(short));
+
+            var memory = new UnmanagedArray<short>(samplesPerPacket * NumberOfPackets);
+
+            var offset = 0;
+            var outputBuffer = new short[samplesPerPacket];
+            for (var i = 0; i < NumberOfPackets; i++)
             {
-                var reader = new BinarySerializationReader(soundStream);
-                var samplesPerPacket = CompressedSoundSource.SamplesPerFrame * Channels;
-
-                PreloadedBuffer = AudioLayer.BufferCreate(samplesPerPacket * NumberOfPackets * sizeof(short));
-
-                var memory = new UnmanagedArray<short>(samplesPerPacket * NumberOfPackets);
-
-                var offset = 0;
-                var outputBuffer = new short[samplesPerPacket];
-                for (var i = 0; i < NumberOfPackets; i++)
-                {
-                    var len = reader.ReadInt16();
-                    var compressedBuffer = reader.ReadBytes(len);
-                    var samplesDecoded = decoder.Decode(compressedBuffer, len, outputBuffer);
-                    memory.Write(outputBuffer, offset, 0, samplesDecoded * Channels);
-                    offset += samplesDecoded * Channels * sizeof(short);
-                }
-
-                // Ignore invalid data at beginning (due to encoder delay) & end of stream (due to packet size)
-                var samplesToSkip = decoder.GetDecoderSampleDelay();
-                AudioLayer.BufferFill(PreloadedBuffer, memory.Pointer + samplesToSkip * Channels * sizeof(short), Samples * Channels * sizeof(short), SampleRate, Channels == 1);
-                memory.Dispose();
+                var len = reader.ReadInt16();
+                var compressedBuffer = reader.ReadBytes(len);
+                var samplesDecoded = decoder.Decode(compressedBuffer, len, outputBuffer);
+                memory.Write(outputBuffer, offset, 0, samplesDecoded * Channels);
+                offset += samplesDecoded * Channels * sizeof(short);
             }
+
+            // Ignore invalid data at beginning (due to encoder delay) & end of stream (due to packet size)
+            var samplesToSkip = decoder.GetDecoderSampleDelay();
+            AudioLayer.BufferFill(PreloadedBuffer, memory.Pointer + samplesToSkip * Channels * sizeof(short), Samples * Channels * sizeof(short), SampleRate, Channels == 1);
+            memory.Dispose();
         }
     }
 }

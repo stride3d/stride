@@ -54,8 +54,8 @@ namespace Stride.Audio
         /// </summary>
         public TaskCompletionSource<bool> Ended { get; private set; } = new TaskCompletionSource<bool>(false);
 
-        protected readonly List<AudioLayer.Buffer> deviceBuffers = new List<AudioLayer.Buffer>();
-        protected readonly Queue<AudioLayer.Buffer> freeBuffers = new Queue<AudioLayer.Buffer>(4);
+        protected readonly List<AudioBuffer> deviceBuffers = [];
+        protected readonly Queue<AudioBuffer> freeBuffers = new(4);
 
         /// <summary>
         /// The sound instance associated.
@@ -125,10 +125,10 @@ namespace Stride.Audio
                     return true;
 
                 var freeBuffer = AudioLayer.SourceGetFreeBuffer(soundInstance.Source);
-                if (freeBuffer.Ptr == IntPtr.Zero)
+                if (freeBuffer == null)
                     return false;
 
-                freeBuffers.Enqueue(freeBuffer);
+                freeBuffers.Enqueue(freeBuffer.Value);
                 return true;
             }
         }
@@ -280,7 +280,7 @@ namespace Stride.Audio
         /// <param name="pcm">The pointer to PCM data</param>
         /// <param name="bufferSize">The full size in bytes of PCM data</param>
         /// <param name="type">If this buffer is the last buffer of the stream set to true, if not false</param>
-        protected void FillBuffer(IntPtr pcm, int bufferSize, AudioLayer.BufferType type)
+        protected void FillBuffer(IntPtr pcm, int bufferSize, BufferType type)
         {
             if (bufferSize > nativeBufferSizeBytes)
             {
@@ -304,7 +304,7 @@ namespace Stride.Audio
         /// <param name="pcm">The array containing PCM data</param>
         /// <param name="bufferSize">The full size in bytes of PCM data</param>
         /// <param name="type">If this buffer is the last buffer of the stream set to true, if not false</param>
-        protected unsafe void FillBuffer(short[] pcm, int bufferSize, AudioLayer.BufferType type)
+        protected unsafe void FillBuffer(short[] pcm, int bufferSize, BufferType type)
         {
             Debug.Assert((uint)bufferSize <= (uint)pcm.Length << 1);
             fixed (void* pcmBuffer = pcm)
@@ -318,7 +318,7 @@ namespace Stride.Audio
         /// <param name="pcm">The array containing PCM data</param>
         /// <param name="bufferSize">The full size in bytes of PCM data</param>
         /// <param name="type">If this buffer is the last buffer of the stream set to true, if not false</param>
-        protected unsafe void FillBuffer(byte[] pcm, int bufferSize, AudioLayer.BufferType type)
+        protected unsafe void FillBuffer(byte[] pcm, int bufferSize, BufferType type)
         {
             Debug.Assert((uint)bufferSize <= (uint)pcm.Length);
             fixed (void* pcmBuffer = pcm)
