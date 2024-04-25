@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Stride.Core;
 using Stride.Core.Mathematics;
 
 namespace Stride.Audio
@@ -115,7 +114,7 @@ namespace Stride.Audio
         /// <summary>
         /// Internal OpenAL object that represents a device context actually, this is to allow multiple listeners
         /// </summary>
-        internal AudioLayer.Listener Listener;
+        internal Listener Listener;
 
         internal Matrix WorldTransform;
 
@@ -124,8 +123,6 @@ namespace Stride.Audio
         /// </summary>
         public void Dispose()
         {
-            if (Listener.Ptr == IntPtr.Zero) return;
-
 #if !STRIDE_PLATFORM_IOS
             AudioLayer.ListenerDisable(Listener);
             AudioLayer.ListenerDestroy(Listener);
@@ -134,7 +131,8 @@ namespace Stride.Audio
 
         internal void Update()
         {
-            if (Listener.Ptr == IntPtr.Zero) return;
+            if (!Listener.Initialized) 
+                return;
             AudioLayer.ListenerPush3D(Listener, ref Position, ref forward, ref up, ref Velocity, ref WorldTransform);
         }
     }
