@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -24,7 +25,7 @@ namespace Stride.Graphics
         /// </summary>
         public GraphicsDeviceFeatures Features;
 
-        internal HashSet<GraphicsResourceBase> Resources = new HashSet<GraphicsResourceBase>();
+        internal readonly HashSet<WeakReference<GraphicsResourceBase>> Resources = new();
 
         internal readonly bool NeedWorkAroundForUpdateSubResource;
         internal Effect CurrentEffect;
@@ -128,8 +129,10 @@ namespace Stride.Graphics
             // Destroy resources
             lock (Resources)
             {
-                foreach (var resource in Resources)
+                foreach (var wRef in Resources.ToArray())
                 {
+                    if (wRef.TryGetTarget(out var resource) == false)
+                        continue;
                     // Destroy leftover resources (note: should not happen if ResumeManager.OnDestroyed has properly been called)
                     if (resource.LifetimeState != GraphicsResourceLifetimeState.Destroyed)
                     {

@@ -86,8 +86,8 @@ namespace Stride.Graphics
 
         protected internal override void OnDestroyed()
         {
-            ReleaseComObject(ref shaderResourceView);
-            ReleaseComObject(ref unorderedAccessView);
+            TryReleaseComObject(ref shaderResourceView);
+            TryReleaseComObject(ref unorderedAccessView);
 
             base.OnDestroyed();
         }
