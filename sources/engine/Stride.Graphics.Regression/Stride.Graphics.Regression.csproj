@@ -22,7 +22,10 @@
 
   <ItemGroup>
     <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" />
     <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" Condition="$(TargetFramework.StartsWith('net'))" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />

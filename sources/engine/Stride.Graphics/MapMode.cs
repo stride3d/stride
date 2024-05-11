@@ -3,7 +3,7 @@
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Describes how the cpu is accessing a <see cref="GraphicsResource"/> with the <see cref="GraphicsDeviceContext.Map"/> method.
+    /// Describes how the CPU is accessing a <see cref="GraphicsResource"/> with the <see cref="CommandList.MapSubresource"/> method.
     /// </summary>
     public enum MapMode
     {

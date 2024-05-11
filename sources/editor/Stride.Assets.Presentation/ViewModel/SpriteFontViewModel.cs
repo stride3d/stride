@@ -2,11 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Threading.Tasks;
-using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core;
-using Stride.Core.IO;
 using Stride.Assets.SpriteFont;
+using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
@@ -15,7 +16,7 @@ using Stride.Graphics;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
-    [AssetViewModel(typeof(SpriteFontAsset))]
+    [AssetViewModel<SpriteFontAsset>]
     public class SpriteFontViewModel : AssetViewModel<SpriteFontAsset>
     {
         /// <summary>
@@ -39,7 +40,7 @@ namespace Stride.Assets.Presentation.ViewModel
         private async Task GeneratePrecompiledFont()
         {
             var font = (SpriteFontAsset)AssetItem.Asset;
-            var dialogService = ServiceProvider.Get<IDialogService2>();
+            var dialogService = ServiceProvider.Get<IDialogService>();
             // Dynamic font cannot be precompiled
             if (font.FontType is RuntimeRasterizedSpriteFontType)
             {
@@ -52,7 +53,7 @@ namespace Stride.Assets.Presentation.ViewModel
 
             // Ask location for generated texture
             var initialPath = UDirectory.Combine(Session.CurrentProject?.Package?.RootDirectory ?? Session.SolutionPath.GetFullDirectory(), "Resources");
-            var directory = await ServiceProvider.Get<IDialogService>().OpenFolderPickerAsync(initialPath);
+            var directory = await dialogService.OpenFolderPickerAsync(initialPath);
             if (directory is null)
                 return;
 
@@ -61,7 +62,7 @@ namespace Stride.Assets.Presentation.ViewModel
             if (gameSettings == null)
             {
                 var buttons = DialogHelper.CreateButtons(new[] { ColorSpace.Linear.ToString(), ColorSpace.Gamma.ToString(), Tr._p("Button", "Cancel") }, 1, 3);
-                var result = await dialogService.MessageBox(Tr._p("Message", "Which color space do you want to use?"), buttons, MessageBoxImage.Question);
+                var result = await dialogService.MessageBoxAsync(Tr._p("Message", "Which color space do you want to use?"), buttons, MessageBoxImage.Question);
                 // Close without clicking a button or Cancel
                 if (result == 0 || result == 3)
                     return;

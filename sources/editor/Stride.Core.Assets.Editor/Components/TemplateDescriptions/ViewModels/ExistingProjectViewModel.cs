@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Media.Imaging;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;

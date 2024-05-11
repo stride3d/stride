@@ -33,11 +33,10 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Core.Packages;
-using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -201,6 +200,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         public IAssetDependencyManager DependencyManager => session.DependencyManager;
 
+        internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
+
         /// <summary>
         /// Raised when some assets are modified.
         /// </summary>
@@ -220,8 +221,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Raised when the active assets collection changed.
         /// </summary>
         public event EventHandler<ActiveAssetsChangedArgs> ActiveAssetsChanged;
-
-        internal readonly IDictionary<Type, Type> AssetViewModelTypes = new Dictionary<Type, Type>();
 
         /// <summary>
         /// Gets whether the session is currently in a special context to fix up assets.
@@ -468,7 +467,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                         new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = (int)PackageUpgradeRequestedAnswer.DoNotUpgrade },
                     };
                     var checkBoxMessage = Tr._p("Message", "Do this for every package in the solution");
-                    var messageBoxResult = workProgress.ServiceProvider.Get<IDialogService2>().CheckedMessageBox(message.ToString(), false, checkBoxMessage, buttons).Result;
+                    var messageBoxResult = workProgress.ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(message.ToString(), false, checkBoxMessage, buttons).Result;
                     var result = (PackageUpgradeRequestedAnswer)messageBoxResult.Result;
                     if (messageBoxResult.IsChecked == true)
                     {
@@ -535,8 +534,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             undoRedoService = ServiceProvider.Get<IUndoRedoService>();
 
             // Gather all data from plugins
-            var pluginService = ServiceProvider.Get<PluginService>();
-            pluginService.RegisterSession(this, logger);
+            PluginService.RegisterSession(this, logger);
 
             // Initialize the undo/redo debug view model
             undoRedoStackPage = EditorDebugTools.CreateUndoRedoDebugPage(undoRedoService, "Undo/redo stack");
@@ -641,7 +639,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     return;
                 }
 
-                ServiceProvider.Get<IEditorDialogService>().AssetEditorsManager.OpenAssetEditorWindow(asset);
+                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorWindow(asset);
             }
 
             // Folder
@@ -711,7 +709,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     Tr._p("Button", "Save"),
                     Tr._p("Button", "Cancel")
                 }, 1, 2);
-                var result = await Dialogs.MessageBox(Tr._p("Message", "This asset has unsaved changes. To open it, you need to save the session first. Do you want to save now?"), buttons, MessageBoxImage.Information);
+                var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "This asset has unsaved changes. To open it, you need to save the session first. Do you want to save now?"), buttons, MessageBoxImage.Information);
                 if (result == 1)
                     await SaveSession();
 
@@ -750,7 +748,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     Tr._p("Button", "Save"),
                     Tr._p("Button", "Cancel")
                 }, 1, 2);
-                var result = await Dialogs.MessageBox(Tr._p("Message", "This asset has unsaved changes. To open it, you need to save it first. Do you want to save the session now?"), buttons, MessageBoxImage.Information);
+                var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "This asset has unsaved changes. To open it, you need to save it first. Do you want to save the session now?"), buttons, MessageBoxImage.Information);
                 if (result == 1)
                     await SaveSession();
 
@@ -1011,6 +1009,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
             return result;
         }
 
+        public Type GetAssetViewModelType(AssetItem assetItem)
+        {
+            var assetType = assetItem.Asset.GetType();
+            return PluginService.GetAssetViewModelType(assetType) ?? typeof(AssetViewModel<>);
+        }
+
         /// <summary>
         /// Creates a <see cref="IDisposable"/> object that represents a context where most of the standard mechanisms relying on property changes are disabled, such as
         /// property changes notifications, creation of <see cref="ActionItem"/>, andpropagation of properties between a base and a derived asset.
@@ -1054,7 +1058,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     Tr._p("Button", "Don't save"),
                     Tr._p("Button", "Cancel")
                 }, 1, 3);
-                var result = await Dialogs.MessageBox(Tr._p("Message", "The project has unsaved changes. Do you want to save it?"), buttons, MessageBoxImage.Question);
+                var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "The project has unsaved changes. Do you want to save it?"), buttons, MessageBoxImage.Question);
                 switch (result)
                 {
                     case 0:
@@ -1524,7 +1528,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             RenameDirectoryOrPackageCommand.IsEnabled = canRename;
             NewDirectoryCommand.IsEnabled = packageSelected || directorySelected;
             ActivatePackagePropertiesCommand.IsEnabled = packageSelected || directorySelected;
-            EditSelectedContentCommand.IsEnabled = ActiveAssetView.SingleSelectedContent is DirectoryViewModel || asset != null && asset.HasEditor;
+            EditSelectedContentCommand.IsEnabled = ActiveAssetView.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(this, asset.GetType());
             OpenWithTextEditorCommand.IsEnabled = OpenAssetFileCommand.IsEnabled = OpenSourceFileCommand.IsEnabled = asset != null;
             ToggleIsRootOnSelectedAssetCommand.IsEnabled = ActiveAssetView.SelectedAssets.Count > 0 && ActiveAssetView.SelectedAssets.All(x => !x.Dependencies.ForcedRoot);
             UpdateSelectionCommands();
@@ -1561,7 +1565,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var message = $"Are you sure you want to delete {string.Join(" and ", messageParts)}?";
                 var checkedMessage = Tr._p("Settings", "Always delete without asking");
                 var buttons = DialogHelper.CreateButtons(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
-                var result = await ServiceProvider.Get<IDialogService2>().CheckedMessageBox(message, false, checkedMessage, buttons, MessageBoxImage.Question);
+                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(message, false, checkedMessage, buttons, MessageBoxImage.Question);
                 if (result.Result != 1)
                     return false;
 
@@ -1650,7 +1654,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             Tr._p("Button", "Delete"),
                             Tr._p("Button", "Cancel")
                         }, 1, 2);
-                        var result = await Dialogs.MessageBox(Tr._p("Message", "Are you sure you want to delete this package? The package files will remain on the disk."), buttons, MessageBoxImage.Question);
+                        var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "Are you sure you want to delete this package? The package files will remain on the disk."), buttons, MessageBoxImage.Question);
                         if (result != 1)
                             break;
                     }
@@ -1681,7 +1685,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             Tr._p("Button", "Delete"),
                             Tr._p("Button", "Cancel")
                         }, 1, 2);
-                        var result = await Dialogs.MessageBox(Tr._p("Message", "Are you sure you want to delete this dependency?"), buttons, MessageBoxImage.Question);
+                        var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "Are you sure you want to delete this dependency?"), buttons, MessageBoxImage.Question);
                         if (result != 1)
                             break;
                     }
@@ -1735,7 +1739,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             Tr._p("Button", "Delete"),
                             Tr._p("Button", "Cancel")
                         }, 1, 2);
-                        var result = await Dialogs.MessageBox(Tr._p("Message", "Are you sure you want to delete these projects?"), buttons, MessageBoxImage.Question);
+                        var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "Are you sure you want to delete these projects?"), buttons, MessageBoxImage.Question);
                         if (result != 1)
                             break;
                     }

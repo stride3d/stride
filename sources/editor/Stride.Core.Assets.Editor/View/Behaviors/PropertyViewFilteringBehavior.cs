@@ -5,7 +5,6 @@ using System.Linq;
 using System.Windows;
 
 using Stride.Core.Presentation.Behaviors;
-using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors

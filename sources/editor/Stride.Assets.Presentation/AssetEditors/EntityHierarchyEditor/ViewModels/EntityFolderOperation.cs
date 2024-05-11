@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Core.Assets.Editor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {
@@ -66,7 +67,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         /// <inheritdoc/>
         protected override void Undo()
         {
-            var editor = asset.Editor;
+            asset.ServiceProvider.Get<IAssetEditorsManager>().TryGetAssetEditor<EntityHierarchyEditorViewModel>(asset, out var editor);
             var folderName = folderPath[folderPath.Length - 1];
             var parent = (EntityHierarchyItemViewModel)editor?.FindPartViewModel(ownerId);
             for (var i = 0; i < folderPath.Length - 1; ++i)

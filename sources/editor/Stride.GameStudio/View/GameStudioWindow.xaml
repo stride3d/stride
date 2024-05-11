@@ -37,7 +37,7 @@
           </DockPanel.Resources>
           <TextBlock Margin="3 0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
           <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Center" VerticalAlignment="Top"
-                     Visibility="{Binding Path=Content.DataContext.IsDirty, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}"
+                     Visibility="{Binding Path=Content.DataContext.Asset.IsDirty, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}"
                      Text="*" TextAlignment="Center"/>
         </DockPanel>
       </DataTemplate>

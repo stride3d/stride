@@ -8,6 +8,7 @@ using Avalonia.Platform.Storage;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Avalonia.Windows;
+using Stride.Core.Presentation.Windows;
 
 namespace Stride.Core.Presentation.Avalonia.Services;
 
@@ -51,6 +52,7 @@ public class DialogService : IDialogService
             var storageFiles = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 AllowMultiple = false,
+                FileTypeFilter = filters?.Select(x => new FilePickerFileType(x.Name) { Patterns = x.Patterns }).ToList(),
                 SuggestedStartLocation = initialLocation,
             });
 
@@ -72,6 +74,7 @@ public class DialogService : IDialogService
             var storageFiles = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 AllowMultiple = false,
+                FileTypeFilter = filters?.Select(x => new FilePickerFileType(x.Name) { Patterns = x.Patterns }).ToList(),
                 SuggestedStartLocation = initialLocation,
             });
 
@@ -108,8 +111,45 @@ public class DialogService : IDialogService
             return path;
         });
     }
+    
+    public async Task<UFile?> SaveFilePickerAsync(UDirectory? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null, string? defaultExtension = null, string? defaultFileName = null)
+    {
+        if (StorageProvider is null) return null;
+
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var initialLocation = await StorageProvider.TryGetFolderFromPathAsync(initialPath);
+            var storageFile = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                DefaultExtension = defaultExtension,
+                FileTypeChoices = filters?.Select(x => new FilePickerFileType(x.Name) { Patterns = x.Patterns }).ToList(),
+                ShowOverwritePrompt = true,
+                SuggestedFileName = defaultFileName,
+                SuggestedStartLocation = initialLocation
+            });
+            var path = storageFile?.TryGetLocalPath();
+            if (string.IsNullOrEmpty(path)) return null;
+
+            return path;
+        });
+    }
+    
+    public async Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton buttons, MessageBoxImage image)
+    {
+        return await Dispatcher.InvokeTask(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, IDialogService.GetButtons(buttons), image, MainWindow));
+    }
+
+    public async Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
+    {
+        return await Dispatcher.InvokeTask(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, buttons, image, MainWindow));
+    }
 
     public async Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons, MessageBoxImage image)
+    {
+        return (MessageBoxResult)await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(buttons), image, MainWindow));
+    }
+
+    public async Task<int> MessageBoxAsync(string message, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
         return await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, buttons, image, MainWindow));
     }

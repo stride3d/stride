@@ -12,7 +12,7 @@ using Stride.Core.Reflection;
 namespace Stride.Core.Assets.Analysis
 {
     /// <summary>
-    /// An analysis to validate that all assets in a package have a valid <see cref="Asset.Base"/>.
+    /// An analysis to validate that all assets in a package have a valid <see cref="Asset"/> base.
     ///  In order to be valid, this analysis must be run after a <see cref="PackageAnalysis"/>
     /// </summary>
     public sealed class AssetBaseAnalysis : PackageSessionAnalysisBase

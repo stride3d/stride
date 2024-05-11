@@ -30,7 +30,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         protected EditorViewModel(IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru, string editorName, string editorVersionMajor)
             : base(serviceProvider)
         {
-            AssetsPlugin.RegisterPlugin(typeof(AssetsEditorPlugin));
             serviceProvider.Get<IEditorDialogService>();
 
             ClearMRUCommand = new AnonymousCommand(serviceProvider, () => ClearRecentFiles());
@@ -138,7 +137,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     Tr._p("Button", "Cancel")
                 }, 1, 2);
                 string message = string.Format(Tr._p("Message", "The last attempt to load the project **{0}** failed. \r\n\r\nDo you want to try to load it again?"), Path.GetFileName(initialSessionPath));
-                var result = await ServiceProvider.Get<IDialogService2>().MessageBox(message, buttons, MessageBoxImage.Warning);
+                var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, buttons, MessageBoxImage.Warning);
                 if (result != 1)
                     return false;
             }

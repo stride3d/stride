@@ -1,13 +1,5 @@
-namespace CSharpBeginner
-{
-    class CSharpBeginnerApp
-    {
-        static void Main(string[] args)
-        {
-            using (var game = new Stride.Engine.Game())
-            {
-                game.Run();
-            }
-        }
-    }
-}
+using Stride.Engine;
+
+using var game = new Game();
+game.Run();
+

@@ -65,18 +65,18 @@ internal static class PrivacyPolicyHelper
             // display privacyWindow
             var tcs = new TaskCompletionSource();
             var privacyWindow = new PrivacyPolicyWindow(true);
-            privacyWindow.Closed += (_,__) => tcs.SetResult();
+            privacyWindow.Closed += (_,_) => tcs.SetResult();
             privacyWindow.Show();
             await tcs.Task;
 
             if (!Stride40Accepted)
             {
-                await MessageBox.ShowAsync("Stride", "The Privacy Policy has been declined. The application will now exit.", MessageBoxButton.OK, MessageBoxImage.Information);
-                cts.Cancel();
+                await MessageBox.ShowAsync("Stride", "The Privacy Policy has been declined. The application will now exit.", IDialogService.GetButtons(MessageBoxButton.OK), MessageBoxImage.Information);
+                await cts.CancelAsync();
                 Environment.Exit(1);
             }
             // We restart the application after Privacy Policy acceptance.
-            cts.Cancel();
+            await cts.CancelAsync();
             RestartApplication();
         }
     }

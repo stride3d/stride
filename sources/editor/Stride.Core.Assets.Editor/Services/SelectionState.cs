@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;

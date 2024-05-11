@@ -141,8 +141,8 @@ namespace Stride.Core.Shaders.Convertor
                 switch (pipelineStage)
                 {
                     case PipelineStage.Vertex:
-                        builtinInputs.Add("SV_VertexID", "gl_VertexID");
-                        builtinInputs.Add("SV_InstanceID", "gl_InstanceID");
+                        builtinInputs.Add("SV_VertexID", isVulkan ? "gl_VertexIndex" : "gl_VertexID");
+                        builtinInputs.Add("SV_InstanceID", isVulkan ? "gl_InstanceIndex" :  "gl_InstanceID");
                         if (shaderModel < ShaderModel.Model40)
                         {
                             builtinOutputs.Add("POSITION", "gl_Position");
@@ -199,6 +199,7 @@ namespace Stride.Core.Shaders.Convertor
                    { "gl_FragData", VectorType.Float4}, // array
                    { "gl_FrontFacing", ScalarType.Bool}, 
                    { "gl_InstanceID", ScalarType.Int },
+                   { "gl_InstanceIndex", ScalarType.Int },
                    { "gl_InvocationID", ScalarType.Int},
                    { "gl_Layer", ScalarType.Int},
                    { "gl_NumSamples", ScalarType.Int},
@@ -214,6 +215,7 @@ namespace Stride.Core.Shaders.Convertor
                    { "gl_SamplePosition", VectorType.Float2},
                    { "gl_TessCoord", VectorType.Float3},
                    { "gl_VertexID", ScalarType.Int},
+                   { "gl_VertexIndex", ScalarType.Int},
                    { "gl_ViewportIndex", ScalarType.Int},
                 };
             }

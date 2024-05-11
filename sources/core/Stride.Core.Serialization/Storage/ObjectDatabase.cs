@@ -318,9 +318,9 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Creates a stream that can then be saved directly in the database using <see cref="SaveStream"/>.
+        /// Creates a stream that can then be saved directly in the database using <see cref="Write"/>.
         /// </summary>
-        /// <returns>a stream writer that should be passed to <see cref="SaveStream"/> in order to be stored in the database</returns>
+        /// <returns>a stream writer that should be passed to <see cref="Write"/> in order to be stored in the database</returns>
         public OdbStreamWriter CreateStream()
         {
             return backendWrite.CreateStream();

@@ -6,7 +6,6 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:p="clr-namespace:Stride.Assets.Presentation"
              xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
-             xmlns:viewModel="clr-namespace:Stride.Assets.Presentation.ViewModel"
              xmlns:pvc="clr-namespace:Stride.Assets.Presentation.ValueConverters"
              xmlns:assetEditors="clr-namespace:Stride.Assets.Presentation.AssetEditors"
              xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor"
@@ -19,7 +18,7 @@
              xmlns:core="clr-namespace:Stride.Core.Presentation.Core;assembly=Stride.Core.Presentation"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance viewModel:EntityHierarchyViewModel}">
+             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyEditorViewModel}">
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -155,22 +154,22 @@
     </ResourceDictionary>
   </UserControl.Resources>
   <UserControl.InputBindings>
-    <KeyBinding Command="{Binding Editor.Grid.ToggleCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureToggleGrid}}"/>
-    <KeyBinding Command="{Binding Editor.DuplicateSelectionCommand}" Gesture="{sd:KeyGesture {}Ctrl+D}"/>
+    <KeyBinding Command="{Binding Grid.ToggleCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureToggleGrid}}"/>
+    <KeyBinding Command="{Binding DuplicateSelectionCommand}" Gesture="{sd:KeyGesture {}Ctrl+D}"/>
   </UserControl.InputBindings>
   <i:Interaction.Behaviors>
     <!-- These commands are available globally in the editor -->
-    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Editor.DeleteCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
-    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding Editor.PasteCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
-    <sd:CommandBindingBehavior RoutedCommand="{x:Static ehv:EntityHierarchyEditorView.FocusOnSelection}" Command="{Binding Editor.EntityWithGizmo.FocusOnEntityCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding DeleteCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding PasteCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sd:CommandBindingBehavior RoutedCommand="{x:Static ehv:EntityHierarchyEditorView.FocusOnSelection}" Command="{Binding EntityWithGizmo.FocusOnEntityCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
   </i:Interaction.Behaviors>
   <Grid>
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Editor, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}, Parameter2={sd:False}}}">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding SceneInitialized, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}}">
       <TextBlock Text="{sd:Localize Loading scene...}" Margin="20" HorizontalAlignment="Center"/>
       <TextBlock Text="{sd:Localize This might take a few minutes the first time.}" Margin="20" HorizontalAlignment="Center"/>
       <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="20" BorderThickness="1"/>
     </StackPanel>
-    <Grid DataContext="{Binding Editor, Mode=OneWay}" Visibility="{Binding Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyEditorViewModel}">
+    <Grid Visibility="{Binding SceneInitialized, Converter={sd:VisibleOrCollapsed}}">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="5"/>
@@ -180,7 +179,8 @@
       <DockPanel Grid.Row="0" Grid.Column="0">
         <ToolBarTray DockPanel.Dock="Top">
           <ToolBar>
-            <Menu Background="Transparent" DataContext="{sd:PriorityBinding {Binding ActiveRoot, Converter={sd:NullToUnset}, Mode=OneWay}, {Binding HierarchyRoot, Mode=OneWay}}"
+            <Menu Background="Transparent"
+                  DataContext="{sd:PriorityBinding {Binding ActiveRoot, Converter={sd:NullToUnset}, Mode=OneWay}, {Binding HierarchyRoot, Mode=OneWay}}"
                   ToolTip="{sd:Localize Create a new entity, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Editor.Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
               <MenuItem Style="{StaticResource ToolBarIconMenuItemStyle}">
                 <MenuItem.Icon>

@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+        xmlns:cvt="using:Stride.Core.Presentation.Avalonia.Converters"
         xmlns:local="using:Stride.Core.Presentation.Windows"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         MinHeight="120" MinWidth="320" MaxHeight="768"
@@ -52,7 +53,8 @@
                 <Image DockPanel.Dock="Left"
                        Source="{Binding $parent[Window].Image}"
                        HorizontalAlignment="Left" VerticalAlignment="Top"
-                       Height="32" Width="32" Margin="4" />
+                       Height="32" Width="32" Margin="4"
+                       IsVisible="{Binding $parent[Window].Image, Converter={cvt:ObjectToBool}}" />
                 <md:MarkdownScrollViewer Markdown="{Binding}" VerticalAlignment="Center" />
               </DockPanel>
             </DataTemplate>

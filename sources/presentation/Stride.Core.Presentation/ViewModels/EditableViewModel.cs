@@ -6,9 +6,9 @@ using System.Collections.Specialized;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Stride.Core.Extensions;
-using Stride.Core.Transactions;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Dirtiables;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Transactions;
 
 namespace Stride.Core.Presentation.ViewModels;
 

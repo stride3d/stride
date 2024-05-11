@@ -6,7 +6,7 @@ using Stride.Core.Presentation.ViewModels;
 namespace Stride.Core.Presentation.Windows;
 
 /// <summary>
-/// Represents a button in a <see cref="MessageDialogBase"/>.
+/// Represents a button in a dialog window.
 /// </summary>
 public sealed class DialogButtonInfo : ViewModelBase
 {

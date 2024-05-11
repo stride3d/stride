@@ -18,7 +18,7 @@ using Stride.Metrics;
 
 namespace Stride.Launcher;
 
-internal static partial class Launcher
+internal static class Launcher
 {
     private static int terminating;
     internal static MetricsClient? Metrics;
@@ -120,7 +120,7 @@ internal static partial class Launcher
             CancellationToken AppMain(Application app)
             {
                 var cts = new CancellationTokenSource();
-                _ = MessageBox.ShowAsync(ApplicationName, message, MessageBoxButton.OK, image).ContinueWith(_ => cts.Cancel());
+                _ = MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.OK), image).ContinueWith(_ => cts.Cancel());
                 return cts.Token;
             }
         }
@@ -151,7 +151,7 @@ internal static partial class Launcher
     private static LauncherErrorCode TryRun(CancellationTokenSource cts)
     {
         var mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!;
-        mainWindow.Closed += (_, __) => cts.Cancel();
+        mainWindow.Closed += (_, _) => cts.Cancel();
         mainWindow.Show();
         return LauncherErrorCode.Success;
     }
@@ -194,13 +194,13 @@ internal static partial class Launcher
         }
         finally
         {
-            cts.Cancel();
+            await cts.CancelAsync();
         }
 
         static async Task<bool> DisplayMessageAsync(string message)
         {
-            var result = await MessageBox.ShowAsync(ApplicationName, message, MessageBoxButton.YesNo, MessageBoxImage.Information);
-            return result == MessageBoxResult.Yes;
+            var result = await MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.YesNo), MessageBoxImage.Information);
+            return result == (int)MessageBoxResult.Yes;
         }
     }
 
@@ -215,7 +215,7 @@ internal static partial class Launcher
             var cts = new CancellationTokenSource();
             var window = new CrashReportWindow { Topmost = true };
             window.DataContext = new CrashReportViewModel(args, window.Clipboard!.SetTextAsync, cts);
-            window.Closed += (_, __) => cts.Cancel();
+            window.Closed += (_, _) => cts.Cancel();
             if (!window.IsVisible)
             {
                 window.Show();
