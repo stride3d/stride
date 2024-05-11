@@ -242,8 +242,7 @@ public sealed class BepuSimulation : IDisposable
     public BodyComponent GetComponent(BodyHandle handle)
     {
         var body = Bodies[handle.Value];
-#warning disabled for soft
-        //Debug.Assert(body is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
+        Debug.Assert(body is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
         return body;
     }
 
@@ -661,10 +660,6 @@ public sealed class BepuSimulation : IDisposable
         static void SyncTransformsWithPhysics(in BodyReference body, BepuSimulation bepuSim)
         {
             var collidable = bepuSim.GetComponent(body.Handle);
-
-#warning temp fix for softs
-            if (collidable == null)
-                return;
 
             for (var item = collidable.Parent; item != null; item = item.Parent)
             {

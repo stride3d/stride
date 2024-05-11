@@ -62,10 +62,7 @@ public static class CollisionMaskExtension
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool AllowTest(this CollisionMask collisionMask, CollidableReference collidable, BepuSimulation sim)
     {
-        var result = sim.GetComponent(collidable);
-#warning softHack, we should really create a Collidable for them
-        if (result == null)
-            return true;
-        return collisionMask.Collide(result.CollisionMask);
+        var component = sim.GetComponent(collidable);
+        return collisionMask.Collide(component.CollisionMask);
     }
 }

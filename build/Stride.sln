@@ -344,8 +344,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Demo.Win
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Navigation", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Navigation\Stride.BepuPhysics.Navigation.csproj", "{0BC0E590-524E-4311-A3E9-371BE6AFF536}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Soft", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Soft\Stride.BepuPhysics.Soft.csproj", "{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.3D", "..\sources\tools\Stride.Importer.3D\Stride.Importer.3D.csproj", "{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}"
 EndProject
 Global
@@ -1557,18 +1555,6 @@ Global
 		{0BC0E590-524E-4311-A3E9-371BE6AFF536}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{0BC0E590-524E-4311-A3E9-371BE6AFF536}.Release|Win32.ActiveCfg = Release|Any CPU
 		{0BC0E590-524E-4311-A3E9-371BE6AFF536}.Release|Win32.Build.0 = Release|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Debug|Win32.Build.0 = Debug|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Release|Win32.ActiveCfg = Release|Any CPU
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32}.Release|Win32.Build.0 = Release|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -1713,7 +1699,6 @@ Global
 		{E56FFD91-590E-442A-910B-CC88C92AE553} = {DE048114-9AE4-467E-A879-188DC0D88A59}
 		{B7F08BEE-39ED-4F1A-AA06-3BADE320288B} = {DE048114-9AE4-467E-A879-188DC0D88A59}
 		{0BC0E590-524E-4311-A3E9-371BE6AFF536} = {DE048114-9AE4-467E-A879-188DC0D88A59}
-		{8E5E44B3-92FD-4C79-AA06-7E8CBFDDBB32} = {DE048114-9AE4-467E-A879-188DC0D88A59}
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E} = {6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
