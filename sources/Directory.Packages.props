@@ -130,7 +130,7 @@
 
   <!-- Avalonia dependencies -->
   <PropertyGroup>
-    <AvaloniaVersion>11.0.5</AvaloniaVersion>
+    <AvaloniaVersion>11.0.10</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -138,7 +138,7 @@
     <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Xaml.Interactions" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Xaml.Interactions" Version="11.0.6" />
     <PackageVersion Include="Markdown.Avalonia.Tight" Version="11.0.2" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
