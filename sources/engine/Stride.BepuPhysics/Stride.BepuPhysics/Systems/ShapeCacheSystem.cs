@@ -44,7 +44,7 @@ internal class ShapeCacheSystem : IDisposable
 
     public void Dispose()
     {
-        ((IDisposable)_sharedPool).Dispose();
+        _sharedPool.Clear();
     }
 
     /// <summary>
@@ -108,11 +108,11 @@ internal class ShapeCacheSystem : IDisposable
     {
         int vertexCount = 0;
         int indexCount = 0;
-        for (int mesh = 0; mesh < hullDesc.Hulls.Length; mesh++)
+        for (int mesh = 0; mesh < hullDesc.Meshes.Length; mesh++)
         {
-            for (var hull = 0; hull < hullDesc.Hulls[mesh].Length; hull++)
+            for (var hull = 0; hull < hullDesc.Meshes[mesh].Hulls.Length; hull++)
             {
-                var hullClass = hullDesc.Hulls[mesh][hull];
+                var hullClass = hullDesc.Meshes[mesh].Hulls[hull];
                 vertexCount += hullClass.Points.Length;
                 indexCount += hullClass.Indices.Length;
             }
@@ -124,11 +124,11 @@ internal class ShapeCacheSystem : IDisposable
         int vertexWriteHead = 0;
         int indexWriteHead = 0;
 
-        for (int mesh = 0; mesh < hullDesc.Hulls.Length; mesh++)
+        for (int mesh = 0; mesh < hullDesc.Meshes.Length; mesh++)
         {
-            for (var hull = 0; hull < hullDesc.Hulls[mesh].Length; hull++)
+            for (var hull = 0; hull < hullDesc.Meshes[mesh].Hulls.Length; hull++)
             {
-                var hullClass = hullDesc.Hulls[mesh][hull];
+                var hullClass = hullDesc.Meshes[mesh].Hulls[hull];
 
                 int vertMappingStart = vertexWriteHead;
                 for (int i = 0; i < hullClass.Points.Length; i++)

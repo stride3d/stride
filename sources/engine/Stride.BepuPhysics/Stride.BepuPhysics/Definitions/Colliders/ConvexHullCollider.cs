@@ -27,7 +27,7 @@ public sealed class ConvexHullCollider : ColliderBase
     public required DecomposedHulls Hull
     {
         get
-        { 
+        {
             return _hull;
         }
         set
@@ -44,11 +44,11 @@ public sealed class ConvexHullCollider : ColliderBase
             var hulls = new List<(ConvexHull, System.Numerics.Vector3)>(Hull.Meshes.Length);
             foreach (var mesh in Hull.Meshes)
             {
-                hulls.EnsureCapacity(hulls.Count + mesh.Length);
+                hulls.EnsureCapacity(hulls.Count + mesh.Hulls.Length);
                 // Multiple convex hulls may be set up to create a concave shape, do not merge them
-                foreach (var hull in mesh)
+                foreach (var hull in mesh.Hulls)
                 {
-                    var points = MemoryMarshal.Cast<Vector3, System.Numerics.Vector3>(hull.Points);
+                    var points = MemoryMarshal.Cast<Vector3, System.Numerics.Vector3>(hull.InternalPoints);
                     var convex = new ConvexHull(points, _sharedPool, out var center);
                     hulls.Add((convex, center));
                 }
@@ -60,8 +60,9 @@ public sealed class ConvexHullCollider : ColliderBase
 
         foreach (var (hull, center) in _cache.Hulls)
         {
-            localPose.Position += center;
-            builder.Add(hull, localPose, Mass);
+            var poseForThisHull = localPose;
+            poseForThisHull.Position += center;
+            builder.Add(hull, poseForThisHull, Mass);
         }
     }
 
