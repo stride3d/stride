@@ -12,7 +12,7 @@
              xmlns:cvt="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:status="clr-namespace:Stride.Core.Assets.Editor.Components.Status.Views"
-             xmlns:strings="clr-namespace:Stride.Core.Assets.Editor.Resources.Strings"
+             xmlns:strings="clr-namespace:Stride.Core.Assets.Editor.Wpf.Resources.Strings"
              xmlns:templateViews="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
              xmlns:services="clr-namespace:Stride.Core.Assets.Editor.Services"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:AssetCollectionViewModel}" Focusable="True"

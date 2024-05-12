@@ -37,7 +37,7 @@
     <ProjectReference Include="..\..\engine\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Video\Stride.Video.csproj" />
     <ProjectReference Include="..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
-    <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
+    <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.Wpf.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Themes\Generic.xaml">

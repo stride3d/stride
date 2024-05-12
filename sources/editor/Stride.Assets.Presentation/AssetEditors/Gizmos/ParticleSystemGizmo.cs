@@ -3,6 +3,7 @@
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.DebugShapes;
+using Stride.Assets.Presentation.Wpf.AssetEditors.Gizmos;
 using Stride.Engine;
 using Stride.Particles.Components;
 using Stride.Particles.DebugDraw;

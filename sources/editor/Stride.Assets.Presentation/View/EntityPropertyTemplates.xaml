@@ -3,14 +3,14 @@
                     xmlns:tp="clr-namespace:Stride.Assets.Presentation.TemplateProviders"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:system="clr-namespace:System;assembly=mscorlib"
-                    xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors;assembly=Stride.Core.Assets.Editor"
-                    xmlns:valueConverters="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor"
+                    xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors;assembly=Stride.Core.Assets.Editor.Wpf"
+                    xmlns:valueConverters="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor.Wpf"
                     xmlns:composers="clr-namespace:Stride.Rendering.Compositing;assembly=Stride.Engine"
                     xmlns:pvc="clr-namespace:Stride.Assets.Presentation.ValueConverters"
                     xmlns:engine="clr-namespace:Stride.Engine;assembly=Stride.Engine"
                     xmlns:data="clr-namespace:Stride.Data;assembly=Stride"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-                    xmlns:assetCommands="clr-namespace:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;assembly=Stride.Core.Assets.Editor"
+                    xmlns:assetCommands="clr-namespace:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;assembly=Stride.Core.Assets.Editor.Wpf"
                     xmlns:qvm="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
                     xmlns:localView="clr-namespace:Stride.Assets.Presentation.View">
 

@@ -10,7 +10,7 @@ using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 using Stride.Assets.Textures;
-using Stride.Editor.Resources;
+using Stride.Editor.Wpf.Resources;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
 

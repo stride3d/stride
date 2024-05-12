@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using Stride.Assets.Presentation.Wpf.AssetEditors.Gizmos;
 using Stride.Engine;
 using Stride.Rendering.Lights;
 

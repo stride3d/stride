@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets.Compiler;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.Resources.Thumbnails;
-using Stride.Editor.Resources;
+using Stride.Assets.Presentation.Wpf.Resources.Thumbnails;
+using Stride.Editor.Wpf.Resources;
 using Stride.Editor.Thumbnails;
 
 namespace Stride.Assets.Presentation.Thumbnails

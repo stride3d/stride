@@ -6,7 +6,7 @@
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:valueConverters1="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor"
+        xmlns:valueConverters1="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor.Wpf"
         xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views"
         mc:Ignorable="d" ShowInTaskbar="False"
         Style="{DynamicResource WindowChromeStyle}"

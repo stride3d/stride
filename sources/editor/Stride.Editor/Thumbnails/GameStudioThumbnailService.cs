@@ -15,7 +15,7 @@ using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Assets;
 using Stride.Editor.Build;
-using Stride.Editor.Resources;
+using Stride.Editor.Wpf.Resources;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
 

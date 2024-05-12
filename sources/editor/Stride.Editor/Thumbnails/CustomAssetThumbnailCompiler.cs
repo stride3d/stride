@@ -6,7 +6,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Core;
-using Stride.Editor.Resources;
+using Stride.Editor.Wpf.Resources;
 using Stride.Graphics;
 
 namespace Stride.Editor.Thumbnails

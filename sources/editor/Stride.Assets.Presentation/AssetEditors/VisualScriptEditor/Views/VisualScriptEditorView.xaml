@@ -7,7 +7,7 @@
              xmlns:graphx="clr-namespace:GraphX.Controls;assembly=GraphX.WPF.Controls"
              xmlns:sskkgraph="http://schemas.stride3d.net/xaml/presentation/graph"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             xmlns:templateViews="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;assembly=Stride.Core.Assets.Editor"
+             xmlns:templateViews="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;assembly=Stride.Core.Assets.Editor.Wpf"
              xmlns:converters="clr-namespace:Stride.Assets.Presentation.AssetEditors.VisualScriptEditor.Converters"
              xmlns:graphX="http://schemas.panthernet.ru/graphx/"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
