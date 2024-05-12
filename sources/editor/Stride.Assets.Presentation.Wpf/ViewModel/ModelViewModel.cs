@@ -34,7 +34,7 @@ namespace Stride.Assets.Presentation.ViewModel
             {
                 DisplayName = "Create Skeleton",
                 Tooltip = "Create a skeleton asset",
-                Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Assets.Presentation;component/Resources/Icons/create_skeleton-16.png", UriKind.RelativeOrAbsolute))},
+                Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Assets.Presentation.Wpf;component/Resources/Icons/create_skeleton-16.png", UriKind.RelativeOrAbsolute))},
             }));
         }
 

@@ -11,7 +11,7 @@
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml" />
+        <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/CommonResources.xaml" />
       </ResourceDictionary.MergedDictionaries>
       
       <Style x:Key="BreakButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource TransparentButtonStyle}">

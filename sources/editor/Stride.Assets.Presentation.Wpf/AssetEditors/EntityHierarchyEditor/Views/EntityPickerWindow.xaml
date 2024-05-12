@@ -14,7 +14,7 @@
   <sd:ModalWindow.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Stride.Assets.Presentation;component/View/ImageDictionary.xaml"/>
+        <ResourceDictionary Source="/Stride.Assets.Presentation.Wpf;component/View/ImageDictionary.xaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </sd:ModalWindow.Resources>

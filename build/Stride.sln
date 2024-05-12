@@ -146,7 +146,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Tests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets", "..\sources\engine\Stride.Assets\Stride.Assets.csproj", "{39AE9C77-E94B-404F-8768-B6261B3C1E0E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Editor.Wpf", "..\sources\editor\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.Wpf.csproj", "{5863574D-7A55-49BC-8E65-BABB74D8E66E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Editor.Wpf", "..\sources\editor\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj", "{5863574D-7A55-49BC-8E65-BABB74D8E66E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.CompilerApp", "..\sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj", "{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}"
 EndProject
@@ -162,7 +162,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI", "..\sources\eng
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI.Tests.Windows", "..\sources\engine\Stride.UI.Tests\Stride.UI.Tests.Windows.csproj", "{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Editor.Wpf", "..\sources\editor\Stride.Editor\Stride.Editor.Wpf.csproj", "{16E02D45-5530-4617-97DC-BC3BDF77DE2C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Editor.Wpf", "..\sources\editor\Stride.Editor.Wpf\Stride.Editor.Wpf.csproj", "{16E02D45-5530-4617-97DC-BC3BDF77DE2C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.GameStudio.Tests", "..\sources\editor\Stride.GameStudio.Tests\Stride.GameStudio.Tests.csproj", "{0EA748AF-E1DC-4788-BA50-8BABD56F220C}"
 EndProject
@@ -174,7 +174,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.StorageTool", "..\so
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.ProjectTemplating", "..\sources\tools\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj", "{2E2382F7-9576-49F0-AE43-93AFD7DB2368}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Presentation.Wpf", "..\sources\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.Wpf.csproj", "{550C1B7C-B7AD-46DF-ACF3-C36AEF35D5FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Presentation.Wpf", "..\sources\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj", "{550C1B7C-B7AD-46DF-ACF3-C36AEF35D5FF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.ProjectTemplating.Tests", "..\sources\tools\Stride.Core.ProjectTemplating.Tests\Stride.Core.ProjectTemplating.Tests.csproj", "{862C7C39-8E2B-4F18-88E9-ACD6EDF818CD}"
 EndProject
@@ -184,7 +184,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Design.Tests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Physics", "..\sources\engine\Stride.Physics\Stride.Physics.csproj", "{DD592516-B341-40FE-9100-1B0FA784A060}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Wpf.Dialogs", "..\sources\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Wpf.Dialogs.csproj", "{4FAC003A-2532-42F3-AED7-A296D1A1615E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Wpf.Dialogs", "..\sources\presentation\Stride.Core.Presentation.Wpf.Dialogs\Stride.Core.Presentation.Wpf.Dialogs.csproj", "{4FAC003A-2532-42F3-AED7-A296D1A1615E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.RenderDocPlugin", "..\sources\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj", "{FDF801D9-90CC-4CBD-9F53-7F32F7EDF4F1}"
 EndProject
@@ -226,7 +226,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Core.ShellHelper", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Packages", "..\sources\assets\Stride.Core.Packages\Stride.Core.Packages.csproj", "{ACD2C831-BDA2-4512-B4CC-75E8E1804F73}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Wpf.Graph", "..\sources\presentation\Stride.Core.Presentation.Graph\Stride.Core.Presentation.Wpf.Graph.csproj", "{EFD2472E-B0E1-442A-9057-BBEA2517064B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Wpf.Graph", "..\sources\presentation\Stride.Core.Presentation.Wpf.Graph\Stride.Core.Presentation.Wpf.Graph.csproj", "{EFD2472E-B0E1-442A-9057-BBEA2517064B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Editor.Tests", "..\sources\editor\Stride.Core.Assets.Editor.Tests\Stride.Core.Assets.Editor.Tests.csproj", "{25F98E38-0249-45BC-B2ED-7899297B9CF6}"
 EndProject
@@ -262,7 +262,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Tasks", "..\sou
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation", "..\sources\core\Stride.Core.Translation\Stride.Core.Translation.csproj", "{6A7B231E-36AA-4647-8C1A-FB1540ABC813}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation.Presentation.Wpf", "..\sources\presentation\Stride.Core.Translation.Presentation\Stride.Core.Translation.Presentation.Wpf.csproj", "{B686C194-D71D-4FF0-8B4F-F53AFBCD962F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation.Presentation.Wpf", "..\sources\presentation\Stride.Core.Translation.Presentation.Wpf\Stride.Core.Translation.Presentation.Wpf.csproj", "{B686C194-D71D-4FF0-8B4F-F53AFBCD962F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation.Extractor", "..\sources\tools\Stride.Core.Translation.Extractor\Stride.Core.Translation.Extractor.csproj", "{164A5B9A-E684-4B3F-9EF4-B7765FC0A8A1}"
 EndProject
