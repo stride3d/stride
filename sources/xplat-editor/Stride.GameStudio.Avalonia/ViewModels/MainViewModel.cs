@@ -1,9 +1,12 @@
-using System.Threading.Tasks;
-using System.Windows.Input;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using CommunityToolkit.Mvvm.Input;
-using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Presentation.Avalonia.Services;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.ViewModels;
+using Stride.GameStudio.Avalonia.Services;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
@@ -13,31 +16,39 @@ public partial class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
-        AboutCommand = new AsyncRelayCommand(OnAbout, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
-        ExitCommand = new RelayCommand(OnExit, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
-        OpenCommand = new RelayCommand(OnOpen);
+        var dispatcherService = DispatcherService.Create();
+        var services = new object[]
+        {
+            dispatcherService,
+        };
+        ServiceProvider = new ViewModelServiceProvider(services);
+        ServiceProvider.RegisterService(new EditorDialogService(ServiceProvider));
+
+        AboutCommand = new AnonymousTaskCommand(ServiceProvider, OnAbout, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
+        ExitCommand = new AnonymousCommand(ServiceProvider, OnExit, () => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime);
+        OpenCommand = new AnonymousCommand(ServiceProvider, OnOpen);
     }
 
     public string? Message
     {
         get => message;
-        set => SetProperty(ref message, value);
+        set => SetValue(ref message, value);
     }
 
-    public ICommand AboutCommand { get; }
-    public ICommand ExitCommand { get; }
-    public ICommand OpenCommand { get; }
+    public ICommandBase AboutCommand { get; }
+    public ICommandBase ExitCommand { get; }
+    public ICommandBase OpenCommand { get; }
+
+    private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
 
     private async Task OnAbout()
     {
-        // FIXME: hide implementation details through a dialog service
-        var window = new AboutWindow();
-        await window.ShowDialog(((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!);
+        await DialogService.ShowAboutWindowAsync();
     }
 
     private void OnExit()
     {
-        ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).TryShutdown();
+        DialogService.Exit();
     }
 
     private void OnOpen()
