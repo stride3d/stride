@@ -2,6 +2,7 @@
   <Import Project="..\..\targets\Stride.Core.props" />
 
   <ItemGroup>
+    <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
     <ProjectReference Include="..\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
   </ItemGroup>
 
