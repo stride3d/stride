@@ -56,7 +56,6 @@ namespace Stride.Engine.Splines.Processors
             component.OnSplineDecoratorDirty -= () => data.Update(splineDecoratorComponentsToUpdate, component);
             
             entity.Transform.PostOperations.Remove(data.TransformOperation);
-            // splineDecoratorComponentsToUpdate.Remove(component);
         }
 
         public class SplineDecoratorTransformationInfo

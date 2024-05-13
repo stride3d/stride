@@ -5,7 +5,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 
-namespace Stride.Engine.Splines.Models
+namespace Stride.Engine.Splines.Models.Mesh
 {
     [DataContract("SplineMeshBox")]
     [Display("Box")]
@@ -20,10 +20,10 @@ namespace Stride.Engine.Splines.Models
         private int[] indices;
         private readonly Vector3[] normals = new Vector3[4]
         {
-            -Vector3.UnitY, //Down
-            -Vector3.UnitX, //Right
-            Vector3.UnitY, //Up
-            Vector3.UnitX // Left
+            -Vector3.UnitY, //Down Vector3(0,1,0)
+            -Vector3.UnitX, //Right Vector3(0,1,0)
+            Vector3.UnitY, //Up Vector3(0,1,0)
+            Vector3.UnitX // Left Vector3(0,1,0)
         };
 
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
@@ -164,15 +164,15 @@ namespace Stride.Engine.Splines.Models
                     CreateVertex(verticesIndex + 7, vertices[backIndex - 3].Position, Vector3.UnitZ, new Vector2(1, 1));
 
                     var closeIndicesIndex = indicesCount - 12;
-                    var vertextCountIndex = vertexCount - 8;
+                    var vertexCountIndex = vertexCount - 8;
                     //Front
-                    indices[closeIndicesIndex + 0] = vertextCountIndex + 0;
-                    indices[closeIndicesIndex + 1] = vertextCountIndex + 3;
-                    indices[closeIndicesIndex + 2] = vertextCountIndex + 1;
+                    indices[closeIndicesIndex + 0] = vertexCountIndex + 0;
+                    indices[closeIndicesIndex + 1] = vertexCountIndex + 3;
+                    indices[closeIndicesIndex + 2] = vertexCountIndex + 1;
 
-                    indices[closeIndicesIndex + 3] = vertextCountIndex + 1;
-                    indices[closeIndicesIndex + 4] = vertextCountIndex + 3;
-                    indices[closeIndicesIndex + 5] = vertextCountIndex + 2;
+                    indices[closeIndicesIndex + 3] = vertexCountIndex + 1;
+                    indices[closeIndicesIndex + 4] = vertexCountIndex + 3;
+                    indices[closeIndicesIndex + 5] = vertexCountIndex + 2;
                     closeIndicesIndex += 6;
 
                     //Back

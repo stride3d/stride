@@ -5,7 +5,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 
-namespace Stride.Engine.Splines.Models
+namespace Stride.Engine.Splines.Models.Mesh
 {
     [DataContract("SplineMeshPlane")]
     [Display("Plane")]

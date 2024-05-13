@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Stride.Engine.Splines.Components;
 using Stride.Engine.Splines.HierarchyTransformOperations;
 using Stride.Engine.Splines.Models;
+using Stride.Engine.Splines.Models.Mesh;
 using Stride.Rendering;
 
 namespace Stride.Engine.Splines.Processors

@@ -8,7 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine.Splines.Components;
 using Stride.Graphics;
 
-namespace Stride.Engine.Splines.Models
+namespace Stride.Engine.Splines.Models.Mesh
 {
     [DataContract("SplineMeshSpline")]
     [Display("Spline")]

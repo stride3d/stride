@@ -5,7 +5,7 @@ using Stride.Core;
 using Stride.Graphics;
 using Stride.Rendering.ProceduralModels;
 
-namespace Stride.Engine.Splines.Models
+namespace Stride.Engine.Splines.Models.Mesh
 {
     [DataContract("Spline mesh")]
     public abstract class SplineMesh : PrimitiveProceduralModelBase

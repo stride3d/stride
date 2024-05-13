@@ -45,6 +45,7 @@ namespace Stride.Engine.Splines.Components
 
         public SplineNodeComponent()
         {
+            
         }
 
         public SplineNodeComponent(int segments)
@@ -61,12 +62,12 @@ namespace Stride.Engine.Splines.Components
 
         internal void Update(TransformComponent transformComponent)
         {
-            CheckDirtyness();
+            CheckDirtiness();
 
             _previousPosition = Entity.Transform.Position;
         }
 
-        private void CheckDirtyness()
+        private void CheckDirtiness()
         {
             if (_previousPosition.X != Entity.Transform.Position.X || _previousPosition.Y != Entity.Transform.Position.Y || _previousPosition.Z != Entity.Transform.Position.Z)
             {

@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Engine.Splines.Models;
+using Stride.Engine.Splines.Models.Mesh;
 using Stride.Engine.Splines.Processors;
 
 namespace Stride.Engine.Splines.Components
@@ -18,6 +19,7 @@ namespace Stride.Engine.Splines.Components
     public sealed class SplineMeshComponent : EntityComponent
     {
         public delegate void MeshRequiresUpdate(SplineMeshComponent component);
+
         public event MeshRequiresUpdate OnMeshRequiresUpdate;
 
         private SplineComponent splineComponent;
@@ -68,13 +70,17 @@ namespace Stride.Engine.Splines.Components
 
         private void InvokeMeshRequiresUpdate()
         {
+            if (SplineMesh == null)
+            {
+                return;
+            }
+
             SplineMesh.Loop = splineComponent != null && splineComponent.Spline != null && splineComponent.Spline.Loop == true ? true : false;
             OnMeshRequiresUpdate?.Invoke(this);
         }
 
         internal void Update(TransformComponent transformComponent)
         {
-
         }
 
         ~SplineMeshComponent()
