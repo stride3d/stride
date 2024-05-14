@@ -102,8 +102,6 @@ namespace Stride.Importer.ThreeD
                 }
 
                 var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
-
-                ExtractEmbededTexture(scene, inputFilename);
                 // If scene is null, something went wrong inside Assimp
                 if (scene == null)
                 {
@@ -115,6 +113,8 @@ namespace Stride.Importer.ThreeD
 
                     return null;
                 }
+
+                ExtractEmbededTexture(scene, inputFilename);
 
                 var materialNames = new Dictionary<IntPtr, string>();
                 var meshNames = new Dictionary<IntPtr, string>();
