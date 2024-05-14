@@ -90,10 +90,6 @@ namespace Stride.Games
 
             // Database file provider
             Services.AddService<IDatabaseFileProviderService>(new DatabaseFileProviderService(null));
-            // Content manager
-            Content = new ContentManager(Services);
-            Services.AddService<IContentManager>(Content);
-            Services.AddService(Content);
 
             LaunchParameters = new LaunchParameters();
             GameSystems = new GameSystemCollection(Services);
@@ -348,49 +344,51 @@ namespace Stride.Games
         {
             try
             {
-                using var profile = Profiler.Begin(GameProfilingKeys.GameInitialize);
-                // Initialize this instance and all game systems before trying to create the device.
-                Initialize();
-
-                // Make sure that the device is already created
-                graphicsDeviceManager.CreateDevice();
-
-                // Gets the graphics device service
-                graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
-                if (graphicsDeviceService == null)
+                using (var profile = Profiler.Begin(GameProfilingKeys.GameInitialize))
                 {
-                    throw new InvalidOperationException("No GraphicsDeviceService found");
+                    // Initialize this instance and all game systems before trying to create the device.
+                    Initialize();
+
+                    // Make sure that the device is already created
+                    graphicsDeviceManager.CreateDevice();
+
+                    // Gets the graphics device service
+                    graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
+                    if (graphicsDeviceService == null)
+                    {
+                        throw new InvalidOperationException("No GraphicsDeviceService found");
+                    }
+
+                    // Checks the graphics device
+                    if (graphicsDeviceService.GraphicsDevice == null)
+                    {
+                        throw new InvalidOperationException("No GraphicsDevice found");
+                    }
+
+                    // Setup the graphics device if it was not already setup.
+                    SetupGraphicsDeviceEvents();
+
+                    // Bind Graphics Context enabling initialize to use GL API eg. SetData to texture ...etc
+                    BeginDraw();
+
+                    LoadContentInternal();
+
+                    IsRunning = true;
+
+                    BeginRun();
+
+                    autoTickTimer.Reset();
+                    UpdateTime.Reset(UpdateTime.Total);
+
+                    // Run the first time an update
+                    using (Profiler.Begin(GameProfilingKeys.GameUpdate))
+                    {
+                        Update(UpdateTime);
+                    }
+
+                    // Unbind Graphics Context without presenting
+                    EndDraw(false);
                 }
-
-                // Checks the graphics device
-                if (graphicsDeviceService.GraphicsDevice == null)
-                {
-                    throw new InvalidOperationException("No GraphicsDevice found");
-                }
-
-                // Setup the graphics device if it was not already setup.
-                SetupGraphicsDeviceEvents();
-
-                // Bind Graphics Context enabling initialize to use GL API eg. SetData to texture ...etc
-                BeginDraw();
-
-                LoadContentInternal();
-
-                IsRunning = true;
-
-                BeginRun();
-
-                autoTickTimer.Reset();
-                UpdateTime.Reset(UpdateTime.Total);
-
-                // Run the first time an update
-                using (Profiler.Begin(GameProfilingKeys.GameUpdate))
-                {
-                    Update(UpdateTime);
-                }
-
-                // Unbind Graphics Context without presenting
-                EndDraw(false);
             }
             catch (Exception ex)
             {
@@ -473,7 +471,13 @@ namespace Stride.Games
         /// <summary>
         /// Creates or updates <see cref="Context"/> before window and device are created.
         /// </summary>
-        protected virtual void PrepareContext()  {  }
+        protected virtual void PrepareContext()
+        {
+            // Content manager
+            Content = new ContentManager(Services);
+            Services.AddService<IContentManager>(Content);
+            Services.AddService(Content);
+        }
 
         /// <summary>
         /// Prevents calls to Draw until the next Update.
@@ -713,18 +717,27 @@ namespace Stride.Games
                 for (int i = 0; i < array.Length; i++)
                 {
                     var disposable = array[i] as IDisposable;
-                    disposable?.Dispose();
+                    if (disposable != null)
+                    {
+                        disposable.Dispose();
+                    }
                 }
 
                 // Reset graphics context
                 GraphicsContext = null;
 
                 var disposableGraphicsManager = graphicsDeviceManager as IDisposable;
-                disposableGraphicsManager?.Dispose();
+                if (disposableGraphicsManager != null)
+                {
+                    disposableGraphicsManager.Dispose();
+                }
 
                 DisposeGraphicsDeviceEvents();
 
-                gamePlatform?.Release();
+                if (gamePlatform != null)
+                {
+                    gamePlatform.Release();
+                }
             }
         }
 
