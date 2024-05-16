@@ -405,15 +405,8 @@ namespace Stride.Core.Serialization.Contents
         
         public Type GetType(string url)
         {
-            if(LoadedAssetUrls.TryGetValue(url, out var reference))
-            {
-                if (reference.Object != null)
-                {
-                    return reference.Object.GetType();
-                }
-            }
-
-            return null;
+            _ = LoadedAssetUrls.TryGetValue(url, out var reference);
+            return reference.Object?.GetType();
         }
 
         internal Reference FindDeserializedObject(string url, Type objType)
