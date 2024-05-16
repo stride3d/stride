@@ -53,6 +53,12 @@ namespace Stride.Graphics.Data
                                     ((Texture)graphicsResource).Recreate(textureDataReloaded.ToDataBox());
                                     assetManager.Unload(textureDataReloaded);
                                 }
+                                if(assetManager.GetType(url) == typeof(Texture))
+                                {
+                                    var textureDataReloaded = assetManager.Load<Texture>(url);
+                                    ((Texture)graphicsResource).Recreate();
+                                    assetManager.Unload(textureDataReloaded);
+                                }
                             };
                         }
                     }
