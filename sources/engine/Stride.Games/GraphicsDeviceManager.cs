@@ -630,19 +630,19 @@ namespace Stride.Games
         {
             // Setup preferred parameters before passing them to the factory
             var preferredParameters = new GameGraphicsParameters
-                {
-                    PreferredBackBufferWidth = PreferredBackBufferWidth,
-                    PreferredBackBufferHeight = PreferredBackBufferHeight,
-                    PreferredBackBufferFormat = PreferredBackBufferFormat,
-                    PreferredDepthStencilFormat = PreferredDepthStencilFormat,
-                    PreferredRefreshRate = PreferredRefreshRate,
-                    PreferredFullScreenOutputIndex = PreferredFullScreenOutputIndex,
-                    IsFullScreen = IsFullScreen,
-                    PreferredMultisampleCount = PreferredMultisampleCount,
-                    SynchronizeWithVerticalRetrace = SynchronizeWithVerticalRetrace,
-                    PreferredGraphicsProfile = (GraphicsProfile[])PreferredGraphicsProfile.Clone(),
-                    ColorSpace = PreferredColorSpace,
-                    RequiredAdapterUid = RequiredAdapterUid,
+            {
+                PreferredBackBufferWidth = PreferredBackBufferWidth,
+                PreferredBackBufferHeight = PreferredBackBufferHeight,
+                PreferredBackBufferFormat = PreferredBackBufferFormat,
+                PreferredDepthStencilFormat = PreferredDepthStencilFormat,
+                PreferredRefreshRate = PreferredRefreshRate,
+                PreferredFullScreenOutputIndex = PreferredFullScreenOutputIndex,
+                IsFullScreen = IsFullScreen,
+                PreferredMultisampleCount = PreferredMultisampleCount,
+                SynchronizeWithVerticalRetrace = SynchronizeWithVerticalRetrace,
+                PreferredGraphicsProfile = (GraphicsProfile[])PreferredGraphicsProfile.Clone(),
+                ColorSpace = PreferredColorSpace,
+                RequiredAdapterUid = RequiredAdapterUid,
             };
 
             // Remap to Srgb backbuffer if necessary
@@ -1028,7 +1028,7 @@ namespace Stride.Games
                         OnPreparingDeviceSettings(this, new PreparingDeviceSettingsEventArgs(graphicsDeviceInformation));
 
                         isFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
-                        game.Window.BeginScreenDeviceChange(graphicsDeviceInformation.PresentationParameters.IsFullScreen);
+                        game.Window.BeginScreenDeviceChange(isFullScreen);
                         isBeginScreenDeviceChange = true;
                         bool needToCreateNewDevice = true;
 
@@ -1051,7 +1051,7 @@ namespace Stride.Games
                                     GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
 
                                     // Change full screen if needed
-                                    GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
+                                    GraphicsDevice.Presenter.IsFullScreen = isFullScreen;
 
                                     needToCreateNewDevice = false;
                                 }
