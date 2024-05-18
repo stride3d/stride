@@ -102,7 +102,6 @@ namespace Stride.Importer.ThreeD
                 }
 
                 var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
-
                 // If scene is null, something went wrong inside Assimp
                 if (scene == null)
                 {
@@ -114,6 +113,8 @@ namespace Stride.Importer.ThreeD
 
                     return null;
                 }
+
+                ExtractEmbededTexture(scene, inputFilename);
 
                 var materialNames = new Dictionary<IntPtr, string>();
                 var meshNames = new Dictionary<IntPtr, string>();
@@ -214,6 +215,11 @@ namespace Stride.Importer.ThreeD
                 if (meshIndexToNodeIndex.ContainsKey(i))
                 {
                     var meshInfo = ProcessMesh(scene, scene->MMeshes[i], meshNames);
+                    
+                    if (meshInfo == null)
+                    {
+                        continue;
+                    }
 
                     foreach (var nodeIndex in meshIndexToNodeIndex[i])
                     {
@@ -245,11 +251,6 @@ namespace Stride.Importer.ThreeD
                 }
             }
 
-            // embedded texture - only to log the warning for now
-            for (uint i = 0; i < scene->MNumTextures; ++i)
-            {
-                ExtractEmbededTexture(scene->MTextures[i]);
-            }
 
             return modelData;
         }
@@ -846,13 +847,17 @@ namespace Stride.Importer.ThreeD
             }
 
             // Build the indices data buffer
-            var nbIndices = 3 * mesh->MNumFaces;
-            byte[] indexBuffer;
+            var nbIndices = (int)(3 * mesh->MNumFaces);
             var is32BitIndex = mesh->MNumVertices > 65535;
-            if (is32BitIndex)
-                indexBuffer = new byte[sizeof(uint) * nbIndices];
-            else
-                indexBuffer = new byte[sizeof(ushort) * nbIndices];
+            int arraySize = is32BitIndex ? sizeof(uint) * nbIndices : sizeof(ushort) * nbIndices;
+
+            //Mesh has no vertices
+            if(arraySize < 1) 
+            { 
+                return null; 
+            }
+
+            byte[] indexBuffer = new byte[arraySize];
 
             fixed (byte* indexBufferPtr = &indexBuffer[0])
             {
@@ -940,12 +945,29 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        private unsafe void ExtractEmbededTexture(Silk.NET.Assimp.Texture* texture)
-#pragma warning restore IDE0060 // Remove unused parameter
+       
+        private unsafe void ExtractEmbededTexture(Scene* scene, string importFieName)
         {
-            Logger.Warning("The input file contains embeded textures. Embeded textures are not currently supported. This texture will be ignored",
-                new NotImplementedException("Embeded textures extraction"));
+            string dir = Path.GetDirectoryName(importFieName);
+            for (uint i = 0; i < scene->MNumTextures; ++i)
+            {
+                var texture=scene->MTextures[i];
+                string fullName = Path.Combine(dir,Path.GetFileName(texture->MFilename));
+                CreateTextureFile(texture, fullName);
+            }     
+        }
+
+        private unsafe void CreateTextureFile(Silk.NET.Assimp.Texture* texture, string path)
+        {
+            var texel = texture->PcData;
+            var arraySize = texture->MWidth;
+            byte[] buffer = new byte[texture->MWidth];
+            fixed (byte* bufferPointer = buffer)
+            {
+                var sourcePointer = (byte*)texture->PcData;
+                System.Runtime.CompilerServices.Unsafe.CopyBlockUnaligned(bufferPointer, sourcePointer, arraySize);
+            }
+            System.IO.File.WriteAllBytes(path, buffer);
         }
 
         private unsafe Dictionary<string, MaterialAsset> ExtractMaterials(Scene* scene, Dictionary<IntPtr, string> materialNames)
@@ -1400,7 +1422,7 @@ namespace Stride.Importer.ThreeD
 
                         if (assimp.GetMaterialTexture(lMaterial, textureType, j, ref path, ref mapping, ref uvIndex, ref blend, ref textureOp, ref mapMode, ref flags) == Return.Success)
                         {
-                            var relFileName = path.AsString;
+                            var relFileName = Path.GetFileName(path.AsString);
                             var fileNameToUse = Path.Combine(vfsInputPath, relFileName);
                             textureNames.Add(fileNameToUse);
                             break;
