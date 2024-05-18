@@ -46,16 +46,15 @@ namespace Stride.Graphics.Data
                             {
                                 var assetManager = services.GetService<ContentManager>();
                                 assetManager.TryGetAssetUrl(graphicsResource, out var url);
+                                var textureDataReloaded = assetManager.Load<object>(url);
 
-                                if (assetManager.GetType(url) == typeof(Image))
+                                if (textureDataReloaded is Image image)
                                 {
-                                    var textureDataReloaded = assetManager.Load<Image>(url);
-                                    ((Texture)graphicsResource).Recreate(textureDataReloaded.ToDataBox());
+                                    ((Texture)graphicsResource).Recreate(image.ToDataBox());
                                     assetManager.Unload(textureDataReloaded);
                                 }
-                                if(assetManager.GetType(url) == typeof(Texture))
+                                if (textureDataReloaded is Texture)
                                 {
-                                    var textureDataReloaded = assetManager.Load<Texture>(url);
                                     ((Texture)graphicsResource).Recreate();
                                     assetManager.Unload(textureDataReloaded);
                                 }
