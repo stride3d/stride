@@ -53,7 +53,7 @@ namespace Stride.Graphics.Data
                                     ((Texture)graphicsResource).Recreate(image.ToDataBox());
                                     assetManager.Unload(textureDataReloaded);
                                 }
-                                if (textureDataReloaded is Texture)
+                                else if (textureDataReloaded is Texture)
                                 {
                                     ((Texture)graphicsResource).Recreate();
                                     assetManager.Unload(textureDataReloaded);
