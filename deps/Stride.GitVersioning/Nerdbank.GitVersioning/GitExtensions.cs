@@ -343,15 +343,15 @@ namespace Nerdbank.GitVersioning
         /// <returns>Receives the directory that native binaries are expected.</returns>
         public static string FindLibGit2NativeBinaries(string basePath)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (OperatingSystem.IsWindows())
             {
                 return Path.Combine(basePath, "lib", "win32", IntPtr.Size == 4 ? "x86" : "x64");
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (OperatingSystem.IsLinux())
             {
                 return Path.Combine(basePath, "lib", "linux", IntPtr.Size == 4 ? "x86" : "x86_64");
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            if (OperatingSystem.IsMacOS())
             {
                 return Path.Combine(basePath, "lib", "osx");
             }
