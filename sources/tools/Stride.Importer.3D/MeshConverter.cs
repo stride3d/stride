@@ -217,7 +217,9 @@ namespace Stride.Importer.ThreeD
                     var meshInfo = ProcessMesh(scene, scene->MMeshes[i], meshNames);
                     
                     if (meshInfo == null)
-                    {continue;}
+                    {
+                        continue;
+                    }
 
                     foreach (var nodeIndex in meshIndexToNodeIndex[i])
                     {
@@ -846,15 +848,16 @@ namespace Stride.Importer.ThreeD
 
             // Build the indices data buffer
             var nbIndices = (int)(3 * mesh->MNumFaces);
-            byte[] indexBuffer = null;
             var is32BitIndex = mesh->MNumVertices > 65535;
             int arraySize = is32BitIndex ? sizeof(uint) * nbIndices : sizeof(ushort) * nbIndices;
 
             //Mesh has no vertices
             if(arraySize < 1) 
-            { return null; }
+            { 
+                return null; 
+            }
 
-            indexBuffer = new byte[arraySize];
+            byte[] indexBuffer = new byte[arraySize];
 
             fixed (byte* indexBufferPtr = &indexBuffer[0])
             {
@@ -945,10 +948,9 @@ namespace Stride.Importer.ThreeD
        
         private unsafe void ExtractEmbededTexture(Scene* scene, string importFieName)
         {
+            string dir = Path.GetDirectoryName(importFieName);
             for (uint i = 0; i < scene->MNumTextures; ++i)
             {
-                string dir = Path.GetDirectoryName(importFieName);
-                string depencendyDirName=Path.GetFileNameWithoutExtension(importFieName);
                 var texture=scene->MTextures[i];
                 string fullName = Path.Combine(dir,Path.GetFileName(texture->MFilename));
                 CreateTextureFile(texture, fullName);
@@ -963,8 +965,7 @@ namespace Stride.Importer.ThreeD
             fixed (byte* bufferPointer = buffer)
             {
                 var sourcePointer = (byte*)texture->PcData;
-       System.Runtime.CompilerServices.Unsafe.CopyBlockUnaligned(bufferPointer, sourcePointer, (uint)arraySize);
-
+                System.Runtime.CompilerServices.Unsafe.CopyBlockUnaligned(bufferPointer, sourcePointer, arraySize);
             }
             System.IO.File.WriteAllBytes(path, buffer);
         }
