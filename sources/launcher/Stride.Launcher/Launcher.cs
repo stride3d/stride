@@ -17,7 +17,6 @@ using Stride.Core.Packages;
 using Stride.Core.Windows;
 using Stride.LauncherApp.CrashReport;
 using Stride.LauncherApp.Services;
-using Stride.PrivacyPolicy;
 using Dispatcher = System.Windows.Threading.Dispatcher;
 using MessageBox = System.Windows.MessageBox;
 
@@ -160,14 +159,6 @@ namespace Stride.LauncherApp
         {
             try
             {
-                // Only needed for Stride up to 2.x (and possibly 3.0): setup the StrideDir to make sure that it is passed to the underlying process (msbuild...etc.)
-                Environment.SetEnvironmentVariable("SiliconStudioStrideDir", AppDomain.CurrentDomain.BaseDirectory);
-                Environment.SetEnvironmentVariable("StrideDir", AppDomain.CurrentDomain.BaseDirectory);
-
-                // TODO: we do not display Privacy Policy anymore from launcher, because it's either accepted from installer or shown again when a new version of GS with new Privacy Policy starts. Might want to reconsider that after the 2.0 free period
-                PrivacyPolicyHelper.RestartApplication = SelfUpdater.RestartApplication;
-                PrivacyPolicyHelper.EnsurePrivacyPolicyStride40();
-
                 // HACK: force resolve the presentation assembly prior to initializing the app. This is to fix an issue with XAML themes.
                 // see issue PDX-2899
                 var txt = new Core.Presentation.Controls.TextBox();
@@ -210,8 +201,6 @@ namespace Stride.LauncherApp
                         e.Ignore();
                     }
                 }
-
-                PrivacyPolicyHelper.RevokeAllPrivacyPolicy();
 
                 return LauncherErrorCode.Success;
             }
