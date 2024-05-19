@@ -212,19 +212,14 @@ namespace Stride.LauncherApp.ViewModels
                     {
                         progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
                         progressReport.UpdateProgress(ProgressAction.Install, -1);
-                        MetricsHelper.NotifyDownloadStarting(ServerPackage.Id, ServerPackage.Version.ToString());
                         await Store.InstallPackage(ServerPackage.Id, ServerPackage.Version, ServerPackage.TargetFrameworks, progressReport);
                         downloadCompleted = true;
-                        MetricsHelper.NotifyDownloadCompleted(ServerPackage.Id, ServerPackage.Version.ToString());
                     }
 
                     AfterDownload();
                 }
                 catch (Exception e)
                 {
-                    if (!downloadCompleted)
-                        MetricsHelper.NotifyDownloadFailed(ServerPackage.Id, ServerPackage.Version.ToString());
-
                     // Rollback: try to delete the broken package (i.e. if it is installed with NuGet but had a failure during Install scripts)
                     try
                     {
