@@ -38,7 +38,6 @@ Global
 		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
 		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
 		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
