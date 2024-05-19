@@ -15,7 +15,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Transactions;
 using Stride.Core.Windows;
 using Stride.Assets;
-using Stride.CrashReport;
 using Stride.Core.Presentation.Services;
 using Stride.Editor.CrashReport;
 using Stride.Graphics;
@@ -154,8 +153,7 @@ namespace Stride.GameStudio.Helpers
 
             crashReport["CurrentDirectory"] = Environment.CurrentDirectory;
             crashReport["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs());
-            var osVersion = CrashReportUtils.GetOsVersionAndCaption();
-            crashReport["OsVersion"] = $"{osVersion.Key} {osVersion.Value} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}";
+            crashReport["OsVersion"] = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}";
             crashReport["ProcessorCount"] = Environment.ProcessorCount.ToString();
             crashReport["Exception"] = exceptionMessage;
             var videoConfig = AppHelper.GetVideoConfig();

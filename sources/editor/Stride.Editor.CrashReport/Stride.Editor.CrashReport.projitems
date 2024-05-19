@@ -10,10 +10,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CrashReportForm.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CrashReportData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CrashReportForm.Designer.cs">
       <DependentUpon>CrashReportForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)CrashReportUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ICrashEmailSetting.cs" />
   </ItemGroup>
   <ItemGroup>
