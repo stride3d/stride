@@ -6,7 +6,6 @@ using System.Threading;
 using System.Windows.Threading;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
-using Stride.CrashReport;
 using Stride.Editor.CrashReport;
 
 namespace Stride.LauncherApp.CrashReport
