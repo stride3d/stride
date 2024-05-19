@@ -170,7 +170,6 @@
     <Project Path="../sources/editor/Stride.Editor.CrashReport/Stride.Editor.CrashReport.csproj" />
     <Project Path="../sources/editor/Stride.Editor/Stride.Editor.csproj" />
     <Project Path="../sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true" />
-    <Project Path="../sources/editor/Stride.PrivacyPolicy/Stride.PrivacyPolicy.shproj" />
     <Project Path="../sources/engine/Stride.Debugger/Stride.Debugger.csproj" />
   </Folder>
   <Folder Name="/61-Editor.Tests/">
