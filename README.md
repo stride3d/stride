@@ -29,9 +29,7 @@ If you are a developer with solid experience in C#, rendering techniques, or gam
 This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
 
 ### License
-Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
-You can find the list of third-party projects [here](THIRD%20PARTY.md).
-Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
+Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD%20PARTY.md). Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
 
 ### Code of conduct
 Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
