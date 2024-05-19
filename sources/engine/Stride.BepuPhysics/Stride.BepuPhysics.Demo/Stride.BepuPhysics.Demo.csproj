@@ -19,12 +19,4 @@
     <PackageReference Include="Stride.BepuPhysics._2D" Version="4.2.0.1" />
     <PackageReference Include="Stride.BepuPhysics" Version="4.2.0.1" />
   </ItemGroup>
-  <!-- We want this project to be open-able in the editor while still ensuring the nuggets are up to date -->
-  <Target Name="EnsureReferenceNuggetsAreBuilt" BeforeTargets="Restore">
-    <Exec Command="msbuild ..\Stride.BepuPhysics.DebugRender -restore" />
-    <Exec Command="msbuild ..\Stride.BepuPhysics.Navigation -restore" />
-    <!--<Exec Command="msbuild ..\Stride.BepuPhysics.Soft -restore" />-->
-    <Exec Command="msbuild ..\Stride.BepuPhysics._2D -restore" />
-    <Exec Command="msbuild ..\Stride.BepuPhysics -restore" />
-  </Target>
 </Project>
