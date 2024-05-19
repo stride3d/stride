@@ -31,7 +31,6 @@
   <ItemGroup>
     <PackageReference Include="ServiceWire" />
     <PackageReference Include="SharpDX" />
-    <PackageReference Include="Stride.Metrics" />
     <PackageReference Include="Stride.CrashReport" />
     <PackageReference Include="Mono.Cecil" />
     <Reference Include="Stride.Core.AssemblyProcessor">
