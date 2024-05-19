@@ -40,9 +40,6 @@
     <TrimmerRootAssembly Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs">
       <Link>Packages\PackageSessionHelper.Solution.cs</Link>
     </Compile>

@@ -30,7 +30,6 @@
   <ItemGroup>
     <PackageReference Include="ServiceWire" />
     <PackageReference Include="SharpDX" />
-    <PackageReference Include="Stride.CrashReport" />
     <PackageReference Include="Mono.Cecil" />
     <Reference Include="Stride.Core.AssemblyProcessor">
       <HintPath Condition="$(TargetFramework.StartsWith('net8'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
