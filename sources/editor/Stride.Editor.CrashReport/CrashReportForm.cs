@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Stride.CrashReport;
 
 namespace Stride.Editor.CrashReport
 {
@@ -114,11 +113,11 @@ namespace Stride.Editor.CrashReport
 
         private static void MailReport(CrashReportData report)
         {
-            var task = Task.Run(async () =>
+            var task = Task.Run(() =>
             {
                 try
                 {
-                    await CrashReporter.Report(report);
+                    CrashReporter.Report(report);
                     return true;
                 }
                 catch (Exception)
