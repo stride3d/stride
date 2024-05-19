@@ -41,7 +41,6 @@
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="ServiceWire" />
-    <PackageReference Include="Stride.Metrics" />
     <PackageReference Include="Mono.Cecil" />
     <PackageReference Include="SSH.NET" />
     <Reference Include="Stride.Core.AssemblyProcessor">

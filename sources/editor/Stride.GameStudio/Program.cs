@@ -41,7 +41,6 @@ using Stride.GameStudio.Services;
 using Stride.GameStudio.View;
 using Stride.GameStudio.ViewModels;
 using Stride.Graphics;
-using Stride.Metrics;
 using Stride.PrivacyPolicy;
 using EditorSettings = Stride.Core.Assets.Editor.Settings.EditorSettings;
 using MessageBox = System.Windows.MessageBox;
@@ -129,119 +128,107 @@ public static class Program
         }
         Thread.CurrentThread.Name = "Main thread";
 
-        // Install Metrics for the editor
-        using (StrideGameStudio.MetricsClient = EditorSettings.EnableMetrics.GetValue() ? new MetricsClient(CommonApps.StrideEditorAppId) : null)
+        try
         {
-            try
-            {
-                var startupSessionPath = StrideEditorSettings.StartupSession.GetValue();
-                var lastSessionPath = EditorSettings.ReloadLastSession.GetValue() ? mru.MostRecentlyUsedFiles.FirstOrDefault() : null;
-                var initialSessionPath = !UPath.IsNullOrEmpty(startupSessionPath) ? startupSessionPath : lastSessionPath?.FilePath;
+            var startupSessionPath = StrideEditorSettings.StartupSession.GetValue();
+            var lastSessionPath = EditorSettings.ReloadLastSession.GetValue() ? mru.MostRecentlyUsedFiles.FirstOrDefault() : null;
+            var initialSessionPath = !UPath.IsNullOrEmpty(startupSessionPath) ? startupSessionPath : lastSessionPath?.FilePath;
 
-                // Handle arguments
-                for (var i = 0; i < args.Count; i++)
+            // Handle arguments
+            for (var i = 0; i < args.Count; i++)
+            {
+                if (args[i] == "/LauncherWindowHandle")
                 {
-                    if (args[i] == "/LauncherWindowHandle")
-                    {
-                        windowHandle = new IntPtr(long.Parse(args[++i]));
-                    }
-                    else if (args[i] == "/NewProject")
-                    {
-                        initialSessionPath = null;
-                    }
-                    else if (args[i] == "/DebugEditorGraphics")
-                    {
-                        StrideConfig.GraphicsDebugMode = true;
-                    }
-                    else if (args[i] == "--graphics-api")
-                    {
-                        // Consumed at startup by GraphicsApiSelector; skip the following value here.
-                        i++;
-                    }
-                    else if (args[i] == "/DisableThumbnails")
-                    {
-                        enableThumbnailServices = false;
-                    }
-                    else if (args[i] == "/DisablePreview")
-                    {
-                        GameStudioPreviewService.DisablePreview = true;
-                    }
+                    windowHandle = new IntPtr(long.Parse(args[++i]));
+                }
+                else if (args[i] == "/NewProject")
+                {
+                    initialSessionPath = null;
+                }
+                else if (args[i] == "/DebugEditorGraphics")
+                {
+                    StrideConfig.GraphicsDebugMode = true;
+                }
+                else if (args[i] == "--graphics-api")
+                {
+                    // Consumed at startup by GraphicsApiSelector; skip the following value here.
+                    i++;
+                }
+                else if (args[i] == "/DisableThumbnails")
+                {
+                    enableThumbnailServices = false;
+                }
+                else if (args[i] == "/DisablePreview")
+                {
+                    GameStudioPreviewService.DisablePreview = true;
+                }
 #if STRIDE_GRAPHICS_API_DIRECT3D12
-                    else if (args[i] == "/PixGpuCapturer")
-                    {
-                        WinPixNative.LoadPixGpuCapturer();
-                    }
+                else if (args[i] == "/PixGpuCapturer")
+                {
+                    WinPixNative.LoadPixGpuCapturer();
+                }
 #endif
-                    else if (args[i] == "/RenderDoc")
-                    {
-                        // TODO: RenderDoc is not working here (when not in debug)
-                        GameStudioPreviewService.DisablePreview = true;
-                        renderDocManager = new RenderDocManager();
-                        renderDocManager.Initialize();
-                    }
-                    else if (args[i] == "/RecordEffects")
-                    {
-                        GameStudioBuilderService.GlobalEffectLogPath = args[++i];
-                    }
-                    else
-                    {
-                        initialSessionPath = args[i];
-                    }
-                }
-                RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);
-
-                //listen to logger for crash report
-                GlobalLogger.GlobalMessageLogged += GlobalLoggerOnGlobalMessageLogged;
-                // Route GlobalLogger output to VS Debug pane (no-op in Release).
-                // Warning+ only — Info/Verbose volume slows the debugger noticeably during
-                // asset compile / NuGet restore.
-                GlobalLogger.GlobalMessageLogged += new DebugLogListener { MinimumLevel = LogMessageType.Warning };
-
-                mainDispatcher = Dispatcher.CurrentDispatcher;
-                mainDispatcher.InvokeAsync(() =>
+                else if (args[i] == "/RenderDoc")
                 {
-                    // Surface startup failures that escape Startup before its first await, instead of
-                    // leaving the dispatcher pumping with no window.
-                    try
-                    {
-                        Startup(initialSessionPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        HandleException(ex, 0);
-                    }
-                });
-
-                using (new WindowManager(mainDispatcher))
-                {
-                    app = new App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-                    app.DispatcherUnhandledException += (sender, eventArgs) =>
-                    {
-                        eventArgs.Handled = true;
-                        HandleException(eventArgs.Exception, 0);
-                    };
-                    app.Activated += (sender, eventArgs) =>
-                    {
-                        StrideGameStudio.MetricsClient?.SetActiveState(true);
-                    };
-                    app.Deactivated += (sender, eventArgs) =>
-                    {
-                        StrideGameStudio.MetricsClient?.SetActiveState(false);
-                    };
-
-                    app.InitializeComponent();
-                    appHosted?.Invoke(app, mainDispatcher);
-                    DiagLog("calling app.Run");
-                    app.Run();
-                    DiagLog("app.Run returned");
+                    // TODO: RenderDoc is not working here (when not in debug)
+                    GameStudioPreviewService.DisablePreview = true;
+                    renderDocManager = new RenderDocManager();
+                    renderDocManager.Initialize();
                 }
-
-                renderDocManager?.RemoveHooks();
+                else if (args[i] == "/RecordEffects")
+                {
+                    GameStudioBuilderService.GlobalEffectLogPath = args[++i];
+                }
+                else
+                {
+                    initialSessionPath = args[i];
+                }
             }
-            catch (Exception e)
+            RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);
+
+            //listen to logger for crash report
+            GlobalLogger.GlobalMessageLogged += GlobalLoggerOnGlobalMessageLogged;
+            // Route GlobalLogger output to VS Debug pane (no-op in Release).
+            // Warning+ only — Info/Verbose volume slows the debugger noticeably during
+            // asset compile / NuGet restore.
+            GlobalLogger.GlobalMessageLogged += new DebugLogListener { MinimumLevel = LogMessageType.Warning };
+
+            mainDispatcher = Dispatcher.CurrentDispatcher;
+            mainDispatcher.InvokeAsync(() =>
             {
-                HandleException(e, 0);
+                // Surface startup failures that escape Startup before its first await, instead of
+                // leaving the dispatcher pumping with no window.
+                try
+                {
+                    Startup(initialSessionPath);
+                }
+                catch (Exception ex)
+                {
+                    HandleException(ex, 0);
+                }
+            });
+
+            using (new WindowManager(mainDispatcher))
+            {
+                app = new App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+                app.DispatcherUnhandledException += (sender, eventArgs) =>
+                {
+                    eventArgs.Handled = true;
+                    HandleException(eventArgs.Exception, 0);
+                };
+
+                app.InitializeComponent();
+                appHosted?.Invoke(app, mainDispatcher);
+                DiagLog("calling app.Run");
+                app.Run();
+                DiagLog("app.Run returned");
             }
+
+            renderDocManager?.RemoveHooks();
+        }
+        catch (Exception e)
+        {
+            HandleException(e, 0);
         }
     }
 
