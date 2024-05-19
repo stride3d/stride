@@ -40,7 +40,6 @@
     <TrimmerRootAssembly Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Metrics" Version="1.0.3" />
     <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
   </ItemGroup>
   <ItemGroup>
