@@ -6,9 +6,6 @@ labels: 'area-Doc'
 assignees: ''
 ---
 
-> [!NOTE]
-> If you would like to address Stride Docs manual or tutorials, please create an issue at https://github.com/stride3d/stride-docs/issues.
-
 **Describe the update or improvement you would like to see**
 A clear and concise description of what you want to change or improve in the documentation.
 
@@ -24,4 +21,4 @@ Add any other context or screenshots about the documentation update here.
 **Proposed changes**
 If you have a specific change in mind, you can suggest the text or code snippet here.
 
-Thank you for helping improve Stride's documentation!
+<!--- Thank you for helping improve Stride's documentation! --->
