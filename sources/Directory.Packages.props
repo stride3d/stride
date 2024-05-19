@@ -152,7 +152,6 @@
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Stride.GraphX.WPF.Controls" Version="2.4.0" />
-    <PackageVersion Include="Stride.Metrics" Version="1.0.3" />
     <PackageVersion Include="RoslynPad.Editor.Windows" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="5.0.0" />
