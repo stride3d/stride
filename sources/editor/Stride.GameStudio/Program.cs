@@ -36,7 +36,6 @@ using Stride.Editor.Engine;
 using Stride.Editor.Preview;
 using Stride.GameStudio.View;
 using Stride.Graphics;
-using Stride.PrivacyPolicy;
 using EditorSettings = Stride.Core.Assets.Editor.Settings.EditorSettings;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
@@ -70,9 +69,6 @@ public static class Program
             MessageBox.Show("Stride GameStudio requires a 64bit OS to run.", "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
             Environment.Exit(1);
         }
-
-        PrivacyPolicyHelper.RestartApplication = RestartApplication;
-        PrivacyPolicyHelper.EnsurePrivacyPolicyStride40();
 
         // We use MRU of the current version only when we're trying to reload last session.
         var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
