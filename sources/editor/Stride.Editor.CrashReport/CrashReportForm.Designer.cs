@@ -40,8 +40,6 @@ namespace Stride.Editor.CrashReport
             this.labelDescription = new System.Windows.Forms.Label();
             this.buttonViewLog = new System.Windows.Forms.Button();
             this.labelMainContent = new System.Windows.Forms.Label();
-            this.labelPrivacy = new System.Windows.Forms.Label();
-            this.linkPrivacyPolicy = new System.Windows.Forms.LinkLabel();
             this.button1 = new System.Windows.Forms.Button();
             this.emailCheckbox = new System.Windows.Forms.CheckBox();
             this.textBoxDescription = new System.Windows.Forms.RichTextBox();
@@ -142,27 +140,6 @@ namespace Stride.Editor.CrashReport
             this.labelMainContent.Text = resources.GetString("labelMainContent.Text");
             this.labelMainContent.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // labelPrivacy
-            // 
-            this.labelPrivacy.Location = new System.Drawing.Point(12, 288);
-            this.labelPrivacy.Name = "labelPrivacy";
-            this.labelPrivacy.Size = new System.Drawing.Size(535, 33);
-            this.labelPrivacy.TabIndex = 10;
-            this.labelPrivacy.Text = "Privacy: you can see exactly what will be sent to us by pressing the View Log but" +
-    "ton. We do not collect anything else.  By sending this report you accept our Pri" +
-    "vacy Policy.";
-            // 
-            // linkPrivacyPolicy
-            // 
-            this.linkPrivacyPolicy.AutoSize = true;
-            this.linkPrivacyPolicy.Location = new System.Drawing.Point(180, 327);
-            this.linkPrivacyPolicy.Name = "linkPrivacyPolicy";
-            this.linkPrivacyPolicy.Size = new System.Drawing.Size(78, 12);
-            this.linkPrivacyPolicy.TabIndex = 7;
-            this.linkPrivacyPolicy.TabStop = true;
-            this.linkPrivacyPolicy.Text = "Privacy Policy";
-            this.linkPrivacyPolicy.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkPrivacyPolicy_LinkClicked);
-            // 
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(94, 322);
@@ -203,8 +180,6 @@ namespace Stride.Editor.CrashReport
             this.Controls.Add(this.textBoxDescription);
             this.Controls.Add(this.emailCheckbox);
             this.Controls.Add(this.button1);
-            this.Controls.Add(this.linkPrivacyPolicy);
-            this.Controls.Add(this.labelPrivacy);
             this.Controls.Add(this.labelMainContent);
             this.Controls.Add(this.buttonViewLog);
             this.Controls.Add(this.labelDescription);
@@ -237,8 +212,6 @@ namespace Stride.Editor.CrashReport
         private System.Windows.Forms.Label labelDescription;
         private System.Windows.Forms.Button buttonViewLog;
         private System.Windows.Forms.Label labelMainContent;
-        private System.Windows.Forms.Label labelPrivacy;
-        private System.Windows.Forms.LinkLabel linkPrivacyPolicy;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox emailCheckbox;
         private System.Windows.Forms.RichTextBox textBoxDescription;
