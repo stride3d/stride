@@ -1,4 +1,3 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -10,11 +9,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CrashReportForm.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CrashReportData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CrashReportForm.Designer.cs">
       <DependentUpon>CrashReportForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)ICrashEmailSetting.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CrashReporter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CrashReportData.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CrashReportForm.resx">
