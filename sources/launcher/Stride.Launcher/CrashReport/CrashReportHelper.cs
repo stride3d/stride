@@ -6,6 +6,7 @@ using System.Threading;
 using System.Windows.Threading;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
+using System.Runtime.InteropServices;
 using Stride.Editor.CrashReport;
 
 namespace Stride.LauncherApp.CrashReport
@@ -50,7 +51,7 @@ namespace Stride.LauncherApp.CrashReport
                 ["Application"] = "Launcher",
                 ["CurrentDirectory"] = Environment.CurrentDirectory,
                 ["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs()),
-                ["OsVersion"] = $"{Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}",
+                ["OSDescription"] = $"{RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}",
                 ["ProcessorCount"] = Environment.ProcessorCount.ToString(),
                 ["Exception"] = exceptionMessage
             };

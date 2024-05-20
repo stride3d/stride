@@ -23,8 +23,6 @@ namespace Stride.LauncherApp.Services
 
         private static readonly SettingsKey<MRUDictionary> MostRecentlyUsedSessionsKey = new SettingsKey<MRUDictionary>("Internal/MostRecentlyUsedSessions", InternalSettingsContainer, () => new MRUDictionary());
 
-        private static readonly SettingsKey<string> StoreCrashEmail = new SettingsKey<string>("Interface/StoreCrashEmail", GameStudioSettingsContainer, "");
-
         private static readonly object LockObject = new object();
 
         private static readonly MostRecentlyUsedFileCollection MRU;
@@ -45,41 +43,6 @@ namespace Stride.LauncherApp.Services
         }
 
         public static event EventHandler<EventArgs> RecentProjectsUpdated;
-
-        public static string CrashReportEmail
-        {
-            get
-            {
-                try
-                {
-                    lock (LockObject)
-                    {
-                        GameStudioSettingsContainer.ReloadSettingsProfile(GameStudioProfile);
-                        return StoreCrashEmail.GetValue();
-                    }
-                }
-                catch (Exception)
-                {
-                    return "";
-                }
-            }
-            set
-            {
-                try
-                {
-                    lock (LockObject)
-                    {
-                        GameStudioSettingsContainer.ReloadSettingsProfile(GameStudioProfile);
-                        StoreCrashEmail.SetValue(value);
-                        GameStudioSettingsContainer.SaveSettingsProfile(GameStudioProfile, GetLatestGameStudioConfigPath());
-                    }
-                }
-                catch (Exception e)
-                {
-                    e.Ignore();
-                }
-            }
-        }
 
         public static IReadOnlyCollection<UFile> GetMostRecentlyUsed()
         {
