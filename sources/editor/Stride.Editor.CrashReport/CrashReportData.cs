@@ -1,54 +1,54 @@
-using System;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
 
+namespace Stride.Editor.CrashReport;
 
-namespace Stride.Editor.CrashReport
+public class CrashReportData
 {
-    public class CrashReportData
+    public List<(string, string)> Data = [];
+
+    public string this[string key]
     {
-        public List<Tuple<string, string>> Data = new List<Tuple<string, string>>();
-
-        public string this[string key]
+        get
         {
-            get
-            {
-                return Data.Where(p => p.Item1 == key).FirstOrDefault();
-            }
-            set
-            {
-                int num = -1;
+            return Data.FirstOrDefault(p => p.Item1 == key).Item2;
+        }
+        set
+        {
+            int num = -1;
 
-                foreach(var current in Data)
+            foreach(var current in Data)
+            {
+                if (current.Item1 == key)
                 {
-                    if (current.Item1 == key)
-                    {
-                        num = Data.IndexOf(current);
-                        break;
-                    }
+                    num = Data.IndexOf(current);
+                    break;
                 }
-                if (num != -1)
-                {
-                    Data[num] = Tuple.Create<string, string>(key, value);
-                }
-                else
-                {
-                    Data.Add(Tuple.Create<string, string>(key, value));
-                }
+            }
+            if(value == null)
+                return;
+            if (num != -1)
+            {
+                Data[num] = (key, value);
+            }
+            else
+            {
+                Data.Add((key, value));
             }
         }
+    }
 
-        public override string ToString()
+    public override string ToString()
+    {
+        StringBuilder val = new();
+        foreach (var current in Data)
         {
-            StringBuilder val = new StringBuilder();
-            foreach (var current in Data)
-            {
-                val.Append(String.Concat(current.Item1, ": ", current.Item2, "\r\n"));
-            }
-            return val.ToString();
+            val.Append(string.Concat(current.Item1, ": ", current.Item2, "\r\n"));
         }
+        return val.ToString();
     }
 }
