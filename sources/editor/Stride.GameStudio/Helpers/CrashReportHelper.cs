@@ -21,30 +21,12 @@ using Stride.Graphics;
 using DialogResult = System.Windows.Forms.DialogResult;
 using Stride.GameStudio.AssetsEditors;
 using Stride.Core.Assets.Editor.Services;
+using Modern.Forms;
 
 namespace Stride.GameStudio.Helpers
 {
     public static class CrashReportHelper
     {
-        public class ReportSettings : ICrashEmailSetting
-        {
-            public ReportSettings()
-            {
-                Email = Core.Assets.Editor.Settings.EditorSettings.StoreCrashEmail.GetValue();
-                StoreCrashEmail = !string.IsNullOrEmpty(Email);
-            }
-
-            public bool StoreCrashEmail { get; set; }
-
-            public string Email { get; set; }
-
-            public void Save()
-            {
-                Core.Assets.Editor.Settings.EditorSettings.StoreCrashEmail.SetValue(Email);
-                Core.Assets.Editor.Settings.EditorSettings.Save();
-            }
-        }
-
         public const int DebugVersion = 4;
 
         public static void SendReport(string exceptionMessage, int crashLocation, string[] logs, string threadName)
@@ -52,8 +34,6 @@ namespace Stride.GameStudio.Helpers
             var crashReport = new CrashReportData
             {
                 ["Application"] = "GameStudio",
-                ["UserEmail"] = "",
-                ["UserMessage"] = "",
                 ["StrideVersion"] = StrideVersion.NuGetVersion,
                 ["GameStudioVersion"] = DebugVersion.ToString(),
                 ["ThreadName"] = string.IsNullOrEmpty(threadName) ? "" : threadName,
@@ -159,7 +139,7 @@ namespace Stride.GameStudio.Helpers
             var videoConfig = AppHelper.GetVideoConfig();
             foreach (var conf in videoConfig)
             {
-                crashReport.Data.Add(Tuple.Create(conf.Key, conf.Value));
+                crashReport.Data.Add((conf.Key, conf.Value));
             }
 
             var nonFatalReport = new StringBuilder();
@@ -180,11 +160,11 @@ namespace Stride.GameStudio.Helpers
                 data = Regex.Replace(data, Regex.Escape(Environment.GetEnvironmentVariable("USERPROFILE")), Regex.Escape("%USERPROFILE%"), RegexOptions.IgnoreCase);
                 data = Regex.Replace(data, $@"\b{Regex.Escape(Environment.GetEnvironmentVariable("USERNAME"))}\b", Regex.Escape("%USERNAME%"), RegexOptions.IgnoreCase);
 
-                crashReport.Data[i] = Tuple.Create(crashReport.Data[i].Item1, data);
+                crashReport.Data[i] = (crashReport.Data[i].Item1, data);
             }
 
-            var reporter = new CrashReportForm(crashReport, new ReportSettings());
-            var result = reporter.ShowDialog();
+            var reporter = new CrashReportForm(crashReport);
+            reporter.Run();
         }
 
         private static void ExpandAction(TransactionViewModel actionItem, StringBuilder sb, int increment)

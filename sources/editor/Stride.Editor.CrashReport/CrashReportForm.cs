@@ -1,135 +1,92 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Diagnostics;
 using System.Drawing;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using System;
+using System.IO;
+using Modern.Forms;
 
-namespace Stride.Editor.CrashReport
+namespace Stride.Editor.CrashReport;
+
+public partial class CrashReportForm : Form
 {
-    public partial class CrashReportForm : Form
+    private readonly CrashReportData currentData;
+    private int initialHeight;
+    private bool expanded;
+
+    public CrashReportForm(CrashReportData crashReport)
     {
-        private readonly CrashReportData currentData;
-        private int initialHeight;
-        private bool expanded;
+        currentData = crashReport;
+        InitializeComponent();
+        textBoxLog.Text = crashReport.ToString();
+    }
+    public void Run()
+    {
+        Application.Run(this);
+    }
 
-        private readonly ICrashEmailSetting settings;
+    public bool Expanded { get { return expanded; } set { expanded = value; RefreshSize(); } }
 
-        public CrashReportForm(CrashReportData crashReport, ICrashEmailSetting storeCrashEmailSetting)
+    private void RefreshSize()
+    {
+        if (!Expanded)
         {
-            settings = storeCrashEmailSetting;
-            currentData = crashReport;
-            InitializeComponent();
-            textBoxLog.Text = crashReport.ToString();
-            if (settings == null)
-            {
-                emailCheckbox.Visible = false;
-            }
-            else
-            {
-                textBoxEmail.Text = settings == null ? "" : settings.StoreCrashEmail ? settings.Email : "";
-                if (!string.IsNullOrEmpty(textBoxEmail.Text))
-                {
-                    emailCheckbox.Checked = true;
-                }
-            }
+            Size = new Size(Size.Width, textBoxLog.Top);
+            buttonViewLog.Text = @"View report";
         }
-
-        public bool Expanded { get { return expanded; } set { expanded = value; RefreshSize(); } }
-
-        private void RefreshSize()
+        else
         {
-            if (!Expanded)
-            {
-                ClientSize = new Size(ClientSize.Width, textBoxLog.Top);
-                buttonViewLog.Text = @"View report";
-            }
-            else
-            {
-                ClientSize = new Size(ClientSize.Width, initialHeight);
-                buttonViewLog.Text = @"Hide report";
-            }
+            Size = new Size(Size.Width, initialHeight);
+            buttonViewLog.Text = @"Hide report";
         }
+    }
 
-        private void RefreshReport()
-        {
-            currentData["UserEmail"] = textBoxEmail.Text ?? "";
-            currentData["UserMessage"] = textBoxDescription.Text ?? "";
-            textBoxLog.Text = currentData.ToString();
+    private void RefreshReport()
+    {
+        textBoxLog.Text = currentData.ToString();
+    }
+
+    private void CrashReportForm_Load(object sender, EventArgs e)
+    {
+        initialHeight = Size.Height;
+        Expanded = false;
+    }
+
+    private void OpenGithub_Click(object sender, EventArgs e)
+    {
+        RefreshReport();
+        try{
+            CrashReporter.OpenGithub();
         }
-
-        private void CrashReportForm_Load(object sender, EventArgs e)
-        {
-            initialHeight = ClientSize.Height;
-            Expanded = false;
+        catch{
+            var mb = new MessageBoxForm("Error", "Failed to open browser");
+            mb.Show();
         }
+    }
 
-        private void ButtonSend_Click(object sender, EventArgs e)
+    private void ButtonViewLog_Click(object sender, EventArgs e)
+    {
+        Expanded = !Expanded;
+    }
+
+    private void TextBoxText_Changed(object sender, EventArgs e)
+    {
+        RefreshReport();
+    }
+
+    private async void copyReportBtn_Click(object sender, EventArgs e)
+    {
+        RefreshReport();
+        await Clipboard.SetTextAsync(currentData.ToString());
+    }
+    private async void SaveReport_Click(object sender, EventArgs e)
+    {
+        RefreshReport();
+
+        var fileDialog = new SaveFileDialog();
+        var result = await fileDialog.ShowDialog(this);
+        if (result == DialogResult.OK && fileDialog.FileName != null)
         {
-            if (emailCheckbox.Checked)
-            {
-                settings.StoreCrashEmail = true;
-                settings.Email = textBoxEmail.Text;
-                settings.Save();
-            }
-            else
-            {
-                settings.StoreCrashEmail = false;
-                settings.Email = "";
-                settings.Save();
-            }
-
-            RefreshReport();
-            MailReport(currentData);
-
-            DialogResult = DialogResult.Yes;
-
-            Close();
-        }
-
-        private void ButtonDontSend_Click(object sender, EventArgs e)
-        {
-            DialogResult = DialogResult.No;
-
-            Close();
-        }
-
-        private void ButtonViewLog_Click(object sender, EventArgs e)
-        {
-            Expanded = !Expanded;
-        }
-
-        private void TextBoxText_Changed(object sender, EventArgs e)
-        {
-            RefreshReport();
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            RefreshReport();
-            Clipboard.SetText(currentData.ToString());
-        }
-
-        private static void MailReport(CrashReportData report)
-        {
-            var task = Task.Run(() =>
-            {
-                try
-                {
-                    CrashReporter.Report(report);
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
-            var result = task.Result;
-            if (!result)
-            {
-                MessageBox.Show(@"An error occurred while sending the report. Unable to contact the server.", @"Stride", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            await File.WriteAllTextAsync(fileDialog.FileName, currentData.ToString());
         }
     }
 }
