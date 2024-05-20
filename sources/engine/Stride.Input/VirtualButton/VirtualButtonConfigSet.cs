@@ -30,5 +30,38 @@ namespace Stride.Input
             var config = this[configIndex];
             return config != null ? config.GetValue(inputManager, name) : 0.0f;
         }
+
+        public virtual bool IsPressed(InputManager inputManager, int configIndex, object name)
+        {
+            if (configIndex < 0 || configIndex >= Count)
+            {
+                return false;
+            }
+
+            var config = this[configIndex];
+            return config != null ? config.IsPressed(inputManager, name) : false;
+        }
+        
+        public virtual bool IsDown(InputManager inputManager, int configIndex, object name)
+        {
+            if (configIndex < 0 || configIndex >= Count)
+            {
+                return false;
+            }
+
+            var config = this[configIndex];
+            return config != null ? config.IsDown(inputManager, name) : false;
+        }
+        
+        public virtual bool IsReleased(InputManager inputManager, int configIndex, object name)
+        {
+            if (configIndex < 0 || configIndex >= Count)
+            {
+                return false;
+            }
+
+            var config = this[configIndex];
+            return config != null ? config.IsReleased(inputManager, name) : false;
+        }
     }
 }

@@ -38,8 +38,7 @@ namespace Stride.Input
         public virtual float GetValue(InputManager inputManager, object name)
         {
             float value = 0.0f;
-            List<VirtualButtonBinding> bindingsPerName;
-            if (mapBindings.TryGetValue(name, out bindingsPerName))
+            if (mapBindings.TryGetValue(name, out List<VirtualButtonBinding> bindingsPerName))
             {
                 foreach (var virtualButtonBinding in bindingsPerName)
                 {
@@ -52,6 +51,54 @@ namespace Stride.Input
             }
 
             return value;
+        }
+
+        public virtual bool IsPressed(InputManager inputManager, object name)
+        {
+            if (mapBindings.TryGetValue(name, out List<VirtualButtonBinding> bindingsPerName))
+            {
+                foreach (var virtualButtonBinding in bindingsPerName)
+                {
+                    if (virtualButtonBinding.IsPressed(inputManager))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        
+        public virtual bool IsReleased(InputManager inputManager, object name)
+        {
+            if (mapBindings.TryGetValue(name, out List<VirtualButtonBinding> bindingsPerName))
+            {
+                foreach (var virtualButtonBinding in bindingsPerName)
+                {
+                    if (virtualButtonBinding.IsReleased(inputManager))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        
+        public virtual bool IsDown(InputManager inputManager, object name)
+        {
+            if (mapBindings.TryGetValue(name, out List<VirtualButtonBinding> bindingsPerName))
+            {
+                foreach (var virtualButtonBinding in bindingsPerName)
+                {
+                    if (virtualButtonBinding.IsDown(inputManager))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void Bindings_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
