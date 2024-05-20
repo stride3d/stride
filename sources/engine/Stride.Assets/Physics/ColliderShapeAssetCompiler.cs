@@ -135,6 +135,7 @@ namespace Stride.Assets.Physics
                     ConvexHullColliderShapeDesc convexHullDescClone = new ConvexHullColliderShapeDesc
                     {
                         Scaling = convexHullDesc.Scaling,
+                        Margin = convexHullDesc.Margin,
                         LocalOffset = convexHullDesc.LocalOffset,
                         LocalRotation = convexHullDesc.LocalRotation,
                         Decomposition = convexHullDesc.Decomposition,
