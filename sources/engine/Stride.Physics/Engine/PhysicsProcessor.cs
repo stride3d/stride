@@ -219,7 +219,6 @@ namespace Stride.Physics
             Simulation = physicsSystem.Create(this);
 
             parentScene = Services.GetSafeServiceAs<SceneSystem>()?.SceneInstance?.RootScene;
-
         }
 
         protected override void OnSystemRemove()
