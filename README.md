@@ -22,14 +22,14 @@ Stride comes with an editor that allows you to create and manage the content of 
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ## Earn money by contributing
-If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on OpenCollective and can pay for work on certain projects. [More info about this here](https://github.com/stride3d/stride/wiki/Bounty).
+If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on [OpenCollective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More info about this here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
 
 ## License and governance
 ### .NET Foundation
 This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
 
 ### License
-Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD%20PARTY.md). Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
+Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD%20PARTY.md). Contributors need to sign the following [Contribution License Agreement](https://github.com/dotnet-foundation/.github/blob/main/CLA/dotnetfoundation.yml).
 
 ### Code of conduct
 Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
@@ -52,7 +52,7 @@ Ask for help or report issues:
 * [Donate to support the project](https://opencollective.com/stride3d/)
 * [List of Projects made by users](https://github.com/stride3d/stride/wiki/Community-Projects)
 * [Awesome Stride - Huge List of Stride Resources](https://github.com/Doprez/Awesome-Stride)
-* [Localization](docs/localization.md)
+* [Localization](https://doc.stride3d.net/latest/en/contributors/engine/localization.html)
 
 ## Building from source
 
