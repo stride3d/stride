@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.CompilerServices.Common;
 internal static class SymbolExtensions
 {
@@ -24,7 +26,7 @@ internal static class SymbolExtensions
     /// <param name="attribute">The attribute looking for</param>
     /// <param name="attributeData">The <see cref="AttributeData"/> of the Attribute if it is found</param>
     /// <returns>true if the attribute is found, else false</returns>
-    public static bool TryGetAttribute(this ISymbol symbol, INamedTypeSymbol attribute, out AttributeData attributeData)
+    public static bool TryGetAttribute(this ISymbol symbol, INamedTypeSymbol attribute, [MaybeNullWhen(false)] out AttributeData attributeData)
     {
         attributeData = symbol.GetAttributes().FirstOrDefault(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false)!;
         return attributeData is not null;
