@@ -30,7 +30,7 @@
       </ProjectReferenceWithConfiguration>
     </ItemGroup>
   </Target>
-  
+
   <!-- Code Analysis -->
   <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>
