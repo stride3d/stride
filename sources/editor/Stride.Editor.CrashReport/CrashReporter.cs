@@ -6,10 +6,10 @@ namespace Stride.Editor.CrashReport;
 
 internal static class CrashReporter
 {
+    private const string url = "https://github.com/stride3d/stride/issues/new?labels=bug&template=bug_report.md&";
+    
     internal static void OpenGithub()
     {
-        string url = "https://github.com/stride3d/stride/issues/new?labels=bug&template=bug_report.md&";
-
         Process browser = new();
         browser.StartInfo.UseShellExecute = true; 
         browser.StartInfo.FileName = url;
