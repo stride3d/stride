@@ -155,6 +155,12 @@ namespace Stride.Physics
             {
                 boneElements.Add((PhysicsSkinnedComponentBase)component);
             }
+
+            //Potential fix - assigning parent scene through the specific entity scene
+            //if(ParentScene == null)
+            //{
+               // ParentScene = entity.Scene;
+            //}
         }
 
         private void ComponentRemoval(PhysicsComponent component)
@@ -212,7 +218,16 @@ namespace Stride.Physics
 
             Simulation = physicsSystem.Create(this);
 
-            parentScene = Services.GetSafeServiceAs<SceneSystem>()?.SceneInstance?.RootScene;
+            //Proposed fix
+            if(Services.GetSafeServiceAs<SceneSystem>()?.SceneInstance != null)
+                parentScene = Services.GetSafeServiceAs<SceneSystem>()?.SceneInstance?.RootScene;
+            else
+            {
+                // if build of game, set the parent scene to the root scene of the EntityManager
+                var sceneInstance = EntityManager as SceneInstance;
+                parentScene = sceneInstance.RootScene;
+            }
+
         }
 
         protected override void OnSystemRemove()
