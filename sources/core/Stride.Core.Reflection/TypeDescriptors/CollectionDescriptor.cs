@@ -103,7 +103,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="collection">The collection.</param>
         /// <param name="index">The index.</param>
-        public abstract object GetValue(object collection, object index);
+        public abstract object? GetValue(object collection, object index);
 
         /// <summary>
         /// Returns the value matching the given index in the collection.
