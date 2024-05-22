@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -30,7 +31,7 @@ namespace Stride.Core.Reflection
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectDescriptor" /> class.
         /// </summary>
-        public ObjectDescriptor(ITypeDescriptorFactory factory, [NotNull] Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public ObjectDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
         {
             ArgumentNullException.ThrowIfNull(factory);
             ArgumentNullException.ThrowIfNull(type);
@@ -47,8 +48,7 @@ namespace Stride.Core.Reflection
             Style = DataStyle.Any;
             foreach (var attribute in Attributes)
             {
-                var styleAttribute = attribute as DataStyleAttribute;
-                if (styleAttribute != null)
+                if (attribute is DataStyleAttribute styleAttribute)
                 {
                     Style = styleAttribute.Style;
                 }
@@ -113,12 +113,11 @@ namespace Stride.Core.Reflection
             }
         }
 
-        public IMemberDescriptor TryGetMember(string name)
+        public IMemberDescriptor? TryGetMember(string name)
         {
             if (mapMembers == null)
                 return null;
-            IMemberDescriptor member;
-            mapMembers.TryGetValue(name, out member);
+            mapMembers.TryGetValue(name, out var member);
             return member;
         }
 
@@ -143,7 +142,7 @@ namespace Stride.Core.Reflection
             }
 
             // Free the member list
-            members = memberList.ToArray();
+            members = [.. memberList];
 
             // If no members found, we don't need to build a dictionary map
             if (members.Length <= 0)
@@ -169,10 +168,7 @@ namespace Stride.Core.Reflection
                         {
                             throw new InvalidOperationException($"Failed to get ObjectDescriptor for type [{Type.FullName}]. The member [{member}] cannot be registered as a member with the same name [{alternateName}] is already registered [{existingMember}]");
                         }
-                        if (remapMembers == null)
-                        {
-                            remapMembers = [];
-                        }
+                        remapMembers ??= [];
 
                         mapMembers[alternateName] = member;
                         remapMembers.Add(alternateName);
@@ -258,9 +254,9 @@ namespace Stride.Core.Reflection
             return false;
         }
 
-        static bool TryGetBackingField(PropertyInfo property, out FieldInfo backingField)
+        static bool TryGetBackingField(PropertyInfo property, [MaybeNullWhen(false)] out FieldInfo backingField)
         {
-            backingField = property.DeclaringType.GetField($"<{property.Name}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+            backingField = property.DeclaringType?.GetField($"<{property.Name}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
             return backingField != null;
         }
 
@@ -405,7 +401,7 @@ namespace Stride.Core.Reflection
                 return false;
             }
 
-            Type memberType = null;
+            Type? memberType = null;
             var fieldInfo = memberInfo as FieldInfo;
             if (fieldInfo != null)
             {

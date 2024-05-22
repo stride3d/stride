@@ -60,7 +60,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="name">The name of the member.</param>
         /// <returns>The member if found, otherwise [null].</returns>
-        IMemberDescriptor TryGetMember(string name);
+        IMemberDescriptor? TryGetMember(string name);
 
         /// <summary>
         /// Gets a value indicating whether this instance is a compiler generated type.

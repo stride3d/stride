@@ -100,7 +100,7 @@ namespace Stride.Core.Reflection
                         break;
                     }
                 }
-                var keyType = iDictionaryType.GetGenericArguments()[0];
+                var keyType = iDictionaryType!.GetGenericArguments()[0];
                 var valueType = iDictionaryType.GetGenericArguments()[1];
                 var descriptorType = typeof(GenericDictionaryDescriptor<,>).MakeGenericType([keyType, valueType]);
                 descriptor = (DictionaryDescriptor)Activator.CreateInstance(descriptorType, [this, type, emitDefaultValues, namingConvention])!;

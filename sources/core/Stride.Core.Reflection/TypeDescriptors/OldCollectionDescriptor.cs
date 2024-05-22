@@ -145,7 +145,7 @@ namespace Stride.Core.Reflection
         public override object GetValue(object list, object index)
         {
             if (list == null) throw new ArgumentNullException(nameof(list));
-            if (!(index is int)) throw new ArgumentException("The index must be an int.");
+            if (index is not int) throw new ArgumentException("The index must be an int.");
             return GetValue(list, (int)index);
         }
 
@@ -162,14 +162,14 @@ namespace Stride.Core.Reflection
 
         public override void SetValue(object list, object index, object value)
         {
-            if (list == null) throw new ArgumentNullException(nameof(list));
-            if (!(index is int)) throw new ArgumentException("The index must be an int.");
+            ArgumentNullException.ThrowIfNull(list);
+            if (index is not int) throw new ArgumentException("The index must be an int.");
             SetValue(list, (int)index, value);
         }
 
         public void SetValue(object list, int index, object value)
         {
-            if (list == null) throw new ArgumentNullException(nameof(list));
+            ArgumentNullException.ThrowIfNull(list);
             SetIndexedItem(list, index, value);
         }
 
