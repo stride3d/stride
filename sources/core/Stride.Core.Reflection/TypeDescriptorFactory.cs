@@ -52,7 +52,7 @@ namespace Stride.Core.Reflection
                 return null;
 
             // Caching is integrated in this class, avoiding a ChainedTypeDescriptorFactory
-            ITypeDescriptor descriptor;
+            ITypeDescriptor? descriptor;
             lock (registeredDescriptors)
             {
                 if (!registeredDescriptors.TryGetValue(type, out descriptor))
@@ -106,7 +106,7 @@ namespace Stride.Core.Reflection
             }
             else if (type.IsArray)
             {
-                if (type.GetArrayRank() == 1 && !type.GetElementType().IsArray)
+                if (type.GetArrayRank() == 1 && !type.GetElementType()!.IsArray)
                 {
                     // array[] - only single dimension array is supported
                     descriptor = new ArrayDescriptor(this, type, emitDefaultValues, namingConvention);

@@ -240,20 +240,20 @@ namespace Stride.Core.Reflection
             switch (actionType)
             {
                 case MemberPathAction.CollectionAdd:
-                    if (!(lastItem is CollectionPathItem))
+                    if (lastItem is not CollectionPathItem)
                     {
                         throw new ArgumentException("Invalid path [{0}] for action [{1}]. Expecting last path to be a collection item".ToFormat(this, actionType));
                     }
                     break;
                 case MemberPathAction.CollectionRemove:
-                    if (!(lastItem is CollectionPathItem || lastItem is ArrayPathItem))
+                    if (lastItem is not (CollectionPathItem or ArrayPathItem))
                     {
                         throw new ArgumentException("Invalid path [{0}] for action [{1}]. Expecting last path to be a collection/array item".ToFormat(this, actionType));
                     }
                     break;
 
                 case MemberPathAction.DictionaryRemove:
-                    if (!(lastItem is DictionaryPathItem))
+                    if (lastItem is not DictionaryPathItem)
                     {
                         throw new ArgumentException("Invalid path [{0}] for action [{1}]. Expecting last path to be a dictionary item".ToFormat(this, actionType));
                     }
@@ -267,7 +267,7 @@ namespace Stride.Core.Reflection
 
                 if (stack == null)
                 {
-                    stack = new List<object>();
+                    stack = [];
                     stackTLS = stack;
                 }
                 else

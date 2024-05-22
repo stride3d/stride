@@ -156,7 +156,7 @@ namespace Stride.Core.Reflection
         public void SetValue(object dictionary, object key, object value)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
-            SetValue(dictionary, key, value);
+            SetValueMethod.Invoke(dictionary, key, value);
         }
 
         /// <summary>

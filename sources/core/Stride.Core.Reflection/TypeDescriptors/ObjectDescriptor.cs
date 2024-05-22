@@ -32,9 +32,9 @@ namespace Stride.Core.Reflection
         /// </summary>
         public ObjectDescriptor(ITypeDescriptorFactory factory, [NotNull] Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (type == null) throw new ArgumentNullException(nameof(type));
-            if (namingConvention == null) throw new ArgumentNullException(nameof(namingConvention));
+            ArgumentNullException.ThrowIfNull(factory);
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentNullException.ThrowIfNull(namingConvention);
 
             this.factory = factory;
             Type = type;
@@ -154,8 +154,7 @@ namespace Stride.Core.Reflection
 
             foreach (var member in members)
             {
-                IMemberDescriptor existingMember;
-                if (mapMembers.TryGetValue(member.Name, out existingMember))
+                if (mapMembers.TryGetValue(member.Name, out var existingMember))
                 {
                     throw new InvalidOperationException("Failed to get ObjectDescriptor for type [{0}]. The member [{1}] cannot be registered as a member with the same name is already registered [{2}]".ToFormat(Type.FullName, member, existingMember));
                 }
@@ -173,7 +172,7 @@ namespace Stride.Core.Reflection
                         }
                         if (remapMembers == null)
                         {
-                            remapMembers = new HashSet<string>();
+                            remapMembers = [];
                         }
 
                         mapMembers[alternateName] = member;

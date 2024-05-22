@@ -13,13 +13,14 @@ namespace Stride.Core.Reflection
     public class PrimitiveDescriptor : ObjectDescriptor
     {
         private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
-        private readonly Dictionary<string, object> enumRemap;
+        private readonly Dictionary<string, object?> enumRemap;
 
         public PrimitiveDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsPrimitive(type))
                 throw new ArgumentException("Type [{0}] is not a primitive");
+            enumRemap = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
 
             // Handle remap for enum items
             if (type.IsEnum)
@@ -32,10 +33,6 @@ namespace Stride.Core.Reflection
                         var aliasAttribute = attribute as DataAliasAttribute;
                         if (aliasAttribute != null)
                         {
-                            if (enumRemap == null)
-                            {
-                                enumRemap = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-                            }
                             enumRemap[aliasAttribute.Name] = member.GetValue(null);
                         }
                     }
@@ -51,11 +48,10 @@ namespace Stride.Core.Reflection
         /// <param name="enumAsText">The enum as text.</param>
         /// <param name="remapped">if set to <c>true</c> the enum was remapped.</param>
         /// <returns>System.Object.</returns>
-        public object ParseEnum(string enumAsText, out bool remapped)
+        public object? ParseEnum(string enumAsText, out bool remapped)
         {
-            object value;
             remapped = false;
-            if (enumRemap != null && enumRemap.TryGetValue(enumAsText, out value))
+            if (enumRemap != null && enumRemap.TryGetValue(enumAsText, out var value))
             {
                 remapped = true;
                 return value;

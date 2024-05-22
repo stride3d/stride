@@ -36,9 +36,9 @@ namespace Stride.Core.Reflection
             List<Attribute> attributes;
             lock (lockObject)
             {
-                if (cachedAttributes.TryGetValue(key, out attributes))
+                if (cachedAttributes.TryGetValue(key, out var cacheAttributes))
                 {
-                    return attributes;
+                    return cacheAttributes;
                 }
 
                 // Else retrieve all default attributes
@@ -46,8 +46,7 @@ namespace Stride.Core.Reflection
                 IEnumerable<Attribute> attributesToCache = defaultAttributes;
 
                 // And add registered attributes
-                List<Attribute> registered;
-                if (registeredAttributes.TryGetValue(memberInfo, out registered))
+                if (registeredAttributes.TryGetValue(memberInfo, out var registered))
                 {
                     // Remove "real" attributes overridden by manually registered attributes
                     attributesToCache = registered.Concat(defaultAttributes.Where(x => GetUsage(x).AllowMultiple || registered.All(y => y.GetType() != x.GetType())));
@@ -71,10 +70,9 @@ namespace Stride.Core.Reflection
         {
             lock (lockObject)
             {
-                List<Attribute> attributes;
-                if (!registeredAttributes.TryGetValue(memberInfo, out attributes))
+                if (!registeredAttributes.TryGetValue(memberInfo, out var attributes))
                 {
-                    attributes = new List<Attribute>();
+                    attributes = [];
                     registeredAttributes.Add(memberInfo, attributes);
                 }
                 // Insert it in the first position to ensure it will override same attributes from base classes when using First
@@ -98,7 +96,7 @@ namespace Stride.Core.Reflection
 
             public MemberInfoKey([NotNull] MemberInfo memberInfo, bool inherit)
             {
-                if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
+                ArgumentNullException.ThrowIfNull(memberInfo);
                 this.memberInfo = memberInfo;
                 this.inherit = inherit;
             }
@@ -108,10 +106,10 @@ namespace Stride.Core.Reflection
                 return memberInfo.Equals(other.memberInfo) && inherit.Equals(other.inherit);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
-                return obj is MemberInfoKey && Equals((MemberInfoKey) obj);
+                return obj is MemberInfoKey key && Equals(key);
             }
 
             public override int GetHashCode()

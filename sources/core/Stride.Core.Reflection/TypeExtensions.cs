@@ -54,7 +54,7 @@ namespace Stride.Core.Reflection
         /// <returns>The default value of this type.</returns>
         public static object Default([NotNull] this Type type)
         {
-            if (type == null) throw new ArgumentNullException(nameof(type));
+            ArgumentNullException.ThrowIfNull(type);
             return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
 
@@ -65,7 +65,7 @@ namespace Stride.Core.Reflection
         /// <returns><c>true</c> if the specified type is anonymous; otherwise, <c>false</c>.</returns>
         public static bool IsAnonymous([NotNull] this Type type)
         {
-            if (type == null) throw new ArgumentNullException(nameof(type));
+            ArgumentNullException.ThrowIfNull(type);
 
             lock (AnonymousTypes)
             {

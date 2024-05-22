@@ -25,7 +25,7 @@ namespace Stride.Core.Reflection
             if (!IsNullable(type))
                 throw new ArgumentException("Type [{0}] is not a primitive");
 
-            UnderlyingType = Nullable.GetUnderlyingType(type);
+            UnderlyingType = Nullable.GetUnderlyingType(type)!;
         }
 
         public override DescriptorCategory Category => DescriptorCategory.Nullable;
