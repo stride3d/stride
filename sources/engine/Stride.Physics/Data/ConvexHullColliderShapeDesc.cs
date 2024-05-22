@@ -51,9 +51,10 @@ namespace Stride.Physics
 
         /// <userdoc>
         /// The Margin of the generated convex hull.
+        /// Default = 0.04f
         /// </userdoc>
         [DataMember(48)]
-        public float Margin { get; set; }
+        public float Margin { get; set; } = 0.04f;
 
         /// <userdoc>
         /// If this is not checked, the contained parameters are ignored and only a simple convex hull of the model will be generated.
