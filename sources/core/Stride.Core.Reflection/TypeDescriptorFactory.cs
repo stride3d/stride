@@ -1,7 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using Stride.Core.Reflection.TypeDescriptors;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Reflection
@@ -37,7 +40,7 @@ namespace Stride.Core.Reflection
 
         public TypeDescriptorFactory(IAttributeRegistry attributeRegistry, bool emitDefaultValues, IMemberNamingConvention namingConvention, IComparer<object> keyComparer)
         {
-            if (attributeRegistry == null) throw new ArgumentNullException(nameof(attributeRegistry));
+            ArgumentNullException.ThrowIfNull(attributeRegistry);
             this.keyComparer = keyComparer;
             AttributeRegistry = attributeRegistry;
             this.emitDefaultValues = emitDefaultValues;
@@ -46,9 +49,9 @@ namespace Stride.Core.Reflection
 
         public IAttributeRegistry AttributeRegistry { get; }
 
-        public ITypeDescriptor Find(Type type)
+        public ITypeDescriptor? Find(Type? type)
         {
-            if (type == null)
+            if (type is null)
                 return null;
 
             // Caching is integrated in this class, avoiding a ChainedTypeDescriptorFactory
@@ -84,10 +87,28 @@ namespace Stride.Core.Reflection
             {
                 descriptor = new PrimitiveDescriptor(this, type, emitDefaultValues, namingConvention);
             }
+            
             else if (DictionaryDescriptor.IsDictionary(type)) // resolve dictionary before collections, as they are also collections
             {
+                Type? iDictionaryType = null;
+                foreach (var iType in type.GetTypeInfo().ImplementedInterfaces)
+                {
+                    var iTypeInfo = iType.GetTypeInfo();
+                    if (iTypeInfo.IsGenericType && iTypeInfo.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                    {
+                        iDictionaryType = iTypeInfo;
+                        break;
+                    }
+                }
+                var keyType = iDictionaryType.GetGenericArguments()[0];
+                var valueType = iDictionaryType.GetGenericArguments()[1];
+                var descriptorType = typeof(GenericDictionaryDescriptor<,>).MakeGenericType([keyType, valueType]);
+                descriptor = (DictionaryDescriptor)Activator.CreateInstance(descriptorType, [this, type, emitDefaultValues, namingConvention])!;
+            }
+            else if (typeof(IDictionary).GetTypeInfo().IsAssignableFrom(type))
+            {
                 // IDictionary
-                descriptor = new DictionaryDescriptor(this, type, emitDefaultValues, namingConvention);
+                descriptor = new SimpleDictionaryDescriptor(this, type, emitDefaultValues, namingConvention);
             }
             else if (ListDescriptor.IsList(type))
             {

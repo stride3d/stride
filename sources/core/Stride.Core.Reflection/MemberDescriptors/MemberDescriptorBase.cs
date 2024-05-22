@@ -21,9 +21,7 @@ namespace Stride.Core.Reflection
 
         protected MemberDescriptorBase(MemberInfo memberInfo, StringComparer defaultNameComparer)
         {
-            if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
-
-            MemberInfo = memberInfo;
+            MemberInfo = memberInfo ?? throw new ArgumentNullException(nameof(memberInfo));
             Name = MemberInfo.Name;
             OriginalName = Name;
             DeclaringType = memberInfo.DeclaringType;

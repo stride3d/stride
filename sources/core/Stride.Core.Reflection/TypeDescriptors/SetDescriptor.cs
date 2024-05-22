@@ -125,7 +125,6 @@ namespace Stride.Core.Reflection
                 }
                 removeMethod.Invoke(set, new[] { key });
             }
-
         }
 
         public override void RemoveAt(object set, int index)

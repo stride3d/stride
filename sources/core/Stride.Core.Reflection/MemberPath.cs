@@ -20,7 +20,7 @@ namespace Stride.Core.Reflection
         /// <summary>
         /// We use a thread local static to avoid allocating a list of reference objects every time we access a property
         /// </summary>
-        [ThreadStatic] private static List<object> stackTLS;
+        [ThreadStatic] private static List<object>? stackTLS;
 
         private readonly List<MemberPathItem> items;
 
@@ -46,7 +46,7 @@ namespace Stride.Core.Reflection
         /// <param name="items">The items.</param>
         private MemberPath(List<MemberPathItem> items)
         {
-            if (items == null) throw new ArgumentNullException(nameof(items));
+            ArgumentNullException.ThrowIfNull(items);
 
             this.items = new List<MemberPathItem>(items.Capacity);
             foreach (var item in items)
@@ -94,7 +94,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <typeparam name="T">Type of the attribute</typeparam>
         /// <returns>A custom attribute or null if not found</returns>
-        public T GetCustomAttribute<T>() where T : Attribute
+        public T? GetCustomAttribute<T>() where T : Attribute
         {
             if (items == null || items.Count == 0)
             {
@@ -121,7 +121,7 @@ namespace Stride.Core.Reflection
         /// <returns>This instance.</returns>
         public MemberPath Append(MemberPath path)
         {
-            if (path == null) throw new ArgumentNullException(nameof(path));
+            ArgumentNullException.ThrowIfNull(path);
             foreach (var item in path.items)
             {
                 AddItem(item.Clone(null));
@@ -470,7 +470,7 @@ namespace Stride.Core.Reflection
         // TODO: improve API for these classes (public part/private part, switch to interfaces)
         public abstract class MemberPathItem
         {
-            public MemberPathItem Parent { get; set; }
+            public MemberPathItem? Parent { get; set; }
 
             public abstract IMemberDescriptor MemberDescriptor { get; }
 
@@ -484,7 +484,7 @@ namespace Stride.Core.Reflection
 
             public abstract string GetName(bool isFirst);
 
-            public abstract MemberPathItem Clone(MemberPathItem parent);
+            public abstract MemberPathItem Clone(MemberPathItem? parent);
         }
 
         public sealed class PropertyPathItem : MemberPathItem, IEquatable<PropertyPathItem>
@@ -521,19 +521,19 @@ namespace Stride.Core.Reflection
                 return isFirst ? descriptor.Name : "." + descriptor.Name;
             }
 
-            public override MemberPathItem Clone(MemberPathItem parent)
+            public override MemberPathItem Clone(MemberPathItem? parent)
             {
                 return new PropertyPathItem(descriptor) { Parent = parent };
             }
 
-            public bool Equals(PropertyPathItem other)
+            public bool Equals(PropertyPathItem? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return Equals(descriptor, other.descriptor) && isValueType == other.isValueType;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
@@ -583,19 +583,19 @@ namespace Stride.Core.Reflection
                 return "." + descriptor.Name;
             }
 
-            public override MemberPathItem Clone(MemberPathItem parent)
+            public override MemberPathItem Clone(MemberPathItem? parent)
             {
                 return new FieldPathItem(descriptor) { Parent = parent };
             }
 
-            public bool Equals(FieldPathItem other)
+            public bool Equals(FieldPathItem? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return Equals(descriptor, other.descriptor) && isValueType == other.isValueType;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
@@ -650,19 +650,19 @@ namespace Stride.Core.Reflection
                 return Index;
             }
 
-            public override MemberPathItem Clone(MemberPathItem parent)
+            public override MemberPathItem Clone(MemberPathItem? parent)
             {
                 return new ArrayPathItem(Descriptor, Index) { Parent = parent };
             }
 
-            public bool Equals(ArrayPathItem other)
+            public bool Equals(ArrayPathItem? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return Equals(Descriptor, other.Descriptor) && Index == other.Index;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
@@ -709,19 +709,19 @@ namespace Stride.Core.Reflection
                 return Index;
             }
 
-            public override MemberPathItem Clone(MemberPathItem parent)
+            public override MemberPathItem Clone(MemberPathItem? parent)
             {
                 return new CollectionPathItem(Descriptor, Index) { Parent = parent };
             }
 
-            public bool Equals(CollectionPathItem other)
+            public bool Equals(CollectionPathItem? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return Equals(Descriptor, other.Descriptor) && Index == other.Index;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
@@ -774,19 +774,19 @@ namespace Stride.Core.Reflection
                 return Key;
             }
 
-            public override MemberPathItem Clone(MemberPathItem parent)
+            public override MemberPathItem Clone(MemberPathItem? parent)
             {
                 return new DictionaryPathItem(Descriptor, Key) { Parent = parent };
             }
 
-            public bool Equals(DictionaryPathItem other)
+            public bool Equals(DictionaryPathItem? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return Equals(Descriptor, other.Descriptor) && Equals(Key, other.Key);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
@@ -809,7 +809,7 @@ namespace Stride.Core.Reflection
 
             public SetPathItem(SetDescriptor descriptor, object index)
             {
-                if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+                ArgumentNullException.ThrowIfNull(descriptor);
                 Descriptor = descriptor;
                 Index = index;
             }
@@ -836,19 +836,19 @@ namespace Stride.Core.Reflection
                 return Index;
             }
 
-            public override MemberPathItem Clone(MemberPathItem parent)
+            public override MemberPathItem Clone(MemberPathItem? parent)
             {
                 return new SetPathItem(Descriptor, Index) { Parent = parent };
             }
 
-            public bool Equals(SetPathItem other)
+            public bool Equals(SetPathItem? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return Equals(Descriptor, other.Descriptor) && Index == other.Index;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return obj is SetPathItem spi && Equals(spi);
             }

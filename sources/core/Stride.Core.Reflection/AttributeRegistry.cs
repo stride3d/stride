@@ -94,7 +94,7 @@ namespace Stride.Core.Reflection
 
             private readonly bool inherit;
 
-            public MemberInfoKey([NotNull] MemberInfo memberInfo, bool inherit)
+            public MemberInfoKey(MemberInfo memberInfo, bool inherit)
             {
                 ArgumentNullException.ThrowIfNull(memberInfo);
                 this.memberInfo = memberInfo;

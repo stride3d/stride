@@ -67,13 +67,11 @@ namespace Stride.Core.Reflection
         /// <returns><c>true</c> if the specified type is primitive; otherwise, <c>false</c>.</returns>
         public static bool IsPrimitive(Type type)
         {
-            switch (Type.GetTypeCode(type))
+            return Type.GetTypeCode(type) switch
             {
-                case TypeCode.Object:
-                case TypeCode.Empty:
-                    return type == typeof(object) || type == typeof(string) || type == typeof(TimeSpan) || type == typeof(DateTime);
-            }
-            return true;
+                TypeCode.Object or TypeCode.Empty => type == typeof(object) || type == typeof(string) || type == typeof(TimeSpan) || type == typeof(DateTime),
+                _ => true,
+            };
         }
 
         protected override List<IMemberDescriptor> PrepareMembers()

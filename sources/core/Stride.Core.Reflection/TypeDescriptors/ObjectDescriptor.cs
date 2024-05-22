@@ -71,7 +71,6 @@ namespace Stride.Core.Reflection
 
         protected IAttributeRegistry AttributeRegistry => factory.AttributeRegistry;
 
-        [NotNull]
         public Type Type { get; }
 
         public IEnumerable<IMemberDescriptor> Members => members;
