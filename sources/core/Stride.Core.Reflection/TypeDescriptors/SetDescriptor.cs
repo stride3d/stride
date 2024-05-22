@@ -13,7 +13,7 @@ namespace Stride.Core.Reflection
 {
     public class SetDescriptor : CollectionDescriptor
     {
-        private static readonly List<string> ListOfMembersToRemove = new List<string> { "Comparer", "Capacity" };
+        private static readonly List<string> ListOfMembersToRemove = ["Comparer", "Capacity"];
 
         private Action<object, object> AddMethod;
         private Action<object, object> RemoveMethod;
@@ -22,6 +22,9 @@ namespace Stride.Core.Reflection
         private Func<object, int> CountMethod;
         private Func<object, bool> IsReadOnlyMethod;
 
+        #pragma warning disable CS8618
+        // This warning is disabled because the necessary initialization will occur 
+        // in the CreateGenericSet<T>() method, not in the constructor.
         public SetDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
@@ -181,7 +184,6 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns><c>true</c> if the specified type is set; otherwise, <c>false</c>.</returns>
-        [Obsolete("Use TryGetSetInterface(Type, out Type) instead.")]
         public static bool IsSet(Type type)
         {
             ArgumentNullException.ThrowIfNull(type);
@@ -196,35 +198,6 @@ namespace Stride.Core.Reflection
                 }
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// Tries to find and retrieve the generic <see cref="ISet{T}"/> interface implemented by the specified <see cref="Type"/>.
-        /// </summary>
-        /// <param name="type">The <see cref="Type"/> to examine for the implementation of the <see cref="ISet{T}"/> interface.</param>
-        /// <param name="setInterface">
-        /// When this method returns, contains the <see cref="Type"/> of the implemented <see cref="ISet{T}"/> interface if found; otherwise, <see langword="null"/>.
-        /// </param>
-        /// <returns>
-        /// <see langword="true"/> if the specified type implements the <see cref="ISet{T}"/> interface; otherwise, <see langword="false"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">Thrown if the <paramref name="type"/> argument is <see langword="null"/>.</exception>
-        public static bool TryGetSetInterface(Type type, [MaybeNullWhen(false)] out Type setInterface)
-        {
-            ArgumentNullException.ThrowIfNull(type);
-            var typeInfo = type.GetTypeInfo();
-
-            foreach (var iType in typeInfo.ImplementedInterfaces)
-            {
-                var iTypeInfo = iType.GetTypeInfo();
-                if (iTypeInfo.IsGenericType && iTypeInfo.GetGenericTypeDefinition() == typeof(ISet<>))
-                {
-                    setInterface = iTypeInfo;
-                    return true;
-                }
-            }
-            setInterface = null;
             return false;
         }
 
