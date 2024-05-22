@@ -519,7 +519,7 @@ namespace Stride.Core.Serialization.Contents
                     // Find serializer
                     var serializer = Serializer.GetSerializer(headerObjType, objType);
                     if (serializer == null)
-                        throw new InvalidOperationException($"Content serializer for {headerObjType}/{objType} could not be found.");
+                        throw new InvalidOperationException($"Content serializer for {url} could not be found. Was expecting to find type {objType} but the actual type of the resource was {headerObjType}");
                     contentSerializerContext = new ContentSerializerContext(url, ArchiveMode.Deserialize, this)
                     {
                         LoadContentReferences = settings.LoadContentReferences,
