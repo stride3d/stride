@@ -3,8 +3,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using Stride.Core.Reflection.TypeDescriptors;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Reflection
@@ -13,40 +15,25 @@ namespace Stride.Core.Reflection
     {
         private static readonly List<string> ListOfMembersToRemove = new List<string> { "Comparer", "Capacity" };
 
-        private readonly MethodInfo addMethod;
         private Action<object, object> AddMethod;
-        private readonly MethodInfo removeMethod;
         private Action<object, object> RemoveMethod;
-        private readonly MethodInfo clearMethod;
         private Action<object> ClearMethod;
-        private readonly MethodInfo containsMethod;
         private Func<object, object,bool> ContainsMethod;
-        private readonly MethodInfo countMethod;
         private Func<object, int> CountMethod;
-        private readonly MethodInfo isReadOnlyMethod;
         private Func<object, bool> IsReadOnlyMethod;
 
         public SetDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsSet(type))
-                throw new ArgumentException(@"Expecting a type inheriting from System.Collections.ISet", nameof(type));
+                throw new ArgumentException(@"Expecting a type inheriting from System.Collections.ISet<T>", nameof(type));
 
             // extract Key, Value types from ISet<??>
             var interfaceType = type.GetInterface(typeof(ISet<>));
 
-            // Gets the element type
-            ElementType = interfaceType.GetGenericArguments()[0] ?? typeof(object);
-
-            Type[] ArgTypes = { ElementType };
-            addMethod = interfaceType.GetMethod("Add", ArgTypes);
-
-            removeMethod = type.GetMethod("Remove", ArgTypes);
-            clearMethod = interfaceType.GetMethod("Clear");
-            containsMethod = type.GetMethod("Contains", ArgTypes);
-            countMethod = type.GetProperty("Count").GetGetMethod();
-            isReadOnlyMethod = type.GetInterface(typeof(ICollection<>)).GetProperty("IsReadOnly").GetGetMethod();
-
+            var valueType = interfaceType!.GetGenericArguments()[0];
+            var descriptorType = typeof(SetDescriptor).GetMethod(nameof(CreateGenericSet))!.MakeGenericMethod([ valueType ]);
+            descriptorType.Invoke(descriptorType, []);
             HasAdd = true;
             HasRemove = true;
             HasIndexerAccessors = true;
@@ -194,6 +181,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns><c>true</c> if the specified type is set; otherwise, <c>false</c>.</returns>
+        [Obsolete("Use TryGetSetInterface(Type, out Type) instead.")]
         public static bool IsSet(Type type)
         {
             ArgumentNullException.ThrowIfNull(type);
@@ -208,6 +196,35 @@ namespace Stride.Core.Reflection
                 }
             }
 
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to find and retrieve the generic <see cref="ISet{T}"/> interface implemented by the specified <see cref="Type"/>.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> to examine for the implementation of the <see cref="ISet{T}"/> interface.</param>
+        /// <param name="setInterface">
+        /// When this method returns, contains the <see cref="Type"/> of the implemented <see cref="ISet{T}"/> interface if found; otherwise, <see langword="null"/>.
+        /// </param>
+        /// <returns>
+        /// <see langword="true"/> if the specified type implements the <see cref="ISet{T}"/> interface; otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">Thrown if the <paramref name="type"/> argument is <see langword="null"/>.</exception>
+        public static bool TryGetSetInterface(Type type, [MaybeNullWhen(false)] out Type setInterface)
+        {
+            ArgumentNullException.ThrowIfNull(type);
+            var typeInfo = type.GetTypeInfo();
+
+            foreach (var iType in typeInfo.ImplementedInterfaces)
+            {
+                var iTypeInfo = iType.GetTypeInfo();
+                if (iTypeInfo.IsGenericType && iTypeInfo.GetGenericTypeDefinition() == typeof(ISet<>))
+                {
+                    setInterface = iTypeInfo;
+                    return true;
+                }
+            }
+            setInterface = null;
             return false;
         }
 
