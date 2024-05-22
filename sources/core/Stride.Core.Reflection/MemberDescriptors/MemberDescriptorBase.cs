@@ -13,7 +13,7 @@ namespace Stride.Core.Reflection
     {
         protected MemberDescriptorBase(string name)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             Name = name;
             OriginalName = name;
@@ -47,7 +47,7 @@ namespace Stride.Core.Reflection
         public ITypeDescriptor TypeDescriptor { get; protected set; }
 
         public DataMemberMode Mode { get; set; }
-        public abstract object Get(object thisObject);
+        public abstract object? Get(object thisObject);
         public abstract void Set(object thisObject, object value);
         /// <summary>
         /// Gets whether this member has a public getter.

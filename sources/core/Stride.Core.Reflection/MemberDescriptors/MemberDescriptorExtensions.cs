@@ -22,7 +22,7 @@ namespace Stride.Core.Reflection
                 return leftMember.MetadataToken.CompareTo(rightMember.MetadataToken);
 
             // Otherwise, put base class first
-            return (leftMember.DeclaringType.IsSubclassOf(rightMember.DeclaringType)) ? 1 : -1;
+            return leftMember.DeclaringType.IsSubclassOf(rightMember.DeclaringType) ? 1 : -1;
         }
     }
 }

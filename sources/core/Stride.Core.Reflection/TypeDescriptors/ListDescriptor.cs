@@ -122,8 +122,8 @@ namespace Stride.Core.Reflection
         /// <param name="index">The index.</param>
         public override object GetValue(object list, object index)
         {
-            if (list == null) throw new ArgumentNullException(nameof(list));
-            if (!(index is int)) throw new ArgumentException("The index must be an int.");
+            ArgumentNullException.ThrowIfNull(list);
+            if (index is not int) throw new ArgumentException("The index must be an int.");
             return GetValue(list, (int)index);
         }
 

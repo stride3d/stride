@@ -10,20 +10,20 @@ using Stride.Core.Yaml.Serialization;
 namespace Stride.Core.Reflection
 {
     /// <summary>
-    /// Provides a descriptor for a <see cref="System.Collections.IDictionary"/>.
+    /// Provides a descriptor for a <see cref="System.Collections.IDictionary"/> and <see cref="System.Collections.Generic.Dictionary{TKey, TValue}"/>.
     /// </summary>
     public class DictionaryDescriptor : ObjectDescriptor
     {
-        private static readonly List<string> ListOfMembersToRemove = new List<string> {"Comparer", "Keys", "Values", "Capacity" };
+        private static readonly List<string> ListOfMembersToRemove = new List<string> { "Comparer", "Keys", "Values", "Capacity" };
 
-        private readonly MethodInfo getEnumeratorGeneric;
-        private readonly PropertyInfo getKeysMethod;
-        private readonly PropertyInfo getValuesMethod;
-        private readonly PropertyInfo indexerProperty;
-        private readonly MethodInfo indexerSetter;
-        private readonly MethodInfo removeMethod;
-        private readonly MethodInfo containsKeyMethod;
-        private readonly MethodInfo addMethod;
+        Action<object, object, object?> AddMethod;
+        Action<object, object> RemoveMethod;
+        Action<object, object, object> SetValueMethod;
+        Func<object, object, bool> ContainsKeyMethod;
+        Func<object, ICollection> GetKeysMethod;
+        Func<object, ICollection> GetValuesMethod;
+        Func<object, object, object?> GetValueMethod;
+        Func<object, IEnumerable<KeyValuePair<object, object?>>> GetEnumeratorMethod;
 
         public DictionaryDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
@@ -37,25 +37,57 @@ namespace Stride.Core.Reflection
             {
                 KeyType = interfaceType.GetGenericArguments()[0];
                 ValueType = interfaceType.GetGenericArguments()[1];
+
+                var createMethod = typeof(DictionaryDescriptor).GetMethod(nameof(GenericDictionary), BindingFlags.NonPublic | BindingFlags.Instance);
+                var genericCreateMethod = createMethod.MakeGenericMethod([KeyType, ValueType]);
+                genericCreateMethod!.Invoke(this, []);
+
                 IsGenericDictionary = true;
-                getEnumeratorGeneric = typeof(DictionaryDescriptor).GetMethod("GetGenericEnumerable").MakeGenericMethod(KeyType, ValueType);
-                containsKeyMethod = interfaceType.GetMethod("ContainsKey", new[] { KeyType });
-                // Retrieve the other properties and methods from the interface
-                type = interfaceType;
             }
             else
             {
                 KeyType = typeof(object);
                 ValueType = typeof(object);
-                containsKeyMethod = type.GetMethod("Contains", new[] { KeyType });
+                SimpleDictionary();
             }
-
-            addMethod = type.GetMethod("Add", new[] { KeyType, ValueType });
-            getKeysMethod = type.GetProperty("Keys");
-            getValuesMethod = type.GetProperty("Values");
-            indexerProperty = type.GetProperty("Item", ValueType, new[] { KeyType });
-            indexerSetter = indexerProperty.SetMethod;
-            removeMethod = type.GetMethod("Remove", new[] { KeyType });
+        }
+        void GenericDictionary<TKey, TValue>()
+        {
+            AddMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue?>)dictionary).Add((TKey)key, (TValue?)value);
+            RemoveMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary).Remove((TKey)key);
+            ContainsKeyMethod = (dictionary, key) => ((IDictionary<TKey, TValue>)dictionary).ContainsKey((TKey)key);
+            GetKeysMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue?>)dictionary).Keys;
+            GetValuesMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue?>)dictionary).Values;
+            GetValueMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key];
+            SetValueMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key] = (TValue?)value;
+            GetEnumeratorMethod = (dictionary) => {
+                return GetGenericEnumerable<TKey, TValue>((IDictionary<TKey, TValue?>)dictionary);
+            };
+        }
+        void SimpleDictionary()
+        {
+            AddMethod = (dictionary, key, value) => ((IDictionary)dictionary).Add(key, value);
+            RemoveMethod = (dictionary, key) => ((IDictionary)dictionary).Remove(key);
+            ContainsKeyMethod = (dictionary, key) => ((IDictionary)dictionary).Contains(key);
+            GetKeysMethod = (dictionary) => ((IDictionary)dictionary).Keys;
+            GetValuesMethod = (dictionary) => ((IDictionary)dictionary).Values;
+            GetValueMethod = (dictionary, key) => ((IDictionary)dictionary)[key];
+            SetValueMethod = (dictionary, key, value) => ((IDictionary)dictionary)[key] = value;
+            GetEnumeratorMethod = (dictionary) =>
+            {
+                var simpleDictionary = (IDictionary)dictionary;
+                List<KeyValuePair<object, object?>> result = new(simpleDictionary.Count);
+                foreach (var keyValueObject in simpleDictionary)
+                {
+                    if (keyValueObject is not DictionaryEntry)
+                    {
+                        throw new NotSupportedException($"Key value-pair type [{keyValueObject}] is not supported for IDictionary. Only DictionaryEntry");
+                    }
+                    var entry = (DictionaryEntry)keyValueObject;
+                    result.Add(new KeyValuePair<object, object?>(entry.Key, entry.Value));
+                }
+                return result;
+            };
         }
 
         public override void Initialize(IComparer<object> keyComparer)
@@ -108,29 +140,10 @@ namespace Stride.Core.Reflection
         /// <param name="dictionary">The dictionary.</param>
         /// <returns>A generic enumerator.</returns>
         /// <exception cref="System.ArgumentNullException">dictionary</exception>
-        public IEnumerable<KeyValuePair<object, object>> GetEnumerator(object dictionary)
+        public IEnumerable<KeyValuePair<object, object?>> GetEnumerator(object dictionary)
         {
-            if (dictionary == null) throw new ArgumentNullException(nameof(dictionary));
-            if (IsGenericDictionary)
-            {
-                foreach (var item in (IEnumerable<KeyValuePair<object, object>>)getEnumeratorGeneric.Invoke(null, new[] {dictionary}))
-                {
-                    yield return item;
-                }
-            }
-            else
-            {
-                var simpleDictionary = (IDictionary)dictionary;
-                foreach (var keyValueObject in simpleDictionary)
-                {
-                    if (!(keyValueObject is DictionaryEntry))
-                    {
-                        throw new NotSupportedException($"Key value-pair type [{keyValueObject}] is not supported for IDictionary. Only DictionaryEntry");
-                    }
-                    var entry = (DictionaryEntry)keyValueObject;
-                    yield return new KeyValuePair<object, object>(entry.Key, entry.Value);
-                }
-            }
+            ArgumentNullException.ThrowIfNull(dictionary);
+            return GetEnumeratorMethod.Invoke(dictionary);
         }
 
         /// <summary>
@@ -142,21 +155,8 @@ namespace Stride.Core.Reflection
         /// <exception cref="System.InvalidOperationException">No Add() method found on dictionary [{0}].ToFormat(Type)</exception>
         public void SetValue(object dictionary, object key, object value)
         {
-            if (dictionary == null) throw new ArgumentNullException(nameof(dictionary));
-            var simpleDictionary = dictionary as IDictionary;
-            if (simpleDictionary != null)
-            {
-                simpleDictionary[key] = value;
-            }
-            else
-            {
-                // Only throw an exception if the addMethod is not accessible when adding to a dictionary
-                if (indexerSetter == null)
-                {
-                    throw new InvalidOperationException("No indexer this[key] method found on dictionary [{0}]".ToFormat(Type));
-                }
-                indexerSetter.Invoke(dictionary, new[] { key, value });
-            }
+            ArgumentNullException.ThrowIfNull(dictionary);
+            SetValue(dictionary, key, value);
         }
 
         /// <summary>
@@ -168,22 +168,8 @@ namespace Stride.Core.Reflection
         /// <exception cref="System.InvalidOperationException">No Add() method found on dictionary [{0}].DoFormat(Type)</exception>
         public void AddToDictionary(object dictionary, object key, object value)
         {
-            if (dictionary == null)
-                throw new ArgumentNullException(nameof(dictionary));
-            var simpleDictionary = dictionary as IDictionary;
-            if (simpleDictionary != null)
-            {
-                simpleDictionary.Add(key, value);
-            }
-            else
-            {
-                // Only throw an exception if the addMethod is not accessible when adding to a dictionary
-                if (addMethod == null)
-                {
-                    throw new InvalidOperationException($"No Add() method found on dictionary [{Type}]");
-                }
-                addMethod.Invoke(dictionary, new[] { key, value });
-            }
+            ArgumentNullException.ThrowIfNull(dictionary);
+            AddMethod.Invoke(dictionary, key, value);
         }
 
         /// <summary>
@@ -193,22 +179,8 @@ namespace Stride.Core.Reflection
         /// <param name="key">The key.</param>
         public void Remove(object dictionary, object key)
         {
-            if (dictionary == null) throw new ArgumentNullException(nameof(dictionary));
-            var simpleDictionary = dictionary as IDictionary;
-            if (simpleDictionary != null)
-            {
-                simpleDictionary.Remove(key);
-            }
-            else
-            {
-                // Only throw an exception if the addMethod is not accessible when adding to a dictionary
-                if (removeMethod == null)
-                {
-                    throw new InvalidOperationException("No Remove() method found on dictionary [{0}]".ToFormat(Type));
-                }
-                removeMethod.Invoke(dictionary, new[] { key });
-            }
-
+            ArgumentNullException.ThrowIfNull(dictionary);
+            RemoveMethod.Invoke(dictionary, key);
         }
 
         /// <summary>
@@ -218,17 +190,8 @@ namespace Stride.Core.Reflection
         /// <param name="key">The key.</param>
         public bool ContainsKey(object dictionary, object key)
         {
-            if (dictionary == null) throw new ArgumentNullException(nameof(dictionary));
-            var simpleDictionary = dictionary as IDictionary;
-            if (simpleDictionary != null)
-            {
-                return simpleDictionary.Contains(key);
-            }
-            if (containsKeyMethod == null)
-            {
-                throw new InvalidOperationException("No ContainsKey() method found on dictionary [{0}]".ToFormat(Type));
-            }
-            return (bool)containsKeyMethod.Invoke(dictionary, new[] { key });
+            ArgumentNullException.ThrowIfNull(dictionary);
+            return ContainsKeyMethod.Invoke(dictionary, key);
         }
 
         /// <summary>
@@ -237,7 +200,8 @@ namespace Stride.Core.Reflection
         /// <param name="dictionary">The dictionary</param>
         public ICollection GetKeys(object dictionary)
         {
-            return (ICollection)getKeysMethod.GetValue(dictionary);
+            ArgumentNullException.ThrowIfNull(dictionary);
+            return GetKeysMethod.Invoke(dictionary);
         }
 
         /// <summary>
@@ -246,7 +210,8 @@ namespace Stride.Core.Reflection
         /// <param name="dictionary">The dictionary</param>
         public ICollection GetValues(object dictionary)
         {
-            return (ICollection)getValuesMethod.GetValue(dictionary);
+            ArgumentNullException.ThrowIfNull(dictionary);
+            return GetValuesMethod(dictionary);
         }
 
         /// <summary>
@@ -254,15 +219,10 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="dictionary">The dictionary.</param>
         /// <param name="key">The key.</param>
-        public object GetValue(object dictionary, object key)
+        public object? GetValue(object dictionary, object key)
         {
-            var fastDictionary = dictionary as IDictionary;
-            if (fastDictionary != null)
-            {
-                return fastDictionary[key];
-            }
-
-            return indexerProperty.GetValue(dictionary,new [] { key });
+            ArgumentNullException.ThrowIfNull(dictionary);
+            return GetValueMethod.Invoke(dictionary, key);
         }
 
         /// <summary>
@@ -272,7 +232,7 @@ namespace Stride.Core.Reflection
         /// <returns><c>true</c> if the specified type is dictionary; otherwise, <c>false</c>.</returns>
         public static bool IsDictionary(Type type)
         {
-            if (type == null) throw new ArgumentNullException(nameof(type));
+            ArgumentNullException.ThrowIfNull(type);
             var typeInfo = type.GetTypeInfo();
             if (typeof(IDictionary).GetTypeInfo().IsAssignableFrom(typeInfo))
             {
@@ -291,9 +251,9 @@ namespace Stride.Core.Reflection
             return false;
         }
 
-        public static IEnumerable<KeyValuePair<object, object>> GetGenericEnumerable<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
+        public static IEnumerable<KeyValuePair<object, object?>> GetGenericEnumerable<TKey, TValue>(IDictionary<TKey, TValue?> dictionary)
         {
-            return dictionary.Select(keyValue => new KeyValuePair<object, object>(keyValue.Key, keyValue.Value));
+            return dictionary.Select(keyValue => new KeyValuePair<object, object?>(keyValue.Key, keyValue.Value));
         }
 
         protected override bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)

@@ -24,7 +24,7 @@ namespace Stride.Core.Reflection
         /// <returns><c>true</c> if the specified type is collection; otherwise, <c>false</c>.</returns>
         public static bool IsCollection(Type type)
         {
-            if (type == null) throw new ArgumentNullException(nameof(type));
+            ArgumentNullException.ThrowIfNull(type);
             var typeInfo = type.GetTypeInfo();
             if (typeInfo.IsArray)
             {
