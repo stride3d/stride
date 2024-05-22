@@ -59,7 +59,7 @@ Ask for help or report issues:
 ### Prerequisites
 
 1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog and for convenience a git UI client like [GitExtensions](https://gitextensions.github.io/).
-2. [.NET SDK 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+2. [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
    - Run `dotnet --info` in a console or powershell window to see which versions you have installed  
 3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
    - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack` (should be enabled by default)
@@ -69,7 +69,6 @@ Ask for help or report issues:
      - `C++/CLI support for v143 build tools (Latest)` **(not enabled by default)**
    - Optional (to target iOS/Android): `.NET Multi-paltform App UI development` and `Android SDK setup` individual component (enabled by default), then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 20.1+) from `Tools` tab.
    - Optional (to build VSIX package): `Visual Studio extension development`
-4. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
 
 ### Build Stride
 
