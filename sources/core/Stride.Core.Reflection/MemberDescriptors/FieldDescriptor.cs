@@ -37,7 +37,7 @@ namespace Stride.Core.Reflection
             return FieldInfo.GetValue(thisObject);
         }
 
-        public override void Set(object thisObject, object value)
+        public override void Set(object thisObject, object? value)
         {
             FieldInfo.SetValue(thisObject, value);
         }

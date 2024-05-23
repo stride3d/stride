@@ -44,7 +44,7 @@ namespace Stride.Core.Reflection
             return getMethod?.Invoke(thisObject, null);
         }
 
-        public override void Set(object thisObject, object value)
+        public override void Set(object thisObject, object? value)
         {
             if (!HasSet)
                 throw new InvalidOperationException($"The property [{Name}] of type [{DeclaringType.Name}] has no setter.");

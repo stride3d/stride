@@ -21,7 +21,7 @@ namespace Stride.Core.Reflection
         /// <summary>
         /// We use a thread local static to avoid allocating a list of reference objects every time we access a property
         /// </summary>
-        [ThreadStatic] private static List<object>? stackTLS;
+        [ThreadStatic] private static List<object?>? stackTLS;
 
         private readonly List<MemberPathItem> items;
 
@@ -151,7 +151,7 @@ namespace Stride.Core.Reflection
             {
                 if (descriptor.Category == DescriptorCategory.Set)
                 {
-                    Push(collectionDescriptor as SetDescriptor, key);
+                    Push((collectionDescriptor as SetDescriptor)!, key);
                 }
                 else
                 {
@@ -264,7 +264,7 @@ namespace Stride.Core.Reflection
             var stack = stackTLS;
             try
             {
-                object nextObject = rootObject;
+                object? nextObject = rootObject;
 
                 if (stack == null)
                 {
@@ -329,7 +329,7 @@ namespace Stride.Core.Reflection
             return true;
         }
 
-        public object GetIndex()
+        public object? GetIndex()
         {
             return items.LastOrDefault()?.GetIndex();
         }
@@ -338,15 +338,14 @@ namespace Stride.Core.Reflection
         /// Gets the type descriptor of the member or collection represented by this path, or <c>null</c> is this instance is an empty path.
         /// </summary>
         /// <returns>The type descriptor of the member or collection represented by this path, or <c>null</c> is this instance is an empty path.</returns>
-        public ITypeDescriptor GetTypeDescriptor()
+        public ITypeDescriptor? GetTypeDescriptor()
         {
             return items.LastOrDefault()?.TypeDescriptor;
         }
 
-        public object GetValue(object rootObject)
+        public object? GetValue(object rootObject)
         {
-            object result;
-            if (!TryGetValue(rootObject, out result))
+            if (!TryGetValue(rootObject, out var result))
                 throw new InvalidOperationException("Unable to retrieve the value of this member path on this root object.");
             return result;
         }
@@ -380,46 +379,6 @@ namespace Stride.Core.Reflection
             return true;
         }
 
-        ///// <summary>
-        ///// Gets the value from the specified root object following this instance path.
-        ///// </summary>
-        ///// <param name="rootObject">The root object.</param>
-        ///// <param name="value">The returned value.</param>
-        ///// <param name="overrideType">Type of the override.</param>
-        ///// <returns><c>true</c> if evaluation of the path succeeded and the value is valid, <c>false</c> otherwise.</returns>
-        ///// <exception cref="System.ArgumentNullException">rootObject</exception>
-        //public bool TryGetValue(object rootObject, out object value, out OverrideType overrideType)
-        //{
-        //    if (rootObject == null) throw new ArgumentNullException("rootObject");
-        //    if (items.Count == 0) throw new InvalidOperationException("No items pushed via Push methods");
-
-        //    value = null;
-        //    overrideType = OverrideType.Base;
-        //    try
-        //    {
-        //        object nextObject = rootObject;
-
-        //        var lastItem = items[items.Count - 1];
-        //        var memberDescriptor = lastItem.MemberDescriptor;
-
-        //        for (int i = 0; i < items.Count - 1; i++)
-        //        {
-        //            var item = items[i];
-        //            nextObject = item.GetValue(nextObject);
-        //        }
-
-        //        overrideType = nextObject.GetOverride(memberDescriptor);
-        //        value = lastItem.GetValue(nextObject);
-
-        //    }
-        //    catch (Exception)
-        //    {
-        //        // If an exception occurred, we cannot resolve this member path to a valid property/field
-        //        return false;
-        //    }
-        //    return true;
-        //}
-
         public IReadOnlyList<MemberPathItem> Decompose()
         {
             return items;
@@ -446,9 +405,9 @@ namespace Stride.Core.Reflection
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// Returns a <see cref="string" /> that represents this instance.
         /// </summary>
-        /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
+        /// <returns>A <see cref="string" /> that represents this instance.</returns>
         public override string ToString()
         {
             var text = new StringBuilder();
@@ -477,11 +436,11 @@ namespace Stride.Core.Reflection
 
             public virtual ITypeDescriptor TypeDescriptor => MemberDescriptor.TypeDescriptor;
 
-            public abstract object GetValue(object thisObj);
+            public abstract object? GetValue(object thisObj);
 
-            public abstract void SetValue(List<object> stack, int objectIndex, object thisObject, object value);
+            public abstract void SetValue(List<object> stack, int objectIndex, object thisObject, object? value);
 
-            public virtual object GetIndex() => null;
+            public virtual object? GetIndex() => null;
 
             public abstract string GetName(bool isFirst);
 
@@ -495,19 +454,19 @@ namespace Stride.Core.Reflection
 
             public PropertyPathItem(PropertyDescriptor descriptor)
             {
-                if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+                ArgumentNullException.ThrowIfNull(descriptor);
                 this.descriptor = descriptor;
                 isValueType = descriptor.DeclaringType.IsValueType;
             }
 
             public override IMemberDescriptor MemberDescriptor => descriptor;
 
-            public override object GetValue(object thisObj)
+            public override object? GetValue(object thisObj)
             {
                 return descriptor.Get(thisObj);
             }
 
-            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object value)
+            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object? value)
             {
                 descriptor.Set(thisObject, value);
 
@@ -538,7 +497,7 @@ namespace Stride.Core.Reflection
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                return obj is PropertyPathItem && Equals((PropertyPathItem)obj);
+                return obj is PropertyPathItem propertyPathItem && Equals(propertyPathItem);
             }
 
             public override int GetHashCode()
@@ -557,19 +516,19 @@ namespace Stride.Core.Reflection
  
             public FieldPathItem(FieldDescriptor descriptor)
             {
-                if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+                ArgumentNullException.ThrowIfNull(descriptor);
                 this.descriptor = descriptor;
                 isValueType = descriptor.DeclaringType.IsValueType;
             }
 
             public override IMemberDescriptor MemberDescriptor => descriptor;
 
-            public override object GetValue(object thisObj)
+            public override object? GetValue(object thisObj)
             {
                 return descriptor.Get(thisObj);
             }
 
-            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object value)
+            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object? value)
             {
                 descriptor.Set(thisObject, value);
 
@@ -624,7 +583,7 @@ namespace Stride.Core.Reflection
 
             public ArrayPathItem(ArrayDescriptor descriptor, int index)
             {
-                if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+                ArgumentNullException.ThrowIfNull(descriptor);
                 Index = index;
                 Descriptor = descriptor;
             }
@@ -636,7 +595,7 @@ namespace Stride.Core.Reflection
                 return ((Array)thisObj).GetValue(Index);
             }
 
-            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object value)
+            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object? value)
             {
                 ((Array)thisObject).SetValue(value, Index);
             }
@@ -695,7 +654,7 @@ namespace Stride.Core.Reflection
                 return Descriptor.GetValue(thisObj, Index);
             }
 
-            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object value)
+            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object? value)
             {
                 Descriptor.SetValue(thisObject, Index, value);
             }
@@ -752,7 +711,7 @@ namespace Stride.Core.Reflection
 
             public override ITypeDescriptor TypeDescriptor => Descriptor;
 
-            public override object GetValue(object thisObj)
+            public override object? GetValue(object thisObj)
             {
                 if (!Descriptor.ContainsKey(thisObj, Key))
                     throw new KeyNotFoundException();
@@ -760,7 +719,7 @@ namespace Stride.Core.Reflection
                 return Descriptor.GetValue(thisObj, Key);
             }
 
-            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object value)
+            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object? value)
             {
                 Descriptor.SetValue(thisObject, Key, value);
             }
@@ -817,12 +776,12 @@ namespace Stride.Core.Reflection
 
             public override ITypeDescriptor TypeDescriptor => Descriptor;
 
-            public override object GetValue(object thisObj)
+            public override object? GetValue(object thisObj)
             {
                 return Descriptor.GetValue(thisObj, Index);
             }
 
-            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object value)
+            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object? value)
             {
                 Descriptor.SetValue(thisObject, Index, value);
             }
