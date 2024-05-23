@@ -19,13 +19,13 @@ namespace Stride.Core.Reflection
     {
         protected static readonly string SystemCollectionsNamespace = typeof(int).Namespace;
         public static readonly ShouldSerializePredicate ShouldSerializeDefault = (obj, parentTypeMemberDesc) => true;
-        private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
+        private static readonly List<IMemberDescriptor> EmptyMembers = [];
 
         private readonly ITypeDescriptorFactory factory;
         private IMemberDescriptor[] members;
         private Dictionary<string, IMemberDescriptor> mapMembers;
         private HashSet<string> remapMembers;
-        private static readonly object[] EmptyObjectArray = new object[0];
+        private static readonly object[] EmptyObjectArray = [];
         private readonly bool emitDefaultValues;
 
         /// <summary>
@@ -315,16 +315,14 @@ namespace Stride.Core.Reflection
                 if (attribute is DefaultValueAttribute valueAttribute)
                 {
                     // If we've already found one, don't overwrite it
-                    defaultValueAttribute = defaultValueAttribute ?? valueAttribute;
+                    defaultValueAttribute ??= valueAttribute;
                     continue;
                 }
 
                 if (attribute is DataAliasAttribute yamlRemap)
                 {
-                    if (member.AlternativeNames == null)
-                    {
-                        member.AlternativeNames = new List<string>();
-                    }
+                    member.AlternativeNames ??= [];
+                    
                     if (!string.IsNullOrWhiteSpace(yamlRemap.Name))
                     {
                         member.AlternativeNames.Add(yamlRemap.Name);
@@ -385,8 +383,7 @@ namespace Stride.Core.Reflection
                 };
             }
 
-            if (member.ShouldSerialize == null)
-                member.ShouldSerialize = ShouldSerializeDefault;
+            member.ShouldSerialize ??= ShouldSerializeDefault;
 
             member.Name = !string.IsNullOrEmpty(memberAttribute?.Name) ? memberAttribute.Name : NamingConvention.Convert(member.OriginalName);
 

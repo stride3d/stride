@@ -14,8 +14,8 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class ListDescriptor : CollectionDescriptor
     {
-        private static readonly object[] EmptyObjects = new object[0];
-        private static readonly List<string> ListOfMembersToRemove = new List<string> { "Capacity", "Count", "IsReadOnly", "IsFixedSize", "IsSynchronized", "SyncRoot", "Comparer" };
+        private static readonly object[] EmptyObjects = [];
+        private static readonly List<string> ListOfMembersToRemove = ["Capacity", "Count", "IsReadOnly", "IsFixedSize", "IsSynchronized", "SyncRoot", "Comparer"];
 
         private Func<object, bool> IsReadOnlyFunction;
         private Func<object, int> GetListCountFunction;

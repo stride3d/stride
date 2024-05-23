@@ -14,7 +14,7 @@ namespace Stride.Core.Reflection
     public class TypeDescriptorFactory : ITypeDescriptorFactory
     {
         private readonly IComparer<object> keyComparer;
-        private readonly Dictionary<Type, ITypeDescriptor> registeredDescriptors = new Dictionary<Type, ITypeDescriptor>();
+        private readonly Dictionary<Type, ITypeDescriptor> registeredDescriptors = [];
         private readonly bool emitDefaultValues;
         private readonly IMemberNamingConvention namingConvention;
 

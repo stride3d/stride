@@ -14,7 +14,7 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class DictionaryDescriptor : ObjectDescriptor
     {
-        private static readonly List<string> ListOfMembersToRemove = new List<string> { "Comparer", "Keys", "Values", "Capacity" };
+        private static readonly List<string> ListOfMembersToRemove = ["Comparer", "Keys", "Values", "Capacity"];
 
         Action<object, object, object?> AddMethod;
         Action<object, object> RemoveMethod;

@@ -11,7 +11,7 @@ namespace Stride.Core.Reflection
 {
     public static class TypeExtensions
     {
-        private static readonly Dictionary<Type, bool> AnonymousTypes = new Dictionary<Type, bool>();
+        private static readonly Dictionary<Type, bool> AnonymousTypes = [];
 
         public static bool HasInterface(this Type type, Type lookInterfaceType)
         {
