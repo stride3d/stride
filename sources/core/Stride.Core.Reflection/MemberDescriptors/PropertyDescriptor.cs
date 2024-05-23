@@ -49,7 +49,7 @@ namespace Stride.Core.Reflection
             if (!HasSet)
                 throw new InvalidOperationException($"The property [{Name}] of type [{DeclaringType.Name}] has no setter.");
 
-            setMethod!.Invoke(thisObject, new[] {value});
+            setMethod!.Invoke(thisObject, [value]);
         }
 
         public override IEnumerable<T> GetCustomAttributes<T>(bool inherit)

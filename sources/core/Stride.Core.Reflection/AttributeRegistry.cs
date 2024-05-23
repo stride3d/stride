@@ -15,12 +15,12 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class AttributeRegistry : IAttributeRegistry
     {
-        private readonly object lockObject = new object();
-        private readonly Dictionary<MemberInfoKey, List<Attribute>> cachedAttributes = new Dictionary<MemberInfoKey, List<Attribute>>();
-        private readonly Dictionary<MemberInfo, List<Attribute>> registeredAttributes = new Dictionary<MemberInfo, List<Attribute>>();
+        private readonly object lockObject = new();
+        private readonly Dictionary<MemberInfoKey, List<Attribute>> cachedAttributes = [];
+        private readonly Dictionary<MemberInfo, List<Attribute>> registeredAttributes = [];
 
         // TODO: move this in a different location
-        public Action<ObjectDescriptor, List<IMemberDescriptor>> PrepareMembersCallback { get; set; }
+        public Action<ObjectDescriptor, List<IMemberDescriptor>>? PrepareMembersCallback { get; set; }
 
         /// <summary>
         /// Gets the attributes associated with the specified member.
@@ -88,7 +88,7 @@ namespace Stride.Core.Reflection
             return Attribute.GetCustomAttribute(attribute.GetType(), typeof(AttributeUsageAttribute)) as AttributeUsageAttribute;
         }
 
-        private struct MemberInfoKey : IEquatable<MemberInfoKey>
+        private readonly struct MemberInfoKey : IEquatable<MemberInfoKey>
         {
             private readonly MemberInfo memberInfo;
 

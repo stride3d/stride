@@ -11,7 +11,7 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class NullableDescriptor : ObjectDescriptor
     {
-        private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
+        private static readonly List<IMemberDescriptor> EmptyMembers = [];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectDescriptor" /> class.

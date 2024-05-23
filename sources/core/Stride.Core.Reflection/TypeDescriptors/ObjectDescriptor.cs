@@ -17,15 +17,15 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class ObjectDescriptor : ITypeDescriptor
     {
-        protected static readonly string SystemCollectionsNamespace = typeof(int).Namespace;
+        protected static readonly string SystemCollectionsNamespace = typeof(int).Namespace!;
         public static readonly ShouldSerializePredicate ShouldSerializeDefault = (obj, parentTypeMemberDesc) => true;
-        private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
+        private static readonly List<IMemberDescriptor> EmptyMembers = [];
 
         private readonly ITypeDescriptorFactory factory;
         private IMemberDescriptor[] members;
         private Dictionary<string, IMemberDescriptor> mapMembers;
         private HashSet<string> remapMembers;
-        private static readonly object[] EmptyObjectArray = new object[0];
+        private static readonly object[] EmptyObjectArray = [];
         private readonly bool emitDefaultValues;
 
         /// <summary>
@@ -309,22 +309,20 @@ namespace Stride.Core.Reflection
             }
 
             // Process all attributes just once instead of getting them one by one
-            DefaultValueAttribute defaultValueAttribute = null;
+            DefaultValueAttribute? defaultValueAttribute = null;
             foreach (var attribute in attributes)
             {
                 if (attribute is DefaultValueAttribute valueAttribute)
                 {
                     // If we've already found one, don't overwrite it
-                    defaultValueAttribute = defaultValueAttribute ?? valueAttribute;
+                    defaultValueAttribute ??= valueAttribute;
                     continue;
                 }
 
                 if (attribute is DataAliasAttribute yamlRemap)
                 {
-                    if (member.AlternativeNames == null)
-                    {
-                        member.AlternativeNames = new List<string>();
-                    }
+                    member.AlternativeNames ??= [];
+                    
                     if (!string.IsNullOrWhiteSpace(yamlRemap.Name))
                     {
                         member.AlternativeNames.Add(yamlRemap.Name);
@@ -352,13 +350,13 @@ namespace Stride.Core.Reflection
             //	  otherwise => true
             var shouldSerialize = Type.GetMethod("ShouldSerialize" + member.OriginalName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             if (shouldSerialize != null && shouldSerialize.ReturnType == typeof(bool) && member.ShouldSerialize == null)
-                member.ShouldSerialize = (obj, parentTypeMemberDesc) => (bool)shouldSerialize.Invoke(obj, EmptyObjectArray);
+                member.ShouldSerialize = (obj, parentTypeMemberDesc) => (bool)shouldSerialize.Invoke(obj, EmptyObjectArray)!;
 
             if (defaultValueAttribute != null && member.ShouldSerialize == null && !emitDefaultValues)
             {
                 member.DefaultValueAttribute = defaultValueAttribute;
-                object defaultValue = defaultValueAttribute.Value;
-                Type defaultType = defaultValue?.GetType();
+                var defaultValue = defaultValueAttribute.Value;
+                var defaultType = defaultValue?.GetType();
                 if (defaultType != null && defaultType.IsNumeric() && defaultType != memberType)
                 {
                     try
@@ -385,8 +383,7 @@ namespace Stride.Core.Reflection
                 };
             }
 
-            if (member.ShouldSerialize == null)
-                member.ShouldSerialize = ShouldSerializeDefault;
+            member.ShouldSerialize ??= ShouldSerializeDefault;
 
             member.Name = !string.IsNullOrEmpty(memberAttribute?.Name) ? memberAttribute.Name : NamingConvention.Convert(member.OriginalName);
 
@@ -402,15 +399,13 @@ namespace Stride.Core.Reflection
             }
 
             Type? memberType = null;
-            var fieldInfo = memberInfo as FieldInfo;
-            if (fieldInfo != null)
+            if (memberInfo is FieldInfo fieldInfo)
             {
                 memberType = fieldInfo.FieldType;
             }
             else
             {
-                var propertyInfo = memberInfo as PropertyInfo;
-                if (propertyInfo != null)
+                if (memberInfo is PropertyInfo propertyInfo)
                 {
                     memberType = propertyInfo.PropertyType;
                 }

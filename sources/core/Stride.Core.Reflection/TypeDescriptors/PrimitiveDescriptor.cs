@@ -12,7 +12,7 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class PrimitiveDescriptor : ObjectDescriptor
     {
-        private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
+        private static readonly List<IMemberDescriptor> EmptyMembers = [];
         private readonly Dictionary<string, object?> enumRemap;
 
         public PrimitiveDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
@@ -30,8 +30,7 @@ namespace Stride.Core.Reflection
                     var attributes = AttributeRegistry.GetAttributes(member);
                     foreach (var attribute in attributes)
                     {
-                        var aliasAttribute = attribute as DataAliasAttribute;
-                        if (aliasAttribute != null)
+                        if (attribute is DataAliasAttribute aliasAttribute)
                         {
                             enumRemap[aliasAttribute.Name] = member.GetValue(null);
                         }

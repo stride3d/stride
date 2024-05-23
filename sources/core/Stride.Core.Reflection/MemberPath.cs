@@ -21,7 +21,7 @@ namespace Stride.Core.Reflection
         /// <summary>
         /// We use a thread local static to avoid allocating a list of reference objects every time we access a property
         /// </summary>
-        [ThreadStatic] private static List<object?>? stackTLS;
+        [ThreadStatic] private static List<object?> stackTLS;
 
         private readonly List<MemberPathItem> items;
 
@@ -367,7 +367,7 @@ namespace Stride.Core.Reflection
                 for (int i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    nextObject = item.GetValue(nextObject);
+                    nextObject = item.GetValue(nextObject)!;
                 }
                 value = nextObject;
             }
@@ -559,7 +559,7 @@ namespace Stride.Core.Reflection
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                return obj is FieldPathItem && Equals((FieldPathItem)obj);
+                return obj is FieldPathItem fieldPathItem && Equals(fieldPathItem);
             }
 
             public override int GetHashCode()
@@ -626,7 +626,7 @@ namespace Stride.Core.Reflection
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                return obj is ArrayPathItem && Equals((ArrayPathItem)obj);
+                return obj is ArrayPathItem arrayPathItem && Equals(arrayPathItem);
             }
 
             public override int GetHashCode()
@@ -642,7 +642,7 @@ namespace Stride.Core.Reflection
 
             public CollectionPathItem(CollectionDescriptor descriptor, int index)
             {
-                if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+                ArgumentNullException.ThrowIfNull(descriptor);
                 Descriptor = descriptor;
                 Index = index;
             }
@@ -685,7 +685,7 @@ namespace Stride.Core.Reflection
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                return obj is CollectionPathItem && Equals((CollectionPathItem)obj);
+                return obj is CollectionPathItem collectionPathItem && Equals(collectionPathItem);
             }
 
             public override int GetHashCode()
@@ -750,7 +750,7 @@ namespace Stride.Core.Reflection
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                return obj is DictionaryPathItem && Equals((DictionaryPathItem)obj);
+                return obj is DictionaryPathItem dictionaryPathItem && Equals(dictionaryPathItem);
             }
 
             public override int GetHashCode()
