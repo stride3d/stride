@@ -40,28 +40,12 @@ namespace Stride.Core.Reflection
                 throw new ArgumentException(@"Expecting a type inheriting from System.Collections.IList", nameof(type));
 
             // Gets the element type
-            ElementType = type.GetInterface(typeof(IList<>))?.GetGenericArguments()[0] ?? typeof(object);
+            ElementType = type.GetInterface(typeof(IList<>))?.GetGenericArguments()[0]!;
 
-            // implements IList
-            if (typeof(IList).IsAssignableFrom(type))
-            {
-                // implements IList
-                ListAddFunction = (obj, value) => ((IList)obj).Add(value);
-                ListClearFunction = obj => ((IList)obj).Clear();
-                ListInsertFunction = (obj, index, value) => ((IList)obj).Insert(index, value);
-                ListRemoveAtFunction = (obj, index) => ((IList)obj).RemoveAt(index);
-                GetListCountFunction = o => ((IList)o).Count;
-                GetIndexedItem = (obj, index) => ((IList)obj)[index];
-                SetIndexedItem = (obj, index, value) => ((IList)obj)[index] = value;
-                IsReadOnlyFunction = obj => ((IList)obj).IsReadOnly;
-            }
-            else // implements IList<T>
-            {
-                var interfaceType = type.GetInterface(typeof(IList<>));
-                var valueType = interfaceType!.GetGenericArguments()[0];
-                var descriptorType = typeof(ListDescriptor).GetMethod(nameof(CreateList), BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod([valueType]);
-                descriptorType.Invoke(this, []);
-            }
+            var interfaceType = type.GetInterface(typeof(IList<>));
+            var valueType = interfaceType!.GetGenericArguments()[0];
+            var descriptorType = typeof(ListDescriptor).GetMethod(nameof(CreateList), BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod([valueType]);
+            descriptorType.Invoke(this, []);
 
             HasAdd = true;
             HasRemove = true;
@@ -108,7 +92,7 @@ namespace Stride.Core.Reflection
         /// <exception cref="System.ArgumentNullException">dictionary</exception>
         public IEnumerable<object> GetEnumerator(object list)
         {
-            if (list == null) throw new ArgumentNullException(nameof(list));
+            ArgumentNullException.ThrowIfNull(list);
             return ((IEnumerable)list).Cast<object>();
         }
 
@@ -131,7 +115,7 @@ namespace Stride.Core.Reflection
         /// <param name="index">The index.</param>
         public override object GetValue(object list, int index)
         {
-            if (list == null) throw new ArgumentNullException(nameof(list));
+            ArgumentNullException.ThrowIfNull(list);
             return GetIndexedItem(list, index);
         }
 
@@ -215,16 +199,11 @@ namespace Stride.Core.Reflection
         /// <returns><c>true</c> if the specified type is list; otherwise, <c>false</c>.</returns>
         public static bool IsList(Type type)
         {
-            if (type == null) throw new ArgumentNullException(nameof(type));
+            ArgumentNullException.ThrowIfNull(type);
             var typeInfo = type.GetTypeInfo();
             if (typeInfo.IsArray)
             {
                 return false;
-            }
-
-            if (typeof(IList).GetTypeInfo().IsAssignableFrom(typeInfo))
-            {
-                return true;
             }
 
             foreach (var iType in typeInfo.ImplementedInterfaces)

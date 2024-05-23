@@ -52,8 +52,6 @@ using System.Linq;
 using Xunit;
 using Stride.Core.Reflection;
 using Stride.Core.Yaml.Serialization;
-using Stride.Core.Yaml.Tests.TestNamespace;
-using Stride.Core.Reflection.TypeDescriptors;
 
 namespace Stride.Core.Yaml.Tests
 {
@@ -234,7 +232,7 @@ namespace Stride.Core.Yaml.Tests
         {
             var attributeRegistry = new AttributeRegistry();
             var factory = new TypeDescriptorFactory(attributeRegistry);
-            DictionaryDescriptor descriptor = new GenericDictionaryDescriptor<int, string>(factory, typeof(Dictionary<int, string>), false,
+            DictionaryDescriptor descriptor = new DictionaryDescriptor(factory, typeof(Dictionary<int, string>), false,
                 new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
 
@@ -243,7 +241,7 @@ namespace Stride.Core.Yaml.Tests
             Assert.Equal(typeof(int), descriptor.KeyType);
             Assert.Equal(typeof(string), descriptor.ValueType);
 
-            descriptor = new GenericDictionaryDescriptor<float,object>(factory, typeof(NonPureDictionary), false,
+            descriptor = new DictionaryDescriptor(factory, typeof(NonPureDictionary), false,
                 new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
             Assert.Equal(1, descriptor.Count);

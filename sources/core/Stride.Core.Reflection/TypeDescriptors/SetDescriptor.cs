@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using Stride.Core.Reflection.TypeDescriptors;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Reflection
@@ -46,12 +45,12 @@ namespace Stride.Core.Reflection
         void CreateGenericSet<T>()
         {
             ElementType = typeof(T);
-            AddMethod = (object set, object item) => ((ISet<T?>)set).Add((T?)item);
-            RemoveMethod = (object set, object item) => ((ISet<T?>)set).Remove((T?)item);
-            ClearMethod = (object set) => ((ISet<T?>)set).Clear();
-            ContainsMethod = (object set, object item) => ((ISet<T?>)set).Contains((T?)item);
-            CountMethod = (object set) => ((ISet<T?>)set).Count;
-            IsReadOnlyMethod = (object set) => ((ISet<T?>)set).IsReadOnly;
+            AddMethod = (object set, object item) => ((ISet<T>)set).Add((T)item);
+            RemoveMethod = (object set, object item) => ((ISet<T>)set).Remove((T)item);
+            ClearMethod = (object set) => ((ISet<T>)set).Clear();
+            ContainsMethod = (object set, object item) => ((ISet<T>)set).Contains((T)item);
+            CountMethod = (object set) => ((ISet<T>)set).Count;
+            IsReadOnlyMethod = (object set) => ((ISet<T>)set).IsReadOnly;
         }
 
         public override void Initialize(IComparer<object> keyComparer)
