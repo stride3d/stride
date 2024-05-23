@@ -113,7 +113,7 @@ namespace Stride.Core.Reflection
         public bool IsPureDictionary { get; private set; }
 
         /// <summary>
-        /// Determines whether the value passed is readonly.
+        /// Determines whether the specified object is read-only.
         /// </summary>
         /// <param name="thisObject">The this object.</param>
         /// <returns><c>true</c> if [is read only] [the specified this object]; otherwise, <c>false</c>.</returns>
