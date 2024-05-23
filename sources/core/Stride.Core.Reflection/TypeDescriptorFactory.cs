@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using Stride.Core.Reflection.TypeDescriptors;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Reflection
@@ -90,25 +89,8 @@ namespace Stride.Core.Reflection
             
             else if (DictionaryDescriptor.IsDictionary(type)) // resolve dictionary before collections, as they are also collections
             {
-                Type? iDictionaryType = null;
-                foreach (var iType in type.GetTypeInfo().ImplementedInterfaces)
-                {
-                    var iTypeInfo = iType.GetTypeInfo();
-                    if (iTypeInfo.IsGenericType && iTypeInfo.GetGenericTypeDefinition() == typeof(IDictionary<,>))
-                    {
-                        iDictionaryType = iTypeInfo;
-                        break;
-                    }
-                }
-                var keyType = iDictionaryType!.GetGenericArguments()[0];
-                var valueType = iDictionaryType.GetGenericArguments()[1];
-                var descriptorType = typeof(GenericDictionaryDescriptor<,>).MakeGenericType([keyType, valueType]);
-                descriptor = (DictionaryDescriptor)Activator.CreateInstance(descriptorType, [this, type, emitDefaultValues, namingConvention])!;
-            }
-            else if (typeof(IDictionary).GetTypeInfo().IsAssignableFrom(type))
-            {
                 // IDictionary
-                descriptor = new SimpleDictionaryDescriptor(this, type, emitDefaultValues, namingConvention);
+                descriptor = new DictionaryDescriptor(this, type, emitDefaultValues, namingConvention);
             }
             else if (ListDescriptor.IsList(type))
             {

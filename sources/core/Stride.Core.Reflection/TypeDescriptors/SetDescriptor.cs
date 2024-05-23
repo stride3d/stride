@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using Stride.Core.Reflection.TypeDescriptors;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Reflection
