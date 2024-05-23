@@ -481,7 +481,19 @@ namespace Stride.Input
                 pair.Value.Listeners.Remove(listener);
             }
         }
-        
+
+        /// <summary>
+        /// Gets a binding value for the specified name and the specified config extract from the current <see cref="VirtualButtonConfigSet"/>.
+        /// </summary>
+        /// <param name="configIndex">An index to a <see cref="VirtualButtonConfig"/> stored in the <see cref="VirtualButtonConfigSet"/>.</param>
+        /// <param name="bindingName">Name of the binding.</param>
+        /// <returns>The value of the binding.</returns>
+        [Obsolete("This method is obsolete. Call GetVirtualButtonValue instead.")]
+        public virtual float GetVirtualButton(int configIndex, object bindingName)
+        {
+            return GetVirtualButtonValue(configIndex, bindingName);
+        }
+
         /// <summary>
         /// Gets a binding value for the specified name and the specified config extract from the current <see cref="VirtualButtonConfigSet"/>.
         /// </summary>
