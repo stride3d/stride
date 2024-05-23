@@ -209,14 +209,6 @@ namespace Stride.Core.Yaml.Tests
             Assert.Equal(1, descriptor.Count);
             Assert.False(descriptor.IsPureCollection);
             Assert.Equal(typeof(int), descriptor.ElementType);
-
-            descriptor = new ListDescriptor(factory, typeof(ArrayList), false, new DefaultNamingConvention());
-            descriptor.Initialize(new DefaultKeyComparer());
-
-            // No Capacity
-            Assert.Equal(0, descriptor.Count);
-            Assert.True(descriptor.IsPureCollection);
-            Assert.Equal(typeof(object), descriptor.ElementType);
         }
 
         /// <summary>

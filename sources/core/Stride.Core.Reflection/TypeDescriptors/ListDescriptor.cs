@@ -60,7 +60,7 @@ namespace Stride.Core.Reflection
             ListClearFunction = obj => ((IList<T>)obj).Clear();
             GetListCountFunction = obj => ((IList<T>)obj).Count();
             IsReadOnlyFunction = obj => ((IList<T>)obj).IsReadOnly;
-            ListInsertFunction = (obj, index, value) => ((IList<T>)obj)[index] = (T)value;
+            ListInsertFunction = (obj, index, value) => ((IList<T>)obj).Insert(index, (T)value);
             ListRemoveAtFunction = (obj, index) => ((IList<T>)obj).RemoveAt(index);
             GetIndexedItem = (obj, index) => ((IList<T>)obj)[index];
             SetIndexedItem = (obj, index, value) => ((IList<T>)obj)[index] = (T)value;
