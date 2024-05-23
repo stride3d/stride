@@ -20,11 +20,11 @@ namespace Stride.Core.Reflection
         private Func<object, bool> IsReadOnlyFunction;
         private Func<object, int> GetListCountFunction;
         private Func<object, int, object?> GetIndexedItem;
-        private Action<object, int, object> SetIndexedItem;
-        private Action<object, object> ListAddFunction;
-        private Action<object, int, object> ListInsertFunction;
+        private Action<object, int, object?> SetIndexedItem;
+        private Action<object, object?> ListAddFunction;
+        private Action<object, int, object?> ListInsertFunction;
         private Action<object, int> ListRemoveAtFunction;
-        private Action<object, object> ListRemoveFunction;
+        private Action<object, object?> ListRemoveFunction;
         private Action<object> ListClearFunction;
 
         /// <summary>
@@ -62,15 +62,15 @@ namespace Stride.Core.Reflection
         }
         void CreateListDelegates<T>()
         {
-            ListAddFunction = (obj, value) => ((IList<T>)obj).Add((T)value);
-            ListRemoveFunction = (obj, value) => ((IList<T>)obj).Remove((T)value);
-            ListClearFunction = obj => ((IList<T>)obj).Clear();
-            GetListCountFunction = obj => ((IList<T>)obj).Count();
-            IsReadOnlyFunction = obj => ((IList<T>)obj).IsReadOnly;
-            ListInsertFunction = (obj, index, value) => ((IList<T>)obj).Insert(index, (T)value);
-            ListRemoveAtFunction = (obj, index) => ((IList<T>)obj).RemoveAt(index);
-            GetIndexedItem = (obj, index) => ((IList<T>)obj)[index];
-            SetIndexedItem = (obj, index, value) => ((IList<T>)obj)[index] = (T)value;
+            ListAddFunction = (obj, value) => ((IList<T?>)obj).Add((T?)value);
+            ListRemoveFunction = (obj, value) => ((IList<T?>)obj).Remove((T?)value);
+            ListClearFunction = obj => ((IList<T?>)obj).Clear();
+            GetListCountFunction = obj => ((IList<T?>)obj).Count();
+            IsReadOnlyFunction = obj => ((IList<T?>)obj).IsReadOnly;
+            ListInsertFunction = (obj, index, value) => ((IList<T?>)obj).Insert(index, (T?)value);
+            ListRemoveAtFunction = (obj, index) => ((IList<T?>)obj).RemoveAt(index);
+            GetIndexedItem = (obj, index) => ((IList<T?>)obj)[index];
+            SetIndexedItem = (obj, index, value) => ((IList<T?>)obj)[index] = (T?)value;
         }
         public override void Initialize(IComparer<object> keyComparer)
         {
@@ -108,7 +108,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="list">The list.</param>
         /// <param name="index">The index.</param>
-        public override object GetValue(object list, object index)
+        public override object? GetValue(object list, object index)
         {
             ArgumentNullException.ThrowIfNull(list);
             if (index is not int) throw new ArgumentException("The index must be an int.");
@@ -120,20 +120,20 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="list">The list.</param>
         /// <param name="index">The index.</param>
-        public override object GetValue(object list, int index)
+        public override object? GetValue(object list, int index)
         {
             ArgumentNullException.ThrowIfNull(list);
             return GetIndexedItem(list, index);
         }
 
-        public override void SetValue(object list, object index, object value)
+        public override void SetValue(object list, object index, object? value)
         {
             ArgumentNullException.ThrowIfNull(list);
             if (index is not int) throw new ArgumentException("The index must be an int.");
             SetValue(list, (int)index, value);
         }
 
-        public void SetValue(object list, int index, object value)
+        public void SetValue(object list, int index, object? value)
         {
             ArgumentNullException.ThrowIfNull(list);
             SetIndexedItem(list, index, value);
@@ -153,7 +153,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="list">The list.</param>
         /// <param name="value">The value to add to this list.</param>
-        public override void Add(object list, object value)
+        public override void Add(object list, object? value)
         {
             ListAddFunction(list, value);
         }
@@ -164,7 +164,7 @@ namespace Stride.Core.Reflection
         /// <param name="list">The list.</param>
         /// <param name="index">The index of the insertion.</param>
         /// <param name="value">The value to insert to this list.</param>
-        public override void Insert(object list, int index, object value)
+        public override void Insert(object list, int index, object? value)
         {
             ListInsertFunction(list, index, value);
         }
@@ -174,7 +174,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="list">The list.</param>
         /// <param name="item"></param>
-        public override void Remove(object list, object item)
+        public override void Remove(object list, object? item)
         {
             ListRemoveFunction(list, item);
         }

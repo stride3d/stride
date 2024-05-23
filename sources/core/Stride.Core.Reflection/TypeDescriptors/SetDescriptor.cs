@@ -14,10 +14,10 @@ namespace Stride.Core.Reflection
     {
         private static readonly List<string> ListOfMembersToRemove = ["Comparer", "Capacity"];
 
-        private Action<object, object> AddMethod;
-        private Action<object, object> RemoveMethod;
+        private Action<object, object?> AddMethod;
+        private Action<object, object?> RemoveMethod;
         private Action<object> ClearMethod;
-        private Func<object, object,bool> ContainsMethod;
+        private Func<object, object?,bool> ContainsMethod;
         private Func<object, int> CountMethod;
         private Func<object, bool> IsReadOnlyMethod;
 
@@ -50,12 +50,12 @@ namespace Stride.Core.Reflection
         void CreateSetDelegates<T>()
         {
             ElementType = typeof(T);
-            AddMethod = (object set, object item) => ((ISet<T>)set).Add((T)item);
-            RemoveMethod = (object set, object item) => ((ISet<T>)set).Remove((T)item);
+            AddMethod = (object set, object? item) => ((ISet<T?>)set).Add((T?)item);
+            RemoveMethod = (object set, object? item) => ((ISet<T?>)set).Remove((T?)item);
             ClearMethod = (object set) => ((ISet<T>)set).Clear();
-            ContainsMethod = (object set, object item) => ((ISet<T>)set).Contains((T)item);
-            CountMethod = (object set) => ((ISet<T>)set).Count;
-            IsReadOnlyMethod = (object set) => ((ISet<T>)set).IsReadOnly;
+            ContainsMethod = (object set, object? item) => ((ISet<T?>)set).Contains((T?)item);
+            CountMethod = (object set) => ((ISet<T?>)set).Count;
+            IsReadOnlyMethod = (object set) => ((ISet<T?>)set).IsReadOnly;
         }
 
         public override void Initialize(IComparer<object> keyComparer)
@@ -84,13 +84,13 @@ namespace Stride.Core.Reflection
         /// <param name="set">The set.</param>
         /// <param name="item">The item.</param>
         /// <exception cref="System.InvalidOperationException">No Add() method found on set [{0}].ToFormat(Type)</exception>
-        public override void Add(object set, object item)
+        public override void Add(object set, object? item)
         {
             ArgumentNullException.ThrowIfNull(set);
             AddMethod.Invoke(set, item);
         }
 
-        public override void Insert(object set, int index, object value)
+        public override void Insert(object set, int index, object? value)
         {
             throw new InvalidOperationException("SetDescriptor should not call function 'Insert'.");
         }
@@ -100,7 +100,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="set">The set.</param>
         /// <param name="key">The key.</param>
-        public override void Remove(object set, object key)
+        public override void Remove(object set, object? key)
         {
             ArgumentNullException.ThrowIfNull(set);
             RemoveMethod.Invoke(set, key);
@@ -169,7 +169,7 @@ namespace Stride.Core.Reflection
         /// <param name="set">The set.</param>
         /// <param name="index">Index of value.</param>
         /// <returns></returns>
-        public override void SetValue(object set, object index, object value)
+        public override void SetValue(object set, object index, object? value)
         {
             ArgumentNullException.ThrowIfNull(set);
 

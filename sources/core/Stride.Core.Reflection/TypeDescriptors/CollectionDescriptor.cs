@@ -110,16 +110,16 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="collection">The collection.</param>
         /// <param name="index">The index.</param>
-        public abstract object GetValue(object collection, int index);
+        public abstract object? GetValue(object collection, int index);
 
-        public abstract void SetValue(object list, object index, object value);
+        public abstract void SetValue(object list, object index, object? value);
 
         /// <summary>
         /// Add to the collections of the same type than this descriptor.
         /// </summary>
         /// <param name="collection">The collection.</param>
         /// <param name="value">The value to add to this collection.</param>
-        public abstract void Add(object collection, object value);
+        public abstract void Add(object collection, object? value);
 
         /// <summary>
         /// Insert to the collections of the same type than this descriptor.
@@ -127,14 +127,14 @@ namespace Stride.Core.Reflection
         /// <param name="collection">The collection.</param>
         /// <param name="index">The index of the insertion.</param>
         /// <param name="value">The value to insert to this collection.</param>
-        public abstract void Insert(object collection, int index, object value);
+        public abstract void Insert(object collection, int index, object? value);
 
         /// <summary>
         /// Removes the item from the collections of the same type.
         /// </summary>
         /// <param name="collection">The collection.</param>
         /// <param name="item"></param>
-        public abstract void Remove(object collection, object item);
+        public abstract void Remove(object collection, object? item);
 
         /// <summary>
         /// Remove item at the given index from the collections of the same type.

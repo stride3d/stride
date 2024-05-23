@@ -21,7 +21,7 @@ namespace Stride.Core.Reflection
         /// <summary>
         /// We use a thread local static to avoid allocating a list of reference objects every time we access a property
         /// </summary>
-        [ThreadStatic] private static List<object?>? stackTLS;
+        [ThreadStatic] private static List<object?> stackTLS;
 
         private readonly List<MemberPathItem> items;
 
@@ -264,7 +264,7 @@ namespace Stride.Core.Reflection
             var stack = stackTLS;
             try
             {
-                object? nextObject = rootObject;
+                object nextObject = rootObject;
 
                 if (stack == null)
                 {
@@ -367,7 +367,7 @@ namespace Stride.Core.Reflection
                 for (int i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    nextObject = item.GetValue(nextObject);
+                    nextObject = item.GetValue(nextObject)!;
                 }
                 value = nextObject;
             }

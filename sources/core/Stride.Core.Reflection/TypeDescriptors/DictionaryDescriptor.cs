@@ -18,13 +18,16 @@ namespace Stride.Core.Reflection
 
         Action<object, object, object?> AddMethod;
         Action<object, object> RemoveMethod;
-        Action<object, object, object> SetValueMethod;
+        Action<object, object, object?> SetValueMethod;
         Func<object, object, bool> ContainsKeyMethod;
         Func<object, ICollection> GetKeysMethod;
         Func<object, ICollection> GetValuesMethod;
         Func<object, object, object?> GetValueMethod;
-        Func<object, IEnumerable<KeyValuePair<object, object>>> GetEnumeratorMethod;
+        Func<object, IEnumerable<KeyValuePair<object, object?>>> GetEnumeratorMethod;
 
+        #pragma warning disable CS8618
+        // This warning is disabled because the necessary initialization will occur 
+        // in the CreateDictionaryDelegates<T>() method, not in the constructor.
         public DictionaryDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
@@ -47,35 +50,15 @@ namespace Stride.Core.Reflection
         }
         void CreateDictionaryDelegates<TKey, TValue>()
         {
-            AddMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue>)dictionary).Add((TKey)key, (TValue)value);
-            RemoveMethod = (dictionary, key) => ((IDictionary<TKey, TValue>)dictionary).Remove((TKey)key);
-            ContainsKeyMethod = (dictionary, key) => ((IDictionary<TKey, TValue>)dictionary).ContainsKey((TKey)key);
-            GetKeysMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue>)dictionary).Keys;
-            GetValuesMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue>)dictionary).Values;
-            GetValueMethod = (dictionary, key) => ((IDictionary<TKey, TValue>)dictionary)[(TKey)key];
-            SetValueMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue>)dictionary)[(TKey)key] = (TValue)value;
+            AddMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue?>)dictionary).Add((TKey)key, (TValue?)value);
+            RemoveMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary).Remove((TKey)key);
+            ContainsKeyMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary).ContainsKey((TKey)key);
+            GetKeysMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue?>)dictionary).Keys;
+            GetValuesMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue?>)dictionary).Values;
+            GetValueMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key];
+            SetValueMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key] = (TValue?)value;
             GetEnumeratorMethod = (dictionary) => {
-                return GetGenericEnumerable<TKey,TValue>((IDictionary<TKey, TValue>)dictionary);
-            };
-        }
-        void SimpleDictionary()
-        {
-            AddMethod = (dictionary, key, value) => ((IDictionary)dictionary).Add(key, value);
-            RemoveMethod = (dictionary, key) => ((IDictionary)dictionary).Remove(key);
-            ContainsKeyMethod = (dictionary, key) => ((IDictionary)dictionary).Contains(key);
-            GetKeysMethod = (dictionary) => ((IDictionary)dictionary).Keys;
-            GetValuesMethod = (dictionary) => ((IDictionary)dictionary).Values;
-            GetValueMethod = (dictionary, key) => ((IDictionary)dictionary)[key];
-            SetValueMethod = (dictionary, key, value) => ((IDictionary)dictionary)[key] = value;
-            GetEnumeratorMethod = (dictionary) =>
-            {
-                var realDictionary = (IDictionary)dictionary;
-                List<KeyValuePair<object, object>> result = new(realDictionary.Count);
-                foreach (KeyValuePair<object, object> kvp in realDictionary)
-                {
-                    result.Add(kvp);
-                }
-                return result;
+                return GetGenericEnumerable((IDictionary<TKey, TValue>)dictionary);
             };
         }
 
@@ -129,7 +112,7 @@ namespace Stride.Core.Reflection
         /// <param name="dictionary">The dictionary.</param>
         /// <returns>A generic enumerator.</returns>
         /// <exception cref="System.ArgumentNullException">dictionary</exception>
-        public IEnumerable<KeyValuePair<object, object>> GetEnumerator(object dictionary)
+        public IEnumerable<KeyValuePair<object, object?>> GetEnumerator(object dictionary)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
             return GetEnumeratorMethod.Invoke(dictionary);
@@ -240,16 +223,15 @@ namespace Stride.Core.Reflection
             return false;
         }
 
-        public static IEnumerable<KeyValuePair<object, object>> GetGenericEnumerable<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
+        public static IEnumerable<KeyValuePair<object, object?>> GetGenericEnumerable<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
         {
-            return dictionary.Select(keyValue => new KeyValuePair<object, object>(keyValue.Key, keyValue.Value));
+            return dictionary.Select(keyValue => new KeyValuePair<object, object?>(keyValue.Key!, keyValue.Value));
         }
 
         protected override bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
         {
             // Filter members
             if (member is PropertyDescriptor && ListOfMembersToRemove.Contains(member.OriginalName))
-            //if (member is PropertyDescriptor && (member.DeclaringType.Namespace ?? string.Empty).StartsWith(SystemCollectionsNamespace) && ListOfMembersToRemove.Contains(member.Name))
             {
                 return false;
             }
