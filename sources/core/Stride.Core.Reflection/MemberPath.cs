@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Stride.Core.Annotations;
@@ -136,8 +137,8 @@ namespace Stride.Core.Reflection
         /// <exception cref="System.ArgumentNullException">descriptor</exception>
         public void Push(IMemberDescriptor descriptor)
         {
-            if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
-            AddItem(descriptor is FieldDescriptor ? (MemberPathItem)new FieldPathItem((FieldDescriptor)descriptor) : new PropertyPathItem((PropertyDescriptor)descriptor));
+            ArgumentNullException.ThrowIfNull(descriptor);
+            AddItem(descriptor is FieldDescriptor fieldDescriptor ? (MemberPathItem)new FieldPathItem(fieldDescriptor) : new PropertyPathItem((PropertyDescriptor)descriptor));
         }
 
         public void Push(ITypeDescriptor descriptor, object key)
@@ -171,7 +172,7 @@ namespace Stride.Core.Reflection
         /// <exception cref="System.ArgumentNullException">descriptor</exception>
         public void Push(ArrayDescriptor descriptor, int index)
         {
-            if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+            ArgumentNullException.ThrowIfNull(descriptor);
             AddItem(new ArrayPathItem(descriptor, index));
         }
 
@@ -183,7 +184,7 @@ namespace Stride.Core.Reflection
         /// <exception cref="System.ArgumentNullException">descriptor</exception>
         public void Push(CollectionDescriptor descriptor, int index)
         {
-            if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+            ArgumentNullException.ThrowIfNull(descriptor);
             AddItem(new CollectionPathItem(descriptor, index));
         }
 
@@ -195,7 +196,7 @@ namespace Stride.Core.Reflection
         /// <exception cref="System.ArgumentNullException">descriptor</exception>
         public void Push(DictionaryDescriptor descriptor, object key)
         {
-            if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+            ArgumentNullException.ThrowIfNull(descriptor);
             AddItem(new DictionaryPathItem(descriptor, key));
         }
 
@@ -207,7 +208,7 @@ namespace Stride.Core.Reflection
         /// <exception cref="System.ArgumentNullException">descriptor</exception>
         public void Push(SetDescriptor descriptor, object index)
         {
-            if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+            ArgumentNullException.ThrowIfNull(descriptor);
             AddItem(new SetPathItem(descriptor, index));
         }
 
@@ -222,9 +223,9 @@ namespace Stride.Core.Reflection
             }
         }
 
-        public bool Apply([NotNull] object rootObject, MemberPathAction actionType, object value)
+        public bool Apply(object rootObject, MemberPathAction actionType, object value)
         {
-            if (rootObject == null) throw new ArgumentNullException(nameof(rootObject));
+            ArgumentNullException.ThrowIfNull(rootObject);
             if (rootObject.GetType().IsValueType) throw new ArgumentException("Value type for root objects are not supported", nameof(rootObject));
             if (actionType != MemberPathAction.ValueSet && actionType != MemberPathAction.CollectionAdd && value != null)
             {
@@ -357,9 +358,9 @@ namespace Stride.Core.Reflection
         /// <param name="value">The returned value.</param>
         /// <returns><c>true</c> if evaluation of the path succeeded and the value is valid, <c>false</c> otherwise.</returns>
         /// <exception cref="System.ArgumentNullException">rootObject</exception>
-        public bool TryGetValue(object rootObject, out object value)
+        public bool TryGetValue(object rootObject, [MaybeNullWhen(false)] out object? value)
         {
-            if (rootObject == null) throw new ArgumentNullException(nameof(rootObject));
+            ArgumentNullException.ThrowIfNull(rootObject);
             value = null;
             try
             {
@@ -744,7 +745,7 @@ namespace Stride.Core.Reflection
 
             public DictionaryPathItem(DictionaryDescriptor descriptor, object key)
             {
-                if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+                ArgumentNullException.ThrowIfNull(descriptor);
                 Descriptor = descriptor;
                 Key = key;
             }

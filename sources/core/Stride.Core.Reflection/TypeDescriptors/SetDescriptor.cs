@@ -35,8 +35,8 @@ namespace Stride.Core.Reflection
             var interfaceType = type.GetInterface(typeof(ISet<>));
 
             var valueType = interfaceType!.GetGenericArguments()[0];
-            var descriptorType = typeof(SetDescriptor).GetMethod(nameof(CreateGenericSet))!.MakeGenericMethod([ valueType ]);
-            descriptorType.Invoke(descriptorType, []);
+            var descriptorType = typeof(SetDescriptor).GetMethod(nameof(CreateGenericSet), BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod([ valueType ]);
+            descriptorType.Invoke(this, []);
             HasAdd = true;
             HasRemove = true;
             HasIndexerAccessors = true;
