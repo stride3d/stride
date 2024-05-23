@@ -102,11 +102,6 @@ namespace Stride.Core.Reflection
                 // ISet
                 descriptor = new SetDescriptor(this, type, emitDefaultValues, namingConvention);
             }
-            else if (OldCollectionDescriptor.IsCollection(type))
-            {
-                // ICollection
-                descriptor = new OldCollectionDescriptor(this, type, emitDefaultValues, namingConvention);
-            }
             else if (type.IsArray)
             {
                 if (type.GetArrayRank() == 1 && !type.GetElementType()!.IsArray)

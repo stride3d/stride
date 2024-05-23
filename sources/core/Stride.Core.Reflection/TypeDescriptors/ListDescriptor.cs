@@ -33,27 +33,34 @@ namespace Stride.Core.Reflection
         /// <param name="factory">The factory.</param>
         /// <param name="type">The type.</param>
         /// <exception cref="System.ArgumentException">Expecting a type inheriting from System.Collections.IList;type</exception>
+        #pragma warning disable CS8618
+        // This warning is disabled because the necessary initialization will occur 
+        // in the CreateListDelegates<T>() method, not in the constructor.
         public ListDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsList(type))
-                throw new ArgumentException(@"Expecting a type inheriting from System.Collections.IList", nameof(type));
-
-            // Gets the element type
-            ElementType = type.GetInterface(typeof(IList<>))?.GetGenericArguments()[0]!;
-
-            var interfaceType = type.GetInterface(typeof(IList<>));
-            var valueType = interfaceType!.GetGenericArguments()[0];
-            var descriptorType = typeof(ListDescriptor).GetMethod(nameof(CreateList), BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod([valueType]);
-            descriptorType.Invoke(this, []);
+                throw new ArgumentException(@"Expecting a type inheriting from System.Collections.Generic.IList<T>", nameof(type));
 
             HasAdd = true;
             HasRemove = true;
             HasInsert = true;
             HasRemoveAt = true;
             HasIndexerAccessors = true;
+
+            ElementType = type.GetInterface(typeof(IList<>))!.GetGenericArguments()[0]!;
+
+            // if the type has late bound generics, no delegates can be created as the type is invalid for calling collection operations
+            if (type.ContainsGenericParameters)
+                return;
+
+            var interfaceType = type.GetInterface(typeof(IList<>));
+            var valueType = interfaceType!.GetGenericArguments()[0];
+            var descriptorType = typeof(ListDescriptor).GetMethod(nameof(CreateListDelegates), BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod([valueType]);
+            descriptorType.Invoke(this, []);
+
         }
-        void CreateList<T>()
+        void CreateListDelegates<T>()
         {
             ListAddFunction = (obj, value) => ((IList<T>)obj).Add((T)value);
             ListRemoveFunction = (obj, value) => ((IList<T>)obj).Remove((T)value);

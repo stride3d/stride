@@ -16,7 +16,6 @@ namespace Stride.Core.Reflection
     {
         private static readonly List<string> ListOfMembersToRemove = new List<string> { "Comparer", "Keys", "Values", "Capacity" };
 
-
         Action<object, object, object?> AddMethod;
         Action<object, object> RemoveMethod;
         Action<object, object, object> SetValueMethod;
@@ -30,21 +29,23 @@ namespace Stride.Core.Reflection
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsDictionary(type))
-                throw new ArgumentException(@"Expecting a type inheriting from System.Collections.IDictionary", nameof(type));
+                throw new ArgumentException(@"Expecting a type inheriting from System.Collections.Generic.IDictionary<T,K>", nameof(type));
 
             // extract Key, Value types from IDictionary<??, ??>
-            var interfaceType = type.GetInterface(typeof(IDictionary<,>));
-
+            var interfaceType = type.GetInterface(typeof(IDictionary<,>))!;
             KeyType = interfaceType.GetGenericArguments()[0];
             ValueType = interfaceType.GetGenericArguments()[1];
+            IsGenericDictionary = true;
 
-            var createMethod = typeof(DictionaryDescriptor).GetMethod(nameof(GenericDictionary), BindingFlags.NonPublic | BindingFlags.Instance);
+            // if the type has late bound generics, no delegates can be created as the type is invalid for calling collection operations
+            if (type.ContainsGenericParameters)
+                return;
+
+            var createMethod = typeof(DictionaryDescriptor).GetMethod(nameof(CreateDictionaryDelegates), BindingFlags.NonPublic | BindingFlags.Instance);
             var genericCreateMethod = createMethod!.MakeGenericMethod([KeyType, ValueType]);
             genericCreateMethod!.Invoke(this, []);
-
-            IsGenericDictionary = true;
         }
-        void GenericDictionary<TKey, TValue>()
+        void CreateDictionaryDelegates<TKey, TValue>()
         {
             AddMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue>)dictionary).Add((TKey)key, (TValue)value);
             RemoveMethod = (dictionary, key) => ((IDictionary<TKey, TValue>)dictionary).Remove((TKey)key);

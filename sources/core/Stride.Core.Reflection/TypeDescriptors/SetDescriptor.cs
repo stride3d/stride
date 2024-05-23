@@ -23,26 +23,31 @@ namespace Stride.Core.Reflection
 
         #pragma warning disable CS8618
         // This warning is disabled because the necessary initialization will occur 
-        // in the CreateGenericSet<T>() method, not in the constructor.
+        // in the CreateSetDelegates<T>() method, not in the constructor.
         public SetDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
             if (!IsSet(type))
                 throw new ArgumentException(@"Expecting a type inheriting from System.Collections.ISet<T>", nameof(type));
 
-            // extract Key, Value types from ISet<??>
-            var interfaceType = type.GetInterface(typeof(ISet<>));
-
-            var valueType = interfaceType!.GetGenericArguments()[0];
-            var descriptorType = typeof(SetDescriptor).GetMethod(nameof(CreateGenericSet), BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod([ valueType ]);
-            descriptorType.Invoke(this, []);
             HasAdd = true;
             HasRemove = true;
             HasIndexerAccessors = true;
             HasInsert = false;
             HasRemoveAt = false;
+
+            // extract Key, Value types from ISet<??>
+            var interfaceType = type.GetInterface(typeof(ISet<>))!;
+            var valueType = interfaceType.GetGenericArguments()[0];
+
+            // if the type has late bound generics, no delegates can be created as the type is invalid for calling collection operations
+            if (type.ContainsGenericParameters)
+                return;
+
+            var descriptorType = typeof(SetDescriptor).GetMethod(nameof(CreateSetDelegates), BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod([ valueType ]);
+            descriptorType.Invoke(this, []);
         }
-        void CreateGenericSet<T>()
+        void CreateSetDelegates<T>()
         {
             ElementType = typeof(T);
             AddMethod = (object set, object item) => ((ISet<T>)set).Add((T)item);

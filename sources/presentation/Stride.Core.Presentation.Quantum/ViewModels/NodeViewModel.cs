@@ -189,7 +189,7 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         /// </summary>
         /// <remarks>Used mostly for sorting purpose.</remarks>
         /// <seealso cref="HasDictionary"/>
-        public bool HasCollection => OldCollectionDescriptor.IsCollection(Type);
+        public bool HasCollection => CollectionDescriptor.IsCollection(Type);
 
         /// <summary>
         /// Gets whether this node contains a dictionary.
