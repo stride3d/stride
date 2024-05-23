@@ -103,6 +103,9 @@ namespace Stride.Physics
                     }
                 }
 
+                // Assign parentScene
+                parentScene = Services.GetSafeServiceAs<SceneSystem>().SceneInstance.RootScene;
+
                 debugScene.Parent = parentScene;
             }
         }
@@ -154,12 +157,6 @@ namespace Stride.Physics
             if (component.BoneIndex != -1)
             {
                 boneElements.Add((PhysicsSkinnedComponentBase)component);
-            }
-
-            // Make sure the parent scene gets assigned
-            if(ParentScene == null)
-            {
-                ParentScene = entity.Scene;
             }
         }
 
