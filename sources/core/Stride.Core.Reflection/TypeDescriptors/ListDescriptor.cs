@@ -17,15 +17,15 @@ namespace Stride.Core.Reflection
         private static readonly object[] EmptyObjects = new object[0];
         private static readonly List<string> ListOfMembersToRemove = new List<string> { "Capacity", "Count", "IsReadOnly", "IsFixedSize", "IsSynchronized", "SyncRoot", "Comparer" };
 
-        private readonly Func<object, bool> IsReadOnlyFunction;
-        private readonly Func<object, int> GetListCountFunction;
-        private readonly Func<object, int, object> GetIndexedItem;
-        private readonly Action<object, int, object> SetIndexedItem;
-        private readonly Action<object, object> ListAddFunction;
-        private readonly Action<object, int, object> ListInsertFunction;
-        private readonly Action<object, int> ListRemoveAtFunction;
-        private readonly Action<object, object> ListRemoveFunction;
-        private readonly Action<object> ListClearFunction;
+        private Func<object, bool> IsReadOnlyFunction;
+        private Func<object, int> GetListCountFunction;
+        private Func<object, int, object?> GetIndexedItem;
+        private Action<object, int, object> SetIndexedItem;
+        private Action<object, object> ListAddFunction;
+        private Action<object, int, object> ListInsertFunction;
+        private Action<object, int> ListRemoveAtFunction;
+        private Action<object, object> ListRemoveFunction;
+        private Action<object> ListClearFunction;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ListDescriptor" /> class.
@@ -40,7 +40,7 @@ namespace Stride.Core.Reflection
                 throw new ArgumentException(@"Expecting a type inheriting from System.Collections.IList", nameof(type));
 
             // Gets the element type
-            ElementType = type.GetInterface(typeof(IEnumerable<>))?.GetGenericArguments()[0] ?? typeof(object);
+            ElementType = type.GetInterface(typeof(IList<>))?.GetGenericArguments()[0] ?? typeof(object);
 
             // implements IList
             if (typeof(IList).IsAssignableFrom(type))
@@ -57,24 +57,10 @@ namespace Stride.Core.Reflection
             }
             else // implements IList<T>
             {
-                var add = type.GetMethod(nameof(IList<object>.Add), new[] { ElementType });
-                ListAddFunction = (obj, value) => add.Invoke(obj, new[] { value });
-                var remove = type.GetMethod(nameof(IList<object>.Remove), new[] { ElementType });
-                ListRemoveFunction = (obj, value) => remove.Invoke(obj, new[] { value });
-                var clear = type.GetMethod(nameof(IList<object>.Clear), Type.EmptyTypes);
-                ListClearFunction = obj => clear.Invoke(obj, EmptyObjects);
-                var countMethod = type.GetProperty(nameof(IList<object>.Count)).GetGetMethod();
-                GetListCountFunction = o => (int)countMethod.Invoke(o, null);
-                var isReadOnly = type.GetInterface(typeof(ICollection<>)).GetProperty(nameof(IList<object>.IsReadOnly)).GetGetMethod();
-                IsReadOnlyFunction = obj => (bool)isReadOnly.Invoke(obj, null);
-                var insert = type.GetMethod(nameof(IList<object>.Insert), new[] { typeof(int), ElementType });
-                ListInsertFunction = (obj, index, value) => insert.Invoke(obj, new[] { index, value });
-                var removeAt = type.GetMethod(nameof(IList<object>.RemoveAt), new[] { typeof(int) });
-                ListRemoveAtFunction = (obj, index) => removeAt.Invoke(obj, new object[] { index });
-                var getItem = type.GetMethod("get_Item", new[] { typeof(int) });
-                GetIndexedItem = (obj, index) => getItem.Invoke(obj, new object[] { index });
-                var setItem = type.GetMethod("set_Item", new[] { typeof(int), ElementType });
-                SetIndexedItem = (obj, index, value) => setItem.Invoke(obj, new[] { index, value });
+                var interfaceType = type.GetInterface(typeof(IList<>));
+                var valueType = interfaceType!.GetGenericArguments()[0];
+                var descriptorType = typeof(ListDescriptor).GetMethod(nameof(CreateList), BindingFlags.NonPublic | BindingFlags.Instance)!.MakeGenericMethod([valueType]);
+                descriptorType.Invoke(this, []);
             }
 
             HasAdd = true;
@@ -83,7 +69,18 @@ namespace Stride.Core.Reflection
             HasRemoveAt = true;
             HasIndexerAccessors = true;
         }
-
+        void CreateList<T>()
+        {
+            ListAddFunction = (obj, value) => ((IList<T>)obj).Add((T)value);
+            ListRemoveFunction = (obj, value) => ((IList<T>)obj).Remove((T)value);
+            ListClearFunction = obj => ((IList<T>)obj).Clear();
+            GetListCountFunction = obj => ((IList<T>)obj).Count();
+            IsReadOnlyFunction = obj => ((IList<T>)obj).IsReadOnly;
+            ListInsertFunction = (obj, index, value) => ((IList<T>)obj)[index] = (T)value;
+            ListRemoveAtFunction = (obj, index) => ((IList<T>)obj).RemoveAt(index);
+            GetIndexedItem = (obj, index) => ((IList<T>)obj)[index];
+            SetIndexedItem = (obj, index, value) => ((IList<T>)obj)[index] = (T)value;
+        }
         public override void Initialize(IComparer<object> keyComparer)
         {
             base.Initialize(keyComparer);
