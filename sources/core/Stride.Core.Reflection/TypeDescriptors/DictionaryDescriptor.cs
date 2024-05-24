@@ -206,10 +206,6 @@ namespace Stride.Core.Reflection
         {
             ArgumentNullException.ThrowIfNull(type);
             var typeInfo = type.GetTypeInfo();
-            if (typeof(IDictionary).GetTypeInfo().IsAssignableFrom(typeInfo))
-            {
-                return true;
-            }
 
             foreach (var iType in typeInfo.ImplementedInterfaces)
             {
