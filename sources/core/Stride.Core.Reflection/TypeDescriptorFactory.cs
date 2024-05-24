@@ -21,7 +21,7 @@ namespace Stride.Core.Reflection
         /// <summary>
         /// The default type descriptor factory.
         /// </summary>
-        public static readonly TypeDescriptorFactory Default = new TypeDescriptorFactory();
+        public static readonly TypeDescriptorFactory Default = new();
 
         public TypeDescriptorFactory() : this(new AttributeRegistry())
         {

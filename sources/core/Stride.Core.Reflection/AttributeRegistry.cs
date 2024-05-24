@@ -83,7 +83,7 @@ namespace Stride.Core.Reflection
             }
         }
 
-        private static AttributeUsageAttribute GetUsage(Attribute attribute)
+        private static AttributeUsageAttribute? GetUsage(Attribute attribute)
         {
             return Attribute.GetCustomAttribute(attribute.GetType(), typeof(AttributeUsageAttribute)) as AttributeUsageAttribute;
         }

@@ -590,7 +590,7 @@ namespace Stride.Core.Reflection
 
             public override ITypeDescriptor TypeDescriptor => Descriptor;
 
-            public override object GetValue(object thisObj)
+            public override object? GetValue(object thisObj)
             {
                 return ((Array)thisObj).GetValue(Index);
             }
@@ -649,7 +649,7 @@ namespace Stride.Core.Reflection
 
             public override ITypeDescriptor TypeDescriptor => Descriptor;
 
-            public override object GetValue(object thisObj)
+            public override object? GetValue(object thisObj)
             {
                 return Descriptor.GetValue(thisObj, Index);
             }

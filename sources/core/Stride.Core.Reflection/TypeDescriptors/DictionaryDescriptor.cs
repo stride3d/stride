@@ -125,7 +125,7 @@ namespace Stride.Core.Reflection
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
         /// <exception cref="System.InvalidOperationException">No Add() method found on dictionary [{0}].ToFormat(Type)</exception>
-        public void SetValue(object dictionary, object key, object value)
+        public void SetValue(object dictionary, object key, object? value)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
             SetValueMethod(dictionary, key, value);
