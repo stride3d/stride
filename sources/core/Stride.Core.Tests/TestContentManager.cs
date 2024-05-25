@@ -168,6 +168,28 @@ namespace Stride.Core.Tests
         }
 
         [Fact]
+        public void VerifyLoadedData()
+        {
+            var b1 = new B();
+            b1.A = new A { I = 18 };
+
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
+
+            string b1Name = "test";
+            assetManager1.Save(b1Name, b1);
+            var b2 = assetManager2.Load<B>(b1Name);
+
+            //verify asset is loaded
+            Assert.True(assetManager2.IsLoaded(b1Name));
+
+            //verify the b2 object matches the url lookup and returns true
+            Assert.True(assetManager2.TryGetAssetUrl(b2, out var urlResult));
+            Assert.Equal(b1Name, urlResult);
+        }
+
+        [Fact]
         public void SimpleReloadData()
         {
             var a1 = new A { I = 18 };
@@ -186,7 +208,7 @@ namespace Stride.Core.Tests
             // Try reloading an object that is loaded
             var a1Loaded = assetManager2.Load<A>("a1");
             Assert.True(assetManager2.Reload(a1Loaded));
-            
+
             // a1Loaded should have I=18 value from a1
             Assert.Equal(18, a1Loaded.I);
 
