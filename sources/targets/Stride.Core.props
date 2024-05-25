@@ -57,7 +57,8 @@
     <Platform>AnyCPU</Platform>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
+  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">  
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- Add net8.0 no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>net8.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);net8.0-windows7.0</StrideRuntimeTargetFrameworks>

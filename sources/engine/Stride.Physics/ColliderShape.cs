@@ -137,6 +137,12 @@ namespace Stride.Physics
         {
         }
 
+        public float Margin
+        {
+            get { return InternalShape.Margin; }
+            set { InternalShape.Margin = value; }
+        }
+
         public Matrix DebugPrimitiveMatrix;
 
         internal bool NeedsCustomCollisionCallback;
