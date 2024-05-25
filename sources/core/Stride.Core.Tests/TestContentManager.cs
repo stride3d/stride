@@ -168,6 +168,36 @@ namespace Stride.Core.Tests
         }
 
         [Fact]
+        public void SimpleReloadData()
+        {
+            var a1 = new A { I = 18 };
+            var a2 = new A { I = 20 };
+
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
+
+            assetManager1.Save("a1", a1);
+            assetManager1.Save("a2", a2);
+
+            // Try reloading an object that is not loaded
+            Assert.False(assetManager2.Reload(a1));
+
+            // Try reloading an object that is loaded
+            var a1Loaded = assetManager2.Load<A>("a1");
+            Assert.True(assetManager2.Reload(a1Loaded));
+            
+            // a1Loaded should have I=18 value from a1
+            Assert.Equal(18, a1Loaded.I);
+
+            // Try reloading to replace a1Loaded asset with a2
+            Assert.True(assetManager2.Reload(a1Loaded, "a2"));
+
+            // a1Loaded should now have I=20 value from a2
+            Assert.Equal(20, a1Loaded.I);
+        }
+
+        [Fact]
         public void SimpleSaveData()
         {
             var b1 = new B();
