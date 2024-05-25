@@ -5,9 +5,10 @@ namespace Stride.Core.Mathematics.Tests
 {
     public class TestPoint
     {
-        Point testPoint1 = new Point(5,5);
-        Point testPoint2 = new Point(10, 10);
-        Point testPoint3 = new Point(5, 5);
+
+        readonly Point testPoint1 = new Point(5,5);
+        readonly Point testPoint2 = new Point(10, 10);
+        readonly Point testPoint3 = new Point(5, 5);
         
         [Fact]
         public void TestPointsNotEqual()
