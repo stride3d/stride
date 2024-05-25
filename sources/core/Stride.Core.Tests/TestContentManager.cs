@@ -168,6 +168,27 @@ namespace Stride.Core.Tests
         }
 
         [Fact]
+        public void VerifyLoadedData()
+        {
+            var b1 = new B();
+            b1.A = new A { I = 18 };
+
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
+
+            assetManager1.Save("test", b1);
+            var b2 = assetManager2.Load<B>("test");
+
+            //verify asset is loaded
+            Assert.True(assetManager2.IsLoaded("test"));
+
+            //verify the b2 object matches the url lookup and returns true
+            Assert.True(assetManager2.TryGetAssetUrl(b2, out var url));
+            Assert.Equal("test", url);
+        }
+
+        [Fact]
         public void SimpleSaveData()
         {
             var b1 = new B();
