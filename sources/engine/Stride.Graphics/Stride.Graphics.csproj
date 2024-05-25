@@ -53,7 +53,7 @@
     <PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" />
     <PackageReference Include="Silk.NET.Sdl" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
-    <PackageReference Include="Stride.SharpFont" />
+    <PackageReference Include="SharpFont.NetStandard" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="FrameworkResources.resx">

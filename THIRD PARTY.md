@@ -19,7 +19,7 @@ Stride uses the following open-source products.
 * [Recast & Detour](https://github.com/recastnavigation/recastnavigation) (zlib License)
 * [SDL2](https://www.libsdl.org/) (zlib License)
 * [SharpDX](http://sharpdx.org/) (MIT License)
-* [SharpFont](https://github.com/Robmaister/SharpFont) (MIT License)
+* [SharpFont](https://github.com/vonderborch/SharpFont) (MIT License)
 * [Vortice.Vulkan](https://github.com/amerkoleci/Vortice.Vulkan) (MIT License)
 * [SharpYaml](https://github.com/xoofx/SharpYaml) (MIT License)
 * [SlimMath](https://code.google.com/p/slimmath/) (MIT License)
