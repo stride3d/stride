@@ -156,6 +156,8 @@ namespace Stride.Games
         /// </summary>
         public event EventHandler<EventArgs> FullscreenToggle;
 
+        public event EventHandler<EventArgs> DisableFullScreen;
+
         protected bool enableFullscreenToggle = true;
 
         /// <summary>
@@ -290,6 +292,15 @@ namespace Stride.Games
             FullscreenToggle?.Invoke(this, e);
         }
 
+        /// <summary>
+        /// Raises the DisableFullScreen event
+        /// <Summary>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        private void OnDisableFullScreen(EventArgs e)
+        {
+            DisableFullScreen?.Invoke(this, e);
+        }
+
         protected override void OnClientSizeChanged(EventArgs e)
         {
             base.OnClientSizeChanged(e);
@@ -371,7 +382,7 @@ namespace Stride.Games
                         //also remove full screen if this is the case
                         if (IsFullScreen && !isSwitchingFullScreen) //exit full screen on alt-tab if in fullscreen
                         {
-                            OnFullscreenToggle(new EventArgs());
+                            OnDisableFullScreen(new EventArgs());
                         }
                     }
                     break;

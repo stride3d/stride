@@ -304,6 +304,16 @@ namespace Stride.Games
             IsFullscreen = !IsFullscreen;
         }
 
+        protected void OnDisableFullScreen(object source, EventArgs e)
+        {
+            IsFullscreen = false;
+        }
+
+        protected void EnableFullscreen(object source, EventArgs e)
+        {
+            IsFullscreen = true;
+        }
+
         protected void OnClosing(object source, EventArgs e)
         {
             var handler = Closing;
