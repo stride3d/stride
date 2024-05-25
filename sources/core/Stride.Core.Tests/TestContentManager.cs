@@ -177,15 +177,16 @@ namespace Stride.Core.Tests
             var assetManager1 = new ContentManager(databaseProvider);
             var assetManager2 = new ContentManager(databaseProvider);
 
-            assetManager1.Save("test", b1);
-            var b2 = assetManager2.Load<B>("test");
+            string b1Name = "test";
+            assetManager1.Save(b1Name, b1);
+            var b2 = assetManager2.Load<B>(b1Name);
 
             //verify asset is loaded
-            Assert.True(assetManager2.IsLoaded("test"));
+            Assert.True(assetManager2.IsLoaded(b1Name));
 
             //verify the b2 object matches the url lookup and returns true
-            Assert.True(assetManager2.TryGetAssetUrl(b2, out var url));
-            Assert.Equal("test", url);
+            Assert.True(assetManager2.TryGetAssetUrl(b2, out var urlResult));
+            Assert.Equal(b1Name, urlResult);
         }
 
         [Fact]
