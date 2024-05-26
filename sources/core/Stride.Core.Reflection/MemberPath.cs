@@ -357,17 +357,20 @@ namespace Stride.Core.Reflection
         /// <param name="value">The returned value.</param>
         /// <returns><c>true</c> if evaluation of the path succeeded and the value is valid, <c>false</c> otherwise.</returns>
         /// <exception cref="System.ArgumentNullException">rootObject</exception>
-        public bool TryGetValue(object rootObject, [MaybeNullWhen(false)] out object? value)
+        public bool TryGetValue(object rootObject, out object? value)
         {
             ArgumentNullException.ThrowIfNull(rootObject);
             value = null;
             try
             {
-                object nextObject = rootObject;
+                object? nextObject = rootObject;
                 for (int i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    nextObject = item.GetValue(nextObject)!;
+                    if(nextObject is not null)
+                    {
+                        nextObject = item.GetValue(nextObject);
+                    }
                 }
                 value = nextObject;
             }

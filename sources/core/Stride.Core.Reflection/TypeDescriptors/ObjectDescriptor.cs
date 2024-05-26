@@ -142,7 +142,7 @@ namespace Stride.Core.Reflection
             }
 
             // Free the member list
-            members = [.. memberList];
+            members = memberList.ToArray();
 
             // If no members found, we don't need to build a dictionary map
             if (members.Length <= 0)

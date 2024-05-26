@@ -50,7 +50,7 @@ namespace Stride.Core.Reflection
         public object? ParseEnum(string enumAsText, out bool remapped)
         {
             remapped = false;
-            if (enumRemap != null && enumRemap.TryGetValue(enumAsText, out var value))
+            if (enumRemap.TryGetValue(enumAsText, out var value))
             {
                 remapped = true;
                 return value;

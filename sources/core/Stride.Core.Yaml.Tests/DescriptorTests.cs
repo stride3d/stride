@@ -224,7 +224,7 @@ namespace Stride.Core.Yaml.Tests
         {
             var attributeRegistry = new AttributeRegistry();
             var factory = new TypeDescriptorFactory(attributeRegistry);
-            DictionaryDescriptor descriptor = new DictionaryDescriptor(factory, typeof(Dictionary<int, string>), false,
+            var descriptor = new DictionaryDescriptor(factory, typeof(Dictionary<int, string>), false,
                 new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
 

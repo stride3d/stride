@@ -125,7 +125,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="set">The set.</param>
         /// <param name="value">The value.</param>
-        public bool Contains(object set, object value)
+        public bool Contains(object set, object? value)
         {
             ArgumentNullException.ThrowIfNull(set);
             return ContainsMethod.Invoke(set, value);
