@@ -16,14 +16,14 @@ namespace Stride.Core.Reflection
     {
         private static readonly List<string> ListOfMembersToRemove = ["Comparer", "Keys", "Values", "Capacity"];
 
-        Action<object, object, object?> AddMethod;
-        Action<object, object> RemoveMethod;
-        Action<object, object, object?> SetValueMethod;
-        Func<object, object, bool> ContainsKeyMethod;
-        Func<object, ICollection> GetKeysMethod;
-        Func<object, ICollection> GetValuesMethod;
-        Func<object, object, object?> GetValueMethod;
-        Func<object, IEnumerable<KeyValuePair<object, object?>>> GetEnumeratorMethod;
+        Action<object, object, object?> addMethod;
+        Action<object, object> removeMethod;
+        Action<object, object, object?> setValueMethod;
+        Func<object, object, bool> containsKeyMethod;
+        Func<object, ICollection> getKeysMethod;
+        Func<object, ICollection> getValuesMethod;
+        Func<object, object, object?> getValueMethod;
+        Func<object, IEnumerable<KeyValuePair<object, object?>>> getEnumeratorMethod;
 
         #pragma warning disable CS8618
         // This warning is disabled because the necessary initialization will occur 
@@ -50,14 +50,14 @@ namespace Stride.Core.Reflection
         }
         void CreateDictionaryDelegates<TKey, TValue>()
         {
-            AddMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue?>)dictionary).Add((TKey)key, (TValue?)value);
-            RemoveMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary).Remove((TKey)key);
-            ContainsKeyMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary).ContainsKey((TKey)key);
-            GetKeysMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue?>)dictionary).Keys;
-            GetValuesMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue?>)dictionary).Values;
-            GetValueMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key];
-            SetValueMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key] = (TValue?)value;
-            GetEnumeratorMethod = (dictionary) => {
+            addMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue?>)dictionary).Add((TKey)key, (TValue?)value);
+            removeMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary).Remove((TKey)key);
+            containsKeyMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary).ContainsKey((TKey)key);
+            getKeysMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue?>)dictionary).Keys;
+            getValuesMethod = (dictionary) => (ICollection)((IDictionary<TKey, TValue?>)dictionary).Values;
+            getValueMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key];
+            setValueMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key] = (TValue?)value;
+            getEnumeratorMethod = (dictionary) => {
                 return GetGenericEnumerable((IDictionary<TKey, TValue>)dictionary);
             };
         }
@@ -115,7 +115,7 @@ namespace Stride.Core.Reflection
         public IEnumerable<KeyValuePair<object, object?>> GetEnumerator(object dictionary)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
-            return GetEnumeratorMethod.Invoke(dictionary);
+            return getEnumeratorMethod.Invoke(dictionary);
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Stride.Core.Reflection
         public void SetValue(object dictionary, object key, object? value)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
-            SetValueMethod(dictionary, key, value);
+            setValueMethod(dictionary, key, value);
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace Stride.Core.Reflection
         public void AddToDictionary(object dictionary, object key, object value)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
-            AddMethod.Invoke(dictionary, key, value);
+            addMethod.Invoke(dictionary, key, value);
         }
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace Stride.Core.Reflection
         public void Remove(object dictionary, object key)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
-            RemoveMethod.Invoke(dictionary, key);
+            removeMethod.Invoke(dictionary, key);
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace Stride.Core.Reflection
         public bool ContainsKey(object dictionary, object key)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
-            return ContainsKeyMethod.Invoke(dictionary, key);
+            return containsKeyMethod.Invoke(dictionary, key);
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace Stride.Core.Reflection
         public ICollection GetKeys(object dictionary)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
-            return GetKeysMethod.Invoke(dictionary);
+            return getKeysMethod.Invoke(dictionary);
         }
 
         /// <summary>
@@ -183,7 +183,7 @@ namespace Stride.Core.Reflection
         public ICollection GetValues(object dictionary)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
-            return GetValuesMethod(dictionary);
+            return getValuesMethod(dictionary);
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace Stride.Core.Reflection
         public object? GetValue(object dictionary, object key)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
-            return GetValueMethod.Invoke(dictionary, key);
+            return getValueMethod.Invoke(dictionary, key);
         }
 
         /// <summary>

@@ -14,12 +14,12 @@ namespace Stride.Core.Reflection
     {
         private static readonly List<string> ListOfMembersToRemove = ["Comparer", "Capacity"];
 
-        private Action<object, object?> AddMethod;
-        private Action<object, object?> RemoveMethod;
-        private Action<object> ClearMethod;
-        private Func<object, object?,bool> ContainsMethod;
-        private Func<object, int> CountMethod;
-        private Func<object, bool> IsReadOnlyMethod;
+        private Action<object, object?> addMethod;
+        private Action<object, object?> removeMethod;
+        private Action<object> clearMethod;
+        private Func<object, object?,bool> containsMethod;
+        private Func<object, int> countMethod;
+        private Func<object, bool> isReadOnlyMethod;
 
         #pragma warning disable CS8618
         // This warning is disabled because the necessary initialization will occur 
@@ -50,12 +50,12 @@ namespace Stride.Core.Reflection
         void CreateSetDelegates<T>()
         {
             ElementType = typeof(T);
-            AddMethod = (object set, object? item) => ((ISet<T?>)set).Add((T?)item);
-            RemoveMethod = (object set, object? item) => ((ISet<T?>)set).Remove((T?)item);
-            ClearMethod = (object set) => ((ISet<T>)set).Clear();
-            ContainsMethod = (object set, object? item) => ((ISet<T?>)set).Contains((T?)item);
-            CountMethod = (object set) => ((ISet<T?>)set).Count;
-            IsReadOnlyMethod = (object set) => ((ISet<T?>)set).IsReadOnly;
+            addMethod = (object set, object? item) => ((ISet<T?>)set).Add((T?)item);
+            removeMethod = (object set, object? item) => ((ISet<T?>)set).Remove((T?)item);
+            clearMethod = (object set) => ((ISet<T>)set).Clear();
+            containsMethod = (object set, object? item) => ((ISet<T?>)set).Contains((T?)item);
+            countMethod = (object set) => ((ISet<T?>)set).Count;
+            isReadOnlyMethod = (object set) => ((ISet<T?>)set).IsReadOnly;
         }
 
         public override void Initialize(IComparer<object> keyComparer)
@@ -75,7 +75,7 @@ namespace Stride.Core.Reflection
         /// <returns><c>true</c> if [is read only] [the specified this object]; otherwise, <c>false</c>.</returns>
         public override bool IsReadOnly(object? thisObject)
         {
-            return thisObject is null || IsReadOnlyMethod.Invoke(thisObject);
+            return thisObject is null || isReadOnlyMethod.Invoke(thisObject);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Stride.Core.Reflection
         public override void Add(object set, object? item)
         {
             ArgumentNullException.ThrowIfNull(set);
-            AddMethod.Invoke(set, item);
+            addMethod.Invoke(set, item);
         }
 
         public override void Insert(object set, int index, object? value)
@@ -103,7 +103,7 @@ namespace Stride.Core.Reflection
         public override void Remove(object set, object? key)
         {
             ArgumentNullException.ThrowIfNull(set);
-            RemoveMethod.Invoke(set, key);
+            removeMethod.Invoke(set, key);
         }
 
         public override void RemoveAt(object set, int index)
@@ -117,7 +117,7 @@ namespace Stride.Core.Reflection
         /// <param name="set">The set.</param>
         public override void Clear(object set)
         {
-            ClearMethod.Invoke(set);
+            clearMethod.Invoke(set);
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Stride.Core.Reflection
         public bool Contains(object set, object? value)
         {
             ArgumentNullException.ThrowIfNull(set);
-            return ContainsMethod.Invoke(set, value);
+            return containsMethod.Invoke(set, value);
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Stride.Core.Reflection
         public override int GetCollectionCount(object set)
         {
             ArgumentNullException.ThrowIfNull(set);
-            return CountMethod.Invoke(set);
+            return countMethod.Invoke(set);
         }
 
         /// <summary>
