@@ -232,12 +232,16 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                 var needProjectReload = string.Equals(trackedAssembly.Project.FilePath, changedFile, StringComparison.OrdinalIgnoreCase);
 
+
+                var directoryName = Path.GetDirectoryName(trackedAssembly.Project.FilePath) + "\\";
+                var changedFileDirectoryName = Path.GetDirectoryName(changedFile) + "\\";
+
                 // Also check for .cs file changes (DefaultItems auto import *.cs, with some excludes such as obj subfolder)
                 // TODO: Check actual unevaluated .csproj to get the auto includes/excludes?
                 if (needProjectReload == false
                     && ((e.ChangeType == FileEventChangeType.Deleted || e.ChangeType == FileEventChangeType.Renamed || e.ChangeType == FileEventChangeType.Created)
                     && Path.GetExtension(changedFile)?.ToLowerInvariant() == ".cs"
-                    && changedFile.StartsWith(Path.GetDirectoryName(trackedAssembly.Project.FilePath), StringComparison.OrdinalIgnoreCase)))
+                    && changedFileDirectoryName.StartsWith(directoryName, StringComparison.OrdinalIgnoreCase)))
                 {
                     needProjectReload = true;
                 }
