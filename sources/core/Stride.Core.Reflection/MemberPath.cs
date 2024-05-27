@@ -363,14 +363,17 @@ namespace Stride.Core.Reflection
             value = null;
             try
             {
-                object? nextObject = rootObject;
+                object nextObject = rootObject;
                 for (int i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    if(nextObject is not null)
+                    var newObject = item.GetValue(nextObject);
+                    if (newObject is null)
                     {
-                        nextObject = item.GetValue(nextObject);
+                        value = null;
+                        return true;
                     }
+                    nextObject = newObject;
                 }
                 value = nextObject;
             }
