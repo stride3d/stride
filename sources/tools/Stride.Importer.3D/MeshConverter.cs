@@ -1305,10 +1305,95 @@ namespace Stride.Importer.ThreeD
             return textureValue;
         }
 
+        private unsafe void CorrectRootTransform(ref Scene* scene)
+        {
+            if(scene == null && scene->MMetaData == null)
+            {
+                return;
+            }
+
+            int upAxis = 1, upAxisSign = 1, frontAxis = 2, frontAxisSign = 1, coordAxis = 0, coordAxisSign = 1;
+            double unitScaleFactor = 1.0;
+
+            for(uint i = 0; i < scene->MMetaData->MNumProperties; i++)
+            {
+                if (scene->MMetaData->MKeys[i].AsString == "UpAxis")
+                {
+                    GetMetaDataValue(i, scene->MMetaData, ref upAxis);
+                }
+                if (scene->MMetaData->MKeys[i].AsString == "UpAxisSign")
+                {
+                    GetMetaDataValue(i, scene->MMetaData, ref upAxisSign);
+                }
+                if (scene->MMetaData->MKeys[i].AsString == "FrontAxis")
+                {
+                    GetMetaDataValue(i, scene->MMetaData, ref frontAxis);
+                }
+                if (scene->MMetaData->MKeys[i].AsString == "FrontAxisSign")
+                {
+                    GetMetaDataValue(i, scene->MMetaData, ref frontAxisSign);
+                }
+                if (scene->MMetaData->MKeys[i].AsString == "CoordAxis")
+                {
+                    GetMetaDataValue(i, scene->MMetaData, ref coordAxis);
+                }
+                if (scene->MMetaData->MKeys[i].AsString == "CoordAxisSign")
+                {
+                    GetMetaDataValue(i, scene->MMetaData, ref coordAxisSign);
+                }
+                if (scene->MMetaData->MKeys[i].AsString == "UnitScaleFactor")
+                {
+                    GetMetaDataValue(i, scene->MMetaData, ref unitScaleFactor);
+                }
+            }
+            
+            var upVec = upAxis switch
+            {
+                0 => new Vector3(upAxisSign * (float)unitScaleFactor, 0, 0),
+                1 => new Vector3(0, upAxisSign * (float)unitScaleFactor, 0),
+                2 => new Vector3(0, 0, upAxisSign * (float)unitScaleFactor),
+                _ => new Vector3(0, 1, 0),
+            };
+            var forwardVec = frontAxis switch
+            {
+                0 => new Vector3(frontAxisSign * (float)unitScaleFactor, 0, 0),
+                1 => new Vector3(0, frontAxisSign * (float)unitScaleFactor, 0),
+                2 => new Vector3(0, 0, frontAxisSign * (float)unitScaleFactor),
+                _ => new Vector3(0, 1, 0),
+            };
+            var rightVec = coordAxis switch
+            {
+                0 => new Vector3(coordAxisSign * (float)unitScaleFactor, 0, 0),
+                1 => new Vector3(0, coordAxisSign * (float)unitScaleFactor, 0),
+                2 => new Vector3(0, 0, coordAxisSign * (float)unitScaleFactor),
+                _ => new Vector3(0, 1, 0),
+            };
+
+            System.Numerics.Matrix4x4 matrix = new System.Numerics.Matrix4x4
+                (rightVec.X, rightVec.Y, rightVec.Z, 0,
+                 upVec.X, upVec.Y, upVec.Z, 0,
+                 forwardVec.X, forwardVec.Y, forwardVec.Z, 0,
+                 0, 0, 0, 1);
+
+            scene->MRootNode->MTransformation *= matrix;
+        }
+
+        private unsafe bool GetMetaDataValue<T>(uint index, Metadata* metaData, ref T value)
+        {
+            if(index >= metaData->MNumProperties)
+            {
+                return false;
+            }
+
+            value = *(T*)metaData->MValues[index].MData;
+
+            return true;
+        }
+
         private unsafe List<MeshParameters> ExtractModels(Scene* scene, Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, string> materialNames, Dictionary<IntPtr, string> nodeNames)
         {
             GenerateMeshNames(scene, meshNames);
-
+            CorrectRootTransform(ref scene);
             var meshList = new List<MeshParameters>();
             for (uint i = 0; i < scene->MNumMeshes; ++i)
             {
