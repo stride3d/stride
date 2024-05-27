@@ -232,7 +232,6 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                 var needProjectReload = string.Equals(trackedAssembly.Project.FilePath, changedFile, StringComparison.OrdinalIgnoreCase);
 
-
                 var directoryName = Path.GetDirectoryName(trackedAssembly.Project.FilePath) + "\\";
                 var changedFileDirectoryName = Path.GetDirectoryName(changedFile) + "\\";
 
