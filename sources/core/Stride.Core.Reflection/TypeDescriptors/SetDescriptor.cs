@@ -177,9 +177,9 @@ namespace Stride.Core.Reflection
             {
                 Remove(set, index);
             }
-            if(!Contains(set, index))
+            if(!Contains(set, value))
             {
-                Add(set, index);
+                Add(set, value);
             }
         }
 
