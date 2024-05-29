@@ -1,14 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Linq;
 using SharpDX.DirectWrite;
-using Stride.Core.Assets.Compiler;
-using Stride.Core;
-using Stride.Core.Diagnostics;
+using SharpFont;
 using Stride.Assets.SpriteFont.Compiler;
+using Stride.Core;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Diagnostics;
 using Stride.Graphics.Font;
 using System;
-using SharpFont;
+using System.Linq;
 
 namespace Stride.Assets.SpriteFont
 {
@@ -88,6 +88,7 @@ namespace Stride.Assets.SpriteFont
             }
             return null;
         }
+
         private string GetFontPathLinux(AssetCompilerResult result)
         {
             StyleFlags flags = StyleFlags.None;
