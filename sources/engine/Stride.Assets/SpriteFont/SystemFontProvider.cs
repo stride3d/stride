@@ -8,6 +8,7 @@ using Stride.Core.Diagnostics;
 using Stride.Assets.SpriteFont.Compiler;
 using Stride.Graphics.Font;
 using System;
+using SharpFont;
 
 namespace Stride.Assets.SpriteFont
 {
@@ -89,15 +90,20 @@ namespace Stride.Assets.SpriteFont
         }
         private string GetFontPathLinux(AssetCompilerResult result)
         {
-            var bold = Style.IsBold() ? "Bold" : "";
-            var italic = Style.IsItalic() ? "Italic" : "";
+            StyleFlags flags = StyleFlags.None;
+            if(Style.IsBold())
+                flags |= StyleFlags.Bold;
+            if(Style.IsItalic())
+                flags |= StyleFlags.Italic;
+
             string systemFontDirectory = "/usr/share/fonts";
             var files = System.IO.Directory.EnumerateFiles(systemFontDirectory, "*.ttf", System.IO.SearchOption.AllDirectories);
 
+            var library = new SharpFont.Library();
             foreach (string file in files)
-            {
-                //todo use freetype to determine font style (FT_STYLE_FLAG_XXX)
-                if (file.Contains(FontName) && file.Contains(bold) && file.Contains(italic))
+            {              
+                var face = new Face(library, file);
+                if (face.FamilyName.Contains(FontName) && face.StyleFlags == flags)
                 {
                     return file;
                 }
