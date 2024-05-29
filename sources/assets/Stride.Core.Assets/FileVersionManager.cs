@@ -21,8 +21,11 @@ namespace Stride.Core.Assets
         private readonly Thread asyncRunner;
         private readonly AutoResetEvent asyncRequestAvailable;
         private readonly ConcurrentQueue<AsyncRequest> asyncRequests;
+        private readonly HashSet<AsyncRequest> requestsToProcess = new HashSet<AsyncRequest>();
         private bool isDisposing;
         private bool isDisposed;
+        private long requestsInFlight;
+
 
         private FileVersionManager()
         {
@@ -34,6 +37,17 @@ namespace Stride.Core.Assets
             tracker = FileVersionTracker.GetDefault();
             asyncRunner = new Thread(SafeAction.Wrap(ComputeFileHashAsyncRunner)) { Name = "File Version Manager", IsBackground = true };
             asyncRunner.Start();
+        }
+
+        /// <summary>
+        /// Return the amount of items scheduled through left to process
+        /// </summary>
+        public long PeekAsyncRequestsLeft
+        {
+            get
+            {
+                return Interlocked.Read(ref requestsInFlight);
+            }
         }
 
         [NotNull]
@@ -79,6 +93,7 @@ namespace Stride.Core.Assets
             lock (asyncRequests)
             {
                 asyncRequests.Enqueue(new AsyncRequest(path, fileHashCallback, cancellationToken));
+                Interlocked.Increment(ref requestsInFlight);
             }
             asyncRequestAvailable.Set();
         }
@@ -87,15 +102,18 @@ namespace Stride.Core.Assets
         {
             if (paths == null) throw new ArgumentNullException(nameof(paths));
 
+            int itemCount = 0;
             lock (asyncRequests)
             {
-                foreach(var path in paths)
+                foreach (var path in paths)
+                {
                     asyncRequests.Enqueue(new AsyncRequest(path, fileHashCallback, cancellationToken));
+                    itemCount++;
+                }
             }
+            Interlocked.Add(ref requestsInFlight, itemCount);
             asyncRequestAvailable.Set();
         }
-
-        private readonly HashSet<AsyncRequest> requestsToProcess = new HashSet<AsyncRequest>();
 
         private void ComputeFileHashAsyncRunner()
         {
@@ -153,6 +171,7 @@ namespace Stride.Core.Assets
 
                     request.FileHashCallback?.Invoke(request.File, hash);
                 }
+                Interlocked.Add(ref requestsInFlight, -requestsToProcess.Count);
                 // Once we have processed the list, we can clear it
                 requestsToProcess.Clear();
             }
