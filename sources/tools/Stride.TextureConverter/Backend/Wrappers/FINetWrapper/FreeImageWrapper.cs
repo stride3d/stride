@@ -4323,15 +4323,12 @@ namespace FreeImageAPI
 				return result;
 			}
 			tag = new MetadataTag(_tag, model);
-			if (metaDataSearchHandler.ContainsKey(result))
+			if (!metaDataSearchHandler.TryAdd(result, model))
 			{
 				metaDataSearchHandler[result] = model;
 			}
-			else
-			{
-				metaDataSearchHandler.Add(result, model);
-			}
-			return result;
+
+            return result;
 		}
 
 		/// <summary>

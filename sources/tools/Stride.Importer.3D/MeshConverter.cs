@@ -444,9 +444,7 @@ namespace Stride.Importer.ThreeD
                 tempNames.Add(itemName);
 
                 // count the occurences of this name
-                if (!itemNameTotalCount.ContainsKey(itemName))
-                    itemNameTotalCount.Add(itemName, 1);
-                else
+                if (!itemNameTotalCount.TryAdd(itemName, 1))
                     itemNameTotalCount[itemName]++;
             }
 
@@ -457,9 +455,7 @@ namespace Stride.Importer.ThreeD
 
                 if (itemNameTotalCount[itemName] > 1)
                 {
-                    if (!itemNameCurrentCount.ContainsKey(itemName))
-                        itemNameCurrentCount.Add(itemName, 1);
-                    else
+                    if (!itemNameCurrentCount.TryAdd(itemName, 1))
                         itemNameCurrentCount[itemName]++;
 
                     itemName = itemName + "_" + itemNameCurrentCount[itemName].ToString(CultureInfo.InvariantCulture);
@@ -1293,9 +1289,7 @@ namespace Stride.Importer.ThreeD
             var referenceName = attachedReference.Url;
 
             // find a new and correctName
-            if (!textureNameCount.ContainsKey(referenceName))
-                textureNameCount.Add(referenceName, 1);
-            else
+            if (!textureNameCount.TryAdd(referenceName, 1))
             {
                 int count = textureNameCount[referenceName];
                 textureNameCount[referenceName] = count + 1;

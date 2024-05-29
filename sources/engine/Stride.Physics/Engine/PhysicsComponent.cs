@@ -760,10 +760,8 @@ namespace Stride.Engine
                 {
                     if(ignoreCollisionBuffer == null)
                         ignoreCollisionBuffer = new Dictionary<PhysicsComponent, CollisionState>();
-                    if(ignoreCollisionBuffer.ContainsKey(other))
+                    if(!ignoreCollisionBuffer.TryAdd(other, state))
                         ignoreCollisionBuffer[other] = state;
-                    else
-                        ignoreCollisionBuffer.Add(other, state);
                 }
                 else
                 {

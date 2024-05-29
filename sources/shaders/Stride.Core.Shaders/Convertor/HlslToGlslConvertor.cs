@@ -1013,8 +1013,7 @@ namespace Stride.Core.Shaders.Convertor
                     {
                         Expression conditionExpression;
 
-                        if (!methodInvocationHandled.ContainsKey(methodInvocationExpression))
-                            methodInvocationHandled.Add(methodInvocationExpression, true);
+                        methodInvocationHandled.TryAdd(methodInvocationExpression, true);
 
                         base.Visit(statement);
 
@@ -1040,8 +1039,8 @@ namespace Stride.Core.Shaders.Convertor
 
                     if (methodInvocationExpression.Arguments.Count == 3)
                     {
-                        if (!methodInvocationHandled.ContainsKey(methodInvocationExpression))
-                            methodInvocationHandled.Add(methodInvocationExpression, true);
+                        methodInvocationHandled.TryAdd(methodInvocationExpression, true);
+
                         base.Visit(statement);
 
                         var sinAssign =
