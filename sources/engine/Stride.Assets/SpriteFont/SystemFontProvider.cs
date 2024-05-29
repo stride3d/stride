@@ -96,6 +96,7 @@ namespace Stride.Assets.SpriteFont
 
             foreach (string file in files)
             {
+                //todo use freetype to determine font style (FT_STYLE_FLAG_XXX)
                 if (file.Contains(FontName) && file.Contains(bold) && file.Contains(italic))
                 {
                     return file;
