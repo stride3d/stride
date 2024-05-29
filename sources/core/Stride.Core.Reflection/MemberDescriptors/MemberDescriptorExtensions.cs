@@ -12,9 +12,9 @@ namespace Stride.Core.Reflection
     {
         public static int CompareMetadataTokenWith(this MemberInfo leftMember, MemberInfo rightMember)
         {
-            if (leftMember == null)
+            if (leftMember is null)
                 return -1;
-            if (rightMember == null)
+            if (rightMember is null)
                 return 1;
 
             // If declared in same type, order by metadata token
@@ -22,7 +22,7 @@ namespace Stride.Core.Reflection
                 return leftMember.MetadataToken.CompareTo(rightMember.MetadataToken);
 
             // Otherwise, put base class first
-            return (leftMember.DeclaringType.IsSubclassOf(rightMember.DeclaringType)) ? 1 : -1;
+            return leftMember.DeclaringType.IsSubclassOf(rightMember.DeclaringType) ? 1 : -1;
         }
     }
 }
