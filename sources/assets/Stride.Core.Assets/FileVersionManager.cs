@@ -26,7 +26,6 @@ namespace Stride.Core.Assets
         private bool isDisposed;
         private long requestsInFlight;
 
-
         private FileVersionManager()
         {
             // Environment.SpecialFolder.ApplicationData
@@ -40,8 +39,12 @@ namespace Stride.Core.Assets
         }
 
         /// <summary>
-        /// Return the amount of items scheduled through left to process
+        /// Returns the amount of items scheduled left to process
         /// </summary>
+        /// <remarks>
+        /// It may already be out of date as soon as it returns.
+        /// Do not rely on this to check for completion, use the callbacks instead.
+        /// </remarks>
         public long PeekAsyncRequestsLeft
         {
             get
