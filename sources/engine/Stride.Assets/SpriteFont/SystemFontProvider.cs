@@ -73,12 +73,12 @@ namespace Stride.Assets.SpriteFont
 
         public override string GetFontPath(AssetCompilerResult result = null)
         {
-            if(OperatingSystem.IsWindows())
+            if (OperatingSystem.IsWindows())
                 return GetFontPathWindows(result);
-            if(OperatingSystem.IsLinux())
+            if (OperatingSystem.IsLinux())
             {
                 var fontPath = GetFontPathLinux(result);
-                if(fontPath == null && FontName != GetDefaultFontName())
+                if (fontPath == null && FontName != GetDefaultFontName())
                 {
                     result?.Warning($"Cannot find font family '{FontName}'. Loading default font '{GetDefaultFontName()}' instead");
                     FontName = GetDefaultFontName();
@@ -92,9 +92,9 @@ namespace Stride.Assets.SpriteFont
         private string GetFontPathLinux(AssetCompilerResult result)
         {
             StyleFlags flags = StyleFlags.None;
-            if(Style.IsBold())
+            if (Style.IsBold())
                 flags |= StyleFlags.Bold;
-            if(Style.IsItalic())
+            if (Style.IsItalic())
                 flags |= StyleFlags.Italic;
 
             string systemFontDirectory = "/usr/share/fonts";
