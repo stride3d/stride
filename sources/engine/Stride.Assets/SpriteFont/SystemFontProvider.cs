@@ -92,7 +92,7 @@ namespace Stride.Assets.SpriteFont
             var bold = Style.IsBold() ? "Bold" : "";
             var italic = Style.IsItalic() ? "Italic" : "";
             string systemFontDirectory = "/usr/share/fonts";
-            string[] files = System.IO.Directory.GetFiles(systemFontDirectory, "*.ttf", System.IO.SearchOption.AllDirectories);
+            var files = System.IO.Directory.EnumerateFiles(systemFontDirectory, "*.ttf", System.IO.SearchOption.AllDirectories);
 
             foreach (string file in files)
             {
