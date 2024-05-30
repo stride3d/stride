@@ -104,7 +104,7 @@ namespace Stride.Physics
                 }
 
                 // Assign parentScene
-                parentScene = Services.GetSafeServiceAs<SceneSystem>().SceneInstance.RootScene;
+                parentScene ??= Services.GetSafeServiceAs<SceneSystem>().SceneInstance.RootScene;
 
                 debugScene.Parent = parentScene;
             }
