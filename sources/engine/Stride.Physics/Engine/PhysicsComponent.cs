@@ -758,7 +758,7 @@ namespace Stride.Engine
             {
                 if(ignoreCollisionBuffer != null || other.ignoreCollisionBuffer == null)
                 {
-                    ignoreCollisionBuffer ??= new Dictionary<PhysicsComponent, CollisionState>();
+                    ignoreCollisionBuffer ??= [];
                     ignoreCollisionBuffer[other] = state;
                 }
                 else
