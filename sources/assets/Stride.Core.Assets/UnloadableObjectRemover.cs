@@ -11,7 +11,7 @@ using Stride.Core.Yaml;
 namespace Stride.Core.Assets
 {
     /// <summary>
-    /// Removes objects implementing <see cref="IYamlProxy"/> from the object.
+    /// Removes objects implementing 'IYamlProxy' from the object.
     /// </summary>
     public class UnloadableObjectRemover : AssetVisitorBase
     {

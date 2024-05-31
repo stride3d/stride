@@ -153,7 +153,7 @@ namespace Stride.Games
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException("value", $"{nameof(Title)} can not be null");
                 }
 
                 if (title != value)

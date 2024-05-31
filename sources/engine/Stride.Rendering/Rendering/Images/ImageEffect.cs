@@ -57,7 +57,7 @@ namespace Stride.Rendering.Images
         /// <param name="context">The context.</param>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ArgumentNullException">context</exception>
-        protected ImageEffect(RenderContext context, string name = null) 
+        protected ImageEffect(RenderContext context, string name = null)
             : this(name)
         {
             Initialize(context);
@@ -169,7 +169,7 @@ namespace Stride.Rendering.Images
         /// Binds a set of viewports to the rasterizer stage.
         /// </summary>
         /// <param name="values">The set of viewports to bind.</param>
-        /// <remarks>Only <see cref="CommandList.MaxViewportAndScissorRectangleCount"/> scissors can be used simultaneously</remarks>
+        /// <remarks>Only <see cref="CommandList"/>'s `MaxViewportAndScissorRectangleCount` scissors can be used simultaneously</remarks>
         public void SetViewports(ReadOnlySpan<Viewport> values)
         {
             if (values.Length > CommandList.MaxViewportAndScissorRectangleCount)
@@ -202,7 +202,7 @@ namespace Stride.Rendering.Images
         /// Binds a set of scissor rectangles to the rasterizer stage.
         /// </summary>
         /// <param name="values">The set of scissor rectangles to bind.</param>
-        /// <remarks>Only <see cref="CommandList.MaxViewportAndScissorRectangleCount"/> viewports can be used simultaneously</remarks>
+        /// <remarks>Only <see cref="CommandList"/>'s `MaxViewportAndScissorRectangleCount` viewports can be used simultaneously</remarks>
         public void SetScissorRectangles(ReadOnlySpan<Rectangle> values)
         {
             if (values.Length > CommandList.MaxViewportAndScissorRectangleCount)
@@ -415,7 +415,7 @@ namespace Stride.Rendering.Images
         }
 
         /// <summary>
-        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target with the specified description, scoped for the duration of the <see cref="RendererBase.DrawCore"/>.
         /// </summary>
         /// <returns>A new instance of texture.</returns>
         protected Texture NewScopedRenderTarget2D(TextureDescription description)
@@ -426,7 +426,7 @@ namespace Stride.Rendering.Images
         }
 
         /// <summary>
-        /// Gets a render target output for the specified description with a single mipmap, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target output for the specified description with a single mipmap, scoped for the duration of the <see cref="RendererBase.DrawCore"/>.
         /// </summary>
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
@@ -444,7 +444,7 @@ namespace Stride.Rendering.Images
         }
 
         /// <summary>
-        /// Gets a render target output for the specified description, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target output for the specified description, scoped for the duration of the <see cref="RendererBase.DrawCore"/>.
         /// </summary>
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>

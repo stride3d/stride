@@ -50,6 +50,13 @@ namespace Stride.Physics
         public Vector3 Scaling = Vector3.One;
 
         /// <userdoc>
+        /// The Margin of the generated convex hull.
+        /// Default = 0.04f
+        /// </userdoc>
+        [DataMember(48)]
+        public float Margin { get; set; } = 0.04f;
+
+        /// <userdoc>
         /// If this is not checked, the contained parameters are ignored and only a simple convex hull of the model will be generated.
         /// </userdoc>
         [DataMember(50)]
@@ -84,6 +91,7 @@ namespace Stride.Physics
                     shape = new ConvexHullColliderShape(ConvexHulls[0][0], ConvexHullsIndices[0][0], Scaling)
                     {
                         NeedsCustomCollisionCallback = true,
+                        Margin = Margin,
                     };
 
                     //shape.UpdateLocalTransformations();
@@ -107,6 +115,7 @@ namespace Stride.Physics
                     if (indices.Count == 0) continue;
 
                     var subHull = new ConvexHullColliderShape(verts, indices, Scaling);
+                    subHull.Margin = Margin;
                     //subHull.UpdateLocalTransformations();
                     subCompound.AddChildShape(subHull);
                 }
@@ -134,6 +143,7 @@ namespace Stride.Physics
                     if (indices[0].Count == 0) continue;
 
                     var subHull = new ConvexHullColliderShape(verts[0], indices[0], Scaling);
+                    subHull.Margin = Margin;
                     //subHull.UpdateLocalTransformations();
                     compound.AddChildShape(subHull);
                 }

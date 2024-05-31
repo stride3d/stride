@@ -25,7 +25,7 @@ namespace Stride.Core.Assets.Compiler
         }
 
         /// <summary>
-        /// Gets or sets the build steps generated for the build engine. This can be null if <see cref="LoggerResult.HasErrors"/> is true.
+        /// Gets or sets the build steps generated for the build engine. This can be null if <see cref="Logger.HasErrors"/> is true.
         /// </summary>
         /// <value>The build step.</value>
         public ListBuildStep BuildSteps { get { return buildSteps; } set { if (value == null) throw new ArgumentNullException("value", @"The BuildSteps property cannot be set to null"); buildSteps = value; } }
