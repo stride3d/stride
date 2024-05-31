@@ -239,7 +239,7 @@ namespace Stride.Graphics
             backBuffer.OnDestroyed();
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
 
-            swapChain?.Dispose();
+            swapChain.Dispose();
             swapChain = null;
 
             base.OnDestroyed();
