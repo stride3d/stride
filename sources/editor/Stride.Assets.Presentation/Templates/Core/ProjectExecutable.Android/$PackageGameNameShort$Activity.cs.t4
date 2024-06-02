@@ -24,10 +24,11 @@ using Stride.Starter;
 
 namespace <#= Properties.Namespace #>
 {
-    [Activity(MainLauncher = true, 
-              Icon = "@mipmap/gameicon", 
+    [Activity(MainLauncher = true,
+              Icon = "@mipmap/gameicon",
+              Label = "@string/app_name",
               ScreenOrientation = ScreenOrientation.<#= androidOrientation #>,
-              Theme = "@android:style/Theme.NoTitleBar",
+              Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
               ConfigurationChanges = ConfigChanges.UiMode | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize)]
     public class <#= Properties.PackageGameNameShort #>Activity : StrideActivity
     {
