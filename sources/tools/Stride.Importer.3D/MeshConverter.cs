@@ -965,7 +965,7 @@ namespace Stride.Importer.ThreeD
                 var lMaterial = scene->MMaterials[i];
 
                 var aiMaterial = new AssimpString();
-                var materialName = assimp.GetMaterialString(lMaterial, Silk.NET.Assimp.Assimp.MaterialNameBase, 0, 0, ref aiMaterial) == Return.Success ? aiMaterial.AsString : "Material";
+                var materialName = assimp.GetMaterialString(lMaterial, Assimp.MaterialNameBase, 0, 0, ref aiMaterial) == Return.Success ? aiMaterial.AsString : "Material";
                 baseNames.Add(materialName);
             }
 
@@ -994,15 +994,15 @@ namespace Stride.Importer.ThreeD
             var reflectiveColor = System.Numerics.Vector4.Zero;
             var dummyColor = System.Numerics.Vector4.Zero;
 
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorDiffuseBase, ref hasDiffColor, ref diffColor, true);// always keep black color for diffuse
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorSpecularBase, ref hasSpecColor, ref specColor, IsNotBlackColor(specColor));
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorAmbientBase, ref hasAmbientColor, ref ambientColor, IsNotBlackColor(specColor));
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorEmissiveBase, ref hasEmissiveColor, ref emissiveColor, IsNotBlackColor(emissiveColor));
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorReflectiveBase, ref hasReflectiveColor, ref reflectiveColor, IsNotBlackColor(reflectiveColor));
-            SetMaterialFloatArrayFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialShininessBase, ref hasSpecPower, specPower, specPower > 0);
-            SetMaterialFloatArrayFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialOpacityBase, ref hasOpacity, opacity, opacity < 1.0);
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorDiffuseBase, ref hasDiffColor, ref diffColor, true);// always keep black color for diffuse
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorSpecularBase, ref hasSpecColor, ref specColor, IsNotBlackColor(specColor));
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorAmbientBase, ref hasAmbientColor, ref ambientColor, IsNotBlackColor(specColor));
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorEmissiveBase, ref hasEmissiveColor, ref emissiveColor, IsNotBlackColor(emissiveColor));
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorReflectiveBase, ref hasReflectiveColor, ref reflectiveColor, IsNotBlackColor(reflectiveColor));
+            SetMaterialFloatArrayFlag(pMaterial, Assimp.MaterialShininessBase, ref hasSpecPower, specPower, specPower > 0);
+            SetMaterialFloatArrayFlag(pMaterial, Assimp.MaterialOpacityBase, ref hasOpacity, opacity, opacity < 1.0);
             if (hasDiffColor == false)
-                SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MatkeyBaseColor, ref hasDiffColor, ref diffColor, true);
+                SetMaterialColorFlag(pMaterial, Assimp.MatkeyBaseColor, ref hasDiffColor, ref diffColor, true);
 
             BuildLayeredSurface(pMaterial, hasDiffColor, false, diffColor.ToStrideColor(), 0.0f, TextureType.Diffuse, finalMaterial);
             BuildLayeredSurface(pMaterial, hasSpecColor, false, specColor.ToStrideColor(), 0.0f, TextureType.Specular, finalMaterial);
