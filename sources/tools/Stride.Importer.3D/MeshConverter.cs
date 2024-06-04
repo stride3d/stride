@@ -563,17 +563,13 @@ namespace Stride.Importer.ThreeD
                 var transform = fromNode->MTransformation.ToStrideMatrix();
                 transform.Decompose(out modelNodeDefinition.Transform.Scale, out modelNodeDefinition.Transform.Rotation, out modelNodeDefinition.Transform.Position);
             }
-          
-            if (filterInNodes!=null 
-                && filterInNodes.Count>0)
+
+            /*if (storeTransformationsForNodes.Contains(fromNode->MName.AsString) == false)
             {
-                if(!filterInNodes.Contains(fromNode->MName.AsString))         
-                {
-                    modelNodeDefinition.Transform.Rotation = Quaternion.Identity;
-                    modelNodeDefinition.Transform.Scale = Vector3.One;
-                    modelNodeDefinition.Transform.Position = Vector3.Zero;
-                }
-            }
+                modelNodeDefinition.Transform.Rotation = Quaternion.Identity;
+                modelNodeDefinition.Transform.Scale = Vector3.One;
+                modelNodeDefinition.Transform.Position = Vector3.Zero;
+            }*/
 
             nodes.Add(modelNodeDefinition);
 
