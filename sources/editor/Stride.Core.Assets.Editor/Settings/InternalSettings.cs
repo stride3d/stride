@@ -23,6 +23,8 @@ namespace Stride.Core.Assets.Editor.Settings
         public static SettingsKey<string> TemplatesWindowDialogLastNewSessionTemplateDirectory = new SettingsKey<string>("Internal/TemplatesWindowDialogLastNewSessionTemplateDirectory", SettingsContainer, "");
         public static SettingsKey<SortRule> AssetViewSortRule = new SettingsKey<SortRule>("Internal/AssetViewSortRule", SettingsContainer, SortRule.TypeOrderThenName);
         public static SettingsKey<DisplayAssetMode> AssetViewDisplayMode = new SettingsKey<DisplayAssetMode>("Internal/AssetViewDisplayMode", SettingsContainer, DisplayAssetMode.AssetAndFolderInSelectedFolder);
+        public static SettingsKey<double> AssetViewTileThumbnailZoom = new SettingsKey<double>("Internal/AssetViewTileThumbnailZoom", SettingsContainer, 96.0);
+        public static SettingsKey<double> AssetViewGridThumbnailZoom = new SettingsKey<double>("Internal/AssetViewGridThumbnailZoom", SettingsContainer, 16.0);
 
         private static readonly SettingsProfile Profile;
 
