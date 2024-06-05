@@ -164,7 +164,7 @@ namespace Stride.Importer.ThreeD
             vfsInputPath = VirtualFileSystem.GetParentFolder(inputFilename);
 
             var propStore = assimp.CreatePropertyStore();
-            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0);
+            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0); // Trade some issues for others, see: https://github.com/assimp/assimp/issues/894, https://github.com/assimp/assimp/issues/1974
             assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
 
@@ -193,7 +193,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetBoneList(scene));
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
 
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
@@ -250,7 +250,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetBoneList(scene));
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
 
             return new Rendering.Skeleton
             {
@@ -268,7 +268,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetBoneList(scene));
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
 
             if (scene->MNumAnimations > 0)
             {
@@ -310,9 +310,13 @@ namespace Stride.Importer.ThreeD
                     var nodeAnim = aiAnim->MChannels[nodeAnimId];
                     var nodeName = nodeAnim->MNodeName.AsString.CleanNodeName();
 
-                    if (!visitedNodeNames.Contains(nodeName))
+                    // TODO: Need to resample the animation created by the pivot chain into a single animation, have a look at the file hierarchy in Assimp's viewer to get a better clue
+                    // See: 'IMPORT_FBX_PRESERVE_PIVOTS' above and https://github.com/assimp/assimp/discussions/4966
+                    if (nodeAnim->MNodeName.AsString.Contains("$AssimpFbx$"))
+                        Logger.Error($"Animation '{animName}' contains a pivot bone ({nodeAnim->MNodeName.AsString}), we currently do not handle these. This animation may not resolve properly.");
+
+                    if (visitedNodeNames.Add(nodeName))
                     {
-                        visitedNodeNames.Add(nodeName);
                         ProcessNodeAnimation(animationData.AnimationClips, nodeAnim, ticksPerSec);
                     }
                     else
@@ -431,10 +435,8 @@ namespace Stride.Importer.ThreeD
 
                 tempNames.Add(itemName);
 
-                // count the occurences of this name
-                if (!itemNameTotalCount.ContainsKey(itemName))
-                    itemNameTotalCount.Add(itemName, 1);
-                else
+                // count the occurrences of this name
+                if (!itemNameTotalCount.TryAdd(itemName, 1))
                     itemNameTotalCount[itemName]++;
             }
 
@@ -445,9 +447,7 @@ namespace Stride.Importer.ThreeD
 
                 if (itemNameTotalCount[itemName] > 1)
                 {
-                    if (!itemNameCurrentCount.ContainsKey(itemName))
-                        itemNameCurrentCount.Add(itemName, 1);
-                    else
+                    if (!itemNameCurrentCount.TryAdd(itemName, 1))
                         itemNameCurrentCount[itemName]++;
 
                     itemName = itemName + "_" + itemNameCurrentCount[itemName].ToString(CultureInfo.InvariantCulture);
@@ -455,22 +455,6 @@ namespace Stride.Importer.ThreeD
 
                 finalNames.Add(lItem, itemName);
             }
-        }
-
-        private unsafe HashSet<string> GetBoneList(Scene* scene)
-        {
-            HashSet<string> bones = new HashSet<string>();
-            for (uint i = 0; i < scene->MNumMeshes; i++)
-            {
-                var lMesh = scene->MMeshes[i];
-                var boneCount = lMesh->MNumBones;
-                for (int j = 0; j < boneCount; j++)
-                {
-                    string boneName = lMesh->MBones[j]->MName.AsString;
-                    bones.Add(boneName);
-                }
-            }
-            return bones;
         }
 
         private unsafe void GenerateMeshNames(Scene* scene, Dictionary<IntPtr, string> meshNames)
@@ -517,7 +501,7 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex, HashSet<string> storeTransformationsForNodes)
+        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex)
         {
             var nodeIndex = nodes.Count;
 
@@ -564,19 +548,12 @@ namespace Stride.Importer.ThreeD
                 transform.Decompose(out modelNodeDefinition.Transform.Scale, out modelNodeDefinition.Transform.Rotation, out modelNodeDefinition.Transform.Position);
             }
 
-            /*if (storeTransformationsForNodes.Contains(fromNode->MName.AsString) == false)
-            {
-                modelNodeDefinition.Transform.Rotation = Quaternion.Identity;
-                modelNodeDefinition.Transform.Scale = Vector3.One;
-                modelNodeDefinition.Transform.Position = Vector3.Zero;
-            }*/
-
             nodes.Add(modelNodeDefinition);
 
             // register the children
             for (uint child = 0; child < fromNode->MNumChildren; ++child)
             {
-                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex, storeTransformationsForNodes);
+                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex);
             }
         }
 
@@ -642,8 +619,7 @@ namespace Stride.Importer.ThreeD
                     bones.Add(new MeshBoneDefinition
                     {
                         NodeIndex = nodeIndex,
-                        LinkToMeshMatrix = bone->MOffsetMatrix.ToStrideMatrix()
-                        //  LinkToMeshMatrix = rootTransformInverse * bone->MOffsetMatrix.ToStrideMatrix() * rootTransform                       
+                        LinkToMeshMatrix = rootTransformInverse * bone->MOffsetMatrix.ToStrideMatrix() * rootTransform
                     });
                 }
 
@@ -925,9 +901,9 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumTextures; ++i)
             {
                 var texture=scene->MTextures[i];
-                string fullName = Path.Combine(dir,Path.GetFileName(texture->MFilename));
+                string fullName = Path.Combine(dir, Path.GetFileName(texture->MFilename));
                 CreateTextureFile(texture, fullName);
-            }     
+            }
         }
 
         private unsafe void CreateTextureFile(Silk.NET.Assimp.Texture* texture, string path)
@@ -965,7 +941,7 @@ namespace Stride.Importer.ThreeD
                 var lMaterial = scene->MMaterials[i];
 
                 var aiMaterial = new AssimpString();
-                var materialName = assimp.GetMaterialString(lMaterial, Silk.NET.Assimp.Assimp.MaterialNameBase, 0, 0, ref aiMaterial) == Return.Success ? aiMaterial.AsString : "Material";
+                var materialName = assimp.GetMaterialString(lMaterial, Assimp.MaterialNameBase, 0, 0, ref aiMaterial) == Return.Success ? aiMaterial.AsString : "Material";
                 baseNames.Add(materialName);
             }
 
@@ -994,13 +970,15 @@ namespace Stride.Importer.ThreeD
             var reflectiveColor = System.Numerics.Vector4.Zero;
             var dummyColor = System.Numerics.Vector4.Zero;
 
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorDiffuseBase, ref hasDiffColor, ref diffColor, true);// always keep black color for diffuse
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorSpecularBase, ref hasSpecColor, ref specColor, IsNotBlackColor(specColor));
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorAmbientBase, ref hasAmbientColor, ref ambientColor, IsNotBlackColor(specColor));
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorEmissiveBase, ref hasEmissiveColor, ref emissiveColor, IsNotBlackColor(emissiveColor));
-            SetMaterialColorFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorReflectiveBase, ref hasReflectiveColor, ref reflectiveColor, IsNotBlackColor(reflectiveColor));
-            SetMaterialFloatArrayFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialShininessBase, ref hasSpecPower, specPower, specPower > 0);
-            SetMaterialFloatArrayFlag(pMaterial, Silk.NET.Assimp.Assimp.MaterialOpacityBase, ref hasOpacity, opacity, opacity < 1.0);
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorDiffuseBase, ref hasDiffColor, ref diffColor, true);// always keep black color for diffuse
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorSpecularBase, ref hasSpecColor, ref specColor, IsNotBlackColor(specColor));
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorAmbientBase, ref hasAmbientColor, ref ambientColor, IsNotBlackColor(specColor));
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorEmissiveBase, ref hasEmissiveColor, ref emissiveColor, IsNotBlackColor(emissiveColor));
+            SetMaterialColorFlag(pMaterial, Assimp.MaterialColorReflectiveBase, ref hasReflectiveColor, ref reflectiveColor, IsNotBlackColor(reflectiveColor));
+            SetMaterialFloatArrayFlag(pMaterial, Assimp.MaterialShininessBase, ref hasSpecPower, specPower, specPower > 0);
+            SetMaterialFloatArrayFlag(pMaterial, Assimp.MaterialOpacityBase, ref hasOpacity, opacity, opacity < 1.0);
+            if (hasDiffColor == false)
+                SetMaterialColorFlag(pMaterial, Assimp.MatkeyBaseColor, ref hasDiffColor, ref diffColor, true);
 
             BuildLayeredSurface(pMaterial, hasDiffColor, false, diffColor.ToStrideColor(), 0.0f, TextureType.Diffuse, finalMaterial);
             BuildLayeredSurface(pMaterial, hasSpecColor, false, specColor.ToStrideColor(), 0.0f, TextureType.Specular, finalMaterial);
@@ -1266,9 +1244,7 @@ namespace Stride.Importer.ThreeD
             var referenceName = attachedReference.Url;
 
             // find a new and correctName
-            if (!textureNameCount.ContainsKey(referenceName))
-                textureNameCount.Add(referenceName, 1);
-            else
+            if (!textureNameCount.TryAdd(referenceName, 1))
             {
                 int count = textureNameCount[referenceName];
                 textureNameCount[referenceName] = count + 1;
@@ -1278,95 +1254,9 @@ namespace Stride.Importer.ThreeD
             return textureValue;
         }
 
-        private unsafe void CorrectRootTransform(ref Scene* scene)
-        {
-            if(scene == null && scene->MMetaData == null)
-            {
-                return;
-            }
-
-            int upAxis = 1, upAxisSign = 1, frontAxis = 2, frontAxisSign = 1, coordAxis = 0, coordAxisSign = 1;
-            double unitScaleFactor = 1.0;
-
-            for(uint i = 0; i < scene->MMetaData->MNumProperties; i++)
-            {
-                if (scene->MMetaData->MKeys[i].AsString == "UpAxis")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref upAxis);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "UpAxisSign")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref upAxisSign);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "FrontAxis")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref frontAxis);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "FrontAxisSign")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref frontAxisSign);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "CoordAxis")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref coordAxis);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "CoordAxisSign")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref coordAxisSign);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "UnitScaleFactor")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref unitScaleFactor);
-                }
-            }
-            
-            var upVec = upAxis switch
-            {
-                0 => new Vector3(upAxisSign * (float)unitScaleFactor, 0, 0),
-                1 => new Vector3(0, upAxisSign * (float)unitScaleFactor, 0),
-                2 => new Vector3(0, 0, upAxisSign * (float)unitScaleFactor),
-                _ => new Vector3(0, 1, 0),
-            };
-            var forwardVec = frontAxis switch
-            {
-                0 => new Vector3(frontAxisSign * (float)unitScaleFactor, 0, 0),
-                1 => new Vector3(0, frontAxisSign * (float)unitScaleFactor, 0),
-                2 => new Vector3(0, 0, frontAxisSign * (float)unitScaleFactor),
-                _ => new Vector3(0, 1, 0),
-            };
-            var rightVec = coordAxis switch
-            {
-                0 => new Vector3(coordAxisSign * (float)unitScaleFactor, 0, 0),
-                1 => new Vector3(0, coordAxisSign * (float)unitScaleFactor, 0),
-                2 => new Vector3(0, 0, coordAxisSign * (float)unitScaleFactor),
-                _ => new Vector3(0, 1, 0),
-            };
-
-            System.Numerics.Matrix4x4 matrix = new System.Numerics.Matrix4x4
-                (rightVec.X, rightVec.Y, rightVec.Z, 0,
-                 upVec.X, upVec.Y, upVec.Z, 0,
-                 forwardVec.X, forwardVec.Y, forwardVec.Z, 0,
-                 0, 0, 0, 1);
-
-            scene->MRootNode->MTransformation *= matrix;
-        }
-
-        private unsafe bool GetMetaDataValue<T>(uint index, Metadata* metaData, ref T value)
-        {
-            if(index >= metaData->MNumProperties)
-            {
-                return false;
-            }
-
-            value = *(T*)metaData->MValues[index].MData;
-
-            return true;
-        }
-
         private unsafe List<MeshParameters> ExtractModels(Scene* scene, Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, string> materialNames, Dictionary<IntPtr, string> nodeNames)
         {
             GenerateMeshNames(scene, meshNames);
-            CorrectRootTransform(ref scene);
             var meshList = new List<MeshParameters>();
             for (uint i = 0; i < scene->MNumMeshes; ++i)
             {
@@ -1428,7 +1318,7 @@ namespace Stride.Importer.ThreeD
         private unsafe List<string> ExtractAnimations(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
             if (scene->MNumAnimations == 0)
-                return null;
+                return new();
 
             GenerateAnimationNames(scene, animationNames);
 
