@@ -63,7 +63,7 @@ namespace Stride.Core.Quantum
             }
             else
             {
-                ((IMemberNode)Node).Update(value);
+                (Node as IMemberNode)?.Update(value);
             }
         }
 
