@@ -164,7 +164,7 @@ namespace Stride.Importer.ThreeD
             vfsInputPath = VirtualFileSystem.GetParentFolder(inputFilename);
 
             var propStore = assimp.CreatePropertyStore();
-            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0);
+            assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0); // Trade some issues for others, see: https://github.com/assimp/assimp/issues/894, https://github.com/assimp/assimp/issues/1974
             assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
 
@@ -310,7 +310,12 @@ namespace Stride.Importer.ThreeD
                     var nodeAnim = aiAnim->MChannels[nodeAnimId];
                     var nodeName = nodeAnim->MNodeName.AsString.CleanNodeName();
 
-                    if (!visitedNodeNames.Contains(nodeName))
+                    // TODO: Need to resample the animation created by the pivot chain into a single animation, have a look at the file hierarchy in Assimp's viewer to get a better clue
+                    // See: 'IMPORT_FBX_PRESERVE_PIVOTS' above and https://github.com/assimp/assimp/discussions/4966
+                    if (nodeAnim->MNodeName.AsString.Contains("$AssimpFbx$"))
+                        Logger.Error($"Animation '{animName}' contains a pivot bone ({nodeAnim->MNodeName.AsString}), we currently do not handle these. This animation may not resolve properly.");
+
+                    if (visitedNodeNames.Add(nodeName))
                     {
                         visitedNodeNames.Add(nodeName);
                         ProcessNodeAnimation(animationData.AnimationClips, nodeAnim, ticksPerSec);
