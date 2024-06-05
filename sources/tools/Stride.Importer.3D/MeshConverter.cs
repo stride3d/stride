@@ -193,7 +193,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetBoneList(scene));
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
 
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
@@ -250,7 +250,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetBoneList(scene));
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
 
             return new Rendering.Skeleton
             {
@@ -268,7 +268,7 @@ namespace Stride.Importer.ThreeD
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, GetBoneList(scene));
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
 
             if (scene->MNumAnimations > 0)
             {
@@ -462,22 +462,6 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe HashSet<string> GetBoneList(Scene* scene)
-        {
-            HashSet<string> bones = new HashSet<string>();
-            for (uint i = 0; i < scene->MNumMeshes; i++)
-            {
-                var lMesh = scene->MMeshes[i];
-                var boneCount = lMesh->MNumBones;
-                for (int j = 0; j < boneCount; j++)
-                {
-                    string boneName = lMesh->MBones[j]->MName.AsString;
-                    bones.Add(boneName);
-                }
-            }
-            return bones;
-        }
-
         private unsafe void GenerateMeshNames(Scene* scene, Dictionary<IntPtr, string> meshNames)
         {
             var baseNames = new List<string>();
@@ -522,7 +506,7 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex, HashSet<string> storeTransformationsForNodes)
+        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex)
         {
             var nodeIndex = nodes.Count;
 
@@ -569,19 +553,12 @@ namespace Stride.Importer.ThreeD
                 transform.Decompose(out modelNodeDefinition.Transform.Scale, out modelNodeDefinition.Transform.Rotation, out modelNodeDefinition.Transform.Position);
             }
 
-            /*if (storeTransformationsForNodes.Contains(fromNode->MName.AsString) == false)
-            {
-                modelNodeDefinition.Transform.Rotation = Quaternion.Identity;
-                modelNodeDefinition.Transform.Scale = Vector3.One;
-                modelNodeDefinition.Transform.Position = Vector3.Zero;
-            }*/
-
             nodes.Add(modelNodeDefinition);
 
             // register the children
             for (uint child = 0; child < fromNode->MNumChildren; ++child)
             {
-                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex, storeTransformationsForNodes);
+                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex);
             }
         }
 
@@ -647,8 +624,7 @@ namespace Stride.Importer.ThreeD
                     bones.Add(new MeshBoneDefinition
                     {
                         NodeIndex = nodeIndex,
-                        LinkToMeshMatrix = bone->MOffsetMatrix.ToStrideMatrix()
-                        //  LinkToMeshMatrix = rootTransformInverse * bone->MOffsetMatrix.ToStrideMatrix() * rootTransform                       
+                        LinkToMeshMatrix = rootTransformInverse * bone->MOffsetMatrix.ToStrideMatrix() * rootTransform
                     });
                 }
 
@@ -1285,95 +1261,9 @@ namespace Stride.Importer.ThreeD
             return textureValue;
         }
 
-        private unsafe void CorrectRootTransform(ref Scene* scene)
-        {
-            if(scene == null && scene->MMetaData == null)
-            {
-                return;
-            }
-
-            int upAxis = 1, upAxisSign = 1, frontAxis = 2, frontAxisSign = 1, coordAxis = 0, coordAxisSign = 1;
-            double unitScaleFactor = 1.0;
-
-            for(uint i = 0; i < scene->MMetaData->MNumProperties; i++)
-            {
-                if (scene->MMetaData->MKeys[i].AsString == "UpAxis")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref upAxis);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "UpAxisSign")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref upAxisSign);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "FrontAxis")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref frontAxis);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "FrontAxisSign")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref frontAxisSign);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "CoordAxis")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref coordAxis);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "CoordAxisSign")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref coordAxisSign);
-                }
-                if (scene->MMetaData->MKeys[i].AsString == "UnitScaleFactor")
-                {
-                    GetMetaDataValue(i, scene->MMetaData, ref unitScaleFactor);
-                }
-            }
-            
-            var upVec = upAxis switch
-            {
-                0 => new Vector3(upAxisSign * (float)unitScaleFactor, 0, 0),
-                1 => new Vector3(0, upAxisSign * (float)unitScaleFactor, 0),
-                2 => new Vector3(0, 0, upAxisSign * (float)unitScaleFactor),
-                _ => new Vector3(0, 1, 0),
-            };
-            var forwardVec = frontAxis switch
-            {
-                0 => new Vector3(frontAxisSign * (float)unitScaleFactor, 0, 0),
-                1 => new Vector3(0, frontAxisSign * (float)unitScaleFactor, 0),
-                2 => new Vector3(0, 0, frontAxisSign * (float)unitScaleFactor),
-                _ => new Vector3(0, 1, 0),
-            };
-            var rightVec = coordAxis switch
-            {
-                0 => new Vector3(coordAxisSign * (float)unitScaleFactor, 0, 0),
-                1 => new Vector3(0, coordAxisSign * (float)unitScaleFactor, 0),
-                2 => new Vector3(0, 0, coordAxisSign * (float)unitScaleFactor),
-                _ => new Vector3(0, 1, 0),
-            };
-
-            System.Numerics.Matrix4x4 matrix = new System.Numerics.Matrix4x4
-                (rightVec.X, rightVec.Y, rightVec.Z, 0,
-                 upVec.X, upVec.Y, upVec.Z, 0,
-                 forwardVec.X, forwardVec.Y, forwardVec.Z, 0,
-                 0, 0, 0, 1);
-
-            scene->MRootNode->MTransformation *= matrix;
-        }
-
-        private unsafe bool GetMetaDataValue<T>(uint index, Metadata* metaData, ref T value)
-        {
-            if(index >= metaData->MNumProperties)
-            {
-                return false;
-            }
-
-            value = *(T*)metaData->MValues[index].MData;
-
-            return true;
-        }
-
         private unsafe List<MeshParameters> ExtractModels(Scene* scene, Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, string> materialNames, Dictionary<IntPtr, string> nodeNames)
         {
             GenerateMeshNames(scene, meshNames);
-            CorrectRootTransform(ref scene);
             var meshList = new List<MeshParameters>();
             for (uint i = 0; i < scene->MNumMeshes; ++i)
             {
