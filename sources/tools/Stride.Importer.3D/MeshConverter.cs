@@ -317,7 +317,6 @@ namespace Stride.Importer.ThreeD
 
                     if (visitedNodeNames.Add(nodeName))
                     {
-                        visitedNodeNames.Add(nodeName);
                         ProcessNodeAnimation(animationData.AnimationClips, nodeAnim, ticksPerSec);
                     }
                     else
@@ -436,10 +435,8 @@ namespace Stride.Importer.ThreeD
 
                 tempNames.Add(itemName);
 
-                // count the occurences of this name
-                if (!itemNameTotalCount.ContainsKey(itemName))
-                    itemNameTotalCount.Add(itemName, 1);
-                else
+                // count the occurrences of this name
+                if (!itemNameTotalCount.TryAdd(itemName, 1))
                     itemNameTotalCount[itemName]++;
             }
 
@@ -450,9 +447,7 @@ namespace Stride.Importer.ThreeD
 
                 if (itemNameTotalCount[itemName] > 1)
                 {
-                    if (!itemNameCurrentCount.ContainsKey(itemName))
-                        itemNameCurrentCount.Add(itemName, 1);
-                    else
+                    if (!itemNameCurrentCount.TryAdd(itemName, 1))
                         itemNameCurrentCount[itemName]++;
 
                     itemName = itemName + "_" + itemNameCurrentCount[itemName].ToString(CultureInfo.InvariantCulture);
@@ -906,9 +901,9 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumTextures; ++i)
             {
                 var texture=scene->MTextures[i];
-                string fullName = Path.Combine(dir,Path.GetFileName(texture->MFilename));
+                string fullName = Path.Combine(dir, Path.GetFileName(texture->MFilename));
                 CreateTextureFile(texture, fullName);
-            }     
+            }
         }
 
         private unsafe void CreateTextureFile(Silk.NET.Assimp.Texture* texture, string path)
@@ -1249,9 +1244,7 @@ namespace Stride.Importer.ThreeD
             var referenceName = attachedReference.Url;
 
             // find a new and correctName
-            if (!textureNameCount.ContainsKey(referenceName))
-                textureNameCount.Add(referenceName, 1);
-            else
+            if (!textureNameCount.TryAdd(referenceName, 1))
             {
                 int count = textureNameCount[referenceName];
                 textureNameCount[referenceName] = count + 1;
