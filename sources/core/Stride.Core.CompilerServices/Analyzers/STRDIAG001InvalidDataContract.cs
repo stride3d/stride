@@ -49,7 +49,10 @@ public class STRDIAG001InvalidDataContract : DiagnosticAnalyzer
         if (!symbol.HasAttribute(dataContractAttribute))
             return;
 
-        if(!symbol.IsVisibleToSerializer(hasDataMemberAttribute: true))
+        if (symbol.IsFileLocal)
+            Rule.ReportDiagnostics(context, symbol);
+
+        if (!symbol.IsVisibleToSerializer(hasDataMemberAttribute: true))
             Rule.ReportDiagnostics(context, symbol);
     }
 }
