@@ -1318,7 +1318,7 @@ namespace Stride.Importer.ThreeD
         private unsafe List<string> ExtractAnimations(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
             if (scene->MNumAnimations == 0)
-                return null;
+                return new();
 
             GenerateAnimationNames(scene, animationNames);
 
