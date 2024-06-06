@@ -291,7 +291,11 @@ namespace Stride.Core.Assets.Quantum
         /// </summary>
         /// <returns>A new instance of <see cref="GraphVisitorBase"/> for reconciliation.</returns>
         [NotNull]
-        public virtual GraphVisitorBase CreateReconcilierVisitor()
+        [Obsolete($"To be removed in future releases. Use {nameof(CreateReconcilerVisitor)} instead.")]
+        public virtual GraphVisitorBase CreateReconcilierVisitor() => CreateReconcilerVisitor();
+
+        [NotNull]
+        public virtual GraphVisitorBase CreateReconcilerVisitor()
         {
             return new AssetGraphVisitorBase(Definition);
         }
@@ -748,7 +752,7 @@ namespace Stride.Core.Assets.Quantum
         {
             var memberNode = assetNode as AssetMemberNode;
             var objectNode = assetNode as IAssetObjectNodeInternal;
-            // Non-overridable members should not be reconcilied.
+            // Non-overridable members should not be reconciled.
             if (assetNode?.BaseNode == null || !memberNode?.CanOverride == true)
                 return;
 
