@@ -21,8 +21,7 @@ public class STRDIAG001_Test
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "private class InnerClass { }");
         TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
     }
-    // TODO: Enable with .NET8 merge as we need a higher C# version
-    [Fact(Skip = "file scoped classes won't compile")]
+    [Fact]
     public void Error_On_file_scope_Class_with_DataContract()
     {
         string sourceCode = "using Stride.Core; [DataContract] file class FileScopeClass { }";
