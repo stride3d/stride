@@ -516,13 +516,10 @@ namespace Stride.TextureConverter.DxtWrapper
         private extern static void dxtComputePitch(DXGI_FORMAT fmt, int width, int height, out int rowPitch, out int slicePitch, CP_FLAGS flags);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtLoadDDSFile(String filePath, DDS_FLAGS flags, out TexMetadata metadata, IntPtr image);
+        private extern static uint dxtLoadDDSFile([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTC32StringMarshaller))] string filePath, DDS_FLAGS flags, out TexMetadata metadata, IntPtr image);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtLoadTGAFile(String filePath, out TexMetadata metadata, IntPtr image);
-
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtLoadWICFile(String filePath, WIC_FLAGS flags, out TexMetadata metadata, IntPtr image);
+        private extern static uint dxtLoadTGAFile([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTC32StringMarshaller))] string filePath, out TexMetadata metadata, IntPtr image);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static bool dxtIsCompressed(DXGI_FORMAT fmt);
@@ -546,10 +543,10 @@ namespace Stride.TextureConverter.DxtWrapper
         private extern static uint dxtDecompressArray(DxtImage[] cImages, int nimages, ref TexMetadata metadata, DXGI_FORMAT format, IntPtr images);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtSaveToDDSFile(ref DxtImage dxtImage, DDS_FLAGS flags, string szFile);
+        private extern static uint dxtSaveToDDSFile(ref DxtImage dxtImage, DDS_FLAGS flags, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTC32StringMarshaller))] string szFile);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
-        private extern static uint dxtSaveToDDSFileArray(DxtImage[] dxtImages, int nimages, ref TexMetadata metadata, DDS_FLAGS flags, string szFile);
+        private extern static uint dxtSaveToDDSFileArray(DxtImage[] dxtImages, int nimages, ref TexMetadata metadata, DDS_FLAGS flags, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTC32StringMarshaller))] string szFile);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtGenerateMipMaps(ref DxtImage baseImage, TEX_FILTER_FLAGS filter, int levels, IntPtr mipChain, bool allow1D);
@@ -577,19 +574,14 @@ namespace Stride.TextureConverter.DxtWrapper
             dxtComputePitch(fmt, width, height, out rowPitch, out slicePitch, flags);
         }
 
-        public static HRESULT LoadDDSFile(String filePath, DDS_FLAGS flags, out TexMetadata metadata, ScratchImage image)
+        public static HRESULT LoadDDSFile(string filePath, DDS_FLAGS flags, out TexMetadata metadata, ScratchImage image)
         {
             return HandleHRESULT(dxtLoadDDSFile(filePath, flags, out metadata, image.ptr));
         }
 
-        public static HRESULT LoadTGAFile(String filePath, out TexMetadata metadata, ScratchImage image)
+        public static HRESULT LoadTGAFile(string filePath, out TexMetadata metadata, ScratchImage image)
         {
             return HandleHRESULT(dxtLoadTGAFile(filePath, out metadata, image.ptr));
-        }
-
-        public static HRESULT LoadWICFile(String filePath, WIC_FLAGS flags, out TexMetadata metadata, ScratchImage image)
-        {
-            return HandleHRESULT(dxtLoadWICFile(filePath, flags, out metadata, image.ptr));
         }
 
         public static HRESULT SaveToDDSFile(ref DxtImage dxtImage, DDS_FLAGS flags, string szFile)
