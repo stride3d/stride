@@ -177,7 +177,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private readonly List<AssetFilterViewModel> typeFilters = new List<AssetFilterViewModel>();
         private readonly Dictionary<FilterCategory, bool> availableFilterCategories;
         private readonly ObservableList<AssetFilterViewModel> availableAssetFilters = new ObservableList<AssetFilterViewModel>();
-        private readonly ObservableSet<AssetFilterViewModel> currentAssetFilters = new ObservableSet<AssetFilterViewModel>();
+        //potential load point
+        private readonly ObservableSet<AssetFilterViewModel> currentAssetFilters = InternalSettings.ViewFilters.GetValue(); //new ObservableSet<AssetFilterViewModel>();
         private string assetFilterPattern;
         private Func<AssetViewModel, bool> customFilter;
 
@@ -1123,6 +1124,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public void ClearAssetFilters()
         {
             currentAssetFilters.RemoveWhere(f => !f.IsReadOnly);
+            InternalSettings.ViewFilters.SetValue(currentAssetFilters);
         }
 
         public void RefreshAssetFilter(AssetFilterViewModel filter)
@@ -1137,6 +1139,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             refreshing = false;
             AddAssetFilter(filter);
+            InternalSettings.ViewFilters.SetValue(currentAssetFilters);
         }
 
         public void RemoveAssetFilter(AssetFilterViewModel filter)
@@ -1146,6 +1149,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             filter.IsActive = false;
             currentAssetFilters.Remove(filter);
+            InternalSettings.ViewFilters.SetValue(currentAssetFilters);
         }
 
         private void AddAsset(AssetViewModel asset)
