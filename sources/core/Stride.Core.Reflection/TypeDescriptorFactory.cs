@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Reflection
@@ -12,14 +14,14 @@ namespace Stride.Core.Reflection
     public class TypeDescriptorFactory : ITypeDescriptorFactory
     {
         private readonly IComparer<object> keyComparer;
-        private readonly Dictionary<Type, ITypeDescriptor> registeredDescriptors = new Dictionary<Type, ITypeDescriptor>();
+        private readonly Dictionary<Type, ITypeDescriptor> registeredDescriptors = [];
         private readonly bool emitDefaultValues;
         private readonly IMemberNamingConvention namingConvention;
 
         /// <summary>
         /// The default type descriptor factory.
         /// </summary>
-        public static readonly TypeDescriptorFactory Default = new TypeDescriptorFactory();
+        public static readonly TypeDescriptorFactory Default = new();
 
         public TypeDescriptorFactory() : this(new AttributeRegistry())
         {
@@ -37,7 +39,7 @@ namespace Stride.Core.Reflection
 
         public TypeDescriptorFactory(IAttributeRegistry attributeRegistry, bool emitDefaultValues, IMemberNamingConvention namingConvention, IComparer<object> keyComparer)
         {
-            if (attributeRegistry == null) throw new ArgumentNullException(nameof(attributeRegistry));
+            ArgumentNullException.ThrowIfNull(attributeRegistry);
             this.keyComparer = keyComparer;
             AttributeRegistry = attributeRegistry;
             this.emitDefaultValues = emitDefaultValues;
@@ -46,13 +48,13 @@ namespace Stride.Core.Reflection
 
         public IAttributeRegistry AttributeRegistry { get; }
 
-        public ITypeDescriptor Find(Type type)
+        public ITypeDescriptor? Find(Type? type)
         {
-            if (type == null)
+            if (type is null)
                 return null;
 
             // Caching is integrated in this class, avoiding a ChainedTypeDescriptorFactory
-            ITypeDescriptor descriptor;
+            ITypeDescriptor? descriptor;
             lock (registeredDescriptors)
             {
                 if (!registeredDescriptors.TryGetValue(type, out descriptor))
@@ -84,6 +86,7 @@ namespace Stride.Core.Reflection
             {
                 descriptor = new PrimitiveDescriptor(this, type, emitDefaultValues, namingConvention);
             }
+            
             else if (DictionaryDescriptor.IsDictionary(type)) // resolve dictionary before collections, as they are also collections
             {
                 // IDictionary
@@ -106,7 +109,7 @@ namespace Stride.Core.Reflection
             }
             else if (type.IsArray)
             {
-                if (type.GetArrayRank() == 1 && !type.GetElementType().IsArray)
+                if (type.GetArrayRank() == 1 && !type.GetElementType()!.IsArray)
                 {
                     // array[] - only single dimension array is supported
                     descriptor = new ArrayDescriptor(this, type, emitDefaultValues, namingConvention);
