@@ -16,6 +16,7 @@ namespace Stride.UI.Controls
 {
     public partial class EditText
     {
+        private static readonly object syncRoot = new();
         private static MyAndroidEditText staticEditText;
 
         private static EditText activeEditText;
@@ -47,7 +48,13 @@ namespace Stride.UI.Controls
                 };
                 deselectStrideEditTextAction = () =>
                 {
-                    activeEditText.IsSelectionActive = false;
+                    lock (syncRoot)
+                    {
+                        if (activeEditText is not null)
+                        {
+                            activeEditText.IsSelectionActive = false;
+                        }
+                    }
                 };
             }
 
@@ -55,7 +62,7 @@ namespace Stride.UI.Controls
             {
                 if (e.KeyCode == Keycode.Back)
                 {
-                    if (activeEditText != null)
+                    if (activeEditText is not null)
                     {
                         // We use Post instead of deselecting directly because we do not want to close
                         // the PopupWindow of this control in the same execution as processing an input
@@ -112,35 +119,49 @@ namespace Stride.UI.Controls
         private void InitializeImpl()
         {
             // Cache all the Actions that will be used in EditText.Post to reduce object allocation.
-            // EditText.Post is used because we are not guaranteed to be on the UI thread.
+            // EditText.Post is used because we are not on the same thread as the Android UI thread,
+            // and also need to lock on syncRoot to prevent race any condition where Stride thread
+            // unsets editText while we on the Android UI thread
             editTextSetMinLinesAction = () =>
             {
-                editText.SetMinLines(MinLines);
+                lock (syncRoot)
+                {
+                    editText?.SetMinLines(MinLines);
+                }
             };
             editTextSetMaxLinesAction = () =>
             {
-                editText.SetMaxLines(MaxLines);
+                lock (syncRoot)
+                {
+                    editText?.SetMaxLines(MaxLines);
+                }
             };
             editTextSetSelectionAction = () =>
             {
-                editText.SetSelection(selectionStart, selectionStop);
+                lock (syncRoot)
+                {
+                    editText?.SetSelection(selectionStart, selectionStop);
+                }
             };
 
             editTextSetActivatedStateAction = () =>
             {
-                var pendingEditText = staticEditText;
-                // set up the initial state of the android EditText
-                UpdateInputTypeFromSelf(pendingEditText);
-                pendingEditText.SetMinLines(MinLines);
-                pendingEditText.SetMaxLines(MaxLines);
-                pendingEditText.Text = text;
-                pendingEditText.SetSelection(selectionStart, selectionStop);
+                lock (syncRoot)
+                {
+                    var pendingEditText = staticEditText;
+                    // set up the initial state of the android EditText
+                    UpdateInputTypeFromSelf(pendingEditText);
+                    pendingEditText.SetMinLines(MinLines);
+                    pendingEditText.SetMaxLines(MaxLines);
+                    pendingEditText.Text = text;
+                    pendingEditText.SetSelection(selectionStart, selectionStop);
 
-                // add callbacks
-                pendingEditText.EditorAction += AndroidEditTextOnEditorAction;
-                pendingEditText.AfterTextChanged += AndroidEditTextOnAfterTextChanged;
+                    // add callbacks
+                    pendingEditText.EditorAction += AndroidEditTextOnEditorAction;
+                    pendingEditText.AfterTextChanged += AndroidEditTextOnAfterTextChanged;
 
-                editText = pendingEditText;
+                    editText = pendingEditText;
+                }
             };
         }
 
@@ -209,38 +230,44 @@ namespace Stride.UI.Controls
 
         private void ActivateEditTextImpl()
         {
-            if (activeEditText != null)
-                throw new Exception("Internal error: Can not activate edit text, another edit text is already active");
+            lock (syncRoot)
+            {
+                if (activeEditText is not null)
+                    throw new Exception("Internal error: Can not activate edit text, another edit text is already active");
 
-            EnsureStaticEditText();
+                EnsureStaticEditText();
 
-            activeEditText = this;
+                activeEditText = this;
 
-            // Select all text on initial focus.
-            // TODO: Maybe make it configurable on how caret/selection should default on activation?
-            SelectAll();
-            // Note that we do not assign 'staticEditText' to 'editText' until the Post action
-            // is actually invoked to ensure the control is fully ready
-            staticEditText.Post(editTextSetActivatedStateAction);
+                // Select all text on initial focus.
+                // TODO: Maybe make it configurable on how caret/selection should default on activation?
+                SelectAll();
+                // Note that we do not assign 'staticEditText' to 'editText' until the Post action
+                // is actually invoked to ensure the control is fully ready
+                staticEditText.Post(editTextSetActivatedStateAction);
 
-            GetGameContext().ShowEditTextPopup();
+                GetGameContext().ShowEditTextPopup();
+            }
         }
 
         private void DeactivateEditTextImpl()
         {
-            if (activeEditText == null)
-                throw new Exception("Internal error: Can not deactivate the EditText, it is already nullified");
+            lock (syncRoot)
+            {
+                if (activeEditText == null)
+                    throw new Exception("Internal error: Can not deactivate the EditText, it is already nullified");
 
-            // remove callbacks
-            editText.EditorAction -= AndroidEditTextOnEditorAction;
-            editText.AfterTextChanged -= AndroidEditTextOnAfterTextChanged;
+                // remove callbacks
+                editText.EditorAction -= AndroidEditTextOnEditorAction;
+                editText.AfterTextChanged -= AndroidEditTextOnAfterTextChanged;
 
-            editText = null;
-            activeEditText = null;
+                editText = null;
+                activeEditText = null;
 
-            GetGameContext().HideEditTextPopup();
+                GetGameContext().HideEditTextPopup();
 
-            FocusedElement = null;
+                FocusedElement = null;
+            }
         }
 
         private GameContextAndroid GetGameContext()
@@ -294,7 +321,16 @@ namespace Stride.UI.Controls
             // Avoid infinite text changed triggering loop.
             if (editText.Text != Text)
             {
-                editText.Post(() => editText.Text = text);
+                editText.Post(() =>
+                {
+                    lock (syncRoot)
+                    {
+                        if (editText is not null)
+                        {
+                            editText.Text = text;
+                        }
+                    }
+                });
             }
         }
 
