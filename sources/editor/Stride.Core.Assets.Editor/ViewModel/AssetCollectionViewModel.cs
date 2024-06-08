@@ -1117,6 +1117,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             filter.IsActive = true;
             currentAssetFilters.Insert(0, filter);
+            InternalSettings.ViewFilters.SetValue(currentAssetFilters);
         }
 
         public void ClearAssetFilters()
