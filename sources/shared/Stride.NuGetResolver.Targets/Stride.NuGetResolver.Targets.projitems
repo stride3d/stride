@@ -39,8 +39,6 @@
       <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.FileSystemGlobbing.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.Primitives.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.NuGetResolver*.dll" />
-      <!-- Needed by NuGet.Packaging see https://github.com/stride3d/stride/issues/2232 -->
-      <BuildOutputInPackage Include="$(OutputPath)System.Security.Cryptography.Pkcs.dll" />
     </ItemGroup>
   </Target>
 </Project>
