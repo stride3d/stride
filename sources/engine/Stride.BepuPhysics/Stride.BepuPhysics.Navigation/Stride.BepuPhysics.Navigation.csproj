@@ -20,9 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotRecast.Core" />
-    <PackageReference Include="DotRecast.Detour" />
-    <PackageReference Include="DotRecast.Recast" />
     <PackageReference Include="DotRecast.Recast.Toolset" />
   </ItemGroup>
 
