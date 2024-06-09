@@ -200,7 +200,7 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Allow the GraphicsDeviceMagnager to set the actual window state after applying the device changes.
+        /// Allow the GraphicsDeviceManager to set the actual window state after applying the device changes.
         /// </summary>
         /// <param name="isReallyFullscreen"></param>
         internal void SetIsReallyFullscreen(bool isReallyFullscreen)
@@ -302,6 +302,11 @@ namespace Stride.Games
         protected void OnFullscreenToggle(object source, EventArgs e)
         {
             IsFullscreen = !IsFullscreen;
+        }
+
+        protected void OnDisableFullScreen(object source, EventArgs e)
+        {
+            IsFullscreen = false;
         }
 
         protected void OnClosing(object source, EventArgs e)

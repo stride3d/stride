@@ -8,7 +8,7 @@ public class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG008";
     private const string Title = "Invalid Struct Member";
-    private const string MessageFormat = "Struct members with the 'fixed' Modifier are not supported as a Serialization target on member '{0}'.";
+    private const string MessageFormat = "Struct members with the 'fixed' Modifier are not supported as a Serialization target on member '{0}'";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
