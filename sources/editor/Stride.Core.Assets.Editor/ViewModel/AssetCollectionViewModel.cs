@@ -76,7 +76,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 isActive = true;
 
                 RemoveFilterCommand = new AnonymousCommand<AssetFilterViewModel>(ServiceProvider, collection.RemoveAssetFilter);
-                ToggleIsActiveCommand = new AnonymousCommand(ServiceProvider, () => IsActive = !IsActive);
+                ToggleIsActiveCommand = new AnonymousCommand(ServiceProvider, () => { IsActive = !IsActive; collection.SaveAssetFilters(); });
             }
 
             public FilterCategory Category { get; }
@@ -164,7 +164,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         // Storing out primitive data for filters to save between instances of editor
-        List<AssetFilterViewModelData> StoredListData = InternalSettings.ViewFilters2.GetValue();
+        List<AssetFilterViewModelData> StoredListData = InternalSettings.ViewFilters.GetValue();
 
         public static readonly IEnumerable<FilterCategory> AllFilterCategories = Enum.GetValues(typeof(FilterCategory)).Cast<FilterCategory>();
 
@@ -1154,7 +1154,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 obj.category = currentAssetFilters[i].Category;
                 listData.Add(obj);
             }
-            InternalSettings.ViewFilters2.SetValue(listData);
+            InternalSettings.ViewFilters.SetValue(listData);
         }
 
         public void AddAssetFilter(AssetFilterViewModel filter)

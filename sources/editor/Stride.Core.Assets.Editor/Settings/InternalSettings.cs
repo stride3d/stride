@@ -27,7 +27,7 @@ namespace Stride.Core.Assets.Editor.Settings
         public static SettingsKey<DisplayAssetMode> AssetViewDisplayMode = new SettingsKey<DisplayAssetMode>("Internal/AssetViewDisplayMode", SettingsContainer, DisplayAssetMode.AssetAndFolderInSelectedFolder);
         public static SettingsKey<double> AssetViewTileThumbnailZoom = new SettingsKey<double>("Internal/AssetViewTileThumbnailZoom", SettingsContainer, 96.0);
         public static SettingsKey<double> AssetViewGridThumbnailZoom = new SettingsKey<double>("Internal/AssetViewGridThumbnailZoom", SettingsContainer, 16.0);
-        public static SettingsKey<List<AssetFilterViewModelData>> ViewFilters2 = new SettingsKey<List<AssetFilterViewModelData>>("Internal/CurrentAssetFilters2", SettingsContainer, () => new List<AssetFilterViewModelData>());
+        public static SettingsKey<List<AssetFilterViewModelData>> ViewFilters = new SettingsKey<List<AssetFilterViewModelData>>("Internal/CurrentAssetFilters", SettingsContainer, () => new List<AssetFilterViewModelData>());
 
         private static readonly SettingsProfile Profile;
 
