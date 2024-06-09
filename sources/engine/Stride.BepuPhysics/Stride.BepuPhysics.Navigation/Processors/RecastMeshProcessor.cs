@@ -1,89 +1,72 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using DotRecast.Detour;
 using DotRecast.Recast;
 using DotRecast.Recast.Geom;
 using DotRecast.Recast.Toolset;
 using DotRecast.Recast.Toolset.Builder;
-using DotRecast.Recast.Toolset.Geom;
+using DotRecast.Core.Numerics;
 using Stride.BepuPhysics.Definitions;
-using Stride.BepuPhysics.Navigation.Components;
 using Stride.Core.Annotations;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Input;
-using Stride.Rendering;
-using Stride.Graphics;
-using Stride.Rendering.Materials.ComputeColors;
-using Stride.Rendering.Materials;
 using Stride.Core.Mathematics;
 using Stride.BepuPhysics.Systems;
+using Stride.Core;
+using System.Diagnostics;
+using Stride.BepuPhysics.Navigation.Extensions;
+using Stride.BepuPhysics.Navigation.Definitions;
+using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
-public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComponent>
+public class RecastMeshProcessor : GameSystemBase
 {
-    private IGame _game;
-    private SceneSystem _sceneSystem;
-    private InputManager _input;
+
+    public TimeSpan LastShapeCacheTime { get; private set; }
+
+    public const int MaxPolys = 256;
+    public const int MaxSmooth = 2048;
+
+    private readonly RcVec3f polyPickExt = new(2, 4, 2);
+
+    private readonly Stopwatch _stopwatch = new();
+    private readonly SceneSystem _sceneSystem;
+    private readonly InputManager _input;
+    private readonly ShapeCacheSystem _shapeCache;
     private ContainerProcessor _containerProcessor;
-    private ShapeCacheSystem _shapeCache;
 
     private DtNavMesh? _navMesh;
     private Task<DtNavMesh>? _runningRebuild;
 
     private CancellationTokenSource _rebuildingTask = new();
-    private RcNavMeshBuildSettings _navSettings = new();
-    private List<BepuNavigationBoundingBoxComponent> _boundingBoxes = new();
+    private RecastNavigationConfiguration _navSettings = new();
 
-    public RecastMeshProcessor()
-    {
-        // this is done to ensure that this processor runs after the BepuPhysicsProcessors
-        Order = 20000;
-    }
+    private DtNavMeshQuery _dtNavMeshQuery;
 
-    protected override void OnSystemAdd()
+    public RecastMeshProcessor([NotNull] IServiceRegistry registry) : base(registry)
     {
-        base.OnSystemAdd();
-        _game = Services.GetService<IGame>();
-        _sceneSystem = Services.GetService<SceneSystem>();
-        _input = Services.GetService<InputManager>();
-        _containerProcessor = _sceneSystem.SceneInstance.Processors.Get<ContainerProcessor>();
-        _shapeCache = Services.GetService<ShapeCacheSystem>();
-    }
+        UpdateOrder = 20000;
+        Enabled = true; //enabled by default
 
-    protected override void OnEntityComponentAdding(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
-    {
-        _boundingBoxes.Add(data);
-    }
+        registry.AddService(this);
 
-    protected override void OnEntityComponentRemoved(Entity entity, [NotNull] BepuNavigationBoundingBoxComponent component, [NotNull] BepuNavigationBoundingBoxComponent data)
-    {
-        _boundingBoxes.Remove(data);
+        _sceneSystem = registry.GetService<SceneSystem>();
+        _input = registry.GetService<InputManager>();
+        _shapeCache = registry.GetService<ShapeCacheSystem>();
+
+        var gameSettings = registry.GetService<IGameSettingsService>();
+        _navSettings = gameSettings.Settings.Configurations.Get<RecastNavigationConfiguration>();
+        _navSettings ??= new();
     }
 
     public override void Update(GameTime time)
     {
+        _containerProcessor ??= _sceneSystem.SceneInstance.Processors.Get<ContainerProcessor>();
+
         if (_runningRebuild?.Status == TaskStatus.RanToCompletion)
         {
             _navMesh = _runningRebuild.Result;
             _runningRebuild = null;
-
-            List<Vector3> strideVerts = new List<Vector3>();
-            for (int i = 0; i < _navMesh.GetTileCount(); i++)
-            {
-                for (int j = 0; j < _navMesh.GetTile(i).data.verts.Length;)
-                {
-                    strideVerts.Add(
-                        new Vector3(_navMesh.GetTile(i).data.verts[j++], _navMesh.GetTile(i).data.verts[j++], _navMesh.GetTile(i).data.verts[j++])
-                        );
-                }
-            }
-            SpawPrefabAtVerts(strideVerts);
-        }
-
-#warning Remove debug logic
-        if (_input.IsKeyPressed(Keys.Space))
-        {
-            RebuildNavMesh();
         }
     }
 
@@ -95,11 +78,13 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         _rebuildingTask.Cancel();
         _rebuildingTask = new CancellationTokenSource();
 
+        _stopwatch.Start();
+
         // Fetch mesh data from the scene - this may be too slow
         // There are a couple of avenues we could go down into to fix this but none of them are easy
         // Something we'll have to investigate later.
         var asyncInput = new AsyncInput();
-        for (var e = _containerProcessor.ComponentDataEnumerator; e.MoveNext(); )
+        for (var e = _containerProcessor.ComponentDataEnumerator; e.MoveNext();)
         {
             var container = e.Current.Value;
 
@@ -116,37 +101,41 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
             asyncInput.matrices.Add((container.Entity.Transform.WorldMatrix, shapeCount));
         }
 
+        _stopwatch.Stop();
+        LastShapeCacheTime = _stopwatch.Elapsed;
+        _stopwatch.Reset();
+
         var settingsCopy = new RcNavMeshBuildSettings
         {
-            cellSize = _navSettings.cellSize,
-            cellHeight = _navSettings.cellHeight,
-            agentHeight = _navSettings.agentHeight,
-            agentRadius = _navSettings.agentRadius,
-            agentMaxClimb = _navSettings.agentMaxClimb,
-            agentMaxSlope = _navSettings.agentMaxSlope,
-            agentMaxAcceleration = _navSettings.agentMaxAcceleration,
-            agentMaxSpeed = _navSettings.agentMaxSpeed,
-            minRegionSize = _navSettings.minRegionSize,
-            mergedRegionSize = _navSettings.mergedRegionSize,
-            partitioning = _navSettings.partitioning,
-            filterLowHangingObstacles = _navSettings.filterLowHangingObstacles,
-            filterLedgeSpans = _navSettings.filterLedgeSpans,
-            filterWalkableLowHeightSpans = _navSettings.filterWalkableLowHeightSpans,
-            edgeMaxLen = _navSettings.edgeMaxLen,
-            edgeMaxError = _navSettings.edgeMaxError,
-            vertsPerPoly = _navSettings.vertsPerPoly,
-            detailSampleDist = _navSettings.detailSampleDist,
-            detailSampleMaxError = _navSettings.detailSampleMaxError,
-            tiled = _navSettings.tiled,
-            tileSize = _navSettings.tileSize,
+            cellSize = _navSettings.BuildSettings.cellSize,
+            cellHeight = _navSettings.BuildSettings.cellHeight,
+            agentHeight = _navSettings.BuildSettings.agentHeight,
+            agentRadius = _navSettings.BuildSettings.agentRadius,
+            agentMaxClimb = _navSettings.BuildSettings.agentMaxClimb,
+            agentMaxSlope = _navSettings.BuildSettings.agentMaxSlope,
+            agentMaxAcceleration = _navSettings.BuildSettings.agentMaxAcceleration,
+            //agentMaxSpeed = _navSettings.BuildSettings.agentMaxSpeed,
+            minRegionSize = _navSettings.BuildSettings.minRegionSize,
+            mergedRegionSize = _navSettings.BuildSettings.mergedRegionSize,
+            partitioning = _navSettings.BuildSettings.partitioning,
+            filterLowHangingObstacles = _navSettings.BuildSettings.filterLowHangingObstacles,
+            filterLedgeSpans = _navSettings.BuildSettings.filterLedgeSpans,
+            filterWalkableLowHeightSpans = _navSettings.BuildSettings.filterWalkableLowHeightSpans,
+            edgeMaxLen = _navSettings.BuildSettings.edgeMaxLen,
+            edgeMaxError = _navSettings.BuildSettings.edgeMaxError,
+            vertsPerPoly = _navSettings.BuildSettings.vertsPerPoly,
+            detailSampleDist = _navSettings.BuildSettings.detailSampleDist,
+            detailSampleMaxError = _navSettings.BuildSettings.detailSampleMaxError,
+            tiled = _navSettings.BuildSettings.tiled,
+            tileSize = _navSettings.BuildSettings.tileSize,
         };
         var token = _rebuildingTask.Token;
-        var task = Task.Run(() => _navMesh = CreateNavMesh(settingsCopy, asyncInput, token), token);
+        var task = Task.Run(() => _navMesh = CreateNavMesh(settingsCopy, asyncInput, _navSettings.UsableThreadCount, token), token);
         _runningRebuild = task;
         return task;
     }
 
-    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, AsyncInput input, CancellationToken cancelToken)
+    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, AsyncInput input, int threads, CancellationToken cancelToken)
     {
         // /!\ THIS IS NOT RUNNING ON THE MAIN THREAD /!\
 
@@ -173,8 +162,8 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
                 for (int i = 0; i < shape.Indices.Length; i += 3)
                 {
                     var index0 = shape.Indices[i];
-                    var index1 = shape.Indices[i+1];
-                    var index2 = shape.Indices[i+2];
+                    var index1 = shape.Indices[i + 1];
+                    var index2 = shape.Indices[i + 2];
                     indices.Add(vertexBufferStart + index0);
                     indices.Add(vertexBufferStart + index2);
                     indices.Add(vertexBufferStart + index1);
@@ -197,12 +186,12 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         var spanToPoints = CollectionsMarshal.AsSpan(verts);
         // cast the type of span to read it as if it was a series of contiguous floats instead of contiguous vectors
         var reinterpretedPoints = MemoryMarshal.Cast<VertexPosition3, float>(spanToPoints);
-        StrideGeomProvider geom = new StrideGeomProvider(reinterpretedPoints.ToArray(), indices.ToArray());
+        StrideGeomProvider geom = new(reinterpretedPoints.ToArray(), [.. indices]);
 
         cancelToken.ThrowIfCancellationRequested();
 
         RcPartition partitionType = RcPartitionType.OfValue(_navSettings.partitioning);
-        RcConfig cfg = new RcConfig(
+        RcConfig cfg = new(
             useTiles: true,
             _navSettings.tileSize,
             _navSettings.tileSize,
@@ -229,12 +218,12 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
 
         cancelToken.ThrowIfCancellationRequested();
 
-        List<DtMeshData> dtMeshes = new();
-        foreach (RcBuilderResult result in new RcBuilder().BuildTiles(geom, cfg, Task.Factory))
+        List<DtMeshData> dtMeshes = [];
+        foreach (RcBuilderResult result in new RcBuilder().BuildTiles(geom, cfg, true, false, threads, cancellation: cancelToken))
         {
             DtNavMeshCreateParams navMeshCreateParams = DemoNavMeshBuilder.GetNavMeshCreateParams(geom, _navSettings.cellSize, _navSettings.cellHeight, _navSettings.agentHeight, _navSettings.agentRadius, _navSettings.agentMaxClimb, result);
-            navMeshCreateParams.tileX = result.tileX;
-            navMeshCreateParams.tileZ = result.tileZ;
+            navMeshCreateParams.tileX = result.TileX;
+            navMeshCreateParams.tileZ = result.TileZ;
             DtMeshData dtMeshData = DtNavMeshBuilder.CreateNavMeshData(navMeshCreateParams);
             if (dtMeshData != null)
             {
@@ -252,7 +241,7 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         option.tileHeight = _navSettings.tileSize * _navSettings.cellSize;
         option.maxTiles = GetMaxTiles(geom, _navSettings.cellSize, _navSettings.tileSize);
         option.maxPolys = GetMaxPolysPerTile(geom, _navSettings.cellSize, _navSettings.tileSize);
-        DtNavMesh navMesh = new DtNavMesh(option, _navSettings.vertsPerPoly);
+        DtNavMesh navMesh = new(option, _navSettings.vertsPerPoly);
         foreach (DtMeshData dtMeshData1 in dtMeshes)
         {
             navMesh.AddTile(dtMeshData1, 0, 0L);
@@ -283,57 +272,189 @@ public class RecastMeshProcessor : EntityProcessor<BepuNavigationBoundingBoxComp
         return Math.Min(DtUtils.Ilog2(DtUtils.NextPow2(num * num2)), 14);
     }
 
-    private static int[] GetTiles(DemoInputGeomProvider geom, float cellSize, int tileSize)
+    public bool TryFindPath(Vector3 start, Vector3 end, ref List<long> polys, ref List<Vector3> smoothPath)
     {
-        RcCommons.CalcGridSize(geom.GetMeshBoundsMin(), geom.GetMeshBoundsMax(), cellSize, out var sizeX, out var sizeZ);
-        int num = (sizeX + tileSize - 1) / tileSize;
-        int num2 = (sizeZ + tileSize - 1) / tileSize;
-        return [num, num2];
+        if (_navMesh is null) return false;
+
+        var queryFilter = new DtQueryDefaultFilter();
+        _dtNavMeshQuery = new DtNavMeshQuery(_navMesh);
+
+        _dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), polyPickExt, queryFilter, out var startRef, out var _, out var _);
+
+        _dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), polyPickExt, queryFilter, out var endRef, out var _, out var _);
+        // find the nearest point on the navmesh to the start and end points
+        var result = FindFollowPath(_dtNavMeshQuery, startRef, endRef, start.ToDotRecastVector(), end.ToDotRecastVector(), queryFilter, true, ref polys, ref smoothPath);
+
+        return result.Succeeded();
     }
 
-#warning this is just me debugging should remove later
-    private void SpawPrefabAtVerts(List<Vector3> verts)
+    public List<Vector3>? GetNavMeshTiles()
     {
-        // Make sure the cube is a root asset or else this wont load
-        var cube = _game.Content.Load<Model>("Cube");
-        foreach (var vert in verts)
+        if (_navMesh is null) return null;
+
+        List<Vector3> verts = [];
+
+        for (int i = 0; i < _navMesh.GetMaxTiles(); i++)
         {
-            AddMesh(_game.GraphicsDevice, _sceneSystem.SceneInstance.RootScene.Children[0], vert, cube.Meshes[0].Draw);
-        }
-    }
-    Entity AddMesh(GraphicsDevice graphicsDevice, Scene rootScene, Vector3 position, MeshDraw meshDraw)
-    {
-        var entity = new Entity { Scene = rootScene, Transform = { Position = position } };
-        var model = new Model
-        {
-        new MaterialInstance
-        {
-            Material = Material.New(graphicsDevice, new MaterialDescriptor
+            var tile = _navMesh.GetTile(i);
+            if (tile != null && tile.data != null)
             {
-                Attributes = new MaterialAttributes
+                for (int j = 0; j < tile.data.verts.Length; j += 3)
                 {
-                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
-                    Diffuse = new MaterialDiffuseMapFeature
-                    {
-                        DiffuseMap = new ComputeVertexStreamColor()
-                    },
+                    var point = new Vector3(
+                        tile.data.verts[j],
+                        tile.data.verts[j + 1],
+                        tile.data.verts[j + 2]);
+                    verts.Add(point);
                 }
-            })
-        },
-        new Mesh
-        {
-            Draw = meshDraw,
-            MaterialIndex = 0
+            }
         }
-        };
-        entity.Add(new ModelComponent { Model = model });
-        return entity;
+
+        return verts;
+    }
+
+    public static DtStatus FindFollowPath(DtNavMeshQuery navQuery, long startRef, long endRef, RcVec3f startPt, RcVec3f endPt, IDtQueryFilter filter, bool enableRaycast, ref List<long> polys, ref List<Vector3> smoothPath)
+    {
+        if (startRef == 0 || endRef == 0)
+        {
+            polys?.Clear();
+            smoothPath?.Clear();
+
+            return DtStatus.DT_FAILURE;
+        }
+
+        polys ??= [];
+        smoothPath ??= [];
+
+        polys.Clear();
+        smoothPath.Clear();
+
+        var opt = new DtFindPathOption(enableRaycast ? DtFindPathOptions.DT_FINDPATH_ANY_ANGLE : 0, float.MaxValue);
+        navQuery.FindPath(startRef, endRef, startPt, endPt, filter, ref polys, opt);
+        if (0 >= polys.Count)
+            return DtStatus.DT_FAILURE;
+
+        // Iterate over the path to find smooth path on the detail mesh surface.
+        navQuery.ClosestPointOnPoly(startRef, startPt, out var iterPos, out _);
+        navQuery.ClosestPointOnPoly(polys[polys.Count - 1], endPt, out var targetPos, out _);
+
+        float STEP_SIZE = 0.5f;
+        float SLOP = 0.01f;
+
+        smoothPath.Clear();
+        smoothPath.Add(iterPos.ToStrideVector());
+        var visited = new List<long>();
+
+        // Move towards target a small advancement at a time until target reached or
+        // when ran out of memory to store the path.
+        while (0 < polys.Count && smoothPath.Count < MaxSmooth)
+        {
+            // Find location to steer towards.
+            if (!DtPathUtils.GetSteerTarget(navQuery, iterPos, targetPos, SLOP,
+                    polys, out var steerPos, out var steerPosFlag, out _))
+            {
+                break;
+            }
+
+            bool endOfPath = (steerPosFlag & DtStraightPathFlags.DT_STRAIGHTPATH_END) != 0;
+            bool offMeshConnection = (steerPosFlag & DtStraightPathFlags.DT_STRAIGHTPATH_OFFMESH_CONNECTION) != 0;
+
+            // Find movement delta.
+            RcVec3f delta = RcVec3f.Subtract(steerPos, iterPos);
+            float len = MathF.Sqrt(RcVec3f.Dot(delta, delta));
+            // If the steer target is end of path or off-mesh link, do not move past the location.
+            if ((endOfPath || offMeshConnection) && len < STEP_SIZE)
+            {
+                len = 1;
+            }
+            else
+            {
+                len = STEP_SIZE / len;
+            }
+
+            RcVec3f moveTgt = RcVecUtils.Mad(iterPos, delta, len);
+
+            // Move
+            navQuery.MoveAlongSurface(polys[0], iterPos, moveTgt, filter, out var result, ref visited);
+
+            iterPos = result;
+
+            polys = DtPathUtils.MergeCorridorStartMoved(polys, 0, 256, visited);
+            polys = DtPathUtils.FixupShortcuts(polys, navQuery);
+
+            var status = navQuery.GetPolyHeight(polys[0], result, out var h);
+            if (status.Succeeded())
+            {
+                iterPos.Y = h;
+            }
+
+            // Handle end of path and off-mesh links when close enough.
+            //if (endOfPath && DtPathUtils.InRange(iterPos, steerPos, SLOP, 1.0f))
+            //{
+            //	// Reached end of path.
+            //	iterPos = targetPos;
+            //	if (smoothPath.Count < MaxSmooth)
+            //	{
+            //		smoothPath.Add(iterPos.ToStrideVector());
+            //	}
+            //
+            //	break;
+            //}
+            //else if (offMeshConnection && DtPathUtils.InRange(iterPos, steerPos, SLOP, 1.0f))
+            //{
+            //	// Reached off-mesh connection.
+            //	RcVec3f startPos = RcVec3f.Zero;
+            //	RcVec3f endPos = RcVec3f.Zero;
+            //
+            //	// Advance the path up to and over the off-mesh connection.
+            //	long prevRef = 0;
+            //	long polyRef = polys[0];
+            //	int npos = 0;
+            //	while (npos < polys.Count && polyRef != steerPosRef)
+            //	{
+            //		prevRef = polyRef;
+            //		polyRef = polys[npos];
+            //		npos++;
+            //	}
+            //
+            //	polys = polys.GetRange(npos, polys.Count - npos);
+            //
+            //	// Handle the connection.
+            //	var status2 = navMesh.GetOffMeshConnectionPolyEndPoints(prevRef, polyRef, ref startPos, ref endPos);
+            //	if (status2.Succeeded())
+            //	{
+            //		if (smoothPath.Count < MaxSmooth)
+            //		{
+            //			smoothPath.Add(startPos.ToStrideVector());
+            //			// Hack to make the dotted path not visible during off-mesh connection.
+            //			if ((smoothPath.Count & 1) != 0)
+            //			{
+            //				smoothPath.Add(startPos.ToStrideVector());
+            //			}
+            //		}
+            //
+            //		// Move position at the other side of the off-mesh link.
+            //		iterPos = endPos;
+            //		navQuery.GetPolyHeight(polys[0], iterPos, out var eh);
+            //		iterPos.Y = eh;
+            //	}
+            //}
+
+            // Store results.
+            if (smoothPath.Count < MaxSmooth)
+            {
+                smoothPath.Add(iterPos.ToStrideVector());
+            }
+        }
+
+        return DtStatus.DT_SUCCESS;
     }
 
     class AsyncInput
     {
-        public List<BasicMeshBuffers> shapeData = new();
-        public List<ShapeTransform> transformsOut = new();
-        public List<(Matrix entity, int count)> matrices = new();
+        public List<BasicMeshBuffers> shapeData = [];
+        public List<ShapeTransform> transformsOut = [];
+        public List<(Matrix entity, int count)> matrices = [];
     }
+
 }
